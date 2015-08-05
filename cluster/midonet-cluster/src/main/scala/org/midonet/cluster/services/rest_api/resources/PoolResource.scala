@@ -26,7 +26,6 @@ import scala.util.control.NonFatal
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Pool, UriResource}
@@ -42,7 +41,6 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoCont
                    APPLICATION_JSON))
 @AllowUpdate(Array(APPLICATION_POOL_JSON,
                    APPLICATION_JSON))
-@AllowDelete
 class PoolResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Pool](resContext) {
 

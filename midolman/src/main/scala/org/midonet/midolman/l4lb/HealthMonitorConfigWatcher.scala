@@ -24,7 +24,7 @@ import scala.collection.mutable.{HashSet => MSet, Map => MMap}
 import akka.actor.{Actor, ActorRef, Props}
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.simulation.{VIP => SimVIP, LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember}
+import org.midonet.midolman.simulation.{Vip => SimVip, LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember}
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{LoadBalancerRequest, PoolHealthMonitorMapRequest}
@@ -66,7 +66,7 @@ object HealthMonitorConfigWatcher {
             null
         } else {
             val vips = new MSet[VipConfig]
-            for (vip : SimVIP <- data.vips) {
+            for (vip : SimVip <- data.vips) {
                 vips add new VipConfig(vip.adminStateUp,
                                        vip.id,
                                        if (vip.address == null) null

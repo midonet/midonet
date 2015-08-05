@@ -20,15 +20,14 @@ import java.util.UUID
 
 import scala.collection.JavaConversions.iterableAsScalaIterable
 
-import org.midonet.midolman.simulation.{VIP, LoadBalancer, PoolMember}
-import org.midonet.midolman.state.l4lb.VipSessionPersistence
+import org.midonet.midolman.simulation.{Vip, LoadBalancer, PoolMember}
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.packets.IPv4Addr
 
 case class PoolHealthMonitor(healthMonitor: HealthMonitor,
                              loadBalancer: LoadBalancer,
-                             vips: Iterable[VIP],
+                             vips: Iterable[Vip],
                              poolMembers: Iterable[PoolMember]) {
 
     override def toString =
@@ -49,15 +48,14 @@ object PoolHealthMonitor {
                                    phmc.healthMonitorConfig.config.timeout,
                                    phmc.healthMonitorConfig.config.maxRetries)
 
-        val vips = iterableAsScalaIterable(phmc.vipConfigs).map(v => new VIP(
+        val vips = iterableAsScalaIterable(phmc.vipConfigs).map(v => new Vip(
             v.persistedId,
             v.config.adminStateUp,
             v.config.poolId,
             if (v.config.address == null) null
             else IPv4Addr.fromString(v.config.address),
             v.config.protocolPort,
-            v.config.sessionPersistence,
-            v.config.loadBalancerId))
+            v.config.sessionPersistence))
 
         val lb = new LoadBalancer(phmc.loadBalancerConfig.persistedId,
                                   phmc.loadBalancerConfig.config.adminStateUp,

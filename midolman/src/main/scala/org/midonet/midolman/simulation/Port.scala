@@ -18,7 +18,10 @@ package org.midonet.midolman.simulation
 
 import java.util.{ArrayList, UUID}
 
+import scala.collection.JavaConverters._
+
 import akka.actor.ActorSystem
+
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
@@ -32,12 +35,10 @@ import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 
-import scala.collection.JavaConverters._
-
 object Port {
     import IPAddressUtil._
     import IPSubnetUtil._
-    import org.midonet.cluster.util.UUIDUtil.{fromProto, fromProtoList}
+    import UUIDUtil.{fromProto, fromProtoList}
 
     private implicit def jlistToSSet(from: java.util.List[Commons.UUID]): Set[UUID] =
         if (from ne null) from.asScala.toSet map UUIDUtil.fromProto else Set.empty
@@ -245,6 +246,13 @@ trait Port extends VirtualDevice with Cloneable {
         context.addFlowTag(txTag)
         egressAdminState(context, as)
     }
+
+    override def toString =
+        s"id=$id active=$isActive adminStateUp=$adminStateUp " +
+        s"inboundFilter=$inboundFilter outboundFilter=$outboundFilter " +
+        s"tunnelKey=$tunnelKey portGroups=$portGroups peerId=$peerId " +
+        s"hostId=$hostId interfaceName=$interfaceName vlanId=$vlanId"
+
 }
 
 object BridgePort {
@@ -280,6 +288,9 @@ case class BridgePort(override val id: UUID,
             outFilter(context, as)
         }
     }
+
+    override def toString =
+        s"BridgePort [${super.toString} networkId=$networkId]"
 }
 
 case class RouterPort(override val id: UUID,
@@ -329,6 +340,11 @@ case class RouterPort(override val id: UUID,
             context.addGeneratedPacket(from.id, ethOpt.get)
         }
     }
+
+    override def toString =
+        s"RouterPort [${super.toString} routerId=$routerId " +
+        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac " +
+        s"routeIds=$routeIds]"
 }
 
 case class VxLanPort(override val id: UUID,
@@ -357,4 +373,7 @@ case class VxLanPort(override val id: UUID,
 
     override def toggleActive(active: Boolean) = this
     override def updateInboundFilter(filter: UUID) = copy(inboundFilter = filter)
+
+    override def toString =
+        s"VxLanPort [${super.toString} networkId=$networkId vtepId=$vtepId]"
 }

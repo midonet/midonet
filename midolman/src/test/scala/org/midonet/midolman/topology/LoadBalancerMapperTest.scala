@@ -18,9 +18,7 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import scala.collection.JavaConverters._
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -28,16 +26,15 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
-import org.midonet.cluster.models.Topology.Vip.SessionPersistence
-import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, Pool => TopologyPool, Vip => TopologyVip}
+import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
+import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLb, Pool => TopologyPool, Vip}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVIP}
+import org.midonet.midolman.simulation.{LoadBalancer => SimulationLb}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.packets.IPv4Addr
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -56,6 +53,8 @@ class LoadBalancerMapperTest extends MidolmanSpec
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
+    implicit def asIPAddress(str: String): IPv4Addr = IPv4Addr(str)
+
     feature("The load-balancer mapper emits proper simulation objects") {
         scenario("The mapper emits error for non-existing load-balancers") {
             Given("A load-balancer identifier")
@@ -65,7 +64,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             val mapper = new LoadBalancerMapper(id, vt)
 
             And("An observer to the load-balancer mapper")
-            val obs = new DeviceObserver[SimLB](vt)
+            val obs = new DeviceObserver[SimulationLb](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -73,281 +72,520 @@ class LoadBalancerMapperTest extends MidolmanSpec
             Then("The observer should see a NotFoundException")
             obs.awaitCompletion(timeout)
             val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
-            e.clazz shouldBe classOf[TopologyLB]
+            e.clazz shouldBe classOf[TopologyLb]
             e.id shouldBe id
         }
 
-        scenario("Adding-removing vips from the load-balancer") {
-            Given("A load-balancer with no vips")
-            val protoLB = buildAndStoreLB()
-            val protoPool = buildAndStorePool(protoLB)
-
-            Then("When we subscribe to the load-balancer observable")
-            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
-            val observable = Observable.create(lbMapper)
-            val obs = new DeviceObserver[SimLB](vt)
-            observable.subscribe(obs)
-
-            Then("We obtain a simulation load-balancer with no vips")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents should have size 1
-            var simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf protoLB
-
-            And("When we add a vip to the load-balancer")
-            val vip1 = buildAndStoreVip(protoLB.getId, protoPool.getId)
-            var updatedProtoLB = getLB(protoLB.getId)
-
-            Then("We receive the load-balancer with one vip")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents should have size 2
-            simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf updatedProtoLB
-            assertVips(List(vip1), simLB.vips)
-
-            And("When we update the vip")
-            val updatedVip1 = vip1.toBuilder
-                .setAdminStateUp(false)
-                .build()
-            store.update(updatedVip1)
-
-            Then("We receive the load-balancer with the updated vip")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents should have size 3
-            simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf updatedProtoLB
-            assertVips(List(updatedVip1), simLB.vips)
-
-            And("When we add a 2nd vip to the load-balancer")
-            val vip2 = buildAndStoreVip(protoLB.getId, protoPool.getId)
-            updatedProtoLB = getLB(protoLB.getId)
-
-            Then("We receive the load-balancer with 2 vips")
-            obs.awaitOnNext(4, timeout) shouldBe true
-            obs.getOnNextEvents should have size 4
-            simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf updatedProtoLB
-            assertVips(List(updatedVip1, vip2), simLB.vips)
-
-            When("We remove all vips from the load-balancer")
-            updatedProtoLB = removeVipsFromLoadBalancer(updatedProtoLB)
-
-            Then("We receive the load-balancer with no vips")
-            obs.awaitOnNext(5, timeout) shouldBe true
-            obs.getOnNextEvents should have size 5
-            simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf updatedProtoLB
-            assertVips(List.empty, simLB.vips)
-
-            And("When we update one of the vips and the load-balancer")
-            val protoLB2 = buildAndStoreLB()
-            val protoPool2 = buildAndStorePool(protoLB2)
-            store.update(vip2.toBuilder
-                             .clearLoadBalancerId()
-                             .setPoolId(protoPool2.getId)
-                             .build())
-            store.update(updatedProtoLB.toBuilder
-                             .setAdminStateUp(false)
-                             .build())
-
-            Then("We receive only one update")
-            obs.awaitOnNext(6, timeout) shouldBe true
-            obs.getOnNextEvents should have size 6
-        }
-
-        scenario("Clearing the load-balancer id field in the VIP") {
-            Given("A load-balancer with one vip")
-            val protoLB = buildAndStoreLB()
-            val protoPool = buildAndStorePool(protoLB)
-            val vip = buildAndStoreVip(protoLB.getId, protoPool.getId)
-            var updatedProtoLB = getLB(protoLB.getId)
-
-            Then("When we subscribe to the load-balancer observable")
-            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
-            val observable = Observable.create(lbMapper)
-            val obs = new DeviceObserver[SimLB](vt)
-            observable.subscribe(obs)
-
-            Then("We obtain a simulation load-balancer with one vip")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents should have size 1
-            var simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf updatedProtoLB
-
-            And("When we clear the load-balancer id field in the vip")
-            val updatedVIP = vip.toBuilder.clearLoadBalancerId().build()
-            store.update(updatedVIP)
-            updatedProtoLB = getLB(protoLB.getId)
-
-            Then("We obtain only one load-balancer with no vips")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents should have size 2
-            simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf updatedProtoLB
-        }
-
-        scenario("Updating the load-balancer with an identical object") {
+        scenario("The mapper emit existing load-balancer") {
             Given("A load-balancer")
-            val protoLB = buildAndStoreLB()
-
-            Then("When we subscribe to the load-balancer observable")
-            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
-            val observable = Observable.create(lbMapper)
-            val obs = new DeviceObserver[SimLB](vt)
-            observable.subscribe(obs)
-
-            Then("We obtain a simulation load-balancer")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents should have size 1
-            var simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf protoLB
-
-            And("When we update the load-balancer with the same object" +
-                " and then we update its admin state")
-            val updatedProtoLB = protoLB.toBuilder.setAdminStateUp(false)
-                .build()
-            store.multi(List(UpdateOp(protoLB), UpdateOp(updatedProtoLB)))
-
-            Then("We obtain a single simulation load-balancer update")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents should have size 2
-            simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf updatedProtoLB
-        }
-
-        scenario("Updating the vip with an identical object") {
-            Given("A load-balancer with one vip")
-            val protoLB = buildAndStoreLB()
-            val protoPool = buildAndStorePool(protoLB)
-            val vip = buildAndStoreVip(protoLB.getId, protoPool.getId)
-            val updatedProtoLB = getLB(protoLB.getId)
-
-            Then("When we subscribe to the load-balancer observable")
-            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
-            val observable = Observable.create(lbMapper)
-            val obs = new DeviceObserver[SimLB](vt)
-            observable.subscribe(obs)
-
-            Then("We obtain a simulation load-balancer")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents should have size 1
-            var simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf updatedProtoLB
-
-            And("When we update the VIP with the same object" +
-                " and then we update its admin state")
-            val updatedVIP = vip.toBuilder.setAdminStateUp(false).build()
-            store.multi(List(UpdateOp(vip), UpdateOp(updatedVIP)))
-
-            Then("We obtain a single simulation load-balancer update")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents should have size 2
-            simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf updatedProtoLB
-        }
-
-        scenario("Deleting a load-balancer") {
-            Given("A load-balancer")
-            val protoLB = buildAndStoreLB()
-
-            Then("When we subscribe to the load-balancer observable")
-            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
-            val observable = Observable.create(lbMapper)
-            val obs = new DeviceObserver[SimLB](vt)
-            observable.subscribe(obs)
-
-            Then("We obtain a simulation load-balancer with no vips")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            val simLB = obs.getOnNextEvents.asScala.last
-            simLB shouldBeDeviceOf protoLB
-
-            And("When we delete the load-balancer")
-            store.delete(classOf[TopologyLB], protoLB.getId)
-
-            Then("The mapper emits an on complete notification")
-            obs.awaitCompletion(timeout)
-            obs.getOnCompletedEvents should have size 1
-        }
-
-        scenario("Mapper does not emit LB until all VIPs are loaded") {
-            Given("A load-balancer with two VIPs")
-            val loadBalancer = createLoadBalancer()
-            val vip1 = createVip(loadBalancerId = Some(loadBalancer.getId))
-            val vip2 = createVip(loadBalancerId = Some(loadBalancer.getId))
-            store.multi(Seq(CreateOp(loadBalancer), CreateOp(vip1),
-                            CreateOp(vip2)))
-
-            And("A load-balancer observer")
-            val obs = new DeviceObserver[SimLB](vt)
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            store.create(lb)
 
             And("A load-balancer mapper")
-            val mapper = new LoadBalancerMapper(loadBalancer.getId, vt)
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
-            And("Requesting the VIPs to have them cached in store")
-            val obsVip = new TestObserver[TopologyVip]
-                             with AwaitableObserver[TopologyVip]
-            vt.store.observable(classOf[TopologyVip], vip1.getId)
-                .subscribe(obsVip)
-            vt.store.observable(classOf[TopologyVip], vip2.getId)
-                .subscribe(obsVip)
-            obsVip.awaitOnNext(2, timeout)
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
 
-            And("The observer subscribes to an observable on the mapper")
+            When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
-            Then("The observer should receive the load balancer device")
+            Then("The observer should receive a load-balancer")
             obs.awaitOnNext(1, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(0)
-            device shouldBeDeviceOf loadBalancer.addVipId(vip1.getId)
-                                                .addVipId(vip2.getId)
+            device shouldBeDeviceOf lb
+        }
+
+        scenario("The mapper emits new dvice on load-balancer update") {
+            Given("A load-balancer")
+            val lb1 = createLoadBalancer(adminStateUp = Some(true))
+            store.create(lb1)
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb1.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("The load-balancer is updated")
+            val lb2 = lb1.setAdminStateUp(false)
+            store.update(lb2)
+
+            Then("The observer should receive the update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf lb2
+        }
+
+        scenario("The mapper completes when load-balancer is deleted") {
+            Given("A load-balancer")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            store.create(lb)
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("The load-balancer is deleted")
+            store.delete(classOf[TopologyLb], lb.getId)
+
+            Then("The observer should receive a completed notification")
+            obs.awaitCompletion(timeout)
+            obs.getOnCompletedEvents should not be empty
         }
     }
 
-    private def assertVips(protoVips: List[TopologyVip], simVips: Array[SimVIP])
-    : Unit = {
-        simVips should contain theSameElementsAs protoVips.map(
-            ZoomConvert.fromProto(_, classOf[SimVIP])
-        )
+    feature("The mapper does not emit updates for pools without VIPs") {
+        scenario("Pool added") {
+            Given("A load-balancer")
+            val lb1 = createLoadBalancer(adminStateUp = Some(true))
+            store.create(lb1)
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb1.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("Adding a pool")
+            val pool = createPool(loadBalancerId = Some(lb1.getId))
+            store.create(pool)
+
+            And("Updating the load-balancer to generate another update")
+            val lb2 = lb1.setAdminStateUp(false)
+            store.update(lb2)
+
+            Then("The observer should receive only a load-balancer update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf lb2
+        }
+
+        scenario("Pool updated") {
+            Given("A load-balancer with a pool")
+            val lb1 = createLoadBalancer(adminStateUp = Some(true))
+            val pool1 = createPool(loadBalancerId = Some(lb1.getId))
+            store.multi(Seq(CreateOp(lb1), CreateOp(pool1)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb1.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("Updating the pool")
+            val pool2 = pool1.setAdminStateUp(true)
+            store.update(pool2)
+
+            And("Updating the load-balancer to generate another update")
+            val lb2 = lb1.setAdminStateUp(false)
+            store.update(lb2)
+
+            Then("The observer should receive only a load-balancer update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf lb2
+        }
+
+        scenario("Pool deleted") {
+            Given("A load-balancer with a pool")
+            val lb1 = createLoadBalancer(adminStateUp = Some(true))
+            val pool = createPool(loadBalancerId = Some(lb1.getId))
+            store.multi(Seq(CreateOp(lb1), CreateOp(pool)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb1.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("Deleting the pool")
+            store.delete(classOf[TopologyPool], pool.getId)
+
+            And("Updating the load-balancer to generate another update")
+            val lb2 = lb1.setAdminStateUp(false)
+            store.update(lb2)
+
+            Then("The observer should receive only a load-balancer update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf lb2
+        }
     }
 
-    private def removeVipsFromLoadBalancer(loadBalancer: TopologyLB)
-    : TopologyLB = {
-        val updatedVips = for (vId <- loadBalancer.getVipIdsList.asScala)
-            yield UpdateOp(getVip(vId).toBuilder.clearLoadBalancerId().build)
-        store.multi(updatedVips)
-        getLB(loadBalancer.getId)
+    feature("The mapper emits updates for pools with VIPs") {
+        scenario("Adding a pool with a VIP") {
+            Given("A load-balancer")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            store.create(lb)
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("Adding a pool with a VIP")
+            val pool = createPool(loadBalancerId = Some(lb.getId))
+            val vip = createVip(poolId = Some(pool.getId),
+                                address = Some("10.0.0.1"),
+                                protocolPort = Some(1))
+            store.multi(Seq(CreateOp(pool), CreateOp(vip)))
+
+            Then("The observer should receive the load-balancer with the VIP")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf lb.addPool(pool.getId)
+            device.vips(0) shouldBeDeviceOf vip
+        }
+
+        scenario("Updating a pool with a VIP") {
+            Given("A load-balancer with a pool")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            val pool = createPool(loadBalancerId = Some(lb.getId))
+            store.multi(Seq(CreateOp(lb), CreateOp(pool)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer without a VIP")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(0)
+            device1 shouldBeDeviceOf lb.addPool(pool.getId)
+            device1.vips shouldBe empty
+
+            When("Adding a VIP to the pool")
+            val vip = createVip(poolId = Some(pool.getId),
+                                address = Some("10.0.0.1"),
+                                protocolPort = Some(1))
+            store.create(vip)
+
+            Then("The observer should receive the load-balancer with the VIP")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(1)
+            device2 shouldBeDeviceOf lb.addPool(pool.getId)
+            device2.vips(0) shouldBeDeviceOf vip
+        }
+
+        scenario("Deleting a pool with a VIP") {
+            Given("A load-balancer with a pool with a VIP")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            val pool = createPool(loadBalancerId = Some(lb.getId))
+            val vip = createVip(poolId = Some(pool.getId),
+                                address = Some("10.0.0.1"),
+                                protocolPort = Some(1))
+            store.multi(Seq(CreateOp(lb), CreateOp(pool), CreateOp(vip)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer with the VIP")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(0)
+            device1 shouldBeDeviceOf lb.addPool(pool.getId)
+            device1.vips(0) shouldBeDeviceOf vip
+
+            When("Deleting the pool")
+            store.delete(classOf[TopologyPool], pool.getId)
+
+            Then("The observer should receive the load-balancer without the VIP")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf lb.addPool(pool.getId)
+            device.vips shouldBe empty
+        }
+
+        scenario("Mapper ignores pool updates not affecting the VIPs") {
+            Given("A load-balancer with a pool with a VIP")
+            val lb1 = createLoadBalancer(adminStateUp = Some(true))
+            val pool1 = createPool(loadBalancerId = Some(lb1.getId))
+            val vip = createVip(poolId = Some(pool1.getId),
+                                address = Some("10.0.0.1"),
+                                protocolPort = Some(1))
+            store.multi(Seq(CreateOp(lb1), CreateOp(pool1), CreateOp(vip)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb1.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer with the VIP")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("Updating the pool")
+            val pool2 = pool1.setAdminStateUp(true).addVip(vip.getId)
+            store.update(pool2)
+
+            And("Updating the load-balancer to generate another update")
+            val lb2 = lb1.setAdminStateUp(false)
+            store.update(lb2)
+
+            Then("The observer should receive only a load-balancer update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf lb2
+        }
+
+        scenario("VIPs are ordered by pool") {
+            Given("A load-balancer with two pools each with one hundred VIPs")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            val pool1 = createPool(loadBalancerId = Some(lb.getId))
+            val pool2 = createPool(loadBalancerId = Some(lb.getId))
+            store.multi(Seq(CreateOp(lb), CreateOp(pool1), CreateOp(pool2)))
+            val vips1 = for (index <- 0 until 100) yield {
+                val vip = createVip(poolId = Some(pool1.getId),
+                                    address = Some("10.0.0.1"),
+                                    protocolPort = Some(1))
+                store.create(vip)
+                vip
+            }
+            val vips2 = for (index <- 0 until 100) yield {
+                val vip = createVip(poolId = Some(pool2.getId),
+                                    address = Some("10.0.0.2"),
+                                    protocolPort = Some(1))
+                store.create(vip)
+                vip
+            }
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive a load-balancer with the VIPs")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            for (index <- 0 until 100) {
+                device.vips(index) shouldBeDeviceOf vips1(index)
+                device.vips(index + 100) shouldBeDeviceOf vips2(index)
+            }
+        }
     }
 
-    private def getLB(lbId: UUID): TopologyLB =
-        Await.result(store.get(classOf[TopologyLB], lbId), timeout)
+    feature("The mapper emits updates for VIPs") {
+        scenario("Adding a VIP to an existing pool") {
+            Given("A load-balancer with a pool")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            val pool = createPool(loadBalancerId = Some(lb.getId))
+            store.multi(Seq(CreateOp(lb), CreateOp(pool)))
 
-    private def getVip(vipId: UUID): TopologyVip =
-        Await.result(store.get(classOf[TopologyVip], vipId), timeout)
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
 
-    private def buildAndStoreVip(lbId: UUID,
-                                 poolId: UUID = null): TopologyVip = {
-        val somePoolId = if (poolId != null) Some(poolId)
-        else Some(UUID.randomUUID())
-        val vip = createVip(adminStateUp = Some(true),
-                            poolId = somePoolId,
-                            loadBalancerId = Some(lbId),
-                            sessionPersistence =
-                                Some(SessionPersistence.SOURCE_IP))
-        store.create(vip)
-        vip
-    }
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
 
-    private def buildAndStoreLB(): TopologyLB = {
-        val loadBalancer = createLoadBalancer(adminStateUp = Some(true))
-        store.create(loadBalancer)
-        loadBalancer
-    }
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
 
-    private def buildAndStorePool(loadBalancer: TopologyLB): TopologyPool = {
-        val lb = if (loadBalancer == null) buildAndStoreLB() else loadBalancer
-        val pool = createPool(loadBalancerId = Option(lb.getId),
-                              adminStateUp = Some(true))
-        store.create(pool)
-        pool
+            Then("The observer should receive a load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("Adding a VIP to the pool")
+            val vip = createVip(poolId = Some(pool.getId),
+                                address = Some("10.0.0.1"),
+                                protocolPort = Some(1))
+            store.create(vip)
+
+            Then("The observer should receive the load-balancer with the VIP")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf lb.addPool(pool.getId)
+            device.vips(0) shouldBeDeviceOf vip
+        }
+
+        scenario("Updating a VIP from an existing pool") {
+            Given("A load-balancer with a pool with a VIP")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            val pool = createPool(loadBalancerId = Some(lb.getId))
+            val vip1 = createVip(poolId = Some(pool.getId),
+                                 address = Some("10.0.0.1"),
+                                 protocolPort = Some(1))
+            store.multi(Seq(CreateOp(lb), CreateOp(pool), CreateOp(vip1)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the load-balancer with the VIP")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(0)
+            device1 shouldBeDeviceOf lb.addPool(pool.getId)
+            device1.vips(0) shouldBeDeviceOf vip1
+
+            When("Updating the VIP")
+            val vip2 = vip1.setAddress("10.0.0.2")
+            store.update(vip2)
+
+            Then("The observer should receive the load-balancer with the VIP")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(1)
+            device2 shouldBeDeviceOf lb.addPool(pool.getId)
+            device2.vips(0) shouldBeDeviceOf vip2
+        }
+
+        scenario("Re-assigning a VIP from an existing pool") {
+            Given("A load-balancer with a pool with a VIP")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            val pool = createPool(loadBalancerId = Some(lb.getId))
+            val vip1 = createVip(poolId = Some(pool.getId),
+                                 address = Some("10.0.0.1"),
+                                 protocolPort = Some(1))
+            store.multi(Seq(CreateOp(lb), CreateOp(pool), CreateOp(vip1)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the load-balancer with the VIP")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(0)
+            device1 shouldBeDeviceOf lb.addPool(pool.getId)
+            device1.vips(0) shouldBeDeviceOf vip1
+
+            When("Updating the VIP by clearing the pool")
+            val vip2 = vip1.clearPoolId()
+            store.update(vip2)
+
+            Then("The observer should receive the load-balancer without the VIP")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(1)
+            device2 shouldBeDeviceOf lb.addPool(pool.getId)
+            device2.vips shouldBe empty
+        }
+
+        scenario("Deleting a VIP from an existing pool") {
+            Given("A load-balancer with a pool with a VIP")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            val pool = createPool(loadBalancerId = Some(lb.getId))
+            val vip = createVip(poolId = Some(pool.getId),
+                                address = Some("10.0.0.1"),
+                                protocolPort = Some(1))
+            store.multi(Seq(CreateOp(lb), CreateOp(pool), CreateOp(vip)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the load-balancer with the VIP")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(0)
+            device1 shouldBeDeviceOf lb.addPool(pool.getId)
+            device1.vips(0) shouldBeDeviceOf vip
+
+            When("Deleting the VIP")
+            store.delete(classOf[Vip], vip.getId)
+
+            Then("The observer should receive the load-balancer without the VIP")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(1)
+            device2 shouldBeDeviceOf lb.addPool(pool.getId)
+            device2.vips shouldBe empty
+        }
+
+        scenario("Mapper does not emit LB until all pools are loaded") {
+            Given("A load-balancer with two pools")
+            val lb = createLoadBalancer(adminStateUp = Some(true))
+            val pool1 = createPool(loadBalancerId = Some(lb.getId))
+            val pool2 = createPool(loadBalancerId = Some(lb.getId))
+            store.multi(Seq(CreateOp(lb), CreateOp(pool1), CreateOp(pool2)))
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(lb.getId, vt)
+
+            And("An observer to the load-balancer mapper")
+            val obs = new DeviceObserver[SimulationLb](vt)
+
+            When("Requesting the pools to have them cached in the store")
+            val obsPool = new TestObserver[TopologyPool]
+                             with AwaitableObserver[TopologyPool]
+            vt.store.observable(classOf[TopologyPool], pool1.getId)
+                .subscribe(obsPool)
+            vt.store.observable(classOf[TopologyPool], pool2.getId)
+                .subscribe(obsPool)
+            obsPool.awaitOnNext(2, timeout)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the load-balancer with the pools")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device shouldBeDeviceOf lb.addPool(pool1.getId)
+                .addPool(pool2.getId)
+        }
     }
 }
