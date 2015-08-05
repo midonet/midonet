@@ -115,6 +115,9 @@ task preparePkg(type: Copy, dependsOn: installApp) {
     from("src/deb/init/midonet-cluster-env.sh") {
         into "usr/share/midonet-cluster"
     }
+    from("src/main/python/midonet-cluster-bootstrap") {
+        into "/usr/bin"
+    }
     into "${pkgDestDir}"
     doLast {
         new File("${pkgDestDir}/usr/share/midonet-cluster/lib/${project.name}-${midonetVersion}.jar")

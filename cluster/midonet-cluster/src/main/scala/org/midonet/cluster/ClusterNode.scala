@@ -16,6 +16,7 @@
 
 package org.midonet.cluster
 
+import java.io.File
 import java.nio.file.{Files, Paths}
 import java.util.UUID
 import javax.sql.DataSource
@@ -73,8 +74,9 @@ object ClusterNode extends App {
         System.err.println("OH NO! configuration file is not readable")
         System.exit(1)
     }
-
-    val configurator = MidoNodeConfigurator(configFile)
+    val configurator = MidoNodeConfigurator(
+        ConfigFactory.parseFile(new File (configFile))
+    )
     if (configurator.deployBundledConfig()) {
         log.info("Deployed new configuration schema into NSDB")
     }
