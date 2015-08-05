@@ -70,7 +70,7 @@ class SubnetTranslatorTest extends TranslatorTestBase {
     private val gatewaySubnetCidr = gatewaySubnet.asJava.toString
     private val nSubnetWithGatewayIp = nSubnetFromTxt(s"""
         $nSubnet
-        cidr: "$gatewaySubnetCidr"
+        cidr { $gatewaySubnet }
         ip_version: 4
         gateway_ip { $gatewayIp }
         """)
