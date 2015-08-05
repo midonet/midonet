@@ -46,7 +46,7 @@ class ResourceBase(object):
         return self
 
     def upload(self, uri, body, headers=None):
-        """ Does REST POST with a binary body at some URI """
+        """Does REST POST with a binary body at some URI"""
 
         headers = headers or dict()
         self._ensure_content_type(headers)

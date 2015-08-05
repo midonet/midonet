@@ -64,7 +64,7 @@ class TestUtil(unittest.TestCase):
             return s.upper()
 
         output = util.convert_dict_keys(input, to_upper)
-        self.assertTrue(cmp(expected, output) == 0)
+        self.assertEqual(expected, output)
 
     @ddt.data(
         ({"foo_bar": 0}, {"fooBar": 0}),
@@ -75,11 +75,11 @@ class TestUtil(unittest.TestCase):
 
         @util.convert_case
         def test_method(arg):
-            self.assertTrue(cmp(expected, arg) == 0)
+            self.assertEqual(expected, arg)
             return arg
 
         ret = test_method(inp)
-        self.assertTrue(cmp(inp, ret) == 0)
+        self.assertEqual(inp, ret)
 
 
 def main():

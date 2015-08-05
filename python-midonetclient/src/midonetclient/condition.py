@@ -18,7 +18,8 @@
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
 
-class ConditionBase:
+
+class ConditionBase(object):
     def __init__(self, _dto):
         self._dto = _dto
 
@@ -301,6 +302,7 @@ class ConditionBase:
         self._dto()['vlan'] = vlan
         return self
 
+
 class Condition(resource_base.ResourceBase, ConditionBase):
 
     media_type = vendor_media_type.APPLICATION_CONDITION_JSON
@@ -308,4 +310,3 @@ class Condition(resource_base.ResourceBase, ConditionBase):
     def __init__(self, uri, dto, auth):
         super(Condition, self).__init__(uri, dto, auth)
         ConditionBase.__init__(self, lambda: dto)
-
