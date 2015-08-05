@@ -23,7 +23,7 @@ import akka.actor.ActorSystem
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimulationResult => Result, _}
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
 import org.midonet.util.concurrent.{InstanceStash1, InstanceStash2}
@@ -94,7 +94,7 @@ trait SimDevice {
      */
     def process(pktContext: PacketContext): Result
 
-    private def merge(a: Result, b: Result) : Result = {
+    private def merge(context: PacketContext, a: Result, b: Result) : Result = {
         val result = (a, b) match {
             case (PacketWorkflow.Drop, action) => action
             case (action, PacketWorkflow.Drop) => action
@@ -106,12 +106,12 @@ trait SimDevice {
                 val clazz1 = firstAction.getClass
                 val clazz2 = secondAction.getClass
                 if (clazz1 != clazz2) {
-                    log.error("Matching actions of different types {} & {}!",
+                    context.log.error("Matching actions of different types {} & {}!",
                         clazz1, clazz2)
                 }
                 firstAction
         }
-        log.debug(s"Forked action merged results $result")
+        context.log.debug(s"Forked action merged results $result")
         result
     }
 
@@ -126,7 +126,8 @@ trait SimDevice {
 
     def continue(context: PacketContext, simRes: Result)(
         implicit as: ActorSystem) : Result = simRes match {
-        case ForkAction(first, second) => merge(branch(context, first),
+        case ForkAction(first, second) => merge(context,
+                                                branch(context, first),
                                                 branch(context, second))
         case ToPortAction(port) => tryAsk[Port](port).egress(context, as)
         case res => res
