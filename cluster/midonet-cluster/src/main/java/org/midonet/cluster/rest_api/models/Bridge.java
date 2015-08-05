@@ -75,6 +75,10 @@ public class Bridge extends UriResource {
     @ZoomField(name = "dhcpv6_ids", converter = Converter.class)
     public List<UUID> dhcpv6Ids;
 
+    @JsonIgnore
+    @ZoomField(name = "trace_request_ids", converter = Converter.class)
+    public List<UUID> traceRequestIds;
+
     public Bridge() {
         adminStateUp = true;
     }
@@ -153,5 +157,6 @@ public class Bridge extends UriResource {
         portIds = from.portIds;
         vxLanPortIds = from.vxLanPortIds;
         dhcpIds = from.dhcpIds;
+        traceRequestIds = from.traceRequestIds;
     }
 }

@@ -75,6 +75,10 @@ public class Router extends UriResource {
     @ZoomField(name = "bgp_peer_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> bgpPeerIds;
 
+    @JsonIgnore
+    @ZoomField(name = "trace_request_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> traceRequestIds;
+
     public Router() {
         adminStateUp = true;
     }
@@ -139,6 +143,7 @@ public class Router extends UriResource {
         routeIds = from.routeIds;
         bgpNetworkIds = from.bgpNetworkIds;
         bgpPeerIds = from.bgpPeerIds;
+        traceRequestIds = from.traceRequestIds;
     }
 
 }

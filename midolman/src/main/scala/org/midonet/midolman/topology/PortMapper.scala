@@ -17,8 +17,13 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import rx.Observable
+import scala.collection.mutable
+import scala.collection.JavaConverters._
 
+import rx.Observable
+import rx.subjects.Subject
+
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
@@ -48,16 +53,24 @@ import org.midonet.util.functors.{makeAction0, makeFunc1, makeFunc2}
  *   chainsObservable -->| map(chainUpdated) |->| merge |->| isReady |-->
  *                       +-------------------+  +-------+  +---------+
  */
-final class PortMapper(id: UUID, vt: VirtualTopology)
-        extends DeviceWithChainsMapper[SimulationPort](id, vt) {
+final class PortMapper(id: UUID, vt: VirtualTopology,
+                       _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
+        extends DeviceWithChainsMapper[SimulationPort](id, vt)
+        with TraceRequestChainMapper[SimulationPort] {
 
     override def logSource = s"org.midonet.devices.port.port-$id"
 
     private var currentPort: SimulationPort = null
+    private var traceRequestIds: List[UUID] = List()
+
+    override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
+        _traceChainMap
 
     private lazy val combinator =
         makeFunc2[TopologyPort, Boolean, SimulationPort](
             (port: TopologyPort, active: Boolean) => {
+                traceRequestIds = port.getTraceRequestIdsList()
+                    .asScala.map(_.asJava).toList
                 SimulationPort(port).toggleActive(active)
             })
 
@@ -75,6 +88,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
 
     protected override val observable = Observable
         .merge(chainsObservable.map[SimulationPort](makeFunc1(chainUpdated)),
+               traceChainObservable.map[SimulationPort](makeFunc1(traceUpdated)),
                portObservable.map[SimulationPort](makeFunc1(portUpdated)))
         .filter(makeFunc1(isPortReady))
 
@@ -86,14 +100,29 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
         // Request the chains for this port.
         requestChains(port.inboundFilter, port.outboundFilter)
 
+        requestTraceChain(Option(port.inboundFilter), traceRequestIds)
+
         currentPort = port
         port
+    }
+
+
+    protected def traceUpdated(traceChain: Option[UUID]): SimulationPort = {
+        if (currentPort != null) {
+            traceChain match {
+                case Some(c) => currentPort.updateInboundFilter(c)
+                case None => currentPort.updateInboundFilter(null)
+            }
+        } else {
+            null
+        }
     }
 
     /** Handles the deletion of the simulation port. */
     private def portDeleted(): Unit = {
         log.debug("Port deleted")
         completeChains()
+        completeTraceChain()
     }
 
     /** Handles updates to the chains. */
@@ -107,6 +136,6 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
       * receiving all of the following: port, port active state, and port filter
       * chains. */
     private def isPortReady(port: SimulationPort): Boolean = {
-        (currentPort ne null) && areChainsReady
+        (currentPort ne null) && areChainsReady && isTracingReady
     }
 }
