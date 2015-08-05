@@ -55,6 +55,11 @@ class RouterResource @Inject()(resContext: ResourceContext)
         new RouterPortResource(id, resContext)
     }
 
+    @Path("{id}/peer_ports")
+    def peerPorts(@PathParam("id") id: UUID): RouterPeerPortResource = {
+        new RouterPeerPortResource(id, resContext)
+    }
+
     @Path("{id}/routes")
     def routes(@PathParam("id") id: UUID): RouterRouteResource = {
         new RouterRouteResource(id, resContext)

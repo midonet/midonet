@@ -1012,9 +1012,6 @@ public class TestPort {
 
         @Test
         public void testLinkUnlink() {
-
-            Assume.assumeFalse(FuncTest.isAwaitingImpl());
-
             DtoRouter router1 = topology.getRouter("router1");
             DtoRouter router2 = topology.getRouter("router2");
             DtoBridge bridge1 = topology.getBridge("bridge1");
