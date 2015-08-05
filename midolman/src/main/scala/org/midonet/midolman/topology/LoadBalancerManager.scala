@@ -32,16 +32,15 @@ import org.midonet.packets.{IPAddr, IPv4Addr}
 object LoadBalancerManager {
     case class TriggerUpdate(cfg: LoadBalancerConfig, vips: Set[VIP])
 
-    private def toSimulationVip(dataVip: VIP): simulation.VIP =
-        new simulation.VIP(
+    private def toSimulationVip(dataVip: VIP): simulation.Vip =
+        new simulation.Vip(
             dataVip.getId,
             dataVip.getAdminStateUp,
             dataVip.getPoolId,
             if (dataVip.getAddress eq null) null
             else IPAddr.fromString(dataVip.getAddress),
             dataVip.getProtocolPort,
-            dataVip.getSessionPersistence,
-            dataVip.getLoadBalancerId)
+            dataVip.getSessionPersistence)
 }
 
 class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
