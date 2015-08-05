@@ -34,6 +34,24 @@
       "revId": "76d8fabb2d4143593228a718ef2c2f34d131ce53",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ad66ff4e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-05T11:44:43Z",
+      "side": 0,
+      "message": "Ah, there\u0027s a logger in with the same name in VTA redirector.",
+      "parentUuid": "9ad9bd40_9f77a19f",
+      "revId": "76d8fabb2d4143593228a718ef2c2f34d131ce53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
