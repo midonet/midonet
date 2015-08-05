@@ -25,11 +25,9 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
-import org.midonet.midolman.simulation.VIP
-import org.midonet.midolman.state.l4lb.VipSessionPersistence
+import org.midonet.midolman.simulation.Vip
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
@@ -43,26 +41,12 @@ class VipConversionTest extends FeatureSpec
     feature("Conversion for VIP") {
         scenario("From Protocol Buffer message") {
             val proto = createVip(adminStateUp = Some(true),
-                                  loadBalancerId = Some(UUID.randomUUID()),
                                   poolId = Some(UUID.randomUUID()),
                                   address = Some(IPv4Addr.random),
                                   protocolPort = Some(random.nextInt()),
                                   sessionPersistence =
                                       Some(SessionPersistence.SOURCE_IP))
-            val zoomObj = ZoomConvert.fromProto(proto, classOf[VIP])
-            zoomObj shouldBeDeviceOf proto
-        }
-
-        scenario("To Protocol Buffer message") {
-            val zoomObj = new VIP(id = UUID.randomUUID(),
-                                  adminStateUp = true,
-                                  poolId = UUID.randomUUID(),
-                                  address = IPv4Addr.random,
-                                  protocolPort = random.nextInt(),
-                                  sessionPersistence =
-                                      VipSessionPersistence.SOURCE_IP,
-                                  loadBalancerId = UUID.randomUUID())
-            val proto = ZoomConvert.toProto(zoomObj, classOf[Topology.Vip])
+            val zoomObj = ZoomConvert.fromProto(proto, classOf[Vip])
             zoomObj shouldBeDeviceOf proto
         }
     }

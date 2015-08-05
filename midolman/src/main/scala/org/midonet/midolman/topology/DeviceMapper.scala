@@ -23,13 +23,17 @@ import javax.annotation.Nullable
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
+import com.google.protobuf.Message
+
 import rx.Observable.OnSubscribe
 import rx.observers.Subscribers
 import rx.subjects.{BehaviorSubject, PublishSubject}
 import rx.{Observable, Observer, Subscriber}
 
+import org.midonet.cluster.data.ZoomConvert.fromProto
+import org.midonet.cluster.data.ZoomObject
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.topology.DeviceMapper.{MapperState, DeviceState}
+import org.midonet.midolman.topology.DeviceMapper._
 import org.midonet.midolman.topology.VirtualTopology.{Key, Device}
 import org.midonet.util.functors._
 
@@ -63,21 +67,18 @@ object DeviceMapper {
     }
 
     /**
-     * Stores the state for a device of type T.
+     * Abstract base class for a device state, either based on the virtual
+     * topology or the storage backend.
      */
-    protected[topology] final class DeviceState[T >: Null <: Device]
-        (id: UUID)(implicit tag: ClassTag[T]) {
-
-        private var currentDevice: T = null
-        private val mark = PublishSubject.create[T]
+    protected[topology] abstract class DeviceState[T >: Null <: AnyRef]
+                                                  (id: UUID) {
+        protected var currentDevice: T = null
+        protected val mark = PublishSubject.create[T]
 
         /** The device observable, notifications on the VT thread. */
-        val observable = VirtualTopology
-            .observable[T](id)
-            .doOnNext(makeAction1(currentDevice = _))
-            .takeUntil(mark)
+        def observable: Observable[T]
 
-        /** Completes the observable corresponding to this device state */
+        /** Completes the observable corresponding to this device state. */
         def complete() = mark.onCompleted()
         /** Gets the current device or null, if none is set. */
         @Nullable
@@ -85,6 +86,51 @@ object DeviceMapper {
         /** Indicates whether the device state has received the device data */
         def isReady: Boolean = currentDevice ne null
     }
+
+    /**
+     * Stores the state for a topology device of type T, where the device
+     * observable is exposed by the [[VirtualTopology]].
+     */
+    protected[topology] class TopologyDeviceState[T >: Null <: Device]
+                                                 (val id: UUID)
+                                                 (implicit tag: ClassTag[T])
+        extends DeviceState[T](id) {
+
+        /** The device observable, notifications on the VT thread. */
+        override val observable = VirtualTopology
+            .observable[T](id)
+            .doOnNext(makeAction1(currentDevice = _))
+            .doOnCompleted(makeAction0(() => currentDevice = null))
+            .takeUntil(mark)
+    }
+
+    /**
+     * Stores the state for a topology device of type T, where the device
+     * observable is exposed by the [[org.midonet.cluster.data.storage.Storage]].
+     */
+    protected[topology] class ZoomDeviceState[T >: Null <: ZoomObject, U <: Message]
+                                             (val id: UUID, vt: VirtualTopology)
+                                             (implicit tTag: ClassTag[T],
+                                                       uTag: ClassTag[U])
+        extends DeviceState[T](id) {
+
+        /** The device observable, notifications on the VT thread. */
+        override val observable = vt.store
+            .observable(uTag.runtimeClass.asInstanceOf[Class[U]], id)
+            .distinctUntilChanged()
+            .observeOn(vt.vtScheduler)
+            .map[T](makeFunc1(deviceUpdated))
+            .doOnCompleted(makeAction0(() => currentDevice = null))
+            .takeUntil(mark)
+
+        /** Processes updates to the current device. */
+        protected def deviceUpdated(message: U): T = {
+            currentDevice = fromProto[T, U](
+                message, tTag.runtimeClass.asInstanceOf[Class[T]])
+            currentDevice
+        }
+    }
+
 }
 
 /**
@@ -191,10 +237,10 @@ abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
      * @param devicesObserver Observer for publishing device observables.
      * @tparam T Device type.
      */
-    protected def updateDeviceState[T >: Null <: Device](
+    protected def updateDeviceState[T >: Null <: AnyRef](
             deviceIds: Set[UUID], devices: mutable.Map[UUID, DeviceState[T]],
             devicesObserver: Observer[Observable[T]])
-            (implicit tag: ClassTag[T]): Unit = {
+            (stateFactory: (UUID) => DeviceState[T]): Unit = {
         // Complete and remove observables for devices no longer needed.
         for ((id, state) <- devices.toList if !deviceIds.contains(id)) {
             state.complete()
@@ -205,13 +251,50 @@ abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
         // aggregate observer.
         val addedDevices = new mutable.MutableList[DeviceState[T]]
         for (id <- deviceIds if !devices.contains(id)) {
-            val state = new DeviceState[T](id)
+            val state = stateFactory(id)
             devices += id -> state
             addedDevices += state
         }
         for (deviceState <- addedDevices) {
             devicesObserver onNext deviceState.observable
         }
+    }
+
+    /**
+     * The same as `updateDeviceState` for devices fetched from the virtual
+     * topology.
+     */
+    protected def updateTopologyDeviceState[T >: Null <: Device](
+            deviceIds: Set[UUID], devices: mutable.Map[UUID, DeviceState[T]],
+            devicesObserver: Observer[Observable[T]])
+            (implicit tag: ClassTag[T]): Unit = {
+        updateDeviceState(deviceIds, devices, devicesObserver) {
+            new TopologyDeviceState[T](_)
+        }
+    }
+
+    /**
+     * The same as `updateDeviceState` for devices fetched from the ZOOM
+     * store.
+     */
+    protected def updateZoomDeviceState[T >: Null <: ZoomObject, U <: Message](
+            deviceIds: Set[UUID], devices: mutable.Map[UUID, DeviceState[T]],
+            devicesObserver: Observer[Observable[T]], vt: VirtualTopology)
+            (implicit tTag: ClassTag[T], uTag: ClassTag[U]): Unit = {
+        updateDeviceState(deviceIds, devices, devicesObserver) {
+            new ZoomDeviceState[T, U](_, vt)
+        }
+    }
+
+    /**
+     * Completes the device state for all devices in the given map.
+     */
+    protected def completeDeviceState[T >: Null <: AnyRef](
+        devices: mutable.Map[UUID, DeviceState[T]]): Unit = {
+        for (state <- devices.values) {
+            state.complete()
+        }
+        devices.clear()
     }
 
     /** Handles the subscription when the mapper is in a terminal state, and
@@ -232,6 +315,7 @@ abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
         }
         false
     }
+
 }
 
 class DeviceMapperException(msg: String) extends Exception(msg) {

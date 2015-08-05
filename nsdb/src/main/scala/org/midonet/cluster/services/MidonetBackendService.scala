@@ -118,7 +118,7 @@ abstract class MidonetBackend extends AbstractService {
 
         store.declareBinding(classOf[LoadBalancer], "pool_ids", CASCADE,
                              classOf[Pool], "load_balancer_id", CLEAR)
-        store.declareBinding(classOf[Pool], "pool_member_ids", CLEAR,
+        store.declareBinding(classOf[Pool], "pool_member_ids", CASCADE,
                              classOf[PoolMember], "pool_id", CLEAR)
         store.declareBinding(classOf[Pool], "health_monitor_id", CLEAR,
                              classOf[HealthMonitor], "pool_id", CLEAR)
@@ -126,11 +126,7 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[Router], "load_balancer_id", CASCADE,
                              classOf[LoadBalancer], "router_id", CLEAR)
 
-        // TODO Remove this field binding once the Agent side is refactored to
-        // require only the binding between Pool and VIPs.
-        store.declareBinding(classOf[LoadBalancer], "vip_ids", CLEAR,
-                             classOf[Vip], "load_balancer_id", CLEAR)
-        store.declareBinding(classOf[Pool], "vip_ids", CLEAR,
+        store.declareBinding(classOf[Pool], "vip_ids", CASCADE,
                              classOf[Vip], "pool_id", CLEAR)
         store.declareBinding(classOf[Vip], "gateway_port_id", CLEAR,
                              classOf[Port], "vip_ids", ERROR)

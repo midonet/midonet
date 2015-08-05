@@ -30,9 +30,9 @@ import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
-import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, VIP, _}
+import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, Vip}
 import org.midonet.midolman.state.l4lb
-import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, _}
+import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher}
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.simulation.{BridgePort, Port, _}
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -281,12 +281,10 @@ object TopologyMatchers {
             lb.id shouldBe l.getId.asJava
             lb.adminStateUp shouldBe l.getAdminStateUp
             lb.routerId shouldBe (if (l.hasRouterId) l.getRouterId.asJava else null)
-            lb.vips.map(_.id) should contain theSameElementsInOrderAs
-                l.getVipIdsList.asScala.map(_.asJava)
         }
     }
 
-    class VipMatcher(vip: VIP) extends Matchers with DeviceMatcher[TopologyVip] {
+    class VipMatcher(vip: Vip) extends Matchers with DeviceMatcher[TopologyVip] {
         override def shouldBeDeviceOf(v: TopologyVip): Unit = {
             vip.id shouldBe v.getId.asJava
             vip.adminStateUp shouldBe v.getAdminStateUp
@@ -389,7 +387,7 @@ trait TopologyMatchers {
     implicit def asMatcher(loadBalancer: LoadBalancer): LoadBalancerMatcher =
         new LoadBalancerMatcher(loadBalancer)
 
-    implicit def asMatcher(vip: VIP): VipMatcher = new VipMatcher(vip)
+    implicit def asMatcher(vip: Vip): VipMatcher = new VipMatcher(vip)
 
     implicit def asMatcher(pool: Pool): PoolMatcher = new PoolMatcher(pool)
 
