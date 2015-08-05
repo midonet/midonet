@@ -27,7 +27,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPv4Addr, TCP, UDP}
 
 @RunWith(classOf[JUnitRunner])
-class VIPTest extends MidolmanSpec {
+class VipTest extends MidolmanSpec {
 
     scenario ("Matching VIPs") {
         val addr1 = IPv4Addr.fromString("10.0.0.1")
@@ -67,12 +67,12 @@ class VIPTest extends MidolmanSpec {
     }
 
     def createTestVip(adminStateUp: Boolean, address: IPv4Addr,
-                      protocolPort: Int): VIP = {
+                      protocolPort: Int): Vip = {
         val vipId = UUID.randomUUID()
         val poolId = UUID.randomUUID()
         val loadBalancerId = UUID.randomUUID()
 
-        new VIP(vipId, adminStateUp, poolId,address, protocolPort,
-                VipSessionPersistence.SOURCE_IP, loadBalancerId)
+        new Vip(vipId, adminStateUp, poolId,address, protocolPort,
+                VipSessionPersistence.SOURCE_IP)
     }
 }

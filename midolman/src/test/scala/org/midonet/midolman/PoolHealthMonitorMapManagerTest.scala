@@ -23,7 +23,7 @@ import akka.actor.ActorSystem
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PoolHealthMonitorMapRequest
 import org.midonet.midolman.topology.devices.{PoolHealthMonitorMap, HealthMonitor => SimHealthMonitor}
-import org.midonet.midolman.simulation.{VIP => SimVIP}
+import org.midonet.midolman.simulation.{Vip => SimVip}
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.util.MidolmanSpec
 
@@ -60,7 +60,7 @@ class PoolHealthMonitorMapManagerTest
                            mapHm.maxRetries) shouldBe true
     }
 
-    def vipShouldEqual(mapVip: SimVIP, vip: UUID) = {
+    def vipShouldEqual(mapVip: SimVip, vip: UUID) = {
         matchVip(vip, mapVip.address, mapVip.protocolPort)
     }
 

@@ -45,10 +45,6 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         }
         if (nVip.hasPoolId) {
             mVipBldr.setPoolId(nVip.getPoolId)
-            // Set legacy backref. Remove once the agent side is refactored.
-            // The Load Balancer and its Router share the same ID.
-            val pool = storage.get(classOf[Pool], nVip.getPoolId).await()
-            mVipBldr.setLoadBalancerId(pool.getLoadBalancerId)
         }
         mVipBldr
     }
@@ -68,8 +64,9 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         // If the VIP's DHCP is not on external, no need to add an ARP entry.
         if (!network.getExternal) return List(Create(mVip.build()))
 
+        val pool = storage.get(classOf[Pool], mVip.getPoolId).await()
         val router = storage.get(classOf[NeutronRouter],
-                                 mVip.getLoadBalancerId).await()
+                                 pool.getLoadBalancerId).await()
         if (router.hasGwPortId) {
             val gwPort = storage.get(classOf[NeutronPort],
                                      router.getGwPortId).await()
