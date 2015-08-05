@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.simulation.{Pool, PacketContext, LoadBalancer, VIP}
+import org.midonet.midolman.simulation.{Pool, PacketContext, LoadBalancer, Vip}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{InvalidateFlowsByTag, PoolRequest, LoadBalancerRequest}
 import org.midonet.midolman.util.MidolmanSpec
@@ -196,7 +196,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
 
             And("traffic is sent through the loadbalancer")
             // Ingress match for packet destined to VIP
-            val vipDevice: VIP = lb.vips.find(_.id.equals(firstVip)).get
+            val vipDevice: Vip = lb.vips.find(_.id.equals(firstVip)).get
             val ingressMatch = new FlowMatch()
                 .setNetworkDst(vipDevice.address)
                 .setDstPort(vipDevice.protocolPort)

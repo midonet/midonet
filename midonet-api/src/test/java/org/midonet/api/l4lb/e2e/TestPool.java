@@ -105,9 +105,6 @@ public class TestPool {
 
         @Test
         public void testCrud() throws Exception {
-
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
-
             // Pools should be empty
             verifyNumberOfPools(0);
 
@@ -173,9 +170,6 @@ public class TestPool {
 
         @Test
         public void testDeleteClearsBackrefs() {
-
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
-
             DtoPool pool = createStockPool(loadBalancer.getId());
 
             // Add some VIPs.

@@ -40,7 +40,7 @@ public class ViewMixinProvider {
     }
 
     public synchronized static void setViewMixins(ObjectMapper mapper) {
-        mapper.setMixInAnnotations(mixinMap);
+        mapper.setMixIns(mixinMap);
     }
 
     public static void registerMediaType(String mediaType) {

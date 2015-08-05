@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package org.midonet.midolman.simulation
 
-import java.util.{Arrays, Objects, UUID}
+import java.util
+import java.util.{Objects, UUID}
 
 import akka.actor.ActorSystem
 
@@ -31,7 +32,7 @@ object LoadBalancer {
 }
 
 class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
-                   val vips: Array[VIP]) extends VirtualDevice {
+                   val vips: Array[Vip]) extends VirtualDevice {
 
     import LoadBalancer._
 
@@ -117,9 +118,9 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         }
     }
 
-    private def findVip(context: PacketContext): VIP = {
+    private def findVip(context: PacketContext): Vip = {
         var i = 0
-        while (i < vips.size) {
+        while (i < vips.length) {
             if (vips(i).matches(context))
                 return vips(i)
             i += 1
@@ -127,9 +128,9 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         null
     }
 
-    private def findVipReturn(context: PacketContext): VIP = {
+    private def findVipReturn(context: PacketContext): Vip = {
         var i = 0
-        while (i < vips.size) {
+        while (i < vips.length) {
             if (vips(i).matchesReturn(context))
                 return vips(i)
             i += 1
@@ -142,8 +143,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
             id == loadBalancer.id &&
             adminStateUp == loadBalancer.adminStateUp &&
             routerId == loadBalancer.routerId &&
-            Arrays.equals(vips.asInstanceOf[Array[AnyRef]],
-                          loadBalancer.vips.asInstanceOf[Array[AnyRef]])
+            util.Arrays.equals(vips.asInstanceOf[Array[AnyRef]],
+                               loadBalancer.vips.asInstanceOf[Array[AnyRef]])
 
         case _ => false
     }

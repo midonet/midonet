@@ -44,7 +44,6 @@ public class Vip extends UriResource {
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp = true;
 
-    @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
     public UUID loadBalancerId;
 
     @NotNull
@@ -81,12 +80,6 @@ public class Vip extends UriResource {
         if (null == id) {
             id = UUID.randomUUID();
         }
-    }
-
-    @JsonIgnore
-    public void create(UUID poolId) {
-        create();
-        this.poolId = poolId;
     }
 
     @JsonIgnore
