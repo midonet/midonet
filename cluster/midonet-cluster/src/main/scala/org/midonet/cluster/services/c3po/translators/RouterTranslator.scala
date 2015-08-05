@@ -28,6 +28,9 @@ import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ICMP
 import org.midonet.util.concurrent.toFutureOps
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
+
 class RouterTranslator(protected val storage: ReadOnlyStorage,
                        protected val pathBldr: PathBuilder)
     extends NeutronTranslator[NeutronRouter]
@@ -72,7 +75,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateUpdate(nr: NeutronRouter): MidoOpList = {
         val r = translate(nr)
         val gwOps = gatewayPortUpdateOps(nr, r)
-        Update(r, RouterUpdateValidator) :: gwOps
+        val rtOps = extraRoutesUpdateOps(nr, r)
+        Update(r, RouterUpdateValidator) :: gwOps ++ rtOps
     }
 
     private object RouterUpdateValidator extends UpdateValidator[Router] {
@@ -158,6 +162,32 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                     nGwPort.getNetworkId, gwIpAddr.getAddress, mac)
             ops += CreateNode(arpPath, null)
         }
+
+        ops.toList
+    }
+
+    private def extraRoutesUpdateOps(nr: NeutronRouter,
+                                     mr: Router): MidoOpList = {
+        val ops = new MidoOpListBuffer
+
+        val mRouteIds = mr.getRouteIdsList.asScala
+        val commonIds = new ListBuffer[UUID]
+        nr.getRoutesList.asScala foreach { r =>
+            val rId = extraRouteId(nr.getId, r)
+
+            if (!mRouteIds.contains(rId)) {
+                val newRt = newNextHopPortRoute(
+                    nr.getGwPortId, id = rId,
+                    dstSubnet = r.getDestination,
+                    nextHopGwIpAddr = r.getNexthop)
+                ops += Create(newRt)
+            } else {
+                commonIds += rId
+            }
+        }
+
+        val delRoutes = mRouteIds filterNot (commonIds contains)
+        delRoutes foreach (ops += Delete(classOf[Route], _))
 
         ops.toList
     }

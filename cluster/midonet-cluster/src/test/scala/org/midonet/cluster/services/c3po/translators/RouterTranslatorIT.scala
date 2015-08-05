@@ -18,15 +18,16 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.midonet.cluster.C3POMinionTestBase
+import org.midonet.cluster.{util, C3POMinionTestBase}
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, FragmentPolicy}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.{ICMP, MAC}
@@ -34,6 +35,7 @@ import org.midonet.util.concurrent.toFutureOps
 import org.scalatest.junit.JUnitRunner
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 
 @RunWith(classOf[JUnitRunner])
 class RouterTranslatorIT extends C3POMinionTestBase {
@@ -80,6 +82,42 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         eventually {
             storage.getAll(classOf[Router]).await().size shouldBe 0
         }
+    }
+
+    it should "handle extra routes CRUD" in {
+
+        val r1Id = UUID.randomUUID()
+
+        // Create external network.
+        val extNwId = UUID.randomUUID()
+        val extNwSubnetId = UUID.randomUUID()
+        createTenantNetwork(2, extNwId, external = true)
+        createSubnet(3, extNwSubnetId, extNwId, "200.0.0.0/24",
+                     gatewayIp = "200.0.0.1")
+
+        // Create a router
+        val extNwGwPortId = UUID.randomUUID()
+        createRouterGatewayPort(4, extNwGwPortId, extNwId, r1Id,
+                                "200.0.0.2", "ab:cd:ef:00:00:03",
+                                extNwSubnetId)
+        createRouter(5, r1Id, gwPortId = extNwGwPortId, enableSnat = true)
+
+        var r1 = eventually(storage.get(classOf[Router], r1Id).await())
+
+        // Update with extra routes
+        val route1 = NeutronRoute.newBuilder()
+            .setDestination(IPSubnetUtil.fromAddr("10.0.0.0/24"))
+            .setNexthop(IPAddressUtil.toProto("200.0.0.3")).build
+        val route2 = NeutronRoute.newBuilder()
+            .setDestination(IPSubnetUtil.fromAddr("10.0.1.0/24"))
+            .setNexthop(IPAddressUtil.toProto("200.0.0.4")).build
+
+        val r1WithRoutes = routerJson(r1Id, name = "router1",
+                                      routes = List(route1, route2))
+        insertUpdateTask(6, RouterType, r1WithRoutes, r1Id)
+
+        r1 = eventually(storage.get(classOf[Router], r1Id).await())
+        val actual = r1.getRouteIdsList.asScala
     }
 
     it should "handle router gateway CRUD" in {
