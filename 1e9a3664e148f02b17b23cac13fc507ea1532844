@@ -86,6 +86,24 @@
       "revId": "1e9a3664e148f02b17b23cac13fc507ea1532844",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2d52ef66",
+        "filename": "midonet-util/src/main/java/org/midonet/util/collection/ArrayListUtil.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-05T11:47:30Z",
+      "side": 1,
+      "message": "do we have some flag enabled that\u0027s killing escape analysis?",
+      "parentUuid": "9ad9bd40_df568905",
+      "revId": "1e9a3664e148f02b17b23cac13fc507ea1532844",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
