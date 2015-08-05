@@ -267,7 +267,7 @@ object TopologyMatchers {
         extends Matchers with DeviceMatcher[TopologyPortGroup] {
         override def shouldBeDeviceOf(pg: TopologyPortGroup): Unit = {
             portGroup.id shouldBe pg.getId.asJava
-            portGroup.name shouldBe (if (pg.hasName) pg.getName else null)
+            portGroup.name shouldBe pg.getName
             portGroup.stateful shouldBe pg.getStateful
             portGroup.members should contain theSameElementsAs
                 pg.getPortIdsList.asScala.map(_.asJava)

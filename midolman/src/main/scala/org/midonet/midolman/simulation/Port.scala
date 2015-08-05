@@ -16,8 +16,7 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.UUID
-import java.util.{Set => JSet}
+import java.util.{ArrayList, UUID}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Simulator.{SimStep, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopologyActor._
@@ -39,18 +38,10 @@ import org.midonet.sdn.flows.FlowTagger
 object Port {
     import IPAddressUtil._
     import IPSubnetUtil._
-
-    private implicit def uuidFromProto(uuid: Commons.UUID): UUID =
-        new UUID(uuid.getMsb, uuid.getLsb)
+    import org.midonet.cluster.util.UUIDUtil.{fromProto, fromProtoList}
 
     private implicit def jlistToSSet(from: java.util.List[Commons.UUID]): Set[UUID] =
         if (from ne null) from.asScala.toSet map UUIDUtil.fromProto else Set.empty
-
-    private implicit def jlistToJSet(from: java.util.List[Commons.UUID]): JSet[UUID] =
-        if (from ne null) (from.asScala.toSet map UUIDUtil.fromProto).asJava else null
-
-    private implicit def jsetToSSet(from: JSet[UUID]): Set[UUID] =
-        if (from ne null) from.asScala.toSet else Set.empty
 
     def apply(proto: Topology.Port): Port = {
         if (proto.hasVtepId)
@@ -114,21 +105,21 @@ object Port {
     @Deprecated
     private def bridgePort(p: BridgePortConfig) = BridgePort(
             p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId, p.hostId,
-            p.interfaceName, p.adminStateUp, p.portGroupIDs, false,
+            p.interfaceName, p.adminStateUp, new ArrayList(p.portGroupIDs), false,
             if (p.vlanId ne null) p.vlanId else Bridge.UntaggedVlanId,
             p.device_id)
 
     @Deprecated
     private def routerPort(p: RouterPortConfig) = RouterPort(
             p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId, p.hostId,
-            p.interfaceName, p.adminStateUp, p.portGroupIDs, false, p.device_id,
+            p.interfaceName, p.adminStateUp, new ArrayList(p.portGroupIDs), false, p.device_id,
             new IPv4Subnet(p.nwAddr, p.nwLength),
             IPv4Addr.fromString(p.getPortAddr), p.getHwAddr, null)
 
     @Deprecated
     private def vxLanPort(p: VxLanPortConfig) = VxLanPort(
             p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId,
-            p.adminStateUp, p.portGroupIDs, new UUID(1, 39), p.device_id,
+            p.adminStateUp, new ArrayList(p.portGroupIDs), new UUID(1, 39), p.device_id,
             IPv4Addr.fromString(p.mgmtIpAddr), p.mgmtPort,
             IPv4Addr.fromString(p.tunIpAddr), p.tunnelZoneId, p.vni)
 }
@@ -142,7 +133,7 @@ trait Port extends VirtualDevice with Cloneable {
     def hostId: UUID
     def interfaceName: String
     def adminStateUp: Boolean
-    def portGroups: JSet[UUID] = null
+    def portGroups: ArrayList[UUID] = new ArrayList(0)
     def isActive: Boolean = false
     def deviceId: UUID
     def vlanId: Short = Bridge.UntaggedVlanId
@@ -265,7 +256,7 @@ case class BridgePort(override val id: UUID,
                       override val hostId: UUID = null,
                       override val interfaceName: String = null,
                       override val adminStateUp: Boolean = true,
-                      override val portGroups: JSet[UUID] = null,
+                      override val portGroups: ArrayList[UUID] = new ArrayList(0),
                       override val isActive: Boolean = false,
                       override val vlanId: Short = Bridge.UntaggedVlanId,
                       networkId: UUID) extends Port {
@@ -295,7 +286,7 @@ case class RouterPort(override val id: UUID,
                       override val hostId: UUID = null,
                       override val interfaceName: String = null,
                       override val adminStateUp: Boolean = true,
-                      override val portGroups: JSet[UUID] = null,
+                      override val portGroups: ArrayList[UUID] = new ArrayList(0),
                       override val isActive: Boolean = false,
                       routerId: UUID,
                       portSubnet: IPv4Subnet,
@@ -341,7 +332,7 @@ case class VxLanPort(override val id: UUID,
                      override val tunnelKey: Long = 0,
                      override val peerId: UUID = null,
                      override val adminStateUp: Boolean = true,
-                     override val portGroups: JSet[UUID] = null,
+                     override val portGroups: ArrayList[UUID] = new ArrayList(0),
                      vtepId: UUID,
                      networkId: UUID,
                      vtepMgmtIp: IPv4Addr = null,

@@ -18,7 +18,6 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{PortGroup => TopologyPortGroup}
 import org.midonet.midolman.simulation.{PortGroup => SimulationPortGroup}
 import org.midonet.util.functors.makeFunc1
@@ -29,14 +28,16 @@ import org.midonet.util.functors.makeFunc1
  */
 class PortGroupMapper(id: UUID, vt: VirtualTopology)
     extends DeviceMapper[SimulationPortGroup](id, vt) {
+    import org.midonet.cluster.util.UUIDUtil.{fromProto, fromProtoList}
 
     override def logSource = s"org.midonet.devices.port-group.port-group-$id"
 
     protected override def observable =
         vt.store.observable(classOf[TopologyPortGroup], id)
             .distinctUntilChanged
-            .map[SimulationPortGroup](
-                makeFunc1(ZoomConvert.fromProto(_, classOf[SimulationPortGroup])))
+            .map[SimulationPortGroup](makeFunc1(toSimPortGroup))
             .observeOn(vt.vtScheduler)
 
+    private def toSimPortGroup(pg: TopologyPortGroup): SimulationPortGroup =
+        new SimulationPortGroup(pg.getId, pg.getName, pg.getStateful, pg.getPortIdsList)
 }
