@@ -53,7 +53,8 @@ object FlowStateStorage {
                 "        dstIp inet, " +
                 "        dstPort int, " +
                 "        device uuid, " +
-                "PRIMARY KEY ((port, proto, srcIp, srcPort, dstIp, dstPort, device)));"
+                "PRIMARY KEY ((port, proto, srcIp, srcPort, dstIp, dstPort, device))) " +
+                "with GC_GRACE_SECONDS = 30;"
 
         def CONNTRACK_IDX(table: String) =
             s"CREATE INDEX IF NOT EXISTS ON $table (port);"
@@ -70,7 +71,8 @@ object FlowStateStorage {
                 "        device uuid, " +
                 "        translateIp inet, " +
                 "        translatePort int, " +
-                "PRIMARY KEY ((port, type, proto, srcIp, srcPort, dstIp, dstPort, device)));"
+                "PRIMARY KEY ((port, type, proto, srcIp, srcPort, dstIp, dstPort, device))) " +
+                "with GC_GRACE_SECONDS = 30;"
 
         def NAT_IDX(table: String) =
             s"CREATE INDEX IF NOT EXISTS ON $table (port);"
