@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -37,6 +38,7 @@ import org.junit.runner.RunWith;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
@@ -843,6 +845,9 @@ public class TestBridge {
 
         @Test
         public void testArpTable() throws Exception {
+
+            Assume.assumeFalse(FuncTest.isAwaitingImpl());
+
             DtoBridge bridge = postBridge("bridge1");
 
             // Add an Arp Entry

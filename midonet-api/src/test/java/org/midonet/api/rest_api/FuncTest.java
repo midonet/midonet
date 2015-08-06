@@ -104,6 +104,14 @@ public class FuncTest {
         return Boolean.parseBoolean(System.getenv("midonet.newStack"));
     }
 
+    /**
+     * Tells that a test should be ignored because the implementation is
+     * missing.
+     */
+    public static boolean isAwaitingImpl() {
+        return Boolean.parseBoolean(System.getenv("midonet.awaitImpl"));
+    }
+
     private static WebAppDescriptor.Builder getBuilderForLegacyApi() {
 
         ObjectMapperProvider mapperProvider = new ObjectMapperProvider();

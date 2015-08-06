@@ -15,10 +15,12 @@
  */
 package org.midonet.api.l4lb.e2e;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import org.midonet.api.rest_api.FuncTest;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.Status;
 import org.midonet.client.dto.DtoLoadBalancer;
@@ -45,6 +47,9 @@ public class TestLoadBalancer {
 
         @Test
         synchronized public void testCrud() throws Exception {
+
+            Assume.assumeFalse(FuncTest.isAwaitingImpl());
+
             int counter = 0;
             int poolCounter = 0;
             int vipCounter = 0;
