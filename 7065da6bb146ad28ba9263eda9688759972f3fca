@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c2506d0d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-06T01:30:20Z",
+      "side": 1,
+      "message": "An alternative solution is to copy pool ID in HealthMonitorUpdateValidator, as the pool ID only needs to be filled in the Update case and we already have the validator in the code.",
+      "range": {
+        "startLine": 32,
+        "startChar": 53,
+        "endLine": 32,
+        "endChar": 79
+      },
+      "revId": "7065da6bb146ad28ba9263eda9688759972f3fca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
