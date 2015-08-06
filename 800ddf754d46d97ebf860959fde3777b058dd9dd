@@ -16,6 +16,24 @@
       "revId": "800ddf754d46d97ebf860959fde3777b058dd9dd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_82b8252b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-06T04:11:06Z",
+      "side": 1,
+      "message": "Yeah just from my IDEA \u0027optimizing\u0027 imports based on our style guide.  I can revert this back to the original if anyone has issues with it.",
+      "parentUuid": "9ad9bd40_42b29d4c",
+      "revId": "800ddf754d46d97ebf860959fde3777b058dd9dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
