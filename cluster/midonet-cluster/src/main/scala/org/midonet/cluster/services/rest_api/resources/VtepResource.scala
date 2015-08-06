@@ -28,7 +28,7 @@ import org.midonet.cluster.rest_api.models.{TunnelZone, Vtep}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{ApiException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 import org.midonet.packets.IPv4Addr
 
 @RequestScoped
@@ -66,7 +66,7 @@ class VtepResource @Inject()(resContext: ResourceContext)
         new VtepBindingResource(mgmtIp, resContext)
     }
 
-    protected override def createFilter(vtep: Vtep): Unit = {
+    protected override def createFilter(vtep: Vtep): Ops = {
         hasResource(classOf[TunnelZone], vtep.tunnelZoneId).flatMap(exists => {
             // Validate the tunnel zone.
             if (!exists) {
@@ -83,9 +83,10 @@ class VtepResource @Inject()(resContext: ResourceContext)
             }
         }).getOrThrow
         vtep.create()
+        NoOps
     }
 
-    protected override def deleteFilter(id: String): Unit = {
+    protected override def deleteFilter(id: String): Ops = {
         getResource(classOf[Vtep], id).map(vtep => {
             // Validate the VTEP has no bindings.
             if (vtep.bindings.size() > 0) {
@@ -93,6 +94,7 @@ class VtepResource @Inject()(resContext: ResourceContext)
                                        getMessage(VTEP_HAS_BINDINGS))
             }
         }).getOrThrow
+        NoOps
     }
 
 }

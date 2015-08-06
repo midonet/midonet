@@ -120,23 +120,18 @@ public class DhcpSubnet extends UriResource {
     }
 
     @JsonIgnore
-    @Override
-    public void beforeToProto() {
-        subnetAddress = IPSubnet.fromString(subnetPrefix + "/" + subnetLength);
-    }
-
-    @JsonIgnore
     public void create(UUID bridgeId) {
         if (null == id) {
             id = UUID.randomUUID();
         }
         this.bridgeId = bridgeId;
+        subnetAddress = IPSubnet.fromString(subnetPrefix + "/" + subnetLength);
     }
 
     @JsonIgnore
     public void update(DhcpSubnet from) {
         id = from.id;
-        subnetAddress = from.subnetAddress;
+        subnetAddress = IPSubnet.fromString(subnetPrefix + "/" + subnetLength);
         bridgeId = from.bridgeId;
         dhcpHosts = from.dhcpHosts;
     }

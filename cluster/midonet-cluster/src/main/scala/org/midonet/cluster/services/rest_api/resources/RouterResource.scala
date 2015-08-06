@@ -27,7 +27,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTER_JSON,
@@ -70,15 +70,16 @@ class RouterResource @Inject()(resContext: ResourceContext)
         new RouterBgpPeerResource(id, resContext)
     }
 
-    protected override def listFilter(router: Router): Boolean = {
+    protected override def listFilter(routers: Seq[Router]): Seq[Router] = {
         val tenantId = resContext.uriInfo.getQueryParameters
                                          .getFirst("tenant_id")
-        if (tenantId eq null) true
-        else router.tenantId == tenantId
+        if (tenantId eq null) routers
+        else routers filter { _.tenantId == tenantId }
     }
 
-    protected override def updateFilter(to: Router, from: Router): Unit = {
+    protected override def updateFilter(to: Router, from: Router): Ops = {
         to.update(from)
+        NoOps
     }
 
 }

@@ -31,7 +31,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation.AllowCreate
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 import org.midonet.packets.IPv4Subnet
 
 @RequestScoped
@@ -100,8 +100,9 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
         new DhcpHostResource(bridgeId, subnetAddress, resContext)
     }
 
-    protected override def createFilter(subnet: DhcpSubnet): Unit = {
+    protected override def createFilter(subnet: DhcpSubnet): Ops = {
         subnet.create(bridgeId)
+        NoOps
     }
 
     private def getSubnet(subnetAddress: IPv4Subnet)

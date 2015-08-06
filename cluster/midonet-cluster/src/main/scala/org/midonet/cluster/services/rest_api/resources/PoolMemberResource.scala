@@ -22,7 +22,6 @@ import javax.ws.rs.{PathParam, Path, DELETE}
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -31,7 +30,7 @@ import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Pool, PoolMember}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Ids, NoOps, Ops, ResourceContext}
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_POOL_MEMBER_JSON,
@@ -46,8 +45,9 @@ class PoolMemberResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[PoolMember](resContext) {
 
     protected override def updateFilter(to: PoolMember, from: PoolMember)
-    : Unit = {
+    : Ops = {
         to.update(from)
+        NoOps
     }
 
     @DELETE
@@ -71,12 +71,13 @@ class PoolMemberResource @Inject()(resContext: ResourceContext)
 class PoolPoolMemberResource @Inject()(poolId: UUID, resCtx: ResourceContext)
     extends MidonetResource[PoolMember](resCtx) {
 
-    protected override def listIds: Future[Seq[Any]] = {
+    protected override def listIds: Ids = {
         getResource(classOf[Pool], poolId) map { _.poolMemberIds.asScala }
     }
 
-    protected override def createFilter(poolMember: PoolMember): Unit = {
+    protected override def createFilter(poolMember: PoolMember): Ops = {
         poolMember.create(poolId)
+        NoOps
     }
 
 }

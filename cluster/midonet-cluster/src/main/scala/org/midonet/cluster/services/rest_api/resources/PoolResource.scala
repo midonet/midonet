@@ -20,10 +20,10 @@ import java.util.UUID
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
+import javax.ws.rs.core.Response.Status
 import javax.ws.rs.{Path, PathParam}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 import com.google.inject.Inject
@@ -33,7 +33,7 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{LoadBalancer, Pool, UriResource}
 import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_POOL_JSON,
@@ -60,20 +60,14 @@ class PoolResource @Inject()(resContext: ResourceContext)
         new PoolPoolMemberResource(id, resContext)
     }
 
-    protected override def updateFilter(to: Pool, from: Pool): Unit = {
+    protected override def updateFilter(to: Pool, from: Pool): Ops = {
         to.update(from)
+        NoOps
     }
 
-    override protected def deleteResource(clazz: Class[_ <: UriResource],
-                    id: Any, defaultRes: Response = OkNoContentResponse) = {
-        try {
-            super.deleteResource(clazz, id)
-        } catch {
-            case e: NotFoundHttpException => OkNoContentResponse
-            case NonFatal(t) =>
-                log.error("Failed to delete Pool: ", t)
-                throw new InternalServerErrorHttpException(t.getMessage)
-        }
+    protected override def handleDelete = {
+        case r: Response if r.getStatus == Status.NOT_FOUND.getStatusCode =>
+            OkNoContentResponse
     }
 
 }
@@ -92,14 +86,15 @@ class LoadBalancerPoolResource @Inject()(loadBalancerId: UUID,
         new PoolPoolMemberResource(id, resContext)
     }
 
-    protected override def listIds: Future[Seq[Any]] = {
+    protected override def listIds: Ids = {
         getResource(classOf[LoadBalancer], loadBalancerId) map {
             _.poolIds.asScala
         }
     }
 
-    protected override def createFilter(pool: Pool): Unit = {
+    protected override def createFilter(pool: Pool): Ops = {
         pool.create(loadBalancerId)
+        NoOps
     }
 
 }

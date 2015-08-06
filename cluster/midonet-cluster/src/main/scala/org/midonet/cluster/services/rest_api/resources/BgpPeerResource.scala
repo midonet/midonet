@@ -21,7 +21,6 @@ import java.util.UUID
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -29,7 +28,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Router, BgpPeer}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Ids, NoOps, Ops, ResourceContext}
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_BGP_PEER_JSON,
@@ -40,8 +39,9 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 class BgpPeerResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[BgpPeer](resContext) {
 
-    protected override def updateFilter(to: BgpPeer, from: BgpPeer): Unit = {
+    protected override def updateFilter(to: BgpPeer, from: BgpPeer): Ops = {
         to.update(from)
+        NoOps
     }
 }
 
@@ -54,12 +54,13 @@ class RouterBgpPeerResource @Inject()(routerId: UUID,
                                       resContext: ResourceContext)
     extends MidonetResource[BgpPeer](resContext) {
 
-    protected override def listIds: Future[Seq[Any]] = {
+    protected override def listIds: Ids = {
         getResource(classOf[Router], routerId) map { _.bgpPeerIds.asScala }
     }
 
-    protected override def createFilter(bgpPeer: BgpPeer): Unit = {
+    protected override def createFilter(bgpPeer: BgpPeer): Ops = {
         bgpPeer.create(routerId)
+        NoOps
     }
 
 }
