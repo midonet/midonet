@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_3b4ea03b",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/FuncTest.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-06T14:33:23Z",
+      "side": 1,
+      "message": "return System.getProperty(\"midonet.newStack\") !\u003d null;",
+      "range": {
+        "startLine": 104,
+        "startChar": 35,
+        "endLine": 104,
+        "endChar": 36
+      },
+      "revId": "62c52b60f78872e49108f7720d6c06f17b1b3094",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fb57d8c7",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/FuncTest.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-06T14:33:23Z",
+      "side": 1,
+      "message": "return System.getProperty(\"midonet.awaitingImpl\") !\u003d null;",
+      "range": {
+        "startLine": 112,
+        "startChar": 23,
+        "endLine": 112,
+        "endChar": 35
+      },
+      "revId": "62c52b60f78872e49108f7720d6c06f17b1b3094",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
