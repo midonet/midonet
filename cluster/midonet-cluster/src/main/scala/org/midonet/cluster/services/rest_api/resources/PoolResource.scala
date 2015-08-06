@@ -22,13 +22,15 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.{Path, PathParam}
 
+import scala.collection.JavaConverters._
+import scala.concurrent.Future
 import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{Pool, UriResource}
+import org.midonet.cluster.rest_api.models.{LoadBalancer, Pool, UriResource}
 import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
@@ -90,8 +92,10 @@ class LoadBalancerPoolResource @Inject()(loadBalancerId: UUID,
         new PoolPoolMemberResource(id, resContext)
     }
 
-    protected override def listFilter(pool: Pool): Boolean = {
-        pool.loadBalancerId == loadBalancerId
+    protected override def listIds: Future[Seq[Any]] = {
+        getResource(classOf[LoadBalancer], loadBalancerId) map {
+            _.poolIds.asScala
+        }
     }
 
     protected override def createFilter(pool: Pool): Unit = {
