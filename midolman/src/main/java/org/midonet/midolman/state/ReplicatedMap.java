@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -189,7 +190,7 @@ public abstract class ReplicatedMap<K, V> {
         }
 
         public void run() {
-            if (!running) {
+            if (!running.get()) {
                 return;
             }
             Set<String> curPaths = getCurPaths();
@@ -200,7 +201,7 @@ public abstract class ReplicatedMap<K, V> {
             Set<Notification<K,V>> notifications = new HashSet<>();
 
             synchronized(ReplicatedMap.this) {
-                if (!running) {
+                if (!running.get()) {
                     return;
                 }
                 ConcurrentMap<K,MapValue> newMap = new ConcurrentHashMap<>();
@@ -218,7 +219,7 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     private Directory dir;
-    private volatile boolean running;
+    private AtomicBoolean running;
     private volatile ConcurrentMap<K, MapValue> localMap;
     private Set<Integer> ownedVersions;
     private Set<Watcher<K, V>> watchers;
@@ -240,7 +241,7 @@ public abstract class ReplicatedMap<K, V> {
      */
     public ReplicatedMap(Directory dir, boolean ephemeral) {
         this.dir = dir;
-        this.running = false;
+        this.running = new AtomicBoolean(false);
         this.localMap = new ConcurrentHashMap<>();
         this.ownedVersions = new HashSet<>();
         this.watchers = new HashSet<>();
@@ -257,14 +258,13 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     public void start() {
-        if (!this.running) {
-            this.running = true;
+        if (running.compareAndSet(false, true)) {
             myWatcher.run();
         }
     }
 
     public synchronized void stop() {
-        this.running = false;
+        running.set(false);
         Map<K, MapValue> oldMap = localMap;
         localMap = new ConcurrentHashMap<>();
         oldMap.clear();
