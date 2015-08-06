@@ -255,15 +255,15 @@ abstract class MidonetResource[T >: Null <: UriResource]
         new FutureOps(future)
     }
 
-    protected def getFilter: (T) => T = (t: T) => t
+    protected def getFilter(t: T): T = t
 
-    protected def listFilter: (T) => Boolean = (_) => true
+    protected def listFilter(t: T): Boolean = true
 
-    protected def createFilter: (T) => Unit = (t: T) => { t.create() }
+    protected def createFilter(t: T): Unit = t.create()
 
-    protected def updateFilter: (T, T) => Unit = (_,_) => { }
+    protected def updateFilter(to: T, from: T): Unit = { }
 
-    protected def deleteFilter: (String) => Unit = (_) => { }
+    protected def deleteFilter(id: String): Unit = { }
 
     protected def listResources[U >: Null <: UriResource](clazz: Class[U])
     : Future[Seq[U]] = {

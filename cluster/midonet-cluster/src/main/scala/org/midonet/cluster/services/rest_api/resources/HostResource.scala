@@ -92,9 +92,9 @@ class HostResource @Inject()(resContext: ResourceContext)
         new HostInterfacePortResource(hostId, resContext)
     }
 
-    protected override def getFilter = (host: Host) => initHost(host)
+    protected override def getFilter(host: Host) = initHost(host)
 
-    protected override def listFilter = (host: Host) => { initHost(host); true }
+    protected override def listFilter(host: Host) = { initHost(host); true }
 
     private def initHost(host: Host): Host = {
         val interfaces = getInterfaces(host.id.toString).getOrThrow

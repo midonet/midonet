@@ -66,7 +66,7 @@ class VtepResource @Inject()(resContext: ResourceContext)
         new VtepBindingResource(mgmtIp, resContext)
     }
 
-    protected override def createFilter = (vtep: Vtep) => {
+    protected override def createFilter(vtep: Vtep): Unit = {
         hasResource(classOf[TunnelZone], vtep.tunnelZoneId).flatMap(exists => {
             // Validate the tunnel zone.
             if (!exists) {
@@ -85,7 +85,7 @@ class VtepResource @Inject()(resContext: ResourceContext)
         vtep.create()
     }
 
-    protected override def deleteFilter = (id: String) => {
+    protected override def deleteFilter(id: String): Unit = {
         getResource(classOf[Vtep], id).map(vtep => {
             // Validate the VTEP has no bindings.
             if (vtep.bindings.size() > 0) {

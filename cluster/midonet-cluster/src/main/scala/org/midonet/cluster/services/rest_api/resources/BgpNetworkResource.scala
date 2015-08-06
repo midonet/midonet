@@ -44,11 +44,11 @@ class RouterBgpNetworkResource @Inject()(routerId: UUID,
                                          resContext: ResourceContext)
     extends MidonetResource[BgpNetwork](resContext) {
 
-    override val listFilter = (bgpNetwork: BgpNetwork) => {
+    protected override def listFilter(bgpNetwork: BgpNetwork): Boolean = {
         bgpNetwork.routerId == routerId
     }
 
-    override val createFilter = (bgpNetwork: BgpNetwork) => {
+    protected override def createFilter(bgpNetwork: BgpNetwork): Unit = {
         bgpNetwork.create(routerId)
     }
 

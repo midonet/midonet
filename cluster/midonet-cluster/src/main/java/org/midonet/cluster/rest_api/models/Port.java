@@ -131,7 +131,8 @@ public abstract class Port extends UriResource {
 
     @JsonIgnore
     public void update(Port from) {
-        this.id = from.id;
+        id = from.id;
+        tunnelKey = from.tunnelKey;
         if (null != from.hostId) {
             hostId = from.hostId;
         }
