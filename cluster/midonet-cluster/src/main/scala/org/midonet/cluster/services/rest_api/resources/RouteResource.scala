@@ -33,7 +33,7 @@ import org.midonet.cluster.rest_api.models.{Port, Route, Router}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
@@ -68,10 +68,11 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
         }).getOrThrow.flatten.asJava
     }
 
-    protected override def createFilter(route: Route): Unit = {
+    protected override def createFilter(route: Route): Ops = {
         throwIfNextPortNotValid(route)
         throwIfViolationsOn(route)
         route.create(routerId)
+        NoOps
     }
 
     private def throwIfNextPortNotValid(route: Route): Unit = {

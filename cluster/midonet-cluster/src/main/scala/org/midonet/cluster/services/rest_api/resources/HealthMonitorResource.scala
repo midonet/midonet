@@ -24,7 +24,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.HealthMonitor
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_HEALTH_MONITOR_JSON,
@@ -40,7 +40,8 @@ class HealthMonitorResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[HealthMonitor](resContext) {
 
     protected override def updateFilter(to: HealthMonitor, from: HealthMonitor)
-    : Unit = {
+    : Ops = {
         to.update(from)
+        NoOps
     }
 }
