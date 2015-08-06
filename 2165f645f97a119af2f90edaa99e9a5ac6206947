@@ -158,6 +158,24 @@
       "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_db7a1487",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-06T13:59:51Z",
+      "side": 1,
+      "message": "option a:\n\nif (!observableWasTriggered(added, removed, prevJumpTargetState, jumpTargetState)\n   jumpTargetObs onNext Observable.just(null)\n\noption b:\nlocal function closing over argument list\ndef maybeTriggerObservable() { ... }\n\noption c:\nkeep a local collection with the observables:\n\nvar obs \u003d added map _.state\n....\nobs.padTo(1, Observable.just(null)) foreach jumpTargetObs.onNext\n\nthere are tons of ways to write this that can avoid a 4 level ident condition :p",
+      "parentUuid": "9ad9bd40_28701d71",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
