@@ -33,6 +33,7 @@ private object ChainTest {
     protected val rejectRule = new LiteralRule(Condition.TRUE, Action.REJECT)
     protected val acceptRule = new LiteralRule(Condition.TRUE, Action.ACCEPT)
     protected val continueRule = new LiteralRule(Condition.FALSE, Action.ACCEPT)
+    protected val returnRule = new LiteralRule(Condition.TRUE, Action.RETURN)
 }
 
 @RunWith(classOf[JUnitRunner])
@@ -157,7 +158,7 @@ class ChainTest extends Suite
 
     /*
      * outerJumpChain
-     *   Juwp to innerJumpToContinueChain:
+     *   Jump to innerJumpToContinueChain:
      *     Continue
      *   Jump to innerJumpToRejectChain:
      *     Reject <-- Stop here
@@ -175,6 +176,48 @@ class ChainTest extends Suite
                            acceptRule), // Shouldn't make it to this rule.
                       List(innerJumpToContinueChain, innerJumpToRejectChain))
         applyChain(outerJumpChain).action should be (Action.REJECT)
+    }
+
+    /*
+     * outerChain
+     *   Jump to innerChain:
+     *     Return <-- Stop applying innerChain rules
+     *     Reject <-- Never reached
+     *   Accept <-- Stop here
+     */
+    def testReturnFromJumpChain(): Unit = {
+        val innerChain = makeChain(List(returnRule, rejectRule))
+        val outerChain = makeChain(List(makeJumpRule(innerChain), acceptRule),
+                                   List(innerChain))
+        applyChain(outerChain).action shouldBe Action.ACCEPT
+    }
+
+    /*
+     * outerChain
+     *   Jump to innerChain:
+     *     Accept <-- Stop applying innerChain rules
+     *     Reject <-- Never reached
+     *   Reject <-- Never reached
+     */
+    def testAcceptFromJumpChain(): Unit = {
+        val innerChain = makeChain(List(acceptRule, rejectRule))
+        val outerChain = makeChain(List(makeJumpRule(innerChain), rejectRule),
+                                   List(innerChain))
+        applyChain(outerChain).action shouldBe Action.ACCEPT
+    }
+
+    /*
+     * outerChain
+     *   Jump to innerChain:
+     *     Reject <-- Stop here
+     *     Accept <-- Never reached
+     *   Accept <-- Never reached
+     */
+    def testRejectFromJumpChain(): Unit = {
+        val innerChain = makeChain(List(rejectRule, acceptRule))
+        val outerChain = makeChain(List(makeJumpRule(innerChain), acceptRule),
+                                   List(innerChain))
+        applyChain(outerChain).action shouldBe Action.REJECT
     }
 
     /*
