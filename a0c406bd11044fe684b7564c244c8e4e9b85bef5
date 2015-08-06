@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_65932b5b",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:52:56Z",
+      "side": 1,
+      "message": "Is this relevant? The implementation for a storage API should be assumed to be thread-safe, unless stated otherwise, isn\u0027t it (we didn\u0027t mention anything related to the thread-safety of ZookeeperObjectMapper or ZookeeperObjectState, except for the methods that weren\u0027t safe)?",
+      "parentUuid": "9ad9bd40_1399cac3",
+      "range": {
+        "startLine": 35,
+        "startChar": 3,
+        "endLine": 36,
+        "endChar": 38
+      },
+      "revId": "a0c406bd11044fe684b7564c244c8e4e9b85bef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d37be278",
         "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_859e6f61",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:52:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d37be278",
+      "range": {
+        "startLine": 106,
+        "startChar": 23,
+        "endLine": 106,
+        "endChar": 27
+      },
+      "revId": "a0c406bd11044fe684b7564c244c8e4e9b85bef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f37e2669",
         "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2015-08-05T16:26:01Z",
       "side": 1,
       "message": "name?",
+      "range": {
+        "startLine": 107,
+        "startChar": 58,
+        "endLine": 107,
+        "endChar": 62
+      },
+      "revId": "a0c406bd11044fe684b7564c244c8e4e9b85bef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a599b37a",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:52:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f37e2669",
       "range": {
         "startLine": 107,
         "startChar": 58,
