@@ -301,6 +301,8 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
             maxParallelForks = 4
         }
 
+        forkEvery = 10
+
         if (project.hasProperty('midonet.newStack')) {
             systemProperty "midonet.newStack", "true"
 
