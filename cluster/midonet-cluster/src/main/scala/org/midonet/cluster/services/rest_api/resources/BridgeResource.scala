@@ -40,8 +40,7 @@ import org.midonet.cluster.rest_api.models.{Ip4MacPair, Bridge, MacPort}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes.{APPLICATION_BRIDGE_COLLECTION_JSON, APPLICATION_BRIDGE_COLLECTION_JSON_V2, APPLICATION_BRIDGE_COLLECTION_JSON_V3, APPLICATION_BRIDGE_JSON, APPLICATION_BRIDGE_JSON_V2, APPLICATION_BRIDGE_JSON_V3}
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{tryLegacyRead, tryLegacyWrite}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext, tryLegacyRead, tryLegacyWrite}
 import org.midonet.midolman.state.MacPortMap.encodePersistentPath
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -404,22 +403,23 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             throw new BadRequestHttpException(getMessage(MAC_URI_FORMAT))
     }
 
-    protected override def listFilter(bridge: Bridge): Boolean = {
+    protected override def listFilter(bridges: Seq[Bridge]): Seq[Bridge] = {
         val tenantId = resContext.uriInfo
                                  .getQueryParameters.getFirst("tenant_id")
-        if (tenantId eq null) true
-        else bridge.tenantId == tenantId
+        if (tenantId eq null) bridges
+        else bridges filter { _.tenantId == tenantId }
     }
 
-    protected override def createFilter(to: Bridge): Unit = {
+    protected override def createFilter(to: Bridge): Ops = {
         if (to.vxLanPortId != null || to.vxLanPortIds != null) {
             throw new BadRequestHttpException(
                 getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
         }
         to.create()
+        NoOps
     }
 
-    protected override def updateFilter(to: Bridge, from: Bridge): Unit = {
+    protected override def updateFilter(to: Bridge, from: Bridge): Ops = {
         if (to.vxLanPortId != null &&
             to.vxLanPortId != from.vxLanPortId) {
             throw new BadRequestHttpException(
@@ -431,6 +431,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                 getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
         }
         to.update(from)
+        NoOps
     }
 
 }

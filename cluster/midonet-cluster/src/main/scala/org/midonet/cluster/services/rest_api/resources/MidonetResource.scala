@@ -54,6 +54,10 @@ object MidonetResource {
 
     private final val StorageAttempts = 3
 
+    type Ids = Future[Seq[Any]]
+    type Ops = Future[Seq[Multi]]
+    final val NoOps = Future.successful(Seq.empty[Multi])
+
     final val Timeout = 5 seconds
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
@@ -63,6 +67,18 @@ object MidonetResource {
     case class Create[T <: UriResource](resource: T) extends Multi
     case class Update[T <: UriResource](resource: T) extends Multi
     case class Delete(clazz: Class[_ <: UriResource], id: Any) extends Multi
+
+    final val DefaultHandler: PartialFunction[Response, Response] = {
+        case r => r
+    }
+    final val DefaultCatcher: PartialFunction[Throwable, Response] = {
+        case e: WebApplicationException => e.getResponse
+    }
+
+    object NoCatch extends PartialFunction[Throwable, Response] {
+        def isDefinedAt(e: Throwable) = false
+        def apply(e: Throwable) = throw new MatchError(s"No match $e")
+    }
 
     final class FutureOps[T](val future: Future[T]) extends AnyVal {
         def getOrThrow: T = tryRead {
@@ -142,12 +158,10 @@ object MidonetResource {
         }
     }
 
-    protected def tryResponse(f: => Response): Response = {
-        try {
-            f
-        } catch {
-            case e: WebApplicationException => e.getResponse
-        }
+    protected def tryResponse(handler: (Response) => Response,
+                              catcher: PartialFunction[Throwable, Response])
+                             (f: => Response): Response = {
+        handler(try f catch catcher orElse DefaultCatcher)
     }
 
     case class ResourceContext @Inject() (backend: MidonetBackend,
@@ -181,7 +195,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
             throw new WebApplicationException(Status.NOT_ACCEPTABLE)
         }
         getResource(tag.runtimeClass.asInstanceOf[Class[T]], id)
-            .map(getFilter)
+            .flatMap(getFilter)
             .getOrThrow
     }
 
@@ -198,8 +212,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
             } else {
                 listResources(tag.runtimeClass.asInstanceOf[Class[T]], ids)
             }
-        } map {
-            _.filter(listFilter).asJava
+        } map { list =>
+            listFilter(list).asJava
         } getOrThrow
     }
 
@@ -214,11 +228,11 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
         t.setBaseUri(uriInfo.getBaseUri)
 
-        throwIfViolationsOn(t)
-
-        tryResponse {
-            createFilter(t)
-            createResource(t)
+        tryResponse(handleCreate, catchCreate) {
+            createFilter(t) map { ops =>
+                throwIfViolationsOn(t)
+                multiResource(Seq(Create(t)) ++ ops, OkCreated(t.getUri))
+            } getOrThrow
         }
     }
 
@@ -232,21 +246,25 @@ abstract class MidonetResource[T >: Null <: UriResource]
             throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
         }
 
-        getResource(tag.runtimeClass.asInstanceOf[Class[T]], id).map(current => {
-
-            throwIfViolationsOn(t)
-
-            updateFilter(t, current)
-            updateResource(t)
-        }).getOrThrow
+        val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
+        tryResponse(handleUpdate, catchUpdate) {
+            getResource(clazz, id) flatMap { current =>
+                throwIfViolationsOn(t)
+                updateFilter(t, current)
+            } map { ops =>
+                multiResource(ops ++ Seq(Update(t)), OkNoContentResponse)
+            } getOrThrow
+        }
     }
 
     @DELETE
     @Path("{id}")
     def delete(@PathParam("id") id: String): Response = {
-        tryResponse {
-            deleteFilter(id)
-            deleteResource(tag.runtimeClass.asInstanceOf[Class[T]], id)
+        val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
+        tryResponse(handleDelete, catchDelete) {
+            deleteFilter(id) map { ops =>
+                multiResource(ops ++ Seq(Delete(clazz, id)), OkNoContentResponse)
+            } getOrThrow
         }
     }
 
@@ -261,17 +279,35 @@ abstract class MidonetResource[T >: Null <: UriResource]
         new FutureOps(future)
     }
 
-    protected def getFilter(t: T): T = t
+    protected def getFilter(t: T): Future[T] = Future.successful(t)
 
-    protected def listIds: Future[Seq[Any]] = Future.successful(null)
+    protected def listIds: Ids = Future.successful(null)
 
-    protected def listFilter(t: T): Boolean = true
+    protected def listFilter(list: Seq[T]): Seq[T] = list
 
-    protected def createFilter(t: T): Unit = t.create()
+    protected def createFilter(t: T): Ops = { t.create(); NoOps }
 
-    protected def updateFilter(to: T, from: T): Unit = { }
+    protected def updateFilter(to: T, from: T): Ops = { NoOps }
 
-    protected def deleteFilter(id: String): Unit = { }
+    protected def deleteFilter(id: String): Ops = { NoOps }
+
+    protected def handleCreate: PartialFunction[Response, Response] =
+        DefaultHandler
+
+    protected def handleUpdate: PartialFunction[Response, Response] =
+        DefaultHandler
+
+    protected def handleDelete: PartialFunction[Response, Response] =
+        DefaultHandler
+
+    protected def catchCreate: PartialFunction[Throwable, Response] =
+        DefaultCatcher
+
+    protected def catchUpdate: PartialFunction[Throwable, Response] =
+        DefaultCatcher
+
+    protected def catchDelete: PartialFunction[Throwable, Response] =
+        DefaultCatcher
 
     protected def listResources[U >: Null <: UriResource](clazz: Class[U])
     : Future[Seq[U]] = {

@@ -45,10 +45,10 @@ class ChainResource @Inject()(resContext: ResourceContext)
         new ChainRuleResource(id, resContext)
     }
 
-    protected override def listFilter(chain: Chain): Boolean = {
+    protected override def listFilter(chains: Seq[Chain]): Seq[Chain] = {
         val tenantId = resContext.uriInfo.getQueryParameters
                                          .getFirst("tenant_id")
-        if (tenantId eq null) true
-        else chain.tenantId == tenantId
+        if (tenantId eq null) chains
+        else chains filter { _.tenantId == tenantId }
     }
 }
