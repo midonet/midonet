@@ -45,7 +45,9 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
 
     protected override def getFilter(port: P): P = setActive(port)
 
-    protected override def listFilter(port: P): Boolean = { setActive(port); true }
+    protected override def listFilter(port: P): Boolean = {
+        setActive(port); true
+    }
 
     private def isActive(id: String): Boolean = {
         getResourceState(classOf[Port], id, HostsKey).getOrThrow.nonEmpty

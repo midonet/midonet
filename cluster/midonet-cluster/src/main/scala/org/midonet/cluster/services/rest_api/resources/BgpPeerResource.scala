@@ -20,11 +20,14 @@ import java.util.UUID
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
+import scala.collection.JavaConverters._
+import scala.concurrent.Future
+
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.BgpPeer
+import org.midonet.cluster.rest_api.models.{Router, BgpPeer}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -51,8 +54,8 @@ class RouterBgpPeerResource @Inject()(routerId: UUID,
                                       resContext: ResourceContext)
     extends MidonetResource[BgpPeer](resContext) {
 
-    protected override def listFilter(bgpPeer: BgpPeer): Boolean = {
-        bgpPeer.routerId == routerId
+    protected override def listIds: Future[Seq[Any]] = {
+        getResource(classOf[Router], routerId) map { _.bgpPeerIds.asScala }
     }
 
     protected override def createFilter(bgpPeer: BgpPeer): Unit = {
