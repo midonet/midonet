@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
+
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
@@ -24,7 +25,7 @@ import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.Response.Status._
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Await
+import scala.concurrent.{Future, Await}
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -39,17 +40,20 @@ import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Create, ResourceContext, Update}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceType
 
 class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                                               (implicit tag: ClassTag[P])
     extends MidonetResource[P](resContext)(tag) {
 
-    protected override def getFilter(port: P): P = setActive(port)
+    protected override def getFilter(port: P): Future[P] = {
+        Future.successful(setActive(port))
+    }
 
-    protected override def listFilter(port: P): Boolean = {
-        setActive(port); true
+    protected override def listFilter(ports: Seq[P]): Seq[P] = {
+        ports foreach setActive
+        ports
     }
 
     private def isActive(id: String): Boolean = {
@@ -119,8 +123,9 @@ class PortResource @Inject()(resContext: ResourceContext)
         new PortPortGroupResource(id, resContext)
     }
 
-    protected override def updateFilter(to: Port, from: Port): Unit = {
+    protected override def updateFilter(to: Port, from: Port): Ops = {
         to.update(from)
+        NoOps
     }
 
 }
@@ -136,13 +141,14 @@ class BridgePortResource @Inject()(bridgeId: UUID,
                                    resContext: ResourceContext)
     extends AbstractPortResource[BridgePort](resContext) {
 
-    protected override def listFilter(port: BridgePort): Boolean = {
-        port.getDeviceId == bridgeId
+    protected override def listIds: Ids = {
+        getResource(classOf[Bridge], bridgeId) map { _.portIds.asScala }
     }
 
-    protected override def createFilter(port: BridgePort): Unit = {
+    protected override def createFilter(port: BridgePort): Ops = {
         ensureTunnelKey(port)
         port.create(bridgeId)
+        NoOps
     }
 }
 
@@ -153,8 +159,8 @@ class BridgePortResource @Inject()(bridgeId: UUID,
 class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
     extends AbstractPortResource[RouterPort](resContext) {
 
-    protected override def listFilter(port: RouterPort): Boolean = {
-        port.getDeviceId == routerId
+    protected override def listIds: Ids = {
+        getResource(classOf[Router], routerId) map { _.portIds.asScala }
     }
 
     @POST

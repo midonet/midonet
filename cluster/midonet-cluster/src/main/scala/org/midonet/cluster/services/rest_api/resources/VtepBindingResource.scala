@@ -32,7 +32,7 @@ import org.midonet.cluster.rest_api.annotation.AllowCreate
 import org.midonet.cluster.rest_api.models.{Bridge, Vtep, VtepBinding}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
 @RequestScoped
 @AllowCreate(Array(APPLICATION_VTEP_BINDING_JSON,
@@ -70,12 +70,14 @@ class VtepBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
             .asJava
     }
 
-    protected override def createFilter(binding: VtepBinding): Unit = {
+    protected override def createFilter(binding: VtepBinding): Ops = {
+        throwIfViolationsOn(binding)
         hasResource(classOf[Bridge], binding.networkId).map(exists => {
             // Validate the bridge exists.
             if (!exists) throw new ApiException(Status.BAD_REQUEST)
         }).getOrThrow
         binding.create(mgmtIp)
+        NoOps
     }
 
     private def getVtep: Future[Vtep] = {

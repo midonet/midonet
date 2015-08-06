@@ -31,7 +31,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation.AllowCreate
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet6}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 import org.midonet.packets.IPv6Subnet
 
 @RequestScoped
@@ -96,8 +96,9 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
         new DhcpV6HostResource(bridgeId, subnetAddress, resContext)
     }
 
-    protected override def createFilter(subnet: DhcpSubnet6): Unit = {
+    protected override def createFilter(subnet: DhcpSubnet6): Ops = {
         subnet.create(bridgeId)
+        NoOps
     }
 
     private def getSubnet(subnetAddress: IPv6Subnet)
