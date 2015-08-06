@@ -86,7 +86,7 @@ case class Chain(id: UUID,
         traversedChains.add(id)
         res.action = Action.CONTINUE
         var i = 0
-        while ((i < rules.size()) && !res.action.isDecisive) {
+        while ((i < rules.size()) && res.action == Action.CONTINUE) {
             val rule = rules.get(i)
             i += 1
             rule.process(context, res, ownerId)
