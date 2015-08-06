@@ -20,6 +20,7 @@ import java.net.URI;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,6 +51,9 @@ public class TestWriteVersion extends JerseyTest {
 
     @Test
     public void testGetUpdate() {
+
+        Assume.assumeFalse(FuncTest.isAwaitingImpl());
+
         org.midonet.client.resource.WriteVersion writeVersion =
                 api.getWriteVersion();
         assertThat("The version should be the current version",

@@ -22,6 +22,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,6 +65,9 @@ public class TestHostVersion extends JerseyTest {
 
     @Test
     public void testGet() throws StateAccessException {
+
+        Assume.assumeFalse(FuncTest.isAwaitingImpl());
+
         UUID myUuid = UUID.randomUUID();
         UUID anotherUuid = UUID.randomUUID();
 

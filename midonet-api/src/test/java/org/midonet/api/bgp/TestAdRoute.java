@@ -61,6 +61,9 @@ public class TestAdRoute extends JerseyTest {
     @Before
     public void before() {
 
+        // Models have changed for BGP in v2, this is no longer relevant
+        Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+
         // Create a router.
         router.setName(testRouterName);
         router.setTenantId(testTenantId);

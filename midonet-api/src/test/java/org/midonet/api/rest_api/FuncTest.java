@@ -101,7 +101,15 @@ public class FuncTest {
      * Tells if we're testing against the Compat API.
      */
     public static boolean isCompatApiEnabled() {
-        return Boolean.parseBoolean(System.getenv("midonet.newStack"));
+        return System.getProperty("midonet.newStack") != null;
+    }
+
+    /**
+     * Tells that a test should be ignored because the implementation is
+     * missing.
+     */
+    public static boolean isAwaitingImpl() {
+        return System.getProperty("midonet.awaitingImpl") != null;
     }
 
     private static WebAppDescriptor.Builder getBuilderForLegacyApi() {

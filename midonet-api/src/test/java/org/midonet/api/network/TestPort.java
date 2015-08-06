@@ -29,6 +29,7 @@ import javax.ws.rs.core.Response;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -1012,6 +1013,8 @@ public class TestPort {
         @Test
         public void testLinkUnlink() {
 
+            Assume.assumeFalse(FuncTest.isAwaitingImpl());
+
             DtoRouter router1 = topology.getRouter("router1");
             DtoRouter router2 = topology.getRouter("router2");
             DtoBridge bridge1 = topology.getBridge("bridge1");
@@ -1380,6 +1383,9 @@ public class TestPort {
          */
         @Test
         public void testGetRouterPortHostInterfaceSuccess() throws Exception {
+
+            Assume.assumeFalse(FuncTest.isAwaitingImpl());
+
             Map<UUID, DtoRouterPort> portMap =
                     new HashMap<>();
 
@@ -1427,6 +1433,9 @@ public class TestPort {
          */
         @Test
         public void testGetBridgePortHostInterfaceSuccess() throws Exception {
+
+            Assume.assumeFalse(FuncTest.isAwaitingImpl());
+
             Map<UUID, DtoBridgePort> portMap =
                     new HashMap<>();
 

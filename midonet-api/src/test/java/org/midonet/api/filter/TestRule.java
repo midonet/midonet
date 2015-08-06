@@ -26,8 +26,6 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.google.inject.Inject;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,13 +45,8 @@ import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRule.DtoNatTarget;
 import org.midonet.client.dto.DtoRuleChain;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Chain;
-import org.midonet.cluster.data.rules.LiteralRule;
 import org.midonet.cluster.rest_api.models.Rule;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.midolman.rules.Condition;
-import org.midonet.midolman.rules.RuleResult;
 import org.midonet.packets.ARP;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv6;
