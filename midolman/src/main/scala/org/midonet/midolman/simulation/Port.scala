@@ -17,23 +17,22 @@
 package org.midonet.midolman.simulation
 
 import java.util.{ArrayList, UUID}
-import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.Simulator.{SimStep, ToPortAction}
-import org.midonet.midolman.topology.VirtualTopologyActor._
-
-import scala.collection.JavaConverters._
 
 import akka.actor.ActorSystem
-
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.{Commons, Topology}
-import org.midonet.cluster.util.{IPSubnetUtil, IPAddressUtil, UUIDUtil}
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, ErrorDrop, Drop, SimulationResult}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, Drop, ErrorDrop, SimulationResult}
+import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.simulation.Simulator.{SimStep, ToPortAction}
 import org.midonet.midolman.state.PortConfig
 import org.midonet.midolman.state.PortDirectory.{BridgePortConfig, RouterPortConfig, VxLanPortConfig}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
+
+import scala.collection.JavaConverters._
 
 object Port {
     import IPAddressUtil._
@@ -42,6 +41,9 @@ object Port {
 
     private implicit def jlistToSSet(from: java.util.List[Commons.UUID]): Set[UUID] =
         if (from ne null) from.asScala.toSet map UUIDUtil.fromProto else Set.empty
+
+    private def jSetToJArrayList(from: java.util.Set[UUID]): java.util.ArrayList[UUID] =
+        if (from ne null) new ArrayList(from) else new ArrayList(0)
 
     def apply(proto: Topology.Port): Port = {
         if (proto.hasVtepId)
@@ -105,21 +107,21 @@ object Port {
     @Deprecated
     private def bridgePort(p: BridgePortConfig) = BridgePort(
             p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId, p.hostId,
-            p.interfaceName, p.adminStateUp, new ArrayList(p.portGroupIDs), false,
+            p.interfaceName, p.adminStateUp, jSetToJArrayList(p.portGroupIDs), false,
             if (p.vlanId ne null) p.vlanId else Bridge.UntaggedVlanId,
             p.device_id)
 
     @Deprecated
     private def routerPort(p: RouterPortConfig) = RouterPort(
             p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId, p.hostId,
-            p.interfaceName, p.adminStateUp, new ArrayList(p.portGroupIDs), false, p.device_id,
-            new IPv4Subnet(p.nwAddr, p.nwLength),
+            p.interfaceName, p.adminStateUp, jSetToJArrayList(p.portGroupIDs), false,
+            p.device_id, new IPv4Subnet(p.nwAddr, p.nwLength),
             IPv4Addr.fromString(p.getPortAddr), p.getHwAddr, null)
 
     @Deprecated
     private def vxLanPort(p: VxLanPortConfig) = VxLanPort(
             p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId,
-            p.adminStateUp, new ArrayList(p.portGroupIDs), new UUID(1, 39), p.device_id,
+            p.adminStateUp, jSetToJArrayList(p.portGroupIDs), new UUID(1, 39), p.device_id,
             IPv4Addr.fromString(p.mgmtIpAddr), p.mgmtPort,
             IPv4Addr.fromString(p.tunIpAddr), p.tunnelZoneId, p.vni)
 }
