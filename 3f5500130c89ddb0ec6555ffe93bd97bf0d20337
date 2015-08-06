@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_65db2b7c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:44:52Z",
+      "side": 1,
+      "message": "Oh yes. Done.",
+      "parentUuid": "9ad9bd40_82fbc545",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 97,
+        "endChar": 9
+      },
+      "revId": "3f5500130c89ddb0ec6555ffe93bd97bf0d20337",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_427a9dbd",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-06T09:58:19Z",
       "side": 1,
       "message": "This is fine, but FYI you can also do this:\n\n        for ((ip, mac) \u003c- entries.toList)\n            yield new Ip4MacPair(resContext.uriInfo.getBaseUri,\n                                 bridgeId, ip.toString, mac.toString)",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 16
+      },
+      "revId": "3f5500130c89ddb0ec6555ffe93bd97bf0d20337",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_85e66f42",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:44:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_427a9dbd",
       "range": {
         "startLine": 121,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a5e1b32b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:44:52Z",
+      "side": 1,
+      "message": "Removed",
+      "parentUuid": "9ad9bd40_625c014c",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 5
+      },
+      "revId": "3f5500130c89ddb0ec6555ffe93bd97bf0d20337",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_822e65a3",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2015-08-06T09:58:19Z",
       "side": 1,
       "message": "Can you get these exceptions on a read?",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 67
+      },
+      "revId": "3f5500130c89ddb0ec6555ffe93bd97bf0d20337",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c5bdd7d9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:44:52Z",
+      "side": 1,
+      "message": "tryRead is also used in getOrThrow above, which may contain exceptions from writes too.",
+      "parentUuid": "9ad9bd40_822e65a3",
       "range": {
         "startLine": 87,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_25120309",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:44:52Z",
+      "side": 1,
+      "message": "Moved below when incrementing attempt.",
+      "parentUuid": "9ad9bd40_a517f343",
+      "range": {
+        "startLine": 104,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 71
+      },
+      "revId": "3f5500130c89ddb0ec6555ffe93bd97bf0d20337",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_05209f99",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2015-08-06T09:58:19Z",
       "side": 1,
       "message": "I don\u0027t think these should be logged as errors. They\u0027re most likely to be caused by user error, right? We shouldn\u0027t log user errors at error level.",
+      "range": {
+        "startLine": 107,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 71
+      },
+      "revId": "3f5500130c89ddb0ec6555ffe93bd97bf0d20337",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_65c24b86",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:44:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_05209f99",
       "range": {
         "startLine": 107,
         "startChar": 0,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_85bd8f04",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:44:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e52c9b9b",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 32
+      },
+      "revId": "3f5500130c89ddb0ec6555ffe93bd97bf0d20337",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c529578b",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
         "patchSetId": 3
@@ -174,6 +342,30 @@
       "writtenOn": "2015-08-06T09:58:19Z",
       "side": 1,
       "message": "Shouldn\u0027t this increment attempt? If there\u0027s an unhandled exception that happens every time, this will keep retrying forever.",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 118,
+        "endChar": 55
+      },
+      "revId": "3f5500130c89ddb0ec6555ffe93bd97bf0d20337",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a5b8d311",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:44:52Z",
+      "side": 1,
+      "message": "Or rather return an internal server error?",
+      "parentUuid": "9ad9bd40_c529578b",
       "range": {
         "startLine": 117,
         "startChar": 0,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a51453e9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:44:52Z",
+      "side": 1,
+      "message": "Agree: I removed it and will be translated to an internal server error.",
+      "parentUuid": "9ad9bd40_45446749",
+      "range": {
+        "startLine": 131,
+        "startChar": 53,
+        "endLine": 131,
+        "endChar": 74
+      },
+      "revId": "3f5500130c89ddb0ec6555ffe93bd97bf0d20337",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_456b87b6",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
         "patchSetId": 3
@@ -220,6 +436,30 @@
       "writtenOn": "2015-08-06T09:58:19Z",
       "side": 1,
       "message": "Ditto.",
+      "range": {
+        "startLine": 148,
+        "startChar": 0,
+        "endLine": 149,
+        "endChar": 62
+      },
+      "revId": "3f5500130c89ddb0ec6555ffe93bd97bf0d20337",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c5d6b727",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-06T10:44:52Z",
+      "side": 1,
+      "message": "Same",
+      "parentUuid": "9ad9bd40_456b87b6",
       "range": {
         "startLine": 148,
         "startChar": 0,
