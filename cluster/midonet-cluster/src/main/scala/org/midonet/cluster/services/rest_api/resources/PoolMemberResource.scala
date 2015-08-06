@@ -42,7 +42,8 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 class PoolMemberResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[PoolMember](resContext) {
 
-    protected override def updateFilter = (to: PoolMember, from: PoolMember) => {
+    protected override def updateFilter(to: PoolMember, from: PoolMember)
+    : Unit = {
         to.update(from)
     }
 
@@ -67,11 +68,11 @@ class PoolMemberResource @Inject()(resContext: ResourceContext)
 class PoolPoolMemberResource @Inject()(poolId: UUID, resCtx: ResourceContext)
     extends MidonetResource[PoolMember](resCtx) {
 
-    protected override def listFilter = (poolMember: PoolMember) => {
+    protected override def listFilter(poolMember: PoolMember): Boolean = {
         poolMember.poolId == poolId
     }
 
-    protected override def createFilter = (poolMember: PoolMember) => {
+    protected override def createFilter(poolMember: PoolMember): Unit = {
         poolMember.create(poolId)
     }
 

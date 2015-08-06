@@ -20,9 +20,6 @@ import java.util.UUID
 
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
-
-import scala.concurrent.{Future, Await}
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -30,10 +27,8 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{UriResource, TunnelZone}
-import org.midonet.cluster.rest_api.validation.MessageProperty
-import org.midonet.cluster.rest_api.validation.MessageProperty.{getMessage, UNIQUE_TUNNEL_ZONE_NAME_TYPE}
-import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.rest_api.models.TunnelZone
+import org.midonet.cluster.rest_api.validation.MessageProperty.{UNIQUE_TUNNEL_ZONE_NAME_TYPE, getMessage}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -55,14 +50,13 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
         new TunnelZoneHostResource(id, resContext)
     }
 
-    protected override def getFilter = (tz: TunnelZone) => tz
-
-    protected override def createFilter = (tz: TunnelZone) => {
+    protected override def createFilter(tz: TunnelZone): Unit = {
         throwIfTunnelZoneNameUsed(tz)
         tz.create()
     }
 
-    protected override def updateFilter = (to: TunnelZone, from: TunnelZone) => {
+    protected override def updateFilter(to: TunnelZone, from: TunnelZone)
+    : Unit = {
         throwIfTunnelZoneNameUsed(to)
         to.update(from)
     }

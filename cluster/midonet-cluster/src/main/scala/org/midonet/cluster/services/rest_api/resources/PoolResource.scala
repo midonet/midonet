@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
+
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
@@ -27,10 +28,9 @@ import scala.util.control.NonFatal
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.models.Topology
-import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Pool, UriResource}
+import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
 
@@ -59,7 +59,7 @@ class PoolResource @Inject()(resContext: ResourceContext)
         new PoolPoolMemberResource(id, resContext)
     }
 
-    protected override def updateFilter = (to: Pool, from: Pool) => {
+    protected override def updateFilter(to: Pool, from: Pool): Unit = {
         to.update(from)
     }
 
@@ -94,11 +94,11 @@ class LoadBalancerPoolResource @Inject()(loadBalancerId: UUID,
         new PoolPoolMemberResource(id, resContext)
     }
 
-    protected override def listFilter = (pool: Pool) => {
+    protected override def listFilter(pool: Pool): Boolean = {
         pool.loadBalancerId == loadBalancerId
     }
 
-    protected override def createFilter = (pool: Pool) => {
+    protected override def createFilter(pool: Pool): Unit = {
         pool.create(loadBalancerId)
     }
 

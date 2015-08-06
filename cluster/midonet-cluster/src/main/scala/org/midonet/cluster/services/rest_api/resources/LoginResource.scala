@@ -17,7 +17,7 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import javax.ws.rs.core.{MediaType, NewCookie, Response}
-import javax.ws.rs.{POST, Path, Produces}
+import javax.ws.rs.{POST, Produces}
 
 import com.google.inject.servlet.RequestScoped
 

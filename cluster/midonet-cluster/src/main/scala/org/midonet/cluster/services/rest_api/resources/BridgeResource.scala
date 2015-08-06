@@ -404,24 +404,22 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             throw new BadRequestHttpException(getMessage(MAC_URI_FORMAT))
     }
 
-    protected override def listFilter: (Bridge) => Boolean = {
+    protected override def listFilter(bridge: Bridge): Boolean = {
         val tenantId = resContext.uriInfo
                                  .getQueryParameters.getFirst("tenant_id")
-        if (tenantId eq null) (_: Bridge) => true
-        else (r: Bridge) => r.tenantId == tenantId
+        if (tenantId eq null) true
+        else bridge.tenantId == tenantId
     }
 
-    protected override def createFilter = (to: Bridge) => {
+    protected override def createFilter(to: Bridge): Unit = {
         if (to.vxLanPortId != null || to.vxLanPortIds != null) {
             throw new BadRequestHttpException(
                 getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
         }
-        to.vxLanPortId = null
-        to.vxLanPortIds = null
         to.create()
     }
 
-    protected override def updateFilter = (to: Bridge, from: Bridge) => {
+    protected override def updateFilter(to: Bridge, from: Bridge): Unit = {
         if (to.vxLanPortId != null &&
             to.vxLanPortId != from.vxLanPortId) {
             throw new BadRequestHttpException(
@@ -432,8 +430,6 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             throw new BadRequestHttpException(
                 getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
         }
-        to.vxLanPortId = from.vxLanPortId
-        to.vxLanPortIds = from.vxLanPortIds
         to.update(from)
     }
 

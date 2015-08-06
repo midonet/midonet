@@ -70,7 +70,7 @@ class VtepBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
             .asJava
     }
 
-    protected override def createFilter = (binding: VtepBinding) => {
+    protected override def createFilter(binding: VtepBinding): Unit = {
         hasResource(classOf[Bridge], binding.networkId).map(exists => {
             // Validate the bridge exists.
             if (!exists) throw new ApiException(Status.BAD_REQUEST)

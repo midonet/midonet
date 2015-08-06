@@ -43,9 +43,9 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                                               (implicit tag: ClassTag[P])
     extends MidonetResource[P](resContext)(tag) {
 
-    protected override def getFilter = (port: P) => setActive(port)
+    protected override def getFilter(port: P): P = setActive(port)
 
-    protected override def listFilter = (port: P) => { setActive(port); true }
+    protected override def listFilter(port: P): Boolean = { setActive(port); true }
 
     private def isActive(id: String): Boolean = {
         getResourceState(classOf[Port], id, HostsKey).getOrThrow.nonEmpty
@@ -109,10 +109,7 @@ class PortResource @Inject()(resContext: ResourceContext)
         new PortPortGroupResource(id, resContext)
     }
 
-    // The final is not totally required, but it just helps confirming that
-    // nobody is overriding the tunnelKey check below
-    protected final override def updateFilter = (to: Port, from: Port) => {
-        to.tunnelKey = from.tunnelKey // disallow updating
+    protected override def updateFilter(to: Port, from: Port): Unit = {
         to.update(from)
     }
 
@@ -129,11 +126,11 @@ class BridgePortResource @Inject()(bridgeId: UUID,
                                    resContext: ResourceContext)
     extends AbstractPortResource[BridgePort](resContext) {
 
-    protected override def listFilter = (port: Port) => {
+    protected override def listFilter(port: BridgePort): Boolean = {
         port.getDeviceId == bridgeId
     }
 
-    protected override def createFilter = (port: BridgePort) => {
+    protected override def createFilter(port: BridgePort): Unit = {
         ensureTunnelKey(port)
         port.create(bridgeId)
     }
@@ -146,7 +143,7 @@ class BridgePortResource @Inject()(bridgeId: UUID,
 class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
     extends AbstractPortResource[RouterPort](resContext) {
 
-    protected override def listFilter = (port: Port) => {
+    protected override def listFilter(port: RouterPort): Boolean = {
         port.getDeviceId == routerId
     }
 
