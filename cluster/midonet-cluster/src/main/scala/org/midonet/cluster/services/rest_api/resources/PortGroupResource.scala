@@ -42,19 +42,18 @@ class PortGroupResource @Inject()(resContext: ResourceContext)
 
     private val uriInfo = resContext.uriInfo
 
-    protected override def listFilter: (PortGroup) => Boolean = {
+    protected override def listFilter(portGroup: PortGroup): Boolean = {
         val portIdStr = uriInfo.getQueryParameters.getFirst("port_id")
         val portId = if (portIdStr == null) null else UUID.fromString(portIdStr)
         val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
         if ((portId ne null) && (tenantId ne null))
-            (pg: PortGroup) => pg.portIds.contains(portId) &&
-                               pg.tenantId == tenantId
+            portGroup.portIds.contains(portId) && portGroup.tenantId == tenantId
         else if (portId ne null)
-            (pg: PortGroup) => pg.portIds.contains(portId)
+            portGroup.portIds.contains(portId)
         else if (tenantId ne null)
-            (pg: PortGroup) => pg.tenantId == tenantId
+            portGroup.tenantId == tenantId
         else
-            (_: PortGroup) => true
+            true
     }
 
     @Path("{id}/ports")

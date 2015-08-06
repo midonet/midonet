@@ -96,7 +96,7 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
         new DhcpV6HostResource(bridgeId, subnetAddress, resContext)
     }
 
-    protected override def createFilter = (subnet: DhcpSubnet6) => {
+    protected override def createFilter(subnet: DhcpSubnet6): Unit = {
         subnet.create(bridgeId)
     }
 
