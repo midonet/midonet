@@ -296,6 +296,8 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         } else {
             maxParallelForks = 4
         }
+
+        forkEvery = 10
     }
 
     dependencies {
