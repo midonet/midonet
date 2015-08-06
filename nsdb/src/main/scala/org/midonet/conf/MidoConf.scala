@@ -221,7 +221,7 @@ object MidoNodeConfigurator {
             if (!newVal.valueType().equals(schemaVal.valueType()))
                 throw new ConfigException.WrongType(newVal.origin(),
                     s"Value for $key (${newVal.render()}) does " +
-                        s"not follow schema type (${schemaVal.render()}})")
+                        s"not follow schema type (${schemaVal.render()})")
         }
     }
 }
