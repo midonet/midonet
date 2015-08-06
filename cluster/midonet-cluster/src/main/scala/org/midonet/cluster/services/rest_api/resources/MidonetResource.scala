@@ -187,9 +187,15 @@ abstract class MidonetResource[T >: Null <: UriResource]
             log.info(s"Media type {} not acceptable", accept)
             throw new WebApplicationException(Status.NOT_ACCEPTABLE)
         }
-        listResources(tag.runtimeClass.asInstanceOf[Class[T]])
-            .map(_.filter(listFilter).asJava)
-            .getOrThrow
+        listIds flatMap { ids =>
+            if (ids eq null) {
+                listResources(tag.runtimeClass.asInstanceOf[Class[T]])
+            } else {
+                listResources(tag.runtimeClass.asInstanceOf[Class[T]], ids)
+            }
+        } map {
+            _.filter(listFilter).asJava
+        } getOrThrow
     }
 
     @POST
@@ -251,6 +257,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
     }
 
     protected def getFilter(t: T): T = t
+
+    protected def listIds: Future[Seq[Any]] = Future.successful(null)
 
     protected def listFilter(t: T): Boolean = true
 
