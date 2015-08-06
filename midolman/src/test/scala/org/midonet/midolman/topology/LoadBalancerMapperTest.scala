@@ -31,7 +31,7 @@ import rx.observers.TestObserver
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
-import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, Vip => TopologyVip}
+import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, Pool => TopologyPool, Vip => TopologyVip}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
@@ -80,6 +80,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
         scenario("Adding-removing vips from the load-balancer") {
             Given("A load-balancer with no vips")
             val protoLB = buildAndStoreLB()
+            val protoPool = buildAndStorePool(protoLB)
 
             Then("When we subscribe to the load-balancer observable")
             val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
@@ -94,7 +95,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             simLB shouldBeDeviceOf protoLB
 
             And("When we add a vip to the load-balancer")
-            val vip1 = buildAndStoreVip(protoLB.getId)
+            val vip1 = buildAndStoreVip(protoLB.getId, protoPool.getId)
             var updatedProtoLB = getLB(protoLB.getId)
 
             Then("We receive the load-balancer with one vip")
@@ -118,7 +119,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             assertVips(List(updatedVip1), simLB.vips)
 
             And("When we add a 2nd vip to the load-balancer")
-            val vip2 = buildAndStoreVip(protoLB.getId)
+            val vip2 = buildAndStoreVip(protoLB.getId, protoPool.getId)
             updatedProtoLB = getLB(protoLB.getId)
 
             Then("We receive the load-balancer with 2 vips")
@@ -139,9 +140,11 @@ class LoadBalancerMapperTest extends MidolmanSpec
             assertVips(List.empty, simLB.vips)
 
             And("When we update one of the vips and the load-balancer")
+            val protoLB2 = buildAndStoreLB()
+            val protoPool2 = buildAndStorePool(protoLB2)
             store.update(vip2.toBuilder
                              .clearLoadBalancerId()
-                             .setPoolId(UUID.randomUUID().asProto)
+                             .setPoolId(protoPool2.getId)
                              .build())
             store.update(updatedProtoLB.toBuilder
                              .setAdminStateUp(false)
@@ -155,7 +158,8 @@ class LoadBalancerMapperTest extends MidolmanSpec
         scenario("Clearing the load-balancer id field in the VIP") {
             Given("A load-balancer with one vip")
             val protoLB = buildAndStoreLB()
-            val vip = buildAndStoreVip(protoLB.getId)
+            val protoPool = buildAndStorePool(protoLB)
+            val vip = buildAndStoreVip(protoLB.getId, protoPool.getId)
             var updatedProtoLB = getLB(protoLB.getId)
 
             Then("When we subscribe to the load-balancer observable")
@@ -214,7 +218,8 @@ class LoadBalancerMapperTest extends MidolmanSpec
         scenario("Updating the vip with an identical object") {
             Given("A load-balancer with one vip")
             val protoLB = buildAndStoreLB()
-            val vip = buildAndStoreVip(protoLB.getId)
+            val protoPool = buildAndStorePool(protoLB)
+            val vip = buildAndStoreVip(protoLB.getId, protoPool.getId)
             val updatedProtoLB = getLB(protoLB.getId)
 
             Then("When we subscribe to the load-balancer observable")
@@ -319,9 +324,12 @@ class LoadBalancerMapperTest extends MidolmanSpec
     private def getVip(vipId: UUID): TopologyVip =
         Await.result(store.get(classOf[TopologyVip], vipId), timeout)
 
-    private def buildAndStoreVip(lbId: UUID): TopologyVip = {
+    private def buildAndStoreVip(lbId: UUID,
+                                 poolId: UUID = null): TopologyVip = {
+        val somePoolId = if (poolId != null) Some(poolId)
+        else Some(UUID.randomUUID())
         val vip = createVip(adminStateUp = Some(true),
-                            poolId = Some(UUID.randomUUID()),
+                            poolId = somePoolId,
                             loadBalancerId = Some(lbId),
                             sessionPersistence =
                                 Some(SessionPersistence.SOURCE_IP))
@@ -333,5 +341,13 @@ class LoadBalancerMapperTest extends MidolmanSpec
         val loadBalancer = createLoadBalancer(adminStateUp = Some(true))
         store.create(loadBalancer)
         loadBalancer
+    }
+
+    private def buildAndStorePool(loadBalancer: TopologyLB): TopologyPool = {
+        val lb = if (loadBalancer == null) buildAndStoreLB() else loadBalancer
+        val pool = createPool(loadBalancerId = Option(lb.getId),
+                              adminStateUp = Some(true))
+        store.create(pool)
+        pool
     }
 }

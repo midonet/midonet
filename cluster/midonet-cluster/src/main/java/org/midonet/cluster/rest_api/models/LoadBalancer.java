@@ -44,6 +44,10 @@ public class LoadBalancer extends UriResource {
     public boolean adminStateUp = true;
 
     @JsonIgnore
+    @ZoomField(name = "pool_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> poolIds;
+
+    @JsonIgnore
     @ZoomField(name = "vip_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> vipIds;
 
@@ -77,6 +81,7 @@ public class LoadBalancer extends UriResource {
     @JsonIgnore
     public void update(LoadBalancer from) {
         id = from.id;
+        poolIds = from.poolIds;
         vipIds = from.vipIds;
     }
 

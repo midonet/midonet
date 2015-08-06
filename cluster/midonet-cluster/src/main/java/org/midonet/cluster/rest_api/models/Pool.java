@@ -62,6 +62,10 @@ public class Pool extends UriResource {
     @ZoomField(name = "pool_member_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> poolMemberIds;
 
+    @JsonIgnore
+    @ZoomField(name = "vip_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> vipIds;
+
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.POOLS, id);
@@ -103,6 +107,7 @@ public class Pool extends UriResource {
     public void update(Pool from) {
         id = from.id;
         poolMemberIds = from.poolMemberIds;
+        vipIds = from.vipIds;
         // Disallow changing status from the API, but don't fail
         status = from.status;
     }
