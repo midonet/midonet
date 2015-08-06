@@ -70,14 +70,14 @@ class RouterResource @Inject()(resContext: ResourceContext)
         new RouterBgpPeerResource(id, resContext)
     }
 
-    protected override def listFilter: (Router) => Boolean = {
+    protected override def listFilter(router: Router): Boolean = {
         val tenantId = resContext.uriInfo.getQueryParameters
                                          .getFirst("tenant_id")
-        if (tenantId eq null) (_: Router) => true
-        else (r: Router) => r.tenantId == tenantId
+        if (tenantId eq null) true
+        else router.tenantId == tenantId
     }
 
-    protected override def updateFilter = (to: Router, from: Router) => {
+    protected override def updateFilter(to: Router, from: Router): Unit = {
         to.update(from)
     }
 

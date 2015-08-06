@@ -17,7 +17,7 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import javax.ws.rs.core.MediaType
-import javax.ws.rs.{GET, Path, Produces}
+import javax.ws.rs.{GET, Produces}
 
 import com.google.inject.servlet.RequestScoped
 

@@ -16,10 +16,8 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.UUID
-
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.{PathParam, GET, Path, Produces}
+import javax.ws.rs.{GET, Path, PathParam, Produces}
 
 import scala.util.control.NonFatal
 

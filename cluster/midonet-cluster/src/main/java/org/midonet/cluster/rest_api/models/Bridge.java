@@ -145,12 +145,15 @@ public class Bridge extends UriResource {
         if (null == id) {
             id = UUID.randomUUID();
         }
+        vxLanPortId = null;
+        vxLanPortIds = null;
     }
 
     @JsonIgnore
     public void update(Bridge from) {
         this.id = from.id;
         portIds = from.portIds;
+        vxLanPortId = from.vxLanPortId;
         vxLanPortIds = from.vxLanPortIds;
         dhcpIds = from.dhcpIds;
     }

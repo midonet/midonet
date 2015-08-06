@@ -18,9 +18,8 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
 
-import javax.ws.rs.{PathParam, Path}
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
+import javax.ws.rs.{Path, PathParam}
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -28,8 +27,6 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.LoadBalancer
-import org.midonet.cluster.rest_api.validation.MessageProperty
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -56,7 +53,8 @@ class LoadBalancerResource @Inject()(resContext: ResourceContext)
         new LoadBalancerVipResource(id, resContext)
     }
 
-    protected override def updateFilter = (to: LoadBalancer, from: LoadBalancer) => {
+    protected override def updateFilter(to: LoadBalancer, from: LoadBalancer)
+    : Unit = {
         if (to.routerId != from.routerId) {
             throw new BadRequestHttpException("Router cannot be modified")
         }
