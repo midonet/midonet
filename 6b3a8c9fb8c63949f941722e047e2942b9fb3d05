@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_0c235fbd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-07T15:55:45Z",
+      "side": 1,
+      "message": "we could set the packetContext.currentDevice field here, and have a protected doProcess method that devices implement, right? and a getId method too.",
+      "revId": "6b3a8c9fb8c63949f941722e047e2942b9fb3d05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f7152440",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-07T15:55:45Z",
+      "side": 1,
+      "message": "so a forked rule is one that terminates the simulation at that point but also continues it?",
+      "revId": "6b3a8c9fb8c63949f941722e047e2942b9fb3d05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
