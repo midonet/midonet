@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e9270dc8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/MacLearningTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-07T13:56:52Z",
+      "side": 1,
+      "message": "I don\u0027t have a strong opinion about this, but it seems that the MacLearningTable interface was intended as a wrapper around a ReplicatedMap (or in this case a StateTable), rather than extending it.\n\nPerhaps the reason behind this was that its purpose was to only expose the `add` and `get` methods to the Bridge simulation object, while hiding other specifics of the underlying map/table.\n\nIf you don\u0027t extend the StateTable, then:\n- we don\u0027t need expose the bridge simulation object to the a different interface, hence no refactor needed there\n- we don\u0027t need to add support for state tables to the legacy v1\n- we only need to add support for state table to the bridge mapper (hence v2)\n\u003c-- therefore, less work",
+      "range": {
+        "startLine": 33,
+        "startChar": 23,
+        "endLine": 33,
+        "endChar": 68
+      },
+      "revId": "32cfb55bbbe70bd31efb30d4bde1e62266a94241",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_29573527",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/MacLearningTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-07T13:56:52Z",
+      "side": 1,
+      "message": "This is a trait: is it necessary to add an implementation for these methods here?",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 27
+      },
+      "revId": "32cfb55bbbe70bd31efb30d4bde1e62266a94241",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
