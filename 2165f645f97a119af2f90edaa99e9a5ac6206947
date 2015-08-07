@@ -176,6 +176,24 @@
       "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d2f58eed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-07T18:21:06Z",
+      "side": 1,
+      "message": "if it\u0027s the indent that\u0027s troubling you, I can just move the last clause into a variable.",
+      "parentUuid": "9ad9bd40_db7a1487",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
