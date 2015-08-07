@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_ac08b328",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperLegacyStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-07T14:06:17Z",
+      "side": 1,
+      "message": "Would it make sense to add this to the MidonetBackend now, and allow the mappers select between the replicated maps and merged mapes based on the config?",
+      "range": {
+        "startLine": 73,
+        "startChar": 31,
+        "endLine": 73,
+        "endChar": 48
+      },
+      "revId": "32cfb55bbbe70bd31efb30d4bde1e62266a94241",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e9270dc8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/MacLearningTable.scala",
         "patchSetId": 3
@@ -41,6 +64,98 @@
         "startChar": 0,
         "endLine": 49,
         "endChar": 27
+      },
+      "revId": "32cfb55bbbe70bd31efb30d4bde1e62266a94241",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0c38bfd1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-07T14:06:17Z",
+      "side": 1,
+      "message": "If the MergedMap provides an implementation for this trait, should\u0027t the definition be here?",
+      "range": {
+        "startLine": 23,
+        "startChar": 50,
+        "endLine": 23,
+        "endChar": 56
+      },
+      "revId": "32cfb55bbbe70bd31efb30d4bde1e62266a94241",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ec3c7bca",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-07T14:06:17Z",
+      "side": 1,
+      "message": "Indent",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 29,
+        "endChar": 11
+      },
+      "revId": "32cfb55bbbe70bd31efb30d4bde1e62266a94241",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cc2257a2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-07T14:06:17Z",
+      "side": 1,
+      "message": "I guess it makes sense from our perspective not to support primitive types as values, right?",
+      "range": {
+        "startLine": 70,
+        "startChar": 21,
+        "endLine": 70,
+        "endChar": 22
+      },
+      "revId": "32cfb55bbbe70bd31efb30d4bde1e62266a94241",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2c1ca369",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-07T14:06:17Z",
+      "side": 1,
+      "message": "Do we want to expose close to the consumers of a state table?",
+      "range": {
+        "startLine": 83,
+        "startChar": 4,
+        "endLine": 83,
+        "endChar": 21
       },
       "revId": "32cfb55bbbe70bd31efb30d4bde1e62266a94241",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
