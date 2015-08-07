@@ -29,7 +29,7 @@ import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.simulation.{Port => SimulationPort}
-import org.midonet.util.functors.{makeAction0, makeFunc1, makeFunc2}
+import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc2}
 
 /**
  * A device mapper that exposes an [[rx.Observable]] with notifications for
@@ -91,6 +91,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                traceChainObservable.map[SimulationPort](makeFunc1(traceUpdated)),
                portObservable.map[SimulationPort](makeFunc1(portUpdated)))
         .filter(makeFunc1(isPortReady))
+        .doOnNext(makeAction1((p:SimulationPort) => vt.invalidate(p.flowStateTag)))
 
     /** Handles updates to the simulation port. */
     private def portUpdated(port: SimulationPort): SimulationPort = {
