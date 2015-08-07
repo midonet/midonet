@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_a3e606e6",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Condition.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T06:52:58Z",
+      "side": 1,
+      "message": "I assume this works, so it must be okay as is, but why isn\u0027t a @ZoomConvert annotation needed here?",
+      "revId": "ce8ce802aba5f5b99775bc23e30e23993f9515b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_23daf616",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Rule.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T06:52:58Z",
+      "side": 1,
+      "message": "Is this necessary? Since this is a Rule, and Rules are Conditions, can\u0027t you just pass this to toProto()?",
+      "range": {
+        "startLine": 171,
+        "startChar": 12,
+        "endLine": 171,
+        "endChar": 57
+      },
+      "revId": "ce8ce802aba5f5b99775bc23e30e23993f9515b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4348dab2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T06:52:58Z",
+      "side": 1,
+      "message": "This and returnCondition() are the same, and the names don\u0027t really make it clear what they do. Why not replace both with a function called anyFragmentCondition()?",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 66
+      },
+      "revId": "ce8ce802aba5f5b99775bc23e30e23993f9515b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a3e7e6aa",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T06:52:58Z",
+      "side": 1,
+      "message": "I believe you can replace this whole block with ruleBuilder.getConditionBuilder(), and then remove ruleBuilder.setCondition(builder) below.",
+      "range": {
+        "startLine": 282,
+        "startChar": 22,
+        "endLine": 287,
+        "endChar": 9
+      },
+      "revId": "ce8ce802aba5f5b99775bc23e30e23993f9515b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a3b5267f",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 499,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T06:52:58Z",
+      "side": 1,
+      "message": "I think this does the same thing:\n\n  builder.getConditionBuilder()\n      .setMatchForwardFlow(matchFwdFlow.get)\n      .setMatchReturnFlow(!matchFwdFlow.get)",
+      "range": {
+        "startLine": 496,
+        "startChar": 0,
+        "endLine": 499,
+        "endChar": 35
+      },
+      "revId": "ce8ce802aba5f5b99775bc23e30e23993f9515b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e379eec8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T06:52:58Z",
+      "side": 1,
+      "message": "Same. Just ruleBuilder.getConditionBuilder(), and remove the setCondition() call below.",
+      "range": {
+        "startLine": 214,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 9
+      },
+      "revId": "ce8ce802aba5f5b99775bc23e30e23993f9515b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
