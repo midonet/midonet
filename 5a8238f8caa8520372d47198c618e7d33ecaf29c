@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c67078a6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T07:51:59Z",
+      "side": 1,
+      "message": "Another NOT_ACCEPTABLE here. I think CONFLICT is the right one to use.",
+      "range": {
+        "startLine": 98,
+        "startChar": 42,
+        "endLine": 98,
+        "endChar": 65
+      },
+      "revId": "5a8238f8caa8520372d47198c618e7d33ecaf29c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a66d34ce",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T07:51:59Z",
+      "side": 1,
+      "message": "I didn\u0027t mean that the exceptions shouldn\u0027t be logged at all, only that they shouldn\u0027t be logged as errors. At this point, we\u0027re preserving exactly one bit of information from the exception: There was one. I think we should log the exceptions at debug level, and put e.getMessage() in the response, instead of \"Conflicting write,\" which doesn\u0027t really provide much useful information.\n\nWhen I write an error message, I think about what I would do if I were a user who didn\u0027t know much, if anything, about the internal workings of Midonet. Most users aren\u0027t going to dig into the logs and source code to figure out what happened. They\u0027re going to try a few times and then either a) give up on Midonet altogether if they\u0027re just trying it out, or b) call support to find out why the software they\u0027re paying us for isn\u0027t working. So we need to do our best to give error messages that give them a clear idea of what\u0027s going wrong and how to fix it.\n\nI tried to do that with the StorageExceptions, so I think their messages should be good enough to present to the users as is.",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 83
+      },
+      "revId": "5a8238f8caa8520372d47198c618e7d33ecaf29c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e63c9cca",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T07:51:59Z",
+      "side": 1,
+      "message": "I would add \" failed due to concurrent modification.\"",
+      "range": {
+        "startLine": 104,
+        "startChar": 32,
+        "endLine": 104,
+        "endChar": 67
+      },
+      "revId": "5a8238f8caa8520372d47198c618e7d33ecaf29c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
