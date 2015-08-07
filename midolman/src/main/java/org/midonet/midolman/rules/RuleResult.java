@@ -58,6 +58,7 @@ public class RuleResult {
 
     public Action action;
     public UUID jumpToChain;
+    public boolean forked = false;
 
     public RuleResult(Action action, UUID jumpToChain) {
         this.action = action;
@@ -66,7 +67,7 @@ public class RuleResult {
 
     @Override
     public int hashCode() {
-        return Objects.hash(action, jumpToChain);
+        return Objects.hash(action, jumpToChain, forked);
     }
 
     @Override
@@ -77,7 +78,7 @@ public class RuleResult {
         RuleResult res = (RuleResult)other;
         if (action != res.action) return false;
         if (!Objects.equals(jumpToChain, res.jumpToChain)) return false;
-        return true;
+        return forked == res.forked;
     }
 
     @Override

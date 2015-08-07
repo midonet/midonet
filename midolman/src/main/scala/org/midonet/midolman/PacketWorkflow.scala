@@ -59,11 +59,18 @@ object PacketWorkflow {
     case class HandlePackets(packet: Array[Packet])
     case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
 
-    trait SimulationResult
+    trait SimulationResult {
+        val simStep: SimStep = (context, as) => this
+    }
+
+    type SimStep = (PacketContext, ActorSystem) => SimulationResult
+
+    sealed trait DropAction extends SimulationResult
+
     case object NoOp extends SimulationResult
-    case object Drop extends SimulationResult
-    case object ErrorDrop extends SimulationResult
-    case object ShortDrop extends SimulationResult
+    case object Drop extends DropAction
+    case object ErrorDrop extends DropAction
+    case object ShortDrop extends DropAction
     case object AddVirtualWildcardFlow extends SimulationResult
     case object StateMessage extends SimulationResult
     case object UserspaceFlow extends SimulationResult

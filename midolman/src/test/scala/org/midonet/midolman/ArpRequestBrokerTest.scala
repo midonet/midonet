@@ -190,7 +190,7 @@ class ArpRequestBrokerTest extends Suite
             override def process(handler: BackChannelHandler): Unit = ???
         }
         arpBroker = new ArpRequestBroker(emitter, config, invalidator, () => { }, clock)
-        router = new Router(routerId, null, null, null, arpCache)(actorSystem)
+        router = new Router(routerId, Router.Config(), null, null, arpCache)(actorSystem)
     }
 
     after {

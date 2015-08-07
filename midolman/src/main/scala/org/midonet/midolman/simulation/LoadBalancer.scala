@@ -58,11 +58,16 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
 
                     // Choose a pool member and apply DNAT if an
                     // active pool member is found
+                    val callerDevice = packetContext.currentDevice
+                    packetContext.currentDevice = id
+
                     val pool = tryAsk[Pool](vip.poolId)
-                    if (pool.loadBalance(context, id, vip.isStickySourceIP))
-                        simpleAcceptRuleResult
-                    else
-                        simpleDropRuleResult
+                    val result = if (pool.loadBalance(context, vip.isStickySourceIP))
+                                     simpleAcceptRuleResult
+                                 else
+                                     simpleDropRuleResult
+                    packetContext.currentDevice = callerDevice
+                    result
             }
         } else {
             simpleContinueRuleResult
@@ -87,10 +92,14 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         // which should be unique for every new connection. If there isn't,
         // we then check for a sticky NAT where we don't care about the source
         // port, that is, if they are different connections.
-        if (!(hasNonStickyVips && packetContext.reverseDnat(id)) &&
-            !(hasStickyVips && packetContext.reverseStickyDnat(id))) {
+        val callerDevice = packetContext.currentDevice
+        packetContext.currentDevice = id
+        if (!(hasNonStickyVips && packetContext.reverseDnat()) &&
+            !(hasStickyVips && packetContext.reverseStickyDnat())) {
+            packetContext.currentDevice = callerDevice
             return simpleContinueRuleResult
         }
+        packetContext.currentDevice = callerDevice
 
         if (!adminStateUp)
             return simpleDropRuleResult

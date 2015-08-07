@@ -67,7 +67,6 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
      * DROP if no active pool member is available.
      */
     def loadBalance(context: PacketContext,
-                    loadBalancer: UUID,
                     stickySourceIP: Boolean): Boolean = {
         implicit val implicitPacketContext = context
 
@@ -79,10 +78,10 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
                 context.log.debug(s"Selected member $member out of {}",
                                   activePoolMembers.mkString(", "))
             }
-            maintainConnectionOrLoadBalanceTo(member, loadBalancer, stickySourceIP)
+            maintainConnectionOrLoadBalanceTo(member, stickySourceIP)
             true
         } else {
-            maintainConnectionIfExists(loadBalancer, stickySourceIP)
+            maintainConnectionIfExists(stickySourceIP)
         }
     }
 
@@ -103,12 +102,11 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
      * Returns ACCEPT action when loadbalanced successfully.
      */
     private def maintainConnectionOrLoadBalanceTo(poolMember: PoolMember,
-                                                  loadBalancer: UUID,
                                                   stickySourceIP: Boolean)
                                          (implicit context: PacketContext)
     : Unit =
-        if (!applyExistingIfValidBackend(loadBalancer, stickySourceIP))
-            poolMember.applyDnat(context, loadBalancer, stickySourceIP)
+        if (!applyExistingIfValidBackend(stickySourceIP))
+            poolMember.applyDnat(context, stickySourceIP)
 
     /*
      * Apply DNAT to the packetContext to redirect traffic according to the
@@ -117,7 +115,7 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
      * Returns ACCEPT if loadbalanced successfully, DROP if no existing NAT
      * mapping was available.
      */
-    def maintainConnectionIfExists(loadBalancer: UUID, stickySourceIP: Boolean)
+    def maintainConnectionIfExists(stickySourceIP: Boolean)
                                   (implicit context: PacketContext): Boolean = {
         // Even if there are no active pool members, we should keep
         // existing connections alive.
@@ -127,19 +125,18 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
             context.log.debug("Stopping potential connection")
             false
         } else {
-            applyExistingIfValidBackend(loadBalancer, stickySourceIP = false)
+            applyExistingIfValidBackend(stickySourceIP = false)
         }
     }
 
     // Tries to apply a pre-existing connection if the backend is valid
-    private def applyExistingIfValidBackend(loadBalancer: UUID,
-                                            stickySourceIP: Boolean)
+    private def applyExistingIfValidBackend(stickySourceIP: Boolean)
                                             (implicit context: PacketContext)
     : Boolean = {
         val vipIp = context.wcmatch.getNetworkDstIP
         val vipPort = context.wcmatch.getDstPort
         val natKey = NatKey(context.wcmatch,
-                            loadBalancer,
+                            context.currentDevice,
                             if (stickySourceIP) NatState.FWD_STICKY_DNAT
                             else NatState.FWD_DNAT)
         if (context.applyIfExists(natKey)) {
@@ -151,7 +148,7 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
                 context.wcmatch.setDstPort(vipPort)
 
                 // Delete the current NAT entry we found
-                deleteNatEntry(context, loadBalancer, stickySourceIP)
+                deleteNatEntry(context, stickySourceIP)
             }
             backendIsValid
         } else false
@@ -186,10 +183,9 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
         Pool.findPoolMember(ip, port, disabledPoolMembers)
 
     private def deleteNatEntry(context: PacketContext,
-                               loadBalancer: UUID,
                                stickySourceIP: Boolean): Unit = {
         val natKey = NatKey(context.wcmatch,
-                            loadBalancer,
+                            context.currentDevice,
                             if (stickySourceIP) NatState.FWD_STICKY_DNAT
                             else NatState.FWD_DNAT)
         context.deleteNatBinding(natKey)

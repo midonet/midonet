@@ -17,6 +17,8 @@
 package org.midonet.midolman.simulation
 
 import java.util.{Arrays, ArrayList, HashSet, Set => JSet, UUID}
+import org.midonet.midolman.layer3.Route
+
 import scala.collection.JavaConversions._
 
 import com.typesafe.scalalogging.Logger
@@ -237,6 +239,8 @@ class PacketContext(val cookie: Int,
     var inPortId: UUID = _
     var outPortId: UUID = _
     val outPorts = new ArrayList[UUID]()
+    var currentDevice: UUID = _
+    var routeTo: Route = _
 
     val wcmatch = origMatch.clone()
     val diffBaseMatch = origMatch.clone()
@@ -274,6 +278,8 @@ class PacketContext(val cookie: Int,
         idle = false
         runs += 1
         devicesTraversed = 0
+        currentDevice = null
+        routeTo = null
         wcmatch.reset(origMatch)
         diffBaseMatch.reset(origMatch)
     }

@@ -24,14 +24,17 @@ import akka.actor.ActorSystem
 
 import org.midonet.cluster.client._
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, ErrorDrop}
-import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimStep,
+                                            SimulationResult => Result}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForBridge, tagForFloodedFlowsByDstMac, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort,
+                                         tagForBroadcast, tagForBridge,
+                                         tagForFloodedFlowsByDstMac, tagForVlanPort}
+
 
 object Bridge {
     final val UntaggedVlanId: Short = 0
@@ -103,16 +106,22 @@ class Bridge(val id: UUID,
              val exteriorPorts: List[UUID],
              val subnetIds: List[UUID])
             (implicit val actorSystem: ActorSystem) extends SimDevice
+                                                    with ForwardingDevice
+                                                    with InAndOutFilters
                                                     with VirtualDevice {
 
     import org.midonet.midolman.simulation.Simulator._
 
-    val floodAction: SimulationResult = (exteriorPorts map ToPortAction).
-            foldLeft(Drop: SimulationResult) { ForkAction(_, _) } match {
+    val floodAction: Result = (exteriorPorts map ToPortAction).
+            foldLeft(Drop: Result) { ForkAction(_, _) } match {
                 case ForkAction(Drop, a) => a
                 case a => a
             }
 
+    override def infilter: UUID =
+        if ((inFilterId ne null) && inFilterId.isDefined) inFilterId.get else null
+    override def outfilter: UUID =
+        if ((outFilterId ne null) && outFilterId.isDefined) outFilterId.get else null
     override val deviceTag = tagForBridge(id)
 
     override def toString =
@@ -129,9 +138,10 @@ class Bridge(val id: UUID,
      * the unicastAction and multicastAction methods to generate unicast and
      * multicast actions, these will take care of the vlan-id details for you.
      */
-    override def process(context: PacketContext): SimulationResult = {
+    override def process(context: PacketContext): Result = {
         implicit val ctx = context
 
+        context.log.debug(s"Entering bridge $id with infilter: $infilter")
         context.log.debug("Current vlanPortId {}.", vlanPortId)
         context.log.debug("Current vlan-port map {}", vlanToPort)
 
@@ -146,63 +156,46 @@ class Bridge(val id: UUID,
 
     @throws[NotYetException]
     def normalProcess()(implicit context: PacketContext,
-                                 actorSystem: ActorSystem)
-    : SimulationResult = {
+                                 actorSystem: ActorSystem) : Result = {
+        context.currentDevice = id
         context.addFlowTag(deviceTag)
-
         if (!adminStateUp) {
             context.log.debug("Bridge {} is down, DROP", id)
-            return Drop
-        }
-
-        if (areChainsApplicable()) {
-
+            Drop
+        } else if (areChainsApplicable()) {
             // Call ingress (pre-bridging) chain. InputPort is already set.
             context.outPortId = null
-            val preBridgeResult = Chain.apply(
-                inFilterId match {
-                    case Some(filterId) => tryAsk[Chain](filterId)
-                    case None => null
-                },
-                context, id)
-            context.log.debug("Ingress chain returned {}", preBridgeResult)
-
-            preBridgeResult.action match {
-                case RuleResult.Action.ACCEPT => // pass through
-                case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                    val srcDlAddress = context.wcmatch.getEthSrc
-                    updateFlowCount(srcDlAddress, context)
-                    // No point in tagging by dst-MAC+Port because the outPort was
-                    // not used in deciding to drop the flow.
-                    return Drop
-                case other =>
-                    context.log.warn(
-                        s"PreBridging for $id returned $other which was not " +
-                        "ACCEPT, DROP or REJECT.")
-                    return ErrorDrop
-            }
+            filterIn(context, actorSystem, continueIn)
         } else {
             context.log.debug("Ignoring pre/post chains on vlan tagged traffic")
+            continueIn(context, actorSystem)
         }
+    }
 
+    private val continueIn: SimStep = (context, as) => {
         // Learn the entry
+        implicit val c: PacketContext = context
         val srcDlAddress = context.wcmatch.getEthSrc
         updateFlowCount(srcDlAddress, context)
 
         val dstDlAddress = context.wcmatch.getEthDst
         val action =
-             if (isArpBroadcast())
-                 handleARPRequest()
-             else if (dstDlAddress.mcast)
-                 handleL2Multicast()
-             else
-                 handleL2Unicast() // including ARP replies
+            if (isArpBroadcast())
+                handleARPRequest()
+            else if (dstDlAddress.mcast)
+                handleL2Multicast()
+            else
+                handleL2Unicast() // including ARP replies
 
-        if (areChainsApplicable()) {
+        if (areChainsApplicable())
             doPostBridging(context, action)
-        } else {
+        else
             action
-        }
+    }
+
+    override val dropIn: DropHook = (context, as, result) => {
+        updateFlowCount(context.wcmatch.getEthSrc, context)
+        Drop
     }
 
     private def isArpBroadcast()(implicit context: PacketContext) = {
@@ -221,8 +214,7 @@ class Bridge(val id: UUID,
       * Used by normalProcess to deal with L2 Unicast frames, this just decides
       * on a port based on MAC
       */
-    private def handleL2Unicast()(implicit context: PacketContext)
-    : SimulationResult = {
+    private def handleL2Unicast()(implicit context: PacketContext) : Result = {
         val ethDst = context.wcmatch.getEthDst
         val ethSrc = context.wcmatch.getEthSrc
         context.log.debug("Handling L2 unicast to {}", ethDst)
@@ -274,8 +266,7 @@ class Bridge(val id: UUID,
       * Used by normalProcess to deal with frames addressed to an L2 multicast
       * addr except for ARPs.
       */
-    private def handleL2Multicast()(implicit context: PacketContext)
-    : SimulationResult = {
+    private def handleL2Multicast()(implicit context: PacketContext) : Result = {
         context.log.debug("Handling L2 multicast {}", id)
         multicastAction()
     }
@@ -293,8 +284,7 @@ class Bridge(val id: UUID,
       * Note that there is no flow tagging here. You're responsible to set the
       * right tags.
       */
-    private def unicastAction(toPort: UUID)(implicit context: PacketContext)
-    : SimulationResult = {
+    private def unicastAction(toPort: UUID)(implicit context: PacketContext) : Result = {
 
         val inPortVlan = vlanToPort.getVlan(context.inPortId)
         if (inPortVlan != null) {
@@ -372,8 +362,7 @@ class Bridge(val id: UUID,
       * Refer to multicastAction for details.
       */
     private def multicastVlanAware(inPort: BridgePort)
-                                  (implicit context: PacketContext)
-    : SimulationResult = inPort match {
+                                  (implicit context: PacketContext): Result = inPort match {
 
         case p: BridgePort if p.isExterior =>
             // multicast from trunk, goes only to designated log. port
@@ -407,8 +396,7 @@ class Bridge(val id: UUID,
     /**
       * Used by normalProcess to handle specifically ARP multicast.
       */
-    private def handleARPRequest()(implicit context: PacketContext)
-    : SimulationResult = {
+    private def handleARPRequest()(implicit context: PacketContext): Result = {
         context.log.debug("Handling ARP multicast")
         val pMatch = context.wcmatch
         val nwDst = pMatch.getNetworkDstIP
@@ -454,8 +442,7 @@ class Bridge(val id: UUID,
       *   the first action in the fork.
       */
     @throws[NotYetException]
-    private def doPostBridging(context: PacketContext,
-                               act: SimulationResult): SimulationResult = {
+    private def doPostBridging(context: PacketContext, act: Result): Result = {
         implicit val ctx = context
 
         context.log.debug("post bridging phase")
@@ -476,26 +463,7 @@ class Bridge(val id: UUID,
             case _ =>
         }
 
-        val postBridgeResult = Chain.apply(
-            outFilterId match {
-                case Some(filterId) => tryAsk[Chain](filterId)
-                case None => null
-            },
-            context, id)
-        postBridgeResult.action match {
-            case RuleResult.Action.ACCEPT => // pass through
-                context.log.debug("Forwarding packet with action {}", act)
-                // Note that the filter cannot change the output port.
-                act
-            case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                context.log.debug("Dropping packet due to egress filter.")
-                Drop
-            case other =>
-                context.log.warn(
-                    "PostBridging returned {} which was not ACCEPT, DROP, or REJECT.",
-                    other)
-                ErrorDrop
-        }
+        filterOut(context, actorSystem, act.simStep)
     }
 
     /**

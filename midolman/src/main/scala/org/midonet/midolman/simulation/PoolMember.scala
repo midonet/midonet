@@ -53,12 +53,11 @@ final class PoolMember @Zoom()(@ZoomField(name = "id",
                                                  protocolPort, protocolPort))
 
     protected[simulation] def applyDnat(pktContext: PacketContext,
-                                        loadBalancer: UUID,
                                         stickySourceIP: Boolean): Unit =
         if (stickySourceIP)
-            pktContext.applyStickyDnat(loadBalancer, natTargets)
+            pktContext.applyStickyDnat(natTargets)
         else
-            pktContext.applyDnat(loadBalancer, natTargets)
+            pktContext.applyDnat(natTargets)
 
     def isUp: Boolean = weight > 0 && adminStateUp && status == LBStatus.ACTIVE
 

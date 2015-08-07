@@ -44,7 +44,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                                         val routerMgrTagger: TagManager)
                                        (implicit system: ActorSystem,
                                         icmpErrors: IcmpErrorSender[IP])
-    extends SimDevice with RoutingWorkflow with VirtualDevice {
+    extends SimDevice with ForwardingDevice with InAndOutFilters with RoutingWorkflow with VirtualDevice {
 
     import org.midonet.midolman.simulation.Simulator._
 
@@ -52,6 +52,9 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
     val routeBalancer = new RouteBalancer(rTable)
     override val deviceTag = FlowTagger.tagForRouter(id)
+    override def infilter = cfg.inboundFilter
+    override def outfilter = cfg.outboundFilter
+    override def adminStateUp = cfg.adminStateUp
 
     /**
      * Process the packet. Will validate first the ethertype and ensure that
@@ -67,6 +70,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
      */
     override def process(context: PacketContext): SimulationResult = {
         implicit val packetContext = context
+        context.currentDevice = id
 
         if (context.wcmatch.isVlanTagged) {
             context.log.debug("Dropping VLAN tagged traffic")
@@ -90,6 +94,22 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 Drop
             case inPort =>
                 preRouting(inPort)
+        }
+    }
+
+    override val dropIn: DropHook = (context, as, action) => {
+        implicit val c: PacketContext = context
+        if (action == RuleResult.Action.DROP) {
+            if (context.wcmatch.getIpFragmentType == IPFragmentType.First) {
+                sendAnswer(context.inPortId,
+                    icmpErrors.unreachableFragNeededIcmp(
+                        tryAsk[RouterPort](context.inPortId), context))
+                ErrorDrop
+            } else {
+                Drop
+            }
+        } else {
+            Drop
         }
     }
 
@@ -133,7 +153,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
         if (hwDst != inPort.portMac) { // Not addressed to us, log.warn and drop
             context.log.warn("{} neither broadcast nor inPort's MAC ({})",
-                             hwDst, inPort.portMac)
+                hwDst, inPort.portMac)
             return Drop
         }
 
@@ -145,21 +165,14 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
         context.outPortId = null // input port should be set already
 
-        val preRoutingAction = applyServicesInbound() match {
+        applyServicesInbound() match {
             case res if res.action == RuleResult.Action.CONTINUE =>
                 // Continue to inFilter / ingress chain
-
-                val inFilter = if (cfg.inboundFilter == null) null
-                               else tryAsk[Chain](cfg.inboundFilter)
-                handlePreRoutingResult(
-                    Chain.apply(inFilter, context, id), inPort)
-            case res => // Skip the inFilter / ingress chain
-                handlePreRoutingResult(res, inPort)
-        }
-
-        preRoutingAction match {
-            case NoOp => routing(inPort)
-            case simRes => simRes
+                filterIn(context, system, continueIn)
+            case res if res.action == Drop => // Skip the inFilter / ingress chain
+                dropIn(context, system, res.action)
+            case _ =>
+                continueIn(context, system)
         }
     }
 
@@ -180,10 +193,11 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     }
 
 
-    private def routing(inPort: RouterPort)
-                       (implicit context: PacketContext): SimulationResult = {
+    private val continueIn: SimStep = (context, as) => {
+        implicit val c: PacketContext = context
         val fmatch = context.wcmatch
         val dstIP = context.wcmatch.getNetworkDstIP
+        val inPort = tryAsk[RouterPort](context.inPortId)
 
         def applyTimeToLive(): SimulationResult = {
             if (fmatch.isUsed(Field.NetworkTTL)) {
@@ -267,7 +281,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         action match {
             case ToPortAction(outPortId) =>
                 val outPort = tryAsk[RouterPort](outPortId)
-                postRouting(inPort, outPort, rt, context)
+                postRouting(outPort, rt, context)
             case _ => action
         }
     }
@@ -275,68 +289,65 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     protected def applyTagsForRoute(route: Route,
         simRes: SimulationResult)(implicit context: PacketContext): Unit
 
-    // POST ROUTING
     @throws[NotYetException]
-    private def postRouting(inPort: RouterPort, outPort: RouterPort,
-                            rt: Route, context: PacketContext): SimulationResult = {
+    private def postRouting(outPort: RouterPort, rt: Route,
+                            context: PacketContext): SimulationResult = {
 
         implicit val packetContext = context
+
+        if (context.wcmatch.getNetworkDstIP == outPort.portAddr.getAddress) {
+            context.log.warn("Got a packet addressed to a port without a LOCAL route")
+            return Drop
+        }
 
         val pMatch = context.wcmatch
         val pFrame = context.ethernet
 
         context.outPortId = outPort.id
+        context.routeTo = rt
 
-        val postRoutingResult = applyServicesOutbound() match {
+        applyServicesOutbound() match {
             case res if res.action == RuleResult.Action.CONTINUE =>
                 // Continue to outFilter / egress chain
-                val outFilter = if (cfg.outboundFilter == null) null
-                                else tryAsk[Chain](cfg.outboundFilter)
-                Chain.apply(outFilter, context, id)
-            case res => res // Skip outFilter / egress chain
+                filterOut(context, system, continueOut)
+            case res =>
+                // Skip outFilter / egress chain
+                continueOut(context, system)
         }
+    }
 
-        postRoutingResult.action match {
-            case RuleResult.Action.ACCEPT => // pass through
-            case RuleResult.Action.DROP =>
-                context.log.debug("PostRouting DROP rule")
-                return Drop
-            case RuleResult.Action.REJECT =>
-                context.log.debug("PostRouting REJECT rule")
-                sendAnswer(inPort.id,
-                           icmpErrors.unreachableProhibitedIcmp(inPort, context))
-                return Drop
-            case other =>
-                context.log.warn(
-                    "PostRouting returned {} which was not ACCEPT, DROP or REJECT",
-                    other)
-                return Drop
-        }
+    override protected def reject(context: PacketContext, as: ActorSystem): Unit = {
+        sendAnswer(context.inPortId,
+            icmpErrors.unreachableProhibitedIcmp(
+                tryAsk[RouterPort](context.inPortId), context))(context)
+    }
 
-        if (pMatch.getNetworkDstIP == outPort.portAddr.getAddress) {
-            context.log.warn("Got a packet addressed to a port without a LOCAL route")
-            return Drop
-        }
+    private val continueOut: SimStep = (context, as) => {
+        implicit val c: PacketContext = context
+        val rt = context.routeTo
+        context.routeTo = null
 
-        getNextHopMac(outPort, rt,
-                      pMatch.getNetworkDstIP.asInstanceOf[IP], context) match {
+        getNextHopMac(tryAsk[RouterPort](context.outPortId), rt,
+            context.wcmatch.getNetworkDstIP.asInstanceOf[IP], context) match {
             case null if rt.nextHopGateway == 0 || rt.nextHopGateway == -1 =>
                 context.log.debug("icmp host unreachable, host mac unknown")
-                sendAnswer(inPort.id,
-                           icmpErrors.unreachableHostIcmp(inPort, context))
+                sendAnswer(context.inPortId,
+                    icmpErrors.unreachableHostIcmp(
+                        tryAsk[RouterPort](context.inPortId), context))
                 ErrorDrop
             case null =>
                 context.log.debug("icmp net unreachable, gw mac unknown")
-                sendAnswer(inPort.id,
-                           icmpErrors.unreachableNetIcmp(inPort, context))
+                sendAnswer(context.inPortId,
+                    icmpErrors.unreachableNetIcmp(
+                        tryAsk[RouterPort](context.inPortId), context))
                 ErrorDrop
             case nextHopMac =>
+                val outPort = tryAsk[RouterPort](rt.nextHopPort)
                 context.log.debug("routing packet to {}", nextHopMac)
-                pMatch.setEthSrc(outPort.portMac)
-                pMatch.setEthDst(nextHopMac)
-                tryAsk[RouterPort](rt.nextHopPort).action
+                context.wcmatch.setEthSrc(outPort.portMac)
+                context.wcmatch.setEthDst(nextHopMac)
+                outPort.action
         }
-
     }
 
     def sendAnswer(portId: UUID, eth: Option[Ethernet])

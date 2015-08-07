@@ -340,8 +340,7 @@ class Router(override val id: UUID,
          * to a DNAT'd address in one of the router's port. See #547 for
          * further motivation.
          */
-        def _applyPostActions(eth: Ethernet, postRoutingResult: RuleResult,
-                              pktCtx: PacketContext) = {
+        def _applyPostActions(eth: Ethernet, pktCtx: PacketContext) = {
             val srcPort = pktCtx.wcmatch.getSrcPort
             packet.getProtocol match {
                 case UDP.PROTOCOL_NUMBER =>
@@ -387,22 +386,24 @@ class Router(override val id: UUID,
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter
-                    val outFilter = if (cfg.outboundFilter == null) null
-                                    else tryAsk[Chain](cfg.outboundFilter)
-
-                    val postRoutingResult = Chain.apply(outFilter, egrPktContext, id)
-
-                    _applyPostActions(eth, postRoutingResult, egrPktContext)
-                    postRoutingResult.action match {
+                    (if (cfg.outboundFilter ne null)
+                        tryAsk[Chain](cfg.outboundFilter).process(egrPktContext).action
+                    else
+                        RuleResult.Action.ACCEPT
+                    ) match {
                         case RuleResult.Action.ACCEPT =>
+                            _applyPostActions(eth, egrPktContext)
                             context.addGeneratedPacket(rt.nextHopPort, eth)
+                            true
                         case RuleResult.Action.DROP =>
+                            false
                         case RuleResult.Action.REJECT =>
+                            false
                         case other =>
                             context.log.warn("PostRouting for returned {}, not " +
                                       "ACCEPT, DROP or REJECT.", other)
+                            false
                     }
-                    true
             }
         }
 

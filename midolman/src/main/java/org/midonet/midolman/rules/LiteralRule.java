@@ -53,7 +53,7 @@ public class LiteralRule extends Rule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
+    public void apply(PacketContext pktCtx, RuleResult res) {
         res.action = action;
         log.debug("Packet matched literal rule with action {}", action);
     }

@@ -273,7 +273,9 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst floatingIp } <<
                   { icmp.echo request }
 
+        println("SIMULATE")
         val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
+        println("SIMULATED")
         simRes should be (NoOp)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   floatingIp, fromIp, ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)

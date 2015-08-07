@@ -21,7 +21,7 @@ import java.util.UUID
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.PacketWorkflow
-import org.midonet.midolman.PacketWorkflow.{SimulationResult => Result, _}
+import org.midonet.midolman.PacketWorkflow.{SimStep, SimulationResult => Result, _}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.odp.FlowMatch
@@ -40,7 +40,11 @@ object Simulator {
     // materialized ports and to the logical port that connects it to the VAB
     case class ForkAction(var first: Result, var second: Result) extends ForwardAction
 
-    type SimStep = (PacketContext, ActorSystem) => Result
+    case object Continue extends ForwardAction
+
+    type SimHook = (PacketContext, ActorSystem) => Unit
+
+    val NOOP_HOOK: SimHook = (c, as) => {}
 
     def simulate(context: PacketContext)(implicit as: ActorSystem): Result = {
         context.log.debug("Simulating a packet")
@@ -76,9 +80,7 @@ object Simulator {
         })
 }
 
-trait SimDevice {
-    import Simulator._
-
+trait ForwardingDevice extends SimDevice {
     /**
      * Process a packet described by the given match object. Note that the
      * Ethernet packet is the one originally ingressed the virtual network
@@ -93,6 +95,12 @@ trait SimDevice {
      * after handling this packet (e.g. drop it, consume it, forward it).
      */
     def process(pktContext: PacketContext): Result
+}
+
+trait SimDevice {
+    import Simulator._
+
+    def adminStateUp: Boolean
 
     private def merge(context: PacketContext, a: Result, b: Result) : Result = {
         val result = (a, b) match {
@@ -134,3 +142,87 @@ trait SimDevice {
     }
 }
 
+trait InAndOutFilters extends SimDevice {
+
+    import Simulator._
+
+    type DropHook = (PacketContext, ActorSystem, RuleResult.Action) => Result
+
+    def infilter: UUID
+    def outfilter: UUID
+    protected def reject(context: PacketContext, as: ActorSystem): Unit = {}
+
+    protected def preIn: SimHook = NOOP_HOOK
+    protected def postIn: SimHook = NOOP_HOOK
+    protected def preOut: SimHook = NOOP_HOOK
+    protected def postOut: SimHook = NOOP_HOOK
+    protected def dropIn: DropHook = (p, as, action) => Drop
+    protected def dropOut: DropHook = (p, as, action) => Drop
+
+    final protected val filterIn: (PacketContext, ActorSystem, SimStep) => Result =
+        if (!adminStateUp) {
+            (context, as, continue) => {
+                reject(context, as)
+                Drop
+            }
+        } else if (infilter ne null) {
+            (context, as, continue) => {
+                context.log.debug(s"Applying inbound chain $infilter")
+                doFilter(context, infilter, preIn, postIn, continue, dropIn, as)
+            }
+        } else {
+            (context, as, continue) => {
+                preIn(context, as)
+                postIn(context, as)
+                continue(context, as)
+            }
+        }
+
+    final protected val filterOut: (PacketContext, ActorSystem, SimStep) => Result =
+        if (!adminStateUp) {
+            (context, as, continue) => {
+                reject(context, as)
+                Drop
+            }
+        } else if (outfilter ne null) {
+            (context, as, continue) =>
+                context.log.debug(s"Applying outbound chain $outfilter")
+                doFilter(context, outfilter, preOut, postOut, continue, dropOut, as)
+        } else {
+            (context, as, continue) => {
+                preOut(context, as)
+                postOut(context, as)
+                continue(context, as)
+            }
+        }
+
+    private[this] final def doFilter(context: PacketContext, filter: UUID,
+                                     preFilter: SimHook, postFilter: SimHook,
+                                     continue: SimStep, dropHook: DropHook,
+                                     as: ActorSystem): Result = {
+        implicit val _as: ActorSystem = as
+        context.log.debug(s"Applying filter $filter")
+        preFilter(context, as)
+        val r = tryAsk[Chain](filter).process(context)
+        postFilter(context, as)
+        context.log.debug(s"Filter returned: ${r.action}")
+        val simRes = r.action match {
+            case RuleResult.Action.ACCEPT =>
+                continue(context, as)
+            case RuleResult.Action.DROP =>
+                dropHook(context, as, RuleResult.Action.DROP)
+            case RuleResult.Action.REJECT =>
+                reject(context, as)
+                dropHook(context, as, RuleResult.Action.REJECT)
+            case a =>
+                context.log.error("Filter {} returned {} which was " +
+                                  "not ACCEPT, DROP or REJECT.", filter, a)
+                ErrorDrop
+        }
+
+        if (r.forked)
+            Simulator.Fork(AddVirtualWildcardFlow, simRes)
+        else
+            simRes
+    }
+}

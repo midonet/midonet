@@ -56,6 +56,7 @@ class NatStateTest extends MidolmanSpec {
     def context(eth: Ethernet = tcpPacket) = {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
         val ctx = new PacketContext(1, new Packet(eth, fmatch), fmatch)
+        ctx.currentDevice = deviceId
         ctx.initialize(new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null),
                        natTx,
                        HappyGoLuckyLeaser,
@@ -71,7 +72,7 @@ class NatStateTest extends MidolmanSpec {
             val returnKey = forwardKey.returnKey(binding)
             val returnBinding = forwardKey.returnBinding
 
-            ctx.applyDnat(deviceId, targets) should be (true)
+            ctx.applyDnat(targets) should be (true)
             ctx should be (taggedWith (forwardKey, returnKey))
 
             natTx.size() should be (2)
@@ -98,7 +99,7 @@ class NatStateTest extends MidolmanSpec {
             natStateTable.putAndRef(forwardKey, binding)
             natStateTable.putAndRef(returnKey, returnBinding)
 
-            ctx.applyDnat(deviceId, targets) should be (true)
+            ctx.applyDnat(targets) should be (true)
             ctx should be (taggedWith (forwardKey, returnKey))
 
             natTx.size() should be (2)
@@ -122,7 +123,7 @@ class NatStateTest extends MidolmanSpec {
 
             natStateTable.putAndRef(key, binding)
 
-            ctx.reverseDnat(deviceId) should be (true)
+            ctx.reverseDnat() should be (true)
             ctx should be (taggedWith (key))
 
             natTx.size() should be (0)
@@ -136,7 +137,7 @@ class NatStateTest extends MidolmanSpec {
             val key = NatKey(ctx.wcmatch, deviceId, NatState.REV_DNAT)
             val binding = NatBinding(ipTarget, portTarget)
 
-            ctx.reverseDnat(deviceId) should be (false)
+            ctx.reverseDnat() should be (false)
             ctx should be (taggedWith (key))
 
             natTx.size() should be (0)
@@ -154,7 +155,7 @@ class NatStateTest extends MidolmanSpec {
             val returnKey = forwardKey.returnKey(binding)
             val returnBinding = forwardKey.returnBinding
 
-            ctx.applySnat(deviceId, targets) should be (true)
+            ctx.applySnat(targets) should be (true)
             ctx should be (taggedWith (forwardKey, returnKey))
 
             natTx.size() should be (2)
@@ -181,7 +182,7 @@ class NatStateTest extends MidolmanSpec {
             natStateTable.putAndRef(forwardKey, binding)
             natStateTable.putAndRef(returnKey, returnBinding)
 
-            ctx.applySnat(deviceId, targets) should be (true)
+            ctx.applySnat(targets) should be (true)
             ctx should be (taggedWith (forwardKey, returnKey))
 
             natTx.size() should be (2)
@@ -205,7 +206,7 @@ class NatStateTest extends MidolmanSpec {
 
             natStateTable.putAndRef(key, binding)
 
-            ctx.reverseSnat(deviceId) should be (true)
+            ctx.reverseSnat() should be (true)
             ctx should be (taggedWith (key))
 
             natTx.size() should be (0)
@@ -219,7 +220,7 @@ class NatStateTest extends MidolmanSpec {
             val key = NatKey(ctx.wcmatch, deviceId, NatState.REV_SNAT)
             val binding = NatBinding(ipTarget, portTarget)
 
-            ctx.reverseSnat(deviceId) should be (false)
+            ctx.reverseSnat() should be (false)
             ctx should be (taggedWith (key))
 
             natTx.size() should be (0)
@@ -245,7 +246,7 @@ class NatStateTest extends MidolmanSpec {
             val oldSrcPort = ctx.wcmatch.getSrcPort
             val oldDstPort = ctx.wcmatch.getDstPort
 
-            ctx.applySnat(deviceId, targets) should be (true)
+            ctx.applySnat(targets) should be (true)
             ctx should be (taggedWith (forwardKey, returnKey))
 
             natTx.size() should be (2)
@@ -276,7 +277,7 @@ class NatStateTest extends MidolmanSpec {
             val oldSrcPort = ctx.wcmatch.getSrcPort
             val oldDstPort = ctx.wcmatch.getDstPort
 
-            ctx.applySnat(deviceId, targets) should be (true)
+            ctx.applySnat(targets) should be (true)
             ctx should be (taggedWith (forwardKey, returnKey))
 
             natTx.size() should be (2)
@@ -304,7 +305,7 @@ class NatStateTest extends MidolmanSpec {
             val oldSrcPort = ctx.wcmatch.getSrcPort
             val oldDstPort = ctx.wcmatch.getDstPort
 
-            ctx.reverseSnat(deviceId) should be (true)
+            ctx.reverseSnat() should be (true)
             ctx should be (taggedWith (key))
 
             natTx.size() should be (0)
@@ -322,7 +323,7 @@ class NatStateTest extends MidolmanSpec {
             val oldSrcPort = ctx.wcmatch.getSrcPort
             val oldDstPort = ctx.wcmatch.getDstPort
 
-            ctx.reverseSnat(deviceId) should be (false)
+            ctx.reverseSnat() should be (false)
             ctx should be (taggedWith (key))
 
             natTx.size() should be (0)
@@ -353,7 +354,7 @@ class NatStateTest extends MidolmanSpec {
             val oldSrcPort = ctx.wcmatch.getSrcPort
             val oldDstPort = ctx.wcmatch.getDstPort
 
-            ctx.applySnat(deviceId, targets) should be (true)
+            ctx.applySnat(targets) should be (true)
             ctx should be (taggedWith (forwardKey, returnKey))
 
             natTx.size() should be (2)
@@ -384,7 +385,7 @@ class NatStateTest extends MidolmanSpec {
             val oldSrcPort = ctx.wcmatch.getSrcPort
             val oldDstPort = ctx.wcmatch.getDstPort
 
-            ctx.applySnat(deviceId, targets) should be (true)
+            ctx.applySnat(targets) should be (true)
             ctx should be (taggedWith (forwardKey, returnKey))
 
             natTx.size() should be (2)
@@ -412,7 +413,7 @@ class NatStateTest extends MidolmanSpec {
             val oldSrcPort = ctx.wcmatch.getSrcPort
             val oldDstPort = ctx.wcmatch.getDstPort
 
-            ctx.reverseSnat(deviceId) should be (true)
+            ctx.reverseSnat() should be (true)
             ctx should be (taggedWith (key))
 
             natTx.size() should be (0)
@@ -437,7 +438,7 @@ class NatStateTest extends MidolmanSpec {
             val oldSrcPort = ctx.wcmatch.getSrcPort
             val oldDstPort = ctx.wcmatch.getDstPort
 
-            ctx.reverseSnat(deviceId) should be (false)
+            ctx.reverseSnat() should be (false)
             ctx should be (taggedWith (key))
 
             natTx.size() should be (0)
@@ -450,7 +451,7 @@ class NatStateTest extends MidolmanSpec {
 
     feature("Other types of packets are not NATed") {
         val ctx = context({ eth src MAC.random() dst MAC.random() })
-        ctx.applyDnat(deviceId, targets) should be (false)
+        ctx.applyDnat(targets) should be (false)
         ctx should be (taggedWith ())
         natTx.size() should be (0)
     }
