@@ -121,7 +121,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
     // Default router
     protected static final Router router = new Router(
         UUID.randomUUID(), TENANT_ID, "router", true, gwPort.id,
-        new ExternalGatewayInfo(extNetwork.id, true));
+        new ExternalGatewayInfo(extNetwork.id, true), null);
 
     // Default router port
     protected static final Port routerPort = new Port(
