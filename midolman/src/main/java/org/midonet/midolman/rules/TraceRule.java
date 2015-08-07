@@ -71,7 +71,7 @@ public class TraceRule extends Rule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
+    public void apply(PacketContext pktCtx, RuleResult res) {
         if (!pktCtx.tracingEnabled(requestId) && hits < limit) {
             hits++;
             pktCtx.enableTracing(requestId);
