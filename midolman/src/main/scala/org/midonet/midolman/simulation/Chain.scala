@@ -21,11 +21,13 @@ import java.util.UUID
 import java.util.{Map => JMap, List => JList}
 
 import com.google.common.annotations.VisibleForTesting
+import org.midonet.midolman.PacketWorkflow.{SimulationResult, Drop}
 
 import org.midonet.midolman.rules.JumpRule
 import org.midonet.midolman.rules.Rule
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.rules.RuleResult.Action
+import org.midonet.midolman.simulation.Simulator.Continue
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 
@@ -33,42 +35,35 @@ object Chain {
     private val traversedChainsTL = new ThreadLocal[ArrayList[UUID]] {
         override def initialValue = new ArrayList[UUID]()
     }
-
-    /**
-     * @param chain            The chain where processing starts.
-     * @param context          The packet's PacketContext.
-     * @param ownerId          UUID of the element using chainId.
-     */
-    def apply(chain: Chain, context: PacketContext, ownerId: UUID): RuleResult = {
-        if (chain == null)
-            return Simulator.RuleResults(Action.ACCEPT, null)
-
-        context.log.debug(s"Testing against Chain: ${chain.asList(4, false)}")
-
-        val traversedChains = traversedChainsTL.get()
-        traversedChains.clear()
-        val res: RuleResult = Simulator.RuleResults(Action.CONTINUE, null)
-        chain.apply(context, ownerId, res, traversedChains)
-        if (!res.action.isDecisive)
-            res.action = Action.ACCEPT
-        if (traversedChains.size > 25) {
-            context.log.warn(s"Traversed ${traversedChains.size} chains " +
-                s"when applying chain ${chain.id}.")
-        }
-        res
-    }
 }
 
 case class Chain(id: UUID,
                  rules: JList[Rule],
                  jumpTargets: JMap[UUID, Chain],
-                 name: String) extends VirtualDevice {
+                 name: String) extends VirtualDevice with SimDevice {
 
     override val deviceTag: FlowTagger.FlowTag = FlowTagger.tagForChain(id)
+    override def adminStateUp = true
 
     def getJumpTarget(to: UUID): Chain = jumpTargets.get(to)
 
     @VisibleForTesting def isJumpTargetsEmpty: Boolean = jumpTargets.isEmpty
+
+    def process(context: PacketContext): RuleResult = {
+        context.log.debug(s"Testing against Chain: ${asList(4, false)}")
+
+        val traversedChains = Chain.traversedChainsTL.get()
+        traversedChains.clear()
+        val res: RuleResult = Simulator.RuleResults(Action.CONTINUE, null)
+        apply(context, res, traversedChains)
+        if (!res.action.isDecisive)
+            res.action = Action.ACCEPT
+        if (traversedChains.size > 25) {
+            context.log.warn(s"Traversed ${traversedChains.size} chains " +
+                             s"when applying chain ${id}.")
+        }
+        res
+    }
 
     /*
      * Recursive helper function for public static apply(). The first
@@ -80,24 +75,24 @@ case class Chain(id: UUID,
      *                         prevent infinite recursion in the event of a
      *                         cycle.
      */
-    private def apply(context: PacketContext, ownerId: UUID, res: RuleResult,
+    private def apply(context: PacketContext, res: RuleResult,
                       traversedChains: ArrayList[UUID]): Unit = {
         context.addFlowTag(deviceTag)
         traversedChains.add(id)
         res.action = Action.CONTINUE
         var i = 0
-        while ((i < rules.size()) && res.action == Action.CONTINUE) {
+        while ((i < rules.size()) && (res.action == Action.CONTINUE)) {
             val rule = rules.get(i)
             i += 1
-            rule.process(context, res, ownerId)
+            rule.process(context, res)
             context.recordTraversedRule(rule.id, res)
             if (res.action eq Action.JUMP)
-                jump(context, ownerId, res, traversedChains)
+                jump(context, res, traversedChains)
         }
         assert(res.action ne Action.JUMP)
     }
 
-    private[this] def jump(context: PacketContext, ownerId: UUID, res: RuleResult,
+    private[this] def jump(context: PacketContext, res: RuleResult,
                            traversedChains: ArrayList[UUID]): Unit = {
         val jumpChain: Chain = getJumpTarget(res.jumpToChain)
         if (jumpChain == null) {
@@ -109,7 +104,7 @@ case class Chain(id: UUID,
                 s" $jumpChain -- already visited")
             res.action = Action.CONTINUE
         } else {
-            jumpChain.apply(context, ownerId, res, traversedChains)
+            jumpChain.apply(context, res, traversedChains)
             if (res.action == Action.RETURN)
                 res.action = Action.CONTINUE
         }
