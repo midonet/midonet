@@ -19,6 +19,23 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_b7563c04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-07T16:02:49Z",
+      "side": 1,
+      "message": "shouldn\u0027t this be before? if you continue() then we\u0027re polluting the flowmatch and the fork will look the same",
+      "revId": "6b3a8c9fb8c63949f941722e047e2942b9fb3d05",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f7152440",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
         "patchSetId": 1
