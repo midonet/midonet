@@ -43,13 +43,13 @@ object FlowTagger {
         }
     }
 
-    class TagsTrie {
-        private var wrValue: WeakReference[FlowTag] = _
-        private val children = new WeakHashMap[Object, TagsTrie]
+    class TagsTrie[T >: Null] {
+        private var wrValue: WeakReference[T] = _
+        private val children = new WeakHashMap[Object, TagsTrie[T]]
         // TODO: Consider having arrays to hold primitive type keys,
         //       in order to avoid boxing.
 
-        def getOrAddSegment(key: Object): TagsTrie = {
+        def getOrAddSegment(key: Object): TagsTrie[T] = {
             var segment = children.get(key)
             if (segment eq null) {
                 segment = new TagsTrie
@@ -58,11 +58,11 @@ object FlowTagger {
             segment
         }
 
-        def value: FlowTag =
+        def value: T =
             if (wrValue ne null) wrValue.get() else null
 
-        def value_=(flowTag: FlowTag): Unit =
-            wrValue = new WeakReference[FlowTag](flowTag)
+        def value_=(flowTag: T): Unit =
+            wrValue = new WeakReference[T](flowTag)
     }
 
     /**
@@ -81,8 +81,8 @@ object FlowTagger {
     class PortDeviceTag(device: UUID) extends DeviceTag(device)
     class ChainDeviceTag(device: UUID) extends DeviceTag(device)
 
-    val cachedDeviceTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedDeviceTags = new ThreadLocal[TagsTrie[DeviceTag]] {
+        override def initialValue = new TagsTrie[DeviceTag]()
     }
 
     val deviceTagMap = Map[ClassTag[_], UUID => DeviceTag] (
@@ -94,7 +94,7 @@ object FlowTagger {
         classTag[PortDeviceTag] -> (new PortDeviceTag(_)),
         classTag[ChainDeviceTag] -> (new ChainDeviceTag(_)))
 
-    private def tagForDevice[T <: DeviceTag](device: UUID)(implicit ctag: ClassTag[T]): FlowTag = {
+    private def tagForDevice[T <: DeviceTag](device: UUID)(implicit ctag: ClassTag[T]): DeviceTag = {
         val segment = cachedDeviceTags.get().getOrAddSegment(device)
         var tag = segment.value
         if (tag eq null) {
@@ -118,8 +118,8 @@ object FlowTagger {
         override def toString = "port:tx:" + port
     }
 
-    val cachedPortTxTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedPortTxTags = new ThreadLocal[TagsTrie[PortTxTag]] {
+        override def initialValue = new TagsTrie[PortTxTag]
     }
 
     def tagForPortTx(device: UUID): FlowTag = {
@@ -136,8 +136,8 @@ object FlowTagger {
         override def toString = "port:rx:" + port
     }
 
-    val cachedPortRxTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedPortRxTags = new ThreadLocal[TagsTrie[PortRxTag]] {
+        override def initialValue = new TagsTrie[PortRxTag]
     }
 
     def tagForPortRx(device: UUID): FlowTag = {
@@ -160,8 +160,8 @@ object FlowTagger {
                                 ":" + vlanId
     }
 
-    val cachedVlanFloodTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedVlanFloodTags = new ThreadLocal[TagsTrie[VlanFloodTag]] {
+        override def initialValue = new TagsTrie[VlanFloodTag]
     }
 
     def tagForFloodedFlowsByDstMac(bridgeId: UUID, vlanId: java.lang.Short,
@@ -185,8 +185,8 @@ object FlowTagger {
         override def toString = "br_arp_req:" + bridgeId
     }
 
-    val cachedArpRequestTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedArpRequestTags = new ThreadLocal[TagsTrie[ArpRequestTag]] {
+        override def initialValue = new TagsTrie[ArpRequestTag]
     }
 
     def tagForArpRequests(bridgeId: UUID): FlowTag = {
@@ -209,8 +209,8 @@ object FlowTagger {
                                 vlanId + ":" + port
     }
 
-    val cachedVlanPortTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedVlanPortTags = new ThreadLocal[TagsTrie[VlanPortTag]] {
+        override def initialValue = new TagsTrie[VlanPortTag]
     }
 
     def tagForVlanPort(bridgeId: UUID, mac: MAC, vlanId: java.lang.Short,
@@ -235,8 +235,8 @@ object FlowTagger {
         override def toString = "br_flood:" + bridgeId
     }
 
-    val cachedBroadcastTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedBroadcastTags = new ThreadLocal[TagsTrie[BroadcastTag]] {
+        override def initialValue = new TagsTrie[BroadcastTag]
     }
 
     def tagForBroadcast(bridgeId: UUID): FlowTag = {
@@ -256,8 +256,8 @@ object FlowTagger {
         override def toString = "br_fwd_lport:" + bridgeId + ":" + logicalPortId
     }
 
-    val cachedBridgePortTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedBridgePortTags = new ThreadLocal[TagsTrie[BridgePortTag]] {
+        override def initialValue = new TagsTrie[BridgePortTag]
     }
 
     def tagForBridgePort(bridgeId: UUID, logicalPortId: UUID): FlowTag = {
@@ -278,8 +278,8 @@ object FlowTagger {
         override def toString = "dp_port:" + port
     }
 
-    val cachedDpPortTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedDpPortTags = new ThreadLocal[TagsTrie[DpPortTag]] {
+        override def initialValue = new TagsTrie[DpPortTag]
     }
 
     def tagForDpPort(port: Integer): FlowTag = {
@@ -299,8 +299,8 @@ object FlowTagger {
         override def toString = s"tunnel:$srcIp:$dstIp"
     }
 
-    val cachedTunnelRouteTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedTunnelRouteTags = new ThreadLocal[TagsTrie[TunnelRouteTag]] {
+        override def initialValue = new TagsTrie[TunnelRouteTag]
     }
 
     def tagForTunnelRoute(srcIp: Integer, dstIp: Integer): FlowTag = {
@@ -321,8 +321,8 @@ object FlowTagger {
         override def toString = "tun_key:" + key
     }
 
-    val cachedTunnelKeyTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedTunnelKeyTags = new ThreadLocal[TagsTrie[TunnelKeyTag]] {
+        override def initialValue = new TagsTrie[TunnelKeyTag]
     }
 
     def tagForTunnelKey(key: java.lang.Long): FlowTag = {
@@ -342,8 +342,8 @@ object FlowTagger {
         override def toString = "rtr_route:" + routerId + ":" + routeHashCode
     }
 
-    val cachedRouteTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedRouteTags = new ThreadLocal[TagsTrie[RouteTag]] {
+        override def initialValue = new TagsTrie[RouteTag]
     }
 
     def tagForRoute(route: Route): FlowTag = {
@@ -365,8 +365,8 @@ object FlowTagger {
         override def toString = "rtr_ip:" + routerId + ":" + ipDestination
     }
 
-    val cachedDestinationIpTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedDestinationIpTags = new ThreadLocal[TagsTrie[DestinationIpTag]] {
+        override def initialValue = new TagsTrie[DestinationIpTag]
     }
 
     def tagForDestinationIp(routerId: UUID, ipDestination: IPv6Addr): FlowTag = {
@@ -400,8 +400,8 @@ object FlowTagger {
         override def toString = "rtr_arp_entry:" + routerId + ":" + ipDestination
     }
 
-    val cachedArpEntryTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedArpEntryTags = new ThreadLocal[TagsTrie[ArpEntryTag]] {
+        override def initialValue = new TagsTrie[ArpEntryTag]
     }
 
     def tagForArpEntry(routerId: UUID, ipDestination: IPAddr): FlowTag = {
@@ -422,8 +422,8 @@ object FlowTagger {
         override def toString = s"user:$name"
     }
 
-    val cachedUserTags = new ThreadLocal[TagsTrie] {
-        override def initialValue = new TagsTrie
+    val cachedUserTags = new ThreadLocal[TagsTrie[UserTag]] {
+        override def initialValue = new TagsTrie[UserTag]
     }
 
     def tagForUserMeter(meterName: String): UserTag = {
@@ -433,7 +433,7 @@ object FlowTagger {
             tag = UserTag(meterName)
             segment.value = tag
         }
-        tag.asInstanceOf[UserTag]
+        tag
     }
 }
 

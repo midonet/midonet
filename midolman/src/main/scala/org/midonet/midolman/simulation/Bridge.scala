@@ -148,7 +148,7 @@ class Bridge(val id: UUID,
     def normalProcess()(implicit context: PacketContext,
                                  actorSystem: ActorSystem)
     : SimulationResult = {
-        context.addFlowTag(deviceTag)
+        context.addSimulatedDeviceTag(deviceTag)
 
         if (!adminStateUp) {
             context.log.debug("Bridge {} is down, DROP", id)
@@ -264,7 +264,8 @@ class Bridge(val id: UUID,
                     ErrorDrop
                 } else {
                     context.log.debug(s"Dst MAC $ethDst, VLAN $vlanId on port $portId: Forward")
-                    context.addFlowTag(tagForVlanPort(id, ethDst, vlanId, portId))
+                    context.addFlowTag(
+                        tagForVlanPort(id, ethDst, vlanId, portId))
                     unicastAction(portId)
                 }
         }

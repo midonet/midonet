@@ -86,7 +86,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 context.log.debug("Router {} state is down, DROP", id)
                 sendAnswer(inPort.id,
                            icmpErrors.unreachableProhibitedIcmp(inPort, context))
-                context.addFlowTag(deviceTag)
+                context.addSimulatedDeviceTag(deviceTag)
                 Drop
             case inPort =>
                 preRouting(inPort)
@@ -137,7 +137,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             return Drop
         }
 
-        context.addFlowTag(deviceTag)
+        context.addSimulatedDeviceTag(deviceTag)
         handleNeighbouring(inPort) match {
             case None =>
             case Some(simRes) => return simRes

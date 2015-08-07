@@ -39,7 +39,7 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.packets.MAC
-import org.midonet.sdn.flows.FlowTagger.{_}
+import org.midonet.sdn.flows.FlowTagger._
 
 trait FlowRecorder {
     def record(pktContext: PacketContext, simRes: MMSimRes): Unit
@@ -125,7 +125,7 @@ object FlowRecordBuilder {
                     simRes: MMSimRes): FlowRecord = {
         FlowRecord(hostId, pktContext.inPortId,
                    buildFlowRecordMatch(pktContext.origMatch),
-                   pktContext.cookie, buildDevices(pktContext.flowTags),
+                   pktContext.cookie, buildDevices(pktContext.simulationDevices),
                    buildRules(pktContext), buildSimResult(simRes),
                    pktContext.outPorts, buildActions(pktContext.flowActions))
     }
@@ -207,7 +207,7 @@ object FlowRecordBuilder {
         recActions
     }
 
-    def buildDevices(tags: List[FlowTag]): List[TraversedDevice] = {
+    def buildDevices(tags: List[DeviceTag]): List[TraversedDevice] = {
         tags.asScala.collect(
             {
                 case t: LoadBalancerDeviceTag =>

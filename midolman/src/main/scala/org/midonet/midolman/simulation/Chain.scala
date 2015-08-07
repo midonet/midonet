@@ -64,7 +64,7 @@ case class Chain(id: UUID,
                  jumpTargets: JMap[UUID, Chain],
                  name: String) extends VirtualDevice {
 
-    override val deviceTag: FlowTagger.FlowTag = FlowTagger.tagForChain(id)
+    override val deviceTag: FlowTagger.DeviceTag = FlowTagger.tagForChain(id)
 
     def getJumpTarget(to: UUID): Chain = jumpTargets.get(to)
 
@@ -82,7 +82,7 @@ case class Chain(id: UUID,
      */
     private def apply(context: PacketContext, ownerId: UUID, res: RuleResult,
                       traversedChains: ArrayList[UUID]): Unit = {
-        context.addFlowTag(deviceTag)
+        context.addSimulatedDeviceTag(deviceTag)
         traversedChains.add(id)
         res.action = Action.CONTINUE
         var i = 0

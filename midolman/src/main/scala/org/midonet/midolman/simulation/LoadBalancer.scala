@@ -47,7 +47,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
 
         context.log.debug("Load balancer {} applying inbound rules", id)
 
-        context.addFlowTag(deviceTag)
+        context.addSimulatedDeviceTag(deviceTag)
 
         if (adminStateUp) {
             findVip(context) match {
