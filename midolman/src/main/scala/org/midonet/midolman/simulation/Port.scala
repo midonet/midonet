@@ -178,7 +178,7 @@ trait Port extends VirtualDevice with Cloneable {
         if (context.devicesTraversed >= Simulator.MAX_DEVICES_TRAVERSED) {
             ErrorDrop
         } else {
-            context.addFlowTag(deviceTag)
+            context.addSimulatedDeviceTag(deviceTag)
             context.addFlowTag(rxTag)
             ingressAdminState(context, as)
         }
@@ -240,7 +240,7 @@ trait Port extends VirtualDevice with Cloneable {
     }
 
     final def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
-        context.addFlowTag(deviceTag)
+        context.addSimulatedDeviceTag(deviceTag)
         context.addFlowTag(txTag)
         egressAdminState(context, as)
     }

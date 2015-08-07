@@ -49,7 +49,6 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
     val actionsBytes = new Array[Byte](BinarySerialization.ActionsBufferSize)
     val actionsBuffer = ByteBuffer.wrap(actionsBytes)
 
-    val deviceStaging = new ArrayList[DeviceTag]
     val actionEnc = new ActionEncoder
 
     override def encodeRecord(pktContext: PacketContext,
@@ -230,26 +229,11 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
     }
 
     private def encodeDevices(pktContext: PacketContext): Unit = {
-        deviceStaging.clear()
         var i = 0
-        val devices = pktContext.flowTags
+        val devices = pktContext.simulationDevices
+        val iter = FLOW_SUMMARY.traversedDevicesCount(devices.size)
         while (i < devices.size) {
-            devices.get(i) match {
-                case t: LoadBalancerDeviceTag => deviceStaging.add(t)
-                case t: PoolDeviceTag => deviceStaging.add(t)
-                case t: PortGroupDeviceTag => deviceStaging.add(t)
-                case t: BridgeDeviceTag => deviceStaging.add(t)
-                case t: RouterDeviceTag => deviceStaging.add(t)
-                case t: PortDeviceTag => deviceStaging.add(t)
-                case t: ChainDeviceTag => deviceStaging.add(t)
-            }
-            i += 1
-        }
-
-        i = 0
-        val iter = FLOW_SUMMARY.traversedDevicesCount(deviceStaging.size)
-        while (i < deviceStaging.size) {
-            val tag = deviceStaging.get(i)
+            val tag = devices.get(i)
             val dev = iter.next()
             dev.device(0, tag.device.getMostSignificantBits)
             dev.device(1, tag.device.getLeastSignificantBits)

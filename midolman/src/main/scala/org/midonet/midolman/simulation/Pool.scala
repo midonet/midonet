@@ -71,7 +71,7 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
                     stickySourceIP: Boolean): Boolean = {
         implicit val implicitPacketContext = context
 
-        context.addFlowTag(deviceTag)
+        context.addSimulatedDeviceTag(deviceTag)
 
         if (isUp) {
             val member = memberSelector.select()
@@ -92,7 +92,7 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
      */
     def reverseLoadBalanceValid(pktCtx: PacketContext, ip: IPAddr,
                                 port: Int, stickySourceIP: Boolean): Boolean = {
-        pktCtx.addFlowTag(deviceTag)
+        pktCtx.addSimulatedDeviceTag(deviceTag)
         isValidBackend(ip, port, stickySourceIP)
     }
 

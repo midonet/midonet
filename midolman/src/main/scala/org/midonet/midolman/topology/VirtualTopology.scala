@@ -38,7 +38,7 @@ import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{BackChannelMessage, NotYetException, SimulationBackChannel}
-import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.sdn.flows.FlowTagger.{DeviceTag,FlowTag}
 import org.midonet.util.functors.{makeFunc1, makeRunnable, Predicate}
 import org.midonet.util.reactivex._
 
@@ -56,7 +56,7 @@ object VirtualTopology extends MidolmanLogging {
     trait Device
 
     trait VirtualDevice extends Device {
-        def deviceTag: FlowTag
+        def deviceTag: DeviceTag
     }
 
     type DeviceFactory = UUID => OnSubscribe[_]

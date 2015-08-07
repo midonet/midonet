@@ -31,7 +31,7 @@ import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
+import org.midonet.sdn.flows.FlowTagger.{DeviceTag, FlowStateTag, FlowTag}
 import org.midonet.util.Clearable
 import org.midonet.util.collection.ArrayListUtil
 import org.midonet.util.functors.Callback0
@@ -57,6 +57,8 @@ trait FlowContext extends Clearable { this: PacketContext =>
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = new ArrayList[FlowTag]()
+    // keep a separate list of the simulated devices for flow history
+    val simulationDevices = new ArrayList[DeviceTag]()
 
     var flow: ManagedFlow = _
 
@@ -66,8 +68,14 @@ trait FlowContext extends Clearable { this: PacketContext =>
         virtualFlowActions.clear()
         flowActions.clear()
         packetActions.clear()
+        simulationDevices.clear()
         flowTags.clear()
         super.clear()
+    }
+
+    def addSimulatedDeviceTag(tag: DeviceTag): Unit = {
+        simulationDevices.add(tag)
+        addFlowTag(tag)
     }
 
     def addFlowTag(tag: FlowTag): Unit = {
