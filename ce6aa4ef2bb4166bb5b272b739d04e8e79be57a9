@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c9a7a909",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T10:06:59Z",
+      "side": 1,
+      "message": "This seems a bit more straightforward to me:\n\n        val Seq(port, peer) \u003d\n            listResources(classOf[Port], Seq(id, link.peerId)).getOrThrow\n        if (port.peerId \u003d\u003d null \u0026\u0026 peer.peerId \u003d\u003d null) {\n            port.peerId \u003d link.peerId\n            updateResource(port, Response.created(link.getUri).build())\n        } else {\n            buildErrorResponse(BAD_REQUEST.getStatusCode,\n                               getMessage(PORTS_LINKABLE))\n        }",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 105,
+        "endChar": 20
+      },
+      "revId": "ce6aa4ef2bb4166bb5b272b739d04e8e79be57a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e9b1cd47",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T10:06:59Z",
+      "side": 1,
+      "message": "bridgeId",
+      "range": {
+        "startLine": 186,
+        "startChar": 39,
+        "endLine": 186,
+        "endChar": 47
+      },
+      "revId": "ce6aa4ef2bb4166bb5b272b739d04e8e79be57a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_492e398d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T10:06:59Z",
+      "side": 1,
+      "message": "I find this format a bit hard to read. What do you think about this? It seems clearer to me, but maybe that\u0027s just because I wrote it.\n\n    val peerPorts \u003d for {\n        bridge \u003c- getResource(classOf[Bridge], routerId)\n        ports \u003c- listResources(classOf[Port], bridge.portIds.asScala)\n        peerIds \u003d ports.filter(_.peerId !\u003d null).map(_.peerId)\n        peerPorts \u003c- listResources(classOf[Port], peerIds)\n    } yield peerPorts\n    peerPorts.getOrThrow.asJava\n\nEven better, why not just do this?\n\n    val bridge \u003d getResource(classOf[Bridge], routerId).getOrThrow\n    val ports \u003d listResources(classOf[Port],\n                                  bridge.portIds.asScala).getOrThrow\n    val peerIds \u003d ports.filter(_.peerId !\u003d null).map(_.peerId)\n    listResources(classOf[Port], peerIds).getOrThrow\n\nWe can\u0027t actually await any of these futures in parallel, because each one depends on the result of the last one. And we\u0027re not returning a future. So why obscure the code with a bunch of fancy mapping?\n\nAnd if you do that, you also might as well factor out the duplicate code in the router version, by adding this to AbstractPortResource:\n\n    protected def getPeerPorts(portIds: Seq[UUID]): JList[Port] \u003d {\n        val ports \u003d listResources(classOf[Port], portIds).getOrThrow\n        val peerIds \u003d ports.collect {\n            case p if p.peerId !\u003d null \u003d\u003e p.peerId\n        }\n        listResources(classOf[Port], peerIds).getOrThrow.asJava\n    }\n\nThen this method just becomes:\n\n    val bridge \u003d getResource(classOf[Bridge], bridgeId).getOrThrow\n    getPeerPorts(bridge.portIds.asScala)",
+      "revId": "ce6aa4ef2bb4166bb5b272b739d04e8e79be57a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_495c7919",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-07T10:06:59Z",
+      "side": 1,
+      "message": "And this becomes:\n\n    val router \u003d getResource(classOf[Router], routerId).getOrThrow\n    getPeerPorts(router.portIds.asScala)",
+      "range": {
+        "startLine": 215,
+        "startChar": 0,
+        "endLine": 220,
+        "endChar": 29
+      },
+      "revId": "ce6aa4ef2bb4166bb5b272b739d04e8e79be57a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
