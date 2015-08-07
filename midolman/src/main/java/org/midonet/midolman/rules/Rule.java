@@ -160,15 +160,15 @@ public abstract class Rule extends BaseConfig {
      *                     transformations preceding this rule. This may be
      *                     modified.
      */
-    public void process(PacketContext pktCtx, RuleResult res, UUID ownerId) {
+    public void process(PacketContext pktCtx, RuleResult res) {
         if (condition.matches(pktCtx)) {
             pktCtx.jlog().debug(
                     "Condition matched on device {} chain {} with action {} and condition {}",
-                    ownerId, chainId, action, condition);
+                    pktCtx.currentDevice(), chainId, action, condition);
 
             if (meter != null)
                 pktCtx.addFlowTag(meter);
-            apply(pktCtx, res, ownerId);
+            apply(pktCtx, res);
         }
     }
 
@@ -184,8 +184,7 @@ public abstract class Rule extends BaseConfig {
      *                   transformations preceding this rule. This may be
      *                   modified.
      */
-    protected abstract void apply(PacketContext pktCtx, RuleResult res,
-                                  UUID ownerId);
+    protected abstract void apply(PacketContext pktCtx, RuleResult res);
 
     public Map<String, String> getProperties() {
         return properties;
