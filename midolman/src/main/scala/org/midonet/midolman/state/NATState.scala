@@ -180,16 +180,16 @@ trait NatState extends FlowState { this: PacketContext =>
         natTx.flush()
     }
 
-    def applyDnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
-        applyDnat(deviceId, FWD_DNAT, natTargets)
+    def applyDnat(natTargets: Array[NatTarget]): Boolean =
+        applyDnat(FWD_DNAT, natTargets)
 
-    def applyStickyDnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
-        applyDnat(deviceId, FWD_STICKY_DNAT, natTargets)
+    def applyStickyDnat(natTargets: Array[NatTarget]): Boolean =
+        applyDnat(FWD_STICKY_DNAT, natTargets)
 
-    private def applyDnat(deviceId: UUID, natType: KeyType,
+    private def applyDnat(natType: KeyType,
                           natTargets: Array[NatTarget]): Boolean =
         if (isNatSupported) {
-            val natKey = NatKey(wcmatch, deviceId, natType)
+            val natKey = NatKey(wcmatch, currentDevice, natType)
             val binding = getOrAllocateNatBinding(natKey, natTargets)
             dnatTransformation(natKey, binding)
             true
@@ -201,9 +201,9 @@ trait NatState extends FlowState { this: PacketContext =>
             wcmatch.setDstPort(binding.transportPort)
     }
 
-    def applySnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
+    def applySnat(natTargets: Array[NatTarget]): Boolean =
         if (isNatSupported) {
-            val natKey = NatKey(wcmatch, deviceId, FWD_SNAT)
+            val natKey = NatKey(wcmatch, currentDevice, FWD_SNAT)
             val binding = getOrAllocateNatBinding(natKey, natTargets)
             snatTransformation(natKey, binding)
             true
@@ -215,15 +215,15 @@ trait NatState extends FlowState { this: PacketContext =>
             wcmatch.setSrcPort(binding.transportPort)
     }
 
-    def reverseDnat(deviceId: UUID): Boolean =
-        reverseDnat(deviceId, REV_DNAT)
+    def reverseDnat(): Boolean =
+        reverseDnat(REV_DNAT)
 
-    def reverseStickyDnat(deviceId: UUID): Boolean =
-        reverseDnat(deviceId, REV_STICKY_DNAT)
+    def reverseStickyDnat(): Boolean =
+        reverseDnat(REV_STICKY_DNAT)
 
-    private def reverseDnat(deviceId: UUID, natType: KeyType): Boolean = {
+    private def reverseDnat(natType: KeyType): Boolean = {
         if (isNatSupported) {
-            val natKey = NatKey(wcmatch, deviceId, natType)
+            val natKey = NatKey(wcmatch, currentDevice, natType)
             addFlowTag(natKey)
             val binding = natTx.get(natKey)
             if (binding ne null)
@@ -245,9 +245,9 @@ trait NatState extends FlowState { this: PacketContext =>
         }
     }
 
-    def reverseSnat(deviceId: UUID): Boolean = {
+    def reverseSnat(): Boolean = {
         if (isNatSupported) {
-            val natKey = NatKey(wcmatch, deviceId: UUID, REV_SNAT)
+            val natKey = NatKey(wcmatch, currentDevice: UUID, REV_SNAT)
             addFlowTag(natKey)
             val binding = natTx.get(natKey)
             if (binding ne null)

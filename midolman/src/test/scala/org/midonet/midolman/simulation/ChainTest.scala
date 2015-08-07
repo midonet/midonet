@@ -272,7 +272,13 @@ class ChainTest extends Suite
         applyChain(innerAndOuterChain).action should be (Action.REJECT)
     }
 
-    private def applyChain(c: Chain) = Chain.apply(c, pktCtx, ownerId)
+    private def applyChain(c: Chain) = {
+        pktCtx.currentDevice = ownerId
+        if (c ne null)
+            c.process(pktCtx)
+        else
+            new RuleResult(RuleResult.Action.ACCEPT, null)
+    }
 
     private def makeChain(rules: List[Rule],
                           jumpTargets: List[Chain] = Nil): Chain = {

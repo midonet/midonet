@@ -183,7 +183,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         context
     }
 
-    def simulateDevice(device: SimDevice, frame: Ethernet, inPort: UUID,
+    def simulateDevice(device: ForwardingDevice, frame: Ethernet, inPort: UUID,
                        emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList)
                       (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                 natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
