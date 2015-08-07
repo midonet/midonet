@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ace7d3aa",
+        "filename": "midolman/src/main/scala/org/midonet/sdn/flows/FlowTagger.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-07T15:30:37Z",
+      "side": 1,
+      "message": "naming",
+      "range": {
+        "startLine": 64,
+        "startChar": 20,
+        "endLine": 64,
+        "endChar": 27
+      },
+      "revId": "2114eaaec2fb5054de039df94da4ae6b7d12189d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
