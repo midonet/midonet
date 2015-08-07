@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e341eea9",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/RuleMatcher.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-07T05:21:43Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "3457476b7c3cd96a2c7acc92e198be4d2e0f551a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_033df22a",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/RuleMatcher.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-07T05:21:43Z",
+      "side": 1,
+      "message": "Just commenting and no need to do this now. I think that RuleMatcher should parametrise Rule type such as ReverseNatRule.class.",
+      "range": {
+        "startLine": 139,
+        "startChar": 55,
+        "endLine": 139,
+        "endChar": 66
+      },
+      "revId": "3457476b7c3cd96a2c7acc92e198be4d2e0f551a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_63079e82",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/RuleZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-07T05:21:43Z",
+      "side": 1,
+      "message": "Please align with RuleIndexOutOfBoundsException.",
+      "range": {
+        "startLine": 85,
+        "startChar": 15,
+        "endLine": 85,
+        "endChar": 38
+      },
+      "revId": "3457476b7c3cd96a2c7acc92e198be4d2e0f551a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_830ae287",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/RuleZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-07T05:21:43Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 99,
+        "startChar": 16,
+        "endLine": 99,
+        "endChar": 38
+      },
+      "revId": "3457476b7c3cd96a2c7acc92e198be4d2e0f551a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a3fd2670",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/RuleZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-07T05:21:43Z",
+      "side": 1,
+      "message": "Please align with \"List\u003cOp\u003e\" above.",
+      "range": {
+        "startLine": 106,
+        "startChar": 51,
+        "endLine": 106,
+        "endChar": 67
+      },
+      "revId": "3457476b7c3cd96a2c7acc92e198be4d2e0f551a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_43ec5abb",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/RuleZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 511,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-07T05:21:43Z",
+      "side": 1,
+      "message": "Can we rename this to \"prepareDeleteFloatingIpNatRules\" to make the name consistent with \"prepareCreate...\"?",
+      "range": {
+        "startLine": 511,
+        "startChar": 16,
+        "endLine": 511,
+        "endChar": 37
+      },
+      "revId": "3457476b7c3cd96a2c7acc92e198be4d2e0f551a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_632ebefc",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/RuleZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-07T05:21:43Z",
+      "side": 1,
+      "message": "Also, shouldn\u0027t we make the parameter order consistent with \"prepareCreate..\"? Perhaps both should take fixedIp before floatingIp.",
+      "range": {
+        "startLine": 513,
+        "startChar": 38,
+        "endLine": 514,
+        "endChar": 57
+      },
+      "revId": "3457476b7c3cd96a2c7acc92e198be4d2e0f551a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c3378a4b",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/RuleZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 664,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-07T05:21:43Z",
+      "side": 1,
+      "message": "I could be wrong as I\u0027m not a network expert, but isn\u0027t it the other way around?",
+      "range": {
+        "startLine": 664,
+        "startChar": 24,
+        "endLine": 664,
+        "endChar": 34
+      },
+      "revId": "3457476b7c3cd96a2c7acc92e198be4d2e0f551a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
