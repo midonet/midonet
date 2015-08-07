@@ -344,7 +344,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         while (i < groupIds.size()) {
             val group = getPortGroup(groupIds.get(i))
             if (group.stateful) {
-                tags.add(group.deviceTag)
+                tags.add(group.flowStateTag)
                 collectPortGroupPeers(portId, hosts, ports, tags, group)
             }
             i += 1
@@ -369,7 +369,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                            tags: Collection[FlowTag]): Unit = {
         if ((port.hostId ne null) && port.hostId != hostId)
             hosts.add(port.hostId)
-        tags.add(port.deviceTag)
+        tags.add(port.flowStateTag)
     }
 
     @throws(classOf[NotYetException])

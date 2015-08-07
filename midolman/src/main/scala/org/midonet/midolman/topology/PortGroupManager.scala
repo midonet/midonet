@@ -57,6 +57,7 @@ class PortGroupManager(val id: UUID, val clusterClient: Client) extends Actor
                                                 config.isStateful, new ArrayList(members.asJava))
         VirtualTopologyActor ! simGroup
         VirtualTopologyActor ! InvalidateFlowsByTag(simGroup.deviceTag)
+        VirtualTopologyActor ! InvalidateFlowsByTag(simGroup.flowStateTag)
     }
 
     override def receive = {

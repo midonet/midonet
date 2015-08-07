@@ -20,7 +20,7 @@ import java.util.UUID
 
 import org.midonet.cluster.models.Topology.{PortGroup => TopologyPortGroup}
 import org.midonet.midolman.simulation.{PortGroup => SimulationPortGroup}
-import org.midonet.util.functors.makeFunc1
+import org.midonet.util.functors.{makeAction1, makeFunc1}
 
 /**
  * A device mapper that exposes an [[rx.Observable]] with notifications for a
@@ -36,6 +36,8 @@ class PortGroupMapper(id: UUID, vt: VirtualTopology)
         vt.store.observable(classOf[TopologyPortGroup], id)
             .distinctUntilChanged
             .map[SimulationPortGroup](makeFunc1(toSimPortGroup))
+            .doOnNext(makeAction1(
+                          (pg: SimulationPortGroup) => vt.invalidate(pg.flowStateTag)))
             .observeOn(vt.vtScheduler)
 
     private def toSimPortGroup(pg: TopologyPortGroup): SimulationPortGroup =

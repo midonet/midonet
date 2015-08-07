@@ -435,6 +435,27 @@ object FlowTagger {
         }
         tag.asInstanceOf[UserTag]
     }
+
+    /**
+     * Tag for flow state
+     */
+    case class FlowStateDeviceTag(device: UUID) extends FlowTag {
+        override def toString = s"flowStateDevice:$device"
+    }
+
+    val cachedFlowStateDeviceTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForFlowStateDevice(device: UUID): FlowTag = {
+        val segment = cachedFlowStateDeviceTags.get().getOrAddSegment(device)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = FlowStateDeviceTag(device)
+            segment.value = tag
+        }
+        tag
+    }
 }
 
 class FlowTagger {}
