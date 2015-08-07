@@ -29,7 +29,7 @@ import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.simulation.{Port => SimulationPort}
-import org.midonet.util.functors.{makeAction0, makeFunc1, makeFunc2}
+import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc2}
 
 /**
  * A device mapper that exposes an [[rx.Observable]] with notifications for
@@ -62,6 +62,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
     private var currentPort: SimulationPort = null
     private var traceRequestIds: List[UUID] = List()
+    private var prevAdminStateUp: Boolean = false
+    private var prevActive: Boolean = false
 
     override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
         _traceChainMap
@@ -91,6 +93,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                traceChainObservable.map[SimulationPort](makeFunc1(traceUpdated)),
                portObservable.map[SimulationPort](makeFunc1(portUpdated)))
         .filter(makeFunc1(isPortReady))
+        .doOnNext(makeAction1(maybeInvalidateFlowState(_)))
 
     /** Handles updates to the simulation port. */
     private def portUpdated(port: SimulationPort): SimulationPort = {
@@ -106,7 +109,6 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         port
     }
 
-
     protected def traceUpdated(traceChain: Option[UUID]): SimulationPort = {
         if (currentPort != null) {
             traceChain match {
@@ -115,6 +117,16 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             }
         } else {
             null
+        }
+    }
+
+    private def maybeInvalidateFlowState(port: SimulationPort): Unit = {
+        if ((port.isActive && !prevActive) ||
+                (port.adminStateUp && !prevAdminStateUp)) {
+            vt.invalidate(port.flowStateTag)
+
+            prevActive = port.isActive
+            prevAdminStateUp = port.adminStateUp
         }
     }
 

@@ -146,6 +146,7 @@ trait Port extends VirtualDevice with Cloneable {
     def updateInboundFilter(filter: UUID) = this
 
     val deviceTag = FlowTagger.tagForPort(id)
+    val flowStateTag = FlowTagger.tagForFlowStateDevice(id)
     val txTag = FlowTagger.tagForPortTx(id)
     val rxTag = FlowTagger.tagForPortRx(id)
 

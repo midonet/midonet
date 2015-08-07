@@ -374,11 +374,11 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             ports should have size 3
 
             And("The flow should be tagged with all of the ports and port group tags")
-            tags should contain (ingressPortGroupMember.deviceTag)
-            tags should contain (egressPort1.deviceTag)
-            tags should contain (egressPort2.deviceTag)
-            tags should contain (ingressGroup.deviceTag)
-            tags should contain (egressGroup.deviceTag)
+            tags should contain (ingressPortGroupMember.flowStateTag)
+            tags should contain (egressPort1.flowStateTag)
+            tags should contain (egressPort2.flowStateTag)
+            tags should contain (ingressGroup.flowStateTag)
+            tags should contain (egressGroup.flowStateTag)
         }
     }
 
