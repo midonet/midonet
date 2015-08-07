@@ -215,7 +215,7 @@ packaging {
     fpmOpts = ['-a', 'all',
                '--category', 'network',
                '--url', 'http://midokura.com',
-               '--epoch', '0']
+               '--epoch', '1']
 }
 
 preparePkg.dependsOn cleanPkg

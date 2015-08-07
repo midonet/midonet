@@ -154,7 +154,7 @@ packaging {
     fpmOpts = ['-a', 'all',
                '--category', 'network',
                '--url', 'http://www.midonet.org',
-               '--epoch', '0']
+               '--epoch', '1']
 }
 
 preparePkg.dependsOn cleanPkg

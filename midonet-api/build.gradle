@@ -119,7 +119,7 @@ packaging {
     description = 'Midonet-API is the REST API for Midolman, a virtual network controller'
     confFiles = ['/usr/share/midonet-api/WEB-INF/web.xml',
                  '/usr/share/midonet-api/WEB-INF/classes/logback.xml']
-    fpmOpts = ['-a', 'all']
+    fpmOpts = ['-a', 'all', '--epoch', '1']
 }
 
 preparePkg.dependsOn cleanPkg
