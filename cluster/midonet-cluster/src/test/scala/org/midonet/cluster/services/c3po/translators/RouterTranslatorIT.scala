@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.midonet.cluster.{util, C3POMinionTestBase}
+import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.NeutronRoute
@@ -35,7 +35,6 @@ import org.midonet.util.concurrent.toFutureOps
 import org.scalatest.junit.JUnitRunner
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
 
 @RunWith(classOf[JUnitRunner])
 class RouterTranslatorIT extends C3POMinionTestBase {
@@ -86,8 +85,6 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
     it should "handle extra routes CRUD" in {
 
-        val routerId = UUID.randomUUID()
-
         // Create external network.
         val extNwId = UUID.randomUUID()
         val extNwSubnetId = UUID.randomUUID()
@@ -95,12 +92,26 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         createSubnet(3, extNwSubnetId, extNwId, "200.0.0.0/24",
                      gatewayIp = "200.0.0.1")
 
-        // Create a router
+        // Create a tenant network
+        val nwId = UUID.randomUUID()
+        val subnetId = UUID.randomUUID()
+        createTenantNetwork(4, nwId, external = false)
+        createSubnet(5, subnetId, nwId, "192.168.1.0/24",
+                     gatewayIp = "192.168.1.1")
+
+        // Create a router with gateway
+        val routerId = UUID.randomUUID()
         val extNwGwPortId = UUID.randomUUID()
-        createRouterGatewayPort(4, extNwGwPortId, extNwId, routerId,
+        createRouterGatewayPort(6, extNwGwPortId, extNwId, routerId,
                                 "200.0.0.2", "ab:cd:ef:00:00:03",
                                 extNwSubnetId)
-        createRouter(5, routerId, gwPortId = extNwGwPortId, enableSnat = true)
+        createRouter(7, routerId, gwPortId = extNwGwPortId, enableSnat = true)
+
+        // Create a router interface
+        val rtrIfId = UUID.randomUUID()
+        createRouterInterfacePort(8, rtrIfId, nwId, routerId, "192.168.1.2",
+                                  "02:02:02:02:02:02", subnetId)
+        createRouterInterface(9, routerId, rtrIfId, subnetId)
 
         // Update with extra routes
         val route1 = NeutronRoute.newBuilder()
@@ -108,30 +119,33 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             .setNexthop(IPAddressUtil.toProto("200.0.0.3")).build
         val route2 = NeutronRoute.newBuilder()
             .setDestination(IPSubnetUtil.toProto("10.0.1.0/24"))
-            .setNexthop(IPAddressUtil.toProto("200.0.0.4")).build
-
+            .setNexthop(IPAddressUtil.toProto("192.168.1.3")).build
         var rtrWithRoutes = routerJson(routerId, gwPortId = extNwGwPortId,
                                        enableSnat = true,
                                        routes = List(route1, route2))
-        insertUpdateTask(6, RouterType, rtrWithRoutes, routerId)
+        insertUpdateTask(10, RouterType, rtrWithRoutes, routerId)
 
         eventually {
-            validateExtraRoute(routerId, route1, extNwGwPortId)
-            validateExtraRoute(routerId, route2, extNwGwPortId)
+            validateExtraRoute(routerId, route1,
+                               RouterTranslator.tenantGwPortId(extNwGwPortId))
+            validateExtraRoute(routerId, route2,
+                               PortManager.routerInterfacePortPeerId(rtrIfId))
         }
 
         // Replace a route (add/remove)
         val route3 = NeutronRoute.newBuilder()
             .setDestination(IPSubnetUtil.toProto("10.0.2.0/24"))
-            .setNexthop(IPAddressUtil.toProto("200.0.0.5")).build
+            .setNexthop(IPAddressUtil.toProto("200.0.0.4")).build
         rtrWithRoutes = routerJson(routerId, gwPortId = extNwGwPortId,
                                    enableSnat = true,
                                    routes = List(route1, route3))
-        insertUpdateTask(7, RouterType, rtrWithRoutes, routerId)
+        insertUpdateTask(11, RouterType, rtrWithRoutes, routerId)
 
         eventually {
-            validateExtraRoute(routerId, route1, extNwGwPortId)
-            validateExtraRoute(routerId, route3, extNwGwPortId)
+            validateExtraRoute(routerId, route1,
+                               RouterTranslator.tenantGwPortId(extNwGwPortId))
+            validateExtraRoute(routerId, route3,
+                               RouterTranslator.tenantGwPortId(extNwGwPortId))
 
             // Validate that route2 is gone
             val rtId = RouteManager.extraRouteId(routerId, route2)
