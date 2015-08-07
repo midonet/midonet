@@ -58,7 +58,13 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent._
 
 object UnderlayResolver {
-    case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput)
+    case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput) {
+        override def toString: String = {
+            s"Route(srcIp:${IPv4Addr.intToString(srcIp)}, " +
+                s"dstIp:${IPv4Addr.intToString(dstIp)}, " +
+                s"output:$output)"
+        }
+    }
 }
 
 trait UnderlayResolver {
