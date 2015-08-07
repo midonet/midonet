@@ -17,12 +17,12 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
-import org.midonet.cluster.models.Commons.{IPVersion, IPAddress, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.Rule.{Action, FragmentPolicy}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, Update}
-import org.midonet.cluster.util.{UUIDUtil, IPSubnetUtil}
+import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ICMP
@@ -75,7 +75,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateUpdate(nr: NeutronRouter): MidoOpList = {
         val r = translate(nr)
         val gwOps = gatewayPortUpdateOps(nr, r)
-        val rtOps = extraRoutesUpdateOps(nr)
+        val rtOps = extraRoutesUpdateOps(nr, r)
         Update(r, RouterUpdateValidator) :: gwOps ++ rtOps
     }
 
@@ -166,15 +166,33 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
-    private def extraRoutesUpdateOps(nr: NeutronRouter): MidoOpList = {
-        if (!nr.hasGwPortId) return List()
+    private def extraRoutesUpdateOps(nr: NeutronRouter,
+                                     mr: Router): MidoOpList = {
 
         val ops = new MidoOpListBuffer
 
-        val gwPort = storage.get(classOf[Port],
-                                 UUIDUtil.toProto(nr.getGwPortId)).await()
-        val mRouteIds = gwPort.getRouteIdsList.asScala
+        // Get the ports on this router
+        log.debug("RYURYURYUR router === " + mr)
+        log.debug("RYURYURYUR router port Ids === " + mr.getPortIdsCount)
+        val ports = storage.getAll(classOf[Port],
+                                   mr.getPortIdsList.asScala).await()
+        if (ports.isEmpty) {
+            // Even when a router is not connected to anything, Neutron still
+            // allows routes to be associated.  Be consistent with Neutron and
+            // log the event and treat as no-op.
+            log.warn("Routes cannot be added on a router with no port")
+            return List()
+        }
+
+        // For each route, validate that it can be added.
+        // The following checks are performed:
+        //     * IPv6 routes are not supported.
+        //     * Next hop cannot match any IP on the router.  Neutron also does
+        //       does this check also.
+        //     * Next hop must be in one of the CIDRs that the router is
+        //       connected to.  Neutron also does this check.
         val commonRouteIds = new ListBuffer[UUID]
+        val currRouteIds = new ListBuffer[UUID]
         nr.getRoutesList.asScala foreach { r =>
 
             if (r.getDestination.getVersion == IPVersion.V6 ||
@@ -183,20 +201,33 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                     "IPv6 is not supported in this version of Midonet.")
             }
 
-            val rId = extraRouteId(nr.getId, r)
+            val validPorts = ports.filter(isValidRouteOnPort(r.getNexthop, _))
+            if (validPorts.isEmpty) {
+                throw new IllegalArgumentException(
+                    "No valid port was found to add route: " + r)
+            }
 
-            if (!mRouteIds.contains(rId)) {
-                val newRt = newNextHopPortRoute(
-                    nr.getGwPortId, id = rId,
-                    dstSubnet = r.getDestination,
-                    nextHopGwIpAddr = r.getNexthop)
+            // There should only be one valid port in practice, so just pick
+            // the first.
+            val nextHopPort = validPorts.head
+            if (validPorts.size > 1) {
+                log.warn("Multiple next hop port candidates found. " +
+                         "Selecting the first one: " + nextHopPort)
+            }
+
+            currRouteIds ++ nextHopPort.getRouteIdsList.asScala
+            val rId = extraRouteId(nr.getId, r)
+            if (!currRouteIds.contains(rId)) {
+                val newRt = newNextHopPortRoute(nextHopPort.getId, id = rId,
+                                                dstSubnet = r.getDestination,
+                                                nextHopGwIpAddr = r.getNexthop)
                 ops += Create(newRt)
             } else {
                 commonRouteIds += rId
             }
         }
 
-        val delRoutes = mRouteIds filterNot (commonRouteIds contains)
+        val delRoutes = currRouteIds filterNot (commonRouteIds contains)
         delRoutes foreach (ops += Delete(classOf[Route], _))
 
         ops.toList

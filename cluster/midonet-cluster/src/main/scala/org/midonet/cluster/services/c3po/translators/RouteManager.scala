@@ -23,20 +23,22 @@ import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.{Dhcp, PortOrBuilder, Route, RouteOrBuilder}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rest_api.neutron.models.MetaDataService
 import org.midonet.cluster.services.c3po.midonet.{Create, Update}
 import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
-import org.midonet.packets.IPv4Addr
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
+import org.midonet.packets.{IPv4Subnet, IPv4Addr}
 import org.midonet.util.concurrent.toFutureOps
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
 
 trait RouteManager {
     import RouteManager._
+    protected val logger = LoggerFactory.getLogger(this.getClass)
 
     protected val storage: ReadOnlyStorage
     /**
@@ -121,6 +123,21 @@ trait RouteManager {
             else bldr.setNextHopGateway(gatewayIp)
             Update(bldr.build())
         }
+    }
+
+    /**
+     * Checks whether the given IP address can be added with the given port as
+     * the next hop.
+     *
+     * The following checks are performed:
+     *    * Next hop cannot match IP on the port.
+     *    * Next hop must be in the CIDR that the port is connected to.
+     */
+    protected def isValidRouteOnPort(address: IPAddress,
+                                     port: Port): Boolean = {
+        port.hasPortSubnet && port.getPortAddress != address &&
+            IPSubnetUtil.fromProto(port.getPortSubnet).containsAddress(
+                IPAddressUtil.toIPv4Addr(address))
     }
 }
 

@@ -35,7 +35,6 @@ import org.midonet.util.concurrent.toFutureOps
 import org.scalatest.junit.JUnitRunner
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
 
 @RunWith(classOf[JUnitRunner])
 class RouterTranslatorIT extends C3POMinionTestBase {
