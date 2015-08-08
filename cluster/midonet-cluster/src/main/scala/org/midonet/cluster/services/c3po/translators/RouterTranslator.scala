@@ -57,9 +57,9 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         val gwPortOps = gatewayPortCreateOps(nr, r)
 
         val ops = new MidoOpListBuffer
-        ops += Create(r)
         ops += Create(inChain)
         ops += Create(outChain)
+        ops += Create(r)
         ops += Create(portGroup)
         ops ++= gwPortOps
         ops.toList

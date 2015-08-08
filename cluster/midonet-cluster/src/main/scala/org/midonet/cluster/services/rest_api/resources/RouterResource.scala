@@ -27,7 +27,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTER_JSON,
@@ -75,6 +75,11 @@ class RouterResource @Inject()(resContext: ResourceContext)
                                          .getFirst("tenant_id")
         if (tenantId eq null) routers
         else routers filter { _.tenantId == tenantId }
+    }
+
+    protected override def createFilter(router: Router): Ops = {
+        router.create()
+        NoOps
     }
 
     protected override def updateFilter(to: Router, from: Router): Ops = {
