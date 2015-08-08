@@ -109,6 +109,21 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[Port], "route_ids", CASCADE,
                              classOf[Route], "next_hop_port_id", CLEAR)
 
+        store.declareBinding(classOf[Network], "inbound_filter_id", CLEAR,
+                             classOf[Chain], "network_inbound_ids", CLEAR)
+        store.declareBinding(classOf[Network], "outbound_filter_id", CLEAR,
+                             classOf[Chain], "network_outbound_ids", CLEAR)
+
+        store.declareBinding(classOf[Router], "inbound_filter_id", CLEAR,
+                             classOf[Chain], "router_inbound_ids", CLEAR)
+        store.declareBinding(classOf[Router], "outbound_filter_id", CLEAR,
+                             classOf[Chain], "router_outbound_ids", CLEAR)
+
+        store.declareBinding(classOf[Port], "inbound_filter_id", CLEAR,
+                             classOf[Chain], "port_inbound_ids", CLEAR)
+        store.declareBinding(classOf[Port], "outbound_filter_id", CLEAR,
+                             classOf[Chain], "port_outbound_ids", CLEAR)
+
         store.declareBinding(classOf[Router], "port_ids", CASCADE,
                              classOf[Port], "router_id", CLEAR)
         store.declareBinding(classOf[Router], "route_ids", CASCADE,

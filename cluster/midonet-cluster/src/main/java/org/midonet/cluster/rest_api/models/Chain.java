@@ -53,6 +53,34 @@ public class Chain extends UriResource {
     @ZoomField(name = "rule_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> ruleIds;
 
+    @JsonIgnore
+    @ZoomField(name = "network_inbound_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> networkInboundIds;
+
+    @JsonIgnore
+    @ZoomField(name = "network_outbound_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> networkOutboundIds;
+
+    @JsonIgnore
+    @ZoomField(name = "router_inbound_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> routerInboundIds;
+
+    @JsonIgnore
+    @ZoomField(name = "router_outbound_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> routerOutboundIds;
+
+    @JsonIgnore
+    @ZoomField(name = "port_inbound_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> portInboundIds;
+
+    @JsonIgnore
+    @ZoomField(name = "port_outbound_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> portOutboundIds;
+
+    @JsonIgnore
+    @ZoomField(name = "jump_rule_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> jumpRuleIds;
+
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.CHAINS, id);
