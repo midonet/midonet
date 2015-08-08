@@ -39,10 +39,10 @@ enum Type {
     ROUTE = 15;
     ROUTER = 16;
     RULE = 17;
-    TUNNEL_ZONE = 18;
-    VIP = 19;
-    VTEP = 20;
-    TRACE_REQUEST = 21;
+    TRACE_REQUEST = 18;
+    TUNNEL_ZONE = 19;
+    VIP = 20;
+    VTEP = 21;
 }
 
 message BgpNetwork {
@@ -72,9 +72,13 @@ message Chain {
 
     // Backreferences
     repeated UUID rule_ids = 101;
-    repeated UUID network_ids = 102;
-    repeated UUID router_ids = 103;
-    repeated UUID port_ids = 104;
+    repeated UUID network_inbound_ids = 102;
+    repeated UUID network_outbound_ids = 103;
+    repeated UUID router_inbound_ids = 104;
+    repeated UUID router_outbound_ids = 105;
+    repeated UUID port_inbound_ids = 106;
+    repeated UUID port_outbound_ids = 107;
+    repeated UUID jump_rule_ids = 108;
 }
 
 message Dhcp {
@@ -370,7 +374,7 @@ message Rule {
     optional UUID fip_port_id = 41;
 
     message JumpRuleData {
-        optional UUID jump_to = 1;
+        optional UUID jump_chain_id = 1;
         optional string jump_chain_name = 2;
     }
     message NatTarget {
@@ -397,6 +401,17 @@ message Rule {
         NatRuleData nat_rule_data = 101;
         TraceRuleData trace_rule_data = 102;
     }
+}
+
+message TraceRequest {
+    optional UUID id = 1;
+    optional bool enabled = 2;
+    optional Condition condition = 3;
+    optional uint32 limit = 4;
+
+    optional UUID port_id = 101;
+    optional UUID network_id = 102;
+    optional UUID router_id = 103;
 }
 
 message TunnelZone {
@@ -452,15 +467,4 @@ message Vtep {
     }
 
     repeated Binding bindings = 6;
-}
-
-message TraceRequest {
-    optional UUID id = 1;
-    optional bool enabled = 2;
-    optional Condition condition = 3;
-    optional uint32 limit = 4;
-
-    optional UUID port_id = 101;
-    optional UUID network_id = 102;
-    optional UUID router_id = 103;
 }

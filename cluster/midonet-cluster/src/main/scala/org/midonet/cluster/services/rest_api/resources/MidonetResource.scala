@@ -75,11 +75,6 @@ object MidonetResource {
         case e: WebApplicationException => e.getResponse
     }
 
-    object NoCatch extends PartialFunction[Throwable, Response] {
-        def isDefinedAt(e: Throwable) = false
-        def apply(e: Throwable) = throw new MatchError(s"No match $e")
-    }
-
     final class FutureOps[T](val future: Future[T]) extends AnyVal {
         def getOrThrow: T = tryRead {
             Await.result(future, Timeout)
@@ -91,13 +86,13 @@ object MidonetResource {
             f
         } catch {
             case e: NotFoundException =>
-                throw new NotFoundHttpException("Resource not found")
+                throw new NotFoundHttpException(e.getMessage)
             case e: ObjectReferencedException =>
                 throw new WebApplicationException(e, Status.NOT_ACCEPTABLE)
             case e: ReferenceConflictException =>
-                throw new ConflictHttpException("Conflicting read")
+                throw new ConflictHttpException(e.getMessage)
             case e: ObjectExistsException =>
-                throw new ConflictHttpException("Conflicting read")
+                throw new ConflictHttpException(e.getMessage)
         }
     }
 
@@ -252,7 +247,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
                 throwIfViolationsOn(t)
                 updateFilter(t, current)
             } map { ops =>
-                multiResource(ops ++ Seq(Update(t)), OkNoContentResponse)
+                multiResource(ops :+ Update(t), OkNoContentResponse)
             } getOrThrow
         }
     }
@@ -263,7 +258,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
         tryResponse(handleDelete, catchDelete) {
             deleteFilter(id) map { ops =>
-                multiResource(ops ++ Seq(Delete(clazz, id)), OkNoContentResponse)
+                multiResource(ops :+ Delete(clazz, id), OkNoContentResponse)
             } getOrThrow
         }
     }
