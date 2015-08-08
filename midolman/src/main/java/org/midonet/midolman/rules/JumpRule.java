@@ -33,7 +33,7 @@ public class JumpRule extends Rule {
     private final static Logger log = LoggerFactory.getLogger(JumpRule.class);
     private static final long serialVersionUID = -7212783590950701193L;
 
-    @ZoomField(name = "jump_to", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "jump_chain_id", converter = UUIDUtil.Converter.class)
     public UUID jumpToChainID;
     @ZoomField(name = "jump_chain_name")
     public String jumpToChainName;
