@@ -449,7 +449,7 @@ trait TopologyBuilder {
 
         if (jumpChainId.isDefined)
             builder.setJumpRuleData(JumpRuleData.newBuilder
-                                        .setJumpTo(jumpChainId.get.asProto)
+                                        .setJumpChainId(jumpChainId.get.asProto)
                                         .build())
         builder
     }
@@ -848,6 +848,18 @@ object TopologyBuilder {
     final class RichChain(val chain: Chain) extends AnyVal {
         def setName(name: String): Chain =
             chain.toBuilder.setName(name).build()
+        def addNetworkInboundId(id: UUID): Chain =
+            chain.toBuilder.addNetworkInboundIds(id.asProto).build()
+        def addNetworkOutboundId(id: UUID): Chain =
+            chain.toBuilder.addNetworkOutboundIds(id.asProto).build()
+        def addRouterInboundId(id: UUID): Chain =
+            chain.toBuilder.addRouterInboundIds(id.asProto).build()
+        def addRouterOutboundId(id: UUID): Chain =
+            chain.toBuilder.addRouterOutboundIds(id.asProto).build()
+        def addPortInboundId(id: UUID): Chain =
+            chain.toBuilder.addPortInboundIds(id.asProto).build()
+        def addPortOutboundId(id: UUID): Chain =
+            chain.toBuilder.addPortOutboundIds(id.asProto).build()
     }
 
     final class RichPortGroup(val portGroup: PortGroup) extends AnyVal {

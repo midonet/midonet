@@ -29,14 +29,13 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
-import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Network => TopologyBridge, Port => TopologyPort}
+import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
-import TopologyTest.DeviceObserver
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain, BridgePort}
+import org.midonet.midolman.simulation.{Bridge => SimulationBridge, BridgePort, Chain}
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForPort, tagForVlanPort}
@@ -1592,31 +1591,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     feature("Test chain updates") {
-        scenario("The bridge chains do not exist") {
-            val obs = createObserver()
-
-            Given("A bridge mapper")
-            val bridgeId = UUID.randomUUID
-            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
-
-            And("A bridge with a chain that does not exist")
-            val chainId = UUID.randomUUID
-            val bridge = createBridge(id = bridgeId,
-                                      inboundFilterId = Some(chainId))
-
-            When("The bridge is created")
-            store.create(bridge)
-
-            And("The observer subscribes to an observable on the mapper")
-            Observable.create(mapper).subscribe(obs)
-
-            Then("The observer should receive an error")
-            obs.awaitCompletion(timeout)
-            val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
-            e.clazz shouldBe classOf[TopologyChain]
-            e.id shouldBe chainId
-        }
-
         scenario("The bridge receives existing chain") {
             val obs = createObserver()
 
@@ -1672,7 +1646,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(1, timeout) shouldBe true
 
             When("The chain is updated")
-            val chain2 = chain1.setName("updated-name")
+            val chain2 = chain1.setName("updated-name").addNetworkInboundId(bridgeId)
             store.update(chain2)
 
             Then("The observer should receive a second update")
@@ -1713,8 +1687,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(bridge2)
 
             Then("The observer should receive a second update")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            val device = obs.getOnNextEvents.get(1)
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(2)
             device shouldBeDeviceOf bridge2
 
             And("The virtual topology should not have the chain")

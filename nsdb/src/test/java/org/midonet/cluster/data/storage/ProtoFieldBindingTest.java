@@ -47,7 +47,7 @@ public class ProtoFieldBindingTest {
         ListMultimap<Class<?>, FieldBinding> bindings =
             ProtoFieldBinding.createBindings(
             Network.class, "inbound_filter_id", DeleteAction.CLEAR,
-            Chain.class, "network_ids", DeleteAction.CLEAR);
+            Chain.class, "network_inbound_ids", DeleteAction.CLEAR);
         networkToChainBinding = bindings.get(Network.class).get(0);
         chainToNetworkBinding = bindings.get(Chain.class).get(0);
     }
@@ -76,7 +76,7 @@ public class ProtoFieldBindingTest {
                                                  "inbound_filter_id",
                                                  DeleteAction.CLEAR,
                                                  Chain.class,
-                                                 "network_ids",
+                                                 "network_inbound_ids",
                                                  DeleteAction.CASCADE);
         Collection<FieldBinding> networkBindings = bindings.get(Network.class);
         assertEquals(1, networkBindings.size());
@@ -149,7 +149,7 @@ public class ProtoFieldBindingTest {
         Chain updatedChain = networkToChainBinding.addBackReference(
                 chain, chain.getId(), uuid);
         assertEquals(CHAIN_NAME, updatedChain.getName());
-        assertThat(updatedChain.getNetworkIdsList(), contains(uuid));
+        assertThat(updatedChain.getNetworkInboundIdsList(), contains(uuid));
     }
 
     @Test
@@ -182,28 +182,28 @@ public class ProtoFieldBindingTest {
     @Test
     public void testClearBackRefToNetwork() throws Exception {
         Chain chain = Chain.newBuilder().setName(CHAIN_NAME)
-                                        .addNetworkIds(uuid)
+                                        .addNetworkInboundIds(uuid)
                                         .build();
         Chain updatedChain =
                 networkToChainBinding.clearBackReference(chain, uuid);
         assertEquals(CHAIN_NAME, updatedChain.getName());
-        assertTrue(updatedChain.getNetworkIdsList().isEmpty());
+        assertTrue(updatedChain.getNetworkInboundIdsList().isEmpty());
     }
 
     @Test
     public void testClearOnlySingleBackRefToNetwork() throws Exception {
         Chain chain = Chain.newBuilder().setName(CHAIN_NAME)
-                                        .addNetworkIds(uuid)
-                                        .addNetworkIds(otherUuid1)
-                                        .addNetworkIds(otherUuid2)
-                                        .addNetworkIds(uuid)
-                                        .addNetworkIds(otherUuid3)
+                                        .addNetworkInboundIds(uuid)
+                                        .addNetworkInboundIds(otherUuid1)
+                                        .addNetworkInboundIds(otherUuid2)
+                                        .addNetworkInboundIds(uuid)
+                                        .addNetworkInboundIds(otherUuid3)
                                         .build();
         Chain updatedChain =
                 networkToChainBinding.clearBackReference(chain, uuid);
         assertEquals(CHAIN_NAME, updatedChain.getName());
         // Should delete only the first occurrence of the ID.
-        assertEquals(4, updatedChain.getNetworkIdsList().size());
+        assertEquals(4, updatedChain.getNetworkInboundIdsList().size());
     }
 
     @Test
@@ -220,9 +220,9 @@ public class ProtoFieldBindingTest {
     @Test
     public void testClearMissingBackRefToNetwork() throws Exception {
         Chain chain = Chain.newBuilder().setName(CHAIN_NAME)
-                                        .addNetworkIds(otherUuid1)
-                                        .addNetworkIds(otherUuid2)
-                                        .addNetworkIds(otherUuid3)
+                                        .addNetworkInboundIds(otherUuid1)
+                                        .addNetworkInboundIds(otherUuid2)
+                                        .addNetworkInboundIds(otherUuid3)
                                         .build();
         Chain updatedChain =
             networkToChainBinding.clearBackReference(chain, uuid);
@@ -280,9 +280,9 @@ public class ProtoFieldBindingTest {
     @Test
     public void testFwdReferenceToNetworksAsList() throws Exception {
         Chain chain = Chain.newBuilder().setName(CHAIN_NAME)
-                                        .addNetworkIds(otherUuid1)
-                                        .addNetworkIds(otherUuid2)
-                                        .addNetworkIds(otherUuid3)
+                                        .addNetworkInboundIds(otherUuid1)
+                                        .addNetworkInboundIds(otherUuid2)
+                                        .addNetworkInboundIds(otherUuid3)
                                         .build();
         List<Object> fwdRefs =
                 chainToNetworkBinding.getFwdReferenceAsList(chain);

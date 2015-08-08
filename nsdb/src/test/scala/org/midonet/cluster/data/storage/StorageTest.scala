@@ -83,23 +83,23 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
                                classOf[PojoPort], "ruleIds", CLEAR)
 
         storage.declareBinding(classOf[Network], "inbound_filter_id", CLEAR,
-                               classOf[Chain], "network_ids", CLEAR)
+                               classOf[Chain], "network_inbound_ids", CLEAR)
         storage.declareBinding(classOf[Network], "outbound_filter_id", CLEAR,
-                               classOf[Chain], "network_ids", CLEAR)
+                               classOf[Chain], "network_outbound_ids", CLEAR)
 
         storage.declareBinding(classOf[Router], "inbound_filter_id", CLEAR,
-                               classOf[Chain], "router_ids", CLEAR)
+                               classOf[Chain], "router_inbound_ids", CLEAR)
         storage.declareBinding(classOf[Router], "outbound_filter_id", CLEAR,
-                               classOf[Chain], "router_ids", CLEAR)
+                               classOf[Chain], "router_outbound_ids", CLEAR)
 
         storage.declareBinding(classOf[Port], "network_id", CLEAR,
                                classOf[Network], "port_ids", ERROR)
         storage.declareBinding(classOf[Port], "router_id", CLEAR,
                                classOf[Router], "port_ids", ERROR)
         storage.declareBinding(classOf[Port], "inbound_filter_id", CLEAR,
-                               classOf[Chain], "port_ids", CLEAR)
+                               classOf[Chain], "port_inbound_ids", CLEAR)
         storage.declareBinding(classOf[Port], "outbound_filter_id", CLEAR,
-                               classOf[Chain], "port_ids", CLEAR)
+                               classOf[Chain], "port_outbound_ids", CLEAR)
         storage.declareBinding(classOf[Port], "peer_id", CLEAR,
                                classOf[Port], "peer_id", CLEAR)
 
@@ -189,8 +189,8 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
                                DeleteOp(classOf[Chain], chain.getId)))
 
             val updatedChain2 = await(storage.get(classOf[Chain], chain2.getId.asJava))
-            updatedChain2.getNetworkIdsList.asScala should contain only network.getId
-            updatedChain2.getRouterIdsList.asScala should contain only router.getId
+            updatedChain2.getNetworkOutboundIdsList.asScala should contain only network.getId
+            updatedChain2.getRouterInboundIdsList.asScala should contain only router.getId
 
             val updatedNetwork = await(storage.get(classOf[Network], network.getId.asJava))
             updatedNetwork.hasInboundFilterId shouldBe false
@@ -710,7 +710,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
 
             // Chains should have backrefs to the network.
             chainIn = await(storage.get(classOf[Chain], chainIn.getId))
-            chainIn.getNetworkIdsList should contain (netIn.getId)
+            chainIn.getNetworkInboundIdsList should contain (netIn.getId)
         }
 
         scenario("Test update for unregistered class") {
@@ -753,7 +753,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
 
             // Chains should have back refs to the network.
             val in = await(storage.get(classOf[Chain], inChain.getId))
-            in.getNetworkIdsList should contain (network.getId)
+            in.getNetworkInboundIdsList should contain (network.getId)
         }
 
         scenario("Test update with non-existing ID") {
@@ -917,7 +917,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
 
             // Chains should not have the backrefs to the network.
             val in = await(storage.get(classOf[Chain], inChain.getId))
-            in.getNetworkIdsList.isEmpty shouldBe true
+            in.getNetworkInboundIdsList.isEmpty shouldBe true
         }
 
         scenario("Test delete non-existing object") {

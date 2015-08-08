@@ -21,13 +21,16 @@ import java.util.UUID
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
+import scala.collection.JavaConverters._
+import scala.concurrent.Future
+
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
-import org.midonet.cluster.rest_api.models.Chain
+import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_CHAIN_JSON,
@@ -51,4 +54,13 @@ class ChainResource @Inject()(resContext: ResourceContext)
         if (tenantId eq null) chains
         else chains filter { _.tenantId == tenantId }
     }
+
+    protected override def deleteFilter(chainId: String): Ops = {
+        getResource(classOf[Chain], chainId) map { chain =>
+            // Deletes the jump rules that reference a chain.
+            for (ruleId <- chain.jumpRuleIds.asScala)
+                yield Delete(classOf[Rule], ruleId)
+        }
+    }
+
 }
