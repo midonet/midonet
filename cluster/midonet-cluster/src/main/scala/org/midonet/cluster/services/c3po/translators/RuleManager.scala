@@ -16,7 +16,6 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
 import org.midonet.cluster.services.c3po.midonet.{Create, Delete, MidoOp, Update}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Topology.Rule
@@ -49,7 +48,7 @@ trait RuleManager {
             .setType(Rule.Type.JUMP_RULE)
             .setAction(JUMP)
             .setJumpRuleData(JumpRuleData.newBuilder
-                                 .setJumpTo(toChain)
+                                 .setJumpChainId(toChain)
                                  .build())
             .build()
 

@@ -22,7 +22,6 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -128,6 +127,7 @@ public class TestChain extends JerseyTest {
         DtoRule jumpRule = new DtoRule();
         jumpRule.setPosition(1);
         jumpRule.setJumpChainName("Chain2");
+        jumpRule.setJumpChainId(ruleChain2.getId()); // V2 requires chain ID
         jumpRule.setType(DtoRule.Jump);
         response = resource().uri(ruleChain1.getRules())
                 .type(APPLICATION_RULE_JSON_V2)
@@ -232,9 +232,6 @@ public class TestChain extends JerseyTest {
      */
     @Test
     public void testCleanup() {
-
-        Assume.assumeFalse(FuncTest.isAwaitingImpl());
-
         DtoApplication app = topology.getApplication();
 
         DtoRuleChain ruleChain1
@@ -501,13 +498,15 @@ public class TestChain extends JerseyTest {
                 APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
 
         // Delete the objects first. This way, if any of the back refs
-        // weren't cleaned up, the delete of the chains would fail.
+        // weren't cleaned up, the delete of the chains would fail. The port is
+        // now deleted first because otherwise, in v2 the port would be deleted
+        // when deleting the router.
+        dtoResource.deleteAndVerifyNoContent(port.getUri(),
+                APPLICATION_PORT_V2_JSON);
         dtoResource.deleteAndVerifyNoContent(router.getUri(),
                 APPLICATION_ROUTER_JSON);
         dtoResource.deleteAndVerifyNoContent(bridge.getUri(),
                 APPLICATION_BRIDGE_JSON);
-        dtoResource.deleteAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON);
 
         dtoResource.deleteAndVerifyNoContent(ruleChain1.getUri(),
                 APPLICATION_CHAIN_JSON);

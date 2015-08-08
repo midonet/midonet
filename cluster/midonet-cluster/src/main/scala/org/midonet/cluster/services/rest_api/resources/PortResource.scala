@@ -24,9 +24,8 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{Future, Await}
+import scala.concurrent.Future
 import scala.reflect.ClassTag
-import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -42,7 +41,7 @@ import org.midonet.cluster.util.SequenceType
 
 class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                                               (implicit tag: ClassTag[P])
-    extends MidonetResource[P](resContext)(tag) {
+    extends WithChainsResource[P](resContext)(tag) {
 
     protected override def getFilter(port: P): Future[P] = {
         Future.successful(setActive(port))
@@ -62,17 +61,25 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
         port
     }
 
-    protected[resources] def ensureTunnelKey(port: P): Unit = try {
-        port.tunnelKey = Await.result (
-            resContext.seqDispenser.next(SequenceType.OverlayTunnelKey),
-            MidonetResource.Timeout
-        ).toInt
-    } catch {
-        case NonFatal(t) =>
+    protected def ensureTunnelKey(port: P): Future[P] = {
+        resContext.seqDispenser.next(SequenceType.OverlayTunnelKey) map { key =>
+            port.tunnelKey = key
+            port
+        } recover { case t =>
             log.error("Failed to generate tunnel key", t)
             throw new InternalServerErrorHttpException(
                 s"Unable to generate new tunnel key: ${t.getMessage}")
+        }
     }
+
+    protected final override def idOf(port: P): UUID =
+        port.id
+    protected final override def inboundFilterOf(port: P): UUID =
+        port.inboundFilterId
+    protected final override def outboundFilterOf(port: P): UUID =
+        port.outboundFilterId
+    protected final override def chainReferences(chain: Chain): JList[UUID] =
+        chain.portIds
 
 }
 
@@ -117,7 +124,13 @@ class PortResource @Inject()(resContext: ResourceContext)
 
     protected override def updateFilter(to: Port, from: Port): Ops = {
         to.update(from)
-        NoOps
+        updateChainsOnUpdate(to, from)
+    }
+
+    protected override def deleteFilter(portId: String): Ops = {
+        getResource(classOf[Port], portId) flatMap { port =>
+            updateChainsOnDelete(port)
+        }
     }
 
 }
@@ -138,9 +151,10 @@ class BridgePortResource @Inject()(bridgeId: UUID,
     }
 
     protected override def createFilter(port: BridgePort): Ops = {
-        ensureTunnelKey(port)
-        port.create(bridgeId)
-        NoOps
+        ensureTunnelKey(port) flatMap { _ =>
+            port.create(bridgeId)
+            updateChainsOnCreate(port)
+        }
     }
 }
 
@@ -148,6 +162,9 @@ class BridgePortResource @Inject()(bridgeId: UUID,
 @AllowList(Array(APPLICATION_PORT_COLLECTION_JSON,
                  APPLICATION_PORT_V2_COLLECTION_JSON,
                  APPLICATION_JSON))
+@AllowCreate(Array(APPLICATION_PORT_JSON,
+                   APPLICATION_PORT_V2_JSON,
+                   APPLICATION_JSON))
 class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
     extends AbstractPortResource[RouterPort](resContext) {
 
@@ -155,24 +172,19 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
         getResource(classOf[Router], routerId) map { _.portIds.asScala }
     }
 
-    @POST
-    @Consumes(Array(APPLICATION_PORT_JSON,
-                    APPLICATION_PORT_V2_JSON,
-                    APPLICATION_JSON))
-    override def create(port: RouterPort,
-                        @HeaderParam("Content-Type") contentType: String)
-    : Response = {
-
-        throwIfViolationsOn(port)
-
-        ensureTunnelKey(port)
-        port.create(routerId)
-        port.setBaseUri(resContext.uriInfo.getBaseUri)
-        val route = new Route("0.0.0.0", 0, port.portAddress, 32, NextHop.Local,
-                              port.id, "255.255.255.255", 0, routerId, false)
-        route.setBaseUri(resContext.uriInfo.getBaseUri)
-        multiResource(Seq(Create(port), Create(route)),
-                      Response.created(port.getUri).build())
+    protected override def createFilter(port:RouterPort): Ops = {
+        ensureTunnelKey(port) map { _ =>
+            port.create(routerId)
+            port.setBaseUri(resContext.uriInfo.getBaseUri)
+        } flatMap { _ =>
+            updateChainsOnCreate(port)
+        } map { ops =>
+            val route = new Route("0.0.0.0", 0, port.portAddress, 32,
+                                  NextHop.Local, port.id, "255.255.255.255", 0,
+                                  routerId, false)
+            route.setBaseUri(resContext.uriInfo.getBaseUri)
+            ops ++ Seq(Create(route))
+        }
     }
 
 }

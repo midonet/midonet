@@ -74,6 +74,7 @@ message Chain {
     repeated UUID network_ids = 102;
     repeated UUID router_ids = 103;
     repeated UUID port_ids = 104;
+    repeated UUID jump_rule_ids = 105;
 }
 
 message Dhcp {
@@ -409,7 +410,7 @@ message Rule {
     optional UUID fip_port_id = 41;
 
     message JumpRuleData {
-        optional UUID jump_to = 1;
+        optional UUID jump_chain_id = 1;
         optional string jump_chain_name = 2;
     }
     message NatTarget {

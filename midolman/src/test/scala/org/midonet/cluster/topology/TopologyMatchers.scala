@@ -170,7 +170,7 @@ object TopologyMatchers {
     class JumpRuleMatcher(rule: JumpRule) extends RuleMatcher(rule) {
         override def shouldBeDeviceOf(r: TopologyRule): Unit = {
             super.shouldBeDeviceOf(r)
-            rule.jumpToChainID shouldBe r.getJumpRuleData.getJumpTo.asJava
+            rule.jumpToChainID shouldBe r.getJumpRuleData.getJumpChainId.asJava
         }
     }
 
