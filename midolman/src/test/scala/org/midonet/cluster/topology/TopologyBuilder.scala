@@ -394,7 +394,7 @@ trait TopologyBuilder {
 
         if (jumpChainId.isDefined)
             builder.setJumpRuleData(JumpRuleData.newBuilder
-                                        .setJumpTo(jumpChainId.get.asProto)
+                                        .setJumpChainId(jumpChainId.get.asProto)
                                         .build())
         builder
     }

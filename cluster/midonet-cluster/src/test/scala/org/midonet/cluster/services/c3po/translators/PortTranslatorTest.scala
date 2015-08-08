@@ -426,7 +426,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             type: JUMP_RULE
             action: JUMP
             jump_rule_data {
-              jump_to { $spoofChainId }
+              jump_chain_id { $spoofChainId }
             }
             """)
 
@@ -581,7 +581,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             type: JUMP_RULE
             action: JUMP
             jump_rule_data {
-              jump_to { $spoofChainId }
+              jump_chain_id { $spoofChainId }
             }
             """)
 
@@ -590,7 +590,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             action: JUMP
             chain_id { $inboundChainId }
             jump_rule_data {
-              jump_to { $ipAddrGroup1InChainId }
+              jump_chain_id { $ipAddrGroup1InChainId }
             }
             """)
 
@@ -599,7 +599,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             action: JUMP
             chain_id { $inboundChainId }
             jump_rule_data {
-              jump_to { $ipAddrGroup2InChainId }
+              jump_chain_id { $ipAddrGroup2InChainId }
             }
             """)
 
@@ -608,7 +608,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             action: JUMP
             chain_id { $outboundChainId }
             jump_rule_data {
-              jump_to { $ipAddrGroup1OutChainId }
+              jump_chain_id { $ipAddrGroup1OutChainId }
             }
             """)
 
@@ -617,7 +617,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             action: JUMP
             chain_id { $outboundChainId }
             jump_rule_data {
-              jump_to { $ipAddrGroup2OutChainId }
+              jump_chain_id { $ipAddrGroup2OutChainId }
             }
             """)
 
@@ -834,7 +834,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             type: JUMP_RULE
             action: JUMP
             jump_rule_data {
-              jump_to { $ipAddrGroup1InChainId }
+              jump_chain_id { $ipAddrGroup1InChainId }
             }
             """)
 
@@ -843,7 +843,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             type: JUMP_RULE
             action: JUMP
             jump_rule_data {
-              jump_to { $ipAddrGroup2InChainId }
+              jump_chain_id { $ipAddrGroup2InChainId }
             }
             """)
 
@@ -852,7 +852,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             type: JUMP_RULE
             action: JUMP
             jump_rule_data {
-              jump_to { $ipAddrGroup1OutChainId }
+              jump_chain_id { $ipAddrGroup1OutChainId }
             }
             """)
 
@@ -861,7 +861,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             type: JUMP_RULE
             action: JUMP
             jump_rule_data {
-              jump_to { $ipAddrGroup2OutChainId }
+              jump_chain_id { $ipAddrGroup2OutChainId }
             }
             """)
 
