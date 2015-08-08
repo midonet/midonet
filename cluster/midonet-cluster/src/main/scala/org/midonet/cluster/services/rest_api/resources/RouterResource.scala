@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.UUID
+import java.util.{List => JList, UUID}
 
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
@@ -25,9 +25,9 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.Router
+import org.midonet.cluster.rest_api.models.{Chain, Router}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTER_JSON,
@@ -48,7 +48,7 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, O
                    APPLICATION_JSON))
 @AllowDelete
 class RouterResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[Router](resContext) {
+    extends WithChainsResource[Router](resContext) {
 
     @Path("{id}/ports")
     def ports(@PathParam("id") id: UUID): RouterPortResource = {
@@ -77,9 +77,29 @@ class RouterResource @Inject()(resContext: ResourceContext)
         else routers filter { _.tenantId == tenantId }
     }
 
+    protected override def createFilter(router: Router): Ops = {
+        router.create()
+        updateChainsOnCreate(router)
+    }
+
     protected override def updateFilter(to: Router, from: Router): Ops = {
         to.update(from)
-        NoOps
+        updateChainsOnUpdate(to, from)
     }
+
+    protected override def deleteFilter(routerId: String): Ops = {
+        getResource(classOf[Router], routerId) flatMap { router =>
+            updateChainsOnDelete(router)
+        }
+    }
+
+    protected final override def idOf(router: Router): UUID =
+        router.id
+    protected final override def inboundFilterOf(router: Router): UUID =
+        router.inboundFilterId
+    protected final override def outboundFilterOf(router: Router): UUID =
+        router.outboundFilterId
+    protected final override def chainReferences(chain: Chain): JList[UUID] =
+        chain.routerIds
 
 }

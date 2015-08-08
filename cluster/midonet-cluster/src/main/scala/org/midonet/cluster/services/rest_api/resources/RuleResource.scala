@@ -29,7 +29,7 @@ import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.{NotFoundHttpException, BadRequestHttpException}
 import org.midonet.cluster.rest_api.annotation.{AllowList, AllowCreate, AllowDelete, AllowGet}
-import org.midonet.cluster.rest_api.models.{Chain, Rule}
+import org.midonet.cluster.rest_api.models.{JumpRule, Chain, Rule}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
@@ -84,14 +84,29 @@ class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
     protected override def createFilter(rule: Rule): Ops = {
         rule.create(chainId)
 
-        getResource(classOf[Chain], chainId) map { chain =>
+        getResource(classOf[Chain], chainId) flatMap { chain =>
             rule.setBaseUri(resContext.uriInfo.getBaseUri)
             if (rule.position <= 0 || rule.position > chain.ruleIds.size() + 1) {
                 throw new BadRequestHttpException("Position exceeds number of" +
                                                   "rules in chain")
             }
             chain.ruleIds.add(rule.position - 1, rule.id)
-            Seq(Update(chain))
+
+            createJumpRule(rule)(Seq(Update(chain)))
+        }
+    }
+
+    private def createJumpRule(rule: Rule)(ops: Seq[Multi]): Ops = {
+        rule match {
+            case jumpRule: JumpRule if jumpRule.jumpChainId ne null=>
+                getResource(classOf[Chain], jumpRule.jumpChainId) map { chain =>
+                    chain.jumpRuleIds.add(rule.id)
+                    ops ++ Seq(Update(chain))
+                }
+            case jumpRule: JumpRule =>
+                Future.failed(new BadRequestHttpException("Jump rule missing " +
+                                                          "chain identifier"))
+            case _ => Future.successful(ops)
         }
     }
 

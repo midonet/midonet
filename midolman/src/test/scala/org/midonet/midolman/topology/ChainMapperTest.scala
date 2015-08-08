@@ -620,7 +620,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         val jumpRules = rules.filter(_.getType == ProtoRule.Type.JUMP_RULE)
         jumpRules.foreach(jmpRule =>
             assertEquals(jumpChain,
-                         simChain.getJumpTarget(jmpRule.getJumpRuleData.getJumpTo),
+                         simChain.getJumpTarget(
+                             jmpRule.getJumpRuleData.getJumpChainId),
                          List.empty, jumpChain = null)
         )
         if (jumpRules.isEmpty)
@@ -648,7 +649,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                newJmpChainId: Commons.UUID): ProtoRule = {
         val updatedJumpRule = oldJmpRule.toBuilder
             .setJumpRuleData(JumpRuleData.newBuilder
-                                 .setJumpTo(newJmpChainId)
+                                 .setJumpChainId(newJmpChainId)
                                  .build)
             .build()
         store.update(updatedJumpRule)
