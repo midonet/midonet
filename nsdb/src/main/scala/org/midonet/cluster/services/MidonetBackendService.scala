@@ -66,6 +66,8 @@ abstract class MidonetBackend extends AbstractService {
              classOf[LoadBalancer],
              classOf[Network],
              classOf[NeutronConfig],
+             classOf[NeutronFirewall],
+             classOf[NeutronFirewallRule],
              classOf[NeutronHealthMonitor],
              classOf[NeutronLoadBalancerPool],
              classOf[NeutronLoadBalancerPoolMember],

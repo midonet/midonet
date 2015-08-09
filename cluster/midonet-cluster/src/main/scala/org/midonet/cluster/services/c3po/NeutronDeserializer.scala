@@ -124,6 +124,8 @@ object NeutronDeserializer {
                 parseIpAddr(node.asText)
             case "org.midonet.cluster.models.IPSubnet" =>
                 parseIpSubnet(node.asText)
+            case "org.midonet.cluster.models.NeutronFirewallRule" =>
+                toMessage(node, classOf[NeutronFirewallRule])
             case "org.midonet.cluster.models.NeutronHealthMonitor.Pool" =>
                 toMessage(node, classOf[NeutronHealthMonitor.Pool])
             case "org.midonet.cluster.models.NeutronPort.BindingProfile" =>
