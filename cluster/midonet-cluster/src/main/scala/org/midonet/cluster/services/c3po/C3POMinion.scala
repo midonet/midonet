@@ -191,6 +191,8 @@ object C3POMinion {
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
              classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
+             classOf[NeutronFirewall] -> new FirewallTranslator(storage),
+             classOf[NeutronFirewallRule] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->
              new HealthMonitorTranslator(storage),
              classOf[NeutronLoadBalancerPool] ->
@@ -208,7 +210,8 @@ object C3POMinion {
              classOf[NeutronVIP] -> new VipTranslator(storage, pathBldr),
              classOf[PortBinding] -> new PortBindingTranslator(storage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
-             classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage)
+             classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage),
+             classOf[NeutronFirewall] -> new FirewallTranslator(storage)
         ).asInstanceOf[List[(Class[Message], NeutronTranslator[Message])]]
          .foreach { pair =>
             dataMgr.registerTranslator(pair._1, pair._2)
