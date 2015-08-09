@@ -269,3 +269,40 @@ message NeutronConfig {
     }
     optional TunnelProtocol tunnel_protocol=2;
 }
+
+message NeutronFirewall {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string description = 4;
+    optional bool shared = 5;
+    optional bool admin_state_up = 6;
+    optional string status = 7;
+    optional UUID firewall_policy_id = 8;
+    repeated NeutronFirewallRule firewall_rule_list = 9;
+    repeated UUID add_router_ids = 10;
+    repeated UUID del_router_ids = 11;
+}
+
+message NeutronFirewallRule {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string description = 4;
+    optional UUID firewall_policy_id = 5;
+    optional bool shared = 6;
+    optional Protocol protocol = 7;
+    optional int32 ip_version = 8;
+    optional IPSubnet source_ip_address = 9;  // IP address or subnet
+    optional IPSubnet destination_ip_address = 10; // IP address or subnet
+    optional string source_port = 11; // could be range min:max or single val
+    optional string destination_port = 12; // same as above
+    optional FirewallRuleAction action = 13;
+    optional int32 position = 14;
+    optional bool enabled = 15;
+
+    enum FirewallRuleAction {
+        ALLOW = 0;
+        DENY = 1;
+    }
+}
