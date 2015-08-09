@@ -357,7 +357,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         portCtx.inRules += Create(jumpRule(inChainId, spoofChainId))
 
         // Don't filter ARP
-        portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
+        portCtx.antiSpoofRules += Create(returnRuleBuilder(spoofChainId)
             .setCondition(anyFragCondition().setDlType(ARP.ETHERTYPE))
             .build())
 
@@ -365,12 +365,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val dhcpFrom = RangeUtil.toProto(new Range[Integer](68, 68))
         val dhcpTo = RangeUtil.toProto(new Range[Integer](67, 67))
 
-        portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
+        portCtx.antiSpoofRules += Create(returnRuleBuilder(spoofChainId)
             .setCondition(anyFragCondition().setTpDst(dhcpTo).setTpSrc(dhcpFrom))
             .build())
 
         for (fixedIp <- nPort.getFixedIpsList.asScala) {
-            portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
+            portCtx.antiSpoofRules += Create(returnRuleBuilder(spoofChainId)
                 .setCondition(anyFragCondition()
                                   .setNwSrcIp(IPSubnetUtil.fromAddr(fixedIp.getIpAddress))
                                   .setDlSrc(mac))
@@ -378,7 +378,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
 
         for (ipAddr <- nPort.getAllowedAddressPairsList.asScala) {
-            portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
+            portCtx.antiSpoofRules += Create(returnRuleBuilder(spoofChainId)
                 .setCondition(anyFragCondition().setNwSrcIp(ipAddr.getIpAddress)
                                   .setDlSrc(ipAddr.getMacAddress))
                 .build())
