@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit
 import javax.sql.DataSource
 
 import org.midonet.cluster.models.Neutron.NeutronRoute
+import org.midonet.cluster.rest_api.neutron.models.{FirewallRule, RuleProtocol}
 
 import scala.collection.JavaConverters._
 import scala.util.{Random, Try}
@@ -56,7 +57,7 @@ import org.midonet.cluster.services.c3po.translators.BridgeStateTableManager
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.cluster.util.{UUIDUtil, IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.{DataClient => LegacyDataClient}
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.LegacyClusterModule
@@ -459,6 +460,60 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         if (remoteIpPrefix != null)
             r.put("remote_ip_prefix", remoteIpPrefix.toString)
         r
+    }
+
+    protected def firewallJson(id: UUID,
+                               tenantId: String = "tenant",
+                               adminStateUp: Boolean = true,
+                               firewallRuleList: List[JsonNode] = List(),
+                               addRouterIds: List[UUID] = List(),
+                               delRouterIds: List[UUID] = List()): JsonNode = {
+        val f = nodeFactory.objectNode()
+
+        f.put("id", id.toString)
+        f.put("tenant_id", tenantId)
+        f.put("admin_state_up", adminStateUp)
+        f.putArray("firewall_rule_list").addAll(firewallRuleList.asJava)
+        val addRouterArray = f.putArray("add-router-ids")
+        for (addRouterId <- addRouterIds) {
+            addRouterArray.add(addRouterId.toString)
+        }
+        val delRouterArray = f.putArray("del-router-ids")
+        for (delRouterId <- delRouterIds) {
+            delRouterArray.add(delRouterId.toString)
+        }
+
+        f
+    }
+
+    protected def firewallRuleJson(id: UUID,
+                                   tenantId: String = "tenant",
+                                   protocol: RuleProtocol = RuleProtocol.TCP,
+                                   ipVersion: Int = 4,
+                                   sourceIpAddress: String = "10.0.0.0/24",
+                                   destinationIpAddress: String = "20.0.0.2",
+                                   sourcePort: String = "22",
+                                   destinationPort: String = "8080:8081",
+                                   action: FirewallRule.RuleAction =
+                                        FirewallRule.RuleAction.DENY,
+                                   enabled: Boolean = true,
+                                   shared: Boolean = false,
+                                   position: Int = 1): JsonNode = {
+
+        val r = nodeFactory.objectNode()
+
+        r.put("id", id.toString)
+        r.put("tenant_id", tenantId)
+        r.put("protocol", protocol.value())
+        r.put("ip_version", ipVersion)
+        r.put("source_ip_address", sourceIpAddress)
+        r.put("destination_ip_address", destinationIpAddress)
+        r.put("source_port", sourcePort)
+        r.put("destination_port", destinationPort)
+        r.put("action", action.value())
+        r.put("enabled", enabled)
+        r.put("shared", shared)
+        r.put("position", position)
     }
 
     protected def routerJson(id: UUID,
