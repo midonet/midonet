@@ -191,6 +191,8 @@ object C3POMinion {
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
              classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
+             classOf[NeutronFirewall] -> new FirewallTranslator(storage),
+             classOf[NeutronFirewallRule] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->
              new HealthMonitorTranslator(storage),
              classOf[NeutronLoadBalancerPool] ->
