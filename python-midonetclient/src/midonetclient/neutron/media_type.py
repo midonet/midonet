@@ -16,7 +16,7 @@
 # under the License.
 
 
-NEUTRON = "application/vnd.org.midonet.neutron.Neutron-v2+json"
+NEUTRON = "application/vnd.org.midonet.neutron.Neutron-v3+json"
 NETWORK = "application/vnd.org.midonet.neutron.Network-v1+json"
 NETWORKS = "application/vnd.org.midonet.neutron.Networks-v1+json"
 SUBNET = "application/vnd.org.midonet.neutron.Subnet-v1+json"
@@ -54,3 +54,6 @@ HEALTH_MONITORS = ("application/vnd.org.midonet"
 
 POOL_HEALTH_MONITOR = ("application/vnd.org.midonet"
                        ".neutron.lb.PoolHealthMonitor-v1+json")
+
+# Firewall extension
+FIREWALLS = "application/vnd.org.midonet.neutron.Firewall-v1+json"
