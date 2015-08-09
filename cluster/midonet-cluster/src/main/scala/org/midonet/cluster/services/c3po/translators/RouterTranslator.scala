@@ -193,7 +193,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
             if (r.getDestination.getVersion == IPVersion.V6 ||
                 r.getNexthop.getVersion == IPVersion.V6) {
                 throw new IllegalArgumentException(
-                    "IPv6 is not supported in this version of Midonet.")
+                    "IPv6 is not supported infire this version of Midonet.")
             }
 
             val nextHopPort = ports.find(isValidRouteOnPort(r.getNexthop, _))
