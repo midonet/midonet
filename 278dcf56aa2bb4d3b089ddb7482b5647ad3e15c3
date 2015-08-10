@@ -36,6 +36,23 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_eca0f691",
+        "filename": "midolman/src/main/java/org/midonet/midolman/cluster/MidolmanActorsModule.java",
+        "patchSetId": 19
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "is the FlowWriter an actor?",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_acdfce38",
         "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
         "patchSetId": 19
@@ -53,6 +70,74 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4cb9e2ca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/AddressManager.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "is this 4 correct?",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cc7ed218",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "meaningful debug messages would be better",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2c701e3f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0c751a31",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ece4760e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
         "patchSetId": 19
@@ -64,6 +149,142 @@
       "writtenOn": "2015-08-10T08:24:01Z",
       "side": 1,
       "message": "please do, we already support these IIRC.",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ac9b4e64",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "we usually prefer to specify these things in the modules rather than pollute the code.",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_acb26ee2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "more meaningul debug message",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4ce002cd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "not that this will request an ECHO. you may want to change the interface to pass some flags in, as you don\u0027t seem interested in the reply.",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8ce68ae6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "since there are no particular latency requirements, i would just call poll after a successful write to check if there are errors and throw the exception inline for easier debugging.",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6c314659",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/NovaMetadataClient.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "this throws match error if it\u0027s none. if it can never be none, i\u0027d reflect that in the interface.",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ccfa5274",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "can you point me to the kernel code where they do this validations? i thought they just considered any missing flow key as being totally wildcarded.",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0cf19a94",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "error handling?",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2cec9eba",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T08:55:53Z",
+      "side": 1,
+      "message": "error handling?",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
