@@ -87,6 +87,46 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6c1ea671",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/AddressManager.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-10T09:57:17Z",
+      "side": 1,
+      "message": "would be good to assert that dpPort is in the valid range here.",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ac142e4d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/AddressManager.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-10T09:57:17Z",
+      "side": 1,
+      "message": "dpPortToRemoteAddress and remoteAddressToDpPort would be clearer. getRemoteAddress is ok, but putRemoteAddress is confusing.",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 24
+      },
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ac5c2e7e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
         "patchSetId": 19
@@ -98,6 +138,41 @@
       "writtenOn": "2015-08-10T09:06:06Z",
       "side": 1,
       "message": "why don\u0027t you accept the InterfaceScanner directly?",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6ccdc630",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-10T09:57:17Z",
+      "side": 1,
+      "message": "+1.\nOr add @Inject to the interface scanner and use injector.injectMembers.",
+      "parentUuid": "9ad9bd40_ac5c2e7e",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ec5b9651",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-10T09:57:17Z",
+      "side": 1,
+      "message": "I think this would be cleaner with a PublishSubject.\n\nval obs \u003d PublishSubject.create[Set[InterfaceSubscription]]\nscanner.subscribe(obs)\nobs.take(1).flatMap(/* find \"midonet\" */).toBlocking.first\n\nat least its more \"reactive\" i think.",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -183,6 +258,23 @@
       "writtenOn": "2015-08-10T08:55:53Z",
       "side": 1,
       "message": "we usually prefer to specify these things in the modules rather than pollute the code.",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ec09d631",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-10T09:57:17Z",
+      "side": 1,
+      "message": "why not use the flowprocessor for this so that all datapath operations go though the same path.",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -456,6 +548,23 @@
       "writtenOn": "2015-08-10T08:55:53Z",
       "side": 1,
       "message": "error handling?",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6cc06650",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/ZkClient.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-10T09:57:17Z",
+      "side": 1,
+      "message": "This doesn\u0027t necessarily have to be zk, so name should change. PortInfoClient or something.",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
