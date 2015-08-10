@@ -27,7 +27,7 @@ import org.midonet.midolman.config.MidolmanConfig
 object Proxy {
     private val log: Logger = LoggerFactory getLogger Proxy.getClass
     private val ip = InetAddress getByName MetadataApi.address
-    private val port = MetadataApi.port
+    val port = 9697  // XXX config
     private var server: Server = _
 
     def start(config: MidolmanConfig) = {
