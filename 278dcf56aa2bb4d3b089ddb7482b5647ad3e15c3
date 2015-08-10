@@ -67,6 +67,23 @@
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2cc2de52",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/ZkClient.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-10T08:30:07Z",
+      "side": 1,
+      "message": "please use a common logger name for your subsystem, it makes it easier to configure than a different logger name for each class.",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
