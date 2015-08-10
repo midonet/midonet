@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ecdab676",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T08:01:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_c9a7a909",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 105,
+        "endChar": 20
+      },
+      "revId": "ce6aa4ef2bb4166bb5b272b739d04e8e79be57a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e9b1cd47",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-07T10:06:59Z",
       "side": 1,
       "message": "bridgeId",
+      "range": {
+        "startLine": 186,
+        "startChar": 39,
+        "endLine": 186,
+        "endChar": 47
+      },
+      "revId": "ce6aa4ef2bb4166bb5b272b739d04e8e79be57a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d885adcf",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T08:01:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e9b1cd47",
       "range": {
         "startLine": 186,
         "startChar": 39,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0cbd1a02",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T08:01:38Z",
+      "side": 1,
+      "message": "Done. I don\u0027t have a strong preference for either approach, it seems to do more with personal taste. A while back Galo was commenting on a different patch (host service), that he would prefer composing futures rather than using Await, hence most of the code in the API uses futuresl",
+      "parentUuid": "9ad9bd40_492e398d",
+      "revId": "ce6aa4ef2bb4166bb5b272b739d04e8e79be57a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_495c7919",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
         "patchSetId": 3
@@ -76,6 +142,30 @@
       "writtenOn": "2015-08-07T10:06:59Z",
       "side": 1,
       "message": "And this becomes:\n\n    val router \u003d getResource(classOf[Router], routerId).getOrThrow\n    getPeerPorts(router.portIds.asScala)",
+      "range": {
+        "startLine": 215,
+        "startChar": 0,
+        "endLine": 220,
+        "endChar": 29
+      },
+      "revId": "ce6aa4ef2bb4166bb5b272b739d04e8e79be57a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0c543ac8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T08:01:38Z",
+      "side": 1,
+      "message": "Done (I just added the two lines of code as is.",
+      "parentUuid": "9ad9bd40_495c7919",
       "range": {
         "startLine": 215,
         "startChar": 0,
