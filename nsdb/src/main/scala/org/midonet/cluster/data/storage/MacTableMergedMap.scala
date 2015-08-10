@@ -91,7 +91,7 @@ object MacTableMergedMap {
                     val mac = MAC.fromString(tokens(0))
                     val portTS = nullFilter(tokens(1))
                     val owner = nullFilter(tokens(2))
-                    if (portTS != null) {
+                    if (portTS == null) {
                         (mac, null, owner)
                     } else {
                         val portTokens = portTS.split(":")

@@ -21,7 +21,7 @@ import java.util.UUID
 import rx.Observable
 
 import org.midonet.cluster.data.storage.MergedMap.Update
-import org.midonet.packets.MAC
+import org.midonet.packets.{IPv4Addr, MAC}
 
 object StateTable {
     case class MacTableUpdate(vlanId: Short, mac: MAC, oldPort: UUID,
@@ -30,6 +30,12 @@ object StateTable {
             override val toString = s"{vlan=$vlanId mac=$mac oldPort=$oldPort " +
                                     s"newPort=$newPort}"
         }
+    
+    case class ArpTableUpdate(ipV4Addr: IPv4Addr, oldMac: MAC, newMac: MAC)
+        extends Update[IPv4Addr, MAC](ipV4Addr, oldMac, newMac) {
+            override val toString = s"{ip=$ipV4Addr oldMAC=$oldMac " +
+                                    s"newMac=$newMac}"
+    }
 }
 
 /**
