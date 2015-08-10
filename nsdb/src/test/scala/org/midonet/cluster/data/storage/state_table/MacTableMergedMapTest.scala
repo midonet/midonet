@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.storage
+package org.midonet.cluster.data.storage.state_table
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration.FiniteDuration
+import scala.util.Random
 
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
@@ -28,9 +29,9 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 import rx.Observable
 
+import org.midonet.cluster.data.storage.MergedMap
 import org.midonet.cluster.data.storage.MergedMap.Update
-import org.midonet.cluster.data.storage.state_table.MacTableMergedMap
-import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.{MacTableUpdate, PortTS}
+import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.{MacTableUpdate, PortOrdering, PortTS}
 import org.midonet.packets.MAC
 import org.midonet.util.reactivex.TestAwaitableObserver
 
@@ -146,6 +147,39 @@ class MacTableMergedMapTest extends FeatureSpec with BeforeAndAfter
         scenario("close") {
             macTable.close()
             verify(map).close()
+        }
+    }
+
+    feature("MacTableUpdate") {
+        scenario("toString method") {
+            val mac = MAC.random()
+            val vlanId = Random.nextInt(32768).toShort
+            val oldPort = UUID.randomUUID()
+            val newPort = UUID.randomUUID()
+
+            val update1 = MacTableUpdate(vlanId, mac, oldPort, newPort)
+            update1.toString shouldBe s"[vlan=$vlanId mac=$mac oldPort=$oldPort " +
+                                      s"newPort=$newPort]"
+
+            val update2 = MacTableUpdate(vlanId, mac, null, newPort)
+            update2.toString shouldBe s"[vlan=$vlanId mac=$mac oldPort=null " +
+                                      s"newPort=$newPort]"
+
+            val update3 = MacTableUpdate(vlanId, mac, oldPort, null)
+            update3.toString shouldBe s"[vlan=$vlanId mac=$mac oldPort=$oldPort " +
+                                      s"newPort=null]"
+        }
+    }
+
+    feature("PortOrdering") {
+        scenario("Comparing two portTS") {
+            val ordering = new PortOrdering()
+            val portTS1 = PortTS(UUID.randomUUID(), 0l)
+            val portTS2 = PortTS(UUID.randomUUID(), 1l)
+
+            ordering.compare(portTS1, portTS2) shouldBe -1
+            ordering.compare(portTS2, portTS1) shouldBe 1
+            ordering.compare(portTS1, portTS1) shouldBe 0
         }
     }
 }

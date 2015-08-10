@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  */
 package org.midonet.midolman.util
 
-
+import org.midonet.cluster.data.storage.ArpCacheEntry
 import org.midonet.midolman.simulation.Router
-import org.midonet.midolman.state.{ArpCache, ArpCacheEntry}
+import org.midonet.midolman.state.ArpCache
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.UnixClock
 

@@ -17,18 +17,17 @@
 package org.midonet.cluster.data.storage.state_table
 
 import java.util
-import java.util.UUID
 
 import org.apache.kafka.common.serialization.{StringDeserializer, Deserializer}
 
-import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.{MACOpinion, PortTS}
-import org.midonet.packets.MAC
+import org.midonet.cluster.data.storage.state_table.BridgeArpTableMergedMap.{ARPOpinion, MacTS}
+import org.midonet.packets.{MAC, IPv4Addr}
 
-class MACOpinionDecoder() extends Deserializer[MACOpinion] {
+class IPMacDecoder() extends Deserializer[ARPOpinion] {
 
-    val stringDecoder = new StringDeserializer()
+    private val stringDecoder = new StringDeserializer()
 
-    private def nullAwareParse(value: String): String = value match {
+    private def nullFilter(value: String): String = value match {
         case "null" => null
         case _ => value
     }
@@ -39,28 +38,28 @@ class MACOpinionDecoder() extends Deserializer[MACOpinion] {
                            isKey: Boolean): Unit = {}
 
     override def deserialize(topic: String, opinion: Array[Byte])
-    : MACOpinion = {
+    : ARPOpinion = {
         val msgAsString = stringDecoder.deserialize(topic, opinion)
-        val tokens = msgAsString.split("/")
+        val tokens = msgAsString.split("-")
         if (tokens.length != 3) {
             throw new IllegalArgumentException("Opinion with " +
-                                               "incorrect format: " + msgAsString)
-        }
-
-        val mac = MAC.fromString(tokens(0))
-        val portTS = nullAwareParse(tokens(1))
-        val owner = nullAwareParse(tokens(2))
-        if (portTS == null) {
-            (mac, null, owner)
+                "incorrect format: " + msgAsString)
         } else {
-            val portTokens = portTS.split(":")
-            if (portTokens.length != 2) {
-                throw new IllegalArgumentException("Opinion with " +
-                                                   "incorrect format: " + msgAsString)
+            val ip = IPv4Addr.fromString(tokens(0))
+            val macTS = nullFilter(tokens(1))
+            val owner = nullFilter(tokens(2))
+            if (macTS == null) {
+                (ip, null, owner)
             } else {
-                val portId = UUID.fromString(portTokens(0))
-                val ts = portTokens(1).toLong
-                (mac, PortTS(portId, ts), owner)
+                val macTokens = macTS.split("/")
+                if (macTokens.length != 2) {
+                    throw new IllegalArgumentException("Opinion with " +
+                        "incorrect format: " + msgAsString)
+                } else {
+                    val mac = MAC.fromString(macTokens(0))
+                    val ts = macTokens(1).toLong
+                    (ip, MacTS(mac, ts), owner)
+                }
             }
         }
     }

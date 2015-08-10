@@ -140,6 +140,7 @@ class BridgeBuilderStateFeeder {
             /* Sync get are ok because it only queries local state, unlike
              * the other calls in the map */
             override def get(ip: IPv4Addr): MAC = ip4MacMap.get(ip)
+            override def complete(): Unit = ip4MacMap.stop()
         })
     }
 

@@ -23,12 +23,14 @@ import scala.collection.concurrent.TrieMap
 import kafka.utils.ZkUtils
 import org.I0Itec.zkclient.ZkClient
 
+import org.midonet.cluster.data.storage.state_table.BridgeArpTableMergedMap.ArpMergedMapSerialization
 import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.MacMergedMapSerialization
+import org.midonet.cluster.data.storage.state_table.RouterArpCacheMergedMap.ArpCacheMergedMapSerialization
 import org.midonet.cluster.storage.KafkaConfig
 
 object TableType extends Enumeration {
     type TableType = Value
-    val MAC, ARP = Value
+    val MAC, ARP_TABLE, ARP_CACHE = Value
 }
 
 /**
@@ -52,19 +54,34 @@ class KafkaMergedMapBusBuilder extends MergedMapBusBuilder {
     import KafkaMergedMapBusBuilder._
     import TableType._
 
+    private def ensureZkClientCreated(config: KafkaConfig): Unit = {
+        if (zkClientCreated.compareAndSet(false, true)) {
+            zkClient = ZkUtils.createZkClient(config.zkHosts,
+                                              config.zkConnectionTimeout,
+                                              config.zkSessionTimeout)
+        }
+    }
+
     override def newBus[K, V >: Null <: AnyRef](id: String, ownerId: String,
                                                 tableType: TableType,
                                                 config: KafkaConfig)
     : MergedMapBus[K, V] = tableType match {
         case TableType.MAC =>
-            if (zkClientCreated.compareAndSet(false, true)) {
-                zkClient = ZkUtils.createZkClient(config.zkHosts,
-                                                  config.zkConnectionTimeout,
-                                                  config.zkSessionTimeout)
-            }
+            ensureZkClientCreated(config)
             KafkaBus.newBus[K, V](id, ownerId, config, zkClient,
                                   new MacMergedMapSerialization()
                                       .asInstanceOf[KafkaSerialization[K, V]])
+        case TableType.ARP_TABLE =>
+            ensureZkClientCreated(config)
+            KafkaBus.newBus[K, V](id, ownerId, config, zkClient,
+                                  new ArpMergedMapSerialization()
+                                      .asInstanceOf[KafkaSerialization[K, V]])
+        case TableType.ARP_CACHE =>
+            ensureZkClientCreated(config)
+            KafkaBus.newBus[K, V](id, ownerId, config, zkClient,
+                                  new ArpCacheMergedMapSerialization()
+                                      .asInstanceOf[KafkaSerialization[K, V]])
+
         case _ => throw new IllegalArgumentException("Merged map of type: " +
                     tableType + " not supported")
     }

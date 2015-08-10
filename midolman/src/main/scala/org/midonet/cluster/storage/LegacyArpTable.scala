@@ -22,10 +22,10 @@ import scala.collection.JavaConverters._
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.utils.ZKPaths
-
 import rx.Observable
 
-import org.midonet.cluster.data.storage.MergedMap.Update
+import org.midonet.cluster.data.storage.state_table.{BridgeArpTableMergedMap, StateTable}
+import BridgeArpTableMergedMap.ArpTableUpdate
 import org.midonet.cluster.data.storage.state_table.StateTable
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -37,7 +37,7 @@ import org.midonet.util.eventloop.CallingThreadReactor
  */
 final class LegacyArpTable(bridgeId: UUID, curator: CuratorFramework,
                            paths: PathBuilder)
-    extends StateTable[IPv4Addr, MAC, Update[IPv4Addr, MAC]] {
+    extends StateTable[IPv4Addr, MAC, ArpTableUpdate] {
 
     private val reactor = new CallingThreadReactor
     private val curatorConnection = new CuratorZkConnection(curator, reactor)
@@ -98,7 +98,7 @@ final class LegacyArpTable(bridgeId: UUID, curator: CuratorFramework,
 
     /** Returns an observable that notifies the updates to the current state
       * table. */
-    def observable: Observable[Update[IPv4Addr, MAC]] = ???
+    def observable: Observable[ArpTableUpdate] = ???
 
     def close(): Unit = ???
 

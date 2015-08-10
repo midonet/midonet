@@ -33,7 +33,7 @@ import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.ArpCacheEntry;
+import org.midonet.cluster.data.storage.ArpCacheEntry;
 import org.midonet.midolman.state.ArpTable;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;

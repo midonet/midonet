@@ -14,50 +14,51 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.storage
-
-import java.util.UUID
+package org.midonet.cluster.data.storage.state_table
 
 import org.apache.kafka.common.serialization.StringSerializer
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
-import org.midonet.cluster.data.storage.state_table.MacTableMergedMap
-import MacTableMergedMap.{MacMergedMapSerialization, PortTS}
+import org.midonet.cluster.data.storage.state_table.RouterArpCacheMergedMap.{ArpCacheMergedMapSerialization, ArpEntryTS}
+import org.midonet.cluster.data.storage.{ArpCacheEntry, KafkaSerialization}
 import org.midonet.packets.{IPv4Addr, MAC}
 
 @RunWith(classOf[JUnitRunner])
-class MacMergedMapSerializationTest extends FeatureSpec with BeforeAndAfter
-                                    with Matchers {
+class ArpCacheMergedMapSerializationTest extends FeatureSpec with BeforeAndAfter
+                                         with Matchers {
 
-    var serialization: KafkaSerialization[MAC, PortTS] = _
+    var serialization: KafkaSerialization[IPv4Addr, ArpEntryTS] = _
 
     before {
-        serialization = new MacMergedMapSerialization()
+        serialization = new ArpCacheMergedMapSerialization()
     }
+
+    private def newArpEntry(mac: MAC): ArpCacheEntry =
+        new ArpCacheEntry(mac, expiry = 0l, stale = 0l, lastArp = 0l)
 
     feature("Serialization") {
         scenario("serializing opinion") {
+            val ip = IPv4Addr.random
             val mac = MAC.random()
-            val port = UUID.randomUUID()
             val ts = System.nanoTime()
-            val macOpinion = (mac, PortTS(port, ts), "owner")
+            val arpOpinion = (ip, ArpEntryTS(newArpEntry(mac), ts), "owner")
 
             val encoder = serialization.messageEncoder
             val decoder = serialization.messageDecoder
-            val bytes = encoder.serialize("topic", macOpinion)
-            decoder.deserialize("topic", bytes) shouldBe macOpinion
+            val bytes = encoder.serialize("topic", arpOpinion)
+            decoder.deserialize("topic", bytes) shouldBe arpOpinion
         }
 
         scenario("serializing opinion with null value") {
-            val mac = MAC.random()
-            val macOpinion = (mac, null, "owner")
+            val ip = IPv4Addr.random
+            val arpOpinion = (ip, null, "owner")
 
             val encoder = serialization.messageEncoder
             val decoder = serialization.messageDecoder
-            val bytes = encoder.serialize("topic", macOpinion)
-            decoder.deserialize("topic", bytes) shouldBe macOpinion
+            val bytes = encoder.serialize("topic", arpOpinion)
+            decoder.deserialize("topic", bytes) shouldBe arpOpinion
         }
 
         scenario("serializing invalid opinion with null key/owner") {
@@ -68,7 +69,7 @@ class MacMergedMapSerializationTest extends FeatureSpec with BeforeAndAfter
             }
 
             intercept[NullPointerException] {
-                encoder.serialize("topic", (MAC.random(), null, null))
+                encoder.serialize("topic", (IPv4Addr.random, null, null))
             }
         }
 
@@ -88,16 +89,16 @@ class MacMergedMapSerializationTest extends FeatureSpec with BeforeAndAfter
             }
 
             val invalidMsg3 = IPv4Addr.random.toString + "-" + MAC.random() +
-                              "-owner"
+                                  "-owner"
             intercept[IllegalArgumentException] {
                 decoder.deserialize("topic", strEncoder.serialize("topic",
-                                                                  invalidMsg3))
+                                    invalidMsg3))
             }
         }
 
         scenario("keyAsString") {
-            val mac = MAC.random
-            serialization.keyAsString(mac) shouldBe mac.toString
+            val ip = IPv4Addr.random
+            serialization.keyAsString(ip) shouldBe ip.toString
         }
     }
 }

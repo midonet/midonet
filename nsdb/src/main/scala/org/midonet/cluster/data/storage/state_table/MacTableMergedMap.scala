@@ -37,8 +37,8 @@ object MacTableMergedMap {
     case class MacTableUpdate(vlanId: Short, mac: MAC, oldPort: UUID,
                               newPort: UUID)
         extends Update[MAC, UUID](mac, oldPort, newPort) {
-        override val toString = s"{vlan=$vlanId mac=$mac oldPort=$oldPort " +
-                                s"newPort=$newPort}"
+        override val toString = s"[vlan=$vlanId mac=$mac oldPort=$oldPort " +
+                                s"newPort=$newPort]"
     }
 
     class PortOrdering extends Ordering[PortTS]  {
@@ -49,8 +49,8 @@ object MacTableMergedMap {
     }
 
     class MacMergedMapSerialization extends KafkaSerialization[MAC, PortTS] {
-        private val opinionDecoder = new MACOpinionDecoder()
-        private val opinionEncoder = new MACOpinionEncoder()
+        private val opinionDecoder = new MACPortDecoder()
+        private val opinionEncoder = new MACPortEncoder()
 
         def keyAsString(key: MAC): String = key.toString
         def messageEncoder: Serializer[MACOpinion] = opinionEncoder

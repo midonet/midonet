@@ -37,13 +37,13 @@ import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
 import org.midonet.cluster.client.RouterBuilder;
+import org.midonet.cluster.data.storage.ArpCacheEntry;
+import org.midonet.cluster.data.storage.state_table.BridgeArpTableMergedMap.ArpTableUpdate;
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.ArpCache;
-import org.midonet.midolman.state.ArpCacheEntry;
-import org.midonet.midolman.state.ArpCacheUpdate;
 import org.midonet.midolman.state.ArpTable;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
@@ -517,7 +517,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         public final UUID routerId;
         ArpTable arpTable;
         Reactor reactor;
-        private final Subject<ArpCacheUpdate, ArpCacheUpdate> updates =
+        private final Subject<ArpTableUpdate, ArpTableUpdate> updates =
             PublishSubject.create();
 
         public ArpCacheImpl(ArpTable arpTable, UUID routerId, Reactor reactor) {
@@ -534,22 +534,22 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
         @Override
         public void processChange(IPv4Addr key, ArpCacheEntry oldV,
-                                               ArpCacheEntry newV) {
+                                  ArpCacheEntry newV) {
             if (oldV == null && newV == null)
                 return;
             if (newV != null && oldV != null) {
-                if (newV.macAddr == null && oldV.macAddr == null)
+                if (newV.macAddr() == null && oldV.macAddr() == null)
                     return;
-                if (newV.macAddr != null && oldV.macAddr != null &&
-                        newV.macAddr.equals(oldV.macAddr)) {
+                if (newV.macAddr() != null && oldV.macAddr() != null &&
+                        newV.macAddr().equals(oldV.macAddr())) {
                     return;
                 }
             }
 
-            updates.onNext(new ArpCacheUpdate(
+            updates.onNext(new ArpTableUpdate(
                 key,
-                oldV != null ? oldV.macAddr : null,
-                newV != null ? newV.macAddr : null));
+                oldV != null ? oldV.macAddr() : null,
+                newV != null ? newV.macAddr() : null));
         }
 
         @Override
@@ -589,7 +589,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                 }});
         }
 
-        public Observable<ArpCacheUpdate> observable() {
+        public Observable<ArpTableUpdate> observable() {
             return updates.asObservable();
         }
     }

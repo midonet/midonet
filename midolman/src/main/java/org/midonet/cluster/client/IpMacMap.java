@@ -21,4 +21,5 @@ import org.midonet.packets.MAC;
 
 public interface IpMacMap<T extends IPAddr> {
     MAC get(T ip);
+    void complete();
 }
