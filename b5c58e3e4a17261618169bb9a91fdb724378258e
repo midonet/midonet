@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2f8ad063",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Chain.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T11:46:10Z",
+      "side": 1,
+      "message": "I agree, this was on the to-do list for a while now, I think there is even an issue in JIRA for this. As soon as I have a bit of free time, I will take it (if somebody else doesn\u0027t in the meantime)",
+      "parentUuid": "9ad9bd40_2c2e5e8c",
+      "range": {
+        "startLine": 57,
+        "startChar": 37,
+        "endLine": 57,
+        "endChar": 73
+      },
+      "revId": "b5c58e3e4a17261618169bb9a91fdb724378258e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8caa0a83",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ChainResource.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-10T09:54:35Z",
       "side": 1,
       "message": "Closure.",
+      "range": {
+        "startLine": 105,
+        "startChar": 27,
+        "endLine": 105,
+        "endChar": 34
+      },
+      "revId": "b5c58e3e4a17261618169bb9a91fdb724378258e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4fec742a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ChainResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T11:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8caa0a83",
       "range": {
         "startLine": 105,
         "startChar": 27,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_aff500ee",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ChainResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T11:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ec51d662",
+      "range": {
+        "startLine": 111,
+        "startChar": 12,
+        "endLine": 111,
+        "endChar": 47
+      },
+      "revId": "b5c58e3e4a17261618169bb9a91fdb724378258e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0cc35a38",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ChainResource.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2015-08-10T09:54:35Z",
       "side": 1,
       "message": "This sequence wrapper needlessly complicates things. If you change this line to Update(res), then futures will be Seq[Future[Update]], and you can change the last line to Future.sequence(futures).",
+      "range": {
+        "startLine": 113,
+        "startChar": 16,
+        "endLine": 113,
+        "endChar": 39
+      },
+      "revId": "b5c58e3e4a17261618169bb9a91fdb724378258e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cfdfa467",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ChainResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T11:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_0cc35a38",
       "range": {
         "startLine": 113,
         "startChar": 16,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_efc1c880",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T11:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ec7476d0",
+      "range": {
+        "startLine": 176,
+        "startChar": 0,
+        "endLine": 180,
+        "endChar": 38
+      },
+      "revId": "b5c58e3e4a17261618169bb9a91fdb724378258e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2ca49e49",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
         "patchSetId": 2
@@ -128,6 +248,30 @@
       "writtenOn": "2015-08-10T09:54:35Z",
       "side": 1,
       "message": "ops :+ Create(route)",
+      "range": {
+        "startLine": 186,
+        "startChar": 12,
+        "endLine": 186,
+        "endChar": 37
+      },
+      "revId": "b5c58e3e4a17261618169bb9a91fdb724378258e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0fe6ec43",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T11:46:10Z",
+      "side": 1,
+      "message": "Done. I forgot this operator",
+      "parentUuid": "9ad9bd40_2ca49e49",
       "range": {
         "startLine": 186,
         "startChar": 12,
@@ -157,6 +301,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0fbd0c02",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T11:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_0c57da26",
+      "revId": "b5c58e3e4a17261618169bb9a91fdb724378258e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8c112a5f",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/WithChainsResource.scala",
         "patchSetId": 2
@@ -168,6 +330,30 @@
       "writtenOn": "2015-08-10T09:54:35Z",
       "side": 1,
       "message": "This is more concise, and IMO a bit more straightforward:\n\n        val ops \u003d new ListBuffer[Ops]\n        if (inboundFilterOf(to) !\u003d inboundFilterOf(from)) {\n            ops +\u003d addToChain(idOf(to), inboundFilterOf(to))\n            ops +\u003d addToChain(idOf(from), inboundFilterOf(from))\n        }\n        if (outboundFilterOf(to) !\u003d outboundFilterOf(from)) {\n            ops +\u003d removeFromChain(idOf(to), outboundFilterOf(to))\n            ops +\u003d removeFromChain(idOf(from), outboundFilterOf(from))\n        }\n        Future.sequence(ops.toList).map(_.flatten)",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 30
+      },
+      "revId": "b5c58e3e4a17261618169bb9a91fdb724378258e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2fb81010",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/WithChainsResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T11:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8c112a5f",
       "range": {
         "startLine": 44,
         "startChar": 0,
