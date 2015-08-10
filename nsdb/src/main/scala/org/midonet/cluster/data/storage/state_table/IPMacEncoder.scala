@@ -20,34 +20,34 @@ import java.util
 
 import org.apache.kafka.common.serialization.{StringSerializer, Serializer}
 
-import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.MACOpinion
+import org.midonet.cluster.data.storage.state_table.BridgeArpTableMergedMap.ARPOpinion
 
-class MACOpinionEncoder() extends Serializer[MACOpinion] {
+class IPMacEncoder() extends Serializer[ARPOpinion] {
     val stringEncoder = new StringSerializer()
 
     override def close(): Unit = stringEncoder.close()
     override def configure(configs: util.Map[String, _],
                            isKey: Boolean): Unit = {}
 
-    override def serialize(topic: String, opinion: MACOpinion)
+    override def serialize(topic: String, opinion: ARPOpinion)
     : Array[Byte] = {
         val strBuffer = new StringBuffer()
         if (opinion._1 eq null) {
-            throw new NullPointerException("Can't serialize null mac")
+            throw new NullPointerException("Can't serialize null IP")
         }
         if (opinion._3 eq null) {
             throw new NullPointerException("Can't serialize null owner")
         }
         strBuffer.append(opinion._1.toString)
-        strBuffer.append("/")
-        if (opinion._2 ne null) {
-            val portId = opinion._2.id
+        strBuffer.append("-")
+        if (opinion._2 != null) {
+            val mac = opinion._2.mac
             val ts = opinion._2.ts
-            strBuffer.append(portId + ":" + ts)
+            strBuffer.append(mac + "/" + ts)
         } else {
             strBuffer.append("null")
         }
-        strBuffer.append("/")
+        strBuffer.append("-")
         strBuffer.append(opinion._3)
         stringEncoder.serialize(topic, strBuffer.toString)
     }

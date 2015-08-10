@@ -27,6 +27,9 @@ import com.typesafe.scalalogging.Logger
 import org.jctools.queues.SpscGrowableArrayQueue
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.data.storage.ArpCacheEntry
+import org.midonet.cluster.data.storage.state_table.BridgeArpTableMergedMap
+import BridgeArpTableMergedMap.ArpTableUpdate
 import org.midonet.midolman.{SimulationBackChannel, NotYetException}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
@@ -211,7 +214,7 @@ class SingleRouterArpRequestBroker(id: UUID,
      * Notify this ArpRequestBroker when the ArpTable has discovered a new
      * MAC - IP address association. May be called from any thread.
      */
-    arpCache.observable.subscribe(makeAction1[ArpCacheUpdate] { u =>
+    arpCache.observable.subscribe(makeAction1[ArpTableUpdate] { u =>
         macsDiscovered.add(MacChange(u.ipAddr, u.oldMac, u.newMac))
         triggerBackChannel()
     })

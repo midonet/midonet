@@ -49,8 +49,8 @@ object MacTableMergedMap {
     }
 
     class MacMergedMapSerialization extends KafkaSerialization[MAC, PortTS] {
-        private val opinionDecoder = new MACOpinionDecoder()
-        private val opinionEncoder = new MACOpinionEncoder()
+        private val opinionDecoder = new MACPortDecoder()
+        private val opinionEncoder = new MACPortEncoder()
 
         def keyAsString(key: MAC): String = key.toString
         def messageEncoder: Serializer[MACOpinion] = opinionEncoder

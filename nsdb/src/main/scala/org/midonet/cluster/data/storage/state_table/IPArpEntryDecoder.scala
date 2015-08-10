@@ -17,18 +17,18 @@
 package org.midonet.cluster.data.storage.state_table
 
 import java.util
-import java.util.UUID
 
 import org.apache.kafka.common.serialization.{StringDeserializer, Deserializer}
 
-import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.{MACOpinion, PortTS}
-import org.midonet.packets.MAC
+import org.midonet.cluster.data.storage.ArpCacheEntry
+import org.midonet.cluster.data.storage.state_table.RouterArpCacheMergedMap.{ARPCacheOpinion, ArpEntryTS}
+import org.midonet.packets.IPv4Addr
 
-class MACOpinionDecoder() extends Deserializer[MACOpinion] {
+class IPArpEntryDecoder() extends Deserializer[ARPCacheOpinion] {
 
     val stringDecoder = new StringDeserializer()
 
-    private def nullAwareParse(value: String): String = value match {
+    private def nullFilter(value: String): String = value match {
         case "null" => null
         case _ => value
     }
@@ -39,29 +39,28 @@ class MACOpinionDecoder() extends Deserializer[MACOpinion] {
                            isKey: Boolean): Unit = {}
 
     override def deserialize(topic: String, opinion: Array[Byte])
-    : MACOpinion = {
+    : ARPCacheOpinion = {
         val msgAsString = stringDecoder.deserialize(topic, opinion)
-        val tokens = msgAsString.split("/")
+        val tokens = msgAsString.split("-")
         if (tokens.length != 3) {
             throw new IllegalArgumentException("Opinion with " +
-                                               "incorrect format: " + msgAsString)
+                "incorrect format: " + msgAsString)
         }
 
-        val mac = MAC.fromString(tokens(0))
-        val portTS = nullAwareParse(tokens(1))
-        val owner = nullAwareParse(tokens(2))
-        if (portTS == null) {
-            (mac, null, owner)
+        val ip = IPv4Addr.fromString(tokens(0))
+        val arpEntryTS = nullFilter(tokens(1))
+        val owner = nullFilter(tokens(2))
+        if (arpEntryTS == null) {
+            (ip, null, owner)
         } else {
-            val portTokens = portTS.split(":")
-            if (portTokens.length != 2) {
+            val arpEntryTokens = arpEntryTS.split("/")
+            if (arpEntryTokens.length != 2) {
                 throw new IllegalArgumentException("Opinion with " +
-                                                   "incorrect format: " + msgAsString)
-            } else {
-                val portId = UUID.fromString(portTokens(0))
-                val ts = portTokens(1).toLong
-                (mac, PortTS(portId, ts), owner)
+                    "incorrect format: " + msgAsString)
             }
+            val arpEntry = ArpCacheEntry.decode(arpEntryTokens(0))
+            val ts = arpEntryTokens(1).toLong
+            (ip, ArpEntryTS(arpEntry, ts), owner)
         }
     }
 }

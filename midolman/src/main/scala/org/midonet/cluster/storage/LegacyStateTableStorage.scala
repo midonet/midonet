@@ -19,11 +19,12 @@ package org.midonet.cluster.storage
 import java.util.UUID
 
 import com.google.inject.Inject
-
 import org.apache.curator.framework.CuratorFramework
 
-import org.midonet.cluster.data.storage.MergedMap.Update
+import org.midonet.cluster.data.storage.ArpCacheEntry
+import org.midonet.cluster.data.storage.state_table.BridgeArpTableMergedMap.ArpTableUpdate
 import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.MacTableUpdate
+import org.midonet.cluster.data.storage.state_table.RouterArpCacheMergedMap.ArpCacheUpdate
 import org.midonet.cluster.data.storage.state_table.{StateTable, StateTableStorage}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -36,13 +37,17 @@ final class LegacyStateTableStorage @Inject()(curator: CuratorFramework,
                                               paths: PathBuilder)
     extends StateTableStorage {
 
+    /** Gets the MAC-port table for the specified device and owner. */
+    override def macTable(deviceId: UUID, vlanId: Option[Short],
+        owner: String): StateTable[MAC, UUID, MacTableUpdate] = ???
+
     /** Returns the IPv4 ARP table for the specified bridge. */
-    def bridgeArpTable(bridgeId: UUID)
-    : StateTable[IPv4Addr, MAC, Update[IPv4Addr, MAC]] = {
+    override def bridgeArpTable(bridgeId: UUID)
+    : StateTable[IPv4Addr, MAC, ArpTableUpdate] = {
         new LegacyArpTable(bridgeId, curator, paths)
     }
 
-    /** Gets the MAC-port table for the specified device and owner. */
-    override def macTable(deviceId: UUID, vlanId: Option[Short],
-                          owner: String): StateTable[MAC, UUID, MacTableUpdate] = ???
+    /** Returns the IPv4 ARP table for the specified router. */
+    override def routerArpTable(routerId: UUID)
+    : StateTable[IPv4Addr, ArpCacheEntry, ArpCacheUpdate] = ???
 }

@@ -17,22 +17,22 @@
 package org.midonet.midolman.state
 
 import java.util.UUID
-
 import javax.annotation.concurrent.ThreadSafe
 
 import com.typesafe.scalalogging.Logger
-
-import rx.subjects.PublishSubject
-import rx.{Subscriber, Observable}
 import rx.Observable.OnSubscribe
+import rx.subjects.PublishSubject
+import rx.{Observable, Subscriber}
 
+import org.midonet.cluster.data.storage.state_table.{RouterArpCacheMergedMap, BridgeArpTableMergedMap}
+import BridgeArpTableMergedMap.ArpTableUpdate
+import RouterArpCacheMergedMap.ArpCacheUpdate
+import org.midonet.util.functors.makeFunc1
+import org.midonet.cluster.data.storage.{ArpCacheEntry, MergedMap}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.packets.{MAC, IPv4Addr}
+import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors.makeRunnable
-
-/** An ARP cache update. */
-case class ArpCacheUpdate(ipAddr: IPv4Addr, oldMac: MAC, newMac: MAC)
 
 /**
  * A trait for a router's ARP cache.
@@ -42,7 +42,7 @@ trait ArpCache {
     def add(ipAddr: IPv4Addr, entry: ArpCacheEntry): Unit
     def remove(ipAddr: IPv4Addr): Unit
     def routerId: UUID
-    def observable: Observable[ArpCacheUpdate]
+    def observable: Observable[ArpTableUpdate]
 }
 
 object ArpCache {
@@ -70,7 +70,11 @@ object ArpCache {
         protected override def call(child: Subscriber[_ >: ArpCache]): Unit = {
             log.debug("Subscribing to the ARP cache")
             try {
-                val arpCache = new RouterArpCache(vt, routerId, log)
+                val arpCache = if (vt.backend.mergedMapEnabled) {
+                    new RouterArpCacheMergedMap(vt, routerId, log)
+                } else {
+                    new RouterArpCacheReplicatedMap(vt, routerId, log)
+                }
                 child.onNext(arpCache)
                 child.onCompleted()
             } catch {
@@ -85,14 +89,65 @@ object ArpCache {
     }
 
     /**
-     * Implements the [[ArpCache]] for a router.
+     * Implements the [[ArpCache]] for a router based on a [[MergedMap]].
      */
     @throws[StateAccessException]
-    private class RouterArpCache(vt: VirtualTopology,
-                                 override val routerId: UUID, log: Logger)
+    private class RouterArpCacheMergedMap(vt: VirtualTopology,
+                                          override val routerId: UUID,
+                                          log: Logger)
         extends ArpCache with MidolmanLogging {
 
-        private val subject = PublishSubject.create[ArpCacheUpdate]()
+        private val arpCache = vt.backend.deviceStateStore
+                                         .routerArpTable(routerId)
+
+        /** Gets an entry from the underlying ARP table. The request only
+          * queries local state. */
+        override def get(ipAddr: IPv4Addr): ArpCacheEntry = arpCache.get(ipAddr)
+        /** Adds an ARP entry to the underlying ARP table. The operation is
+          * scheduled on the topology IO executor. */
+        override def add(ipAddr: IPv4Addr, entry: ArpCacheEntry): Unit = {
+            vt.executeIo {
+                try {
+                    arpCache.add(ipAddr, entry)
+                } catch {
+                    case e: Exception =>
+                        log.error("Failed to add ARP entry IP: {} Entry: {}",
+                                  ipAddr, entry, e)
+                }
+            }
+        }
+        /** Removes an ARP entry from the underlying ARP table. The operation is
+          * scheduled on the topology IO executor. */
+        override def remove(ipAddr: IPv4Addr): Unit = {
+            vt.executeIo {
+                try {
+                    arpCache.remove(ipAddr)
+                } catch {
+                    case e: Exception =>
+                        log.error("Failed to remove ARP entry for IP: {}",
+                                  ipAddr, e)
+                }
+            }
+        }
+        /** Observable that emits ARP cache updates. */
+        override def observable: Observable[ArpTableUpdate] =
+            arpCache.observable.map[ArpTableUpdate](makeFunc1(
+                (update: ArpCacheUpdate) =>
+                    ArpTableUpdate(update.ipV4Addr, update.oldEntry.macAddr,
+                                   update.newEntry.macAddr)
+            ))
+    }
+
+    /**
+     * Implements the [[ArpCache]] for a router based on a [[ReplicatedMap]].
+     */
+    @throws[StateAccessException]
+    private class RouterArpCacheReplicatedMap(vt: VirtualTopology,
+                                              override val routerId: UUID,
+                                              log: Logger)
+        extends ArpCache with MidolmanLogging {
+
+        private val subject = PublishSubject.create[ArpTableUpdate]()
         private val watcher =
             new ReplicatedMap.Watcher[IPv4Addr, ArpCacheEntry] {
                 override def processChange(ipAddr: IPv4Addr,
@@ -103,7 +158,7 @@ object ArpCache {
                     if ((oldEntry ne null) && (newEntry ne null) &&
                         (oldEntry.macAddr == newEntry.macAddr)) return
 
-                    subject.onNext(ArpCacheUpdate(
+                    subject.onNext(ArpTableUpdate(
                         ipAddr,
                         if (oldEntry ne null) oldEntry.macAddr else null,
                         if (newEntry ne null) newEntry.macAddr else null
@@ -145,7 +200,7 @@ object ArpCache {
             }
         }
         /** Observable that emits ARP cache updates. */
-        override def observable: Observable[ArpCacheUpdate] =
+        override def observable: Observable[ArpTableUpdate] =
             subject.asObservable()
     }
 }

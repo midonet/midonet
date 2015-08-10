@@ -250,21 +250,37 @@ object BridgeMapper {
     }
 
     /**
-     * The implementation of an [[IpMacMap]] for a bridge. During initialization
-     * the map creates the underlying [[ReplicatedMap]] for the given bridge,
-     * which allows the [[SimulationBridge]] to query the IPv4-MAC mappings.
-     * A complete() method stops watching the underlying [[ReplicatedMap]].
+     * The implementation of an [[IpMacMap]] for a bridge using a merged map.
+     * A complete() method closes the [[MergedMap]].
      */
     @throws[StateAccessException]
-    private class BridgeIpv4MacMap(vt: VirtualTopology, bridgeId: UUID)
+    private class ArpTableMergedMap(vt: VirtualTopology, bridgeId: UUID)
+        extends IpMacMap[IPv4Addr] {
+        private val map = vt.backend.deviceStateStore.bridgeArpTable(bridgeId)
+
+        /** Thread-safe query that gets the IPv4-MAC mapping. */
+        override def get(ip: IPv4Addr): MAC = map.get(ip)
+        /** Closes the underlying [[MergedMap]]. */
+        override def complete(): Unit = map.close()
+    }
+
+    /**
+     * The implementation of an [[IpMacMap]] for a bridge using a replicaed map.
+     * During initialization the map creates the underlying [[ReplicatedMap]]
+     * for the given bridge, which allows the [[SimulationBridge]] to query the
+     * IPv4-MAC mappings. A complete() method stops watching the underlying
+     * [[ReplicatedMap]].
+     */
+    @throws[StateAccessException]
+    private class ArpTableReplicatedMap(vt: VirtualTopology, bridgeId: UUID)
         extends IpMacMap[IPv4Addr] {
         private val map = vt.state.bridgeIp4MacMap(bridgeId)
         map.start()
 
-        /** Thread-safe query that gets the IPv4-MAC mapping*/
+        /** Thread-safe query that gets the IPv4-MAC mapping. */
         override def get(ip: IPv4Addr): MAC = map.get(ip)
-        /** Stops the underlying [[ReplicatedMap]]*/
-        def complete(): Unit = map.stop()
+        /** Stops the underlying [[ReplicatedMap]]. */
+        override def complete(): Unit = map.stop()
     }
 
     /**
@@ -329,7 +345,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
     private val flowCount = new BridgeMacFlowCount(macLearning)
     private val flowCallbackGenerator =
         new BridgeRemoveFlowCallbackGenerator(macLearning)
-    private var ipv4MacMap: BridgeIpv4MacMap = null
+    private var ipv4MacMap: IpMacMap[IPv4Addr] = null
 
 
     // A subject that emits a port observable for every port added to the
@@ -738,7 +754,11 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         // If the bridge is ARP-enabled initialize the IPv4-MAC map.
         if (vt.config.bridgeArpEnabled && (ipv4MacMap eq null)) {
             try {
-                ipv4MacMap = new BridgeIpv4MacMap(vt, bridgeId)
+                ipv4MacMap = if (vt.backend.mergedMapEnabled) {
+                    new ArpTableMergedMap(vt, bridgeId)
+                } else {
+                    new ArpTableReplicatedMap(vt, bridgeId)
+                }
             } catch {
                 case e: StateAccessException =>
                     log.warn("Error retrieving ARP table")

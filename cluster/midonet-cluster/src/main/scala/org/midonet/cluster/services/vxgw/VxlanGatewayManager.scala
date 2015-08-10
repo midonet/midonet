@@ -28,7 +28,6 @@ import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer}
-
 import org.midonet.cluster.services.vxgw
 import org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.cluster.DataClient

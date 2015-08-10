@@ -72,7 +72,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             s"""
               |agent.midolman.enable_bridge_arp : true
               |agent.bridge.mac_port_mapping_expire : "${macTtl.toMillis}ms"
-              |kafka.use_merged_maps : true
             """.stripMargin).withFallback(config))
     }
 

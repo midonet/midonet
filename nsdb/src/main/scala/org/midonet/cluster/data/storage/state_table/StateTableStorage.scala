@@ -18,9 +18,11 @@ package org.midonet.cluster.data.storage.state_table
 
 import java.util.UUID
 
+import BridgeArpTableMergedMap.{ArpTableUpdate, MacOrdering, MacTS}
 import org.midonet.cluster.data.storage.MergedMap.Update
+import RouterArpCacheMergedMap.{ArpCacheUpdate, ArpCacheOrdering, ArpEntryTS}
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.{MacTableUpdate, PortOrdering, PortTS}
-import org.midonet.cluster.data.storage.{MergedMap, MergedMapBusBuilder, Storage, TableType}
 import org.midonet.cluster.storage.KafkaConfig
 import org.midonet.conf.HostIdGenerator
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -30,7 +32,6 @@ import org.midonet.packets.{IPv4Addr, MAC}
  * performance state tables.
  */
 trait StateTableStorage {
-
     type ArpUpdate = Update[IPv4Addr, MAC]
 
     /** Gets the MAC-port table for the specified device and owner. */
@@ -38,17 +39,16 @@ trait StateTableStorage {
     : StateTable[MAC, UUID, MacTableUpdate]
 
     /** Returns the IPv4 ARP table for the specified bridge. */
-    def bridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC, ArpUpdate]
+    def bridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC, ArpTableUpdate]
+
+    /** Returns the IPv4 ARP table for the specified router. */
+    def routerArpTable(routerId: UUID)
+    : StateTable[IPv4Addr, ArpCacheEntry, ArpCacheUpdate]
 }
 
 class MergedMapStateTableStorage(cfg: KafkaConfig,
                                  busBuilder: MergedMapBusBuilder)
     extends StateTableStorage {
-
-    // Returns the arp table of a bridge in the new architecture. Replaces
-    // method bridgeMacTable, to be implemented.
-    override def bridgeArpTable(bridgeId: UUID)
-    : StateTable[IPv4Addr, MAC, ArpUpdate] = ???
 
     override def macTable(deviceId: UUID, vlanId: Option[Short], ownerId: String)
     : StateTable[MAC, UUID, MacTableUpdate] = {
@@ -58,5 +58,25 @@ class MergedMapStateTableStorage(cfg: KafkaConfig,
                                                  cfg)
         val map = new MergedMap[MAC, PortTS](bus)(new PortOrdering())
         new MacTableMergedMap(deviceId, vlanId.getOrElse(0), map)
+    }
+
+    override def bridgeArpTable(bridgeId: UUID)
+    : StateTable[IPv4Addr, MAC, ArpTableUpdate] = {
+        val mapId = "ArpTable-" + bridgeId.toString
+        val ownerId = HostIdGenerator.getHostId.toString
+        val bus = busBuilder.newBus[IPv4Addr, MacTS](mapId, ownerId,
+                                                     TableType.ARP, cfg)
+        val map = new MergedMap[IPv4Addr, MacTS](bus)(new MacOrdering())
+        new BridgeArpTableMergedMap(bridgeId, map)
+    }
+
+    override def routerArpTable(routerId: UUID)
+    : StateTable[IPv4Addr, ArpCacheEntry, ArpCacheUpdate] = {
+        val mapId = "ArpTable-" + routerId.toString
+        val ownerId = HostIdGenerator.getHostId.toString
+        val bus = busBuilder.newBus[IPv4Addr, ArpEntryTS](mapId, ownerId,
+                                                          TableType.ARP, cfg)
+        val map = new MergedMap[IPv4Addr, ArpEntryTS](bus)(new ArpCacheOrdering())
+        new RouterArpCacheMergedMap(routerId, map)
     }
 }
