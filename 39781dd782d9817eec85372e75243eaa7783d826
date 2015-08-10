@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6c2ce699",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 11
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-10T07:18:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ac6d13ce",
+      "range": {
+        "startLine": 80,
+        "startChar": 4,
+        "endLine": 80,
+        "endChar": 6
+      },
+      "revId": "39781dd782d9817eec85372e75243eaa7783d826",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8c7a0f86",
         "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-07T15:10:33Z",
       "side": 1,
       "message": "Description for these (this is customer facing)",
+      "range": {
+        "startLine": 79,
+        "startChar": 4,
+        "endLine": 82,
+        "endChar": 31
+      },
+      "revId": "39781dd782d9817eec85372e75243eaa7783d826",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8c1f6a5a",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 11
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-10T07:18:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8c7a0f86",
       "range": {
         "startLine": 79,
         "startChar": 4,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_cc6a52b2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/KafkaBus.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-10T07:18:06Z",
+      "side": 1,
+      "message": "It kind of is. Internally, a removal of some opinion for a key k is encoded as (k, null, owner). With this restriction, we do nut need to cast null to V since V is Null is a lower bound.",
+      "parentUuid": "9ad9bd40_4c5c8719",
+      "range": {
+        "startLine": 43,
+        "startChar": 28,
+        "endLine": 43,
+        "endChar": 47
+      },
+      "revId": "39781dd782d9817eec85372e75243eaa7783d826",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4cb3a74c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 11
@@ -82,6 +154,30 @@
       "writtenOn": "2015-08-07T15:10:33Z",
       "side": 1,
       "message": "Whitespace",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 4
+      },
+      "revId": "39781dd782d9817eec85372e75243eaa7783d826",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4c02c20a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-10T07:18:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_4cb3a74c",
       "range": {
         "startLine": 75,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6c05c60f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-10T07:18:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_cc7ed769",
+      "range": {
+        "startLine": 109,
+        "startChar": 30,
+        "endLine": 109,
+        "endChar": 39
+      },
+      "revId": "39781dd782d9817eec85372e75243eaa7783d826",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6cd30b60",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/KafkaBusTest.scala",
         "patchSetId": 11
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6c530617",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/KafkaBusTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-10T07:18:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_6cd30b60",
+      "range": {
+        "startLine": 243,
+        "startChar": 0,
+        "endLine": 243,
+        "endChar": 4
+      },
+      "revId": "39781dd782d9817eec85372e75243eaa7783d826",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4ce1e728",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/KafkaBusTest.scala",
         "patchSetId": 11
@@ -151,6 +295,30 @@
       "writtenOn": "2015-08-07T15:10:33Z",
       "side": 1,
       "message": "This is not straightforward; maybe adding more details about what the scenario is testing.",
+      "range": {
+        "startLine": 245,
+        "startChar": 18,
+        "endLine": 245,
+        "endChar": 32
+      },
+      "revId": "39781dd782d9817eec85372e75243eaa7783d826",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4c50020b",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/KafkaBusTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-10T07:18:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_4ce1e728",
       "range": {
         "startLine": 245,
         "startChar": 18,
