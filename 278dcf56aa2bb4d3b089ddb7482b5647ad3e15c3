@@ -330,6 +330,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_cfdde4e1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-10T14:15:35Z",
+      "side": 1,
+      "message": "the problem is, if you want to test DatapathInterface, you would need to construct a full injector object rather than just mocking up InterfaceScanner. If you have InterfaceScanner as the constructor argument, you can just pass in a mock. If you add the @Inject annotation and use injectMembers, you can use a mock in a more complex class hierarchy.",
+      "parentUuid": "9ad9bd40_ef6548e1",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ec5b9651",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
         "patchSetId": 19
@@ -569,6 +587,24 @@
       "side": 1,
       "message": "because it seems tightly coupled with the simulation.\ne.g. the way PortContext is used.",
       "parentUuid": "9ad9bd40_ec09d631",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8fd03cca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-10T14:15:35Z",
+      "side": 1,
+      "message": "Sure.",
+      "parentUuid": "9ad9bd40_cf3c04cb",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
