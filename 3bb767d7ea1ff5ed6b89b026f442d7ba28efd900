@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ef3708e1",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-10T10:34:18Z",
+      "side": 1,
+      "message": "Add the following field:\n\n    @JsonIgnore\n    @ZoomField(name \u003d \"trace_request_ids\", converter \u003d UUIDUtil.Converter.class)\n    public List\u003cUUID\u003e traceRequestIds;\n\nand line to the update() method:\n\n  traceRequestIds \u003d from.traceRequestIds\n\nto the classes:\n\norg.midonet.cluster.rest_api.models.Bridge\norg.midonet.cluster.rest_api.models.Network\norg.midonet.cluster.rest_api.models.Port\n\nOtherwise, when updating those objects via the API, will remove the backreferences.",
+      "range": {
+        "startLine": 212,
+        "startChar": 18,
+        "endLine": 212,
+        "endChar": 35
+      },
+      "revId": "3bb767d7ea1ff5ed6b89b026f442d7ba28efd900",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
