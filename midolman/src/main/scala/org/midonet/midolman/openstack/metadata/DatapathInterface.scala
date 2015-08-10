@@ -61,6 +61,22 @@ class DatapathInterface @Inject() (private val scanner: InterfaceScanner) {
         Process(s"ip addr add ${MetadataApi.address}/16 dev ${interface}").!
         Process(s"ip link set ${interface} up").!
 
+        if (MetadataApi.port != Proxy.port) {
+            // Install a redirect rule
+            val chain = "midonet-metadata-PREROUTING"
+
+            log info s"Installing redirection rule "+
+                     s"${MetadataApi.port} => ${Proxy.port} " +
+                     s"on ${interface}"
+            Process(s"iptables -t nat -N ${chain}").!  // can fail
+            Process(s"iptables -t nat -F ${chain}").!
+            Process(s"iptables -t nat -A ${chain} -i ${interface} " +
+                    s"-p tcp --dport ${MetadataApi.port} " +
+                    s"-j REDIRECT --to-port ${Proxy.port}").!
+            Process(s"iptables -t nat -D PREROUTING -j ${chain}").! // can fail
+            Process(s"iptables -t nat -A PREROUTING -j ${chain}").!
+        }
+
         log debug s"mdInfo ${mdInfo}"
         mdInfo
     }
