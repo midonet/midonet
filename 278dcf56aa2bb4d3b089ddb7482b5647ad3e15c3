@@ -50,6 +50,23 @@
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ece4760e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-10T08:24:01Z",
+      "side": 1,
+      "message": "please do, we already support these IIRC.",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
