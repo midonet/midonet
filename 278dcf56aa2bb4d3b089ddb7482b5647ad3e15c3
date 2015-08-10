@@ -427,6 +427,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0c80ba89",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-10T09:31:09Z",
+      "side": 1,
+      "message": "can we use netlink for this too?",
+      "parentUuid": "9ad9bd40_0cf19a94",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2cec9eba",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
         "patchSetId": 19
