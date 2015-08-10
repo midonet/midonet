@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6c3786ff",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-10T09:42:10Z",
+      "side": 1,
+      "message": "Yes, otherwise Commons.Condition needs an id field, because we\u0027re extending BaseConfig which has \"id\"",
+      "parentUuid": "9ad9bd40_0cc7da64",
+      "range": {
+        "startLine": 42,
+        "startChar": 42,
+        "endLine": 42,
+        "endChar": 61
+      },
+      "revId": "824c2c580c79e78ffe387bff333fcced87e88dd0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4ca482b9",
         "filename": "nsdb/src/main/proto/commons.proto",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-10T08:32:02Z",
       "side": 1,
       "message": "Start from 1",
+      "range": {
+        "startLine": 72,
+        "startChar": 36,
+        "endLine": 72,
+        "endChar": 37
+      },
+      "revId": "824c2c580c79e78ffe387bff333fcced87e88dd0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8c3a0ae5",
+        "filename": "nsdb/src/main/proto/commons.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-10T09:42:10Z",
+      "side": 1,
+      "message": "will change in new patch.",
+      "parentUuid": "9ad9bd40_4ca482b9",
       "range": {
         "startLine": 72,
         "startChar": 36,
