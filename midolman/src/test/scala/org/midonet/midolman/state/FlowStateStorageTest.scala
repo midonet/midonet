@@ -82,7 +82,7 @@ class FlowStateStorageTest extends FeatureSpec
                                    FlowStateStorage.SCHEMA,
                                    FlowStateStorage.SCHEMA_TABLE_NAMES)
         val sessionF = cass.connect()
-        storage = FlowStateStorage(Await.result(sessionF, 10 seconds))
+        storage = FlowStateStorage(Await.result(sessionF, 60 seconds))
         eventually {
             storage.asInstanceOf[FlowStateStorageImpl].session should not be null
         }
