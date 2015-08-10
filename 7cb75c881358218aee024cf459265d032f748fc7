@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ec10f64f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-10T07:08:51Z",
+      "side": 1,
+      "message": "You\u0027re still awaiting these in serial. What you want to do is get just the future here, and then await it sometime after you get the other future. That way you start both gets immediately, then wait for them to complete in parallel. So something like:\n\n  val oldRouterFtr \u003d storage.get(classOf[Router], nr.getId)\n  val oldNRouter \u003d storage.get(classOf[NeutronRouter], nr.getId).await()\n\n  // ...Do all that other stuff...\n\n  val portIds \u003d oldRouterFtr.await().getPortIdsList.asScala\n  val ports \u003d storage.getAll(classOf[Port], portIds).await()",
+      "range": {
+        "startLine": 171,
+        "startChar": 62,
+        "endLine": 171,
+        "endChar": 70
+      },
+      "revId": "7cb75c881358218aee024cf459265d032f748fc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
