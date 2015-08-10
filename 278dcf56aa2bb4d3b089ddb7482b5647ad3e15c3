@@ -558,6 +558,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_e2cb9f6f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T16:05:14Z",
+      "side": 1,
+      "message": "Sure. Check DatapathModule::bindDatapathStateDriver. Note two things: the call to \"asEagerSingleton\" makes the @Singleton attribute not needed, and the provider makes the @Inject attribute not needed.",
+      "parentUuid": "9ad9bd40_2cf65e5d",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ec09d631",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
         "patchSetId": 19
@@ -745,6 +763,24 @@
       "side": 1,
       "message": "even with requireExplicitBindings?",
       "parentUuid": "9ad9bd40_8c592a90",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_62a78fbd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T16:05:14Z",
+      "side": 1,
+      "message": "yep",
+      "parentUuid": "9ad9bd40_4f50f40a",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -1042,6 +1078,24 @@
       "side": 1,
       "message": "match_validate does the validation.\n\n\"Missing key (keys\u003d%llx, expected\u003d%llx)\"",
       "parentUuid": "9ad9bd40_ccfa5274",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_020243b3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-10T16:05:14Z",
+      "side": 1,
+      "message": "I don\u0027t follow. Note that we only send flow keys that have specific matches in them. All the others are assumed to be totally wildcarded by the kernel. So I don\u0027t think this is needed.",
+      "parentUuid": "9ad9bd40_8f083c29",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
