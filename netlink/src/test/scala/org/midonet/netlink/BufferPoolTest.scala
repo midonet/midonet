@@ -126,8 +126,8 @@ class BufferPoolTest extends FunSpec with Matchers {
                 }
                 clients foreach { _.start }
                 clients foreach { _.join }
-                pool.available() shouldBe 20
-                pool.allocated() shouldBe 20
+                pool.available() should be (pool.allocated())
+                pool.available() should be <= 20
             }
         }
 
