@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_989b2517",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-10T03:55:11Z",
+      "side": 1,
+      "message": "The byte buffer doesn\u0027t really seem necessary:\n\n        val destIp \u003d IPv4Addr.stringToInt(route.getDestination.getAddress)\n        val prefixLen \u003d route.getDestination.getPrefixLength\n        routerId.xorWith(\n            destIp.asInstanceOf[Long] \u003c\u003c 32 | prefixLen,\n            IPv4Addr.stringToInt(route.getNexthop.getAddress))",
+      "range": {
+        "startLine": 212,
+        "startChar": 0,
+        "endLine": 216,
+        "endChar": 17
+      },
+      "revId": "ccf0bf336b3e194116a801e20b35e0a5928df4d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7898211c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-10T03:55:11Z",
+      "side": 1,
+      "message": "Is this necessary? Usually, the purpose of this constant is just to have something to use to transform the original UUID into another one. But here, you\u0027ve already transformed it using the other data. I don\u0027t think there\u0027s any need to transform it again.",
+      "range": {
+        "startLine": 219,
+        "startChar": 12,
+        "endLine": 219,
+        "endChar": 62
+      },
+      "revId": "ccf0bf336b3e194116a801e20b35e0a5928df4d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d8a12d47",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-10T03:55:11Z",
+      "side": 1,
+      "message": "You can make the code a bit cleaner if you make this an actual map, by adding .toMap at the end.",
+      "range": {
+        "startLine": 176,
+        "startChar": 8,
+        "endLine": 177,
+        "endChar": 53
+      },
+      "revId": "ccf0bf336b3e194116a801e20b35e0a5928df4d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_188715b6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-10T03:55:11Z",
+      "side": 1,
+      "message": "Then this becomes oldRouteIds -- routes.keys",
+      "range": {
+        "startLine": 180,
+        "startChar": 26,
+        "endLine": 180,
+        "endChar": 75
+      },
+      "revId": "ccf0bf336b3e194116a801e20b35e0a5928df4d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_389219f6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-10T03:55:11Z",
+      "side": 1,
+      "message": "And this becomes routes -- oldRouteIds",
+      "range": {
+        "startLine": 184,
+        "startChar": 24,
+        "endLine": 184,
+        "endChar": 73
+      },
+      "revId": "ccf0bf336b3e194116a801e20b35e0a5928df4d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b8b5497f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-10T03:55:11Z",
+      "side": 1,
+      "message": "You could get the future for this at the beginning of the function, at the same time as you get oldRouter. That allows you to wait for both routers in parallel.\n\nAlso, usually in the translators we qualify the names of Neutron objects with \"n\" and leave the Midonet objects unqualified.",
+      "revId": "ccf0bf336b3e194116a801e20b35e0a5928df4d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
