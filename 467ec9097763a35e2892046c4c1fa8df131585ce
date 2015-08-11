@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f5743237",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-11T18:32:21Z",
+      "side": 1,
+      "message": "Is it OK to \"to\" will nullify the vxLanPortId?",
+      "range": {
+        "startLine": 283,
+        "startChar": 8,
+        "endLine": 284,
+        "endChar": 47
+      },
+      "revId": "467ec9097763a35e2892046c4c1fa8df131585ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d5ce4e59",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-11T18:32:21Z",
+      "side": 1,
+      "message": "Is there a reason to remove \"NonFatal\"?",
+      "range": {
+        "startLine": 68,
+        "startChar": 20,
+        "endLine": 68,
+        "endChar": 26
+      },
+      "revId": "467ec9097763a35e2892046c4c1fa8df131585ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_98379b4c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-11T18:32:21Z",
+      "side": 1,
+      "message": "I don\u0027t understand why this needs to be done at the API level. Shouldn\u0027t this be done by the translator?",
+      "range": {
+        "startLine": 99,
+        "startChar": 4,
+        "endLine": 111,
+        "endChar": 5
+      },
+      "revId": "467ec9097763a35e2892046c4c1fa8df131585ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
