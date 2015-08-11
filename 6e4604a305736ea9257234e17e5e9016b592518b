@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_9b85d5d0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-11T22:58:35Z",
+      "side": 1,
+      "message": "Note that you\u0027re still sending the state to all other potential ingress hosts (i.e., those in the ingress port\u0027s group).",
+      "revId": "6e4604a305736ea9257234e17e5e9016b592518b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
