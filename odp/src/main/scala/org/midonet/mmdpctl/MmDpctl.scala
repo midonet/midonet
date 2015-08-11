@@ -404,13 +404,13 @@ object DatapathCtl extends Subcommand("datapath") with DpCommand {
         descr = "add a new datapath")
     val del = opt[String](
         "delete",
+        short = 'D',
         descr = "delete a datapath")
     val show = opt[String](
         "show",
         descr = "show all the information related to a given datapath")
     val dump = opt[String](
         "dump",
-        noshort = true,
         descr = "show all the flows installed for a given datapath")
     val list = opt[Boolean](
         default = Some(false),
