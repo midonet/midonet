@@ -290,7 +290,7 @@ if [[ "$USE_NEW_STACK" = "True" ]]; then
     CLUSTER_LOG=$TOP_DIR/cluster/midonet-cluster/conf/logback.xml
     cp $CLUSTER_LOG.dev $TOP_DIR/cluster/midonet-cluster/build/resources/main/logback.xml
 
-    run_process midonet-cluster "cd $TOP_DIR && ./gradlew :cluster:midonet-cluster:run"
+    run_process midonet-cluster "./gradlew :cluster:midonet-cluster:run"
 
 else
 
