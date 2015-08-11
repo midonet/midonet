@@ -259,6 +259,42 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_91085b29",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/AddressManager.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-11T09:51:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ef3e28b7",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b10b9f22",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/AddressManager.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-11T09:51:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_6c1ea671",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ac5c2e7e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
         "patchSetId": 19
