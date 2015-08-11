@@ -1209,6 +1209,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_95df6639",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-11T15:06:43Z",
+      "side": 1,
+      "message": "but that\u0027s tcp and tcp_flags in the *flow key*. this is the flow mask. any explicit mask missing for the provided flow keys is considered to be totally wildcarded (all zeros).  otherwise, we wouldn\u0027t be able to successfully install flows for tcp packets, which we can do.",
+      "parentUuid": "9ad9bd40_d6d01921",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0cf19a94",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
         "patchSetId": 19
