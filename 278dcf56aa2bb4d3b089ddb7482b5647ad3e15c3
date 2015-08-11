@@ -929,6 +929,23 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_31a4ef49",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-11T13:26:55Z",
+      "side": 1,
+      "message": "Any chance we could consider doing this reactively inside PacketWorkflow? \n\nRationale:\n\n * That\u0027s how we handle other similar cases: BGP, DHCP.\n * It sounds like a more extensible way of adding new services, as part of the virtual topology or packet processing pipeline, rather than having components pre-installing flows all around.\n * Duarte says: \"i prefer it computes them reactively, because then it will be easier to move it out (in case that’s ever done)\"",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2c43beaf",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/NovaMetadataClient.scala",
         "patchSetId": 19
