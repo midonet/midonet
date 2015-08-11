@@ -89,7 +89,8 @@ trait FlowExpirationIndexer extends FlowIndexer {
             while (({ flow = queue.peekFirst(); flow } ne null) &&
                    now >= flow.absoluteExpirationNanos) {
                 log.debug(s"Removing flow $flow for hard expiration")
-                maybeRemoveFlow(queue.pollFirst())
+                flow.unref()
+                removeFlow(queue.pollFirst())
             }
             i += 1
         }
@@ -118,21 +119,11 @@ trait FlowExpirationIndexer extends FlowIndexer {
             var flow: ManagedFlow = null
             while (evicted < numFlowsToEvict &&
                    ({ flow = queue.pollFirst(); flow } ne null)) {
-                maybeRemoveFlow(flow)
+                flow.unref()
+                removeFlow(flow)
                 evicted += 1
             }
             i += 1
         }
-    }
-
-    private def maybeRemoveFlow(flow: ManagedFlow): Unit = {
-        flow.unref()
-        // Check if the flow's ref count is greater than zero, in
-        // which case it means the flow is kept elsewhere (i.e., installed
-        // in the kernel) and needs to be properly removed. If, on the other
-        // hand, this class was the only reference to the flow, than it
-        // was already removed.
-        if (flow.currentRefCount > 0)
-            removeFlow(flow)
     }
 }

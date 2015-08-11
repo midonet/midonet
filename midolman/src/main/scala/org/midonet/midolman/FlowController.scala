@@ -89,13 +89,15 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         flow.ref()
     }
 
-    override def removeFlow(flow: ManagedFlow): Unit = {
-        super.removeFlow(flow)
-        flow.callbacks.runAndClear()
-        removeFlowFromDatapath(flow)
-        metrics.dpFlowsRemovedMetric.mark()
-        flow.unref()
-    }
+    override def removeFlow(flow: ManagedFlow): Unit =
+        if (!flow.removed) {
+            super.removeFlow(flow)
+            flow.callbacks.runAndClear()
+            flow.removed = true
+            removeFlowFromDatapath(flow)
+            metrics.dpFlowsRemovedMetric.mark()
+            flow.unref()
+        }
 
     private def processCompletedFlowOperations(): Unit = {
         var req: FlowOperation = null

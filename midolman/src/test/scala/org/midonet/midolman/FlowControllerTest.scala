@@ -80,18 +80,55 @@ class FlowControllerTest extends MidolmanSpec {
             flowController.metrics.currentDpFlowsMetric.getValue should be (0)
 
             And("The flow removal callback method was called")
-            flow.flowRemoved should be (true)
+            flow.callbackCalled should be (true)
+        }
+
+        scenario("A removed flow is not removed again") {
+            Given("A flow in the flow controller")
+            val flow = new TestableFlow()
+            val managedFlow = flow.add()
+            managedFlow should not be null
+            flowController.metrics.dpFlowsMetric.getCount should be (1)
+
+            // The flow is referenced by the FC and the expiration indexer
+            managedFlow.currentRefCount should be (2)
+
+            When("The flow is removed from the flow controller")
+            flow.remove(managedFlow)
+
+            Then("The datapath flow metric should be set at the original value")
+            flowController.metrics.currentDpFlowsMetric.getValue should be (0)
+
+            And("The flow removal callback method was called")
+            flow.callbackCalled should be (true)
+            flow.callbackCalled = false
+
+            And("The flow was removed")
+            managedFlow.removed should be (true)
+
+            And("The flow is referenced by the in-progress deletion")
+            managedFlow.currentRefCount should be (2)
+
+            When("We expire the flow")
+            clock.time = FlowExpirationIndexer.FLOW_EXPIRATION.value + 1
+            flowController.checkFlowsExpiration(clock.tick)
+
+            Then("Nothing should happen")
+            flowController.metrics.currentDpFlowsMetric.getValue should be (0)
+            flow.callbackCalled should be (false)
+            managedFlow.removed should be (true)
+            managedFlow.currentRefCount should be (1)
         }
     }
 
     final class TestableFlow(val fmatch: FlowMatch = new FlowMatch()) {
-        var flowRemoved = false
+        var callbackCalled = false
 
         def add(tags: FlowTag*): ManagedFlow = {
             val context = new PacketContext(0, null, fmatch)
             tags foreach context.addFlowTag
             context addFlowRemovedCallback new Callback0 {
-                def call() = flowRemoved = true
+                def call() = callbackCalled = true
             }
             flowController.addFlow(context, FlowExpirationIndexer.FLOW_EXPIRATION)
             context.flow
