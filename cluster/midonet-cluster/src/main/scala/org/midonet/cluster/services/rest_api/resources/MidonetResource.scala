@@ -44,7 +44,7 @@ import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowGet, AllowList
 import org.midonet.cluster.rest_api.models.UriResource
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse
-import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.{Backend, MidonetBackend}
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.midolman.state._
@@ -164,7 +164,7 @@ object MidonetResource {
         (handler orElse DefaultHandler)(try f catch catcher orElse DefaultCatcher)
     }
 
-    case class ResourceContext @Inject() (backend: MidonetBackend,
+    case class ResourceContext @Inject() (backend: Backend,
                                           uriInfo: UriInfo,
                                           validator: Validator,
                                           seqDispenser: SequenceDispenser,

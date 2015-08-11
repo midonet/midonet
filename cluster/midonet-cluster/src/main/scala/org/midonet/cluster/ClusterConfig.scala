@@ -61,6 +61,7 @@ class ClusterConfig(_conf: Config) {
     val snoopy = new TopologySnoopyConfig(conf)
     val confApi = new ConfApiConfig(conf)
     val restApi = new RestApiConfig(conf)
+    val federationApi = new FederationApiConfig(conf)
 }
 
 class AuthConfig(val conf: Config) {
@@ -140,6 +141,15 @@ class RestApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
     final val Prefix = "cluster.rest_api"
 
     override def isEnabled = conf.getBoolean("cluster.rest_api.enabled")
+
+    def httpPort = conf.getInt(s"$Prefix.http_port")
+    def rootUri = conf.getString(s"$Prefix.root_uri")
+}
+
+class FederationApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
+    final val Prefix = "cluster.federation_api"
+
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
 
     def httpPort = conf.getInt(s"$Prefix.http_port")
     def rootUri = conf.getString(s"$Prefix.root_uri")
