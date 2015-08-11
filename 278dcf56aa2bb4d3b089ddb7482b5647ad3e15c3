@@ -348,6 +348,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f6cb5d6f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-11T04:29:55Z",
+      "side": 1,
+      "message": "thank you for explanation!",
+      "parentUuid": "9ad9bd40_cfdde4e1",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ec5b9651",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
         "patchSetId": 19
@@ -570,6 +588,24 @@
       "side": 1,
       "message": "Sure. Check DatapathModule::bindDatapathStateDriver. Note two things: the call to \"asEagerSingleton\" makes the @Singleton attribute not needed, and the provider makes the @Inject attribute not needed.",
       "parentUuid": "9ad9bd40_2cf65e5d",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_96b3f108",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-11T04:29:55Z",
+      "side": 1,
+      "message": "thank you.  i\u0027ll take a look.",
+      "parentUuid": "9ad9bd40_e2cb9f6f",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -1096,6 +1132,24 @@
       "side": 1,
       "message": "I don\u0027t follow. Note that we only send flow keys that have specific matches in them. All the others are assumed to be totally wildcarded by the kernel. So I don\u0027t think this is needed.",
       "parentUuid": "9ad9bd40_8f083c29",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d6d01921",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-11T04:29:55Z",
+      "side": 1,
+      "message": "please look at the \"key_expected\" variable in match_validate.\nin case ip_proto\u003d\u003dtcp, tcp and tcp_flags keys are expected.\nin the absence of these keys, the function bails out\nwith the above mentioned error.\nproviding all-0 key is suffice to avoid it.",
+      "parentUuid": "9ad9bd40_020243b3",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
