@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_1548b6b1",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-11T16:10:48Z",
+      "side": 1,
+      "message": "I wasn\u0027t sure whether it was but your argument makes sense.",
+      "parentUuid": "9ad9bd40_65932b5b",
+      "range": {
+        "startLine": 35,
+        "startChar": 3,
+        "endLine": 36,
+        "endChar": 38
+      },
+      "revId": "a0c406bd11044fe684b7564c244c8e4e9b85bef5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d37be278",
         "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
         "patchSetId": 2
