@@ -22,7 +22,7 @@ import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
+import org.midonet.cluster.services.{FederationBackendService, FederationBackend, MidonetBackend, MidonetBackendService}
 
 /** This Guice module is dedicated to declare general-purpose dependencies that
   * are exposed to MidoNet components that need to access the various storage
@@ -38,6 +38,7 @@ class MidonetBackendModule(val conf: MidonetBackendConfig)
     override def configure(): Unit = {
         bindCurator()
         bindStorage()
+        bindFederation()
         bindLockFactory()
 
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
@@ -54,6 +55,13 @@ class MidonetBackendModule(val conf: MidonetBackendConfig)
             .to(classOf[MidonetBackendService])
             .in(classOf[Singleton])
         expose(classOf[MidonetBackend])
+    }
+
+    protected def bindFederation(): Unit = {
+        bind(classOf[FederationBackend])
+            .to(classOf[FederationBackendService])
+            .in(classOf[Singleton])
+        expose(classOf[FederationBackend])
     }
 
     protected def bindCurator(): Unit = {

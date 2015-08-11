@@ -1,0 +1,77 @@
+//
+// Copyright 2015 Midokura SARL
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+import "commons.proto";
+
+package org.midonet.cluster.models;
+option java_package = "org.midonet.cluster.models";
+option java_outer_classname = "Federation";
+
+// VNIs must be uniquely allocated within a group, but can be re-used across
+// different groups.
+message VtepGroup {
+    optional UUID id = 1;
+    optional string name = 2;
+
+    // back-references
+    repeated UUID midonet_vtep_id = 101;
+    repeated UUID ovsdb_vtep_id = 102;
+    repeated UUID segment_id = 103;
+}
+
+message VxlanSegment {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional uint32 vni = 3; // allocated by MidoNet
+    optional UUID group_id = 4;
+    optional IPSubnet subnet = 5;
+
+    message MidoNetBinding {
+        optional UUID midonet_vtep_id = 1;
+        optional UUID router_id = 2;
+        optional IPAddress router_ip = 3;  // allocated by MidoNet
+        optional string router_mac = 4;    // allocated by MidoNet
+        optional UUID router_port_id = 5;  // allocated by MidoNet
+        optional UUID vtep_port_id = 6;    // allocated by MidoNet
+    }
+    repeated MidoNetBinding midonet_binding = 6;
+
+    message OvsdbBinding {
+        optional UUID ovsdb_vtep_id = 1;
+        optional string port_name = 2;
+        optional uint32 vlan_id = 3;
+    }
+    repeated OvsdbBinding ovsdb_binding = 7;
+}
+
+message MidoNetVtep {
+    optional UUID id = 1;                  // Set equal to vtep_router_id?
+    optional UUID group_id = 2;
+    optional UUID vtep_router_id = 3;
+    optional string name = 4;
+    optional string username = 5;
+    optional string password = 6;
+    repeated IPAddress network_api_endpoint = 7;
+}
+
+message OvsdbVtep {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional IPAddress management_ip = 3;
+    optional uint32 management_port = 4;
+    optional UUID group_id = 5;
+}
+

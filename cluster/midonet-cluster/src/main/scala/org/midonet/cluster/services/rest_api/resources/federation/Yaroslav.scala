@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services.rest_api
+package org.midonet.cluster.services.rest_api.resources.federation
 
 import java.util
+
 import javax.validation.Validator
 
 import scala.collection.JavaConversions._
@@ -27,25 +28,25 @@ import com.google.inject.{Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
 import com.typesafe.scalalogging.Logger
+
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
-import org.slf4j.bridge.SLF4JBridgeHandler
 import org.slf4j.LoggerFactory
+import org.slf4j.bridge.SLF4JBridgeHandler
 
 import org.midonet.cluster.auth.{AuthModule, AuthService}
-import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter}
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
-import org.midonet.cluster.services.rest_api.resources._
-import org.midonet.cluster.services.{Backend, ClusterService, MidonetBackend, Minion}
-import org.midonet.cluster.storage.{LegacyStateTableStorage, MidonetBackendConfig}
+import org.midonet.cluster.services.rest_api.CorsFilter
+import org.midonet.cluster.services.{Backend, ClusterService, FederationBackend, Minion}
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.midolman.state.PathBuilder
 
-object Vladimir {
+object Yaroslav {
 
     final val ContainerResponseFiltersClass =
         "com.sun.jersey.spi.container.ContainerResponseFilters"
@@ -56,26 +57,23 @@ object Vladimir {
     final val POJOMappingFeatureClass =
         "com.sun.jersey.api.json.POJOMappingFeature"
 
-    def servletModule(backend: MidonetBackend, curator: CuratorFramework,
+    def servletModule(backend: FederationBackend, curator: CuratorFramework,
                       config: ClusterConfig, authService: AuthService,
                       log: Logger) = new JerseyServletModule {
 
         override def configureServlets(): Unit = {
             // To redirect JDK log to slf4j. Ref: MNA-706
-            SLF4JBridgeHandler.removeHandlersForRootLogger()
-            SLF4JBridgeHandler.install()
+            SLF4JBridgeHandler.removeHandlersForRootLogger();
+            SLF4JBridgeHandler.install();
 
             install(new AuthModule(config.auth, log))
 
-            val paths = new PathBuilder(config.backend.rootKey)
-
             bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
             bind(classOf[CorsFilter])
-            bind(classOf[PathBuilder]).toInstance(paths)
-            bind(classOf[StateTableStorage])
-                .toInstance(new LegacyStateTableStorage(curator, paths))
+            bind(classOf[PathBuilder])
+                .toInstance(new PathBuilder(config.backend.rootKey))
             bind(classOf[CuratorFramework]).toInstance(curator)
-            bind(classOf[MidonetBackend]).toInstance(backend)
+            bind(classOf[FederationBackend]).toInstance(backend)
             bind(classOf[Backend]).toInstance(backend)
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
             bind(classOf[SequenceDispenser]).asEagerSingleton()
@@ -98,30 +96,31 @@ object Vladimir {
     }
 }
 
-@ClusterService(name = "rest_api")
-class Vladimir @Inject()(nodeContext: ClusterNode.Context,
-                         backend: MidonetBackend,
+@ClusterService(name = "federation_api")
+class Yaroslav @Inject()(nodeContext: ClusterNode.Context,
+                         backend: FederationBackend,
                          curator: CuratorFramework,
                          authService: AuthService,
                          config: ClusterConfig)
     extends Minion(nodeContext) {
 
-    import Vladimir._
+    import org.midonet.cluster.services.rest_api.resources.federation.Yaroslav._
 
     private var server: Server = _
-    private val log = Logger(LoggerFactory.getLogger("org.midonet.rest-api"))
+    private val log = Logger(LoggerFactory.getLogger("org.midonet.federation-api"))
 
-    override def isEnabled = config.restApi.isEnabled
+    override def isEnabled = config.federationApi.isEnabled
 
     override def doStart(): Unit = {
         log.info(s"Starting REST API service at port: " +
-                 s"${config.restApi.httpPort}, with " +
-                 s"root uri: ${config.restApi.rootUri} " +
+                 s"${config.federationApi.httpPort}, with " +
+                 s"root uri: ${config.federationApi.rootUri} " +
                  s"and auth service: ${authService.getClass.getName}")
 
-        server = new Server(config.restApi.httpPort)
+        server = new Server(config.federationApi.httpPort)
+        backend.startAsync().awaitRunning()
 
-        val context = new ServletContextHandler(server, config.restApi.rootUri,
+        val context = new ServletContextHandler(server, config.federationApi.rootUri,
                                                 ServletContextHandler.SESSIONS)
         context.addEventListener(new GuiceServletContextListener {
             override def getInjector: Injector = {
@@ -157,4 +156,3 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
     }
 
 }
-
