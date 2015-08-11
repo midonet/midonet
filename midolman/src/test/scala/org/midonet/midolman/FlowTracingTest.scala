@@ -15,8 +15,10 @@
  */
 package org.midonet.midolman
 
-import java.util.{LinkedList, UUID}
+import java.util.{List => JList, LinkedList, UUID}
 
+import scala.collection.JavaConverters._
+import scala.concurrent.duration._
 import scala.concurrent.Future
 
 import org.junit.runner.RunWith
@@ -25,18 +27,21 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Chain}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
-import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.simulation.{Coordinator, PacketContext}
+
+import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
+import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.simulation.{Bridge, Coordinator, PacketContext}
-import org.midonet.midolman.state.HappyGoLuckyLeaser
+import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, TraceState}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.odp.{FlowMatches, Packet}
-import org.midonet.packets.Ethernet
+import org.midonet.packets.{Ethernet, IPv4Addr}
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.state.ShardedFlowStateTable
@@ -49,21 +54,35 @@ class FlowTracingTest extends MidolmanSpec {
     var bridge: ClusterBridge = _
     var port1: BridgePort = _
     var port2: BridgePort = _
+    var port3: BridgePort = _
+
     var chain: Chain = _
+
+    var hostId2: UUID = _
+    val host1addr = IPv4Addr("10.0.0.1").toInt
+    val host2addr = IPv4Addr("10.0.0.2").toInt
+
+    val dstAddr = IPv4Addr("192.168.0.2")
 
     val table = new ShardedFlowStateTable[TraceKey,TraceContext](clock)
         .addShard()
     implicit val traceTx = new FlowStateTransaction(table)
 
     override def beforeTest(): Unit = {
+        val host2 = newHost("host2")
+        hostId2 = host2.getId
+
         bridge = newBridge("bridge0")
         port1 = newBridgePort(bridge)
         port2 = newBridgePort(bridge)
+        port3 = newBridgePort(bridge)
         materializePort(port1, hostId, "port1")
         materializePort(port2, hostId, "port2")
+        materializePort(port3, hostId2, "port3")
 
         chain = newInboundChainOnBridge("my-chain", bridge)
-        fetchTopology(bridge, port1, port2, chain)
+
+        fetchTopology(bridge, port1, port2, port3, chain)
     }
 
     private def newTraceRule(requestId: UUID, chain: Chain,
@@ -74,13 +93,12 @@ class FlowTracingTest extends MidolmanSpec {
         fetchDevice(chain)
     }
 
-    private def makeFrame(tpDst: Short, tpSrc: Short = 10101) =
+    private def makeFrame(tpDst: Short, tpSrc: Short = 10101): Ethernet =
         { eth addr "00:02:03:04:05:06" -> "00:20:30:40:50:60" } <<
-        { ip4 addr "192.168.0.1" --> "192.168.0.2" } <<
-        { udp ports tpSrc ---> tpDst }
+        { ip4 addr "192.168.0.1" --> dstAddr } <<
+        { udp ports tpSrc ---> tpDst } << payload("foobar")
 
-    implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
-        val frame: Ethernet = ethBuilder
+    implicit def eth2Packet(frame: Ethernet): Packet = {
         val flowMatch = FlowMatches.fromEthernetPacket(frame)
         val pkt = new Packet(frame, flowMatch)
         flowMatch.setInputPortNumber(42)
@@ -222,11 +240,9 @@ class FlowTracingTest extends MidolmanSpec {
                     throw TraceRequiredException
                 }
                 if (restart) {
-                    pktCtx.traceTx.get(TraceKey.fromFlowMatch(pktCtx.origMatch)) should not be null
                     restart = false
                     throw new NotYetException(Future.successful(null))
                 }
-                pktCtx.traceTx.get(TraceKey.fromFlowMatch(pktCtx.origMatch)) should be (null)
                 AddVirtualWildcardFlow
             }, packetCtxTrap = pktCtxs)
             wkfl ! PacketWorkflow.HandlePackets(Array(makePacket(500)))
@@ -252,11 +268,10 @@ class FlowTracingTest extends MidolmanSpec {
             wkfl ! PacketWorkflow.HandlePackets(Array(makePacket(500), makePacket(501)))
             pktCtxs.size() should be (3)
             val tracedPktCtx = pktCtxs.pop()
+            tracedPktCtx.tracingEnabled.shouldBe(true)
             tracedPktCtx should be (pktCtxs.pop())
-            tracedPktCtx.traceTx.get(TraceKey.fromFlowMatch(tracedPktCtx.origMatch)) should be (null)
             val nonTracePktCtx = pktCtxs.pop()
-            nonTracePktCtx.traceTx.get(TraceKey.fromFlowMatch(nonTracePktCtx.origMatch)) should be (null)
-            nonTracePktCtx.traceTx.get(TraceKey.fromFlowMatch(tracedPktCtx.origMatch)) should be (null)
+            nonTracePktCtx.tracingEnabled.shouldBe(false)
         }
 
         scenario("The trace request should not persist across different packets when an exception is thrown") {
@@ -273,38 +288,15 @@ class FlowTracingTest extends MidolmanSpec {
             }, packetCtxTrap = pktCtxs)
             wkfl ! PacketWorkflow.HandlePackets(Array(makePacket(500), makePacket(501)))
             pktCtxs.size() should be (3)
-            val tracedPktCtx = pktCtxs.pop()
-            tracedPktCtx should be (pktCtxs.pop())
-            tracedPktCtx.traceTx.get(TraceKey.fromFlowMatch(tracedPktCtx.origMatch)) should be (null)
-            val nonTracePktCtx = pktCtxs.pop()
-            nonTracePktCtx.traceTx.get(TraceKey.fromFlowMatch(nonTracePktCtx.origMatch)) should be (null)
-            nonTracePktCtx.traceTx.get(TraceKey.fromFlowMatch(tracedPktCtx.origMatch)) should be (null)
+            val tracedPktCtx = pktCtxs.get(0)
+            tracedPktCtx should be (pktCtxs.get(1))
+            tracedPktCtx.tracingEnabled.shouldBe(false) // cleared by the exception handler
+            val nonTracePktCtx = pktCtxs.get(2)
+            tracedPktCtx.tracingEnabled.shouldBe(false)
         }
     }
 
     feature("Ingress/Egress matching") {
-        scenario("Trace generates flow state messages") {
-            val requestId1 = UUID.randomUUID
-            newTraceRule(requestId1, chain,
-                         newCondition(tpDst = Some(500)), 1)
-            val frame = makeFrame(500)
-            val pktCtx = packetContextFor(frame, port1.getId)
-            pktCtx.tracingEnabled(requestId1) should be (false)
-            try {
-                simulate(pktCtx)
-                fail("Should have thrown an exception")
-            } catch {
-                case TraceRequiredException =>
-                    pktCtx.log should be (PacketContext.traceLog)
-                    pktCtx.tracingEnabled(requestId1) should be (true)
-            }
-            val key = TraceKey.fromFlowMatch(
-                FlowMatches.fromEthernetPacket(frame))
-            pktCtx.traceTx.get(key) should not be null
-            pktCtx.traceTx.get(key)
-                .containsRequest(requestId1) should be (true)
-        }
-
         scenario("Trace gets enabled on egress host (no tunnel key hint)") {
             val requestId1 = UUID.randomUUID
             newTraceRule(requestId1, chain,
@@ -313,13 +305,9 @@ class FlowTracingTest extends MidolmanSpec {
             val frame = makeFrame(500)
             val key = TraceKey.fromFlowMatch(
                 FlowMatches.fromEthernetPacket(frame))
-            val context = new TraceContext
-            context.enable(UUID.randomUUID)
-            context.addRequest(requestId1)
-            table.putAndRef(key, context)
 
             val pktCtx = packetContextFor(frame, port1.getId)
-            pktCtx.tracingEnabled(requestId1) should be (false)
+            pktCtx.tracingEnabled(requestId1) shouldBe false
 
             try {
                 simulate(pktCtx)
@@ -329,8 +317,6 @@ class FlowTracingTest extends MidolmanSpec {
                     pktCtx.log should be (PacketContext.traceLog)
                     pktCtx.tracingEnabled(requestId1) should be (true)
             }
-            pktCtx.traceTx.size should be (0)
-            pktCtx.traceFlowId should be (context.flowTraceId)
 
             // try with similar, but slightly different packet
             // shouldn't match
@@ -344,8 +330,96 @@ class FlowTracingTest extends MidolmanSpec {
                     pktCtx2.log should be (PacketContext.traceLog)
                     pktCtx2.tracingEnabled(requestId1) should be (true)
             }
-            pktCtx2.traceTx.size should be (1)
-            pktCtx2.traceFlowId should not be context.flowTraceId
+            pktCtx2.traceFlowId should not be pktCtx.traceFlowId
+        }
+
+        scenario("Trace requests should be different for 2 identical packets, " +
+                     " state should only forward to egress and shouldn't hang around long") {
+            val requestId = UUID.randomUUID
+            val pktCtxs = new LinkedList[PacketContext]()
+            val packetsSent = new LinkedList[Ethernet]()
+
+            newTraceRule(requestId, chain,
+                         newCondition(tpDst = Some(500)), 1)
+
+            val frame = makeFrame(500)
+            val output = FlowActions.output(23)
+            val wkfl = packetWorkflow(
+                Map(42 -> port1.getId),
+                peers = Map(hostId -> Route(host2addr, host1addr, output),
+                            hostId2 -> Route(host1addr, host2addr, output)),
+                packetCtxTrap = pktCtxs)
+            mockDpChannel.packetsExecuteSubscribe(
+                (p: Packet, actions: JList[FlowAction]) => {
+                    packetsSent.add(p.getEthernet.clone)
+                })
+
+            wkfl ! PacketWorkflow.HandlePackets(Array(frame, frame))
+
+            pktCtxs.size shouldBe 4 // twice for each packet
+            val flowTrace1 = pktCtxs.get(0).traceContext.flowTraceId
+            val flowTrace2 = pktCtxs.get(2).traceContext.flowTraceId
+            flowTrace1.equals(flowTrace2) shouldBe false
+            packetsSent.size shouldBe 4
+
+            val packet0 = FlowStatePackets.parseDatagram(packetsSent.get(0))
+            FlowStatePackets.uuidFromProto(
+                packet0.getNewState(0).getTraceEntry(0).getFlowTraceId()) shouldBe flowTrace1
+            val packet1 = packetsSent.get(1)
+            packet1.equals(frame) shouldBe true
+
+            val packet2 = FlowStatePackets.parseDatagram(packetsSent.get(2))
+            FlowStatePackets.uuidFromProto(
+                packet2.getNewState(0).getTraceEntry(0).getFlowTraceId()) shouldBe flowTrace2
+            val packet3 = packetsSent.get(3)
+            packet3.equals(frame) shouldBe true
+
+            // shouldn't have put anything in the trace table
+            val traceKey = pktCtxs.get(1).traceKeyForEgress
+            traceKey shouldBe pktCtxs.get(2).traceKeyForEgress
+
+            wkfl.underlyingActor.traceStateTable.get(traceKey) shouldBe null
+            wkfl.underlyingActor.traceStateTable.get(traceKey) shouldBe null
+
+            val tunnelPort = 10101
+            val wkflEgress = packetWorkflow(Map(42 -> port3.getId),
+                                            tunnelPorts = List(tunnelPort),
+                                            packetCtxTrap = pktCtxs)
+            val egressTable = wkflEgress.underlyingActor.traceStateTable
+
+            def tunnelPacket(eth: Ethernet, tunnelKey: Long): Packet = {
+                val fmatch = FlowMatches.fromEthernetPacket(eth)
+                fmatch.addKey(FlowKeys.tunnel(tunnelKey, 0, 0, 0))
+                fmatch.addKey(FlowKeys.inPort(tunnelPort))
+                    .setInputPortNumber(tunnelPort)
+                new Packet(eth, fmatch)
+            }
+
+            val statePacket1 = tunnelPacket(packetsSent.get(0),
+                                           FlowStatePackets.TUNNEL_KEY)
+            wkflEgress ! PacketWorkflow.HandlePackets(Array(statePacket1))
+            egressTable.get(traceKey) should not be (null)
+
+            pktCtxs.clear()
+            wkflEgress ! PacketWorkflow.HandlePackets(
+                Array(tunnelPacket(frame,
+                                   tunnelPort | TraceState.TraceTunnelKeyMask)))
+            pktCtxs.get(0).traceContext.flowTraceId shouldBe flowTrace1
+
+            val statePacket2 = tunnelPacket(packetsSent.get(2),
+                                           FlowStatePackets.TUNNEL_KEY)
+            wkflEgress ! PacketWorkflow.HandlePackets(Array(statePacket2))
+
+            pktCtxs.clear()
+            wkflEgress ! PacketWorkflow.HandlePackets(
+                Array(tunnelPacket(frame,
+                                   tunnelPort | TraceState.TraceTunnelKeyMask)))
+            pktCtxs.get(0).traceContext.flowTraceId shouldBe flowTrace2
+            egressTable.get(traceKey) should not be (null)
+
+            clock.time += (5 seconds).toNanos
+            wkflEgress ! CheckBackchannels
+            egressTable.get(traceKey) shouldBe (null)
         }
     }
 }

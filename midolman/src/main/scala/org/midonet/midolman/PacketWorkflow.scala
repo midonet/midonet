@@ -381,7 +381,9 @@ class PacketWorkflow(
             flushTransactions()
         } catch {
             case TraceRequiredException =>
-                pktCtx.log.debug(s"Enabling trace for $pktCtx, and rerunning simulation")
+                pktCtx.log.debug(
+                    s"Enabling trace for $pktCtx with match" +
+                        s" ${pktCtx.origMatch}, and rerunning simulation")
                 pktCtx.prepareForSimulationWithTracing()
                 runWorkflow(pktCtx)
             case NotYetException(f, msg) =>
@@ -468,9 +470,14 @@ class PacketWorkflow(
 
     def applyState(context: PacketContext): Unit = {
         context.log.debug("Applying connection state")
+        val traceInfo = if (context.tracingEnabled) {
+            Some((context.traceKeyForEgress,context.traceContext))
+        } else {
+            None
+        }
         replicator.accumulateNewKeys(context.conntrackTx,
                                      context.natTx,
-                                     context.traceTx,
+                                     traceInfo,
                                      context.inputPort,
                                      context.outPorts,
                                      context.flowTags,
@@ -478,7 +485,6 @@ class PacketWorkflow(
         replicator.pushState(dpChannel)
         context.conntrackTx.commit()
         context.natTx.commit()
-        context.traceTx.commit()
     }
 
     private def handlePacketIngress(context: PacketContext): SimulationResult = {

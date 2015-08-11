@@ -170,7 +170,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
     }
 
     private def sendAndAcceptTransactions(): List[(Packet, List[FlowAction])] = {
-        sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
+        sender.accumulateNewKeys(connTrackTx, natTx, None,
                                  ingressPort.id,
                                  List(egressPort1.id).asJava,
                                  new ArrayList[FlowTag](),
@@ -286,7 +286,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             }
 
             When("The transaction is added to the replicator")
-            sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
+            sender.accumulateNewKeys(connTrackTx, natTx, None,
                                      ingressPortNoGroup.id,
                                      List(egressPortNoGroup.id).asJava,
                                      new ArrayList[FlowTag](),
@@ -305,24 +305,6 @@ class FlowStateReplicatorTest extends MidolmanSpec {
                 sender.natTable.get(k) should equal (v)
             }
         }
-
-        scenario("Replicate trace keys") {
-            Given("A set of trace keys")
-            for ((k, v) <- traces) {
-                traceTx.putAndRef(k, v)
-            }
-
-            When("The transaction is added to the replicator and sent")
-            sendAndAcceptTransactions()
-
-            Then("The trace keys should appear at the other side")
-            for ((k, v) <- traces) {
-                log.info("k {} v {} get {} sender {}", k, v,
-                         recipient.traceTable.get(k),
-                         sender.traceTable.get(k))
-                recipient.traceTable.get(k) should equal (v)
-            }
-        }
     }
 
     feature("Unref callbacks are correctly added") {
@@ -335,7 +317,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
 
             When("The transaction is commited and added to the replicator")
             connTrackTx.commit()
-            sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
+            sender.accumulateNewKeys(connTrackTx, natTx, None,
                                      ingressPort.id,
                                      List(egressPort1.id).asJava,
                                      new ArrayList[FlowTag](), callbacks)
@@ -364,7 +346,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
 
             When("The transaction is commited and added to the replicator")
             natTx.commit()
-            sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
+            sender.accumulateNewKeys(connTrackTx, natTx, None,
                 ingressPort.id, List(egressPort1.id).asJava,
                 new ArrayList[FlowTag](), callbacks)
 
@@ -378,34 +360,6 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             (0 to 1) foreach { callbacks.get(_).call() }
             (0 to 1) map { natMappings.drop(_).head._1 } foreach { key =>
                 sender.natTable.unrefedKeys should contain (key)
-            }
-        }
-
-        scenario("For trace keys") {
-            Given("A trace key and a trace ref() in a transaction")
-            traceTx.putAndRef(traces.head._1, traces.head._2)
-            val secondTrace = traces.drop(1).head
-            sender.traceTable.putAndRef(secondTrace._1, secondTrace._2)
-            traceTx.ref(secondTrace._1)
-
-            val callbacks = new ArrayList[Callback0]
-
-            When("The transaction is committed and added to the replicator")
-            traceTx.commit()
-            sender.accumulateNewKeys(connTrackTx, natTx, traceTx, ingressPort.id,
-                                     List(egressPort1.id).asJava,
-                                     new ArrayList[FlowTag](), callbacks)
-
-            Then("The unref callbacks should have been correctly added")
-
-            callbacks should have size 2
-            (0 to 1) map { traces.drop(_).head._1 } foreach { key =>
-                sender.traceTable.unrefedKeys should not contain (key)
-            }
-
-            (0 to 1) foreach { callbacks.get(_).call() }
-            (0 to 1) map { traces.drop(_).head._1 } foreach { key =>
-                sender.traceTable.unrefedKeys should contain (key)
             }
         }
     }

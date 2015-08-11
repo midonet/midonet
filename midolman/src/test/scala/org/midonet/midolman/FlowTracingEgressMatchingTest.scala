@@ -242,7 +242,11 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         // should have the same packet context after the workflow restart
         ingressCtx should be (packetCtxTrapIngress.pop())
 
-        val egressFrame = applyPacketActions(packet.getEthernet(),
+        // add it to the trace table so egress can find it
+        traceTable.putAndRef(ingressCtx.traceKeyForEgress,
+                             ingressCtx.traceContext)
+
+        val egressFrame = applyPacketActions(packet.getEthernet,
                                              actions)
         val egressFrameFlowMatch =
             FlowMatches.fromEthernetPacket(egressFrame)

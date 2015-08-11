@@ -170,29 +170,20 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         }
     }
 
-    private val _traceAdder = new Reducer[TraceKey, TraceContext,
-                                          ArrayList[Callback0]] {
-        override def apply(callbacks: ArrayList[Callback0],
-                           k: TraceKey, ctx: TraceContext)
-                : ArrayList[Callback0] = {
-            if (txPeers.size() > 0) {
-                log.debug("push trace key: {}", k)
-                txTraceEntry.clear()
+    private def addTraceState(k: TraceKey, ctx: TraceContext): Unit = {
+        if (txPeers.size() > 0) {
+            log.debug("push trace key: {}", k)
+            txTraceEntry.clear()
 
-                traceKeyToProto(k, txTraceEntry)
-                txTraceEntry.setFlowTraceId(ctx.flowTraceId)
-                val iter = ctx.requests.iterator
-                while (iter.hasNext) {
-                    txTraceEntry.addRequestId(iter.next())
-                }
-                txState.addTraceEntry(txTraceEntry.build())
+            traceKeyToProto(k, txTraceEntry)
+            txTraceEntry.setFlowTraceId(ctx.flowTraceId)
+            var i = 0
+            val requests = ctx.requests
+            while (i < requests.size) {
+                txTraceEntry.addRequestId(requests.get(i))
+                i += 1
             }
-
-            callbacks.add(new Callback0 {
-                override def call(): Unit = traceTable.unref(k)
-            })
-
-            callbacks
+            txState.addTraceEntry(txTraceEntry.build())
         }
     }
 
@@ -260,11 +251,11 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     @throws(classOf[NotYetException])
     def accumulateNewKeys(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                           natTx: FlowStateTransaction[NatKey, NatBinding],
-                          traceTx: FlowStateTransaction[TraceKey, TraceContext],
+                          traceInfo: Option[(TraceKey,TraceContext)],
                           ingressPort: UUID, egressPorts: JList[UUID],
                           tags: JList[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = {
-        if (natTx.size() == 0 && conntrackTx.size() == 0 && traceTx.size() == 0)
+        if (natTx.size() == 0 && conntrackTx.size() == 0 && !traceInfo.isDefined)
             return
 
         resolvePeers(ingressPort, egressPorts, txPeers, txPorts, tags)
@@ -278,7 +269,10 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         txIngressPort = ingressPort
         conntrackTx.fold(callbacks, _conntrackAdder)
         natTx.fold(callbacks, _natAdder)
-        traceTx.fold(callbacks, _traceAdder)
+        traceInfo match {
+            case Some((k,v)) => addTraceState(k, v)
+            case None =>
+        }
 
         if (hasPeers)
             buildMessage(ingressPort)

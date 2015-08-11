@@ -17,6 +17,7 @@
 package org.midonet.midolman.state
 
 import java.util.{ArrayList, List, Objects, UUID}
+import scala.concurrent.duration._
 
 import org.slf4j.{LoggerFactory,MDC}
 
@@ -58,6 +59,7 @@ object TraceState {
                         networkProto: Byte,
                         srcPort: Int, dstPort: Int)
             extends FlowStateKey {
+        expiresAfter = 5 seconds
     }
 
     class TraceContext {
@@ -103,7 +105,8 @@ object TraceState {
 trait TraceState extends FlowState { this: PacketContext =>
     import org.midonet.midolman.state.TraceState._
 
-    var traceTx: FlowStateTransaction[TraceKey, TraceContext] = _
+    // noone should write to this transaction
+    var traceTxReadOnly: FlowStateTransaction[TraceKey, TraceContext] = _
     val traceContext: TraceContext = new TraceContext
 
     private var clearEnabled = true
@@ -120,7 +123,6 @@ trait TraceState extends FlowState { this: PacketContext =>
 
         if (clearEnabled) {
             traceContext.clear()
-            traceTx.flush()
         }
     }
 
@@ -135,13 +137,7 @@ trait TraceState extends FlowState { this: PacketContext =>
     def enableTracing(traceRequestId: UUID): Unit = {
         val key = TraceKey.fromFlowMatch(origMatch)
         if (!traceContext.enabled) {
-            val storedCtx = traceTx.get(key)
-            if (storedCtx == null) {
-                traceContext.enable()
-                traceTx.putAndRef(key, traceContext)
-            } else {
-                traceContext.reset(storedCtx)
-            }
+            traceContext.enable(UUID.randomUUID())
         }
         traceContext.addRequest(traceRequestId)
         log = PacketContext.traceLog
@@ -157,13 +153,8 @@ trait TraceState extends FlowState { this: PacketContext =>
         }
 
     // setkey actions will modify the packet before it hits the egress
-    // host. Add a tracekey that will match this packet
-    def addTraceKeysForEgress(): Unit = {
-        if (tracingEnabled) {
-            val modKey = TraceKey.fromFlowMatch(wcmatch)
-            traceTx.putAndRef(modKey, traceContext)
-        }
-    }
+    // host. the trace
+    def traceKeyForEgress = TraceKey.fromFlowMatch(wcmatch)
 
     def setTraceTunnelBit(key: Long): Long = {
         key | TraceTunnelKeyMask
@@ -182,7 +173,7 @@ trait TraceState extends FlowState { this: PacketContext =>
 
     def enableTracingOnEgress(): Unit = {
         val key = TraceKey.fromFlowMatch(origMatch)
-        val storedContext = traceTx.get(key)
+        val storedContext = traceTxReadOnly.get(key)
         log = PacketContext.traceLog
         if (storedContext == null) {
             log.warn("Couldn't find trace state for {}", key)
@@ -192,7 +183,6 @@ trait TraceState extends FlowState { this: PacketContext =>
         }
         FlowTracingContext.updateContext(traceContext.requests,
                                          traceContext.flowTraceId, key)
-
         stripTraceBit(wcmatch)
     }
 }

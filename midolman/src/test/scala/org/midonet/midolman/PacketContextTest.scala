@@ -52,9 +52,6 @@ class PacketContextTest extends MidolmanSpec {
             context.conntrackTx.putAndRef(connTrackKey, ConnTrackState.RETURN_FLOW)
             val natKey = NatKey(context.origMatch, UUID.randomUUID(), NatState.FWD_DNAT)
             context.natTx.putAndRef(natKey, NatBinding(IPv4Addr.random, 2))
-            val traceKey = TraceKey.fromFlowMatch(context.origMatch)
-            context.traceTx.putAndRef(traceKey, new TraceContext)
-
             context.clear()
 
             context.flowRemovedCallbacks should be (empty)
@@ -64,7 +61,6 @@ class PacketContextTest extends MidolmanSpec {
             context.flowTags should be (empty)
             context.conntrackTx.size() should be (0)
             context.natTx.size() should be (0)
-            context.traceTx.size() should be (0)
         }
     }
 }
