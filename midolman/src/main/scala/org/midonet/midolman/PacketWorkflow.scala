@@ -396,7 +396,9 @@ class PacketWorkflow(
             flushTransactions()
         } catch {
             case TraceRequiredException =>
-                pktCtx.log.debug(s"Enabling trace for $pktCtx, and rerunning simulation")
+                pktCtx.log.debug(
+                    s"Enabling trace for $pktCtx with match" +
+                        s" ${pktCtx.origMatch}, and rerunning simulation")
                 pktCtx.prepareForSimulationWithTracing()
                 runWorkflow(pktCtx)
             case NotYetException(f, msg) =>

@@ -155,31 +155,20 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         }
     }
 
-    private val _traceAdder = new Reducer[TraceKey, TraceContext,
-                                          ArrayList[Callback0]] {
-        override def apply(callbacks: ArrayList[Callback0],
-                           k: TraceKey, ctx: TraceContext)
-                : ArrayList[Callback0] = {
-            if (txPeers.size() > 0) {
-                log.debug("push trace key: {}", k)
-                txTraceEntry.clear()
+    private def addTraceState(k: TraceKey, ctx: TraceContext): Unit = {
+        if (txPeers.size() > 0) {
+            log.debug("push trace key: {}", k)
+            txTraceEntry.clear()
 
-                traceKeyToProto(k, txTraceEntry)
-                txTraceEntry.setFlowTraceId(ctx.flowTraceId)
-                var i = 0
-                val requests = ctx.requests
-                while (i < requests.size) {
-                    txTraceEntry.addRequestId(requests.get(i))
-                    i += 1
-                }
-                txState.addTraceEntry(txTraceEntry.build())
+            traceKeyToProto(k, txTraceEntry)
+            txTraceEntry.setFlowTraceId(ctx.flowTraceId)
+            var i = 0
+            val requests = ctx.requests
+            while (i < requests.size) {
+                txTraceEntry.addRequestId(requests.get(i))
+                i += 1
             }
-
-            callbacks.add(new Callback0 {
-                override def call(): Unit = traceTable.unref(k)
-            })
-
-            callbacks
+            txState.addTraceEntry(txTraceEntry.build())
         }
     }
 
@@ -237,7 +226,9 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         val callbacks = context.flowRemovedCallbacks
         context.conntrackTx.fold(callbacks, _conntrackAdder)
         context.natTx.fold(callbacks, _natAdder)
-        context.traceTx.fold(callbacks, _traceAdder)
+        if (context.tracingEnabled) {
+            addTraceState(context.traceKeyForEgress, context.traceContext)
+        }
         buildMessage(context, ingressPort)
     }
 

@@ -45,16 +45,15 @@ trait StateContext extends Clearable
         this.conntrackTx = conntrackTx
         this.natTx = natTx
         this.natLeaser = natLeaser
-        this.traceTx = traceTx
+        this.traceTxReadOnly = traceTx
     }
 
     def containsFlowState =
-        conntrackTx.size() > 0 || natTx.size() > 0 || traceTx.size() > 0
+        conntrackTx.size() > 0 || natTx.size() > 0 || tracingEnabled
 
     def commitStateTransactions(): Unit ={
         conntrackTx.commit()
         natTx.commit()
-        traceTx.commit()
     }
 
     abstract override def clear(): Unit = {
