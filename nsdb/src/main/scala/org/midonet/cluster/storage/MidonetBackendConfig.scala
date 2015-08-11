@@ -34,6 +34,8 @@ class MidonetBackendConfig(val conf: Config) {
     def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
     def useNewStack = conf.getBoolean("zookeeper.use_new_stack")
     def bufferSize = conf.getInt("zookeeper.buffer_size")
+
+    def federationEnabled = conf.getBoolean("federation.enabled")
 }
 
 class CassandraConfig(val conf: Config) {
