@@ -42,13 +42,18 @@ object MidonetBackend {
     final val VtepConnState = "connection_state"
 }
 
-/** The trait that models the new Midonet Backend, managing all relevant
-  * connections and APIs to interact with backend storages. */
-abstract class MidonetBackend extends AbstractService {
+trait Backend {
     /** Provides access to the Topology storage API */
     def store: Storage
     def stateStore: StateStorage
     def curator: CuratorFramework
+}
+
+/** The trait that models the new Midonet Backend, managing all relevant
+  * connections and APIs to interact with backend storages. */
+abstract class MidonetBackend extends AbstractService with Backend {
+    /** Indicates whether the new backend stack is active */
+    def isEnabled = false
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */

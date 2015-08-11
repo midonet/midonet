@@ -115,7 +115,7 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
     /**
      * Regex pattern representing IPv4 CIDR
      */
-    public static String IPV4_CIDR_PATTERN =
+    public static final String IPV4_CIDR_PATTERN =
             "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}" +
             "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])" +
             "(\\/(\\d|[1-2]\\d|3[0-2]))?$";

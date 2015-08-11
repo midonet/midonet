@@ -507,9 +507,9 @@ object ZoomConvert {
     @inline
     private def getListConverter(elClass: Class[_], zoomField: ZoomField)
     : ListConverter = {
-        listConverters.getOrElseUpdate(
-            elClass,
-            new ListConverter(getScalarConverter(elClass, zoomField)))
+        //listConverters.getOrElseUpdate(
+        //    elClass,
+            new ListConverter(getScalarConverter(elClass, zoomField))//)
     }
 
     /** Gets a converter instance for a [[Set]] field. */

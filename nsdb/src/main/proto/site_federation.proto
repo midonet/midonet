@@ -1,0 +1,97 @@
+//
+// Copyright 2015 Midokura SARL
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+import "commons.proto";
+
+package org.midonet.cluster.models;
+option java_package = "org.midonet.cluster.models";
+option java_outer_classname = "Federation";
+
+
+/*
+Workflow:
+
+These are the steps to be performed by the cloud operator:
+1. Prepare a VTEP at each site:
+   a. in a MidoNet deployment, create a router with a WAN (inter-site) routable
+      IP address. This could be a Neutron router belonging to the Admin tenant.
+   b. in a Regional Peering Facility, install a VTEP that supports the
+      OVSDB hardware vtep schema.
+2. Install a dedicated MidoNet cluster for multi-site orchestration. It will
+   run the "federation-api" minion.
+   - Alternatively, activate the "federation-api" minion of one of the MidoNet
+     deployments.
+3. Register each of the VTEPs prepared in #1 with the orchestration cluster
+   prepared in step #2.
+
+Assuming the cloud operator has prepared a VTEP at each site, then in order to
+peer routers across sites:
+1. Create a VxlanSegment
+2. Create bindings between routers in and the vxlan segment
+3. In the absence of dynamic routing, each binding specifies the local CIDRs
+   that should be accessible to the routers at other sites.
+*/
+
+message MidonetRouterBinding {
+    optional UUID id = 1;
+    optional UUID vtep_id = 2;
+    optional UUID segment_id = 3;
+    optional UUID router_id = 4;
+    optional IPSubnet router_cidr = 5;
+    repeated IPSubnet local_subnets = 6;
+    optional string router_mac = 7;    // allocated by MidoNet
+    optional UUID router_port_id = 8;  // allocated by MidoNet
+    optional UUID vtep_port_id = 9;    // allocated by MidoNet
+}
+
+message MidonetVtep {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional UUID vtep_router_id = 3;
+    optional string username = 4;
+    optional string password = 5;
+    repeated IPAddress api_ip = 6;
+    optional uint32 api_port = 7;
+}
+
+message OvsdbRouterBinding {
+    optional UUID id = 1;
+    optional UUID vtep_id = 2;
+    optional UUID segment_id = 3;
+    optional string port_name = 4;
+    optional uint32 vlan_id = 5;
+    optional IPSubnet router_cidr = 6;
+    optional string router_mac = 7;
+    repeated IPSubnet local_subnets = 8;
+}
+
+message OvsdbVtep {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional IPAddress management_ip = 3;
+    optional uint32 management_port = 4;
+    // Do we need a default tunnel IP?
+}
+
+message VxlanSegment {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional uint32 vni = 3; // allocated by MidoNet
+
+    // back-references
+    repeated UUID midonet_binding = 6;
+    repeated UUID ovsdb_binding = 7;
+}

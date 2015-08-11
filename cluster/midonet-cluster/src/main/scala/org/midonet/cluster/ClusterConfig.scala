@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config.{ConfigFactory, Config}
 
 import org.midonet.cluster.services.rest_api.Vladimir
+import org.midonet.cluster.services.rest_api.resources.federation.Yaroslav
 import org.midonet.cluster.services.{ScheduledMinionConfig, MinionConfig}
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.heartbeat.Heartbeat
@@ -60,6 +61,7 @@ class ClusterConfig(_conf: Config) {
     val topologyApi = new TopologyApiConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
     val restApi = new RestApiConfig(conf)
+    val federationApi = new FederationApiConfig(conf)
 }
 
 class AuthConfig(val conf: Config) {
@@ -134,5 +136,14 @@ class RestApiConfig(val conf: Config) extends MinionConfig[Vladimir] {
 
     def httpPort = conf.getInt(s"$Prefix.http_port")
     def httpsPort = conf.getInt(s"$Prefix.https_port")
+    def rootUri = conf.getString(s"$Prefix.root_uri")
+}
+
+class FederationApiConfig(val conf: Config) extends MinionConfig[Yaroslav] {
+    final val Prefix = "cluster.federation_api"
+
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+
+    def httpPort = conf.getInt(s"$Prefix.http_port")
     def rootUri = conf.getString(s"$Prefix.root_uri")
 }
