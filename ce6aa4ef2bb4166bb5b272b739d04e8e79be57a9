@@ -131,6 +131,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0f997f78",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:16:17Z",
+      "side": 1,
+      "message": "I agree that the new solution is easier to read.",
+      "parentUuid": "9ad9bd40_0cbd1a02",
+      "revId": "ce6aa4ef2bb4166bb5b272b739d04e8e79be57a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_495c7919",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
         "patchSetId": 3
