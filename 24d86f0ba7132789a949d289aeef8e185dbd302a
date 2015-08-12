@@ -1,0 +1,95 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_fed96f22",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-08-12T09:48:57Z",
+      "side": 1,
+      "message": "I know you\u0027d hate it though:\n\n                brokerProtocol.prepareFlowDelete(\n                    datapathId, flowMatch.getKeys, broker.get(brokerSeq))",
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1ed533e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-08-12T09:48:57Z",
+      "side": 1,
+      "message": "Ditto\n\n            log.warn(\"Unexpected reply to flow deletion; \" +\n                \"probably the late answer of a request that timed out\")",
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fefa4f41",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-08-12T09:48:57Z",
+      "side": 1,
+      "message": "Ditto\n\n            NetlinkMessage.writeHeader(createReplyBuf, size,\n                NLMessageType.ERROR, 0, seq.toInt, 0, 0, 0)",
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5e9b3b17",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-08-12T09:48:57Z",
+      "side": 1,
+      "message": "Ditto\n\n            factory.selectorProvider.selector.asInstanceOf[MockSelector].makeReady(\n                SelectionKey.OP_READ, 2)",
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7e6c7f08",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkWriter.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-08-12T09:48:57Z",
+      "side": 1,
+      "message": "It\u0027s assuming the channel is non blocking but I gave the blocking channel in DefaultInterfaceScanner:\n\nhttps://github.com/midonet/midonet/blob/master/midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala#L62-L64\nhttps://github.com/midonet/midonet/blob/master/netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala#L83",
+      "range": {
+        "startLine": 60,
+        "startChar": 20,
+        "endLine": 60,
+        "endChar": 28
+      },
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
