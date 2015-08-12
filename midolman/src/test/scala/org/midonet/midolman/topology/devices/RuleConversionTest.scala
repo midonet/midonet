@@ -45,12 +45,23 @@ class RuleConversionTest extends FeatureSpec with Matchers
 
     feature("Conversion for rule") {
         scenario("Conversion of a pojo rule to a proto buff is not supported") {
-            val simRule = new LiteralRule(new Condition, RuleResult.Action.ACCEPT,
+            val simRule = new LiteralRule(new Condition,
+                                          RuleResult.Action.ACCEPT,
                                           UUID.randomUUID() /* chainId */)
 
             intercept[ZoomConvert.ConvertException] {
                 ZoomConvert.toProto(simRule, classOf[Rule])
             }
+        }
+
+        scenario("Protobuf with no conditions results in a rule with a " +
+                 "condition that matches everything") {
+            val rule = createLiteralRuleBuilder(id = UUID.randomUUID(),
+                              chainId = Some(UUID.randomUUID()),
+                              Some(Action.ACCEPT))
+                           .build
+            val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
+            simRule.getCondition shouldBe Condition.TRUE
         }
 
         scenario("Test conversion for a literal rule") {
@@ -65,7 +76,7 @@ class RuleConversionTest extends FeatureSpec with Matchers
 
         scenario("Test conversion for a trace rule") {
             val builder = createTraceRuleBuilder(id = UUID.randomUUID(),
-                                                 chainId = Some(UUID.randomUUID()))
+                              chainId = Some(UUID.randomUUID()))
             setConditionAllFieldsDefault(builder)
             val rule = builder.build()
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
@@ -74,8 +85,8 @@ class RuleConversionTest extends FeatureSpec with Matchers
 
         scenario("Test conversion for a jump rule") {
             val builder = createJumpRuleBuilder(id = UUID.randomUUID(),
-                                                chainId = Some(UUID.randomUUID()),
-                                                jumpChainId = Some(UUID.randomUUID()))
+                              chainId = Some(UUID.randomUUID()),
+                              jumpChainId = Some(UUID.randomUUID()))
             setConditionAllFieldsDefault(builder)
             val rule = builder.build()
             val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
@@ -125,7 +136,7 @@ class RuleConversionTest extends FeatureSpec with Matchers
     feature("Protocol buffer validation") {
         scenario("Test protobuf validation with a rule without an action") {
             val rule = createLiteralRuleBuilder(id = UUID.randomUUID(),
-                                                chainId = Some(UUID.randomUUID()))
+                           chainId = Some(UUID.randomUUID()))
                 .build()
 
             intercept[ZoomConvert.ConvertException] {
@@ -135,8 +146,8 @@ class RuleConversionTest extends FeatureSpec with Matchers
 
         scenario("Test protobuf validation with a jump rule without a JUMP action") {
             val rule = createJumpRuleBuilder(id = UUID.randomUUID(),
-                                             chainId = Some(UUID.randomUUID()),
-                                             jumpChainId = Some(UUID.randomUUID()))
+                           chainId = Some(UUID.randomUUID()),
+                           jumpChainId = Some(UUID.randomUUID()))
                       .setAction(Rule.Action.ACCEPT)
                       .build()
 
