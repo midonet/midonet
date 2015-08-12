@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_fe2defa8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-12T10:22:58Z",
+      "side": 1,
+      "message": "Maybe he we should add a take(1) or equivalent. Otherwise, the flatMap below will duplicate the notifications from the flooding proxy observable for each tunnel-zone emitted on the tunnel-zone observable.\n\nOr maybe even a: switchOnNext, making sure we unsubscribe from the GroupObservable, discarding its buffer.",
+      "range": {
+        "startLine": 177,
+        "startChar": 12,
+        "endLine": 177,
+        "endChar": 69
+      },
+      "revId": "397778afb0e39305c3c70f050eb87bcab2c67a7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
