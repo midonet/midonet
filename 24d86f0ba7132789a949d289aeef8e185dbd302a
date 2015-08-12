@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_3e1bd781",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-12T10:20:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_fed96f22",
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1ed533e4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
         "patchSetId": 17
@@ -30,6 +48,24 @@
       "writtenOn": "2015-08-12T09:48:57Z",
       "side": 1,
       "message": "Ditto\n\n            log.warn(\"Unexpected reply to flow deletion; \" +\n                \"probably the late answer of a request that timed out\")",
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5e1edb70",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-12T10:20:39Z",
+      "side": 1,
+      "message": "log message: not fixing this",
+      "parentUuid": "9ad9bd40_1ed533e4",
       "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7e11df5b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-12T10:20:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_3ebf5762",
+      "range": {
+        "startLine": 203,
+        "startChar": 27,
+        "endLine": 203,
+        "endChar": 37
+      },
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_fefa4f41",
         "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
         "patchSetId": 17
@@ -76,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_fe040f19",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-12T10:20:39Z",
+      "side": 1,
+      "message": "not fixing this",
+      "parentUuid": "9ad9bd40_fefa4f41",
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_5e9b3b17",
         "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
         "patchSetId": 17
@@ -87,6 +165,24 @@
       "writtenOn": "2015-08-12T09:48:57Z",
       "side": 1,
       "message": "Ditto\n\n            factory.selectorProvider.selector.asInstanceOf[MockSelector].makeReady(\n                SelectionKey.OP_READ, 2)",
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1e00d300",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-12T10:20:39Z",
+      "side": 1,
+      "message": "not fixing this",
+      "parentUuid": "9ad9bd40_5e9b3b17",
       "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -116,6 +212,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_de090b32",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkWriter.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-12T10:20:39Z",
+      "side": 1,
+      "message": "if it\u0027s blocking then this code will never be reached.",
+      "parentUuid": "9ad9bd40_7e6c7f08",
+      "range": {
+        "startLine": 60,
+        "startChar": 20,
+        "endLine": 60,
+        "endChar": 28
+      },
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_5e697bf7",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkWriter.scala",
         "patchSetId": 17
@@ -127,6 +247,24 @@
       "writtenOn": "2015-08-12T09:49:06Z",
       "side": 1,
       "message": "this seems to return true blindly, even if the channel didn\u0027t become ready. It isn\u0027t different from the old behaviour though.",
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_be0e0739",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkWriter.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-12T10:20:39Z",
+      "side": 1,
+      "message": "i wasn\u0027t sure what the behaviour would be if somebody closed the channel and didn\u0027t call selector.wakeup(), so I just sleep for a while and try again, eventually hitting a closed  channel. if it\u0027s guaranteed that closing a channel will wake up the thread, then i don\u0027t need this code.",
+      "parentUuid": "9ad9bd40_5e697bf7",
       "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
