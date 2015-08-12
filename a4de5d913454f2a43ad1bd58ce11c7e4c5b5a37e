@@ -22,6 +22,30 @@
       "revId": "a4de5d913454f2a43ad1bd58ce11c7e4c5b5a37e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5ebc1bbb",
+        "filename": "odp/src/integration/scala/org/midonet/odp/OvsTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-12T08:33:41Z",
+      "side": 1,
+      "message": "i don\u0027t see a problem with sharing a datapath. this is how the integration tests actually work, which this class just wraps.",
+      "parentUuid": "9ad9bd40_7e81dff9",
+      "range": {
+        "startLine": 58,
+        "startChar": 33,
+        "endLine": 58,
+        "endChar": 36
+      },
+      "revId": "a4de5d913454f2a43ad1bd58ce11c7e4c5b5a37e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
