@@ -34,12 +34,13 @@ import org.slf4j.bridge.SLF4JBridgeHandler
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.{AuthModule, AuthService}
+import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter}
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.storage.{LegacyStateTableStorage, MidonetBackendConfig}
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.midolman.state.PathBuilder
@@ -61,15 +62,18 @@ object Vladimir {
 
         override def configureServlets(): Unit = {
             // To redirect JDK log to slf4j. Ref: MNA-706
-            SLF4JBridgeHandler.removeHandlersForRootLogger();
-            SLF4JBridgeHandler.install();
+            SLF4JBridgeHandler.removeHandlersForRootLogger()
+            SLF4JBridgeHandler.install()
 
             install(new AuthModule(config.auth, log))
 
+            val paths = new PathBuilder(config.backend.rootKey)
+
             bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
             bind(classOf[CorsFilter])
-            bind(classOf[PathBuilder])
-                .toInstance(new PathBuilder(config.backend.rootKey))
+            bind(classOf[PathBuilder]).toInstance(paths)
+            bind(classOf[StateTableStorage])
+                .toInstance(new LegacyStateTableStorage(curator, paths))
             bind(classOf[CuratorFramework]).toInstance(curator)
             bind(classOf[MidonetBackend]).toInstance(backend)
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
