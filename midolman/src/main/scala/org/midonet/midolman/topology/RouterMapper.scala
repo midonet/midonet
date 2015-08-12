@@ -135,9 +135,8 @@ object RouterMapper {
             log.debug("Router port updated: {}", port)
 
             val oldPublish = isPublishingRoutes
-            val newPublish = port.adminStateUp &&
-                             (port.isInterior || port.isExterior &&
-                                                 port.isActive)
+            val newPublish = port.isInterior || port.isExterior &&
+                                                port.isActive
 
             currentPort = port
 
