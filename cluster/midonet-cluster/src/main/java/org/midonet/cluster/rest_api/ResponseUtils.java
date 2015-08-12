@@ -62,6 +62,11 @@ public class ResponseUtils {
         return response.build();
     }
 
+    public static Response buildErrorResponse(Response.Status status,
+                                              String message) {
+        return buildErrorResponse(status.getStatusCode(), message);
+    }
+
     public static <T> Response buildValidationErrorResponse(
             Set<ConstraintViolation<T>> violations) {
         ValidationErrorEntity errors = new ValidationErrorEntity();

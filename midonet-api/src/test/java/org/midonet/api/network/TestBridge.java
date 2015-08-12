@@ -845,9 +845,6 @@ public class TestBridge {
 
         @Test
         public void testArpTable() throws Exception {
-
-            Assume.assumeFalse(FuncTest.isAwaitingImpl());
-
             DtoBridge bridge = postBridge("bridge1");
 
             // Add an Arp Entry

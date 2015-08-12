@@ -19,6 +19,7 @@ package org.midonet.cluster.services.rest_api.resources
 import java.util.UUID
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
+import javax.ws.rs.core.Response.Status
 import javax.ws.rs.{Path, PathParam}
 
 import scala.util.control.NonFatal
@@ -65,7 +66,10 @@ class PoolResource @Inject()(resContext: ResourceContext)
     override protected def deleteResource(clazz: Class[_ <: UriResource],
                     id: Any, defaultRes: Response = OkNoContentResponse) = {
         try {
-            super.deleteResource(clazz, id)
+            val response = super.deleteResource(clazz, id)
+            if (response.getStatus == Status.NOT_FOUND.getStatusCode) {
+                OkNoContentResponse
+            } else response
         } catch {
             case e: NotFoundHttpException => OkNoContentResponse
             case NonFatal(t) =>

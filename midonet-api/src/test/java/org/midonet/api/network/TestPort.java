@@ -1380,9 +1380,6 @@ public class TestPort {
          */
         @Test
         public void testGetRouterPortHostInterfaceSuccess() throws Exception {
-
-            Assume.assumeFalse(FuncTest.isAwaitingImpl());
-
             Map<UUID, DtoRouterPort> portMap =
                     new HashMap<>();
 
@@ -1430,9 +1427,6 @@ public class TestPort {
          */
         @Test
         public void testGetBridgePortHostInterfaceSuccess() throws Exception {
-
-            Assume.assumeFalse(FuncTest.isAwaitingImpl());
-
             Map<UUID, DtoBridgePort> portMap =
                     new HashMap<>();
 
