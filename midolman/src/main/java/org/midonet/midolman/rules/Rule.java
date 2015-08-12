@@ -80,6 +80,11 @@ public abstract class Rule extends BaseConfig {
                 "Rule " + id + " has no action set (" + rule + ")");
         }
 
+        // When the rule has no condition set, the condition matches everything.
+        if (!rule.hasCondition()) {
+            this.condition = Condition.TRUE;
+        }
+
         switch (rule.getType()) {
             case JUMP_RULE:
                 if (!rule.hasJumpRuleData()) {
