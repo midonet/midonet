@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_4fa707bd",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:16:17Z",
+      "side": 1,
+      "message": "nit, we can spare this if we take the Status itself as a param (no need to do it now)",
+      "range": {
+        "startLine": 101,
+        "startChar": 43,
+        "endLine": 101,
+        "endChar": 56
+      },
+      "revId": "4bd6605383566a07759a6691496ac8d628c83078",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
