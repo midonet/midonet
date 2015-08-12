@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_6f984b6a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:24:21Z",
+      "side": 1,
+      "message": "We should document these filters so developers know what and how to use them, but feel free to do in a later patch.",
+      "range": {
+        "startLine": 266,
+        "startChar": 18,
+        "endLine": 266,
+        "endChar": 25
+      },
+      "revId": "abb0791163ae6d77ea0c3197a6221d8338faf9f0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
