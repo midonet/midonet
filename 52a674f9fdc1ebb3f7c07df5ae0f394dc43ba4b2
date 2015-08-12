@@ -1,0 +1,607 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2f61e3a8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "For the same reason, inject backend not vt.",
+      "range": {
+        "startLine": 103,
+        "startChar": 46,
+        "endLine": 103,
+        "endChar": 65
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6f404b07",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "Does this class need to be private and hidden here? Others will likely need to use it (e.g. Vxgw). It seems fine to have it as an autonomous class.",
+      "range": {
+        "startLine": 103,
+        "startChar": 28,
+        "endLine": 103,
+        "endChar": 45
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8f43cf11",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "I\u0027d avoid this. Not a problem now, but it introduces a dep. to midolman that will be problematic in vxgw, as it lives in cluster which we need to decouple from midolman.",
+      "range": {
+        "startLine": 106,
+        "startChar": 38,
+        "endLine": 106,
+        "endChar": 53
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_af4df33f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "bridge.bridge is redundant\n\nAlso, I believe the logger appenders are configured to keep just the last chunk, so in practise this will generate messages like:\n\nINFO mac-learning-table blah\n\nMaybe it\u0027s better to have:\n\n   org.midonet.devices.bridge-$id-mac-learning-table\n\nWhich will yield\n\nINFO bridge-\u003cid\u003e-mac-learning-table blah\n\nwe could cut -table probably",
+      "range": {
+        "startLine": 109,
+        "startChar": 34,
+        "endLine": 109,
+        "endChar": 48
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0f4fbf34",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "should this be debug?",
+      "range": {
+        "startLine": 115,
+        "startChar": 16,
+        "endLine": 115,
+        "endChar": 20
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4f6467b8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "debug",
+      "range": {
+        "startLine": 126,
+        "startChar": 16,
+        "endLine": 126,
+        "endChar": 20
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ef6a9b7f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 816,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "noted elsewhere, this should be a config",
+      "range": {
+        "startLine": 816,
+        "startChar": 28,
+        "endLine": 816,
+        "endChar": 39
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0f66dfba",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 6
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "what separator?",
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ef01bbaf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MacTableMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "It\u0027s justified to make a subpackage device_state (if you take the suggestion I made in MidonetBackend, or otherwise state-tables).",
+      "range": {
+        "startLine": 17,
+        "startChar": 33,
+        "endLine": 17,
+        "endChar": 40
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4f32a7a7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MacTableMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "no need to nest, no? the serializer and deserializer could live in their own file(s)",
+      "range": {
+        "startLine": 48,
+        "startChar": 14,
+        "endLine": 48,
+        "endChar": 31
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ef18db1f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MacTableMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "NullPointerException(\"Can\u0027t serialize null MAC\")",
+      "range": {
+        "startLine": 59,
+        "startChar": 30,
+        "endLine": 59,
+        "endChar": 54
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4fd9c755",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MacTableMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "ditto, also a nit, move all the validations to the top, so you don\u0027t need to bother creating StringBuffer and appending stuff until you\u0027re certain they\u0027ll be used.\n\nAnyway, the compiler should take care of optimising the appends, so you can just concatenate",
+      "range": {
+        "startLine": 73,
+        "startChar": 30,
+        "endLine": 73,
+        "endChar": 54
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_efeffbe6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MacTableMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 81,
+        "startChar": 31,
+        "endLine": 81,
+        "endChar": 33
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0feb3fdc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MacTableMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "nit: parse, or nullAwareParse? The filter is misleading",
+      "range": {
+        "startLine": 104,
+        "startChar": 33,
+        "endLine": 104,
+        "endChar": 43
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2fbd63d8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MacTableMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "nit: not needed as the other branch throws",
+      "range": {
+        "startLine": 113,
+        "startChar": 26,
+        "endLine": 113,
+        "endChar": 32
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4fc0e74f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MacTableMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "debug (same for the rest in the class)",
+      "range": {
+        "startLine": 155,
+        "startChar": 12,
+        "endLine": 155,
+        "endChar": 16
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8fb66ff7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MacTableMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "Do we want a compose here to avoid running this for each subscriber?",
+      "range": {
+        "startLine": 189,
+        "startChar": 23,
+        "endLine": 189,
+        "endChar": 26
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0fb89f0f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "nit: other, or that",
+      "range": {
+        "startLine": 77,
+        "startChar": 20,
+        "endLine": 77,
+        "endChar": 26
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_efbc5b08",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "indent",
+      "range": {
+        "startLine": 80,
+        "startChar": 16,
+        "endLine": 81,
+        "endChar": 57
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_afd0931f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBusBuilder.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "spaces",
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cfcb1770",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBusBuilder.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_efc61b67",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBusBuilder.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "Do we need a new zkClient for each bus, or is it enough with sharing 1 for all the maps?",
+      "range": {
+        "startLine": 50,
+        "startChar": 12,
+        "endLine": 52,
+        "endChar": 74
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2f3ac398",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "it seems weird to have MacTableUpdate into StateTable, which has a generic intention. I\u0027d expect to see MacTableUpdate in a MacTable object.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 29
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_afc6d397",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTableStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "Does it make sense to just have a macTable(deviceId, vlanId \u003d Option[Short]) ? Same for the ARP table (non-bridges may have it, and the type is not really relevant for this trait).\n\nThe Option[Short] is an alternative to having the vlanId \u003d 0 for untagged. If you prefer Short, we should document the param.\n\nAnyway, as noted in a separate file, the StateTable is a generic data structure. Usages (such as a MacTable, an ArpTable) seem more adequate elsewhere, if one adds a new usage we should not need to alter this file.",
+      "range": {
+        "startLine": 38,
+        "startChar": 8,
+        "endLine": 38,
+        "endChar": 39
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cfc15781",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTableStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "I\u0027d prefer to inject the owner id in the ctor.",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 56
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6fc92bab",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "shouldn\u0027t this belong to config?",
+      "range": {
+        "startLine": 47,
+        "startChar": 8,
+        "endLine": 47,
+        "endChar": 24
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8fccafbc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:10:59Z",
+      "side": 1,
+      "message": "docs\n\nMaybe deviceState would help distinguish against stateStore",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 23
+      },
+      "revId": "52a674f9fdc1ebb3f7c07df5ae0f394dc43ba4b2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
