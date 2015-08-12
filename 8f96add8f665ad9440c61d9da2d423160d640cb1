@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e9745b37",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-12T12:40:17Z",
+      "side": 1,
+      "message": "Add Ref: MNA-734",
+      "revId": "8f96add8f665ad9440c61d9da2d423160d640cb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
