@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_7e81dff9",
+        "filename": "odp/src/integration/scala/org/midonet/odp/OvsTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-08-12T08:24:52Z",
+      "side": 1,
+      "message": "In the original code, datapaths are created for each test. In this patch all tests are using the same datapath created first and I\u0027m just wondering if it\u0027s OK not to isolate the test environment for each test.",
+      "range": {
+        "startLine": 58,
+        "startChar": 33,
+        "endLine": 58,
+        "endChar": 36
+      },
+      "revId": "a4de5d913454f2a43ad1bd58ce11c7e4c5b5a37e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
