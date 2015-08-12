@@ -16,6 +16,24 @@
       "revId": "6e4604a305736ea9257234e17e5e9016b592518b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_decbcb6f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-12T08:13:50Z",
+      "side": 1,
+      "message": "Yup, the other option is to handle trace state as a completely separate state message. You think it\u0027s worth breaking it out? Tracing is enabled selectively, so the extra messages wont be many.",
+      "parentUuid": "9ad9bd40_9b85d5d0",
+      "revId": "6e4604a305736ea9257234e17e5e9016b592518b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
