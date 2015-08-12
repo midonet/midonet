@@ -22,6 +22,30 @@
       "revId": "901d2306e8434ef4550f13b80aa8d33dac66a09f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c974f7d0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MacTableMergedMap.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-12T14:43:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_96d051ca",
+      "range": {
+        "startLine": 131,
+        "startChar": 6,
+        "endLine": 131,
+        "endChar": 23
+      },
+      "revId": "901d2306e8434ef4550f13b80aa8d33dac66a09f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
