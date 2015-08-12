@@ -39,6 +39,30 @@
       "revId": "8f96add8f665ad9440c61d9da2d423160d640cb1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4950e731",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-12T14:47:24Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "9ad9bd40_a94173aa",
+      "range": {
+        "startLine": 59,
+        "startChar": 12,
+        "endLine": 62,
+        "endChar": 36
+      },
+      "revId": "8f96add8f665ad9440c61d9da2d423160d640cb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
