@@ -61,3 +61,18 @@ message HostState {
     optional UUID host_id = 1;
     repeated Interface interfaces = 2;
 }
+
+enum VtepConnectionState {
+    VTEP_DISCONNECTED = 1;
+    VTEP_DISCONNECTING = 2;
+    VTEP_CONNECTED = 3;
+    VTEP_CONNECTING = 4;
+    VTEP_READY = 5;
+    VTEP_ERROR = 6;
+}
+
+message VtepInformation {
+    optional string name = 1;
+    optional string description = 2;
+    repeated IPAddress tunnel_addresses = 3;
+}
