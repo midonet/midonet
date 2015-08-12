@@ -74,17 +74,20 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
        are asynchronously reflected to the merged map. */
     feature("containsKey/get/size") {
         scenario("Key does not exist or is mapped to an empty list of opinions") {
-            Then("The map does not contain 'myKey' originally")
+            Given("The map does not contain 'myKey' originally")
             map.containsKey("myKey") shouldBe false
             map.get("myKey") shouldBe null
             map.size shouldBe 0
 
             val obs = createObserverAndSubscribe()
 
-            And("When we add an opinion")
+            When("We add an opinion")
             putOpinion("myKey", "myValue", "owner")
 
-            And("We remove this opinion")
+            Then("We receive the notification")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            And("When we remove this opinion")
             removeOpinion("myKey", "owner")
 
             Then("The merged map does not contain the key")
