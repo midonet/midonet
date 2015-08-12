@@ -37,7 +37,7 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 class BgpPeerResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[BgpPeer](resContext) {
 
-    override def updateFilter = (to: BgpPeer, from: BgpPeer) => {
+    protected override def updateFilter(to: BgpPeer, from: BgpPeer): Unit = {
         to.update(from)
     }
 }
@@ -51,11 +51,11 @@ class RouterBgpPeerResource @Inject()(routerId: UUID,
                                       resContext: ResourceContext)
     extends MidonetResource[BgpPeer](resContext) {
 
-    override def listFilter = (bgpPeer: BgpPeer) => {
+    protected override def listFilter(bgpPeer: BgpPeer): Boolean = {
         bgpPeer.routerId == routerId
     }
 
-    override def createFilter = (bgpPeer: BgpPeer) => {
+    protected override def createFilter(bgpPeer: BgpPeer): Unit = {
         bgpPeer.create(routerId)
     }
 

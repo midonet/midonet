@@ -17,14 +17,12 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.HealthMonitor
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -41,8 +39,8 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 class HealthMonitorResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[HealthMonitor](resContext) {
 
-    protected override def updateFilter = (to: HealthMonitor,
-                                           from: HealthMonitor) => {
+    protected override def updateFilter(to: HealthMonitor, from: HealthMonitor)
+    : Unit = {
         to.update(from)
     }
 }

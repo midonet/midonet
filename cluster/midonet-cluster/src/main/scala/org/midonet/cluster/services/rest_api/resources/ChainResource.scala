@@ -20,14 +20,12 @@ import java.util.UUID
 
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
 import org.midonet.cluster.rest_api.models.Chain
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -47,10 +45,10 @@ class ChainResource @Inject()(resContext: ResourceContext)
         new ChainRuleResource(id, resContext)
     }
 
-    protected override def listFilter: (Chain) => Boolean = {
+    protected override def listFilter(chain: Chain): Boolean = {
         val tenantId = resContext.uriInfo.getQueryParameters
                                          .getFirst("tenant_id")
-        if (tenantId eq null) (_: Chain) => true
-        else (r: Chain) => r.tenantId == tenantId
+        if (tenantId eq null) true
+        else chain.tenantId == tenantId
     }
 }

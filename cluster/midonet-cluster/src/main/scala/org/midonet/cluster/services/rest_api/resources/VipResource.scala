@@ -24,7 +24,6 @@ import javax.ws.rs.{HeaderParam, POST, WebApplicationException}
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.Status.METHOD_NOT_ALLOWED
 import org.midonet.cluster.rest_api.annotation._
@@ -45,18 +44,7 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 class VipResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Vip](resContext) {
 
-    protected override def updateFilter = (to: Vip, from: Vip) => {
-        to.update(from)
-        val pool = try {
-            getResource(classOf[Pool], to.poolId).getOrThrow
-        } catch {
-            case t: NotFoundHttpException =>
-                throw new BadRequestHttpException(t.getMessage)
-        }
-        to.loadBalancerId = pool.loadBalancerId
-    }
-
-    protected override def createFilter = (vip: Vip) => {
+    protected override def createFilter(vip: Vip): Unit = {
         vip.create()
         val pool = try {
             getResource(classOf[Pool], vip.poolId).getOrThrow
@@ -65,6 +53,17 @@ class VipResource @Inject()(resContext: ResourceContext)
                 throw new BadRequestHttpException(t.getMessage)
         }
         vip.loadBalancerId = pool.loadBalancerId
+    }
+
+    protected override def updateFilter(to: Vip, from: Vip): Unit = {
+        to.update(from)
+        val pool = try {
+            getResource(classOf[Pool], to.poolId).getOrThrow
+        } catch {
+            case t: NotFoundHttpException =>
+                throw new BadRequestHttpException(t.getMessage)
+        }
+        to.loadBalancerId = pool.loadBalancerId
     }
 
 }
@@ -77,11 +76,11 @@ class VipResource @Inject()(resContext: ResourceContext)
 class PoolVipResource @Inject()(poolId: UUID, resContext: ResourceContext)
     extends MidonetResource[Vip](resContext) {
 
-    protected override def listFilter = (vip: Vip) => {
+    protected override def listFilter(vip: Vip): Boolean = {
         vip.poolId == poolId
     }
 
-    protected override def createFilter = (vip: Vip) => {
+    protected override def createFilter(vip: Vip): Unit = {
         vip.create()
         val pool = try {
             getResource(classOf[Pool], vip.poolId).getOrThrow
@@ -106,7 +105,7 @@ class LoadBalancerVipResource @Inject()(loadBalancerId: UUID,
         throw new WebApplicationException(METHOD_NOT_ALLOWED.getStatusCode)
     }
 
-    protected override def listFilter = (vip: Vip) => {
+    protected override def listFilter(vip: Vip): Boolean = {
         vip.loadBalancerId == loadBalancerId
     }
 
