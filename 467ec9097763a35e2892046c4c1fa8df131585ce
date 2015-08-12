@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_49c2a7e9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-12T14:28:47Z",
+      "side": 1,
+      "message": "The update method below will always copy the current values of the vxlan port id/ids, not allowing it to be changed. This is only needed to return a bad request error if the request object would contain an id different from null or the current value.",
+      "parentUuid": "9ad9bd40_f5743237",
+      "range": {
+        "startLine": 283,
+        "startChar": 8,
+        "endLine": 284,
+        "endChar": 47
+      },
+      "revId": "467ec9097763a35e2892046c4c1fa8df131585ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d5ce4e59",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_69b5ab7c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-12T14:28:47Z",
+      "side": 1,
+      "message": "Bad rewrite, will add.",
+      "parentUuid": "9ad9bd40_d5ce4e59",
+      "range": {
+        "startLine": 68,
+        "startChar": 20,
+        "endLine": 68,
+        "endChar": 26
+      },
+      "revId": "467ec9097763a35e2892046c4c1fa8df131585ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_98379b4c",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2015-08-11T18:32:21Z",
       "side": 1,
       "message": "I don\u0027t understand why this needs to be done at the API level. Shouldn\u0027t this be done by the translator?",
+      "range": {
+        "startLine": 99,
+        "startChar": 4,
+        "endLine": 111,
+        "endChar": 5
+      },
+      "revId": "467ec9097763a35e2892046c4c1fa8df131585ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_89b82f76",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-12T14:28:47Z",
+      "side": 1,
+      "message": "Do mean the neutron translator? This is the low-level API for the midonet models, when such objects are created directly, such as when using the midonet cli.",
+      "parentUuid": "9ad9bd40_98379b4c",
       "range": {
         "startLine": 99,
         "startChar": 4,
