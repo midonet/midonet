@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_9e5ce37e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-12T09:04:46Z",
+      "side": 1,
+      "message": "it\u0027s not obvious what the race was.",
+      "range": {
+        "startLine": 9,
+        "startChar": 19,
+        "endLine": 9,
+        "endChar": 23
+      },
+      "revId": "a4de5d913454f2a43ad1bd58ce11c7e4c5b5a37e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7e81dff9",
         "filename": "odp/src/integration/scala/org/midonet/odp/OvsTest.scala",
         "patchSetId": 3
