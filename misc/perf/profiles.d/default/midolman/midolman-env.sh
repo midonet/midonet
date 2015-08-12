@@ -31,8 +31,8 @@ JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk"
 # Amount of memory to allocate for the JVM heap.
 MAX_HEAP_SIZE="300M"
 
-# Amount of memory, out of the total size defined by MAX_HEAP_SIZE, to 
-# allocate to the eden generation withih
+# Amount of memory, out of the total size defined by MAX_HEAP_SIZE, to
+# allocate to the eden generation within
 HEAP_NEWSIZE="200M"
 
 if [ "x$MAX_HEAP_SIZE" = "x" ] ||  [ "x$HEAP_NEWSIZE" = "x" ]; then
