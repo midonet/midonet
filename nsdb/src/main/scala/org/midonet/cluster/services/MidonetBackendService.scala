@@ -33,10 +33,12 @@ import org.midonet.cluster.storage.MidonetBackendConfig
 object MidonetBackend {
     final val AliveKey = "alive"
     final val BgpKey = "bgp"
+    final val FloodingProxyKey = "flooding_proxy"
     final val HostKey = "host"
     final val HostsKey = "hosts"
     final val RoutesKey = "routes"
-    final val FloodingProxyKey = "flooding_proxy"
+    final val VtepConnectionState = "connection_state"
+    final val VtepInfo = "info"
 }
 
 /** The trait that models the new Midonet Backend, managing all relevant
@@ -153,19 +155,22 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[NeutronPort], "floating_ip_ids", CLEAR,
                              classOf[FloatingIp], "port_id", CLEAR)
 
-        stateStore.registerKey(classOf[Host], AliveKey, SingleFirstWriteWins)
-        stateStore.registerKey(classOf[BgpPeer], BgpKey, SingleLastWriteWins)
-        stateStore.registerKey(classOf[Host], HostKey, SingleFirstWriteWins)
-        stateStore.registerKey(classOf[Port], HostsKey, Multiple)
-        stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
-        stateStore.registerKey(classOf[TunnelZone], FloodingProxyKey, SingleLastWriteWins)
-
         store.declareBinding(classOf[Network], "trace_request_ids", CASCADE,
                              classOf[TraceRequest], "network_id", CLEAR)
         store.declareBinding(classOf[Router], "trace_request_ids", CASCADE,
                              classOf[TraceRequest], "router_id", CLEAR)
         store.declareBinding(classOf[Port], "trace_request_ids", CASCADE,
                              classOf[TraceRequest], "port_id", CLEAR)
+
+        stateStore.registerKey(classOf[Host], AliveKey, SingleFirstWriteWins)
+        stateStore.registerKey(classOf[BgpPeer], BgpKey, SingleLastWriteWins)
+        stateStore.registerKey(classOf[Host], HostKey, SingleFirstWriteWins)
+        stateStore.registerKey(classOf[Port], HostsKey, Multiple)
+        stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
+        stateStore.registerKey(classOf[TunnelZone], FloodingProxyKey, SingleLastWriteWins)
+        stateStore.registerKey(classOf[Vtep], VtepConnectionState, SingleLastWriteWins)
+        stateStore.registerKey(classOf[Vtep], VtepInfo, SingleLastWriteWins)
+
         store.build()
     }
 

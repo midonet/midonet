@@ -39,10 +39,10 @@ enum Type {
     ROUTE = 15;
     ROUTER = 16;
     RULE = 17;
-    TUNNEL_ZONE = 18;
-    VIP = 19;
-    VTEP = 20;
-    TRACE_REQUEST = 21;
+    TRACE_REQUEST = 18;
+    TUNNEL_ZONE = 19;
+    VIP = 20;
+    VTEP = 21;
 }
 
 message BgpNetwork {
@@ -399,6 +399,17 @@ message Rule {
     }
 }
 
+message TraceRequest {
+    optional UUID id = 1;
+    optional bool enabled = 2;
+    optional Condition condition = 3;
+    optional uint32 limit = 4;
+
+    optional UUID port_id = 101;
+    optional UUID network_id = 102;
+    optional UUID router_id = 103;
+}
+
 message TunnelZone {
     optional UUID id = 1;
     optional string name = 2;
@@ -443,7 +454,6 @@ message Vtep {
     optional IPAddress management_ip = 2;
     optional uint32 management_port = 3;
     optional UUID tunnel_zone_id = 4;
-    repeated string tunnel_ips = 5;
 
     message Binding {
         optional string port_name = 1;
@@ -452,15 +462,19 @@ message Vtep {
     }
 
     repeated Binding bindings = 6;
-}
 
-message TraceRequest {
-    optional UUID id = 1;
-    optional bool enabled = 2;
-    optional Condition condition = 3;
-    optional uint32 limit = 4;
+    message Information {
+        optional string name = 1;
+        optional string description = 2;
+        repeated IPAddress tunnel_addresses = 3;
+    }
 
-    optional UUID port_id = 101;
-    optional UUID network_id = 102;
-    optional UUID router_id = 103;
+    enum ConnectionState {
+        DISCONNECTED = 1;
+        DISCONNECTING = 2;
+        CONNECTED = 3;
+        CONNECTING = 4;
+        READY = 5;
+        ERROR = 6;
+    }
 }
