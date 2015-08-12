@@ -36,6 +36,29 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_3ebf5762",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-12T09:49:06Z",
+      "side": 1,
+      "message": "would be good to specify this is for delete, so that when it shows up in the logs we can quickly see where it failed.",
+      "range": {
+        "startLine": 203,
+        "startChar": 27,
+        "endLine": 203,
+        "endChar": 37
+      },
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_fefa4f41",
         "filename": "midolman/src/test/scala/org/midonet/midolman/datapath/DatapathChannelTest.scala",
         "patchSetId": 17
@@ -87,6 +110,23 @@
         "endLine": 60,
         "endChar": 28
       },
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5e697bf7",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkWriter.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-12T09:49:06Z",
+      "side": 1,
+      "message": "this seems to return true blindly, even if the channel didn\u0027t become ready. It isn\u0027t different from the old behaviour though.",
       "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
