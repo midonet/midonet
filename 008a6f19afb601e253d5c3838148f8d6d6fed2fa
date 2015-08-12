@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ef745b37",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-12T22:19:57Z",
+      "side": 1,
+      "message": "doesn\u0027t scala.collection.JavaConversions._ spare this?",
+      "range": {
+        "startLine": 96,
+        "startChar": 57,
+        "endLine": 97,
+        "endChar": 5
+      },
+      "revId": "008a6f19afb601e253d5c3838148f8d6d6fed2fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
