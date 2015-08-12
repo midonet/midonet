@@ -38,6 +38,7 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
     var expirationType = 0
     var absoluteExpirationNanos = 0L
     var sequence = 0L
+    var removed = false
 
     def reset(flowMatch: FlowMatch, flowTags: Collection[FlowTag],
               flowRemovedCallbacks: ArrayList[Callback0], sequence: Long,
@@ -48,6 +49,7 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
         tags.addAll(flowTags)
         callbacks.addAll(flowRemovedCallbacks)
         this.sequence = sequence
+        removed = false
     }
 
     override def clear(): Unit = {
