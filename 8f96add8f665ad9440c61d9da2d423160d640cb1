@@ -16,6 +16,29 @@
       "revId": "8f96add8f665ad9440c61d9da2d423160d640cb1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a94173aa",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/RuleConversionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-12T13:28:55Z",
+      "side": 1,
+      "message": "Do we need \"builder\" intermediary val?",
+      "range": {
+        "startLine": 59,
+        "startChar": 12,
+        "endLine": 62,
+        "endChar": 36
+      },
+      "revId": "8f96add8f665ad9440c61d9da2d423160d640cb1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
