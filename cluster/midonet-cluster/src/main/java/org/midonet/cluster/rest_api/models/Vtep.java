@@ -54,19 +54,15 @@ public class Vtep extends UriResource {
     @ZoomField(name = "management_port")
     public int managementPort;
 
-    // TODO: Set from VTEP state
-    public String name;
-
-    // TODO: Set from VTEP state
-    public String description;
-
-    // TODO: Set from VTEP state
-    public VtepConnectionState connectionState;
-
     @ZoomField(name = "tunnel_zone_id", converter = UUIDUtil.Converter.class)
     public UUID tunnelZoneId;
 
-    @ZoomField(name = "tunnel_ips")
+    public String name;
+
+    public String description;
+
+    public VtepConnectionState connectionState;
+
     public List<String> tunnelIpAddrs;
 
     @JsonIgnore
