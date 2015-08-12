@@ -437,6 +437,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9ed303d4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-12T09:16:38Z",
+      "side": 1,
+      "message": "i tried code based on your example.\ni needed to use ReplySubject instead.\notherwise first items might be lost.\nhow do you think?",
+      "parentUuid": "9ad9bd40_ec5b9651",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_cc7ed218",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
         "patchSetId": 19
@@ -946,6 +964,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_1e48d3b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-12T09:16:38Z",
+      "side": 1,
+      "message": "i believe it\u0027s doable.\nbut it would be a major change, which i\u0027m not sure\nif i can make in a timely manner.\nlet me think.",
+      "parentUuid": "9ad9bd40_31a4ef49",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2c43beaf",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/NovaMetadataClient.scala",
         "patchSetId": 19
@@ -1221,6 +1257,24 @@
       "side": 1,
       "message": "but that\u0027s tcp and tcp_flags in the *flow key*. this is the flow mask. any explicit mask missing for the provided flow keys is considered to be totally wildcarded (all zeros).  otherwise, we wouldn\u0027t be able to successfully install flows for tcp packets, which we can do.",
       "parentUuid": "9ad9bd40_d6d01921",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_bedd27e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-12T09:16:38Z",
+      "side": 1,
+      "message": "hm, my memory is dim.\ni made some experiment with modified ovs-dpctl\nand coded this to produce the identical flows.\nit might have been a limitation of the ovs-dpctl.\nlet me check.",
+      "parentUuid": "9ad9bd40_95df6639",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
