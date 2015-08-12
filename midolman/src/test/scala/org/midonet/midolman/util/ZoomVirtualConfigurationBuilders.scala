@@ -400,8 +400,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
         store.create(Vtep.newBuilder().setId(vtepId.asProto)
                         .setManagementIp(mgmtIp.asProto)
                         .setManagementPort(mgmtPort)
-                        .setTunnelZoneId(tunnelZone.asProto)
-                        .addTunnelIps(tunnelIp.toString()).build())
+                        .setTunnelZoneId(tunnelZone.asProto).build())
         store.create(createVxLanPort(id, bridgeId=Some(bridge),
                                      tunnelKey=vni))
         id
