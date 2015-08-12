@@ -34,6 +34,24 @@
       "revId": "6e4604a305736ea9257234e17e5e9016b592518b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9e9b0365",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-12T08:28:05Z",
+      "side": 1,
+      "message": "No, you\u0027re right, it\u0027s not worth the complexity. It\u0027s very unlikely a packet ingresses a different host anyway.",
+      "parentUuid": "9ad9bd40_decbcb6f",
+      "revId": "6e4604a305736ea9257234e17e5e9016b592518b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
