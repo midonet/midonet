@@ -21,6 +21,8 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.{HeaderParam, POST, WebApplicationException}
 
+import scala.concurrent.Future
+
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
@@ -76,6 +78,7 @@ class VipResource @Inject()(resContext: ResourceContext)
 class PoolVipResource @Inject()(poolId: UUID, resContext: ResourceContext)
     extends MidonetResource[Vip](resContext) {
 
+    // TODO: Should be replaced with listIds, once the new L4LB model is used.
     protected override def listFilter(vip: Vip): Boolean = {
         vip.poolId == poolId
     }
@@ -102,9 +105,10 @@ class LoadBalancerVipResource @Inject()(loadBalancerId: UUID,
     @POST
     override def create(v: Vip, @HeaderParam("Content-Type") cType: String)
     : Response = {
-        throw new WebApplicationException(METHOD_NOT_ALLOWED.getStatusCode)
+        Response.status(METHOD_NOT_ALLOWED.getStatusCode).build()
     }
 
+    // TODO: Should be replaced with listIds, once the new L4LB model is used.
     protected override def listFilter(vip: Vip): Boolean = {
         vip.loadBalancerId == loadBalancerId
     }
