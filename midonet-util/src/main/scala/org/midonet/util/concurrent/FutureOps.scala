@@ -15,12 +15,18 @@
  */
 package org.midonet.util.concurrent
 
-
+import scala.collection.mutable
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
-class FutureOps[+T](val f: Future[T]) extends AnyVal {
+import rx.subscriptions.Subscriptions
+import rx.{Subscriber, Observable}
+import rx.Observable.OnSubscribe
+
+import org.midonet.util.functors._
+
+class FutureOps[T](val f: Future[T]) extends AnyVal {
 
     /**
      * Continues the computation of this future by taking the current future
@@ -67,6 +73,52 @@ class FutureOps[+T](val f: Future[T]) extends AnyVal {
                 p failure t
         }(CallingThreadExecutionContext)
         p.future
+    }
+
+    /**
+     * Creates an [[Observable]] from this future which for every subscriber:
+     * (a) if the future completes successfully will emit the future value
+     * and complete the observable, or (b) if the future fails will emit the
+     * future error. If the future is already completed at the moment of the
+     * subscription, the notifications are immediate on the caller thread.
+     * Otherwise the notifications are received on the thread of the given
+     * [[ExecutionContext]].
+     */
+    def asObservable(implicit executor: ExecutionContext): Observable[T] = {
+        val subscribers = new mutable.HashSet[Subscriber[_ >: T]]
+        f.onComplete {
+            case Success(t) => subscribers.synchronized {
+                for (child <- subscribers) {
+                    child.onNext(t)
+                    child.onCompleted()
+                }
+            }
+            case Failure(e) => subscribers.synchronized {
+                for (child <- subscribers) {
+                    child.onError(e)
+                }
+            }
+        }
+        Observable.create(new OnSubscribe[T] {
+            override def call(child: Subscriber[_ >: T]): Unit = {
+                subscribers.synchronized {
+                    f.value match {
+                        case Some(Success(t)) =>
+                            child.onNext(t)
+                            child.onCompleted()
+                        case Some(Failure(e)) =>
+                            child.onError(e)
+                        case None =>
+                            subscribers add child
+                            child.add(Subscriptions.create(makeAction0 {
+                                subscribers.synchronized {
+                                    subscribers.remove(child)
+                                }
+                            }))
+                    }
+                }
+            }
+        })
     }
 
     def await(timeout: Duration = 1 second): T = {

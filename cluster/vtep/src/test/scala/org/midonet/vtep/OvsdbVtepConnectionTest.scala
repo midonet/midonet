@@ -22,9 +22,10 @@ import java.util.UUID
 import java.util.concurrent.{Executor, ScheduledThreadPoolExecutor, TimeUnit}
 
 import scala.collection.JavaConversions._
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, _}
 
 import com.google.common.util.concurrent.ListenableFuture
+
 import org.junit.runner.RunWith
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
@@ -34,7 +35,7 @@ import org.opendaylight.ovsdb.lib.{OvsdbClient, OvsdbConnection, OvsdbConnection
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
-import org.midonet.cluster.data.vtep.VtepConnection.State._
+import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState._
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
 import org.midonet.util.reactivex.TestAwaitableObserver
 
@@ -87,7 +88,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec
         Mockito
             .when(connectionService.registerConnectionListener(
                   MockitoMatchers.any[OvsdbConnectionListener]))
-            .then(new Answer[Unit] {
+            .thenAnswer(new Answer[Unit] {
             override def answer(invocation: InvocationOnMock): Unit = {
                 val args = invocation.getArguments
                 val cb = args(0).asInstanceOf[OvsdbConnectionListener]
@@ -108,8 +109,8 @@ class OvsdbVtepConnectionTest extends FeatureSpec
 
         scenario("check initial state") {
             val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0, 1)
-            vtep.getState shouldBe DISCONNECTED
+                                               connectionService, 0 seconds, 1)
+            vtep.getState shouldBe Disconnected
             listeners.size shouldBe 1
 
             Mockito.verify(connectionService, Mockito.times(1))
@@ -117,7 +118,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec
                     MockitoMatchers.any[OvsdbConnectionListener])
             Mockito.verifyNoMoreInteractions(connectionService)
 
-            awaitState(vtep, DISCONNECTED, timeout) shouldBe DISCONNECTED
+            awaitState(vtep, Disconnected, timeout) shouldBe Disconnected
         }
 
         scenario("connect to vtep") {
@@ -130,17 +131,17 @@ class OvsdbVtepConnectionTest extends FeatureSpec
 
             val user = UUID.randomUUID()
             val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0, 1)
+                                               connectionService, 0 seconds, 1)
 
             val monitor = new VtepObserver
             val subscription = vtep.observable.subscribe(monitor)
 
             vtep.connect(user)
-            awaitState(vtep, READY, timeout) shouldBe READY
+            awaitState(vtep, Ready, timeout) shouldBe Ready
             monitor.awaitOnNext(3, timeout) shouldBe true
 
             val events = monitor.getOnNextEvents.toList
-            events shouldBe List(DISCONNECTED, CONNECTED, READY)
+            events shouldBe List(Disconnected, Connected, Ready)
 
             Mockito.verify(connectionService, Mockito.times(1))
                 .registerConnectionListener(
@@ -167,28 +168,28 @@ class OvsdbVtepConnectionTest extends FeatureSpec
 
             val user = UUID.randomUUID()
             val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0, 1)
+                                               connectionService, 0 seconds, 1)
 
             val monitor = new VtepObserver
             val subscription = vtep.observable.subscribe(monitor)
 
             vtep.connect(user)
-            awaitState(vtep, READY, timeout) shouldBe READY
+            awaitState(vtep, Ready, timeout) shouldBe Ready
             monitor.awaitOnNext(3, timeout) shouldBe true
 
             vtep.disconnect(user)
-            awaitState(vtep, DISCONNECTING, timeout) shouldBe DISCONNECTING
+            awaitState(vtep, Disconnecting, timeout) shouldBe Disconnecting
             monitor.awaitOnNext(4, timeout) shouldBe true
 
             // emulate async close event
             listeners.foreach(_.disconnected(client))
 
-            awaitState(vtep, DISCONNECTED, timeout) shouldBe DISCONNECTED
+            awaitState(vtep, Disconnected, timeout) shouldBe Disconnected
             monitor.awaitOnNext(5, timeout) shouldBe true
 
             val events = monitor.getOnNextEvents.toList
             events shouldBe
-                List(DISCONNECTED, CONNECTED, READY, DISCONNECTING, DISCONNECTED)
+                List(Disconnected, Connected, Ready, Disconnecting, Disconnected)
 
             Mockito.verify(connectionService, Mockito.times(1))
                 .registerConnectionListener(
@@ -218,33 +219,33 @@ class OvsdbVtepConnectionTest extends FeatureSpec
             val user1 = UUID.randomUUID()
             val user2 = UUID.randomUUID()
             val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0, 1)
+                                               connectionService, 0 seconds, 1)
 
             val monitor = new VtepObserver
             val subscription = vtep.observable.subscribe(monitor)
 
             vtep.connect(user1)
             vtep.connect(user2)
-            awaitState(vtep, READY, timeout) shouldBe READY
+            awaitState(vtep, Ready, timeout) shouldBe Ready
             monitor.awaitOnNext(3, timeout) shouldBe true
 
             vtep.disconnect(user1)
             Thread.sleep(500)
-            vtep.getState shouldBe READY
+            vtep.getState shouldBe Ready
 
             vtep.disconnect(user2)
-            awaitState(vtep, DISCONNECTING, timeout) shouldBe DISCONNECTING
+            awaitState(vtep, Disconnecting, timeout) shouldBe Disconnecting
             monitor.awaitOnNext(4, timeout) shouldBe true
 
             // emulate async close event
             listeners.foreach(_.disconnected(client))
 
-            awaitState(vtep, DISCONNECTED, timeout) shouldBe DISCONNECTED
+            awaitState(vtep, Disconnected, timeout) shouldBe Disconnected
             monitor.awaitOnNext(5, timeout) shouldBe true
 
             val events = monitor.getOnNextEvents.toList
             events shouldBe
-                List(DISCONNECTED, CONNECTED, READY, DISCONNECTING, DISCONNECTED)
+                List(Disconnected, Connected, Ready, Disconnecting, Disconnected)
 
             Mockito.verify(connectionService, Mockito.times(1))
                 .registerConnectionListener(
@@ -273,25 +274,25 @@ class OvsdbVtepConnectionTest extends FeatureSpec
 
             val user = UUID.randomUUID()
             val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0, 1)
+                                               connectionService, 0 seconds, 1)
 
             val monitor = new VtepObserver
             val subscription = vtep.observable.subscribe(monitor)
 
             vtep.connect(user)
-            awaitState(vtep, READY, timeout) shouldBe READY
+            awaitState(vtep, Ready, timeout) shouldBe Ready
             monitor.awaitOnNext(3, timeout) shouldBe true
 
             // emulate broken connection
             listeners.foreach(_.disconnected(client))
 
             monitor.awaitOnNext(7, timeout) shouldBe true
-            awaitState(vtep, READY, timeout) shouldBe READY
+            awaitState(vtep, Ready, timeout) shouldBe Ready
 
             val events = monitor.getOnNextEvents.toList
             events shouldBe
-                List(DISCONNECTED, CONNECTED, READY, BROKEN,
-                     CONNECTING, CONNECTED, READY)
+                List(Disconnected, Connected, Ready, Broken,
+                     Connecting, Connected, Ready)
 
             Mockito.verify(connectionService, Mockito.times(1))
                 .registerConnectionListener(
@@ -317,18 +318,18 @@ class OvsdbVtepConnectionTest extends FeatureSpec
 
             val user = UUID.randomUUID()
             val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0, 1)
+                                               connectionService, 0 seconds, 1)
 
             val monitor = new VtepObserver
             val subscription = vtep.observable.subscribe(monitor)
 
             vtep.connect(user)
             monitor.awaitOnNext(5, timeout) shouldBe true
-            awaitState(vtep, DISPOSED, timeout) shouldBe DISPOSED
+            awaitState(vtep, Disposed, timeout) shouldBe Disposed
 
             val events = monitor.getOnNextEvents.toList
             events shouldBe
-                List(DISCONNECTED, BROKEN, CONNECTING, BROKEN, DISPOSED)
+                List(Disconnected, Broken, Connecting, Broken, Disposed)
             subscription.unsubscribe()
         }
     }

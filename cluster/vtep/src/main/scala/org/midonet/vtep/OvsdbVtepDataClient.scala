@@ -17,43 +17,48 @@
 package org.midonet.vtep
 
 import java.util.UUID
-import java.util.concurrent.Executors
+import java.util.concurrent.{TimeUnit, Executors}
 import java.util.concurrent.atomic.AtomicReference
 
-import scala.util.Try
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 
+import org.opendaylight.ovsdb.lib.OvsdbConnection
 import org.opendaylight.ovsdb.lib.impl.OvsdbConnectionService
 import org.slf4j.LoggerFactory
+import rx.subjects.BehaviorSubject
 import rx.{Observable, Observer}
 
-import org.midonet.cluster.data.vtep.VtepConnection.State
+import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState._
 import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation, VtepEndPoint}
 import org.midonet.cluster.data.vtep.{VtepData, VtepDataClient, VtepStateException}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent.NamedThreadFactory
-import org.midonet.util.functors.{makeAction0, makeAction1}
+import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
+import org.midonet.util.reactivex._
 
 /**
  * This class handles the connection to an ovsdb-compliant vtep
  */
 class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
-                      val retryMs: Long, val maxRetries: Long)
+                          val retryInterval: Duration, val maxRetries: Long,
+                          val connectionService: OvsdbConnection =
+                              OvsdbConnectionService.getService)
     extends VtepDataClient {
 
-    private val log = LoggerFactory.getLogger(classOf[OvsdbVtepDataClient])
+    private val log =
+        LoggerFactory.getLogger(s"org.midonet.vtep.vtep-$endPoint")
 
     private val vtepThread = Executors.newSingleThreadExecutor(
-        new NamedThreadFactory("vtep-thread"))
-    private val connectionService = OvsdbConnectionService.getService
+        new NamedThreadFactory(s"vtep-$endPoint"))
+    private val vtepContext = ExecutionContext.fromExecutor(vtepThread)
 
     private val connection =
         new OvsdbVtepConnection(endPoint, vtepThread, connectionService,
-                                retryMs, maxRetries)
+                                retryInterval, maxRetries)
 
-    private val data = new AtomicReference[Option[VtepData]](None)
-
-    case class StateException(msg: String)
-        extends VtepStateException(endPoint, msg)
+    private val data = new AtomicReference[VtepData](null)
+    private val stateSubject = BehaviorSubject.create[State]
 
     override def getManagementIp = connection.getManagementIp
     override def getManagementPort = connection.getManagementPort
@@ -61,63 +66,107 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
     override def disconnect(user: UUID) = connection.disconnect(user)
     override def getState = connection.getState
     override def getHandle = connection.getHandle
-    override def observable = connection.observable
+    override def observable = stateSubject.asObservable()
 
-    val onStateChange = makeAction1[State.Value]({
-        case State.READY =>
+    val onStateChange = makeAction1[State] { state =>
+        if (Ready == state) {
             val handle = connection.getHandle.get
-            data.set(Some(new OvsdbVtepData(endPoint, handle.client, handle.db,
-                                            vtepThread)))
-        case _ =>
-            data.set(None)
-    })
-    val onStateError = makeAction1[Throwable]({
-        case e: Throwable =>
-            log.error("vtep state tracking lost", e)
-    })
+            data.set(new OvsdbVtepData(endPoint, handle.client, handle.db,
+                                       vtepThread))
+        } else {
+            data.set(null)
+        }
+        stateSubject onNext state
+    }
+    val onStateError = makeAction1[Throwable] { e: Throwable =>
+        log.error("VTEP state tracking lost", e)
+        stateSubject onError e
+    }
     val onStateCompletion = makeAction0 {
-        log.error("vtep state tracking lost")
+        log.error("VTEP state tracking lost")
+        stateSubject.onCompleted()
     }
 
-    connection.observable
-        .subscribe(onStateChange, onStateError, onStateCompletion)
+    connection.observable.subscribe(onStateChange, onStateError,
+                                    onStateCompletion)
 
-    override def vxlanTunnelIp: Option[IPv4Addr] =
-        data.get.flatMap(_.vxlanTunnelIp)
-
-
-    override def macLocalUpdates: Observable[MacLocation] = data.get match {
-        case None => Observable.error(StateException("vtep not ready") )
-        case Some(backend) => backend.macLocalUpdates
+    override def vxlanTunnelIp: Future[Option[IPv4Addr]] = {
+        onReady { _.vxlanTunnelIp }
     }
 
-    override def currentMacLocal: Seq[MacLocation] = data.get match {
-        case None => throw StateException("vtep not ready")
-        case Some(backend) => backend.currentMacLocal
+    override def macLocalUpdates: Observable[MacLocation] = {
+        onReady { _.macLocalUpdates }
     }
 
-    override def macRemoteUpdater: Observer[MacLocation] = data.get match {
-        case None => throw StateException("vtep not ready")
-        case Some(backend) => backend.macRemoteUpdater
+    override def currentMacLocal: Future[Seq[MacLocation]] = {
+        onReady { _.currentMacLocal }
     }
-    override def ensureLogicalSwitch(name: String, vni: Int):
-        Try[LogicalSwitch] = data.get match {
-        case None => throw StateException("vtep not ready")
-        case Some(backend) => backend.ensureLogicalSwitch(name, vni)
+
+    override def macRemoteUpdater: Future[Observer[MacLocation]] = {
+        onReady { _.macRemoteUpdater }
+    }
+
+    override def ensureLogicalSwitch(name: String, vni: Int)
+    : Future[LogicalSwitch] = {
+        onReady { _.ensureLogicalSwitch(name, vni) }
+    }
+
+    override def removeLogicalSwitch(name: String): Future[Unit] = {
+        onReady { _.removeLogicalSwitch(name) }
     }
 
     override def ensureBindings(lsName: String,
                                 bindings: Iterable[(String, Short)])
-        : Try[Unit] = data.get match {
-        case None => throw StateException("vtep not ready")
-        case Some(backend) => backend.ensureBindings(lsName, bindings)
+    : Future[Unit] = {
+        onReady { _.ensureBindings(lsName, bindings) }
     }
 
-    override def removeLogicalSwitch(name: String): Try[Unit] = data.get match {
-        case None => throw StateException("vtep not ready")
-        case Some(backend) => backend.removeLogicalSwitch(name)
+    private def onReady[T](f: (VtepData) => Future[T]): Future[T] = {
+        stateSubject.filter(makeFunc1(_.isDecisive))
+                    .map[VtepData](makeFunc1 { state =>
+            if (state.isFatal) {
+                throw new VtepStateException(
+                    endPoint,
+                    s"VTEP connection state $state cannot handle a data request")
+            }
+            data.get
+        }).asFuture.flatMap(f)(vtepContext)
     }
 
+    private def onReady[T](f: (VtepData) => Observable[T]): Observable[T] = {
+        val observables =
+            stateSubject.filter(makeFunc1(_.isDecisive))
+                        .map[Observable[T]](makeFunc1 { state =>
+                if (state.isFatal) {
+                    throw new VtepStateException(
+                        endPoint,
+                        "Update stream failed because the VTEP connection " +
+                        s"state $state cannot handle more data requests")
+                }
+                f(data.get)
+            })
+        Observable.switchOnNext(observables)
+    }
 
+    /**
+     * Wait for a specific state.
+     */
+    override def awaitState(expected: State, timeout: Duration): State = {
+        awaitState(Set(expected), timeout)
+    }
+
+    /**
+     * Wait for a state in a specific set.
+     */
+    override def awaitState(expected: Set[State], timeout: Duration): State = {
+        observable.filter(makeFunc1 { state =>
+                log.info(s"State is $state expected in $expected")
+                expected.contains(state)
+            })
+            .first()
+            .toBlocking
+            .toFuture
+            .get(timeout.toMillis, TimeUnit.MILLISECONDS)
+    }
 }
 

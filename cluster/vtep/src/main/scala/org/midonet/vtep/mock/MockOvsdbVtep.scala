@@ -201,10 +201,6 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
     /** publish the requested operations */
     def operationRequests = operationSubject.asObservable()
 
-    override def getHandle: OvsdbClient =
-        new MockOvsdbClient(databaseSchema, monitorRegistration,
-                            transactionEngine)
-
     // Table schemas
     private val tableParsers = Map[String, Table](
         (LogicalSwitchTable.TB_NAME, new LogicalSwitchTable(databaseSchema)),
@@ -302,6 +298,10 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                 new MockListenableFuture[util.List[OperationResult]](results)
             }
     }
+
+    override val getHandle: OvsdbClient =
+        new MockOvsdbClient(databaseSchema, monitorRegistration,
+                            transactionEngine)
 
     /** Evaluate if a row satisfies a given condition. Note that not all
       * possible condition definitions are implmemented (only those required
