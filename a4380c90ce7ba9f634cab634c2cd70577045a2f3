@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5e11765b",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 20
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-13T15:55:51Z",
+      "side": 1,
+      "message": "does the more generic name \"java8-runtime-headless\" exist? maybe at some point the oracle jvm provides that package?",
+      "revId": "a4380c90ce7ba9f634cab634c2cd70577045a2f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_be09a232",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 20
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-13T15:55:51Z",
+      "side": 1,
+      "message": "same question here.",
+      "revId": "a4380c90ce7ba9f634cab634c2cd70577045a2f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_41051b0f",
+        "filename": "midolman/src/deb/init/midolman-start",
+        "patchSetId": 20
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-13T15:55:51Z",
+      "side": 1,
+      "message": "trailing space.",
+      "revId": "a4380c90ce7ba9f634cab634c2cd70577045a2f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
