@@ -1,0 +1,135 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a4d519a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T11:30:18Z",
+      "side": 1,
+      "message": "are there usages of it yet? i may have missed them",
+      "revId": "02bb61750329a18ad1fdcfd71736f9e7bdd48437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8ab81d76",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T11:30:18Z",
+      "side": 1,
+      "message": "could these be arrays or arraylists?",
+      "revId": "02bb61750329a18ad1fdcfd71736f9e7bdd48437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_caadc532",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Mirror.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T11:30:18Z",
+      "side": 1,
+      "message": "i would prefer Arrays/ArrayLists",
+      "revId": "02bb61750329a18ad1fdcfd71736f9e7bdd48437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_eaa8c921",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Mirror.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T11:30:18Z",
+      "side": 1,
+      "message": "this feels much better :)",
+      "range": {
+        "startLine": 63,
+        "startChar": 40,
+        "endLine": 63,
+        "endChar": 45
+      },
+      "revId": "02bb61750329a18ad1fdcfd71736f9e7bdd48437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6a6cb908",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceWithChainsMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T11:30:18Z",
+      "side": 1,
+      "message": "will this become a DeviceWithReferences or something?",
+      "revId": "02bb61750329a18ad1fdcfd71736f9e7bdd48437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ca74e5d0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceWithChainsMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T11:30:18Z",
+      "side": 1,
+      "message": "references objects or something",
+      "range": {
+        "startLine": 119,
+        "startChar": 33,
+        "endLine": 119,
+        "endChar": 39
+      },
+      "revId": "02bb61750329a18ad1fdcfd71736f9e7bdd48437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ea7fe9a8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/MirrorMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T11:30:18Z",
+      "side": 1,
+      "message": "could this use the ObjectReferenceTracker?",
+      "revId": "02bb61750329a18ad1fdcfd71736f9e7bdd48437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
