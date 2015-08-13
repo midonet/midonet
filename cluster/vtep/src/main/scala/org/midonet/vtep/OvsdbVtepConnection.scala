@@ -23,18 +23,22 @@ import java.util.concurrent.atomic.AtomicReference
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.opendaylight.ovsdb.lib.{OvsdbClient, OvsdbConnection, OvsdbConnectionListener}
 import org.slf4j.LoggerFactory
+
 import rx.schedulers.Schedulers
 import rx.subjects.BehaviorSubject
 
+import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState.State
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
 import org.midonet.cluster.data.vtep.{VtepConnection, VtepStateException}
 import org.midonet.util.functors.{makeAction1, makeFunc1, makeRunnable}
+import org.midonet.vtep.OvsdbVtepConnection._
 
 /**
  * This class handles the connection to an ovsdb-compliant vtep
@@ -51,45 +55,48 @@ object OvsdbVtepConnection {
         extends VtepHandle
 
     // Connection states
-    abstract class ConnectionStatus(val state: State.Value)
+    abstract class ConnectionStatus(val state: State)
 
     // - Disconnected: The state when:
     //   (a) The client is created.
     //   (b) Connection has been terminated by a explicit user request
-    case object Disconnected extends ConnectionStatus(State.DISCONNECTED)
+    case object Disconnected
+        extends ConnectionStatus(ConnectionState.Disconnected)
     // - Connected: The state when:
     //   (a) The connection to the vtep has been successfully established
     case class Connected(client: OvsdbClient)
-        extends ConnectionStatus(State.CONNECTED)
+        extends ConnectionStatus(ConnectionState.Connected)
     // - Disconnecting: The state when:
     //   (a) A disconnection has ben requested, but the operation has not
     //       yet been completed.
     case class Disconnecting(Client: OvsdbClient)
-        extends ConnectionStatus(State.DISCONNECTING)
+        extends ConnectionStatus(ConnectionState.Disconnecting)
     // - Broken: The state when:
     //   (a) A connection request failed
     //   (b) A connection was dropped from the vtep/network
-    case class Broken(ms: Long, retries: Long)
-        extends ConnectionStatus(State.BROKEN)
+    case class Broken(retryInterval: Duration, retries: Long)
+        extends ConnectionStatus(ConnectionState.Broken)
     // - Connecting: The state when:
     //   (a) A connection was broken and it's waiting for re-connection
-    case class Connecting(ms: Long, retries: Long, task: ScheduledFuture[_])
-        extends ConnectionStatus(State.CONNECTING)
+    case class Connecting(retryInterval: Duration, retries: Long,
+                          task: ScheduledFuture[_])
+        extends ConnectionStatus(ConnectionState.Connecting)
     // - Ready: The state when:
     //   (a) The connection has been established and the table schema
     //       information has been downloaded from the vtep.
-    case class Ready(handle: OvsdbHandle) extends ConnectionStatus(State.READY)
+    case class Ready(handle: OvsdbHandle)
+        extends ConnectionStatus(ConnectionState.Ready)
     // - Disposed: The state when:
     //   (a) The connection is broken and no retries are left
-    case object Disposed extends ConnectionStatus(State.DISPOSED)
+    case object Disposed
+        extends ConnectionStatus(ConnectionState.Disposed)
 }
 
 class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
                           connectionService: OvsdbConnection,
-                          retryMs: Long, maxRetries: Long)
+                          retryInterval: Duration, maxRetries: Long)
     extends VtepConnection {
-    import OvsdbVtepConnection._
-    import VtepConnection.State
+
     private val log = LoggerFactory.getLogger(classOf[OvsdbVtepConnection])
     private val vtepScheduler = Schedulers.from(vtepThread)
     private val vtepContext = ExecutionContext.fromExecutor(vtepThread)
@@ -103,7 +110,7 @@ class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
         .onBackpressureBuffer().observeOn(vtepScheduler)
 
     /** an observable with the vtep connection states */
-    private val stateObservable = connState.map[State.Value](makeFunc1(_.state))
+    private val stateObservable = connState.map[State](makeFunc1(_.state))
 
     private val users = new mutable.HashSet[UUID]()
 
@@ -128,9 +135,9 @@ class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
             case Disconnecting(client) if client == ovsdbClient =>
                 state.set(Disconnected)
             case Connected(client) if client == ovsdbClient =>
-                state.set(Broken(retryMs, maxRetries))
+                state.set(Broken(retryInterval, maxRetries))
             case Ready(handle) if handle.client == ovsdbClient =>
-                state.set(Broken(retryMs, maxRetries))
+                state.set(Broken(retryInterval, maxRetries))
             case other =>
                 log.debug("unexpected vtep client close event: " + ovsdbClient +
                           ", state: " + other)
@@ -147,10 +154,10 @@ class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
     private def vtepFailed(e: Throwable, retriesLeft: Long): Unit = e match {
         case t: UnknownHostException =>
             log.warn("Unknown VTEP address: " + endPoint, e)
-            state.set(Broken(retryMs, retriesLeft))
+            state.set(Broken(retryInterval, retriesLeft))
         case NonFatal(t) =>
             log.warn("VTEP connection failure: " + endPoint, t)
-            state.set(Broken(retryMs, retriesLeft))
+            state.set(Broken(retryInterval, retriesLeft))
     }
 
     /** Activate connection to vtep.
@@ -187,12 +194,12 @@ class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
       * This must be executed from the vtep execution thread. */
     private def onRetry() = {
         state.get() match {
-            case Broken(ms, left) if left > 0 =>
+            case Broken(interval, left) if left > 0 =>
                 val reconnect = makeRunnable(vtepThread.execute(
                     makeRunnable(onActivate(user = null))))
                 val task = timerThread.schedule(
-                    reconnect, ms, TimeUnit.MILLISECONDS)
-                state.set(Connecting(ms, left, task))
+                    reconnect, interval.toMillis, TimeUnit.MILLISECONDS)
+                state.set(Connecting(interval, left, task))
             case other =>
                 log.debug("ignoring retry request for: " + endPoint +
                           ", state: " + other)
@@ -282,7 +289,7 @@ class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
     /**
      * Get the current connection state
      */
-    override def getState: State.Value = state.get().state
+    override def getState: State = state.get().state
 
     /**
      * Get the current ovsdb client handler
