@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e16aaf7f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/data/VtepStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-13T17:31:12Z",
+      "side": 1,
+      "message": "VtepStateStorage?",
+      "revId": "c61d0bfdaeb1e46a59bc6acaf0847ab19a153291",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c1f68bd6",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-13T17:31:12Z",
+      "side": 1,
+      "message": "split trace request related fixes to its own patch?",
+      "range": {
+        "startLine": 42,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 17
+      },
+      "revId": "c61d0bfdaeb1e46a59bc6acaf0847ab19a153291",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_410b5bd5",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 470,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-13T17:31:12Z",
+      "side": 1,
+      "message": "why in the proto? if this is part of the state it doesn\u0027t need to be stored with the VTEP model",
+      "range": {
+        "startLine": 466,
+        "startChar": 4,
+        "endLine": 470,
+        "endChar": 5
+      },
+      "revId": "c61d0bfdaeb1e46a59bc6acaf0847ab19a153291",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_610e9fe6",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 472,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-13T17:31:12Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 472,
+        "startChar": 0,
+        "endLine": 472,
+        "endChar": 26
+      },
+      "revId": "c61d0bfdaeb1e46a59bc6acaf0847ab19a153291",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
