@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5e6c1608",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-13T16:57:51Z",
+      "side": 1,
+      "message": "Not related to this patch, but is this \"+ 1\" necessary?",
+      "range": {
+        "startLine": 89,
+        "startChar": 74,
+        "endLine": 89,
+        "endChar": 78
+      },
+      "revId": "2bf4c87f080e5efbec85439ebd024ab5613516d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7e6f1afc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-13T16:57:51Z",
+      "side": 1,
+      "message": "Should be named something like \"updateJumpRuleId\".",
+      "range": {
+        "startLine": 99,
+        "startChar": 16,
+        "endLine": 99,
+        "endChar": 30
+      },
+      "revId": "2bf4c87f080e5efbec85439ebd024ab5613516d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
