@@ -20,6 +20,7 @@ import java.util.UUID
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 
+import org.midonet.midolman.topology.DeviceWithChainsMapper.ObjectReferenceTracker
 import rx.Observable
 import rx.subjects.Subject
 
@@ -27,8 +28,8 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
-import org.midonet.midolman.simulation.Chain
-import org.midonet.midolman.simulation.{Port => SimulationPort}
+import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
+import org.midonet.util.functors.{makeAction0, makeFunc1, makeFunc2}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc2}
 
 /**
@@ -55,7 +56,7 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc2
  */
 final class PortMapper(id: UUID, vt: VirtualTopology,
                        _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
-        extends DeviceWithChainsMapper[SimulationPort](id, vt)
+        extends VirtualDeviceMapper[SimulationPort](id, vt)
         with TraceRequestChainMapper[SimulationPort] {
 
     override def logSource = s"org.midonet.devices.port.port-$id"
@@ -67,6 +68,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
     override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
         _traceChainMap
+
+    private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
+    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
 
     private lazy val combinator =
         makeFunc2[TopologyPort, Boolean, SimulationPort](
@@ -89,8 +93,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         .doOnCompleted(makeAction0(portDeleted()))
 
     protected override val observable = Observable
-        .merge(chainsObservable.map[SimulationPort](makeFunc1(chainUpdated)),
+        .merge(chainsTracker.refsObservable.map[SimulationPort](makeFunc1(refUpdated)),
                traceChainObservable.map[SimulationPort](makeFunc1(traceUpdated)),
+               mirrorsTracker.refsObservable.map[SimulationPort](makeFunc1(refUpdated)),
                portObservable.map[SimulationPort](makeFunc1(portUpdated)))
         .filter(makeFunc1(isPortReady))
         .doOnNext(makeAction1(maybeInvalidateFlowState(_)))
@@ -101,7 +106,10 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         log.debug("Port updated {}", port)
 
         // Request the chains for this port.
-        requestChains(port.inboundFilter, port.outboundFilter)
+        chainsTracker.requestRefs(port.inboundFilter, port.outboundFilter)
+
+        mirrorsTracker.requestRefs(port.inboundMirrors.asScala :_*)
+        mirrorsTracker.requestRefs(port.outboundMirrors.asScala :_*)
 
         requestTraceChain(Option(port.inboundFilter), traceRequestIds)
 
@@ -133,14 +141,15 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     /** Handles the deletion of the simulation port. */
     private def portDeleted(): Unit = {
         log.debug("Port deleted")
-        completeChains()
         completeTraceChain()
+        chainsTracker.completeRefs()
+        mirrorsTracker.completeRefs()
     }
 
     /** Handles updates to the chains. */
-    private def chainUpdated(chain: Chain): SimulationPort = {
+    private def refUpdated(obj: AnyRef): SimulationPort = {
         assertThread()
-        log.debug("Port chain updated {}", chain)
+        log.debug("Port ref updated {}", obj)
         currentPort
     }
 
@@ -148,6 +157,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
       * receiving all of the following: port, port active state, and port filter
       * chains. */
     private def isPortReady(port: SimulationPort): Boolean = {
-        (currentPort ne null) && areChainsReady && isTracingReady
+        (currentPort ne null) &&
+            chainsTracker.areRefsReady &&
+                mirrorsTracker.areRefsReady &&
+                    isTracingReady
     }
 }
