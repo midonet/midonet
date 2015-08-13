@@ -411,7 +411,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
         }
 
-        scenario("Route removed when interior port becomes down") {
+        scenario("Route kept when interior port becomes down") {
             val obs = createObserver()
             val router = testRouterCreated(obs)._1
 
@@ -442,7 +442,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(3, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(2)
             device shouldBeDeviceOf router
-            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route.setNextHopPortId(portId).asJava
         }
 
         scenario("Route added when active exterior port becomes up") {
