@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_819ba364",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 20
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T19:03:01Z",
+      "side": 1,
+      "message": "zulu provides java8-runtime",
+      "parentUuid": "9ad9bd40_815ac3ef",
+      "revId": "a4380c90ce7ba9f634cab634c2cd70577045a2f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_be09a232",
         "filename": "midolman/build.gradle",
         "patchSetId": 20
@@ -102,6 +120,24 @@
       "side": 1,
       "message": "i think java-1.7.0 is wrong, it should be java-1.7.0-headless. that\u0027s what [cloud-user@hoochiemama ~]$ rpm -q --provides java-1.7.0-openjdk-headless.x86_64 gave me.\n\n[cloud-user@hoochiemama ~]$ rpm -q --provides java-1.8.0-openjdk-headless.x86_64\nconfig(java-1.8.0-openjdk-headless) \u003d 1:1.8.0.31-2.b13.el7\njava-1.8.0-openjdk-headless \u003d 1:1.8.0.31-2.b13.el7\njava-1.8.0-openjdk-headless(x86-64) \u003d 1:1.8.0.31-2.b13.el7\nlib.so(SUNWprivate_1.1)(64bit)\n\nit doesn\u0027t seem to provide java-1.8.0-headless:\n\n[cloud-user@hoochiemama ~]$ rpm -q --whatprovides java-1.7.0-headless\njava-1.7.0-openjdk-headless-1.7.0.71-2.5.3.1.el7_0.x86_64\n[cloud-user@hoochiemama ~]$ rpm -q --whatprovides java-1.8.0-headless\nno package provides java-1.8.0-headless\n[cloud-user@hoochiemama ~]$",
       "parentUuid": "9ad9bd40_be09a232",
+      "revId": "a4380c90ce7ba9f634cab634c2cd70577045a2f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a1a507a3",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 20
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T19:03:01Z",
+      "side": 1,
+      "message": "zulu doesn\u0027t provide any common package",
+      "parentUuid": "9ad9bd40_81ad639d",
       "revId": "a4380c90ce7ba9f634cab634c2cd70577045a2f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
