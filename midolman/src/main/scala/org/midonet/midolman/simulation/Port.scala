@@ -163,7 +163,6 @@ trait Port extends VirtualDevice with Cloneable {
             context.log.debug("Emitting packet from vport {}", id)
             context.addVirtualAction(action)
             context.trackConnection(deviceId)
-            context.addTraceKeysForEgress()
             AddVirtualWildcardFlow
     } else if (isInterior) {
         (context, as) =>

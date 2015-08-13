@@ -225,7 +225,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         // should be sending a trace state to other host
         packetOutQueueIngress.size should be (2)
-        val (_, stateActions) = packetOutQueueIngress.removeLast()
+        val (_, stateActions) = packetOutQueueIngress.remove()
         getTunnelId(stateActions) should be (FlowStatePackets.TUNNEL_KEY)
 
         // should have executed flow with tunnel mask set
@@ -243,6 +243,10 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         val ingressCtx = packetCtxTrapIngress.remove()
         // should have the same packet context after the workflow restart
         ingressCtx should be (packetCtxTrapIngress.pop())
+
+        // add it to the trace table so egress can find it
+        traceTable.putAndRef(ingressCtx.traceKeyForEgress,
+                             ingressCtx.traceContext)
 
         val egressFrame = applyPacketActions(packet.getEthernet,
                                              actions)
