@@ -342,7 +342,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                 result.setError("unknown table")
                 result.setDetails("unknown table " + op.getTable)
             case Some(MockData(data, clazz)) => op match {
-                case ins: Insert[GenericTableSchema] =>
+                case ins: Insert[_] =>
                     val t = tableParsers(op.getTable)
                     val row = t.generateRow(ins.getRow)
                     val entry = t.parseEntry(row, clazz)
@@ -358,7 +358,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                     data.put(entry.uuid, entry)
                     result.setCount(1)
                     result.setRows(Lists.newArrayList(row))
-                case del: Delete[GenericTableSchema] =>
+                case del: Delete[_] =>
                     val t = tableParsers(op.getTable)
                     val conditions = del.getWhere.toIterable
                     val removed = new util.ArrayList[Row[GenericTableSchema]]()
@@ -372,7 +372,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                         })
                     result.setCount(removed.size())
                     result.setRows(removed)
-                case upd: Update[GenericTableSchema] =>
+                case upd: Update[_] =>
                     val t = tableParsers(op.getTable)
                     val conditions = upd.getWhere.toIterable
                     val updated = new util.ArrayList[Row[GenericTableSchema]]()
@@ -390,7 +390,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                     })
                     result.setCount(updated.size())
                     result.setRows(updated)
-                case sel: Select[GenericTableSchema] =>
+                case sel: Select[_] =>
                     val t = tableParsers(op.getTable)
                     val conditions = sel.getWhere.toIterable
                     val out = data.values
