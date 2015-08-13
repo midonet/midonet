@@ -43,13 +43,5 @@ class VtepEndPointTest extends FeatureSpec with Matchers {
             ep1.toString shouldBe "10.1.1.1:42"
             epnull.toString shouldBe "null:42"
         }
-
-        scenario("hashCode") {
-            val ep1 = VtepEndPoint(IPv4Addr.fromString("10.1.1.1"), 42)
-            val ep2 = VtepEndPoint(IPv4Addr.fromString("10.1.1.1"), 43)
-            val epnull = VtepEndPoint(null: IPv4Addr, 42)
-            ep2.hashCode should be > ep1.hashCode
-            epnull.hashCode shouldBe 42
-        }
     }
 }
