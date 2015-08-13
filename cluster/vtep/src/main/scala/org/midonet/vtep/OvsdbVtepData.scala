@@ -18,26 +18,25 @@ package org.midonet.vtep
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.{TimeUnit, Executor}
+import java.util.concurrent.Executor
 
 import scala.collection.Iterable
 import scala.collection.JavaConversions.asJavaIterable
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.slf4j.{Logger, LoggerFactory}
+
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber}
 
-import org.midonet.cluster.data.vtep.{VtepConfigException, VtepData}
 import org.midonet.cluster.data.vtep.model._
+import org.midonet.cluster.data.vtep.{VtepConfigException, VtepData}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent.CallingThreadExecutionContext
-import org.midonet.util.functors
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 import org.midonet.vtep.schema.Table.OvsdbOperation
 import org.midonet.vtep.schema._
@@ -50,7 +49,7 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
     extends VtepData {
     import OvsdbVtepData._
 
-    val MAX_BACKPRESSURE_BUFFER = 100000
+    val MaxBackpressureBuffer = 100000
 
     private val log = LoggerFactory.getLogger(classOf[OvsdbVtepData])
     private val vtepContext = ExecutionContext.fromExecutor(vtepThread)
@@ -99,31 +98,130 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
         Future.reduce[Boolean, Boolean](
             tables.map(_.ready))(_ && _)(CallingThreadExecutionContext)
 
-    override def vxlanTunnelIp: Option[IPv4Addr] =
-        Await.result(getTunnelIp, requestTimeout)
+    private def physicalSwitch: Option[PhysicalSwitch] =
+        psTable.getAll.values.find(_.mgmtIps.contains(endPoint.mgmtIp))
+
+    private def logicalSwitch(name: String): Option[LogicalSwitch] =
+        lsTable.getAll.values.find(_.name == name)
+
+    override def vxlanTunnelIp: Future[Option[IPv4Addr]] = {
+        ready.collect {
+            case true => physicalSwitch.flatMap(_.tunnelIp)
+        }(vtepContext)
+    }
 
     override def macLocalUpdates: Observable[MacLocation] =
         Observable.merge(uLocalMonitor.observable, mLocalMonitor.observable)
-            .onBackpressureBuffer(MAX_BACKPRESSURE_BUFFER, panicAlert(log))
+            .onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
             .observeOn(vtepScheduler)
             .concatMap(macUpdateToMacLocationsFunc)
 
-    override def currentMacLocal: Seq[MacLocation] =
-        Await.result(getCurrentMacLocal, requestTimeout)
+    override def currentMacLocal: Future[Seq[MacLocation]] = {
+        ready.collect { case true =>
+            uLocalTable.getAll.values.toSeq.flatMap {
+                m => macUpdateToMacLocations(VtepEntryUpdate.addition(m))
+            } ++
+            mLocalTable.getAll.values.toSeq.flatMap {
+                m => macUpdateToMacLocations(VtepEntryUpdate.addition(m))
+            }
+        }(vtepContext)
+    }
 
-    override def macRemoteUpdater: Observer[MacLocation] =
-        Await.result(getMacRemoteUpdater, requestTimeout)
+    override def macRemoteUpdater: Future[Observer[MacLocation]] = {
+        ready.collect({ case true =>
+            val pipe = PublishSubject.create[MacLocation]()
+            // We use the backpressure buffer to prevent overlapping mac
+            // updates, which can lead to order alterations if some initial
+            // update fails but the following ones succeed...
+            // TODO: we may add a buffer operator with a closingSelector
+            // to increase the efficiency, though it may add complexity
+            // to error processing (e.g. if the accumulated update is too
+            // big, we may run into trouble with ovsdb request max sizes...
+            pipe.onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
+                .observeOn(vtepScheduler)
+                .onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
+                .subscribe(new MacRemoteUpdater())
+            pipe
+        })(vtepContext)
+    }
 
     override def ensureLogicalSwitch(name: String, vni: Int)
-    : Try[LogicalSwitch] =
-        Try(Await.result(acquireLogicalSwitch(name, vni), requestTimeout))
+    : Future[LogicalSwitch] = {
+        ready.collect {
+            case true => logicalSwitch(name)
+        }(vtepContext).flatMap {
+            case Some(ls) => Future.successful(ls)
+            case None =>
+                val ls = LogicalSwitch(name, vni, "")
+                lsTable.insert(ls).collect {case id => ls} (vtepContext)
+        }(vtepContext)
+    }
 
     override def ensureBindings(lsName: String,
                                 bindings: Iterable[(String, Short)])
-    : Try[Unit] = Try(Await.result(setBindings(lsName, bindings), requestTimeout))
+    : Future[Unit] = {
+        ready.flatMap { _ =>
+            (physicalSwitch, logicalSwitch(lsName)) match {
+                case (None, _) =>
+                    throw ConfigException("Physical Switch not found")
+                case (_, None) =>
+                    throw ConfigException("Logical Switch not found: " + lsName)
+                case (Some(ps), Some(ls)) =>
+                    val boundPorts = bindings.map(_._1).toSet
+                    var ports = ps.ports.flatMap(portTable.get)
+                        .filter(p => boundPorts.contains(p.name))
+                        .map(p => (p.name, p)).toMap
+                    for (b <- bindings) ports.get(b._1) match {
+                        case None =>
+                            log.warn("Physical port {} not found", b._1)
+                        case Some(p) =>
+                            ports = ports updated
+                                    (p.name, p.newBinding(b._2.toInt, ls.uuid))
+                    }
+                    val ops = new util.ArrayList[OvsdbOperation]()
+                    val hint = UUID.randomUUID()
+                    ports.values.foreach(p => {
+                        ops.add(portTable.table.updateBindings(p))
+                        portTable.insertHint(p, hint)
+                    })
+                    val status = OvsdbTools.multiOp(client, dbSchema, ops).future
+                    status.onFailure {case e: Throwable =>
+                        ports.values.foreach(
+                            p => portTable.removeHint(p.uuid, hint))
+                    } (vtepContext)
+                    status.map(r => {})(CallingThreadExecutionContext)
+            }
+        }(vtepContext)
+    }
 
-    override def removeLogicalSwitch(name: String): Try[Unit] =
-        Try(Await.result(deleteLogicalSwitch(name), requestTimeout))
+    override def removeLogicalSwitch(name: String): Future[Unit] = {
+        ready.flatMap { _ =>
+            logicalSwitch(name) match {
+                case None =>
+                    throw ConfigException("Logical Switch not found: " + name)
+                case Some(ls) =>
+                    val ops = new util.ArrayList[OvsdbOperation]()
+
+                    // clean-up mac tables
+                    List(uLocalTable, uRemoteTable, mLocalTable, mRemoteTable)
+                        .foreach(t => {
+                        ops.add(t.table.deleteByLogicalSwitchId(ls.uuid))
+                    })
+
+                    // clear bindings
+                    portTable.getAll.values
+                        .filter(_.isBoundToLogicalSwitchId(ls.uuid))
+                        .map(_.clearBindings(ls.uuid))
+                        .foreach(p => ops.add(portTable.table.updateBindings(p)))
+
+                    // delete the switch
+                    ops.add(lsTable.table.deleteByName(ls.name))
+
+                    OvsdbTools.multiOp(client, dbSchema, ops).future
+                        .map(r => {})(CallingThreadExecutionContext)
+            }
+        } (vtepContext)
+    }
 
     private class MacRemoteUpdater extends Subscriber[MacLocation] {
         override def onStart() = request(1)
@@ -176,41 +274,6 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
         }
     }
 
-    private def getMacRemoteUpdater: Future[Observer[MacLocation]] =
-        ready.collect({case true =>
-            val pipe = PublishSubject.create[MacLocation]()
-            // We use the backpressure buffer to prevent overlapping mac
-            // updates, which can lead to order alterations if some initial
-            // update fails but the following ones succeed...
-            // TODO: we may add a buffer operator with a closingSelector
-            // to increase the efficiency, though it may add complexity
-            // to error processing (e.g. if the accumulated update is too
-            // big, we may run into trouble with ovsdb request max sizes...
-            pipe.onBackpressureBuffer(MAX_BACKPRESSURE_BUFFER, panicAlert(log))
-                .observeOn(vtepScheduler)
-                .onBackpressureBuffer(MAX_BACKPRESSURE_BUFFER, panicAlert(log))
-                .subscribe(new MacRemoteUpdater())
-            pipe
-        })(vtepContext)
-
-    private def getCurrentMacLocal: Future[Seq[MacLocation]] =
-        ready.collect({
-            case true =>
-                uLocalTable.getAll.values.toSeq.flatMap{
-                    m => macUpdateToMacLocations(VtepEntryUpdate.addition(m))} ++
-                mLocalTable.getAll.values.toSeq.flatMap{
-                    m => macUpdateToMacLocations(VtepEntryUpdate.addition(m))}
-        })(vtepContext)
-
-    private def psSwitch: Option[PhysicalSwitch] =
-        psTable.getAll.values.find(_.mgmtIps.contains(endPoint.mgmtIp))
-
-    private def lsSwitch(name: String): Option[LogicalSwitch] =
-        lsTable.getAll.values.find(_.name == name)
-
-    private def getTunnelIp: Future[Option[IPv4Addr]] =
-        ready.collect{case true => psSwitch.flatMap(_.tunnelIp)}(vtepContext)
-
     private def macFromUpdate(u: VtepEntryUpdate[MacEntry]): VtepMAC = u match {
         case VtepEntryUpdate(null, null) => null
         case VtepEntryUpdate(p, null)  => p.mac
@@ -233,40 +296,40 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
         }
 
     private def macUpdateToMacLocations(entry: VtepTableUpdate[_ <: MacEntry])
-        : Seq[MacLocation] = entry match {
-            case VtepEntryUpdate(null, null) => List()
-            case VtepEntryUpdate(p, n) => getTunnelIp.value match {
-                case Some(Success(Some(tunnelIp))) =>
-                    val tunnel = if (n == null) null else tunnelIp
-                    val mac = macFromUpdate(VtepEntryUpdate(p, n))
-                    val lsId = lsIdFromUpdate(VtepEntryUpdate(p, n))
-                    val ls = if (lsId == null) None else lsTable.get(lsId)
-                    val oldIp = if (p == null) null else p.ip
-                    val newIp = if (n == null) null else n.ip
-                    val newerIp = if (newIp == null) oldIp else newIp
-                    var macLocations = List[MacLocation]()
+    : Seq[MacLocation] = entry match {
+        case VtepEntryUpdate(null, null) => List()
+        case VtepEntryUpdate(p, n) => vxlanTunnelIp.value match {
+            case Some(Success(Some(tunnelIp))) =>
+                val tunnel = if (n == null) null else tunnelIp
+                val mac = macFromUpdate(VtepEntryUpdate(p, n))
+                val lsId = lsIdFromUpdate(VtepEntryUpdate(p, n))
+                val ls = if (lsId == null) None else lsTable.get(lsId)
+                val oldIp = if (p == null) null else p.ip
+                val newIp = if (n == null) null else n.ip
+                val newerIp = if (newIp == null) oldIp else newIp
+                var macLocations = List[MacLocation]()
 
-                    if (ls.isEmpty)
-                        log.info("unknown logical switch {} on vtep " +
-                                     endPoint, lsId)
-                    else if (oldIp != null && newIp != null && oldIp != newIp)
-                        // The ip has changed: generate an additional
-                        // maclocation to remove the old ip mapping
-                        macLocations = List(
-                            MacLocation(mac, oldIp, ls.get.name, null),
-                            MacLocation(mac, newerIp, ls.get.name, tunnel))
-                    else
-                        macLocations = List(
-                            MacLocation(mac, newerIp, ls.get.name, tunnel))
+                if (ls.isEmpty)
+                    log.info("unknown logical switch {} on vtep " +
+                                 endPoint, lsId)
+                else if (oldIp != null && newIp != null && oldIp != newIp)
+                    // The ip has changed: generate an additional
+                    // maclocation to remove the old ip mapping
+                    macLocations = List(
+                        MacLocation(mac, oldIp, ls.get.name, null),
+                        MacLocation(mac, newerIp, ls.get.name, tunnel))
+                else
+                    macLocations = List(
+                        MacLocation(mac, newerIp, ls.get.name, tunnel))
 
-                    macLocations
-                case _ => List()
-            }
+                macLocations
             case _ => List()
         }
+        case _ => List()
+    }
 
     private def macLocationToMacEntries(ml: MacLocation): Seq[MacEntry] = {
-        lsSwitch(ml.logicalSwitchName) match {
+        logicalSwitch(ml.logicalSwitchName) match {
             case None =>
                 log.warn("unknown logical switch in MAC location: {}",
                          ml.logicalSwitchName)
@@ -326,82 +389,9 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
         }
     }
 
-    private def acquireLogicalSwitch(name: String, vni: Int)
-        : Future[LogicalSwitch] =
-        ready.collect({
-            case true => lsSwitch(name)
-        })(vtepContext).flatMap {
-            case Some(ls) => Future.successful(ls)
-            case None =>
-                val ls = LogicalSwitch(name, vni, "")
-                lsTable.insert(ls).collect {case id => ls} (vtepContext)
-        }(vtepContext)
-
-    private def setBindings(lsName: String, bindings: Iterable[(String, Short)])
-        :Future[Unit] = ready.flatMap {case _ =>
-            (psSwitch, lsSwitch(lsName)) match {
-                case (None, _) =>
-                    throw ConfigException("Physical Switch not found")
-                case (_, None) =>
-                    throw ConfigException("Logical Switch not found: " + lsName)
-                case (Some(ps), Some(ls)) =>
-                    val boundPorts = bindings.map(_._1).toSet
-                    var ports = ps.ports.flatMap(portTable.get)
-                        .filter(p => boundPorts.contains(p.name))
-                        .map(p => (p.name, p)).toMap
-                    for (b <- bindings) ports.get(b._1) match {
-                        case None =>
-                            log.warn("Physical port {} not found", b._1)
-                        case Some(p) =>
-                            ports = ports updated
-                                    (p.name, p.newBinding(b._2.toInt, ls.uuid))
-                    }
-                    val ops = new util.ArrayList[OvsdbOperation]()
-                    val hint = UUID.randomUUID()
-                    ports.values.foreach(p => {
-                        ops.add(portTable.table.updateBindings(p))
-                        portTable.insertHint(p, hint)
-                    })
-                    val status = OvsdbTools.multiOp(client, dbSchema, ops).future
-                    status.onFailure {case e: Throwable =>
-                        ports.values.foreach(
-                            p => portTable.removeHint(p.uuid, hint))
-                    } (vtepContext)
-                    status.map(r => {})(CallingThreadExecutionContext)
-            }
-        }(vtepContext)
-
-    private def deleteLogicalSwitch(name: String): Future[Unit] =
-        ready.flatMap {case _ =>
-            lsSwitch(name) match {
-                case None =>
-                    throw ConfigException("Logical Switch not found: " + name)
-                case Some(ls) =>
-                    val ops = new util.ArrayList[OvsdbOperation]()
-
-                    // clean-up mac tables
-                    List(uLocalTable, uRemoteTable, mLocalTable, mRemoteTable)
-                        .foreach(t => {
-                        ops.add(t.table.deleteByLogicalSwitchId(ls.uuid))
-                    })
-
-                    // clear bindings
-                    portTable.getAll.values
-                        .filter(_.isBoundToLogicalSwitchId(ls.uuid))
-                        .map(_.clearBindings(ls.uuid))
-                        .foreach(p => ops.add(portTable.table.updateBindings(p)))
-
-                    // delete the switch
-                    ops.add(lsTable.table.deleteByName(ls.name))
-
-                    OvsdbTools.multiOp(client, dbSchema, ops).future
-                        .map(r => {})(CallingThreadExecutionContext)
-            }
-        } (vtepContext)
 }
 
 object OvsdbVtepData {
-    final val requestTimeout: Duration = Duration(30, TimeUnit.SECONDS)
     def panicAlert(log: Logger) = makeAction0 {
         log.error("OVSDB client buffer overflow.  The VxGW service will NOT " +
                   "function correctly, please restart the Cluster server.")

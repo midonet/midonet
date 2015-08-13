@@ -19,8 +19,8 @@ package org.midonet.cluster.data.vtep
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
-import scala.util.Try
 
 import rx.{Observable, Observer}
 
@@ -104,8 +104,9 @@ object VtepConnection {
  * Access data from a VTEP
  */
 trait VtepData {
+
     /** Return the VTEP tunnel IP */
-    def vxlanTunnelIp: Option[IPv4Addr]
+    def vxlanTunnelIp: Future[Option[IPv4Addr]]
 
     /** The Observable that emits updates in the *cast_Mac_Local tables, with
       * MACs that are local to the VTEP and should be published to other
@@ -116,23 +117,25 @@ trait VtepData {
       * to other VTEPs (which includes ports in MidoNet.  Entries pushed to this
       * Observer are expected to be applied in the Mac_Remote tables on the
       * hardware VTEPs. */
-    def macRemoteUpdater: Observer[MacLocation]
+    def macRemoteUpdater: Future[Observer[MacLocation]]
 
     /** Provide a snapshot with the current contents of the Mac_Local tables
       * in the VTEP's OVSDB. */
-    def currentMacLocal: Seq[MacLocation]
+    def currentMacLocal: Future[Seq[MacLocation]]
 
     /** Ensure that the hardware VTEP's config contains a Logical Switch with
       * the given name and VNI. */
-    def ensureLogicalSwitch(name: String, vni: Int): Try[LogicalSwitch]
+    def ensureLogicalSwitch(name: String, vni: Int): Future[LogicalSwitch]
 
     /** Remove the logical switch with the given name, as well as all bindings
       * and entries in Mac tables. */
-    def removeLogicalSwitch(name: String): Try[Unit]
+    def removeLogicalSwitch(name: String): Future[Unit]
 
     /** Ensure that the hardware VTEP's config for the given Logical Switch
       * contains these and only these bindings. */
-    def ensureBindings(lsName: String, bindings: Iterable[(String, Short)]): Try[Unit]
+    def ensureBindings(lsName: String, bindings: Iterable[(String, Short)])
+    : Future[Unit]
+
 }
 
 
