@@ -25,15 +25,6 @@ case class VtepEndPoint(mgmtIp: IPv4Addr, mgmtPort: Int) {
     private val str: String = s"$mgmtIp:$mgmtPort"
     val mgmtIpString = if (mgmtIp == null) null else mgmtIp.toString
     override def toString = str
-    override def canEqual(obj: Any): Boolean = obj.isInstanceOf[VtepEndPoint]
-    override def equals(obj: Any): Boolean = obj match {
-        case null => false
-        case VtepEndPoint(null, p) => mgmtIp == null && mgmtPort == p
-        case VtepEndPoint(ip, p) => ip.equals(mgmtIp) && p == mgmtPort
-        case _ => false
-    }
-    override def hashCode: Int =
-        mgmtPort + 31 * (if (mgmtIp != null) mgmtIp.hashCode() else 0)
 }
 
 object VtepEndPoint {

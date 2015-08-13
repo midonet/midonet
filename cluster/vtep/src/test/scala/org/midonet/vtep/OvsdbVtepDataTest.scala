@@ -118,7 +118,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
         scenario("get tunnel ip") {
             val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
             timed(timeout) {
-                vtepHandle.vxlanTunnelIp
+                Await.result(vtepHandle.vxlanTunnelIp, timeout)
             } shouldBe Some(vxlanIp)
         }
     }
@@ -132,7 +132,8 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
 
             val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
             val updates = PublishSubject.create[MacLocation]()
-            val subscription = updates.subscribe(vtepHandle.macRemoteUpdater)
+            val updater = Await.result(vtepHandle.macRemoteUpdater, timeout)
+            val subscription = updates.subscribe(updater)
 
             val macLocations = List(
                 MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls.name,
@@ -175,7 +176,8 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
 
             val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
             val updates = PublishSubject.create[MacLocation]()
-            val subscription = updates.subscribe(vtepHandle.macRemoteUpdater)
+            val updater = Await.result(vtepHandle.macRemoteUpdater, timeout)
+            val subscription = updates.subscribe(updater)
 
             val macLocations = List(
                 MacLocation.unknownAt(vxlanTunnelEndpoint = IPv4Addr.random,
