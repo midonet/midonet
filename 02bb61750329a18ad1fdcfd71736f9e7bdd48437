@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9e3cdec9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T12:08:33Z",
+      "side": 1,
+      "message": "ah, right",
+      "parentUuid": "9ad9bd40_aa27a1c8",
+      "revId": "02bb61750329a18ad1fdcfd71736f9e7bdd48437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8ab81d76",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
         "patchSetId": 1
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "Why? this is a rare feature. Extremely rare to have two mirrors on the same hook point.",
       "parentUuid": "9ad9bd40_8ab81d76",
+      "revId": "02bb61750329a18ad1fdcfd71736f9e7bdd48437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_be10c24e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-13T12:08:33Z",
+      "side": 1,
+      "message": "for overall consistency. you made the conditions in the mirror a java list, while the same arguments apply. i think we should consistently prefer arrays and arraylists and not have to think about the context.",
+      "parentUuid": "9ad9bd40_2a1b9181",
       "revId": "02bb61750329a18ad1fdcfd71736f9e7bdd48437",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
