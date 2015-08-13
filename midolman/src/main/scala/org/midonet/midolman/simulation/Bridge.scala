@@ -104,10 +104,13 @@ class Bridge(val id: UUID,
              val ipToMac: ROMap[IPAddr, MAC],
              val vlanToPort: VlanPortMap,
              val exteriorPorts: List[UUID],
-             val subnetIds: List[UUID])
+             val subnetIds: List[UUID],
+             val inboundMirrors: List[UUID] = Nil,
+             val outboundMirrors: List[UUID] = Nil)
             (implicit val actorSystem: ActorSystem) extends SimDevice
                                                     with ForwardingDevice
                                                     with InAndOutFilters
+                                                    with MirroringDevice
                                                     with VirtualDevice {
 
     import org.midonet.midolman.simulation.Simulator._

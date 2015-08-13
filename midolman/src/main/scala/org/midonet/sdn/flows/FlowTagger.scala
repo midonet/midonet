@@ -435,6 +435,27 @@ object FlowTagger {
         }
         tag.asInstanceOf[UserTag]
     }
+
+    /**
+     * Tag for the flows associated with a meter
+     */
+    case class MirrorTag(id: UUID) extends FlowTag {
+        override def toString = s"mirror:$id"
+    }
+
+    val cachedMirrorTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForMirror(id: UUID): MirrorTag = {
+        val segment = cachedUserTags.get().getOrAddSegment(id)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = MirrorTag(id)
+            segment.value = tag
+        }
+        tag.asInstanceOf[MirrorTag]
+    }
 }
 
 class FlowTagger {}

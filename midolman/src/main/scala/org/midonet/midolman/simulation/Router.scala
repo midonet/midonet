@@ -72,9 +72,11 @@ class Router(override val id: UUID,
              override val cfg: Config,
              override val rTable: RoutingTable,
              override val routerMgrTagger: TagManager,
-             val arpCache: ArpCache)
+             val arpCache: ArpCache,
+             val inboundMirrors: List[UUID] = Nil,
+             val outboundMirrors: List[UUID] = Nil)
             (implicit system: ActorSystem)
-        extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) {
+        extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) with MirroringDevice {
 
     override def isValidEthertype(ether: Short) =
         ether == IPv4.ETHERTYPE || ether == ARP.ETHERTYPE

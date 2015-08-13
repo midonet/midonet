@@ -19,6 +19,8 @@ package org.midonet.midolman.topology
 import java.lang.{Boolean => JBoolean}
 import java.util.UUID
 
+import org.midonet.midolman.topology.DeviceWithChainsMapper.ObjectReferenceTracker
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -36,7 +38,7 @@ import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
-import org.midonet.midolman.simulation.{Router => SimulationRouter, RouterPort, Chain, LoadBalancer}
+import org.midonet.midolman.simulation.{Router => SimulationRouter, Mirror, RouterPort, Chain, LoadBalancer}
 import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.RouterMapper._
 import org.midonet.odp.FlowMatch
@@ -345,7 +347,7 @@ object RouterMapper {
 final class RouterMapper(routerId: UUID, vt: VirtualTopology,
                          _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
                         (implicit actorSystem: ActorSystem)
-        extends DeviceWithChainsMapper[SimulationRouter](routerId, vt)
+        extends VirtualDeviceMapper[SimulationRouter](routerId, vt)
         with TraceRequestChainMapper[SimulationRouter] {
 
     override def logSource = s"org.midonet.devices.router.router-$routerId"
@@ -389,6 +391,9 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
             new RemoveTagCallback(dst)
         }
     }
+
+    private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
+    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
 
     private lazy val mark =
         PublishSubject.create[Config]
@@ -462,7 +467,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
                          routesObservable,
                          traceChainObservable.map[Config](
                              makeFunc1(traceChainUpdated)),
-                         chainsObservable.map[Config](makeFunc1(chainUpdated)),
+                         chainsTracker.refsObservable.map[Config](makeFunc1(refUpdated)),
+                         mirrorsTracker.refsObservable.map[Config](makeFunc1(refUpdated)),
                          loadBalancerObservable,
                          routerObservable)
             .takeUntil(mark)
@@ -478,7 +484,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         ready = (config ne null) && (arpCache ne null) &&
                 (if (loadBalancer ne null) loadBalancer.isReady else true) &&
                 ports.forall(_._2.isReady) && localRoutes.forall(_._2.isReady) &&
-                areChainsReady && isTracingReady
+                chainsTracker.areRefsReady && mirrorsTracker.areRefsReady && isTracingReady
         log.debug("Router ready: {} ", Boolean.box(ready))
         ready
     }
@@ -493,8 +499,9 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         assertThread()
 
         // Complete the mapper observables.
-        completeChains()
         completeTraceChain()
+        chainsTracker.completeRefs()
+        mirrorsTracker.completeRefs()
         mark.onCompleted()
     }
 
@@ -546,9 +553,13 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
                           router.getTraceRequestIdsList().asScala.map(_.asJava).toList)
 
         // Request the chains for this router.
-        requestChains(
+        chainsTracker.requestRefs(
             if (router.hasInboundFilterId) router.getInboundFilterId else null,
             if (router.hasOutboundFilterId) router.getOutboundFilterId else null)
+
+        // Request the mirrors for this router.
+        mirrorsTracker.requestRefs(router.getInboundMirrorsList.asScala map (_.asJava) :_*)
+        mirrorsTracker.requestRefs(router.getOutboundMirrorsList.asScala map (_.asJava) :_*)
 
         // Complete the previous load-balancer state, if any and different from
         // the current one.
@@ -587,10 +598,9 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         config
     }
 
-    /** Handles updates for the chains. */
-    private def chainUpdated(chain: Chain): Config = {
+    private def refUpdated(obj: AnyRef): Config = {
         assertThread()
-        log.debug("Router chain updated {}", chain)
+        log.debug("Router ref updated {}", obj)
         config
     }
 

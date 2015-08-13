@@ -19,6 +19,8 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.{ArrayList, HashMap => JHashMap}
 
+import org.midonet.midolman.topology.DeviceWithChainsMapper.ObjectReferenceTracker
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -88,7 +90,7 @@ object ChainMapper {
      *                      start observing.
      * @param vt The virtual topology object.
      */
-    private final class IpAddressGroupState(ipAddrGroupId: UUID,
+    final class IpAddressGroupState(ipAddrGroupId: UUID,
                                             vt: VirtualTopology) {
         /** The number of rules that reference this IP address group. */
         var refCount = 1
@@ -117,12 +119,13 @@ object ChainMapper {
 
 final class ChainMapper(chainId: UUID, vt: VirtualTopology,
                         traceChainMap: mutable.Map[UUID,Subject[SimChain,SimChain]])
-    extends DeviceWithChainsMapper[SimChain](chainId, vt)
+    extends VirtualDeviceMapper[SimChain](chainId, vt)
             with MidolmanLogging {
 
     override def logSource = s"org.midonet.devices.chain.chain-$chainId"
 
     private var chainProto: TopologyChain = TopologyChain.newBuilder.build()
+    private val refTracker = new ObjectReferenceTracker[SimChain](vt)
 
     // The stream of rules that belong to this chain
     private val ruleStream = PublishSubject.create[Observable[RuleState]]()
@@ -148,7 +151,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
             case None =>
                 log.debug("Subscribing to jump chain: {}", jumpChainId)
                 jumpChains += jumpChainId -> 1
-                requestChains(jumpChains.keySet.toSet)
+                refTracker.requestRefs(jumpChains.keySet.toSet)
         }
     }
 
@@ -157,7 +160,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
             case Some(1) =>
                 log.debug("Unsubscribing from chain {}", jumpChainId)
                 jumpChains -= jumpChainId
-                requestChains(jumpChains.keySet.toSet)
+                refTracker.requestRefs(jumpChains.keySet.toSet)
             case Some(count) =>
                 log.debug("Jump chain {} reference count decremented: {}",
                           jumpChainId, Int.box(count - 1))
@@ -307,7 +310,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
 
     private def chainReady(update: Any): Boolean = {
         assertThread()
-        val ready = rules.forall(_._2.isReady) && areChainsReady &&
+        val ready = rules.forall(_._2.isReady) && refTracker.areRefsReady &&
                     ipAddrGroups.forall(_._2.isReady)
         log.debug("Chain ready: {}", Boolean.box(ready))
         ready
@@ -320,7 +323,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
         ruleStream.onCompleted()
         rules.values.foreach(_.complete())
         rules.clear()
-        completeChains()
+        refTracker.completeRefs()
         jumpChains.clear()
         ipAddrGroupStream.onCompleted()
         ipAddrGroups.values.foreach(_.complete())
@@ -346,7 +349,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
         ruleList.addAll(ruleIds.map(rules(_).currentRule).asJava)
 
         val chainMap = new JHashMap[UUID, SimChain]()
-        for ((id, chain) <- currentChains) {
+        for ((id, chain) <- refTracker.currentRefs) {
             chainMap.put(id, chain)
         }
         val chain = new SimChain(chainId, ruleList, chainMap, chainProto.getName)
@@ -388,7 +391,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology,
         // added to the merge before observables that may trigger their update,
         // such as the chain observable, which ensures they are subscribed to
         // before emitting any updates.
-        Observable.merge[Any](chainsObservable,
+        Observable.merge[Any](refTracker.refsObservable,
                               Observable.merge(ipAddrGroupStream),
                               Observable.merge(ruleStream)
                                   .map[TopologyChain](makeFunc1(ruleUpdated)),

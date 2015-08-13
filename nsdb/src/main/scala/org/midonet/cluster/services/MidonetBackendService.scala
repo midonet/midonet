@@ -64,6 +64,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Host],
              classOf[IPAddrGroup],
              classOf[LoadBalancer],
+             classOf[Mirror],
              classOf[Network],
              classOf[NeutronConfig],
              classOf[NeutronHealthMonitor],
@@ -123,6 +124,26 @@ abstract class MidonetBackend extends AbstractService {
                              classOf[PoolMember], "pool_id", CLEAR)
         store.declareBinding(classOf[Pool], "health_monitor_id", CLEAR,
                              classOf[HealthMonitor], "pool_id", CLEAR)
+
+
+        // Mirroring references
+        store.declareBinding(classOf[Network], "inbound_mirrors", CLEAR,
+                             classOf[Mirror], "network_inbound_ids", CLEAR)
+        store.declareBinding(classOf[Router], "inbound_mirrors", CLEAR,
+                             classOf[Mirror], "router_inbound_ids", CLEAR)
+        store.declareBinding(classOf[Port], "inbound_mirrors", CLEAR,
+                             classOf[Mirror], "port_inbound_ids", CLEAR)
+
+        store.declareBinding(classOf[Network], "outbound_mirrors", CLEAR,
+                             classOf[Mirror], "network_outbound_ids", CLEAR)
+        store.declareBinding(classOf[Router], "outbound_mirrors", CLEAR,
+                             classOf[Mirror], "router_outbound_ids", CLEAR)
+        store.declareBinding(classOf[Port], "outbound_mirrors", CLEAR,
+                             classOf[Mirror], "port_outbound_ids", CLEAR)
+
+        store.declareBinding(classOf[Mirror], "to_port", CLEAR,
+                             classOf[Port], "mirror_ids", CASCADE)
+
 
         store.declareBinding(classOf[Router], "load_balancer_id", CASCADE,
                              classOf[LoadBalancer], "router_id", CLEAR)

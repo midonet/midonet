@@ -126,7 +126,7 @@ object Port {
             IPv4Addr.fromString(p.tunIpAddr), p.tunnelZoneId, p.vni)
 }
 
-trait Port extends VirtualDevice with InAndOutFilters with Cloneable {
+trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with Cloneable {
     def id: UUID
     def inboundFilter: UUID
     def outboundFilter: UUID
@@ -236,7 +236,9 @@ case class BridgePort(override val id: UUID,
                       override val portGroups: ArrayList[UUID] = new ArrayList(0),
                       override val isActive: Boolean = false,
                       override val vlanId: Short = Bridge.UntaggedVlanId,
-                      networkId: UUID) extends Port {
+                      networkId: UUID,
+                      override val inboundMirrors: List[UUID] = Nil,
+                      override val outboundMirrors: List[UUID] = Nil) extends Port {
 
     override def toggleActive(active: Boolean) = copy(isActive = active)
     override def updateInboundFilter(filter: UUID) = copy(inboundFilter = filter)
@@ -273,7 +275,9 @@ case class RouterPort(override val id: UUID,
                       portSubnet: IPv4Subnet,
                       portIp: IPv4Addr,
                       portMac: MAC,
-                      routeIds: Set[UUID] = Set.empty) extends Port {
+                      routeIds: Set[UUID] = Set.empty,
+                      override val inboundMirrors: List[UUID] = Nil,
+                      override val outboundMirrors: List[UUID] = Nil) extends Port {
 
     val _portAddr = new IPv4Subnet(portIp, portSubnet.getPrefixLen)
 
@@ -318,7 +322,9 @@ case class VxLanPort(override val id: UUID,
                      vtepMgmtPort: Int = 0,
                      vtepTunnelIp: IPv4Addr = null,
                      vtepTunnelZoneId: UUID = null,
-                     vtepVni: Int = 0) extends Port {
+                     vtepVni: Int = 0,
+                     override val inboundMirrors: List[UUID] = Nil,
+                     override val outboundMirrors: List[UUID] = Nil) extends Port {
 
     override def hostId = null
     override def interfaceName = null

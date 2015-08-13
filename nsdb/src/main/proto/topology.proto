@@ -77,6 +77,20 @@ message Chain {
     repeated UUID port_ids = 104;
 }
 
+message Mirror {
+    optional UUID id = 1;
+    optional UUID to_port = 2;
+    repeated Condition conditons = 3;
+
+    // Backreferences
+    repeated UUID network_inbound_ids = 101;
+    repeated UUID network_outbound_ids = 102;
+    repeated UUID router_inbound_ids = 103;
+    repeated UUID router_outbound_ids = 104;
+    repeated UUID port_inbound_ids = 105;
+    repeated UUID port_outbound_ids = 106;
+}
+
 message Dhcp {
     optional UUID id = 1;
     optional UUID network_id = 2;
@@ -203,6 +217,8 @@ message Network {
     // If the Network is bound to any VTEPs, it'll be assigned a VNI
     // that is used for all bindings to all VTEPs
     optional uint32 vni = 8;
+    repeated UUID inbound_mirrors = 9;
+    repeated UUID outbound_mirrors = 10;
 
     // Backreferences
     repeated UUID port_ids = 101;
@@ -280,6 +296,10 @@ message Port {
     // VXLAN port specific
     optional UUID vtep_id = 19;
 
+    // mirroring
+    repeated UUID inbound_mirrors = 20;
+    repeated UUID outbound_mirrors = 21;
+
     // Backreferences
 
     // For Router gateway port only. Back-references to VIPs that are associated
@@ -290,6 +310,8 @@ message Port {
     repeated UUID fip_nat_rule_ids = 102;
 
     repeated UUID trace_request_ids = 103;
+    // Mirrors that forward to this port
+    repeated UUID mirror_ids = 104;
 }
 
 message PortGroup {
@@ -336,6 +358,10 @@ message Router {
     optional int32 as_number = 9 [default = -1];
     repeated UUID bgp_network_ids = 10;
     repeated UUID bgp_peer_ids = 11;
+
+    // Mirroring
+    repeated UUID inbound_mirrors = 12;
+    repeated UUID outbound_mirrors = 13;
 
     // Backreferences
     repeated UUID port_ids = 101;

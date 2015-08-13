@@ -40,6 +40,8 @@ object Simulator {
     // materialized ports and to the logical port that connects it to the VAB
     case class ForkAction(var first: Result, var second: Result) extends ForwardAction
 
+    case class ContinueWith(var step: SimStep) extends ForwardAction
+
     case object Continue extends ForwardAction
 
     type SimHook = (PacketContext, ActorSystem) => Unit
@@ -59,6 +61,7 @@ object Simulator {
         Fork.reUp()
         PooledMatches.reUp()
         RuleResults.reUp()
+        Continuations.reUp()
     }
 
     val Fork = new InstanceStash2[ForkAction, Result, Result](
@@ -66,6 +69,12 @@ object Simulator {
             (fork, a, b) => {
                 fork.first = a
                 fork.second = b
+            })
+
+    val Continuations = new InstanceStash1[ContinueWith, SimStep](
+            () => ContinueWith(null),
+            (cont, step) => {
+                cont.step = step
             })
 
     val PooledMatches = new InstanceStash1[FlowMatch, FlowMatch](
@@ -133,11 +142,12 @@ trait SimDevice {
     }
 
     def continue(context: PacketContext, simRes: Result)(
-        implicit as: ActorSystem) : Result = simRes match {
+                 implicit as: ActorSystem): Result = simRes match {
         case ForkAction(first, second) => merge(context,
                                                 branch(context, first),
                                                 branch(context, second))
         case ToPortAction(port) => tryAsk[Port](port).egress(context, as)
+        case ContinueWith(step) => step(context, as)
         case res => res
     }
 }

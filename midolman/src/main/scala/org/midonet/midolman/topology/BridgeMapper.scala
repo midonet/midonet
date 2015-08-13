@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 
 import javax.annotation.Nullable
 
+import org.midonet.midolman.topology.DeviceWithChainsMapper.ObjectReferenceTracker
+
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.{Map => CMap, TrieMap}
 import scala.collection.mutable
@@ -36,10 +38,11 @@ import rx.subjects.{PublishSubject, Subject}
 import org.midonet.cluster.VlanPortMapImpl
 import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
+import org.midonet.cluster.models.Topology.{Mirror => TopologyMirror}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, RouterPort, Chain}
-import org.midonet.midolman.simulation.{BridgePort, Port}
+import org.midonet.midolman.simulation.{BridgePort, Port, _}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state.{ReplicatedMap, StateAccessException}
@@ -267,7 +270,7 @@ object BridgeMapper {
 final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopology,
                          _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
                         (implicit actorSystem: ActorSystem)
-        extends DeviceWithChainsMapper[SimulationBridge](bridgeId, vt)
+        extends VirtualDeviceMapper[SimulationBridge](bridgeId, vt)
         with TraceRequestChainMapper[SimulationBridge] {
 
     import BridgeMapper._
@@ -276,10 +279,14 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
     override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
         _traceChainMap
 
+    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
+    private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
     private var bridge: TopologyBridge = null
     private val localPorts = new mutable.HashMap[UUID, LocalPortState]
     private val peerPorts = new mutable.HashMap[UUID, PeerPortState]
     private val exteriorPorts = new mutable.HashSet[UUID]
+    private val inboundMirrors = new mutable.HashSet[UUID]
+    private val outboundMirrors = new mutable.HashSet[UUID]
     private var oldExteriorPorts = Set.empty[UUID]
     private var oldRouterMacPortMap = Map.empty[MAC, UUID]
     private var traceChain: Option[UUID] = None
@@ -360,7 +367,9 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         .merge[TopologyBridge](connectionObservable, portsObservable,
                                traceChainObservable.map[TopologyBridge](
                                    makeFunc1(traceChainUpdated)),
-                               chainsObservable
+                               mirrorsTracker.refsObservable
+                                   .map[TopologyBridge](makeFunc1(mirrorUpdated)),
+                               chainsTracker.refsObservable
                                    .map[TopologyBridge](makeFunc1(chainUpdated)),
                                bridgeObservable)
         .doOnError(makeAction1(bridgeError))
@@ -375,7 +384,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         assertThread()
         val ready: JBoolean =
             localPorts.forall(_._2.isReady) && peerPorts.forall(_._2.isReady) &&
-            areChainsReady && isTracingReady
+            isTracingReady && chainsTracker.areRefsReady && mirrorsTracker.areRefsReady
         log.debug("Bridge ready: {}", ready)
         ready
     }
@@ -402,8 +411,9 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             ipv4MacMap.complete()
         }
         portsSubject.onCompleted()
-        completeChains()
         completeTraceChain()
+        chainsTracker.completeRefs()
+        mirrorsTracker.completeRefs()
         macUpdatesSubject.onCompleted()
         connectionSubject.onCompleted()
         macUpdatesSubscription.unsubscribe()
@@ -468,9 +478,12 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
                           bridge.getTraceRequestIdsList().asScala.map(_.asJava).toList)
 
         // Request the chains for this bridge.
-        requestChains(
+        chainsTracker.requestRefs(
             if (bridge.hasInboundFilterId) bridge.getInboundFilterId else null,
             if (bridge.hasOutboundFilterId) bridge.getOutboundFilterId else null)
+
+        mirrorsTracker.requestRefs(bridge.getInboundMirrorsList.asScala map (_.asJava) :_*)
+        mirrorsTracker.requestRefs(bridge.getOutboundMirrorsList.asScala map (_.asJava) :_*)
     }
 
     /**
@@ -522,6 +535,14 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         traceChain = chainId
         bridge
     }
+
+    /** Handles updates for the chains. */
+    private def mirrorUpdated(mirror: Mirror): TopologyBridge = {
+        assertThread()
+        log.debug("Bridge chain updated {}", mirror)
+        bridge
+    }
+
     /**
      * Emits an error on the connection observable to complete the device
      * notifications.
