@@ -15,12 +15,12 @@
  */
 package org.midonet.midolman.flows
 
-import java.util.{ArrayList, Collection}
+import java.util.ArrayList
 
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.collection.{ObjectPool, PooledObject}
+import org.midonet.util.collection.{ArrayListUtil, ObjectPool, PooledObject}
 import org.midonet.util.functors.Callback0
 
 /**
@@ -40,14 +40,14 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
     var sequence = 0L
     var removed = false
 
-    def reset(flowMatch: FlowMatch, flowTags: Collection[FlowTag],
+    def reset(flowMatch: FlowMatch, flowTags: ArrayList[FlowTag],
               flowRemovedCallbacks: ArrayList[Callback0], sequence: Long,
               expiration: Expiration, now: Long): Unit = {
         this.flowMatch.resetWithoutIcmpData(flowMatch)
         expirationType = expiration.typeId
         absoluteExpirationNanos = now + expiration.value
-        tags.addAll(flowTags)
-        callbacks.addAll(flowRemovedCallbacks)
+        ArrayListUtil.addAll(flowTags, tags)
+        ArrayListUtil.addAll(flowRemovedCallbacks, callbacks)
         this.sequence = sequence
         removed = false
     }
