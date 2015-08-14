@@ -1072,6 +1072,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_b78625b7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-14T09:47:42Z",
+      "side": 1,
+      "message": "i\u0027m looking at bgp code today.\nit doesn\u0027t seem too difficult.\ni\u0027ll try to implement something next week.",
+      "parentUuid": "9ad9bd40_1e48d3b1",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2c43beaf",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/NovaMetadataClient.scala",
         "patchSetId": 19
