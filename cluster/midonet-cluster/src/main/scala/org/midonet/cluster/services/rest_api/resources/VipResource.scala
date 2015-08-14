@@ -18,8 +18,8 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
 
-import javax.ws.rs.WebApplicationException
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.{Path, WebApplicationException}
 
 import scala.concurrent.Future
 
@@ -33,6 +33,8 @@ import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpExcept
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
+@ApiResource(version = 1)
+@Path("vips")
 @RequestScoped
 @AllowGet(Array(APPLICATION_VIP_JSON,
                 APPLICATION_JSON))

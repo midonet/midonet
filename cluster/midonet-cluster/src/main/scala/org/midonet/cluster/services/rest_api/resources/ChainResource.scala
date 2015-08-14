@@ -26,11 +26,13 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
-import org.midonet.cluster.rest_api.models._
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList, _}
+import org.midonet.cluster.rest_api.models.{Chain, _}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
+@ApiResource(version = 1)
+@Path("chains")
 @RequestScoped
 @AllowGet(Array(APPLICATION_CHAIN_JSON,
                 APPLICATION_JSON))
