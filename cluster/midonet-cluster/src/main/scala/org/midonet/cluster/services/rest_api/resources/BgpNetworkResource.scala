@@ -18,17 +18,20 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
 
+import javax.ws.rs.Path
 import javax.ws.rs.core.MediaType._
 import scala.collection.JavaConverters._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowList, AllowDelete, AllowGet}
+import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Router, BgpNetwork}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Ids, NoOps, Ops, ResourceContext}
 
+@ApiResource(version = 1)
+@Path("bgp_networks")
 @RequestScoped
 @AllowGet(Array(APPLICATION_BGP_NETWORK_JSON,
                 APPLICATION_JSON))
