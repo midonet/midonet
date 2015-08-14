@@ -43,4 +43,6 @@ fi
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 
-$JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml $JAVA_LIBRARY_PATH -cp $MIDO_DEP_CLASS_PATH org.midonet.mmdpctl.MmDpctl $*
+$JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml $JAVA_LIBRARY_PATH \
+    -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
+    -cp $MIDO_DEP_CLASS_PATH org.midonet.mmdpctl.MmDpctl $*
