@@ -1,0 +1,383 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_17635142",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "I know it\u0027s named just \"vip\" in the original code, but could you rename this as \"vip1\"?",
+      "range": {
+        "startLine": 504,
+        "startChar": 12,
+        "endLine": 504,
+        "endChar": 15
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f770ad09",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 507,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "On top of this, we should also check that pool has a back reference to vip1.",
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_37669551",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 527,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_775c9d7d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b751c563",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d74c89ca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f747cda0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Vip.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d72d69a9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "Instead of subclassing this class, isn\u0027t it better to make DeviceSate to take Observable[T]?",
+      "range": {
+        "startLine": 73,
+        "startChar": 4,
+        "endLine": 79,
+        "endChar": 37
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d249f760",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "Isn\u0027t it more readable to just inline this method and simply return loadBalancer?",
+      "range": {
+        "startLine": 103,
+        "startChar": 16,
+        "endLine": 103,
+        "endChar": 27
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_923ccfc9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "We should either rename this as isLoadBalancerReadyAndChanged, or split this into two separate functions: isLoadBalancerReady and isLoadBalancerChanged.",
+      "range": {
+        "startLine": 112,
+        "startChar": 0,
+        "endLine": 112,
+        "endChar": 61
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_32530318",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "Seems like it can be simplified to do this in a single loop. How much we can gain efficiency by computing the initial array size?",
+      "range": {
+        "startLine": 133,
+        "startChar": 8,
+        "endLine": 137,
+        "endChar": 9
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9243ef40",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "Just commenting that there should always exist a Router for each LB.",
+      "range": {
+        "startLine": 141,
+        "startChar": 25,
+        "endLine": 141,
+        "endChar": 54
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d7fac941",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_526de7ca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "This too may be just inlined.",
+      "range": {
+        "startLine": 159,
+        "startChar": 16,
+        "endLine": 159,
+        "endChar": 26
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_17bfd161",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyMatchers.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "v.hasSessionPersistence \u0026\u0026\n    v.getSessionPersistence \u003d\u003d SessionPersistence.SOURCE_IP",
+      "range": {
+        "startLine": 293,
+        "startChar": 42,
+        "endLine": 294,
+        "endChar": 83
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_37c215e9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "s/emit/emits/",
+      "range": {
+        "startLine": 79,
+        "startChar": 29,
+        "endLine": 79,
+        "endChar": 33
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_926a0fb1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/package.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-14T10:49:09Z",
+      "side": 1,
+      "message": "We can specify map.keys as a default param for \"keys\" and simplify the code a bit.",
+      "range": {
+        "startLine": 48,
+        "startChar": 24,
+        "endLine": 48,
+        "endChar": 36
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
