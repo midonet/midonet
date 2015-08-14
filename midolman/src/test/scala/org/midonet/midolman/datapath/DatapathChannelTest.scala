@@ -22,7 +22,7 @@ import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
 import java.util.{UUID, ArrayList}
 
 import akka.testkit.TestProbe
-import com.lmax.disruptor.RingBuffer
+import com.lmax.disruptor.{SequenceBarrier, RingBuffer}
 import org.jctools.queues.SpscArrayQueue
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -61,16 +61,9 @@ class DatapathChannelTest extends MidolmanSpec {
         factory.selectorProvider, clock)
     val ringBuffer = RingBuffer.createSingleProducer[PacketContextHolder](
         DisruptorDatapathChannel.Factory, capacity)
-    val processor = new BackchannelEventProcessor[PacketContextHolder](
-        ringBuffer,
-        new AggregateEventPollerHandler(
-            fp,
-            new EventPollerHandlerAdapter(new PacketExecutor(
-                new DatapathStateDriver(datapath), ovsFamilies, 1, 0, factory))),
-        fp)
-
-    val barrier = ringBuffer.newBarrier(processor.getSequence)
-    val dpChannel = new DisruptorDatapathChannel(ringBuffer, Array(processor))
+    var processor: BackchannelEventProcessor[PacketContextHolder] = _
+    var barrier: SequenceBarrier = _
+    var dpChannel: DisruptorDatapathChannel = _
 
     val ethernet: Ethernet = ({ eth src MAC.random() dst MAC.random() } <<
                               { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
@@ -83,6 +76,15 @@ class DatapathChannelTest extends MidolmanSpec {
     }
 
     override def beforeTest(): Unit = {
+        processor = new BackchannelEventProcessor[PacketContextHolder](
+            ringBuffer,
+            new AggregateEventPollerHandler(
+                fp,
+                new EventPollerHandlerAdapter(new PacketExecutor(
+                    new DatapathStateDriver(datapath), ovsFamilies, 1, 0, factory, metrics))),
+            fp)
+        barrier = ringBuffer.newBarrier(processor.getSequence)
+        dpChannel = new DisruptorDatapathChannel(ringBuffer, Array(processor))
         dpChannel.start()
     }
 

@@ -21,7 +21,6 @@ import scala.concurrent.duration._
 
 import akka.actor.{Actor, ActorRef, Props, _}
 import akka.event.LoggingReceive
-import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.services.HostIdProviderService
@@ -85,9 +84,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
-    var metricsRegistry: MetricRegistry = null
-
-    private var metrics: PacketPipelineMetrics = null
+    var metrics: PacketPipelineMetrics = null
 
     protected var workers = immutable.IndexedSeq[ActorRef]()
 
@@ -126,7 +123,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     override def preStart(): Unit = {
         super.preStart()
         NUM_WORKERS = config.simulationThreads
-        metrics = new PacketPipelineMetrics(metricsRegistry, NUM_WORKERS)
 
         connTrackStateTable = new ShardedFlowStateTable(clock)
         natStateTable = new ShardedFlowStateTable(clock)
