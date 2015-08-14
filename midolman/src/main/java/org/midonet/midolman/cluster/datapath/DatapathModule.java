@@ -53,6 +53,7 @@ import org.midonet.midolman.io.OneToOneDpConnManager;
 import org.midonet.midolman.io.OneToManyDpConnManager;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.io.TokenBucketPolicy;
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkChannelFactory;
@@ -110,7 +111,8 @@ public class DatapathModule extends PrivateModule {
             FlowProcessor flowProcessor,
             DatapathState dpState,
             OvsNetlinkFamilies families,
-            NetlinkChannelFactory channelFactory) {
+            NetlinkChannelFactory channelFactory,
+            PacketPipelineMetrics metrics) {
         threads = Math.max(threads, 1);
         EventProcessor[] processors = new EventProcessor[threads];
         if (threads == 1) {
@@ -118,14 +120,14 @@ public class DatapathModule extends PrivateModule {
                 JavaConversions.asScalaBuffer(Arrays.asList(
                     flowProcessor,
                     new EventPollerHandlerAdapter(new PacketExecutor(
-                        dpState, families, 1, 0, channelFactory)))));
+                        dpState, families, 1, 0, channelFactory, metrics)))));
             processors[0] = new BackchannelEventProcessor(
                 ringBuffer, handler, flowProcessor, Seq$.MODULE$.empty());
         } else {
             int numPacketHandlers = threads - 1;
             for (int i = 0; i < numPacketHandlers; ++i) {
                 PacketExecutor pexec = new PacketExecutor(
-                    dpState, families, numPacketHandlers, i, channelFactory);
+                    dpState, families, numPacketHandlers, i, channelFactory, metrics);
                 processors[i] = new BatchEventProcessor(ringBuffer, barrier, pexec);
             }
             processors[numPacketHandlers] = new BackchannelEventProcessor(
@@ -177,7 +179,8 @@ public class DatapathModule extends PrivateModule {
                         injector.getInstance(FlowProcessor.class),
                         injector.getInstance(DatapathState.class),
                         injector.getInstance(OvsNetlinkFamilies.class),
-                        injector.getInstance(NetlinkChannelFactory.class));
+                        injector.getInstance(NetlinkChannelFactory.class),
+                        injector.getInstance(PacketPipelineMetrics.class));
                     return new DisruptorDatapathChannel(ringBuffer, processors);
                 }
             })
