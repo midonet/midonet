@@ -21,7 +21,7 @@ import java.util.{List => JList, UUID}
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
-import javax.ws.rs.{HeaderParam, POST, WebApplicationException, _}
+import javax.ws.rs.{HeaderParam, POST, Path, WebApplicationException, _}
 
 import scala.collection.JavaConverters._
 
@@ -35,6 +35,8 @@ import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpExcept
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
+@ApiResource(version = 1)
+@Path("vips")
 @RequestScoped
 @AllowCreate(Array(APPLICATION_VIP_JSON,
                    APPLICATION_JSON))

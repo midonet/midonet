@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
+import javax.ws.rs.Path
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import com.google.inject.Inject
@@ -26,6 +27,8 @@ import org.midonet.cluster.rest_api.models.HealthMonitor
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
+@ApiResource(version = 1)
+@Path("health_monitors")
 @RequestScoped
 @AllowGet(Array(APPLICATION_HEALTH_MONITOR_JSON,
                 APPLICATION_JSON))
