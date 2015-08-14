@@ -122,6 +122,7 @@ trait MidolmanSpec extends FeatureSpecLike
         val modules = List(
             new SerializationModule(),
             new MidolmanConfigModule(conf),
+            new MetricsModule(),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MidonetBackendTestModule(conf),

@@ -21,6 +21,8 @@ import java.util._
 
 import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.DatapathState
+import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.util.concurrent.NanoClock
 import org.slf4j.LoggerFactory
 
 import com.lmax.disruptor.{EventHandler, LifecycleAware}
@@ -66,7 +68,8 @@ object PacketExecutor {
 sealed class PacketExecutor(dpState: DatapathState,
                             families: OvsNetlinkFamilies,
                             numHandlers: Int, index: Int,
-                            channelFactory: NetlinkChannelFactory)
+                            channelFactory: NetlinkChannelFactory,
+                            metrics: PacketPipelineMetrics)
     extends EventHandler[PacketContextHolder]
     with LifecycleAware with StatePacketExecutor {
 
@@ -99,6 +102,9 @@ sealed class PacketExecutor(dpState: DatapathState,
                 try {
                     maybeExecuteStatePacket(datapathId, context)
                     executePacket(datapathId, packet, actions)
+                    val latency = NanoClock.DEFAULT.tick - packet.startTimeNanos
+                    metrics.packetSimulated(latency.toInt)
+                    metrics.packetsProcessed.mark()
                     context.log.debug(s"Executed packet")
                 } catch { case t: Throwable =>
                     context.log.error(s"Failed to execute packet", t)

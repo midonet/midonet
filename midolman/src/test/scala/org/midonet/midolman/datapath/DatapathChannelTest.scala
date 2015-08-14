@@ -64,7 +64,7 @@ class DatapathChannelTest extends MidolmanSpec {
         new AggregateEventPollerHandler(
             fp,
             new EventPollerHandlerAdapter(new PacketExecutor(
-                new DatapathStateDriver(datapath), ovsFamilies, 1, 0, factory))),
+                new DatapathStateDriver(datapath), ovsFamilies, 1, 0, factory, metrics))),
         fp)
 
     val barrier = ringBuffer.newBarrier(processor.getSequence)
