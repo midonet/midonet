@@ -27,6 +27,7 @@ import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.TraceState
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.odp.flows.FlowAction
+import org.midonet.packets.FlowStateEthernet
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.Clearable
 
@@ -35,7 +36,9 @@ trait StateContext extends Clearable
                    with NatState
                    with TraceState { this: PacketContext =>
 
-    var stateMessage: MessageLite = _
+    val stateMessage = new Array[Byte](
+        FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
+    var stateMessageLength = 0
     val stateActions = new ArrayList[FlowAction]()
 
     def initialize(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
@@ -58,6 +61,7 @@ trait StateContext extends Clearable
 
     abstract override def clear(): Unit = {
         super.clear()
+        stateMessageLength = 0;
         stateActions.clear()
     }
 }
