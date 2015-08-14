@@ -1,0 +1,187 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_68ccbcbb",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-14T23:19:38Z",
+      "side": 1,
+      "message": "... replication\n\nmy heart skipped a bit for a second there :p",
+      "range": {
+        "startLine": 7,
+        "startChar": 21,
+        "endLine": 7,
+        "endChar": 26
+      },
+      "revId": "f48ecd16938d0b13704cbb1a85f109d0b8032215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_48c9b8aa",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-14T23:19:38Z",
+      "side": 1,
+      "message": "not",
+      "range": {
+        "startLine": 10,
+        "startChar": 48,
+        "endLine": 10,
+        "endChar": 50
+      },
+      "revId": "f48ecd16938d0b13704cbb1a85f109d0b8032215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_88c66098",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStatePackets.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-14T23:19:38Z",
+      "side": 1,
+      "message": "case for NULL_VAL? even if just to avoid warnings",
+      "revId": "f48ecd16938d0b13704cbb1a85f109d0b8032215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a8c16481",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStatePackets.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-14T23:19:38Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "f48ecd16938d0b13704cbb1a85f109d0b8032215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_08d33060",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-14T23:19:38Z",
+      "side": 1,
+      "message": "is this needed? it seems to be overwritten below",
+      "range": {
+        "startLine": 227,
+        "startChar": 12,
+        "endLine": 227,
+        "endChar": 42
+      },
+      "revId": "f48ecd16938d0b13704cbb1a85f109d0b8032215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c8e5c838",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-14T23:19:38Z",
+      "side": 1,
+      "message": "i think this method is too big now. could you maybe extract something out into a separate function?",
+      "revId": "f48ecd16938d0b13704cbb1a85f109d0b8032215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e84e0c37",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-14T23:19:38Z",
+      "side": 1,
+      "message": "this can be replaced with usages of msg.conntrack and msg.nat, right?",
+      "range": {
+        "startLine": 271,
+        "startChar": 8,
+        "endLine": 271,
+        "endChar": 50
+      },
+      "revId": "f48ecd16938d0b13704cbb1a85f109d0b8032215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e8b7ec1e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-14T23:19:38Z",
+      "side": 1,
+      "message": "doesn\u0027t seem to be used",
+      "range": {
+        "startLine": 325,
+        "startChar": 20,
+        "endLine": 325,
+        "endChar": 31
+      },
+      "revId": "f48ecd16938d0b13704cbb1a85f109d0b8032215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_28d6344f",
+        "filename": "nsdb/src/main/resources/flowstate.schema.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-14T23:19:38Z",
+      "side": 1,
+      "message": "so much red!",
+      "revId": "f48ecd16938d0b13704cbb1a85f109d0b8032215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
