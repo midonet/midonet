@@ -24,6 +24,7 @@ import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, _}
 import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.simulation.{PacketContext, Port, PortGroup}
@@ -35,8 +36,7 @@ import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.packets.Ethernet
-import org.midonet.rpc.{FlowStateProto => Proto}
+import org.midonet.packets.{Data, Ethernet}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
@@ -103,16 +103,13 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     protected def getPort(id: UUID): Port
     protected def getPortGroup(id: UUID): PortGroup
 
+    private val flowStateEncoder = new SbeEncoder
+
     /* Used for message building */
-    private[this] val txState = Proto.FlowState.newBuilder()
-    private[this] val txNatEntry = Proto.NatEntry.newBuilder()
-    private[this] val txTraceEntry = Proto.TraceEntry.newBuilder()
-    private[this] val currentMessage = Proto.StateMessage.newBuilder()
     private[this] var txIngressPort: UUID = _
     private[this] val txPeers: JSet[UUID] = new JHashSet[UUID]()
     private[this] val txPorts: JSet[UUID] = new JHashSet[UUID]()
 
-    private[this] val hostIdProto = uuidToProto(hostId)
     private[this] var storage: FlowStateStorage = _
 
     storageFuture.onSuccess { case s => storage = s }(ExecutionContext.callingThread)
@@ -120,10 +117,6 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
                            v: ConnTrackValue): ArrayList[Callback0] = {
-            if (txPeers.size() > 0) {
-                log.debug("push conntrack key: {}", k)
-                txState.setConntrackKey(connTrackKeyToProto(k))
-            }
             log.debug("touch conntrack key: {}", k)
             if (storage ne null)
                 storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
@@ -135,15 +128,19 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         }
     }
 
+    private val _conntrackEncoder = new Reducer[ConnTrackKey, ConnTrackValue,
+                                                FlowStateSbe.Conntrack] {
+        override def apply(conntrack: FlowStateSbe.Conntrack, k: ConnTrackKey,
+                           v: ConnTrackValue): FlowStateSbe.Conntrack = {
+            log.debug("push conntrack key: {}", k)
+            connTrackKeyToSbe(k, conntrack.next())
+            conntrack
+        }
+    }
+
     private val _natAdder = new Reducer[NatKey, NatBinding, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: NatKey,
                            v: NatBinding): ArrayList[Callback0] = {
-            if (txPeers.size() > 0) {
-                log.debug("push nat key: {}", k)
-                txNatEntry.clear()
-                txNatEntry.setK(natKeyToProto(k)).setV(natBindingToProto(v))
-                txState.addNatEntries(txNatEntry.build())
-            }
             log.debug("touch nat key: {}", k)
             if (storage ne null)
                 storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
@@ -155,30 +152,28 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         }
     }
 
-    private def addTraceState(k: TraceKey, ctx: TraceContext): Unit = {
-        if (txPeers.size() > 0) {
-            log.debug("push trace key: {}", k)
-            txTraceEntry.clear()
-
-            traceKeyToProto(k, txTraceEntry)
-            txTraceEntry.setFlowTraceId(ctx.flowTraceId)
-            var i = 0
-            val requests = ctx.requests
-            while (i < requests.size) {
-                txTraceEntry.addRequestId(requests.get(i))
-                i += 1
-            }
-            txState.addTraceEntry(txTraceEntry.build())
+    private val _natEncoder = new Reducer[NatKey, NatBinding, FlowStateSbe.Nat] {
+        override def apply(nat: FlowStateSbe.Nat, k: NatKey,
+                           v: NatBinding): FlowStateSbe.Nat = {
+            log.debug("push nat key: {}", k)
+            natToSbe(k, v, nat.next())
+            nat
         }
     }
 
-    private def resetCurrentMessage() {
-        currentMessage.clear()
-        currentMessage.setSender(hostIdProto)
-        currentMessage.setEpoch(0L /* the epoch is not used*/)
+    private def addTraceState(flowStateMessage: FlowStateSbe,
+                              k: TraceKey, ctx: TraceContext): Unit = {
+        log.debug("push trace key: {}", k)
+        val trace = flowStateMessage.traceCount(1)
 
-        /* We don't expect ACKs, seq is unused for now */
-        currentMessage.setSeq(0x1)
+        traceToSbe(ctx.flowTraceId, k, trace.next())
+        val requests = ctx.requests
+        val traceIds = flowStateMessage.traceRequestIdsCount(requests.size)
+        var i = 0
+        while (i < requests.size) {
+            uuidToSbe(requests.get(i), traceIds.next().id)
+            i += 1
+        }
     }
 
     def importFromStorage(batch: FlowStateBatch) {
@@ -224,26 +219,36 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         resolvePeers(ingressPort, egressPorts, txPeers, txPorts, context.flowTags)
         txIngressPort = ingressPort
         val callbacks = context.flowRemovedCallbacks
+
         context.conntrackTx.fold(callbacks, _conntrackAdder)
         context.natTx.fold(callbacks, _natAdder)
-        if (context.tracingEnabled) {
-            addTraceState(context.traceKeyForEgress, context.traceContext)
+
+        if (!txPeers.isEmpty) {
+            replicateFlowState(context)
         }
-        buildMessage(context, ingressPort)
     }
 
-    def buildMessage(context: PacketContext, ingressPort: UUID): Unit =
-        if (!txPeers.isEmpty) {
-            try {
-                resetCurrentMessage()
-                txState.setIngressPort(uuidToProto(ingressPort))
-                currentMessage.addNewState(txState.build())
-                context.stateMessage = currentMessage.build()
-                hostsToActions(txPeers, context.stateActions)
-            } finally {
-                txState.clear()
-            }
+    def replicateFlowState(context: PacketContext): Unit = {
+        val flowStateMessage = flowStateEncoder.encodeTo(
+            context.stateMessage)
+        uuidToSbe(hostId, flowStateMessage.sender)
+
+        context.conntrackTx.fold(
+            flowStateMessage.conntrackCount(context.conntrackTx.size),
+            _conntrackEncoder)
+        context.natTx.fold(
+            flowStateMessage.natCount(context.natTx.size),
+            _natEncoder)
+        if (context.tracingEnabled) {
+            addTraceState(flowStateMessage,
+                          context.traceKeyForEgress, context.traceContext)
+        } else {
+            flowStateMessage.traceCount(0)
         }
+
+        context.stateMessageLength = flowStateEncoder.encodedLength
+        hostsToActions(txPeers, context.stateActions)
+    }
 
     private def hostsToActions(hosts: JSet[UUID],
                                actions: ArrayList[FlowAction]): Unit = {
@@ -263,40 +268,38 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         if (storage ne null)
             storage.submit()
 
-    private def acceptNewState(msg: Proto.StateMessage) {
-        val newStates = msg.getNewStateList.iterator
-        while (newStates.hasNext) {
-            val state = newStates.next()
-            if (state.hasConntrackKey) {
-                val k = connTrackKeyFromProto(state.getConntrackKey)
-                log.debug("got new conntrack key: {}", k)
-                conntrackTable.touch(k, ConnTrackState.RETURN_FLOW)
-                flowInvalidation.invalidateFlowsFor(k)
-            }
+    private def acceptNewState(msg: FlowStateSbe) {
+        val conntrackIter = msg.conntrack
+        while (conntrackIter.hasNext()) {
+            val k = connTrackKeyFromSbe(conntrackIter.next())
+            log.debug("got new conntrack key: {}", k)
+            conntrackTable.touch(k, ConnTrackState.RETURN_FLOW)
+            flowInvalidation.invalidateFlowsFor(k)
+        }
 
-            val natEntries = state.getNatEntriesList.iterator
-            while (natEntries.hasNext) {
-                val nat = natEntries.next()
-                val k = natKeyFromProto(nat.getK)
-                val v = natBindingFromProto(nat.getV)
-                log.debug("Got new nat mapping: {} -> {}", k, v)
-                natTable.touch(k, v)
-                flowInvalidation.invalidateFlowsFor(k)
-            }
+        val natIter = msg.nat
+        while (natIter.hasNext()) {
+            val nat = natIter.next()
+            val k = natKeyFromSbe(nat)
+            val v = natBindingFromSbe(nat)
+            log.debug("Got new nat mapping: {} -> {}", k, v)
+            natTable.touch(k, v)
+            flowInvalidation.invalidateFlowsFor(k)
+        }
 
-            val traceEntries = state.getTraceEntryList.iterator
-            while (traceEntries.hasNext) {
-                val trace = traceEntries.next
-                val k = traceKeyFromProto(trace)
-                val ctx = new TraceContext
-                ctx.enable(trace.getFlowTraceId)
-                val iter = trace.getRequestIdList.iterator
-                while (iter.hasNext) {
-                    ctx.addRequest(iter.next)
-                }
-                log.debug("Got new trace state: {} -> {}", k, ctx)
-                traceTable.touch(k, ctx)
+        val traceIter = msg.trace
+        if (traceIter.hasNext()) {
+            val trace = traceIter.next()
+            val k = traceFromSbe(trace)
+            val ctx = new TraceContext
+            ctx.enable(uuidFromSbe(trace.flowTraceId))
+
+            val reqIdsIter = msg.traceRequestIds
+            while (reqIdsIter.hasNext) {
+                ctx.addRequest(uuidFromSbe(reqIdsIter.next().id))
             }
+            log.debug("Got new trace state: {} -> {}", k, ctx)
+            traceTable.touch(k, ctx)
         }
     }
 
@@ -312,15 +315,22 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
      * this replicator.
      */
     @throws(classOf[NotYetException])
-    def accept(p: Ethernet) {
-        val msg = parseDatagram(p)
-        if (msg == null) {
+    def accept(p: Ethernet) = {
+        val data = parseDatagram(p)
+        if (data == null) {
             log.info("Ignoring unexpected packet: {}", p)
-            return
-        }
+        } else {
+            try {
+                val flowStateMessage = flowStateEncoder.decodeFrom(data.getData)
+                val sender = uuidFromSbe(flowStateMessage.sender)
 
-        log.debug("Got state replication message from: {}", msg.getSender)
-        acceptNewState(msg)
+                log.debug("Got state replication message from: {}", sender)
+                acceptNewState(flowStateMessage)
+            } catch {
+                case e: IllegalArgumentException =>
+                    log.error("Error decoding flow state", e)
+            }
+        }
     }
 
     @throws(classOf[NotYetException])

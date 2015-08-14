@@ -19,8 +19,6 @@ package org.midonet.midolman.datapath
 import java.nio.BufferOverflowException
 import java.util._
 
-import com.google.protobuf.{MessageLite, CodedOutputStream}
-
 import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.DatapathState
 import org.slf4j.LoggerFactory
@@ -46,14 +44,10 @@ trait StatePacketExecutor {
     private val udpShell: FlowStateEthernet = new FlowStateEthernet(stateBuf)
     private val statePacket = new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
 
-    def prepareStatePacket(message: MessageLite): Packet = {
-        val messageSizeVariantLength = CodedOutputStream.computeRawVarint32Size(
-            message.getSerializedSize)
-        val messageLength = message.getSerializedSize + messageSizeVariantLength
-        stream.reset()
+    def prepareStatePacket(message: Array[Byte], length: Int): Packet = {
         try {
-            message.writeDelimitedTo(stream)
-            udpShell.limit(messageLength)
+            System.arraycopy(message, 0, stateBuf, 0, length)
+            udpShell.limit(length)
         } catch {
             case _: IndexOutOfBoundsException =>
                 // TODO(guillermo) partition messages
@@ -116,11 +110,12 @@ sealed class PacketExecutor(dpState: DatapathState,
         val actions = context.stateActions
         if (actions.size > 0) {
             try {
-                val statePacket = prepareStatePacket(context.stateMessage)
+                val statePacket = prepareStatePacket(context.stateMessage,
+                                                     context.stateMessageLength)
                 executePacket(datapathId, statePacket, actions)
                 context.log.debug(s"Executed flow state message")
             } finally {
-                context.stateMessage = null
+                context.stateMessageLength = 0
                 context.stateActions.clear()
             }
         }

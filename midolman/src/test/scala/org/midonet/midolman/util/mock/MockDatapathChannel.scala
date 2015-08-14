@@ -42,8 +42,9 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null)
     override def handoff(context: PacketContext): Long = {
         if (!context.packetActions.isEmpty) {
             packetsSent.add(context.packet)
-            if (context.stateMessage ne null) {
-                val statePacket = prepareStatePacket(context.stateMessage)
+            if (context.stateMessageLength > 0) {
+                val statePacket = prepareStatePacket(context.stateMessage,
+                                                     context.stateMessageLength)
                 if (packetExecCb ne null) {
                     packetExecCb(statePacket, context.stateActions)
                 }
