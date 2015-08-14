@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory.getLogger
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
+import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{IpAddrGroup, IpAddrGroupAddr, Ipv4AddrGroupAddr, Ipv6AddrGroupAddr}
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -42,13 +42,15 @@ import org.midonet.cluster.util.IPAddressUtil.{toIPAddr, toProto}
 import org.midonet.packets.IPAddr.canonicalize
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr}
 
+@ApiResource(version = 1)
+@Path("ip_addr_groups")
 @RequestScoped
 @AllowGet(Array(APPLICATION_IP_ADDR_GROUP_JSON))
 @AllowList(Array(APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON))
 @AllowCreate(Array(APPLICATION_IP_ADDR_GROUP_JSON))
 @AllowDelete
 class IpAddrGroupResource @Inject()(resContext: ResourceContext)
-extends MidonetResource[IpAddrGroup](resContext){
+    extends MidonetResource[IpAddrGroup](resContext){
 
     @Path("{id}/ip_addrs")
     def ports(@PathParam("id") id: UUID): IpAddrGroupAddrResource = {

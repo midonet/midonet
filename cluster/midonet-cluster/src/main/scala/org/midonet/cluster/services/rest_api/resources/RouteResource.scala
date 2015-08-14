@@ -19,7 +19,7 @@ package org.midonet.cluster.services.rest_api.resources
 import java.util.{List => JList, UUID}
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.{GET, HeaderParam, Produces}
+import javax.ws.rs.{Path, GET, HeaderParam, Produces}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -28,7 +28,7 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet}
+import org.midonet.cluster.rest_api.annotation.{ApiResource, AllowCreate, AllowDelete, AllowGet}
 import org.midonet.cluster.rest_api.models.{Port, Route, Router}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
@@ -38,6 +38,8 @@ import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
 
+@ApiResource(version = 1)
+@Path("routes")
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTE_JSON,
                 APPLICATION_JSON))

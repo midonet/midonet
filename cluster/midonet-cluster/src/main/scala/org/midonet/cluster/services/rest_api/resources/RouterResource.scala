@@ -29,6 +29,8 @@ import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
+@ApiResource(version = 1)
+@Path("routers")
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTER_JSON,
                 APPLICATION_ROUTER_JSON_V2,

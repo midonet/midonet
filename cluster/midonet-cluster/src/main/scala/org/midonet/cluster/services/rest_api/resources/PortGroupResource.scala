@@ -25,11 +25,13 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
+import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Port, PortGroup, PortGroupPort}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
+@ApiResource(version = 1)
+@Path("port_groups")
 @RequestScoped
 @AllowGet(Array(APPLICATION_PORTGROUP_JSON))
 @AllowList(Array(APPLICATION_PORTGROUP_COLLECTION_JSON,

@@ -27,8 +27,11 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.auth.keystone.v2_0.{KeystoneConnectionException, KeystoneInvalidFormatException, KeystoneServerException, KeystoneUnauthorizedException}
 import org.midonet.cluster.auth.{AuthService, InvalidCredentialsException, Tenant}
 import org.midonet.cluster.rest_api._
+import org.midonet.cluster.rest_api.annotation.ApiResource
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
+@ApiResource(version = 1)
+@Path("tenants")
 @RequestScoped
 class TenantResource @Inject()(authService: AuthService,
                                requestContext: HttpServletRequest) {

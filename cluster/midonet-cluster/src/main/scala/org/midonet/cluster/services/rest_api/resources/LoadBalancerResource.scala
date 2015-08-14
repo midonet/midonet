@@ -30,6 +30,8 @@ import org.midonet.cluster.rest_api.models.LoadBalancer
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
+@ApiResource(version = 1)
+@Path("load_balancers")
 @RequestScoped
 @AllowGet(Array(APPLICATION_LOAD_BALANCER_JSON,
                 APPLICATION_JSON))
