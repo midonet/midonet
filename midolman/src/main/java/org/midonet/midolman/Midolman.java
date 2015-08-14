@@ -36,6 +36,7 @@ import org.apache.commons.cli.Options;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.LoggerLevelWatcher;
 import org.midonet.conf.MidoNodeConfigurator;
+import org.midonet.midolman.cluster.MetricsModule;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,6 +196,7 @@ public class Midolman {
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new HostModule(),
+            new MetricsModule(),
             new DatapathModule(),
             new LegacyClusterModule(),
             new MidolmanActorsModule(),

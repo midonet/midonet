@@ -68,8 +68,7 @@ public class MidolmanModule extends PrivateModule {
 
         bindVirtualTopology();
 
-        bind(MetricRegistry.class).toInstance(new MetricRegistry());
-        expose(MetricRegistry.class);
+
 
         bind(FlowRecorderFactory.class).asEagerSingleton();
         expose(FlowRecorderFactory.class);
