@@ -28,11 +28,14 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.rest_api.annotation.ApiResource;
 import org.midonet.cluster.rest_api.neutron.NeutronMediaType;
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.cluster.rest_api.neutron.models.Neutron;
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin;
 
+@ApiResource(version = 1)
+@Path("neutron")
 @RequestScoped
 public class NeutronResource {
 

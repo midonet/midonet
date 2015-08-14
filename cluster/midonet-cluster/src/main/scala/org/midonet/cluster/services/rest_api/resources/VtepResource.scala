@@ -23,7 +23,7 @@ import javax.ws.rs.core.Response.Status
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowList}
+import org.midonet.cluster.rest_api.annotation.{ApiResource, AllowCreate, AllowDelete, AllowList}
 import org.midonet.cluster.rest_api.models.{TunnelZone, Vtep}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{ApiException, NotFoundHttpException}
@@ -31,6 +31,8 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.packets.IPv4Addr
 
+@ApiResource(version = 1)
+@Path("vteps")
 @RequestScoped
 @AllowList(Array(APPLICATION_VTEP_COLLECTION_JSON,
                  APPLICATION_JSON))

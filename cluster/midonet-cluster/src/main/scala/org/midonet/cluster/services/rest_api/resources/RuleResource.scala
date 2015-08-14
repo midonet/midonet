@@ -28,11 +28,13 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.BadRequestHttpException
-import org.midonet.cluster.rest_api.annotation.AllowGet
+import org.midonet.cluster.rest_api.annotation.{ApiResource, AllowGet}
 import org.midonet.cluster.rest_api.models.{Chain, Rule}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Create, ResourceContext, Update}
 
+@ApiResource(version = 1)
+@Path("rules")
 @RequestScoped
 @AllowGet(Array(APPLICATION_RULE_JSON,
                 APPLICATION_RULE_JSON_V2,

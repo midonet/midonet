@@ -18,6 +18,7 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
 
+import javax.ws.rs.Path
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConverters._
@@ -31,6 +32,8 @@ import org.midonet.cluster.rest_api.models.{Router, BgpPeer}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
+@ApiResource(version = 1)
+@Path("bgp_peers")
 @RequestScoped
 @AllowGet(Array(APPLICATION_BGP_PEER_JSON,
                 APPLICATION_JSON))

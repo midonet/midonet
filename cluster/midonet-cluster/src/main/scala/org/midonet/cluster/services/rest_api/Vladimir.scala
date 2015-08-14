@@ -60,6 +60,8 @@ object Vladimir {
                       config: ClusterConfig, authService: AuthService,
                       log: Logger) = new JerseyServletModule {
 
+        val resProvider = new ResourceProvider(log)
+
         override def configureServlets(): Unit = {
             // To redirect JDK log to slf4j. Ref: MNA-706
             SLF4JBridgeHandler.removeHandlersForRootLogger()
@@ -78,6 +80,7 @@ object Vladimir {
             bind(classOf[MidonetBackend]).toInstance(backend)
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
             bind(classOf[SequenceDispenser]).asEagerSingleton()
+            bind(classOf[ResourceProvider]).toInstance(resProvider)
             bind(classOf[ApplicationResource])
             bind(classOf[Validator])
                 .toProvider(classOf[ValidatorProvider])

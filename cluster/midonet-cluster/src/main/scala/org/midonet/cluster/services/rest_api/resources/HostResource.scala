@@ -31,12 +31,14 @@ import com.google.protobuf.TextFormat
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.SingleValueKey
 import org.midonet.cluster.models.State
-import org.midonet.cluster.rest_api.annotation.{AllowGet, AllowList}
+import org.midonet.cluster.rest_api.annotation.{ApiResource, AllowGet, AllowList}
 import org.midonet.cluster.rest_api.models.{Host, HostState, Interface}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkResponse, ResourceContext}
 
+@ApiResource(version = 1)
+@Path("hosts")
 @RequestScoped
 @AllowGet(Array(APPLICATION_HOST_JSON_V2,
                 APPLICATION_HOST_JSON_V3,

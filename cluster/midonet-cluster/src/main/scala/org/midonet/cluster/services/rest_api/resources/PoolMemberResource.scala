@@ -33,6 +33,8 @@ import org.midonet.cluster.rest_api.models.{Pool, PoolMember}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
+@ApiResource(version = 1)
+@Path("pool_members")
 @RequestScoped
 @AllowGet(Array(APPLICATION_POOL_MEMBER_JSON,
                 APPLICATION_JSON))

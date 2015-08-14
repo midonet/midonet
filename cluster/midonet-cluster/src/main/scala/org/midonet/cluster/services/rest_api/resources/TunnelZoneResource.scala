@@ -32,6 +32,8 @@ import org.midonet.cluster.rest_api.validation.MessageProperty.{UNIQUE_TUNNEL_ZO
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
+@ApiResource(version = 1)
+@Path("tunnel_zones")
 @RequestScoped
 @AllowGet(Array(APPLICATION_TUNNEL_ZONE_JSON,
                 APPLICATION_JSON))

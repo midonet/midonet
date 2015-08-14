@@ -36,6 +36,8 @@ import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundH
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
 
+@ApiResource(version = 1)
+@Path("pools")
 @RequestScoped
 @AllowGet(Array(APPLICATION_POOL_JSON,
                 APPLICATION_JSON))

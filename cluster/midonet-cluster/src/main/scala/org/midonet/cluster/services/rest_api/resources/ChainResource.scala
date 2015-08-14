@@ -24,11 +24,13 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
+import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Chain
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
+@ApiResource(version = 1)
+@Path("chains")
 @RequestScoped
 @AllowGet(Array(APPLICATION_CHAIN_JSON,
                 APPLICATION_JSON))
