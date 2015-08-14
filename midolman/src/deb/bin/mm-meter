@@ -43,4 +43,5 @@ fi
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 
-exec $JAVA $JAVA_LIBRARY_PATH -cp $MIDO_JAR:$MIDO_DEP_CLASS_PATH org.midonet.midolman.management.MidolmanMeter $*
+exec $JAVA $JAVA_LIBRARY_PATH -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
+    -cp $MIDO_JAR:$MIDO_DEP_CLASS_PATH org.midonet.midolman.management.MidolmanMeter $*

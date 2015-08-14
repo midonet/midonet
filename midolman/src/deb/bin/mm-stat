@@ -34,4 +34,5 @@ fi
 MAIN_CLASS='org.midonet.midolman.management.MidolmanStat'
 CLASSPATH=$MIDO_HOME/*:$MIDO_HOME/dep/*
 
-exec $JAVA -cp $CLASSPATH $MAIN_CLASS $*
+exec $JAVA -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
+    -cp $CLASSPATH $MAIN_CLASS $*
