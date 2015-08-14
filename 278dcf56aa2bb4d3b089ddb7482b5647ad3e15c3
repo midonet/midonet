@@ -402,6 +402,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f75b4d1f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-14T04:08:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_cfdde4e1",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ec5b9651",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
         "patchSetId": 19
@@ -449,6 +467,24 @@
       "side": 1,
       "message": "i tried code based on your example.\ni needed to use ReplySubject instead.\notherwise first items might be lost.\nhow do you think?",
       "parentUuid": "9ad9bd40_ec5b9651",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_179ef1b8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-14T04:08:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_9ed303d4",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -666,6 +702,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d76009d1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-14T04:08:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_96b3f108",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ec09d631",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
         "patchSetId": 19
@@ -877,6 +931,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_37a135f8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-14T04:08:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8c592a90",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0c1fdab7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
         "patchSetId": 19
@@ -940,6 +1012,24 @@
       "writtenOn": "2015-08-10T10:52:34Z",
       "side": 1,
       "message": "will fix.",
+      "parentUuid": "9ad9bd40_ac850ed0",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_77a73d0b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-14T04:08:17Z",
+      "side": 1,
+      "message": "i made this actor use pinned-dispatcher.\ndo you think it makes sense?",
       "parentUuid": "9ad9bd40_ac850ed0",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -1087,6 +1177,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_97b12149",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/NovaMetadataClient.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-14T04:08:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_4f7714a0",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6c1866d3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/NovaMetadataClient.scala",
         "patchSetId": 19
@@ -1167,6 +1275,24 @@
       "writtenOn": "2015-08-10T10:52:34Z",
       "side": 1,
       "message": "ok i\u0027ll try.",
+      "parentUuid": "9ad9bd40_2c71fe0b",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b7ac65ee",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-14T04:08:17Z",
+      "side": 1,
+      "message": "Done",
       "parentUuid": "9ad9bd40_2c71fe0b",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
