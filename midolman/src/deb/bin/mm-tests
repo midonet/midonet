@@ -17,10 +17,20 @@
 # some modules required in the kernel
 REQUIRED_MODS="openvswitch gre"
 
-if [ -f /usr/share/midolman/prepare-java ]; then
-    . /usr/share/midolman/prepare-java
+# If MIDO_HOME has not been set, set it.
+if [ -z "$MIDO_HOME" ]; then
+   MIDO_HOME=/usr/share/midolman
+fi
+
+if [ ! -d "$MIDO_HOME" ]; then
+   echo "ERROR: $MIDO_HOME does not exist"
+   exit 1
+fi
+
+if [ -f $MIDO_HOME/prepare-java ]; then
+    . $MIDO_HOME/prepare-java
 else
-    echo "/usr/share/midolman/prepare-java: file not found"
+    echo "$MIDO_HOME/prepare-java: file not found"
     exit 1
 fi
 
@@ -88,16 +98,6 @@ for MOD in $REQUIRED_MODS ; do
         modprobe -q $MOD 2>/dev/null
     fi
 done
-
-# If MIDO_HOME has not been set, set it.
-if [ -z "$MIDO_HOME" ]; then
-   MIDO_HOME=/usr/share/midolman
-fi
-
-if [ ! -d "$MIDO_HOME" ]; then
-   echo "ERROR: $MIDO_HOME does not exist"
-   exit 1
-fi
 
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`

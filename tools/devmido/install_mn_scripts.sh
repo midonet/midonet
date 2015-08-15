@@ -32,6 +32,7 @@ AGENT_BUILD_DIR="$TOP_DIR/midolman/build/install/midolman/lib"
 rm -rf $DEPS_DIR ; mkdir -p $DEPS_DIR
 cp $AGENT_BUILD_DIR/midolman-*.jar  $DEPS_DIR/midolman.jar
 cp -r $AGENT_BUILD_DIR $DEPS_DIR/dep
+cp $TOP_DIR/midolman/src/deb/init/prepare-java $DEPS_DIR
 
 # Place our executables in /usr/local/bin
 MM_CTL="/usr/local/bin/mm-ctl"

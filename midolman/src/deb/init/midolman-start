@@ -29,10 +29,10 @@ MIDO_CFG_FILE=midolman.conf
 QUAGGA_DIR=/var/run/quagga
 WATCHDOG_TIMEOUT=10
 
-if [ -f /usr/share/midolman/prepare-java ]; then
-    . /usr/share/midolman/prepare-java
+if [ -f $MIDO_HOME/prepare-java ]; then
+    . $MIDO_HOME/prepare-java
 else
-    echo "/usr/share/midolman/prepare-java: file not found"
+    echo "$MIDO_HOME/prepare-java: file not found"
     exit 1
 fi
 

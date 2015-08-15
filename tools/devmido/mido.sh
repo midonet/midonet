@@ -176,11 +176,15 @@ is_package_installed curl || install_package curl
 is_package_installed git || install_package git
 is_package_installed libreadline-dev || install_package libreadline-dev
 is_package_installed ncurses-dev || install_package ncurses-dev
-is_package_installed openjdk-7-jdk || install_package openjdk-7-jdk
 is_package_installed python-pip || install_package python-pip
 is_package_installed wget || install_package wget
 is_package_installed ruby-ronn || install_package ruby-ronn
 
+if ! is_package_installed zulu-8; then
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0x219BD9C9
+    sudo apt-add-repository "deb http://repos.azulsystems.com/ubuntu stable main"
+    REPOS_UPDATED=False install_package zulu-8
+fi
 
 # Zookeeper
 # =========

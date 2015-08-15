@@ -14,13 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ -f /usr/share/midolman/prepare-java ]; then
-    . /usr/share/midolman/prepare-java
-else
-    echo "/usr/share/midolman/prepare-java: file not found"
-    exit 1
-fi
-
 # If MIDO_HOME has not been set, set it.
 if [ -z "$MIDO_HOME" ]; then
    MIDO_HOME=/usr/share/midolman
@@ -29,6 +22,13 @@ fi
 if [ ! -d "$MIDO_HOME" ]; then
    echo "ERROR: $MIDO_HOME does not exist"
    exit 1
+fi
+
+if [ -f $MIDO_HOME/prepare-java ]; then
+    . $MIDO_HOME/prepare-java
+else
+    echo "$MIDO_HOME/prepare-java: file not found"
+    exit 1
 fi
 
 if [ -z "$MIDO_JAR" ]; then
