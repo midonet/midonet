@@ -295,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a32267b6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-15T22:21:28Z",
+      "side": 1,
+      "message": "using the concrete type has the advantage that if the next and hasNext methods are inlined, the runtime relies on cha to invalidate the optimization, whereas using Iterator, since it\u0027s an interface, there\u0027s no cha and if the method is inlined the jit generated a branch on the object type.",
+      "parentUuid": "9ad9bd40_880e6039",
+      "range": {
+        "startLine": 271,
+        "startChar": 8,
+        "endLine": 271,
+        "endChar": 50
+      },
+      "revId": "f48ecd16938d0b13704cbb1a85f109d0b8032215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e8b7ec1e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
         "patchSetId": 1
