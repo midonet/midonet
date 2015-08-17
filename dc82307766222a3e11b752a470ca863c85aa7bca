@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_28046fc5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/ResourceProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-17T14:49:46Z",
+      "side": 1,
+      "message": "We can cache the results, but there should be a single ResourceProvider instance per API service. In practice, the scan should only happen once, when starting the minion.",
+      "parentUuid": "9ad9bd40_e2c62868",
+      "range": {
+        "startLine": 31,
+        "startChar": 6,
+        "endLine": 31,
+        "endChar": 22
+      },
+      "revId": "dc82307766222a3e11b752a470ca863c85aa7bca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_42bef4d5",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/ResourceProvider.scala",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4809b3dc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/ResourceProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-17T14:49:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_42bef4d5",
+      "revId": "dc82307766222a3e11b752a470ca863c85aa7bca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_82b8fce6",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/ResourceProvider.scala",
         "patchSetId": 1
@@ -53,6 +95,30 @@
       "writtenOn": "2015-08-17T07:41:51Z",
       "side": 1,
       "message": "Should we warn in a debug msg if any are excluded because of this? It\u0027ll probably help devs.",
+      "range": {
+        "startLine": 40,
+        "startChar": 12,
+        "endLine": 41,
+        "endChar": 56
+      },
+      "revId": "dc82307766222a3e11b752a470ca863c85aa7bca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8813bb0c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/ResourceProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-17T14:49:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_82b8fce6",
       "range": {
         "startLine": 40,
         "startChar": 12,
