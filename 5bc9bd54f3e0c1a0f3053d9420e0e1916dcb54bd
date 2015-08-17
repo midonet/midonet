@@ -1,0 +1,885 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_93720cac",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POMinion.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "We need FirewallRuleTranslator, I guess.",
+      "range": {
+        "startLine": 195,
+        "startChar": 45,
+        "endLine": 195,
+        "endChar": 77
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0502360b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Could you please add a test case for this with an example input that we expect.",
+      "range": {
+        "startLine": 114,
+        "startChar": 7,
+        "endLine": 114,
+        "endChar": 44
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_28fe2f06",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "\"* */\" --\u003e \"*/\"",
+      "range": {
+        "startLine": 115,
+        "startChar": 5,
+        "endLine": 115,
+        "endChar": 9
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a8523f66",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Out of order.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e84c47cb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Please remove the extra white line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_68d037ca",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "So for Firewall, inbound chain rules are actually ingress rules?",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 42,
+        "endChar": 28
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_084a4bac",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Please remove the extra empty line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b311d055",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6811175d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "This is a bad name as this can be used only Update case. Perhaps translateRuleChainUpdate?",
+      "range": {
+        "startLine": 81,
+        "startChar": 16,
+        "endLine": 81,
+        "endChar": 30
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c807831c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "generateFirewallRuleChain or something like that?",
+      "range": {
+        "startLine": 83,
+        "startChar": 31,
+        "endLine": 83,
+        "endChar": 40
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2849cf8e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Can this be placed at the end of the last line above?",
+      "range": {
+        "startLine": 84,
+        "startChar": 4,
+        "endLine": 84,
+        "endChar": 20
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_88481b89",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Please delete the empty line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5303240d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "We end up making this Storage call twice while it can be done in a single getAll call, which appears to be inefficient.",
+      "range": {
+        "startLine": 88,
+        "startChar": 8,
+        "endLine": 88,
+        "endChar": 74
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_481c5378",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Why do we need this?",
+      "range": {
+        "startLine": 99,
+        "startChar": 8,
+        "endLine": 100,
+        "endChar": 59
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_13199c79",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Please remove the extra white line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3325c0ae",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Could you rephrase this?",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1330bce7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Please delete the extra line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d33574dc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Delete op itself is idempotent, so you don\u0027t need to check here.",
+      "range": {
+        "startLine": 119,
+        "startChar": 12,
+        "endLine": 119,
+        "endChar": 64
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f33278f1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_334ce076",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e8fa8742",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Please append Id to the method names of this and those below.",
+      "range": {
+        "startLine": 170,
+        "startChar": 8,
+        "endLine": 170,
+        "endChar": 31
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e8e367a2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Remove.",
+      "range": {
+        "startLine": 192,
+        "startChar": 48,
+        "endLine": 192,
+        "endChar": 49
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_88badb6c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Please delete the empty line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a8aebf2d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c8ab031d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e8a8c722",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Not necessary.",
+      "range": {
+        "startLine": 255,
+        "startChar": 30,
+        "endLine": 255,
+        "endChar": 38
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4851b30d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Would you please rename this with returnFlowRuleWithId? I don\u0027t like method overloading with different sets of parameters which we see rampant in Neutron PlugIn code, which believe to tend to confusing spaghetti code.",
+      "range": {
+        "startLine": 44,
+        "startChar": 18,
+        "endLine": 44,
+        "endChar": 32
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_68567708",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 54,
+        "startChar": 18,
+        "endLine": 54,
+        "endChar": 33
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_885bbb2d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 62,
+        "startChar": 18,
+        "endLine": 62,
+        "endChar": 26
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a83f9fb4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 77,
+        "startChar": 18,
+        "endLine": 77,
+        "endChar": 26
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c83ce3c2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 88,
+        "startChar": 18,
+        "endLine": 88,
+        "endChar": 28
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c835c3dc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "This method just receives 2 lists of old and new rules, and returns 3 list of ids that are added, unchanged, and deleted, having nothing to do with CREATE/UPDATE/DELETE. Please update the comments here and ones for the original method.",
+      "range": {
+        "startLine": 122,
+        "startChar": 4,
+        "endLine": 134,
+        "endChar": 7
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_73566808",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 472,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Delete the extra line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_935bec2d",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d33c94c2",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_488c5336",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/FirewallRule.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Please align this with \"extends\" above.",
+      "range": {
+        "startLine": 38,
+        "startChar": 31,
+        "endLine": 38,
+        "endChar": 41
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e8d9a723",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/FirewallRule.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Please delete the extra empty line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_08d7abee",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/FirewallRule.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e87527fb",
+        "filename": "python-midonetclient/src/midonetclient/neutron/firewall.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "We should remove this line from new code.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_08732b16",
+        "filename": "python-midonetclient/src/midonetclient/neutron/firewall.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "s/2015 Midokura Europe SARL/2015 Midokura SARL/",
+      "range": {
+        "startLine": 3,
+        "startChar": 16,
+        "endLine": 3,
+        "endChar": 41
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_88873bd7",
+        "filename": "python-midonetclient/src/midonetclient/neutron/media_type.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "I know all the Python MidoNet CLI code files have this line, but shouldn\u0027t we remove this line?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 43
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a86b1f1e",
+        "filename": "python-midonetclient/src/midonetclient/neutron/media_type.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 3,
+        "startChar": 16,
+        "endLine": 3,
+        "endChar": 20
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c8686324",
+        "filename": "python-midonetclient/src/midonetclient/neutron/media_type.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-17T17:25:06Z",
+      "side": 1,
+      "message": "s/Midokura Europe SARL/Midokura SARL/",
+      "range": {
+        "startLine": 3,
+        "startChar": 21,
+        "endLine": 3,
+        "endChar": 41
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
