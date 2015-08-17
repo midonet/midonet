@@ -378,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_45035e0d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-17T09:59:49Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "9ad9bd40_d2749737",
+      "range": {
+        "startLine": 73,
+        "startChar": 4,
+        "endLine": 79,
+        "endChar": 37
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d249f760",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 4
@@ -813,6 +837,30 @@
       "side": 1,
       "message": "Yes, and with that default param, I thought that you could simplify the line 182-185 in the PoolMapper as:\n\n            members.orderAsKeys().map(_.device).toArray,\n            activePoolMembers.orderAsKeys(memberIds).map(_.device).toArray,\n            disabledPoolMembers.orderAsKeys(memberIds).map(_.device).toArray,\n            vips.orderAsKeys().map(_.device).toArray)\n\n\nBut on the other hand, you can also do,\n\n\n        val sortedMembers \u003d memberIds foreach { members.get(_) } flatten\n        val activePoolMembers \u003d memberIds foreach { members.get(_) } flatten filter(_isUp)\n        val disabledPoolMembers \u003d memberIds foreach { members.get(_) } flatten filterNot(_.adminStateUp)\n\n\nIf all that we need is that those 3 are ordered consistently, we can do just\n\n\n        val sortedMembers \u003d members values\n        val activePoolMembers \u003d members values filter(_.isUp) toSeq\n        val disabledPoolMembers \u003d members values filterNot(_.adminStateUp) toSeq",
       "parentUuid": "9ad9bd40_323dc38f",
+      "range": {
+        "startLine": 48,
+        "startChar": 24,
+        "endLine": 48,
+        "endChar": 36
+      },
+      "revId": "960c8b7ab74001f107a5ae4129aeba3d8fc6214a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_055eb612",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/package.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-17T09:59:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_72ad8b9a",
       "range": {
         "startLine": 48,
         "startChar": 24,
