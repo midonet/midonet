@@ -80,14 +80,24 @@ object ClusterNode extends App {
     }
 
     // TODO: this chunk here is required so that we override the NDSB
-    //       settings and enable the new storage stack when running 2.0 code
-    //       in development.  When the new storage stack is released, we should
-    //       remove it.
+    //       settings and enable the new storage stack and Kafka when running
+    //       2.0 code in development.  When the new storage stack is released,
+    //       we should remove it.
     val CLUSTER_NODE_CONF_OVERRIDES = ConfigFactory.parseString(
         """
           |zookeeper {
           |    use_new_stack = true
           |    curator_enabled = true
+          |}
+          |
+          |kafka {
+          |    use_merged_maps = true
+          |    broker_id = 0
+          |    brokers = "localhost:9092"
+          |    data_dir = /tmp/kafka/data
+          |    log_dirs = /tmp/kafka/log
+          |    zk_hosts = "localhost:2181"
+          |    zk_session_timeout = 30000
           |}
         """.stripMargin)
 
