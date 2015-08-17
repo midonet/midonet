@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e2c62868",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/ResourceProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-17T07:41:51Z",
+      "side": 1,
+      "message": "Is it worth running the scan only once and cache the results? So that we can spare scanning the cp all the time (and generate much garbage)",
+      "range": {
+        "startLine": 31,
+        "startChar": 6,
+        "endLine": 31,
+        "endChar": 22
+      },
+      "revId": "dc82307766222a3e11b752a470ca863c85aa7bca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_42bef4d5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/ResourceProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-17T07:41:51Z",
+      "side": 1,
+      "message": "pluggable? something that indicates that we\u0027re scanning for plugins",
+      "revId": "dc82307766222a3e11b752a470ca863c85aa7bca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_82b8fce6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/ResourceProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-17T07:41:51Z",
+      "side": 1,
+      "message": "Should we warn in a debug msg if any are excluded because of this? It\u0027ll probably help devs.",
+      "range": {
+        "startLine": 40,
+        "startChar": 12,
+        "endLine": 41,
+        "endChar": 56
+      },
+      "revId": "dc82307766222a3e11b752a470ca863c85aa7bca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
