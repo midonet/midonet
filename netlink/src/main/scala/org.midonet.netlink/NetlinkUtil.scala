@@ -58,7 +58,6 @@ object NetlinkUtil {
      *
      * @param notificationChannel the Netlink channel to read
      * @param notificationReader the reader of the netlink channel
-     * @param notificationReadBuf the buffer for reading notifications
      * @param headerSize the size of the Netlink header
      * @param notificationObserver the Observer which onNext is callled with the
      *                             populated notificatonReadBuf
@@ -69,23 +68,22 @@ object NetlinkUtil {
     @throws(classOf[AsynchronousCloseException])
     def readNetlinkNotifications(notificationChannel: NetlinkChannel,
                                  notificationReader: NetlinkReader,
-                                 notificationReadBuf: ByteBuffer,
                                  headerSize: Int,
                                  notificationObserver: Observer[ByteBuffer]) =
         while (notificationChannel.isOpen) {
-            val nbytes = notificationReader.read(notificationReadBuf)
+            val buf =
+                BytesUtil.instance.allocate(NETLINK_READ_BUF_SIZE)
+            val nbytes = notificationReader.read(buf)
             if (nbytes > 0) {
-                notificationReadBuf.flip()
-                val nlType = notificationReadBuf.getShort(
-                    NetlinkMessage.NLMSG_TYPE_OFFSET)
-                val size = notificationReadBuf.getInt(
+                buf.flip()
+                val nlType = buf.getShort(NetlinkMessage.NLMSG_TYPE_OFFSET)
+                val size = buf.getInt(
                     NetlinkMessage.NLMSG_LEN_OFFSET)
                 if (nlType >= NLMessageType.NLMSG_MIN_TYPE &&
                     size >= headerSize) {
-                    notificationReadBuf.limit(size)
-                    notificationObserver.onNext(notificationReadBuf)
+                    buf.limit(size)
+                    notificationObserver.onNext(buf)
                 }
             }
-            notificationReadBuf.clear()
         }
 }

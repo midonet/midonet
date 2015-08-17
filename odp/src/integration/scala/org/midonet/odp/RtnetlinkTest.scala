@@ -135,8 +135,6 @@ class TestableRtnetlinkConnection(channel: NetlinkChannel,
         maxRequestSize, clock) {
     import RtnetlinkTest._
 
-    private val notificationReadBuf =
-        BytesUtil.instance.allocateDirect(NetlinkUtil.NETLINK_READ_BUF_SIZE)
     val testNotificationObserver: NotificationTestObserver =
         TestableNotificationObserver
     private val notificationChannel =
@@ -152,8 +150,8 @@ class TestableRtnetlinkConnection(channel: NetlinkChannel,
     val rtnetlinkNotificationReadThread = new Thread(s"$name-notification") {
         override def run(): Unit = try {
             NetlinkUtil.readNetlinkNotifications(notificationChannel,
-                notificationReader, notificationReadBuf,
-                NetlinkMessage.HEADER_SIZE, notificationObserver)
+                notificationReader NetlinkMessage.HEADER_SIZE,
+                notificationObserver)
         } catch {
             case ex @ (_: InterruptedException |
                        _: ClosedByInterruptException|

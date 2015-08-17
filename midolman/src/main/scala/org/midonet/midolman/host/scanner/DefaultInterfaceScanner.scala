@@ -76,8 +76,6 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
         channelFactory.create(blocking = true, NetlinkProtocol.NETLINK_ROUTE,
             notificationGroups = NetlinkUtil.DEFAULT_RTNETLINK_GROUPS)
     private val notificationReader = new NetlinkReader(notificationChannel)
-    private val notificationReadBuf =
-        BytesUtil.instance.allocate(NetlinkUtil.NETLINK_READ_BUF_SIZE)
     private val notificationSubject = ReplaySubject.create[ByteBuffer]()
 
     private class ErrorReporter[T] extends Observer[T] {
@@ -92,8 +90,8 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
     val rtnetlinkNotificationReadThread = new Thread(s"$name-notification") {
         override def run(): Unit = try {
             NetlinkUtil.readNetlinkNotifications(notificationChannel,
-                notificationReader, notificationReadBuf,
-                NetlinkMessage.HEADER_SIZE, notificationSubject)
+                notificationReader, NetlinkMessage.HEADER_SIZE,
+                notificationSubject)
         }  catch {
             case ex @ (_: InterruptedException |
                        _: ClosedChannelException |
