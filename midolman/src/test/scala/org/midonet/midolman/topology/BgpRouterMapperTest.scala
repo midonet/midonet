@@ -957,7 +957,7 @@ class BgpRouterMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(bgpNetwork)
 
             Then("The observer should receive the BGP router with the network")
-            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
             obs.getOnNextEvents.get(1) shouldBe bgpRouter(router, Set(bgpPeer),
                                                           Set(bgpNetwork))
         }
@@ -1225,6 +1225,8 @@ class BgpRouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             Then("The observer should receive the BGP router")
             obs1.awaitOnNext(1, timeout) shouldBe true
+            obs1.getOnNextEvents.get(0) shouldBe bgpRouter(router, Set(bgpPeer),
+                                                           Set(bgpNetwork))
 
             When("A second BGP observer subscribes")
             val obs2 = createObserver()
