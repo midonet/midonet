@@ -34,6 +34,7 @@ class MidonetBackendConfig(val conf: Config) {
     def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
     def useNewStack = conf.getBoolean("zookeeper.use_new_stack")
     def bufferSize = conf.getInt("zookeeper.buffer_size")
+    def kafka = new KafkaConfig(conf)
 }
 
 class CassandraConfig(val conf: Config) {
@@ -43,6 +44,14 @@ class CassandraConfig(val conf: Config) {
 }
 
 class KafkaConfig(val conf: Config) {
+    /* Returns true iff merged maps are enabled. */
+    def useMergedMaps = conf.getBoolean("kafka.use_merged_maps")
+    /* Id of the local broker. */
+    def brokerId = conf.getString("kafka.broker_id")
+    /* Path to broker data. */
+    def dataDir = conf.getString("kafka.data_dir")
+    /* Comma-separated list of dirs where to store logs. */
+    def logDirs = conf.getString("kafka.log_dirs")
     /* List of Kafka brokers: host1:port1, host2:port2, host3:port3 */
     def brokers = conf.getString("kafka.brokers")
     /* Zookeeper connect string: host1:port1, host2: port2, host3: port3. */
