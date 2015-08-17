@@ -22,6 +22,30 @@
       "revId": "f38eb7c223c7431c73c5640309e045fc4bd1c8a1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_085ecb12",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-17T14:06:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e52d52aa",
+      "range": {
+        "startLine": 81,
+        "startChar": 15,
+        "endLine": 81,
+        "endChar": 25
+      },
+      "revId": "f38eb7c223c7431c73c5640309e045fc4bd1c8a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
