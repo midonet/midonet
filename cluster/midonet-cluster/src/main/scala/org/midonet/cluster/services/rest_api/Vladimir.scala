@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.rest_api
 
 import java.util
+import javax.servlet.DispatcherType
 import javax.validation.Validator
 
 import scala.collection.JavaConversions._
@@ -28,10 +29,10 @@ import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
 import com.typesafe.scalalogging.Logger
 import org.apache.curator.framework.CuratorFramework
-import org.eclipse.jetty.server.{DispatcherType, Server}
+import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
-import org.slf4j.bridge.SLF4JBridgeHandler
 import org.slf4j.LoggerFactory
+import org.slf4j.bridge.SLF4JBridgeHandler
 
 import org.midonet.cluster.auth.{AuthModule, AuthService}
 import org.midonet.cluster.data.storage.StateTableStorage
