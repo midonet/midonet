@@ -20,79 +20,79 @@ import java.util.{List => JList, UUID}
 
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.Response
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.BadRequestHttpException
-import org.midonet.cluster.rest_api.annotation.AllowGet
+import org.midonet.cluster.rest_api.{NotFoundHttpException, BadRequestHttpException}
+import org.midonet.cluster.rest_api.annotation.{AllowList, AllowCreate, AllowDelete, AllowGet}
 import org.midonet.cluster.rest_api.models.{Chain, Rule}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Create, ResourceContext, Update}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_RULE_JSON,
                 APPLICATION_RULE_JSON_V2,
                 APPLICATION_JSON))
+@AllowDelete
 class RuleResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Rule](resContext) {
 
-    @GET
-    @Path("{id}")
-    override def get(@PathParam("id") id: String,
-                     @HeaderParam("Accept") accept: String): Rule = {
-        val rule = getResource(classOf[Rule], id).getOrThrow
-        val chain = getResource(classOf[Chain], rule.chainId).getOrThrow
-        rule.position = chain.ruleIds.indexOf(rule.id) + 1
-        rule
+    protected override def getFilter(rule: Rule): Future[Rule] = {
+        getResource(classOf[Chain], rule.chainId) map { chain =>
+            rule.position = chain.ruleIds.indexOf(rule.id) + 1
+            rule
+        }
     }
+
+    protected override def deleteFilter(ruleId: String): Ops = {
+        getResource(classOf[Rule], ruleId) flatMap { rule =>
+            getResource(classOf[Chain], rule.chainId) map { chain =>
+                if (chain.ruleIds.remove(rule.id)) {
+                    Seq(Update(chain))
+                } else {
+                    throw new NotFoundHttpException("Rule chain not found")
+                }
+            }
+        }
+    }
+
 }
 
 @RequestScoped
+@AllowList(Array(APPLICATION_RULE_COLLECTION_JSON,
+                 APPLICATION_RULE_COLLECTION_JSON_V2,
+                 APPLICATION_JSON))
+@AllowCreate(Array(APPLICATION_RULE_JSON,
+                   APPLICATION_RULE_JSON_V2,
+                   APPLICATION_JSON))
 class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
     extends MidonetResource[Rule](resContext) {
 
-    @GET
-    @Produces(Array(APPLICATION_RULE_COLLECTION_JSON,
-                    APPLICATION_RULE_COLLECTION_JSON_V2,
-                    APPLICATION_JSON))
-    override def list(@HeaderParam("Accept") accept: String): JList[Rule] = {
-        val rules = getResource(classOf[Chain], chainId)
-            .flatMap(chain => listResources(classOf[Rule],
-                                            chain.ruleIds.asScala))
-            .getOrThrow
-
-        for (i <- 0 until rules.size) rules(i).position = i + 1
-        rules.asJava
+    protected override def listIds: Ids = {
+        getResource(classOf[Chain], chainId) map { _.ruleIds.asScala }
     }
 
-    @POST
-    @Consumes(Array(APPLICATION_RULE_JSON,
-                    APPLICATION_RULE_JSON_V2,
-                    APPLICATION_JSON))
-    override def create(rule: Rule,
-                        @HeaderParam("Content-Type") contentType: String)
-    : Response = {
+    protected override def listFilter(rules: Seq[Rule]): Seq[Rule] = {
+        for (index <- rules.indices) rules(index).position = index + 1
+        rules
+    }
 
-        // required here so it fills some default fields which will be checked
-        // on validation
+    protected override def createFilter(rule: Rule): Ops = {
         rule.create(chainId)
 
-        throwIfViolationsOn(rule)
-
-        getResource(classOf[Chain], chainId).map(chain => {
+        getResource(classOf[Chain], chainId) map { chain =>
             rule.setBaseUri(resContext.uriInfo.getBaseUri)
             if (rule.position <= 0 || rule.position > chain.ruleIds.size() + 1) {
                 throw new BadRequestHttpException("Position exceeds number of" +
                                                   "rules in chain")
             }
             chain.ruleIds.add(rule.position - 1, rule.id)
-            multiResource(Seq(Create(rule), Update(chain)),
-                          Response.created(rule.getUri).build())
-
-        }).getOrThrow
+            Seq(Update(chain))
+        }
     }
+
 }

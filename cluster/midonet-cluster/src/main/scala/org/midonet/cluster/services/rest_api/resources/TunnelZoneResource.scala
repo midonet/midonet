@@ -30,7 +30,7 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.TunnelZone
 import org.midonet.cluster.rest_api.validation.MessageProperty.{UNIQUE_TUNNEL_ZONE_NAME_TYPE, getMessage}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_TUNNEL_ZONE_JSON,
@@ -50,15 +50,17 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
         new TunnelZoneHostResource(id, resContext)
     }
 
-    protected override def createFilter(tz: TunnelZone): Unit = {
+    protected override def createFilter(tz: TunnelZone): Ops = {
         throwIfTunnelZoneNameUsed(tz)
         tz.create()
+        NoOps
     }
 
     protected override def updateFilter(to: TunnelZone, from: TunnelZone)
-    : Unit = {
+    : Ops = {
         throwIfTunnelZoneNameUsed(to)
         to.update(from)
+        NoOps
     }
 
     private def throwIfTunnelZoneNameUsed(tz: TunnelZone): Unit = {
