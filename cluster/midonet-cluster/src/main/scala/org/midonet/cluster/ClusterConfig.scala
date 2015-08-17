@@ -142,5 +142,6 @@ class RestApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
     override def isEnabled = conf.getBoolean("cluster.rest_api.enabled")
 
     def httpPort = conf.getInt(s"$Prefix.http_port")
+    def httpsPort = conf.getInt(s"$Prefix.https_port")
     def rootUri = conf.getString(s"$Prefix.root_uri")
 }

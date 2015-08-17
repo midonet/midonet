@@ -18,19 +18,19 @@ package org.midonet.cluster.services.conf
 
 import java.util
 import java.util.UUID
+import javax.servlet.DispatcherType
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import java.util.EnumSet
 
 import com.google.inject.Inject
 import com.typesafe.config._
 import org.apache.curator.framework.CuratorFramework
-import org.eclipse.jetty.server.{DispatcherType, Server}
-import org.eclipse.jetty.server.nio.BlockingChannelConnector
+import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.slf4j.LoggerFactory
+
+import org.midonet.cluster.services.rest_api.CorsFilter
 import org.midonet.cluster.services.{ClusterService, Minion}
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
-import org.midonet.cluster.services.rest_api.CorsFilter
 import org.midonet.conf.MidoNodeConfigurator
 
 @ClusterService(name = "conf")
@@ -52,14 +52,13 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context,
 
         log.info(s"Starting configuration API service at ${config.confApi.httpPort}")
 
-        server = new Server()
-        val http = new BlockingChannelConnector()
-        http.setPort(config.confApi.httpPort)
-        server.addConnector(http)
+        server = new Server(config.confApi.httpPort)
+
 
         val context = new ServletContextHandler()
         context.setContextPath("/conf")
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
+
         context.addFilter(classOf[CorsFilter], "/*",
                           util.EnumSet.allOf(classOf[DispatcherType]))
         server.setHandler(context)
