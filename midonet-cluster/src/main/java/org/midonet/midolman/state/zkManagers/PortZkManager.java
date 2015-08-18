@@ -27,6 +27,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
+import com.google.inject.Inject;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -65,12 +66,12 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     private final static Logger log =
             LoggerFactory.getLogger(PortZkManager.class);
 
-    private final BgpZkManager bgpManager;
-    private final ChainZkManager chainZkManager;
-    private final FiltersZkManager filterZkManager;
-    private final RouteZkManager routeZkManager;
-    private final TunnelZkManager tunnelZkManager;
-    private final TraceRequestZkManager traceReqZkManager;
+    @Inject private final BgpZkManager bgpManager = null;
+    @Inject private final ChainZkManager chainZkManager = null;
+    @Inject private final FiltersZkManager filterZkManager = null;
+    @Inject private final RouteZkManager routeZkManager = null;
+    @Inject private final TunnelZkManager tunnelZkManager = null;
+    @Inject private final TraceRequestZkManager traceReqZkManager = null;
 
     /**
      * Initializes a PortZkManager object with a ZooKeeper client and the root
@@ -86,14 +87,9 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     public PortZkManager(ZkManager zk, PathBuilder paths,
                          Serializer serializer) {
         super(zk, paths, serializer);
-        this.bgpManager = new BgpZkManager(zk, paths, serializer);
-        this.chainZkManager = new ChainZkManager(zk, paths, serializer);
-        this.filterZkManager = new FiltersZkManager(zk, paths, serializer);
-        this.routeZkManager = new RouteZkManager(zk, paths, serializer);
-        this.tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
-        this.traceReqZkManager = new TraceRequestZkManager(zk, paths, serializer);
     }
 
+    @Inject
     public PortZkManager(Directory zk, String basePath, Serializer serializer) {
         this(new ZkManager(zk, basePath), new PathBuilder(basePath), serializer);
     }

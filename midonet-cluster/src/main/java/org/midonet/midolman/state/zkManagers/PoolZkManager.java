@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
+import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
 import org.midonet.nsdb.BaseConfig;
@@ -140,6 +141,7 @@ public class PoolZkManager
         }
     }
 
+    @Inject
     public PoolZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
         super(zk, paths, serializer);

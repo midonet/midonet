@@ -31,6 +31,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 
 /**
  * Class to manage the Tunnel ZooKeeper data.
@@ -65,6 +67,7 @@ public class TunnelZkManager
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public TunnelZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
         super(zk, paths, serializer);
