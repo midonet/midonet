@@ -22,6 +22,7 @@ import java.util.UUID;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -112,4 +113,19 @@ public class Pool extends UriResource {
         status = from.status;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("adminStateUp", adminStateUp)
+            .add("healthMonitorId", healthMonitorId)
+            .add("loadBalancerId", loadBalancerId)
+            .add("protocol", protocol)
+            .add("lbMethod", lbMethod)
+            .add("status", status)
+            .add("poolMemberIds", poolMemberIds)
+            .add("vipIds", vipIds)
+            .toString();
+    }
 }
