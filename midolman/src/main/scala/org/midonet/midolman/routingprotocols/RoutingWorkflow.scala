@@ -79,6 +79,10 @@ trait RoutingWorkflow {
 
         if (matchBgp(context, info, port)) {
             context.addVirtualAction(output(info.dpPortNo))
+            /*
+             * Ensures ARP replies always seen to userspace
+             * so that the router can learn the MAC address.
+             */
             if (context.wcmatch.getEtherType == ARP.ETHERTYPE) {
                context.addVirtualAction(userspace(info.uplinkPid))
             }
