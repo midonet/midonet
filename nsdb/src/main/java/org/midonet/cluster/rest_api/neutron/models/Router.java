@@ -33,7 +33,7 @@ import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.collection.ListUtil;
 
 @ZoomClass(clazz = Neutron.NeutronRouter.class)
-public class Router extends ZoomObject{
+public class Router extends ZoomObject {
 
     public Router() {}
 

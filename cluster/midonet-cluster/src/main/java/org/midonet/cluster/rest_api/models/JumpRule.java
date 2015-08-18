@@ -27,7 +27,7 @@ public class JumpRule extends Rule {
 
     @ZoomField(name = "jump_chain_name")
     public String jumpChainName;
-    @ZoomField(name = "jump_to", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "jump_chain_id", converter = UUIDUtil.Converter.class)
     public UUID jumpChainId;
 
     public JumpRule() {

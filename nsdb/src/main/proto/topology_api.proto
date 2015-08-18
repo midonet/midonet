@@ -196,10 +196,10 @@ message Response {
             Route route = 15;
             Router router = 16;
             Rule rule = 17;
-            TunnelZone tunnel_zone = 18;
-            Vip vip = 19;
-            Vtep vtep = 20;
-            TraceRequest trace_request = 21;
+            TraceRequest trace_request = 18;
+            TunnelZone tunnel_zone = 19;
+            Vip vip = 20;
+            Vtep vtep = 21;
         }
     }
     message Snapshot {

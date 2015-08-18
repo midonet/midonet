@@ -1078,31 +1078,6 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     feature("Test chain updates") {
-        scenario("The router chains do not exist") {
-            val obs = createObserver()
-
-            Given("A router mapper")
-            val routerId = UUID.randomUUID
-            val mapper = new RouterMapper(routerId, vt, mutable.Map())
-
-            And("A router with a chain that does not exist")
-            val chainId = UUID.randomUUID
-            val router = createRouter(id = routerId,
-                                      inboundFilterId = Some(chainId))
-
-            When("The router is created")
-            store.create(router)
-
-            And("The observer subscribes to an observable on the mapper")
-            Observable.create(mapper).subscribe(obs)
-
-            Then("The observer should receive an error")
-            obs.awaitCompletion(timeout)
-            val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
-            e.clazz shouldBe classOf[TopologyChain]
-            e.id shouldBe chainId
-        }
-
         scenario("The router receives existing chain") {
             val obs = createObserver()
 
@@ -1158,7 +1133,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(1, timeout) shouldBe true
 
             When("The chain is updated")
-            val chain2 = chain1.setName("updated-name")
+            val chain2 = chain1.setName("updated-name").addRouterInboundId(routerId)
             store.update(chain2)
 
             Then("The observer should receive a second update")
@@ -1199,8 +1174,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(router2)
 
             Then("The observer should receive a second update")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            val device = obs.getOnNextEvents.get(1)
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(3)
             device shouldBeDeviceOf router2
 
             And("The virtual topology should not have the chain")
