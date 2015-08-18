@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright 2015 Midokura SARL
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<sbe:messageSchema xmlns:sbe="http://www.fixprotocol.org/ns/simple/1.0"
+                   package="org.midonet.cluster.flowstate.proto"
+                   id="1"
+                   version="0"
+                   semanticVersion="5.2"
+                   description="Flow state"
+                   byteOrder="littleEndian">
+  <types>
+    <composite name="messageHeader"
+               description="Message identifiers and length of message root">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="templateId" primitiveType="uint16"/>
+      <type name="schemaId" primitiveType="uint16"/>
+      <type name="version" primitiveType="uint16"/>
+    </composite>
+    <composite name="groupSizeEncoding" description="Repeating group dimensions">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="numInGroup" primitiveType="uint8"/>
+    </composite>
+  </types>
+  <types>
+    <type name="UUID" primitiveType="uint64" length="2" />
+    <enum name="InetAddrType" encodingType="uint8">
+      <validValue name="IPv4">1</validValue>
+      <validValue name="IPv6">2</validValue>
+    </enum>
+    <enum name="NatKeyType" encodingType="uint8">
+      <validValue name="FWD_DNAT">1</validValue>
+      <validValue name="FWD_STICKY_DNAT">2</validValue>
+      <validValue name="REV_DNAT">3</validValue>
+      <validValue name="REV_STICKY_DNAT">4</validValue>
+      <validValue name="FWD_SNAT">5</validValue>
+      <validValue name="REV_SNAT">6</validValue>
+    </enum>
+    <type name="InetAddr" primitiveType="uint64" length="2" />
+    <type name="MAC" primitiveType="uint16" length="3" />
+  </types>
+
+  <sbe:message name="FlowState" id="1" description="Flow state">
+    <field name="sender" id="1" type="UUID" />
+
+    <group name="conntrack" id="100">
+      <field name="device" id="101" type="UUID" />
+      <field name="srcIp" id="102" type="InetAddr" />
+      <field name="dstIp" id="103" type="InetAddr" />
+      <field name="srcPort" id="104" type="uint16" />
+      <field name="dstPort" id="105" type="uint16" />
+      <field name="protocol" id="106" type="uint8" />
+      <field name="srcIpType" id="107" type="InetAddrType" />
+      <field name="dstIpType" id="108" type="InetAddrType" />
+    </group>
+
+    <group name="nat" id="200">
+      <field name="keyDevice" id="201" type="UUID" />
+      <field name="keySrcIp" id="202" type="InetAddr" />
+      <field name="keyDstIp" id="203" type="InetAddr" />
+      <field name="valueIp" id="204" type="InetAddr" />
+      <field name="keySrcPort" id="205" type="uint16" />
+      <field name="keyDstPort" id="206" type="uint16" />
+      <field name="valuePort" id="207" type="uint16" />
+      <field name="keyProtocol" id="208" type="uint8" />
+      <field name="keySrcIpType" id="209" type="InetAddrType" />
+      <field name="keyDstIpType" id="210" type="InetAddrType" />
+      <field name="valueIpType" id="211" type="InetAddrType" />
+      <field name="keyType" id="212" type="NatKeyType" />
+    </group>
+
+    <group name="trace" id="300">
+      <field name="flowTraceId" id="301" type="UUID" />
+      <field name="srcIp" id="302" type="InetAddr" />
+      <field name="dstIp" id="303" type="InetAddr" />
+      <field name="srcMac" id="304" type="MAC" />
+      <field name="dstMac" id="305" type="MAC" />
+      <field name="srcPort" id="306" type="uint16" />
+      <field name="dstPort" id="307" type="uint16" />
+      <field name="etherType" id="308" type="uint16" />
+      <field name="protocol" id="309" type="uint8" />
+      <field name="srcIpType" id="310" type="InetAddrType" />
+      <field name="dstIpType" id="311" type="InetAddrType" />
+    </group>
+
+    <group name="traceRequestIds" id="350">
+      <field name="id" id="351" type="UUID" />
+    </group>
+  </sbe:message>
+
+</sbe:messageSchema>

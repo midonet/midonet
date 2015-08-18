@@ -19,15 +19,15 @@ package org.midonet.midolman.state
 import java.io.ByteArrayInputStream
 import java.util.UUID
 
-import com.google.protobuf.ByteString
+import uk.co.real_logic.sbe.codec.java.DirectBuffer
 
+import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, _}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
 import org.midonet.midolman.state.TraceState.TraceKey
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.FlowKeyEtherType
 import org.midonet.packets._
-import org.midonet.rpc.{FlowStateProto => Proto}
 
 object FlowStatePackets {
     /**
@@ -62,6 +62,8 @@ object FlowStatePackets {
     // 20(IP) + 8(GRE+Key) + 14(Ethernet w/o preamble and CRC) + 20(IP) + 8(UDP)
     val OVERHEAD = 70
 
+    val MessageHeaderVersion = 1
+
     def isStateMessage(fmatch: FlowMatch): Boolean =
         fmatch.getTunnelKey == TUNNEL_KEY
 
@@ -73,129 +75,147 @@ object FlowStatePackets {
                     { payload(data) }
     }
 
-    implicit def ipAddressFromProto(proto: Proto.IpAddress): IPAddr = {
-        if (proto.getVersion == Proto.IpAddress.IpVersion.V4) {
-            new IPv4Addr(proto.getQuad0)
-        } else {
-            val lower = proto.getQuad0.toLong | (proto.getQuad1.toLong << 32)
-            val upper = proto.getQuad2.toLong | (proto.getQuad3.toLong << 32)
-            new IPv6Addr(upper, lower)
+    def uuidFromSbe(getter: (Int) => Long): UUID =
+        new UUID(getter(0), getter(1))
+
+    def uuidToSbe(uuid: UUID, setter: (Int, Long) => Unit) {
+        if (uuid != null) {
+            setter(0, uuid.getMostSignificantBits)
+            setter(1, uuid.getLeastSignificantBits)
         }
     }
 
-    implicit def ipAddressToProto(ip: IPAddr): Proto.IpAddress = ip match {
-        case v4: IPv4Addr =>
-            Proto.IpAddress.newBuilder().
-                setVersion(Proto.IpAddress.IpVersion.V4).
-                setQuad0(v4.addr).build()
-
-        case v6: IPv6Addr =>
-            val q0 = (v6.lowerWord & 0xFFFFFFFF).toInt
-            val q1 = ((v6.lowerWord >> 32) & 0xFFFFFFFF).toInt
-            val q2 = (v6.upperWord & 0xFFFFFFFF).toInt
-            val q3 = ((v6.upperWord >> 32) & 0xFFFFFFFF).toInt
-
-            Proto.IpAddress.newBuilder().
-                setVersion(Proto.IpAddress.IpVersion.V6).
-                setQuad0(q0).setQuad1(q1).setQuad2(q2).setQuad3(q3).build()
-
-        case _ => throw new IllegalArgumentException()
-    }
-
-    implicit def uuidFromProto(proto: Proto.UUID): UUID =
-        new UUID(proto.getMsb, proto.getLsb)
-
-    implicit def uuidToProto(uuid: UUID): Proto.UUID =
-        Proto.UUID.newBuilder().setMsb(uuid.getMostSignificantBits).
-            setLsb(uuid.getLeastSignificantBits).build()
-
-    implicit def natKeyTypeFromProto(t: Proto.NatKey.Type): KeyType = t match {
-        case Proto.NatKey.Type.FWD_SNAT => NatState.FWD_SNAT
-        case Proto.NatKey.Type.FWD_DNAT => NatState.FWD_DNAT
-        case Proto.NatKey.Type.FWD_STICKY_DNAT => NatState.FWD_STICKY_DNAT
-        case Proto.NatKey.Type.REV_SNAT => NatState.REV_SNAT
-        case Proto.NatKey.Type.REV_DNAT => NatState.REV_DNAT
-        case Proto.NatKey.Type.REV_STICKY_DNAT => NatState.REV_STICKY_DNAT
-    }
-
-    implicit def natKeyTypeToProto(t: KeyType): Proto.NatKey.Type = t match {
-        case NatState.FWD_SNAT => Proto.NatKey.Type.FWD_SNAT
-        case NatState.FWD_DNAT => Proto.NatKey.Type.FWD_DNAT
-        case NatState.FWD_STICKY_DNAT => Proto.NatKey.Type.FWD_STICKY_DNAT
-        case NatState.REV_SNAT => Proto.NatKey.Type.REV_SNAT
-        case NatState.REV_DNAT => Proto.NatKey.Type.REV_DNAT
-        case NatState.REV_STICKY_DNAT => Proto.NatKey.Type.REV_STICKY_DNAT
-    }
-
-    def connTrackKeyFromProto(proto: Proto.ConntrackKey) =
-        ConnTrackKey(proto.getSrcIp, proto.getSrcPort,
-                     proto.getDstIp, proto.getDstPort,
-                     proto.getProtocol.toByte, proto.getDevice)
-
-    def connTrackKeyToProto(key: ConnTrackKey) =
-        Proto.ConntrackKey.newBuilder().
-            setSrcIp(key.networkSrc).
-            setDstIp(key.networkDst).
-            setSrcPort(key.icmpIdOrTransportSrc).
-            setDstPort(key.icmpIdOrTransportDst).
-            setDevice(key.deviceId).
-            setProtocol(key.networkProtocol).build()
-
-    def natKeyToProto(key: NatKey) =
-        Proto.NatKey.newBuilder().
-            setSrcIp(key.networkSrc).
-            setSrcPort(key.transportSrc).
-            setDstIp(key.networkDst).
-            setDstPort(key.transportDst).
-            setDevice(key.deviceId).
-            setProtocol(key.networkProtocol).
-            setType(key.keyType).build()
-
-    def natKeyFromProto(proto: Proto.NatKey) =
-        NatKey(proto.getType,
-               ipAddressFromProto(proto.getSrcIp).asInstanceOf[IPv4Addr],
-               proto.getSrcPort,
-               ipAddressFromProto(proto.getDstIp).asInstanceOf[IPv4Addr],
-               proto.getDstPort,
-               proto.getProtocol.toByte, proto.getDevice)
-
-    def natBindingToProto(key: NatBinding) =
-        Proto.NatValue.newBuilder().
-            setIp(key.networkAddress).
-            setPort(key.transportPort).build()
-
-    def natBindingFromProto(proto: Proto.NatValue) =
-        NatBinding(ipAddressFromProto(proto.getIp).asInstanceOf[IPv4Addr],
-                   proto.getPort)
-
-    def traceKeyToProto(key: TraceKey,
-                        proto: Proto.TraceEntry.Builder): Unit = {
-        if (key.ethSrc != null) { proto.setEthSrc(key.ethSrc.asLong) }
-        if (key.ethDst != null) { proto.setEthDst(key.ethDst.asLong) }
-        if (key.etherType != FlowKeyEtherType.Type.ETH_P_NONE.value) {
-            proto.setEtherType(key.etherType)
+    def ipFromSbe(ipType: InetAddrType, getter: (Int) => Long): IPAddr =
+        ipType match {
+            case InetAddrType.IPv4 => new IPv4Addr(getter(0).toInt)
+            case InetAddrType.IPv6 => new IPv6Addr(getter(0), getter(1))
+            case _ => null
         }
-        if (key.networkSrc != null) { proto.setIpSrc(key.networkSrc) }
-        if (key.networkDst != null) { proto.setIpDst(key.networkDst) }
-        if (key.networkProto != 0) { proto.setIpProto(key.networkProto) }
-        if (key.srcPort != 0) { proto.setTpSrc(key.srcPort) }
-        if (key.dstPort != 0) { proto.setTpDst(key.dstPort) }
+
+    def ipToSbe(ip: IPAddr, setter: (Int, Long) => Unit) = ip match {
+        case ip4: IPv4Addr => setter(0, ip4.addr)
+        case ip6: IPv6Addr => {
+            setter(0, ip6.upperWord)
+            setter(1, ip6.lowerWord)
+        }
+        case _ =>
     }
 
-    def traceKeyFromProto(proto: Proto.TraceEntry) =
-        TraceKey(if (proto.hasEthSrc) new MAC(proto.getEthSrc) else null,
-                 if (proto.hasEthDst) new MAC(proto.getEthDst) else null,
-                 if (proto.hasEtherType) proto.getEtherType.toShort
-                 else FlowKeyEtherType.Type.ETH_P_NONE.value.toShort,
-                 if (proto.hasIpSrc) ipAddressFromProto(proto.getIpSrc)
-                 else null,
-                 if (proto.hasIpDst) ipAddressFromProto(proto.getIpDst)
-                 else null,
-                 if (proto.hasIpProto) proto.getIpProto.toByte else 0,
-                 if (proto.hasTpSrc) proto.getTpSrc else 0,
-                 if (proto.hasTpDst) proto.getTpDst else 0)
+    def ipSbeType(ip: IPAddr): InetAddrType = ip match {
+        case ip4: IPv4Addr => InetAddrType.IPv4
+        case ip6: IPv6Addr => InetAddrType.IPv6
+        case _ => null
+    }
 
-    def parseDatagram(p: Ethernet): Proto.StateMessage  = {
+    def macFromSbe(getter: (Int) => Int): MAC = {
+        val address: Long =
+            ((getter(0).toLong << 32) & 0xFFFF00000000L) |
+            ((getter(1) << 16) & 0xFFFF0000L) |
+            (getter(2) & 0xFFFFL)
+        new MAC(address)
+    }
+
+    def macToSbe(mac: MAC, setter: (Int, Int) => Unit) {
+        val address = mac.asLong
+        setter(0, ((address >> 32).toInt & 0xFFFF))
+        setter(1, ((address >> 16).toInt & 0xFFFF))
+        setter(2, (address.toInt & 0xFFFF))
+    }
+
+    def natKeyTypeFromSbe(t: NatKeyType): KeyType = t match {
+        case NatKeyType.FWD_SNAT => NatState.FWD_SNAT
+        case NatKeyType.FWD_DNAT => NatState.FWD_DNAT
+        case NatKeyType.FWD_STICKY_DNAT => NatState.FWD_STICKY_DNAT
+        case NatKeyType.REV_SNAT => NatState.REV_SNAT
+        case NatKeyType.REV_DNAT => NatState.REV_DNAT
+        case NatKeyType.REV_STICKY_DNAT => NatState.REV_STICKY_DNAT
+        case _ => null
+    }
+
+    def natKeySbeType(t: KeyType): NatKeyType = t match {
+        case NatState.FWD_SNAT => NatKeyType.FWD_SNAT
+        case NatState.FWD_DNAT => NatKeyType.FWD_DNAT
+        case NatState.FWD_STICKY_DNAT => NatKeyType.FWD_STICKY_DNAT
+        case NatState.REV_SNAT => NatKeyType.REV_SNAT
+        case NatState.REV_DNAT => NatKeyType.REV_DNAT
+        case NatState.REV_STICKY_DNAT => NatKeyType.REV_STICKY_DNAT
+    }
+
+    def connTrackKeyFromSbe(conntrack: FlowStateSbe.Conntrack): ConnTrackKey = {
+        ConnTrackKey(ipFromSbe(conntrack.srcIpType, conntrack.srcIp),
+                     conntrack.srcPort,
+                     ipFromSbe(conntrack.dstIpType, conntrack.dstIp),
+                     conntrack.dstPort,
+                     conntrack.protocol.toByte,
+                     uuidFromSbe(conntrack.device))
+    }
+
+    def connTrackKeyToSbe(key: ConnTrackKey,
+                          conntrack: FlowStateSbe.Conntrack): Unit = {
+        uuidToSbe(key.deviceId, conntrack.device)
+        ipToSbe(key.networkSrc, conntrack.srcIp)
+        ipToSbe(key.networkDst, conntrack.dstIp)
+        conntrack.srcPort(key.icmpIdOrTransportSrc)
+        conntrack.dstPort(key.icmpIdOrTransportDst)
+        conntrack.protocol(key.networkProtocol)
+        conntrack.srcIpType(ipSbeType(key.networkSrc))
+        conntrack.dstIpType(ipSbeType(key.networkDst))
+    }
+
+    def natKeyFromSbe(nat: FlowStateSbe.Nat): NatKey =
+        NatKey(natKeyTypeFromSbe(nat.keyType),
+               ipFromSbe(nat.keySrcIpType, nat.keySrcIp).asInstanceOf[IPv4Addr],
+               nat.keySrcPort,
+               ipFromSbe(nat.keyDstIpType, nat.keyDstIp).asInstanceOf[IPv4Addr],
+               nat.keyDstPort, nat.keyProtocol.toByte,
+               uuidFromSbe(nat.keyDevice))
+
+    def natBindingFromSbe(nat: FlowStateSbe.Nat): NatBinding =
+        NatBinding(
+            ipFromSbe(nat.valueIpType, nat.valueIp).asInstanceOf[IPv4Addr],
+            nat.valuePort)
+
+    def natToSbe(key: NatKey, value: NatBinding,
+                 nat: FlowStateSbe.Nat): Unit = {
+        uuidToSbe(key.deviceId, nat.keyDevice)
+        ipToSbe(key.networkSrc, nat.keySrcIp)
+        ipToSbe(key.networkDst, nat.keyDstIp)
+        ipToSbe(value.networkAddress, nat.valueIp)
+        nat.keySrcPort(key.transportSrc)
+        nat.keyDstPort(key.transportDst)
+        nat.valuePort(value.transportPort)
+        nat.keyProtocol(key.networkProtocol)
+        nat.keySrcIpType(ipSbeType(key.networkSrc))
+        nat.keyDstIpType(ipSbeType(key.networkDst))
+        nat.valueIpType(ipSbeType(value.networkAddress))
+        nat.keyType(natKeySbeType(key.keyType))
+    }
+
+    def traceFromSbe(trace: FlowStateSbe.Trace): TraceKey =
+        TraceKey(macFromSbe(trace.srcMac),
+                 macFromSbe(trace.dstMac),
+                 trace.etherType.toShort,
+                 ipFromSbe(trace.srcIpType, trace.srcIp),
+                 ipFromSbe(trace.dstIpType, trace.dstIp),
+                 trace.protocol.toByte,
+                 trace.srcPort, trace.dstPort)
+
+    def traceToSbe(flowTraceId: UUID, key: TraceKey,
+                   trace: FlowStateSbe.Trace): Unit = {
+        uuidToSbe(flowTraceId, trace.flowTraceId)
+        ipToSbe(key.networkSrc, trace.srcIp)
+        ipToSbe(key.networkDst, trace.dstIp)
+        macToSbe(key.ethSrc, trace.srcMac)
+        macToSbe(key.ethDst, trace.dstMac)
+        trace.srcPort(key.srcPort)
+        trace.dstPort(key.dstPort)
+        trace.etherType(key.etherType)
+        trace.protocol(key.networkProto)
+        trace.srcIpType(ipSbeType(key.networkSrc))
+        trace.dstIpType(ipSbeType(key.networkDst))
+    }
+
+    def parseDatagram(p: Ethernet): Data = {
         if (p.getDestinationMACAddress != DST_MAC ||
             p.getSourceMACAddress != SRC_MAC) {
             return null
@@ -208,16 +228,47 @@ object FlowStatePackets {
                     case udp: UDP if udp.getDestinationPort == UDP_PORT &&
                         udp.getSourcePort == UDP_PORT =>
                         udp.getPayload match {
-                            case d: Data =>
-                                val input = new ByteArrayInputStream(d.getData)
-                                Proto.StateMessage.parseDelimitedFrom(input)
+                            case d: Data => d
                             case _ => null
                         }
-
                     case _ => null
                 }
-
             case _ => null
         }
+    }
+}
+
+class SbeEncoder {
+    val flowStateHeader = new MessageHeader
+    val flowStateMessage = new FlowStateSbe
+    val flowStateBuffer = new DirectBuffer(new Array[Byte](0))
+
+    def encodeTo(bytes: Array[Byte]): FlowStateSbe = {
+        flowStateBuffer.wrap(bytes)
+        flowStateHeader.wrap(flowStateBuffer, 0,
+                             FlowStatePackets.MessageHeaderVersion)
+            .blockLength(flowStateMessage.sbeBlockLength)
+            .templateId(flowStateMessage.sbeTemplateId)
+            .schemaId(flowStateMessage.sbeSchemaId)
+            .version(flowStateMessage.sbeSchemaVersion)
+        flowStateMessage.wrapForEncode(flowStateBuffer, flowStateHeader.size)
+        flowStateMessage
+    }
+
+    def encodedLength(): Int = flowStateHeader.size + flowStateMessage.size
+
+    def decodeFrom(bytes: Array[Byte]): FlowStateSbe = {
+        flowStateBuffer.wrap(bytes)
+        flowStateHeader.wrap(flowStateBuffer, 0,
+                             FlowStatePackets.MessageHeaderVersion)
+        val templateId = flowStateHeader.templateId
+        if (templateId != FlowStateSbe.TEMPLATE_ID) {
+            throw new IllegalArgumentException(
+                s"Invalid template id for flow state $templateId")
+        }
+        flowStateMessage.wrapForDecode(flowStateBuffer, flowStateHeader.size,
+                                       flowStateHeader.blockLength,
+                                       flowStateHeader.version)
+        flowStateMessage
     }
 }

@@ -17,7 +17,7 @@
 package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
-import java.util.{ArrayList, Collection, HashSet => JHashSet}
+import java.util.{ArrayList, Arrays, Collection, HashSet => JHashSet}
 import java.util.{Set => JSet, UUID}
 import java.util.Random
 
@@ -48,7 +48,6 @@ import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.rpc.FlowStateProto
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.FixedArrayOutputStream
@@ -177,8 +176,9 @@ class FlowStateReplicatorTest extends MidolmanSpec {
 
         callbacks.addAll(context.flowRemovedCallbacks)
 
-        val packet = if (context.stateMessage ne null) {
-            statePacketExecutor.prepareStatePacket(context.stateMessage)
+        val packet = if (context.stateMessageLength > 0) {
+            statePacketExecutor.prepareStatePacket(context.stateMessage,
+                                                   context.stateMessageLength)
         } else null
         (packet, context.stateActions.toList)
     }
@@ -196,34 +196,28 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             Given("Flow state packet shell")
             val buffer = new Array[Byte](
                 FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
-            val stream = new FixedArrayOutputStream(buffer)
             val packet = {
                 val udpShell = new FlowStateEthernet(buffer)
                 new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
             }
 
             When("Flow state packet payload is the empty protobuf messsage")
-            val msgBuilder = FlowStateProto.StateMessage.newBuilder()
-                .clear()
-                .setSender(UUID.randomUUID())
-                .setEpoch(0x42L)
-                .setSeq(0x1L) /* We don't expect ACKs, seq is unused for now */
-            val msg: MessageLite = msgBuilder.build()
+            val encodingBytes = new Array[Byte](
+                FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
+            val encoder = new SbeEncoder()
+            val flowStateMessage = encoder.encodeTo(encodingBytes)
+            val sender = UUID.randomUUID
+            uuidToSbe(sender, flowStateMessage.sender)
 
-            val msgSizeVariantLength: Int =
-                CodedOutputStream.computeRawVarint32Size(msg.getSerializedSize)
-            val msgLength = msg.getSerializedSize + msgSizeVariantLength
-
-            stream.reset()
-            msg.writeDelimitedTo(stream)
-
+            val len = encoder.encodedLength
+            System.arraycopy(encodingBytes, 0, buffer, 0, len)
             val fse = packet.getEthernet.asInstanceOf[FlowStateEthernet]
-            fse.limit(msgLength)
+            fse.limit(len)
 
             Then("Serialized packet should have the appropriate length")
             val bb = ByteBuffer.allocate(FlowStateEthernet.MTU)
             fse.serialize(bb)
-            bb.position should be (msgLength +
+            bb.position should be (len +
                 FlowStateEthernet.FLOW_STATE_ETHERNET_OVERHEAD)
             bb.flip()
 
@@ -231,8 +225,8 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             val deserialized = Ethernet.deserialize(bb.array())
             val data = deserialized
                 .getPayload.getPayload.getPayload.asInstanceOf[Data].getData
-            data.slice(msgSizeVariantLength, data.length) should be (
-                msg.toByteArray)
+            data.length shouldBe len
+            ByteBuffer.wrap(data, 0, len) shouldBe ByteBuffer.wrap(encodingBytes, 0, len)
         }
     }
 
