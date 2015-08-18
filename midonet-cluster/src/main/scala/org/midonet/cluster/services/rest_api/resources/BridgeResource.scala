@@ -88,7 +88,9 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                     APPLICATION_JSON))
     override def create(bridge: Bridge,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
+    : Response = create(bridge)
+
+    def create(bridge: Bridge, createReplMapNodes: Boolean = true): Response = {
 
         if (bridge.vxLanPortIds != null) {
             throw new BadRequestHttpException(
@@ -99,7 +101,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
         bridge.create()
 
-        val pathOps = Seq (
+        val pathOps = if (!createReplMapNodes) Seq.empty else Seq(
             pathBuilder.getBridgeIP4MacMapPath(bridge.id),
             pathBuilder.getBridgeMacPortsPath(bridge.id),
             pathBuilder.getBridgeVlansPath(bridge.id)) map { path =>

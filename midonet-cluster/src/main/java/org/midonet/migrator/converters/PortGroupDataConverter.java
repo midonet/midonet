@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.midonet.util
+package org.midonet.migrator.converters;
 
-object StringUtil {
+import org.midonet.cluster.rest_api.models.PortGroup;
 
-    /**
-     * Returns o.toString with each line indented by the specified number of
-     * spaces.
-     *
-     * Be aware that this will add trailing spaces if o.toString ends with a
-     * newline.
-     */
-    def indent(o: Object, spaces: Int) = {
-        val margin = " " * spaces
-        margin + o.toString.replaceAllLiterally("\n", "\n" + margin)
+import static org.midonet.cluster.data.PortGroup.Property.tenant_id;
+
+public class PortGroupDataConverter {
+
+    public static PortGroup fromData(org.midonet.cluster.data.PortGroup data) {
+        PortGroup pg = new PortGroup();
+        pg.id = data.getId();
+        pg.name = data.getName();
+        pg.tenantId = data.getProperty(tenant_id);
+        pg.stateful = data.isStateful();
+        return pg;
     }
 
-    /** Returns null if o is null, otherwise o.toString. */
-    def toStringOrNull(o: AnyRef) = if (o == null) null else o.toString
 }
+
+

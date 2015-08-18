@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package org.midonet.util
+package org.midonet.migrator.converters;
 
-object StringUtil {
+import org.midonet.cluster.data.dhcp.Opt121;
+import org.midonet.cluster.rest_api.models.DhcpOption121;
 
-    /**
-     * Returns o.toString with each line indented by the specified number of
-     * spaces.
-     *
-     * Be aware that this will add trailing spaces if o.toString ends with a
-     * newline.
-     */
-    def indent(o: Object, spaces: Int) = {
-        val margin = " " * spaces
-        margin + o.toString.replaceAllLiterally("\n", "\n" + margin)
+public class DhcpOption121DataConverter {
+
+    public static DhcpOption121 fromData(Opt121 opt121) {
+        DhcpOption121 opt = new DhcpOption121();
+        opt.destinationLength = opt121.getRtDstSubnet().getPrefixLen();
+        opt.destinationPrefix = opt121.getRtDstSubnet().toUnicastString();
+        opt.gatewayAddr = opt121.getGateway().toString();
+        return opt;
     }
 
-    /** Returns null if o is null, otherwise o.toString. */
-    def toStringOrNull(o: AnyRef) = if (o == null) null else o.toString
 }

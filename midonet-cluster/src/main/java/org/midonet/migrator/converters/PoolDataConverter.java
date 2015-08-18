@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.midonet.migrator.converters;
 
-package org.midonet.util
+import org.midonet.cluster.rest_api.models.Pool;
 
-object StringUtil {
+public class PoolDataConverter {
 
-    /**
-     * Returns o.toString with each line indented by the specified number of
-     * spaces.
-     *
-     * Be aware that this will add trailing spaces if o.toString ends with a
-     * newline.
-     */
-    def indent(o: Object, spaces: Int) = {
-        val margin = " " * spaces
-        margin + o.toString.replaceAllLiterally("\n", "\n" + margin)
+    public static Pool fromData(org.midonet.cluster.data.l4lb.Pool data) {
+        Pool pool = new Pool();
+        pool.loadBalancerId = data.getLoadBalancerId();
+        pool.healthMonitorId = data.getHealthMonitorId();
+        pool.protocol = data.getProtocol();
+        pool.lbMethod = data.getLbMethod();
+        pool.adminStateUp = data.isAdminStateUp();
+        pool.status = data.getStatus();
+        pool.id = data.getId();
+        return pool;
     }
 
-    /** Returns null if o is null, otherwise o.toString. */
-    def toStringOrNull(o: AnyRef) = if (o == null) null else o.toString
 }
