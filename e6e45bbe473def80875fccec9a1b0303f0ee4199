@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f46a5e80",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-08-18T11:18:22Z",
+      "side": 0,
+      "message": "Sorry, this should have been allocateDirect.",
+      "range": {
+        "startLine": 80,
+        "startChar": 27,
+        "endLine": 80,
+        "endChar": 35
+      },
+      "revId": "e6e45bbe473def80875fccec9a1b0303f0ee4199",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f4017eb0",
+        "filename": "odp/src/integration/scala/org/midonet/odp/RtnetlinkTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-08-18T11:18:22Z",
+      "side": 0,
+      "message": "I mixed it up with DefaultRtnetlinkConnection. This can be the \"allocate\" method for debugging.",
+      "range": {
+        "startLine": 139,
+        "startChar": 27,
+        "endLine": 139,
+        "endChar": 41
+      },
+      "revId": "e6e45bbe473def80875fccec9a1b0303f0ee4199",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

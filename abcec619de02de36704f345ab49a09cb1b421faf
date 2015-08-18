@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_1468a286",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-08-18T11:18:22Z",
+      "side": 1,
+      "message": "allocateDirect would be better.",
+      "range": {
+        "startLine": 75,
+        "startChar": 35,
+        "endLine": 75,
+        "endChar": 43
+      },
+      "revId": "abcec619de02de36704f345ab49a09cb1b421faf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
