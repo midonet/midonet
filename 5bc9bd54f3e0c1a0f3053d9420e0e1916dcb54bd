@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0b3320f7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POMinion.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-18T19:08:08Z",
+      "side": 1,
+      "message": "With FWaaS, i took a different approach mainly because of the way FWaaS is designed in Neutron.  For all the FWaaS API requests coming to Midonet from neutron, only the top level resource, Firewall, is sent, but with all the rules as part of the data.  So there is really no separate translator for FirewallRule.  But that also means that I can get rid of this line, right?",
+      "parentUuid": "9ad9bd40_93720cac",
+      "range": {
+        "startLine": 195,
+        "startChar": 45,
+        "endLine": 195,
+        "endChar": 77
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0502360b",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
         "patchSetId": 11
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4b4c4877",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-18T19:08:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_0502360b",
+      "range": {
+        "startLine": 114,
+        "startChar": 7,
+        "endLine": 114,
+        "endChar": 44
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_28fe2f06",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
         "patchSetId": 11
@@ -59,6 +107,30 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "\"* */\" --\u003e \"*/\"",
+      "range": {
+        "startLine": 115,
+        "startChar": 5,
+        "endLine": 115,
+        "endChar": 9
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8b565005",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-18T19:08:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_28fe2f06",
       "range": {
         "startLine": 115,
         "startChar": 5,
