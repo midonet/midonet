@@ -26,6 +26,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.packets.IPv4;
@@ -72,5 +73,14 @@ public abstract class IpAddrGroupAddr extends UriResource {
 
     public URI getIpAddrGroup() {
         return absoluteUri(ResourceUris.IP_ADDR_GROUPS, ipAddrGroupId);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("addr", addr)
+            .add("ipAddrGroupId", ipAddrGroupId)
+            .toString();
     }
 }

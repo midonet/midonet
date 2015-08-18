@@ -18,6 +18,7 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
+import com.google.inject.Inject;
 
 import org.midonet.nsdb.BaseConfig;
 import org.slf4j.Logger;
@@ -73,6 +74,7 @@ public class PoolMemberZkManager extends
         }
     }
 
+    @Inject
     public PoolMemberZkManager(ZkManager zk, PathBuilder paths,
                                Serializer serializer) {
         super(zk, paths, serializer);

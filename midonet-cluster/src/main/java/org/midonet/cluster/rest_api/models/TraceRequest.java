@@ -21,6 +21,7 @@ import java.util.UUID;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.TraceRequest.DeviceType;
@@ -82,17 +83,6 @@ public class TraceRequest extends UriResource {
     }
 
     @Override
-    public String toString() {
-        return "TraceRequest{name=" + name
-            + ", deviceType=" + deviceType
-            + ", deviceId=" + deviceId
-            + ", condition=" + condition
-            + ", creationTimestampMs=" + creationTimestampMs
-            + ", limit=" + limit
-            + ", enabled=" + enabled + "}";
-    }
-
-    @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.TRACE_REQUESTS, id);
     }
@@ -150,5 +140,20 @@ public class TraceRequest extends UriResource {
             throw new ZoomConvert.ConvertException(
                     "Builder should be a TraceRequest");
         }
+    }
+
+    @Override
+    public String toString() {
+        MoreObjects.ToStringHelper tsh = MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("name", name)
+            .add("deviceType", deviceType)
+            .add("deviceId", deviceId)
+            .add("creationTimestampMs", creationTimestampMs)
+            .add("limit", limit)
+            .add("enabled", enabled);
+        condition.addConditionToStringHelper(tsh);
+        return tsh.toString();
     }
 }
