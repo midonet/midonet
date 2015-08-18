@@ -28,6 +28,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -115,4 +116,16 @@ public class DhcpSubnet6 extends UriResource {
         subnetAddress = IPSubnet.fromString(prefix + "/" + prefixLength);
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("prefix", prefix)
+            .add("prefixLength", prefixLength)
+            .add("bridgeId", bridgeId)
+            .add("subnetAddress", subnetAddress)
+            .add("dhcpHosts", dhcpHosts)
+            .toString();
+    }
 }

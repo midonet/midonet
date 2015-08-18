@@ -22,6 +22,7 @@ import java.util.UUID;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -159,5 +160,22 @@ public class Bridge extends UriResource {
         vxLanPortIds = from.vxLanPortIds;
         dhcpIds = from.dhcpIds;
         traceRequestIds = from.traceRequestIds;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("id", id)
+            .add("tenantId", tenantId)
+            .add("name", name)
+            .add("adminStateUp", adminStateUp)
+            .add("inboundFilterId", inboundFilterId)
+            .add("outboundFilterId", outboundFilterId)
+            .add("vxLanPortIds", vxLanPortIds)
+            .add("portIds", portIds)
+            .add("dhcpIds", dhcpIds)
+            .add("dhcpv6Ids", dhcpv6Ids)
+            .add("traceRequestIds", traceRequestIds)
+            .toString();
     }
 }
