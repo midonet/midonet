@@ -759,6 +759,92 @@ Unbind the port whose ID is provided in the 'reource_id' of the task.  This
 operation is idempotent.
 
 
+## FIREWALL
+
+In the Firewall object sent as input for create and update, both the firewall
+and the firewall rules are included.
+
+### CREATE
+
+Create two MidoNet chains for the firewall with deterministic IDs generated
+from the firewall ID.  One chain will be used for the inbound (pre-routing) and
+the other for the outbound (post-routing) chains of the routers that the
+firewall is associated with.
+
+On the pre-routing chain, add the following rules in the order specified:
+
+ * Return rule matching on everything if admin_state_up is false.  An
+   alternative approach would have been to not add any rule when admin_state_up
+   is false, but that means in every API request that toggles the
+   admin_state_up value, either the entire list of rules would have to be
+   re-generated or deleted which could be expensive if the number of rules
+   becomes large.
+ * Rule matching on the return flow to allow return traffic in.
+ * Rules included in the input firewall object are translated to MidoNet rules.
+   Only the enabled rules are translated.  Rule field translations are:
+
+    * protocol string translated to protocol number.
+    * source IP, which could be either IP address or CIDR, translated as
+      IPSubnet.
+    * destination IP, which could be either IP address or CIDR, translated as
+      IPSubnet.
+    * source port, which could be a single int value or a range delimited by
+      ':', translated as Int32Range.
+    * destination port, which could be a single int value or a range delimited
+      by ':', translated as Int32Range.
+    * Action of DENY is translated as DROP and ALLOW is translated as ACCEPT.
+
+ * Rule dropping all traffic.
+
+On the post-routing chain, add the following rules in the order specified:
+
+   * Return rule matching on everything if admin_state_up is false.
+   * Rule matching on the forward flow to start connection tracking.
+
+'add-router-ids' field contains a list of router IDs that the firewall is
+currently associated with.
+
+For each router associated, create jump rules to the firewall chains.  On the
+pre-routing chain of the router, insert the jump rule at index 0 so that the
+firewall rules are evaluated before the NAT rules that may also exist.  On the
+post-routing chain of the router, insert the jump rule at the end for no other
+reason than to be symmetric.
+
+
+### UPDATE
+
+The only fields that can be updated are 'adminStateUp', firewall rules, and
+the router associations.
+
+From the firewall rules provided, calculate the rules added, removed and
+modified, and then add/remove/update them appropriately.  Update the chain to
+maintain the rule order.
+
+'add-router-ids' field contains a list of router IDs that the firewall is
+currently associated with.  It may contain IDs of the router that the firewall
+is already associated with, so when adding a new router-firewall association
+rule, make sure to check that they are not already associated.
+
+For each router associated, create jump rules to the firewall chains.  On the
+pre-routing chain of the router, insert the jump rule at index 0 so that the
+firewall rules are evaluated before the NAT rules that may also exist.  On the
+post-routing chain of the router, insert the jump rule at the end for no other
+reason than to be symmetric.
+
+'del-router-ids' field contains a list of router IDs that the firewall is
+disassociated with from the update request.  For the routers disassociated,
+delete the jump rules to the firewall chains.
+
+It is possible that Neutron sends in the 'add-router-ids' list with routers
+that are already associated, and in the 'del-router-ids' list with routers that
+are not associated.  Handle each case without throwing an exception.
+
+
+### DELETE
+
+Delete the two chains associated with the firewall being deleted.
+
+
 # References
 
 [1]

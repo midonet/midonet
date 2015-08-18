@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit
 import javax.sql.DataSource
 
 import org.midonet.cluster.models.Neutron.NeutronRoute
+import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 
 import scala.collection.JavaConverters._
 import scala.util.{Random, Try}
@@ -540,6 +541,55 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         c.put("id", id.toString)
         c.put("ip_address", ipAddress)
         c
+    }
+
+    protected def firewallJson(id: UUID,
+                               tenantId: String = "tenant",
+                               adminStateUp: Boolean = true,
+                               firewallRuleList: List[JsonNode] = List(),
+                               addRouterIds: List[UUID] = List(),
+                               delRouterIds: List[UUID] = List()): JsonNode = {
+        val f = nodeFactory.objectNode()
+        f.put("id", id.toString)
+        f.put("tenant_id", tenantId)
+        f.put("admin_state_up", adminStateUp)
+        f.putArray("firewall_rule_list").addAll(firewallRuleList.asJava)
+        val addRouterArray = f.putArray("add-router-ids")
+        for (addRouterId <- addRouterIds) {
+            addRouterArray.add(addRouterId.toString)
+        }
+        val delRouterArray = f.putArray("del-router-ids")
+        for (delRouterId <- delRouterIds) {
+            delRouterArray.add(delRouterId.toString)
+        }
+        f
+    }
+
+    protected def firewallRuleJson(id: UUID,
+                                   tenantId: String = "tenant",
+                                   protocol: RuleProtocol = RuleProtocol.TCP,
+                                   ipVersion: Int = 4,
+                                   sourceIpAddress: String = "10.0.0.0/24",
+                                   destinationIpAddress: String = "20.0.0.2",
+                                   sourcePort: String = "22",
+                                   destinationPort: String = "8080:8081",
+                                   action: String = "deny",
+                                   enabled: Boolean = true,
+                                   shared: Boolean = false,
+                                   position: Int = 1): JsonNode = {
+        val r = nodeFactory.objectNode()
+        r.put("id", id.toString)
+        r.put("tenant_id", tenantId)
+        r.put("protocol", protocol.value())
+        r.put("ip_version", ipVersion)
+        r.put("source_ip_address", sourceIpAddress)
+        r.put("destination_ip_address", destinationIpAddress)
+        r.put("source_port", sourcePort)
+        r.put("destination_port", destinationPort)
+        r.put("action", action)
+        r.put("enabled", enabled)
+        r.put("shared", shared)
+        r.put("position", position)
     }
 
     protected case class HostRoute(destination: String, nextHop: String)

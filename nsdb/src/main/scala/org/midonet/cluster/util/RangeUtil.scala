@@ -43,4 +43,27 @@ object RangeUtil {
         new Range[Integer](if (value.hasStart) value.getStart else null,
                            if (value.hasEnd) value.getEnd else null)
     }
+
+    /**
+     * This method converts a port range provided as string either as a range
+     * delimited by ':' ("start:end") or as a single port number ("80'), to an
+     * Int32Range object.
+     */
+    def strToInt32Range(rangeStr: String): Int32Range = {
+        // rangeStr could be a single value or two values delimited by ':'
+        val range = rangeStr.split(':')
+        range.length match {
+            case 1 =>
+                Int32Range.newBuilder
+                    .setStart(range(0).toInt)
+                    .setEnd(range(0).toInt).build()
+            case 2 =>
+                Int32Range.newBuilder
+                    .setStart(range(0).toInt)
+                    .setEnd(range(1).toInt).build()
+            case _ =>
+                throw new IllegalArgumentException(
+                    "Invalid port range " + rangeStr)
+        }
+    }
 }
