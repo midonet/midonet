@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.rest_api
 
+import java.io.File
 import java.util
 import javax.servlet.DispatcherType
 import javax.validation.Validator
@@ -29,8 +30,10 @@ import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
 import com.typesafe.scalalogging.Logger
 import org.apache.curator.framework.CuratorFramework
-import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.http.HttpVersion._
+import org.eclipse.jetty.server._
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
+import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
 
@@ -114,29 +117,22 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
     override def isEnabled = config.restApi.isEnabled
 
     override def doStart(): Unit = {
-        log.info(s"Starting REST API service at port: " +
-                 s"${config.restApi.httpPort}, with " +
-                 s"root uri: ${config.restApi.rootUri} " +
+        log.info(s"Starting REST API service at ports: " +
+                 s"HTTP: ${config.restApi.httpPort} HTTPS: " +
+                 s"${config.restApi.httpsPort}, " +
+                 s"with root uri: ${config.restApi.rootUri} " +
                  s"and auth service: ${authService.getClass.getName}")
 
-        server = new Server(config.restApi.httpPort)
+        server = new Server()
 
-        val context = new ServletContextHandler(server, config.restApi.rootUri,
-                                                ServletContextHandler.SESSIONS)
-        context.addEventListener(new GuiceServletContextListener {
-            override def getInjector: Injector = {
-                createInjector(servletModule(backend, curator, config,
-                                             authService, log))
-            }
-        })
+        val http = httpConnector()
+        val https = httpsConnector()
 
-        val allDispatchers = util.EnumSet.allOf(classOf[DispatcherType])
-        context.addFilter(classOf[GuiceFilter], "/*", allDispatchers)
-        context.addServlet(classOf[DefaultServlet], "/*")
-        context.setClassLoader(Thread.currentThread().getContextClassLoader)
+        server.setConnectors(if (https == null) Array(http)
+                             else Array (http, https))
 
         try {
-            server.setHandler(context)
+            server.setHandler(prepareContext())
             server.start()
         } finally {
             notifyStarted()
@@ -154,6 +150,91 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
             server.destroy()
         }
         notifyStopped()
+    }
+
+    /** Prepare the ServletContextHandler that we'll use to serve requests.
+      *
+      * Here we will configure the Guice event listener that captures
+      * all requests and sends them through the Guice handler.
+      */
+    private def prepareContext() = {
+        val context = new ServletContextHandler(server, config.restApi.rootUri,
+                                                ServletContextHandler.SESSIONS)
+
+        context.addEventListener(new GuiceServletContextListener {
+            override def getInjector: Injector = {
+                createInjector(servletModule(backend, curator, config,
+                                             authService, log))
+            }
+        })
+        val allDispatchers = util.EnumSet.allOf(classOf[DispatcherType])
+        context.addFilter(classOf[GuiceFilter], "/*", allDispatchers)
+        context.addServlet(classOf[DefaultServlet], "/*")
+        context.setClassLoader(Thread.currentThread().getContextClassLoader)
+        context
+    }
+
+    /** Build a basic HTTP configuration. */
+    private def sampleHttpConfig(): HttpConfiguration = {
+        val c = new HttpConfiguration()
+        c.setSecureScheme("https")
+        c.setSecurePort(config.restApi.httpsPort)
+        c.setOutputBufferSize(32768)
+        c
+    }
+
+    /** Build and configure an HTTP connector. */
+    private def httpConnector(): ServerConnector = {
+        val cfg = sampleHttpConfig()
+        val http = new ServerConnector(server, new HttpConnectionFactory(cfg))
+        http.setPort(config.restApi.httpPort)
+        http.setIdleTimeout(30000)
+        http
+    }
+
+    /**
+     * Builds and configures the HTTPS connector, based on the keystore path
+     * specified at the system property midonet.keystore_path, or the default
+     * location.
+     *
+     * @return the connector if an https file is available and the port
+     *         specified in config is > 0, null otherwise
+     */
+    private def httpsConnector(): ServerConnector = {
+        // Following
+        // https://www.eclipse.org/jetty/documentation/current/configuring-ssl.html
+
+        val keystoreFile = System.getProperty("midonet.keystore_path",
+                                              "/etc/midonet-cluster/ssl/midonet.jks")
+
+        if (config.restApi.httpsPort <= 0) {
+            log.info(s"Https explicitly disabled (https port is <= 0)")
+            return null
+        }
+
+        if (new File(keystoreFile).exists()) {
+            log.info(s"Keystore file: $keystoreFile")
+        } else {
+            log.info(s"Keystore file not found: $keystoreFile - HTTPS will be" +
+                     s" disabled")
+            return null
+        }
+
+        val keystorePass = System.getProperty("midonet.keystore_password")
+        val sslContextFactory = new SslContextFactory()
+        sslContextFactory.setKeyStorePath(keystoreFile)
+        sslContextFactory.setKeyStorePassword(keystorePass)
+        sslContextFactory.setKeyManagerPassword(keystorePass)
+
+        val sslCnxnFactory = new SslConnectionFactory(sslContextFactory,
+                                                      HTTP_1_1.asString())
+        val httpsConfig = sampleHttpConfig()
+        httpsConfig.addCustomizer(new SecureRequestCustomizer())
+        val cnxnFactory = new HttpConnectionFactory(httpsConfig)
+        val https = new ServerConnector(server, sslCnxnFactory, cnxnFactory)
+        https.setPort(config.restApi.httpsPort)
+        https.setIdleTimeout(500000)
+        https
     }
 
 }

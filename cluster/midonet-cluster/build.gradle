@@ -219,6 +219,12 @@ mainClassName = "org.midonet.cluster.ClusterNode"
 run {
     mainClassName = "org.midonet.cluster.ClusterNode"
     systemProperties System.getProperties()
+    if (project.hasProperty("keystore_path")) {
+        systemProperty "midonet.keystore_path", keystore_path
+    }
+    if (project.hasProperty("keystore_password")) {
+        systemProperty "midonet.keystore_password", keystore_password
+    }
     if (project.hasProperty("conf")) {
         args = [conf]
     } else {
