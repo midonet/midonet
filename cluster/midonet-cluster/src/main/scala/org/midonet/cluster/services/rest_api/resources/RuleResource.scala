@@ -85,8 +85,8 @@ class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
         getResource(classOf[Chain], chainId) flatMap { chain =>
             rule.setBaseUri(resContext.uriInfo.getBaseUri)
             if (rule.position <= 0 || rule.position > chain.ruleIds.size() + 1) {
-                throw new BadRequestHttpException("Position exceeds number of" +
-                                                  "rules in chain")
+                throw new BadRequestHttpException("Position exceeds number " +
+                                                  "of rules in chain")
             }
             chain.ruleIds.add(rule.position - 1, rule.id)
 

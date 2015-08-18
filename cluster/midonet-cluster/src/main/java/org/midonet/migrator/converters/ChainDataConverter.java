@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.midonet.migrator.converters;
 
-package org.midonet.util
+import java.net.URI;
 
-object StringUtil {
+import org.midonet.cluster.data.Chain.Property;
+import org.midonet.cluster.rest_api.models.Chain;
 
-    /**
-     * Returns o.toString with each line indented by the specified number of
-     * spaces.
-     *
-     * Be aware that this will add trailing spaces if o.toString ends with a
-     * newline.
-     */
-    def indent(o: Object, spaces: Int) = {
-        val margin = " " * spaces
-        margin + o.toString.replaceAllLiterally("\n", "\n" + margin)
+public class ChainDataConverter {
+
+    public static Chain fromData(org.midonet.cluster.data.Chain data,
+                                 URI baseUri) throws IllegalAccessException {
+        Chain c = new Chain();
+        c.id = data.getId();
+        c.tenantId = data.getProperty(Property.tenant_id);
+        c.name = data.getName();
+        c.setBaseUri(baseUri);
+        return c;
     }
 
-    /** Returns null if o is null, otherwise o.toString. */
-    def toStringOrNull(o: AnyRef) = if (o == null) null else o.toString
 }

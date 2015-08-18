@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.midonet.util
+package org.midonet.migrator.converters;
 
-object StringUtil {
+import java.net.URI;
 
-    /**
-     * Returns o.toString with each line indented by the specified number of
-     * spaces.
-     *
-     * Be aware that this will add trailing spaces if o.toString ends with a
-     * newline.
-     */
-    def indent(o: Object, spaces: Int) = {
-        val margin = " " * spaces
-        margin + o.toString.replaceAllLiterally("\n", "\n" + margin)
+import org.midonet.cluster.rest_api.models.LoadBalancer;
+
+public class LoadBalancerDataConverter {
+
+    public static LoadBalancer fromData(
+        org.midonet.cluster.data.l4lb.LoadBalancer loadBalancer, URI baseUri)
+    throws IllegalAccessException {
+        LoadBalancer lb = new LoadBalancer();
+        lb.adminStateUp = loadBalancer.isAdminStateUp();
+        lb.routerId = loadBalancer.getRouterId();
+        lb.id = loadBalancer.getId();
+        lb.setBaseUri(baseUri);
+        return lb;
     }
 
-    /** Returns null if o is null, otherwise o.toString. */
-    def toStringOrNull(o: AnyRef) = if (o == null) null else o.toString
 }
