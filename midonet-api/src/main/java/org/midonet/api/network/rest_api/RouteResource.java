@@ -148,7 +148,7 @@ public class RouteResource extends AbstractResource {
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_ROUTE_JSON,
                 MediaType.APPLICATION_JSON })
-        public Response create(Route route)
+        public Response o(Route route)
                 throws StateAccessException,
                 SerializationException {
 

@@ -16,23 +16,29 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.version.Since;
 import org.midonet.util.version.Until;
 
-import static org.midonet.cluster.rest_api.ResourceUris.*;
+import static org.midonet.cluster.rest_api.ResourceUris.ARP_TABLE;
+import static org.midonet.cluster.rest_api.ResourceUris.BRIDGES;
+import static org.midonet.cluster.rest_api.ResourceUris.CHAINS;
+import static org.midonet.cluster.rest_api.ResourceUris.DHCP;
+import static org.midonet.cluster.rest_api.ResourceUris.DHCPV6;
+import static org.midonet.cluster.rest_api.ResourceUris.MAC_TABLE;
+import static org.midonet.cluster.rest_api.ResourceUris.PEER_PORTS;
+import static org.midonet.cluster.rest_api.ResourceUris.PORTS;
 
 @ZoomClass(clazz = Topology.Network.class)
 public class Bridge extends UriResource {
@@ -161,5 +167,23 @@ public class Bridge extends UriResource {
         vxLanPortIds = from.vxLanPortIds;
         dhcpIds = from.dhcpIds;
         traceRequestIds = from.traceRequestIds;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("id", id)
+            .add("tenantId", tenantId)
+            .add("name", name)
+            .add("adminStateUp", adminStateUp)
+            .add("inboundFilterId", inboundFilterId)
+            .add("outboundFilterId", outboundFilterId)
+            .add("vxLanPortId", vxLanPortId)
+            .add("vxLanPortIds", vxLanPortIds)
+            .add("portIds", portIds)
+            .add("dhcpIds", dhcpIds)
+            .add("dhcpv6Ids", dhcpv6Ids)
+            .add("traceRequestIds", traceRequestIds)
+            .toString();
     }
 }
