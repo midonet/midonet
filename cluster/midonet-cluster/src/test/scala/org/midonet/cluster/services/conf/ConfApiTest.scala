@@ -30,7 +30,6 @@ import org.midonet.cluster.test.util.ZookeeperTestSuite
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 
-
 @RunWith(classOf[JUnitRunner])
 class ConfApiTest extends FeatureSpecLike
                             with Matchers
