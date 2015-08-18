@@ -1037,6 +1037,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_54edca24",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-18T13:24:41Z",
+      "side": 1,
+      "message": "Yes it does, if you are on the pinned dispatcher you have a thread of your own and can block.",
+      "parentUuid": "9ad9bd40_77a73d0b",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_31a4ef49",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
         "patchSetId": 19
