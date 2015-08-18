@@ -25,7 +25,8 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -174,5 +175,19 @@ public abstract class Rule extends Condition {
         } else {
             throw new ZoomConvert.ConvertException("Wrong builder type");
         }
+    }
+
+    @Override
+    public String toString() {
+        ToStringHelper tsh =
+            MoreObjects.toStringHelper(this).omitNullValues()
+                .add("id", id)
+                .add("chainId", chainId)
+                .add("type", type)
+                .add("action", action)
+                .add("meterName", meterName)
+                .add("position", position);
+        addConditionToStringHelper(tsh);
+        return tsh.toString();
     }
 }
