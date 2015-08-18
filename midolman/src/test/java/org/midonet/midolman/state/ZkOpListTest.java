@@ -15,7 +15,6 @@
  */
 package org.midonet.midolman.state;
 
-import org.apache.curator.test.TestingServer;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -27,11 +26,7 @@ import org.junit.Assert;
 import rx.subjects.AsyncSubject;
 import org.midonet.cluster.ZookeeperTest;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 public class ZkOpListTest extends ZookeeperTest {
-
-    private static TestingServer server;
 
     // Zookeeper configurations
     private ZkManager zk;
@@ -50,25 +45,13 @@ public class ZkOpListTest extends ZookeeperTest {
     }
 
     @BeforeClass
-    public static void initZkTestingServer() throws Exception {
-        if (server == null) {
-            server = new TestingServer(ZK_PORT);
-            server.start();
-        }
+    public static void startZkServer() throws Exception {
+        initZkServer();
     }
 
     @AfterClass
-    public static void shutdownZkTestingServer() throws Exception {
-        if (server != null) {
-            try {
-                server.close();
-            } catch (Throwable e) {
-                getLogger(ZkOpListTest.class)
-                    .warn("Failed to stop ZK testing server", e);
-            } finally {
-                server = null;
-            }
-        }
+    public static void stopZkServer() throws Exception {
+        shutdownZkServer();
     }
 
     @Test

@@ -57,7 +57,7 @@ dependencies {
             libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix,
             libraries.jsonpath, libraries.curator_recipes,
             libraries.scala_logging, libraries.scallop, libraries.protobuf,
-            libraries.disruptor,
+            libraries.disruptor, libraries.curator_test,
             "com.fasterxml.jackson.core:jackson-databind:2.3.0"
 
     testCompile project(path: ':nsdb', configuration: 'tests')
