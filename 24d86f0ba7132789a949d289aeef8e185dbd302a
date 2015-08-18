@@ -286,6 +286,24 @@
       "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c823febc",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkWriter.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-18T17:25:31Z",
+      "side": 1,
+      "message": "hmm, digging through the epoll selector code it\u0027s not clear. I would expect that closing the epoll fds would wakeup the select, but i could find anything in the epoll docs that explicitly said it. Since this is preexisting, it\u0027s fine going in as is.",
+      "parentUuid": "9ad9bd40_be0e0739",
+      "revId": "24d86f0ba7132789a949d289aeef8e185dbd302a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
