@@ -34,6 +34,24 @@
       "revId": "d9cb896a235376190a624caf5581e8e8ace75e7f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_746d6ecc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-18T10:21:29Z",
+      "side": 1,
+      "message": "what about setting Int.minValue or maxValue instead of null then?",
+      "parentUuid": "9ad9bd40_b43ff6b4",
+      "revId": "d9cb896a235376190a624caf5581e8e8ace75e7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
