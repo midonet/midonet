@@ -19,6 +19,8 @@ import java.util.AbstractMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +52,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public RuleZkManager(ZkManager zk, PathBuilder paths,
                          Serializer serializer) {
         super(zk, paths, serializer);
