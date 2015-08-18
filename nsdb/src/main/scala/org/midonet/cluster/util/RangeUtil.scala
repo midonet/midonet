@@ -33,13 +33,14 @@ object RangeUtil {
     }
 
     implicit def toProto(range: Range[Integer]): Int32Range = {
-        Int32Range.newBuilder
-            .setStart(range.start())
-            .setEnd(range.end())
-            .build()
+        val builder = Int32Range.newBuilder
+        if (range.start() ne null) builder.setStart(range.start())
+        if (range.end() ne null) builder.setEnd(range.end())
+        builder.build()
     }
 
     implicit def fromProto(value: Int32Range): Range[Integer] = {
-        new Range[Integer](value.getStart, value.getEnd)
+        new Range[Integer](if (value.hasStart) value.getStart else null,
+                           if (value.hasEnd) value.getEnd else null)
     }
 }
