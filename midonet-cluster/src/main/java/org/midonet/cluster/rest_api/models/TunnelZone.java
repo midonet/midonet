@@ -45,7 +45,7 @@ public class TunnelZone extends UriResource {
     public enum TunnelZoneType {
         @ZoomEnumValue(value = "GRE") gre,
         @ZoomEnumValue(value = "VXLAN") vxlan,
-        @ZoomEnumValue(value = "VTEP") vtep;
+        @ZoomEnumValue(value = "VTEP") vtep
     }
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)

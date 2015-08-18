@@ -17,6 +17,7 @@ package org.midonet.cluster;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -226,6 +227,17 @@ public class LocalDataClientImpl implements DataClient {
         return bgps;
     }
 
+    @Override
+    public List<BGP>  bgpFindByRouter(UUID routerId)
+            throws StateAccessException, SerializationException {
+        List<UUID> portIds = portZkManager.getRouterPortIDs(routerId);
+        List<BGP> bgps = new ArrayList<>();
+        for (UUID portId : portIds) {
+            bgps.addAll(bgpFindByPort(portId));
+        }
+        return bgps;
+    }
+
     public List<Bridge> bridgesFindByTenant(String tenantId)
         throws StateAccessException, SerializationException {
         log.debug("bridgesFindByTenant entered: tenantId={}", tenantId);
@@ -343,6 +355,21 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return tunnelZones;
+    }
+
+    @Override
+    public Set<TunnelZone.HostConfig> tunnelZonesGetMemberships(
+            final UUID tzId) throws StateAccessException {
+        Set<UUID> hostIds = zonesZkManager.getZoneMemberships(tzId, null);
+        Set<TunnelZone.HostConfig> hosts = new HashSet<>(hostIds.size());
+        for (UUID hostId : hostIds) {
+            try {
+                hosts.add(zonesZkManager.getZoneMembership(tzId, hostId, null));
+            } catch (StateAccessException | SerializationException e) {
+                log.error("Could not read HostConfig {}", hostId, e);
+            }
+        }
+        return hosts;
     }
 
     @Override
@@ -546,19 +573,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return anInterface;
-    }
-
-    @Override
-    public List<Port<?, ?>> portsFindByRouter(UUID routerId)
-            throws StateAccessException, SerializationException {
-
-        Collection<UUID> ids = portZkManager.getRouterPortIDs(routerId);
-        List<Port<?, ?>> ports = new ArrayList<>();
-        for (UUID id : ids) {
-            ports.add(portsGet(id));
-        }
-
-        return ports;
     }
 
     @Override

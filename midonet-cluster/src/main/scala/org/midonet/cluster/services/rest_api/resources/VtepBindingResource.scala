@@ -32,7 +32,7 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.models.{Vtep, VtepBinding}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException, ServiceUnavailableHttpException}
@@ -189,10 +189,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
       */
     private def makeAVxlanPort(vtep: Topology.Vtep,
                                network: Topology.Network): Topology.Port = {
-        val nwProtoId = network.getId
-        val vxPortId = vtep.getId.xorWith(nwProtoId.getMsb,
-                                          nwProtoId.getLsb)
-
+        val vxPortId = vxlanPortId(network.getId, vtep.getId)
         Topology.Port.newBuilder()
                 .setId(vxPortId)
                 .setVtepId(vtep.getId)
@@ -238,6 +235,14 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
         ports.find { _.getVtepId == protoVtepId }
     }
 
+    def vxlanPortId(networkId: UUID, vtepId: UUID): UUID = {
+        vxlanPortId(uuidToProto(networkId), uuidToProto(vtepId))
+    }
+
+    def vxlanPortId(networkId: Commons.UUID,
+                    vtepId: Commons.UUID): Commons.UUID = {
+        vtepId.xorWith(networkId.getMsb, networkId.getLsb)
+    }
 
     @DELETE
     @Path("{portName}/{vlanId}")

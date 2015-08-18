@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -48,6 +50,7 @@ public class IpAddrGroupZkManager extends
      * Initializes a IpAddrGroupZkManager object with a ZooKeeper client and the
      * root path of the ZooKeeper directory.
      */
+    @Inject
     public IpAddrGroupZkManager(ZkManager zk, PathBuilder paths,
                             Serializer serializer) {
         super(zk, paths, serializer);

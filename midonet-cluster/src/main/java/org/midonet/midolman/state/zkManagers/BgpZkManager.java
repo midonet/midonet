@@ -18,6 +18,8 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.midonet.cluster.data.BGP;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -33,6 +35,7 @@ public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
     /**
      * BgpZkManager constructor.
      */
+    @Inject
     public BgpZkManager(ZkManager zk, PathBuilder paths,
                         Serializer serializer) {
         super(zk, paths, serializer);
