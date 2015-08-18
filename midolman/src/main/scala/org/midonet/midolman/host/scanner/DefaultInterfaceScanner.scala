@@ -389,7 +389,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
         // request should be made per channel. Otherwise you'll get "[16]
         // Resource or device busy".
         // See:
-        //    http://lxr.free-electrons.com/source/net/netlink/af_netlink.c#L2732
+        //    http://lxr.free-electrons.com/source/net/netlink/af_netlink.c?v=4.0#L2732
         val linkListSubject = PublishSubject.create[Set[Link]]
         val addrListSubject = PublishSubject.create[Set[Addr]]
 
