@@ -31,7 +31,8 @@ import org.midonet.util.StringUtil.indent
 import org.midonet.util.concurrent.toFutureOps
 
 class SecurityGroupTranslator(storage: ReadOnlyStorage)
-    extends NeutronTranslator[SecurityGroup] with ChainManager {
+    extends NeutronTranslator[SecurityGroup] with ChainManager
+            with RuleManager {
     import org.midonet.cluster.services.c3po.translators.SecurityGroupTranslator._
 
     private case class TranslatedSecurityGroup(
@@ -130,32 +131,12 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
              Delete(classOf[IPAddrGroup], sgId))
     }
 
-    /**
-     * Gets the operations necessary to replace oldRules with newRules in the
-     * topology store. Will generate operations to:
-     *
-     * 1. Delete rules which are in oldRules but not in newRules.
-     * 2. Update rules which are in both lists but have changed in some way.
-     * 3. Create rules which are in newRules but not in oldRules.
-     *
-     * A rule in one list is considered also to be in the other list if the
-     * other list contains a rule with the same ID.
-     *
-     * No operations are generated for rules which are identical in both lists.
-     */
+
     private def getRuleChangeOps(oldRules: List[Rule], newRules: List[Rule])
     : List[MidoOp[Rule]] = {
-        val oldRuleIds = oldRules.map(_.getId)
-        val newRuleIds = newRules.map(_.getId)
 
-        val removedIds = oldRuleIds.diff(newRuleIds)
-        val addedIds = newRuleIds.diff(oldRuleIds)
-        val (addedRules, keptRules) =
-            newRules.partition(rule => addedIds.contains(rule.getId))
-
-        // No need to update rules that aren't changing.
-        val updatedRules = keptRules.diff(oldRules)
-
+        val (addedRules, updatedRules, removedIds) = getRuleChanges(oldRules,
+                                                                    newRules)
         removedIds.map(Delete(classOf[Rule], _)) ++
         updatedRules.map(Update(_)) ++
         addedRules.map(Create(_))

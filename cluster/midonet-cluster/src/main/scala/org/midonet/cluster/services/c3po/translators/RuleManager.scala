@@ -16,12 +16,12 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, MidoOp, Update}
-import org.midonet.cluster.models.Commons.{Condition, IPAddress, UUID}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
+import org.midonet.cluster.models.Commons.{Condition, IPAddress, UUID}
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action._
 import org.midonet.cluster.models.Topology.Rule.{JumpRuleData, NatRuleData, NatTarget}
+import org.midonet.cluster.services.c3po.midonet.{Create, Delete, MidoOp, Update}
 import org.midonet.cluster.util.UUIDUtil
 
 /**
@@ -31,31 +31,63 @@ trait RuleManager {
     protected def newRule(chainId: UUID): Rule.Builder =
         Rule.newBuilder().setChainId(chainId).setId(UUIDUtil.randomUuidProto)
 
-    protected def returnFlowRule(chainId: UUID): Rule =
+    protected def returnFlowRuleBuilder(chainId: UUID): Rule.Builder =
         newRule(chainId)
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(ACCEPT)
-            .setCondition(Condition.newBuilder.setMatchReturnFlow(true))
-            .build()
+            .setCondition(
+                Condition.newBuilder.setMatchReturnFlow(true).build())
+
+    protected def returnFlowRule(chainId: UUID): Rule =
+        returnFlowRuleBuilder(chainId).build()
+
+    protected def returnFlowRuleWithId(id: UUID, chainId: UUID): Rule =
+        returnFlowRuleBuilder(chainId).setId(id).build()
+
+    protected def forwardFlowRuleBuilder(chainId: UUID): Rule.Builder =
+        newRule(chainId)
+            .setType(Rule.Type.LITERAL_RULE)
+            .setAction(CONTINUE)
+            .setCondition(
+                Condition.newBuilder().setMatchForwardFlow(true).build())
+
+    protected def forwardFlowRuleWithId(id: UUID, chainId: UUID): Rule =
+        forwardFlowRuleBuilder(chainId).setId(id).build()
 
     protected def dropRuleBuilder(chainId: UUID): Rule.Builder =
         newRule(chainId)
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(DROP)
 
-    protected def jumpRule(fromChain: UUID, toChain: UUID): Rule =
+    protected def dropRuleWithId(id: UUID, chainId: UUID): Rule =
+        dropRuleBuilder(chainId).setId(id).build()
+
+    protected def jumpRuleBuilder(fromChain: UUID,
+                                  toChain: UUID): Rule.Builder =
         newRule(fromChain)
             .setType(Rule.Type.JUMP_RULE)
             .setAction(JUMP)
             .setJumpRuleData(JumpRuleData.newBuilder
                                  .setJumpChainId(toChain)
                                  .build())
-            .build()
 
-    protected def returnRule(chainId: UUID): Rule.Builder =
+    protected def jumpRule(fromChain: UUID, toChain: UUID): Rule =
+        jumpRuleBuilder(fromChain, toChain).build()
+
+    protected def jumpRuleWithId(id: UUID, fromChain: UUID,
+                                 toChain: UUID): Rule =
+        jumpRuleBuilder(fromChain, toChain).setId(id).build()
+
+    protected def returnRuleBuilder(chainId: UUID): Rule.Builder =
         newRule(chainId)
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(RETURN)
+
+    protected def returnRule(chainId: UUID): Rule =
+        returnRuleBuilder(chainId).build()
+
+    protected def returnRuleWithId(id: UUID, chainId: UUID): Rule =
+        returnRuleBuilder(chainId).setId(id).build()
 
     protected def anyFragCondition(): Condition.Builder =
         Condition.newBuilder.setFragmentPolicy(FragmentPolicy.ANY)
@@ -88,4 +120,31 @@ trait RuleManager {
         case Delete(_, id) => id
     }
 
+    /**
+     * Gets 2 lists of old and new rules, and returns 3 lists of added rules,
+     * updated rules, and deleted rule IDs.  The output lists are determined as
+     * follows:
+     *
+     * 1. Delete rules which are in oldRules but not in newRules.
+     * 2. Update rules which are in both lists but have changed in some way.
+     * 3. Create rules which are in newRules but not in oldRules.
+     *
+     * A rule in one list is considered also to be in the other list if the
+     * other list contains a rule with the same ID.
+     */
+    protected def getRuleChanges(oldRules: List[Rule], newRules: List[Rule])
+        : Tuple3[List[Rule], List[Rule], List[UUID]] = {
+        val oldRuleIds = oldRules.map(_.getId)
+        val newRuleIds = newRules.map(_.getId)
+
+        val removedIds = oldRuleIds.diff(newRuleIds)
+        val addedIds = newRuleIds.diff(oldRuleIds)
+        val (addedRules, keptRules) =
+            newRules.partition(rule => addedIds.contains(rule.getId))
+
+        // No need to update rules that aren't changing.
+        val updatedRules = keptRules.diff(oldRules)
+
+        (addedRules, updatedRules, removedIds)
+    }
 }
