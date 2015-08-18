@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.rest_api.ResourceUris;
@@ -60,4 +61,11 @@ public class VxLanPort extends Port {
         networkId = port.networkId;
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper()
+            .add("vtepId", vtepId)
+            .add("networkId", networkId)
+            .toString();
+    }
 }

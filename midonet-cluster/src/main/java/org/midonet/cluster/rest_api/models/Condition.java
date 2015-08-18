@@ -26,6 +26,7 @@ import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -281,5 +282,48 @@ public class Condition extends UriResource {
         this.invTpSrc = condition.invTpSrc;
         this.invTpDst = condition.invTpDst;
         return this;
+    }
+
+    protected void addConditionToStringHelper(ToStringHelper tsh) {
+        tsh.add("nwDst", nwDst);
+        tsh.add("nwDstAddress", nwDstAddress);
+        tsh.add("nwDstLength", nwDstLength);
+        tsh.add("nwSrc", nwSrc);
+        tsh.add("nwSrcAddress", nwSrcAddress);
+        tsh.add("nwSrcLength", nwSrcLength);
+        if (condInvert) tsh.add("condInvert", true);
+        if (matchForwardFlow) tsh.add("matchForwardFlow", true);
+        if (matchReturnFlow) tsh.add("matchReturnFlow", true);
+        tsh.add("inPorts", inPorts);
+        if (invInPorts) tsh.add("invInPorts", true);
+        tsh.add("outPorts", outPorts);
+        if (invOutPorts) tsh.add("invOutPorts", true);
+        tsh.add("portGroup", portGroup);
+        if (invPortGroup) tsh.add("invPortGroup", true);
+        tsh.add("ipAddrGroupSrc", ipAddrGroupSrc);
+        if (invIpAddrGroupSrc) tsh.add("invIpAddrGroupSrc", true);
+        tsh.add("ipAddrGroupDst", ipAddrGroupDst);
+        if (invIpAddrGroupDst) tsh.add("invIpAddrGroupDst", true);
+        tsh.add("traversedDevice", traversedDevice);
+        if (invTraversedDevice) tsh.add("invTraversedDevice", true);
+        tsh.add("dlType", dlType);
+        if (invDlType) tsh.add("invDlType", true);
+        tsh.add("dlSrc", dlSrc);
+        tsh.add("dlSrcMask", dlSrcMask);
+        if (invDlSrc) tsh.add("invDlSrc", true);
+        tsh.add("dlDst", dlDst);
+        tsh.add("dlDstMask", dlDstMask);
+        if (invDlDst) tsh.add("invDlDst", true);
+        tsh.add("nwTos", nwTos);
+        if (invNwTos) tsh.add("invNwTos", true);
+        tsh.add("nwProto", nwProto);
+        if (invNwProto) tsh.add("invNwProto", true);
+        if (invNwSrc) tsh.add("invNwSrc", true);
+        if (invNwDst) tsh.add("invNwDst", true);
+        tsh.add("fragmentPolicy", fragmentPolicy);
+        tsh.add("tpSrc", tpSrc);
+        tsh.add("tpDst", tpDst);
+        if (invTpSrc) tsh.add("invTpSrc", true);
+        if (invTpDst) tsh.add("invTpDst", true);
     }
 }

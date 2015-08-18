@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -38,6 +40,7 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
      * Initializes a RouteZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
      */
+    @Inject
     public RouteZkManager(ZkManager zk, PathBuilder paths,
                           Serializer serializer) {
         super(zk, paths, serializer);
