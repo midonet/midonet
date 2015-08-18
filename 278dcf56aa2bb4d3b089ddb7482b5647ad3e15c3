@@ -1090,6 +1090,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9413d20c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-18T10:50:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_31a4ef49",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2c43beaf",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/NovaMetadataClient.scala",
         "patchSetId": 19
