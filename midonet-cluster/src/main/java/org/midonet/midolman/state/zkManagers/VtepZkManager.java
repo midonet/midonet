@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.midonet.cluster.WatchableZkManager;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.midolman.serialization.Serializer;
@@ -39,6 +41,7 @@ public class VtepZkManager
         public UUID tunnelZone;
     }
 
+    @Inject
     public VtepZkManager(ZkManager zk, PathBuilder paths,
                          Serializer serializer) {
         super(zk, paths, serializer);

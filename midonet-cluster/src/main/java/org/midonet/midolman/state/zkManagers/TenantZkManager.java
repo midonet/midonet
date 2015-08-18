@@ -18,6 +18,8 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.inject.Inject;
+
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
@@ -36,6 +38,7 @@ public class TenantZkManager extends BaseZkManager {
      * @param paths PathBuilder class to construct ZK paths
      * @param serializer ZK data serialization class
      */
+    @Inject
     public TenantZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
         super(zk, paths, serializer);
