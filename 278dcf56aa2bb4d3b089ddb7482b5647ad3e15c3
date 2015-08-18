@@ -1425,6 +1425,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_54094adc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-18T10:49:53Z",
+      "side": 1,
+      "message": "i haven\u0027t had a chance to check this.\ni removed the code in question in the latest PS.",
+      "parentUuid": "9ad9bd40_bedd27e2",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0cf19a94",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/Plumber.scala",
         "patchSetId": 19
