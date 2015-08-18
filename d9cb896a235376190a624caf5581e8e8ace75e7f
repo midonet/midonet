@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b438d6d5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-18T10:11:45Z",
+      "side": 1,
+      "message": "Should we instead disallow ranges with one of the 2 values unset? Otherwise the behaviour when one is null will need to be implicitly known by anyone using the range, which seems too brittle.",
+      "revId": "d9cb896a235376190a624caf5581e8e8ace75e7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
