@@ -279,8 +279,8 @@ object ImportConf extends ConfigWriter("import") with ConfCommand {
 object SetConf extends ConfigWriter("set") with ConfCommand {
     descr("Accepts configuration from stdin or trailing arguments and writes it to the selected configuration store.")
 
-    val trailing = trailArg[String](descr = "Configuration to be written, if not given, read from STDIN",
-                                    required = false)
+    val trailing = trailArg[List[String]](descr = "Configuration to be written, if not given, read from STDIN",
+                                          required = false)
 
     val clear = opt[Boolean]("clear", short = 'c', default = Some(false), descr =
         "Clear existing configuration from the selected source before writing "+
@@ -291,7 +291,7 @@ object SetConf extends ConfigWriter("set") with ConfCommand {
         val parseOpts = ConfigParseOptions.defaults().setOriginDescription("STDIN")
         val newConf: Config =
             if (trailing.isDefined && trailing.get.isDefined) {
-                val args = trailing.get.get
+                val args: List[String] = trailing.get.get
                 val confText = args.mkString(" ")
                 ConfigFactory.parseString(confText)
             } else {
