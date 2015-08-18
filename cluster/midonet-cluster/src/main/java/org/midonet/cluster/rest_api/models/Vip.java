@@ -25,6 +25,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -87,4 +88,17 @@ public class Vip extends UriResource {
         id = from.id;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("adminStateUp", adminStateUp)
+            .add("loadBalancerId", loadBalancerId)
+            .add("poolId", poolId)
+            .add("address", address)
+            .add("protocolPort", protocolPort)
+            .add("sessionPersistence", sessionPersistence)
+            .toString();
+    }
 }

@@ -24,6 +24,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -80,4 +81,14 @@ public class LoadBalancer extends UriResource {
         poolIds = from.poolIds;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("routerId", routerId)
+            .add("adminStateUp", adminStateUp)
+            .add("poolIds", poolIds)
+            .toString();
+    }
 }
