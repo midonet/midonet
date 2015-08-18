@@ -18,6 +18,7 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
+import com.google.inject.Inject;
 
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -78,6 +79,7 @@ public class RouterZkManager
      * Initializes a RouterZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
      */
+    @Inject
     public RouterZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
         super(zk, paths, serializer);

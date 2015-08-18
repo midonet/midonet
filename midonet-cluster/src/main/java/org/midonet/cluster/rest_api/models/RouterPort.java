@@ -25,6 +25,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Objects;
 import com.google.protobuf.Message;
 
 import org.apache.commons.lang.StringUtils;
@@ -115,5 +116,18 @@ public class RouterPort extends Port {
         RouterPort routerPort = (RouterPort)from;
         routerId = routerPort.routerId;
         routeIds = routerPort.routeIds;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper()
+            .add("networkAddress", networkAddress)
+            .add("networkLength", networkLength)
+            .add("portSubnet", portSubnet)
+            .add("portAddress", portAddress)
+            .add("portMac", portMac)
+            .add("routerId", routerId)
+            .add("routeIds", routeIds)
+            .toString();
     }
 }
