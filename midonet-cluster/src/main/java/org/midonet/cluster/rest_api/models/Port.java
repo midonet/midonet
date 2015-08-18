@@ -22,6 +22,8 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
@@ -65,6 +67,7 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "outbound_filter_id", converter = UUIDUtil.Converter.class)
     public UUID outboundFilterId;
 
+    // TODO: Should this be @JsonIgnore?
     @ZoomField(name = "tunnel_key")
     public long tunnelKey;
 
@@ -181,5 +184,21 @@ public abstract class Port extends UriResource {
         l2insertionInfilter = from.l2insertionInfilter;
         l2insertionOutfilter = from.l2insertionOutfilter;
         serviceInsertions = from.serviceInsertions;
+    }
+
+    protected ToStringHelper toStringHelper() {
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("id", id)
+            .add("adminStateUp", adminStateUp)
+            .add("inboundFilterId", inboundFilterId)
+            .add("outboundFilterId", outboundFilterId)
+            .add("tunnelKey", tunnelKey)
+            .add("vifId", vifId)
+            .add("hostId", hostId)
+            .add("interfaceName", interfaceName)
+            .add("peerId", peerId)
+            .add("portGroupIds", portGroupIds)
+            .add("traceRequestIds", traceRequestIds)
+            .add("active", active);
     }
 }
