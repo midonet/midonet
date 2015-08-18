@@ -17,6 +17,8 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +51,7 @@ public class PortGroupZkManager
      * Initializes a PortGroupZkManager object with a ZooKeeper client and the
      * root path of the ZooKeeper directory.
      */
+    @Inject
     public PortGroupZkManager(ZkManager zk, PathBuilder paths,
                               Serializer serializer) {
         super(zk, paths, serializer);

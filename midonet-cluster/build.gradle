@@ -125,6 +125,9 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("src/deb/init/midonet-cluster-env.sh") {
         into "usr/share/midonet-cluster"
     }
+    from("src/deb/bin/mn-migrate") {
+        into "usr/bin"
+    }
     into "${pkgDestDir}"
     doLast {
         new File("${pkgDestDir}/usr/share/midonet-cluster/${project.name}-${midonetVersion}-all.jar")

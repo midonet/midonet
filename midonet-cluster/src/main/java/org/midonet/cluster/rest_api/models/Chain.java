@@ -23,6 +23,7 @@ import java.util.UUID;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -95,4 +96,21 @@ public class Chain extends UriResource {
         }
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("tenantId", tenantId)
+            .add("name", name)
+            .add("ruleIds", ruleIds)
+            .add("networkInboundIds", networkInboundIds)
+            .add("networkOutboundIds", networkOutboundIds)
+            .add("routerInboundIds", routerInboundIds)
+            .add("routerOutboundIds", routerOutboundIds)
+            .add("portInboundIds", portInboundIds)
+            .add("portOutboundIds", portOutboundIds)
+            .add("jumpRuleIds", jumpRuleIds)
+            .toString();
+    }
 }

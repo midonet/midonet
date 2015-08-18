@@ -70,6 +70,9 @@ public interface DataClient {
     List<BGP> bgpFindByPort(UUID portId)
             throws StateAccessException, SerializationException;
 
+    List<BGP> bgpFindByRouter(UUID routerId)
+            throws StateAccessException, SerializationException;
+
     @CheckForNull Bridge bridgesGet(UUID id)
             throws StateAccessException, SerializationException;
 
@@ -122,6 +125,9 @@ public interface DataClient {
 
     List<TunnelZone> tunnelZonesGetAll()
             throws StateAccessException, SerializationException;
+
+    Set<TunnelZone.HostConfig> tunnelZonesGetMemberships(UUID uuid)
+        throws StateAccessException;
 
     @CheckForNull TunnelZone.HostConfig tunnelZonesGetMembership(
             UUID uuid, UUID hostId)
@@ -180,9 +186,6 @@ public interface DataClient {
 
     @CheckForNull Interface interfacesGet(UUID hostId, String interfaceName)
             throws StateAccessException, SerializationException;
-
-    List<Port<?, ?>> portsFindByRouter(UUID routerId) throws
-            StateAccessException, SerializationException;
 
     /**
      * Gets all ports in the topology.

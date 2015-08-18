@@ -17,6 +17,8 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -42,6 +44,7 @@ public class ChainZkManager
     /**
      * Constructor to set ZooKeeper and base path.
      */
+    @Inject
     public ChainZkManager(ZkManager zk, PathBuilder paths,
                           Serializer serializer) {
         super(zk, paths, serializer);
