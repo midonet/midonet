@@ -23,6 +23,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomEnum;
@@ -42,7 +43,7 @@ public class TunnelZone extends UriResource {
     public enum TunnelZoneType {
         @ZoomEnumValue(value = "GRE") gre,
         @ZoomEnumValue(value = "VXLAN") vxlan,
-        @ZoomEnumValue(value = "VTEP") vtep;
+        @ZoomEnumValue(value = "VTEP") vtep
     }
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -85,5 +86,16 @@ public class TunnelZone extends UriResource {
         this.id = from.id;
         tzHosts = from.tzHosts;
         hostIds = from.hostIds;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("id", id)
+            .add("name", name)
+            .add("type", type)
+            .add("tzHosts", tzHosts)
+            .add("hostIds", hostIds)
+            .toString();
     }
 }
