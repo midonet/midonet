@@ -18,7 +18,8 @@
 
 # The first existing directory is used for JAVA_HOME if needed.
 JVM_SEARCH_DIRS="/usr/lib/jvm/java-1.8.0-openjdk-amd64 /usr/lib/jvm/java-8-openjdk-amd64 \
-                 /usr/lib/jvm/java-8-oracle /usr/lib/jvm/zulu-8-amd64"
+                 /usr/lib/jvm/java-8-oracle /usr/lib/jvm/zulu-8-amd64
+                 /usr/lib/jvm/jre-8-oracle-x64 /usr/lib/jvm/jdk-8-oracle-x64"
 
 check_for_java8() {
     [ "x" = "x$1" ] && return 1
@@ -31,12 +32,13 @@ if [ -n "`which java`" ]; then
         # Dereference symlink(s)
         while true; do
             if [ -h "$java" ]; then
-                java=`readlink "$java"`
+                java=`readlink -f "$java"`
                 continue
             fi
             break
         done
-        JVM_SEARCH_DIRS="`dirname $java`/../ $JVM_SEARCH_DIRS"
+        CUR_JAVA_DIR=$(dirname $java | sed 's!\(/jre\)*/bin!!')
+        JVM_SEARCH_DIRS="$CUR_JAVA_DIR $JVM_SEARCH_DIRS"
 fi
 if [ ! -z "$JAVA_HOME" ]; then
     JVM_SEARCH_DIRS="$JAVA_HOME $JVM_SEARCH_DIRS"
