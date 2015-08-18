@@ -465,7 +465,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
 
         // Request trace chain be built if necessary
         requestTraceChain(Option(if (bridge.hasInboundFilterId) bridge.getInboundFilterId else null),
-                          bridge.getTraceRequestIdsList().asScala.map(_.asJava).toList)
+                          bridge.getTraceRequestIdsList.asScala.map(_.asJava).toList)
 
         // Request the chains for this bridge.
         requestChains(
@@ -617,7 +617,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
      * Processes MAC expiration timer notifications.
      */
     private def onMacExpirationTimer(count: JLong): Unit = {
-        log.debug("MAC expiration timer {}", count)
+        log.trace("MAC expiration timer {}", count)
         macLearning.expireEntries(Platform.currentTime)
     }
 
@@ -736,11 +736,10 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
 
         val inFilter = traceChain match {
             case s: Some[UUID] => s
-            case None => {
+            case None =>
                 if (bridge.hasInboundFilterId) {
                     Some(bridge.getInboundFilterId.asJava)
                 } else None
-            }
         }
         // Create the simulation bridge.
         val device = new SimulationBridge(
