@@ -17,6 +17,7 @@ package org.midonet.cluster.util
 
 import java.lang.reflect.Type
 
+import com.google.common.base.Preconditions
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons.Int32Range
 import org.midonet.util.Range
@@ -42,5 +43,27 @@ object RangeUtil {
     implicit def fromProto(value: Int32Range): Range[Integer] = {
         new Range[Integer](if (value.hasStart) value.getStart else null,
                            if (value.hasEnd) value.getEnd else null)
+    }
+
+    /**
+     * This method converts a range provided as string either as a range
+     * delimited by ':' ("start:end") or as a single number ("80'), to an
+     * Int32Range object.
+     */
+    def strToInt32Range(rangeStr: String): Int32Range = {
+        Preconditions.checkNotNull(rangeStr)
+        val range = rangeStr.split(':')
+        range.length match {
+            case 1 =>
+                Int32Range.newBuilder
+                    .setStart(range(0).toInt)
+                    .setEnd(range(0).toInt).build()
+            case 2 =>
+                Int32Range.newBuilder
+                    .setStart(range(0).toInt)
+                    .setEnd(range(1).toInt).build()
+            case _ =>
+                throw new IllegalArgumentException("Invalid range " + rangeStr)
+        }
     }
 }
