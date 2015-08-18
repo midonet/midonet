@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d491da9b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-18T10:36:42Z",
+      "side": 1,
+      "message": "when the size is 1 (there is one existing rule) the new rule can be added to either position 1 (before the existing rule) or 2 (after the existing rule)",
+      "parentUuid": "9ad9bd40_3903df77",
+      "range": {
+        "startLine": 89,
+        "startChar": 74,
+        "endLine": 89,
+        "endChar": 78
+      },
+      "revId": "2bf4c87f080e5efbec85439ebd024ab5613516d8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7e6f1afc",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
         "patchSetId": 7
