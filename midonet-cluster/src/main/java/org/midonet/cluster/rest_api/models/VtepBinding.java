@@ -24,6 +24,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -57,4 +58,14 @@ public class VtepBinding extends UriResource {
                            Short.toString(vlanId));
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("vtepId", vtepId)
+            .add("portName", portName)
+            .add("vlanId", vlanId)
+            .add("networkId", networkId)
+            .toString();
+    }
 }

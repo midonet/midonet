@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.base.Function;
+import com.google.inject.Inject;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -90,6 +92,7 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public RouteZkManager(ZkManager zk, PathBuilder paths,
                           Serializer serializer) {
         super(zk, paths, serializer);

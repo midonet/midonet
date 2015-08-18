@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -63,4 +64,13 @@ public class DhcpHost extends UriResource {
         return absoluteUri(ResourceUris.DHCP_HOSTS, macAddr);
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("macAddr", macAddr)
+            .add("ipAddr", ipAddr)
+            .add("name", name)
+            .add("extraDhcpOpts", extraDhcpOpts)
+            .toString();
+    }
 }

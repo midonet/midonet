@@ -23,6 +23,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 
 import com.google.common.base.Preconditions;
+import com.google.inject.Inject;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
@@ -362,6 +363,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public BridgeDhcpZkManager(ZkManager zk, PathBuilder paths,
                                Serializer serializer) {
         super(zk, paths, serializer);

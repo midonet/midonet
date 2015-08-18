@@ -17,6 +17,7 @@
 package org.midonet.midolman.state.zkManagers;
 
 import com.google.common.base.Objects;
+import com.google.inject.Inject;
 
 import java.util.List;
 import java.util.UUID;
@@ -109,6 +110,7 @@ public class VipZkManager
         }
     }
 
+    @Inject
     public VipZkManager(ZkManager zk, PathBuilder paths,
                         Serializer serializer) {
         super(zk, paths, serializer);

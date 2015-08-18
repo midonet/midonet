@@ -18,6 +18,8 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.*;
 
 import com.google.common.base.Objects;
+import com.google.inject.Inject;
+
 import org.midonet.cluster.rest_api.neutron.models.Router;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
@@ -85,12 +87,12 @@ public class RouterZkManager
         }
     }
 
-    RouteZkManager routeZkManager;
-    FiltersZkManager filterZkManager;
-    PortZkManager portZkManager;
-    ChainZkManager chainZkManager;
-    LoadBalancerZkManager loadBalancerZkManager;
-    TraceRequestZkManager traceReqZkManager;
+    @Inject RouteZkManager routeZkManager;
+    @Inject FiltersZkManager filterZkManager;
+    @Inject PortZkManager portZkManager;
+    @Inject ChainZkManager chainZkManager;
+    @Inject LoadBalancerZkManager loadBalancerZkManager;
+    @Inject TraceRequestZkManager traceReqZkManager;
 
     private List<Op> updateLoadBalancerAssociation(UUID routerId,
                                                    RouterConfig oldConfig,
@@ -120,15 +122,10 @@ public class RouterZkManager
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public RouterZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
         super(zk, paths, serializer);
-        routeZkManager = new RouteZkManager(zk, paths, serializer);
-        filterZkManager = new FiltersZkManager(zk, paths, serializer);
-        portZkManager = new PortZkManager(zk, paths, serializer);
-        loadBalancerZkManager = new LoadBalancerZkManager(zk, paths, serializer);
-        chainZkManager = new ChainZkManager(zk, paths, serializer);
-        traceReqZkManager = new TraceRequestZkManager(zk, paths, serializer);
     }
 
     public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)

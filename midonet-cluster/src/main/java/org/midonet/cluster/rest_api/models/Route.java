@@ -25,6 +25,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 import com.google.protobuf.Message;
 
 import org.apache.commons.lang.StringUtils;
@@ -199,4 +200,24 @@ public class Route extends UriResource {
         return route;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("routerId", routerId)
+            .add("nextHopPort", nextHopPort)
+            .add("attributes", attributes)
+            .add("dstSubnet", dstSubnet)
+            .add("dstNetworkAddr", dstNetworkAddr)
+            .add("dstNetworkLength", dstNetworkLength)
+            .add("srcSubnet", srcSubnet)
+            .add("srcNetworkAddr", srcNetworkAddr)
+            .add("srcNetworkLength", srcNetworkLength)
+            .add("nextHopGateway", nextHopGateway)
+            .add("learned", learned)
+            .add("type", type)
+            .add("weight", weight)
+            .toString();
+    }
 }

@@ -18,6 +18,7 @@ package org.midonet.cluster.rest_api.models;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.util.UUIDUtil;
@@ -59,4 +60,11 @@ public class BridgePort extends Port {
         bridgeId = bridgePort.bridgeId;
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper()
+            .add("vlanId", vlanId)
+            .add("bridgeId", bridgeId)
+            .toString();
+    }
 }

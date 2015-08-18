@@ -17,6 +17,8 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.*;
 
+import com.google.inject.Inject;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -165,6 +167,7 @@ public class ChainZkManager
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public ChainZkManager(ZkManager zk, PathBuilder paths,
                           Serializer serializer) {
         super(zk, paths, serializer);
