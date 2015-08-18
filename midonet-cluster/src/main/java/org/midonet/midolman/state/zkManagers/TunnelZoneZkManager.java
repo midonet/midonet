@@ -27,6 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 import com.google.common.util.concurrent.SettableFuture;
+import com.google.inject.Inject;
 
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -60,6 +61,7 @@ public class TunnelZoneZkManager
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public TunnelZoneZkManager(ZkManager zk, PathBuilder paths,
                                Serializer serializer) {
         super(zk, paths, serializer);

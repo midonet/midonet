@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -67,6 +69,7 @@ public class AdRouteZkManager
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public AdRouteZkManager(ZkManager zk, PathBuilder paths,
                             Serializer serializer) {
         super(zk, paths, serializer);

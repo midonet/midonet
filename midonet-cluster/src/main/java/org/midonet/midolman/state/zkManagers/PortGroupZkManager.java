@@ -18,6 +18,8 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.midonet.nsdb.ConfigWithProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +70,7 @@ public class PortGroupZkManager
      * @versionProvider
      *         Provides versioning information
      */
+    @Inject
     public PortGroupZkManager(ZkManager zk, PathBuilder paths,
                               Serializer serializer) {
         super(zk, paths, serializer);

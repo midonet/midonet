@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.inject.Inject;
+
 /**
  * Zk DAO for tenants.  This class used purely by the REST API.
  */
@@ -43,6 +45,7 @@ public class TenantZkManager extends BaseZkManager {
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public TenantZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
         super(zk, paths, serializer);
