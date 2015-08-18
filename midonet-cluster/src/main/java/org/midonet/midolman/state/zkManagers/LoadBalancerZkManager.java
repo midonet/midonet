@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
+import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
 
@@ -70,6 +71,7 @@ public class LoadBalancerZkManager extends
         }
     }
 
+    @Inject
     public LoadBalancerZkManager(ZkManager zk, PathBuilder paths,
                                  Serializer serializer) {
         super(zk, paths, serializer);
