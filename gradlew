@@ -38,7 +38,7 @@ fi
 
 # Set the correct JAVA_HOME for compilation, which should be Java 1.8
 
-JVM_SEARCH_DIRS="java-1.8.0-openjdk-amd64 java-8-openjdk-amd64 \
+_JVM_SEARCH_DIRS="java-1.8.0-openjdk-amd64 java-8-openjdk-amd64 \
                  java-8-oracle zulu-8-amd64 zulu-8.jdk jdk1.8.0.jdk"
 
 check_for_java8() {
@@ -47,10 +47,21 @@ check_for_java8() {
     $1 -version 2>&1 | grep -q 'version "1.8'
 }
 
+JVM_SEARCH_DIRS=
+for jdir in $_JVM_SEARCH_DIRS; do
+    if $darwin ; then
+        jdir="/Library/Java/JavaVirtualMachines/$jdir/Contents/Home"
+    else
+        jdir="/usr/lib/jvm/$jdir"
+    fi
+    JVM_SEARCH_DIRS="$JVM_SEARCH_DIRS $jdir"
+done
+
 if [ -n "`which java`" ]; then
     java=`which java`
     # Dereference symlink(s)
     while true; do
+        JVM_SEARCH_DIRS="`dirname $java`/../ $JVM_SEARCH_DIRS"
         if [ -h "$java" ]; then
             java=`readlink "$java"`
             continue
@@ -66,11 +77,6 @@ fi
 
 JAVA_HOME=
 for jdir in $JVM_SEARCH_DIRS; do
-    if $darwin ; then
-	jdir="/Library/Java/JavaVirtualMachines/$jdir/Contents/Home"
-    else
-        jdir="/usr/lib/jvm/$jdir"
-    fi
     check_for_java8 "$jdir/bin/java"
     if [ $? -eq 0 ]; then
         JAVA_HOME="$jdir"
