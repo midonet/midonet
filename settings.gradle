@@ -2,4 +2,4 @@ include "midonet-util", "netlink", "odp",
         "nsdb", "midolman", "midonet-api", "midonet-client",
         "cluster:midonet-cluster", 'cluster:odl-ovsdb:commons:parent',
         'cluster:odl-ovsdb:distribution:opendaylight', 'cluster:odl-ovsdb:ovsdb',
-        'cluster:vtep', 'python-midonetclient'
+        'cluster:vtep', 'python-midonetclient', "migrator"

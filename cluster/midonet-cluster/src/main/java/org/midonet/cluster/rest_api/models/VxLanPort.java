@@ -18,6 +18,7 @@ package org.midonet.cluster.rest_api.models;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.util.UUIDUtil;
@@ -48,4 +49,13 @@ public class VxLanPort extends Port {
         networkId = deviceId;
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper()
+            .add("mgmtIpAddr", mgmtIpAddr)
+            .add("mgmtPort", mgmtPort)
+            .add("vni", vni)
+            .add("networkId", networkId)
+            .toString();
+    }
 }
