@@ -252,7 +252,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                         case Some(previous: Link) if link == previous =>
                             Observable.empty[Set[InterfaceDescription]]
                         case _ =>
-                            log.debug("Received NEWLINK notification with a" +
+                            log.debug("Received NEWLINK notification with a " +
                                 "new link")
                             links += (link.ifi.index -> link)
                             interfaceDescriptions += (link.ifi.index ->
