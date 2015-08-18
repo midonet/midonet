@@ -29,4 +29,7 @@ object StringUtil {
         val margin = " " * spaces
         margin + o.toString.replaceAllLiterally("\n", "\n" + margin)
     }
+
+    /** Returns null if o is null, otherwise o.toString. */
+    def toStringOrNull(o: AnyRef) = if (o == null) null else o.toString
 }

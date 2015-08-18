@@ -20,15 +20,15 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.LoadBalancer.class)
@@ -70,7 +70,9 @@ public class LoadBalancer extends UriResource {
             id = UUID.randomUUID();
         }
         if (null != routerId) {
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            throw new BadRequestHttpException(
+                MessageProperty.getMessage(
+                    MessageProperty.ROUTER_ID_IS_INVALID_IN_LB));
         }
     }
 
@@ -80,4 +82,14 @@ public class LoadBalancer extends UriResource {
         poolIds = from.poolIds;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("routerId", routerId)
+            .add("adminStateUp", adminStateUp)
+            .add("poolIds", poolIds)
+            .toString();
+    }
 }

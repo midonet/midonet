@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,6 +119,7 @@ public class BridgeDhcpV6ZkManager extends BaseZkManager {
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public BridgeDhcpV6ZkManager(ZkManager zk, PathBuilder paths,
                                  Serializer serializer) {
         super(zk, paths, serializer);

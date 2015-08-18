@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.apache.zookeeper.Op;
 import org.midonet.nsdb.ConfigWithProperties;
 import org.slf4j.Logger;
@@ -123,6 +125,7 @@ public class BridgeZkManager
      * Initializes a BridgeZkManager object with a ZooKeeper client and the root
      * path of the ZooKeeper directory.
      */
+    @Inject
     public BridgeZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
         super(zk, paths, serializer);
