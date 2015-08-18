@@ -21,6 +21,7 @@ import java.util.UUID;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -78,5 +79,19 @@ public class HealthMonitor extends UriResource {
     public void update(HealthMonitor from) {
         id = from.id;
         status = from.status;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("adminStateUp", adminStateUp)
+            .add("type", type)
+            .add("status", status)
+            .add("delay", delay)
+            .add("timeout", timeout)
+            .add("maxRetries", maxRetries)
+            .toString();
     }
 }
