@@ -232,7 +232,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     }
 
     def deleteExistingPort(port: DpPort, conn: OvsConnectionOps) = port match {
-        case internalPort: InternalPort =>
+        case internalPort: InternalPort if internalPort.getPortNo == 0 =>
             log.debug("Keeping {} found during initialization", port)
             registerInternalPort(internalPort)
             Future successful port
