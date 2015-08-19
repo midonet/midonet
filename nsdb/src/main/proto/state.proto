@@ -63,9 +63,10 @@ message HostState {
 }
 
 message VtepConfiguration {
-    optional string name = 1;
-    optional string description = 2;
-    repeated IPAddress tunnel_addresses = 3;
+    optional UUID vtep_id = 1;
+    optional string name = 2;
+    optional string description = 3;
+    repeated IPAddress tunnel_addresses = 4;
 }
 
 enum VtepConnectionState {
