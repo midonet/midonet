@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d752b767",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:09:17Z",
+      "side": 1,
+      "message": "Actually you\u0027re right.  This is a product of the earlier implementation I had where I relied on the deterministic ID to figure things out like, \u0027is the first rule on the chain for admin state\u0027?  And probably generally thought after that it\u0027s extra information that we may want to keep if we ever change the translation logic.  Do you still prefer that I remove it?  I can go either way.",
+      "parentUuid": "9ad9bd40_97dcaf48",
+      "range": {
+        "startLine": 44,
+        "startChar": 18,
+        "endLine": 44,
+        "endChar": 38
+      },
+      "revId": "8625f3dcb3d8bad754e4f5c9c87c4280a54befc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f7d89b81",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-19T15:48:40Z",
       "side": 1,
       "message": "I don\u0027t know what it originally meant, but it seems no longer very meaningful. Should we remove this?",
+      "range": {
+        "startLine": 132,
+        "startChar": 7,
+        "endLine": 133,
+        "endChar": 51
+      },
+      "revId": "8625f3dcb3d8bad754e4f5c9c87c4280a54befc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_371cc3c1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:09:17Z",
+      "side": 1,
+      "message": "Sure, we can take it out",
+      "parentUuid": "9ad9bd40_f7d89b81",
       "range": {
         "startLine": 132,
         "startChar": 7,
