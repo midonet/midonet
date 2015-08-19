@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_97dcaf48",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-19T15:48:40Z",
+      "side": 1,
+      "message": "On a second thought with a bit clearer mind, why do we need those new rule factory methods in the first place? When we delete the chain, we delete all its rules, and therefore we don\u0027t need to manually set deterministic IDs to the rules.",
+      "range": {
+        "startLine": 44,
+        "startChar": 18,
+        "endLine": 44,
+        "endChar": 38
+      },
+      "revId": "8625f3dcb3d8bad754e4f5c9c87c4280a54befc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f7d89b81",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-19T15:48:40Z",
+      "side": 1,
+      "message": "I don\u0027t know what it originally meant, but it seems no longer very meaningful. Should we remove this?",
+      "range": {
+        "startLine": 132,
+        "startChar": 7,
+        "endLine": 133,
+        "endChar": 51
+      },
+      "revId": "8625f3dcb3d8bad754e4f5c9c87c4280a54befc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
