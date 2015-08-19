@@ -155,9 +155,10 @@ object RoutingHandler {
             private final val BGP_VTY_MIRROR_IP =
                 new IPv4Subnet(IPv4Addr.fromInt(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx), 30)
 
-            override protected val bgpd: BgpdProcess = new DefaultBgpdProcess(bgpIdx, BGP_VTY_LOCAL_IP,
-                BGP_VTY_MIRROR_IP, rport.portSubnet,
-                rport.portMac, BGP_VTY_PORT)
+            override protected val bgpd: QuaggaEnvironment =
+                new DefaultBgpdEnvironment(bgpIdx, BGP_VTY_LOCAL_IP,
+                                           BGP_VTY_MIRROR_IP, rport.portSubnet,
+                                           rport.portMac, BGP_VTY_PORT)
 
             val lazyConnWatcher = new LazyZkConnectionMonitor(
                 () => self ! ZookeeperConnected(false),
@@ -285,7 +286,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     protected def deleteDpPort(port: NetDevPort): Future[_]
     protected def startZebra(): Unit
     protected def stopZebra(): Unit
-    protected val bgpd: BgpdProcess
+    protected val bgpd: QuaggaEnvironment
 
     override def postStop() {
         super.postStop()
@@ -496,7 +497,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         checkBgpdHealth().andThen { case _ =>
             try {
                 if (bgpd.isAlive) {
-                    status = bgpd.vty.showGeneric("show ip bgp nei").
+                    status = bgpd.bgpVty.showGeneric("show ip bgp nei").
                         filterNot(_.startsWith("bgpd#")).
                         filterNot(_.startsWith("show ip bgp nei")).
                         foldRight("")((a, b) => s"$a\n$b")
@@ -538,12 +539,12 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         for (peer <- lost) {
             log.info(s"Forgetting BGP neighbor ${peer.as} at ${peer.address}")
-            bgpd.vty.deletePeer(bgpConfig.as, peer.address)
+            bgpd.bgpVty.deletePeer(bgpConfig.as, peer.address)
             routingInfo.peers.remove(peer.address)
         }
 
         for (peer <- gained) {
-            bgpd.vty.addPeer(bgpConfig.as, peer.address, peer.as,
+            bgpd.bgpVty.addPeer(bgpConfig.as, peer.address, peer.as,
                 peer.keepalive.getOrElse(config.bgpKeepAlive),
                 peer.holdtime.getOrElse(config.bgpHoldTime),
                 peer.connect.getOrElse(config.bgpConnectRetry))
@@ -562,11 +563,11 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private def bootstrapBgpdConfig() {
         log.debug(s"Configuring bgpd")
 
-        bgpd.vty.setAs(bgpConfig.as)
-        bgpd.vty.setRouterId(bgpConfig.as, bgpConfig.id)
+        bgpd.bgpVty.setAs(bgpConfig.as)
+        bgpd.bgpVty.setRouterId(bgpConfig.as, bgpConfig.id)
 
         for (neigh <- bgpConfig.neighbors.values) {
-            bgpd.vty.addPeer(bgpConfig.as, neigh.address, neigh.as,
+            bgpd.bgpVty.addPeer(bgpConfig.as, neigh.address, neigh.as,
                 neigh.keepalive.getOrElse(config.bgpKeepAlive),
                 neigh.holdtime.getOrElse(config.bgpHoldTime),
                 neigh.connect.getOrElse(config.bgpConnectRetry))
@@ -576,11 +577,11 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         for (net <- bgpConfig.networks) {
             log.info(s"Announcing route to peers: ${net.cidr}")
-            bgpd.vty.addNetwork(bgpConfig.as, net.cidr)
+            bgpd.bgpVty.addNetwork(bgpConfig.as, net.cidr)
         }
 
         if (log.underlying.isDebugEnabled)
-            bgpd.vty.setDebug(enabled = true)
+            bgpd.bgpVty.setDebug(enabled = true)
     }
 
     private def updateLocalNetworks(currentNetworks: Set[Network],
@@ -590,12 +591,12 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         for (net <- lost) {
             log.info(s"Withdrawing route announcement: ${net.cidr}")
-            bgpd.vty.deleteNetwork(bgpConfig.as, net.cidr)
+            bgpd.bgpVty.deleteNetwork(bgpConfig.as, net.cidr)
         }
 
         for (net <- gained) {
             log.info(s"Announcing route to peers: ${net.cidr}")
-            bgpd.vty.addNetwork(bgpConfig.as, net.cidr)
+            bgpd.bgpVty.addNetwork(bgpConfig.as, net.cidr)
         }
     }
 

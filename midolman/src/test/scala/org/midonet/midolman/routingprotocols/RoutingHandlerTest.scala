@@ -43,7 +43,7 @@ import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor, Network}
 import org.midonet.quagga.ZebraProtocol.RIBType
-import org.midonet.quagga.{BgpConnection, BgpdProcess}
+import org.midonet.quagga.{BgpConnection, QuaggaEnvironment}
 
 @RunWith(classOf[JUnitRunner])
 class RoutingHandlerTest extends FeatureSpecLike
@@ -54,7 +54,7 @@ class RoutingHandlerTest extends FeatureSpecLike
     var bgpd: MockBgpdProcess = _
     var dataClient: DataClient = _
     var routingStorage: RoutingStorage = _
-    def vty = bgpd.vty
+    def vty = bgpd.bgpVty
     var routingHandler: ActorRef = _
     var invalidations = List[BackChannelMessage]()
     val config = MidolmanConfig.forTests
@@ -96,7 +96,7 @@ class RoutingHandlerTest extends FeatureSpecLike
         routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
         bgpd.state should be (bgpd.RUNNING)
         bgpd.starts should be (1)
-        reset(bgpd.vty)
+        reset(bgpd.bgpVty)
     }
 
     after {
@@ -251,11 +251,11 @@ class RoutingHandlerTest extends FeatureSpecLike
 
             routingHandler ! RoutingHandler.Update(update, Set(peer1Id, peer2Id))
             routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
-            verify(bgpd.vty).addPeer(MY_AS, peer2, 200,
+            verify(bgpd.bgpVty).addPeer(MY_AS, peer2, 200,
                                      config.bgpKeepAlive,
                                      config.bgpHoldTime,
                                      config.bgpConnectRetry)
-            verify(bgpd.vty).deletePeer(MY_AS, peer2)
+            verify(bgpd.bgpVty).deletePeer(MY_AS, peer2)
         }
 
         scenario("routes are announced and removed") {
@@ -268,14 +268,14 @@ class RoutingHandlerTest extends FeatureSpecLike
             routingHandler ! RoutingHandler.Update(
                 baseConfig.copy(networks = Set(net1)), Set(peer1Id))
 
-            verify(bgpd.vty, times(3)).addNetwork(anyInt(), anyObject())
-            verify(bgpd.vty).addNetwork(MY_AS, net1.cidr)
-            verify(bgpd.vty).addNetwork(MY_AS, net2.cidr)
-            verify(bgpd.vty).addNetwork(MY_AS, net3.cidr)
+            verify(bgpd.bgpVty, times(3)).addNetwork(anyInt(), anyObject())
+            verify(bgpd.bgpVty).addNetwork(MY_AS, net1.cidr)
+            verify(bgpd.bgpVty).addNetwork(MY_AS, net2.cidr)
+            verify(bgpd.bgpVty).addNetwork(MY_AS, net3.cidr)
 
-            verify(bgpd.vty, times(2)).deleteNetwork(anyInt(), anyObject())
-            verify(bgpd.vty).deleteNetwork(MY_AS, net2.cidr)
-            verify(bgpd.vty).deleteNetwork(MY_AS, net3.cidr)
+            verify(bgpd.bgpVty, times(2)).deleteNetwork(anyInt(), anyObject())
+            verify(bgpd.bgpVty).deleteNetwork(MY_AS, net2.cidr)
+            verify(bgpd.bgpVty).deleteNetwork(MY_AS, net3.cidr)
         }
 
         scenario("timer values change") {
@@ -283,17 +283,17 @@ class RoutingHandlerTest extends FeatureSpecLike
                 Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
 
             routingHandler ! RoutingHandler.Update(update, Set(peer1Id))
-            verify(bgpd.vty).addPeer(MY_AS, peer1, 100, 29, 30, 31)
+            verify(bgpd.bgpVty).addPeer(MY_AS, peer1, 100, 29, 30, 31)
         }
     }
 }
 
-class MockBgpdProcess extends BgpdProcess with MockitoSugar {
+class MockBgpdProcess extends QuaggaEnvironment with MockitoSugar {
     val NOT_STARTED = "NOT_STARTED"
     val PREPARED = "PREPARED"
     val RUNNING = "RUNNING"
 
-    override val vty = mock[BgpConnection]
+    override val bgpVty = mock[BgpConnection]
 
     var state = NOT_STARTED
 

@@ -33,13 +33,13 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
     val routerAddress = IPv4Subnet.fromCidr("192.168.163.1/24")
     val routerMac = MAC.random()
 
-    var bgpd: BgpdProcess = _
+    var bgpd: QuaggaEnvironment = _
 
     implicit def str2subnet(str: String) = IPv4Subnet.fromCidr(str)
     implicit def str2ipv4(str: String) = IPv4Addr.fromString(str)
 
     before {
-        bgpd = new DefaultBgpdProcess(idx,
+        bgpd = new DefaultBgpdEnvironment(idx,
             BGP_VTY_LOCAL_IP, BGP_VTY_MIRROR_IP,
             routerAddress, routerMac, BGP_VTY_PORT,
             "./src/lib/midolman/bgpd-helper",
@@ -62,7 +62,7 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
         bgpd.prepare()
         bgpd.start()
 
-        bgpd.vty.showConfig() should be (
+        bgpd.bgpVty.showConfig() should be (
             BgpdRunningConfig(debug = false,
                 Some("bgpd"),
                 Some("bgpd.log"),
@@ -74,9 +74,9 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
         bgpd.prepare()
         bgpd.start()
 
-        bgpd.vty.setAs(23)
+        bgpd.bgpVty.setAs(23)
 
-        bgpd.vty.showConfig() should be (
+        bgpd.bgpVty.showConfig() should be (
             BgpdRunningConfig(debug = false,
                 Some("bgpd"),
                 Some("bgpd.log"),
@@ -84,9 +84,9 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
                 router = Some(BgpRouter(23)))
         )
 
-        bgpd.vty.setRouterId(23, routerAddress.getAddress)
+        bgpd.bgpVty.setRouterId(23, routerAddress.getAddress)
 
-        bgpd.vty.showConfig() should be (
+        bgpd.bgpVty.showConfig() should be (
             BgpdRunningConfig(debug = false,
                 Some("bgpd"),
                 Some("bgpd.log"),
@@ -110,19 +110,19 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
         val twoNetworks = oneNetwork.copy(router = Some(oneNetwork.router.get.copy(
                     networks = Set(Network("10.0.10.0/24"), Network("10.0.20.0/24")))))
 
-        bgpd.vty.setAs(23)
+        bgpd.bgpVty.setAs(23)
 
-        bgpd.vty.addNetwork(23, IPv4Subnet.fromCidr("10.0.10.0/24"))
-        bgpd.vty.showConfig() should be (oneNetwork)
+        bgpd.bgpVty.addNetwork(23, IPv4Subnet.fromCidr("10.0.10.0/24"))
+        bgpd.bgpVty.showConfig() should be (oneNetwork)
 
-        bgpd.vty.addNetwork(23, IPv4Subnet.fromCidr("10.0.20.0/24"))
-        bgpd.vty.showConfig() should be (twoNetworks)
+        bgpd.bgpVty.addNetwork(23, IPv4Subnet.fromCidr("10.0.20.0/24"))
+        bgpd.bgpVty.showConfig() should be (twoNetworks)
 
-        bgpd.vty.deleteNetwork(23, IPv4Subnet.fromCidr("10.0.20.0/24"))
-        bgpd.vty.showConfig() should be (oneNetwork)
+        bgpd.bgpVty.deleteNetwork(23, IPv4Subnet.fromCidr("10.0.20.0/24"))
+        bgpd.bgpVty.showConfig() should be (oneNetwork)
 
-        bgpd.vty.deleteNetwork(23, IPv4Subnet.fromCidr("10.0.10.0/24"))
-        bgpd.vty.showConfig() should be (empty)
+        bgpd.bgpVty.deleteNetwork(23, IPv4Subnet.fromCidr("10.0.10.0/24"))
+        bgpd.bgpVty.showConfig() should be (empty)
     }
 
     def testManagePeers(): Unit = {
@@ -144,21 +144,21 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
                 neighbors = withOnePeer.router.get.neighbors +
                                 (secondPeer ->  Neighbor(secondPeer, 101, Some(10), Some(31), Some(51))))))
 
-        bgpd.vty.setAs(23)
-        bgpd.vty.addNetwork(23, IPv4Subnet.fromCidr("10.0.10.0/24"))
-        bgpd.vty.addNetwork(23, IPv4Subnet.fromCidr("10.0.20.0/24"))
-        bgpd.vty.showConfig() should be (empty)
+        bgpd.bgpVty.setAs(23)
+        bgpd.bgpVty.addNetwork(23, IPv4Subnet.fromCidr("10.0.10.0/24"))
+        bgpd.bgpVty.addNetwork(23, IPv4Subnet.fromCidr("10.0.20.0/24"))
+        bgpd.bgpVty.showConfig() should be (empty)
 
-        bgpd.vty.addPeer(23, firstPeer, 100, 10, 30, 50)
-        bgpd.vty.showConfig() should be (withOnePeer)
+        bgpd.bgpVty.addPeer(23, firstPeer, 100, 10, 30, 50)
+        bgpd.bgpVty.showConfig() should be (withOnePeer)
 
-        bgpd.vty.addPeer(23, secondPeer, 101, 10, 31, 51)
-        bgpd.vty.showConfig() should be (withTwoPeers)
+        bgpd.bgpVty.addPeer(23, secondPeer, 101, 10, 31, 51)
+        bgpd.bgpVty.showConfig() should be (withTwoPeers)
 
-        bgpd.vty.deletePeer(23, secondPeer)
-        bgpd.vty.showConfig() should be (withOnePeer)
+        bgpd.bgpVty.deletePeer(23, secondPeer)
+        bgpd.bgpVty.showConfig() should be (withOnePeer)
 
-        bgpd.vty.deletePeer(23, firstPeer)
-        bgpd.vty.showConfig() should be (empty)
+        bgpd.bgpVty.deletePeer(23, firstPeer)
+        bgpd.bgpVty.showConfig() should be (empty)
     }
 }
