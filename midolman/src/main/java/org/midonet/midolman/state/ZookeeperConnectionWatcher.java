@@ -62,8 +62,8 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     public synchronized void process(WatchedEvent event) {
         if (event.getState() == Watcher.Event.KeeperState.Disconnected) {
             log.warn("KeeperState is Disconnected, will shutdown in {} " +
-                "milliseconds if the connection is not restored.",
-                config.graceTime());
+                     "milliseconds if the connection is not restored.",
+                     config.graceTime());
 
             disconnectHandle = reactorLoop.schedule(new Runnable() {
                 @Override

@@ -31,8 +31,6 @@ class MidonetBackendConfig(val conf: Config) {
     def rootKey = conf.getString("zookeeper.root_key")
     def maxRetries = conf.getInt("zookeeper.max_retries")
     def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
-    @Deprecated
-    def useNewStack = false
     def bufferSize = conf.getInt("zookeeper.buffer_size")
 }
 

@@ -15,29 +15,19 @@
  */
 package org.midonet.cluster.data
 
-import java.util.concurrent.TimeoutException
 import java.util.{List => JList, UUID}
-import javax.inject.Singleton
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
-import com.google.inject.util.Modules
-import com.google.inject.{AbstractModule, Guice}
 import org.apache.zookeeper.{Op, OpResult}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.NotFoundException
-import org.midonet.midolman.Setup
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.TraceRule
-import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain}
-import org.midonet.midolman.state.{Directory, MockDirectory, StateAccessException}
+import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain, Port => SimPort}
+import org.midonet.midolman.state.MockDirectory
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.simulation.{Port => SimPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.VirtualConfigurationBuilders.TraceDeviceType
 import org.midonet.packets.{IPv4Subnet, MAC}
@@ -89,16 +79,9 @@ class TraceRequestTest extends MidolmanSpec {
     }
 
     scenario("Non-existing device") {
-        if (useNewStorageStack) {
-            intercept[NotFoundException] {
-                newTraceRequest(UUID.randomUUID, TraceDeviceType.BRIDGE,
-                                newCondition())
-            }
-        } else {
-            intercept[StateAccessException] {
-                newTraceRequest(UUID.randomUUID, TraceDeviceType.BRIDGE,
-                                newCondition())
-            }
+        intercept[NotFoundException] {
+            newTraceRequest(UUID.randomUUID, TraceDeviceType.BRIDGE,
+                            newCondition())
         }
     }
 
@@ -131,46 +114,6 @@ class TraceRequestTest extends MidolmanSpec {
 
         deleteBridge(bridge)
         listTraceRequests().size should be (0)
-    }
-
-    if (!useNewStorageStack) {
-        /* Test the scenario where a device is deleted after we have checked that it
-         * exists, but before the trace request is created. Previous work should be
-         * cleaned up.
-         */
-        scenario("Trace races with device deletion") {
-            val injector = Guice.createInjector(
-                Modules.`override`(getModules).`with`(
-                    new AbstractModule() {
-                        override def configure(): Unit = {
-                            bind(classOf[Directory])
-                                .to(classOf[RaceyMockDirectory])
-                                .in(classOf[Singleton])
-                        }
-                    }))
-            val directory = injector.getInstance(classOf[Directory])
-                .asInstanceOf[RaceyMockDirectory]
-            val config = injector.getInstance(classOf[MidolmanConfig])
-            Setup.ensureZkDirectoryStructureExists(directory, config.zookeeper.rootKey)
-
-            val dataClient = injector.getInstance(classOf[DataClient])
-            val bridge = new Bridge().setName("bridge0")
-                .setProperty(Bridge.Property.tenant_id, tenantId)
-            dataClient.bridgesCreate(bridge)
-
-            directory.setCallback(Unit => {
-                                      dataClient.bridgesDelete(bridge.getId) })
-
-            val trace = new TraceRequest()
-                .setName("foobar")
-                .setDeviceType(TraceRequest.DeviceType.BRIDGE)
-                .setDeviceId(bridge.getId).setCondition(newCondition())
-            intercept[StateAccessException] {
-                dataClient.traceRequestCreate(trace)
-            }
-            dataClient.traceRequestGetAll.size should be (0)
-            dataClient.bridgesGetAll.size should be (0)
-        }
     }
 
     scenario("enabling adds a rule, disabling deletes") {
@@ -211,14 +154,8 @@ class TraceRequestTest extends MidolmanSpec {
         port4.inboundFilter should be (null)
 
         VirtualTopologyActor.clearTopology()
-        if (useNewStorageStack) {
-            intercept[NotFoundException] {
-                fetchDevice[SimChain](chainId)
-            }
-        } else {
-            intercept[TimeoutException] {
-                fetchDevice[SimChain](chainId)
-            }
+        intercept[NotFoundException] {
+            fetchDevice[SimChain](chainId)
         }
     }
 
@@ -258,76 +195,6 @@ class TraceRequestTest extends MidolmanSpec {
         }
     }
 
-    if (!useNewStorageStack) {
-        /* the following two tests test things specific to the model
-         * used on the pre-zoom architecture. */
-        scenario("enable a rule on a device with preexisting infilter") {
-            val bridge = newBridge("bridge0", tenant=Some(tenantId))
-
-            val chain = newInboundChainOnBridge("bridge-filter", bridge)
-            newLiteralRuleOnChain(chain, 1,
-                                  newCondition(tpDst = Some(4002)), Action.ACCEPT)
-
-            val simBridge = fetchDevice[SimBridge](bridge)
-            var chainId = simBridge.inFilterId.get
-            fetchDevice[SimChain](chainId).rules.size should be (1)
-
-            val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
-                                         newCondition(tpSrc = Some(5000)))
-            fetchDevice[SimChain](chainId).rules.size should be (1)
-            enableTraceRequest(trace1)
-
-            var rules = fetchDevice[SimChain](chainId).rules
-            rules.size() should be (2)
-            rules.get(0) match {
-                case t: TraceRule => t.getRequestId should be (trace1)
-                case _ => fail("First rule should be the trace rule")
-            }
-
-            // add another rule at the start
-            newLiteralRuleOnChain(chain, 1,
-                                  newCondition(tpDst = Some(4003)), Action.ACCEPT)
-            rules = fetchDevice[SimChain](chainId).rules
-            rules.size() should be (3)
-            rules.get(0) match {
-                case t: TraceRule => fail("Shouldn't be first rule anymore")
-                case _ => /* anything else is fine */
-            }
-
-            disableTraceRequest(trace1)
-            rules = fetchDevice[SimChain](chainId).rules
-            rules.size() should be (2)
-            rules.asScala foreach {
-                case t: TraceRule => fail("There should be no trace rule")
-                case _ => /* anything else is fine */
-            }
-        }
-
-        scenario("disable rule which is last on chain, but chain not trace chain") {
-            val bridge = newBridge("bridge0", tenant=Some(tenantId))
-
-            val chain = newInboundChainOnBridge("bridge-filter", bridge)
-            val rule1 = newLiteralRuleOnChain(chain, 1,
-                                              newCondition(tpDst = Some(4002)),
-                                              Action.ACCEPT)
-            fetchDevice[SimChain](chain).rules.size() should be (1)
-
-            val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
-                                         newCondition(tpSrc = Some(5000)))
-            enableTraceRequest(trace1)
-
-            fetchDevice[SimChain](chain).rules.size() should be (2)
-            deleteRule(rule1)
-
-            fetchDevice[SimChain](chain).rules.size() should be (1)
-
-            disableTraceRequest(trace1)
-
-            fetchDevice[SimBridge](bridge).inFilterId.get should be (chain)
-            fetchDevice[SimChain](chain).rules.size() should be (0)
-        }
-    }
-
     scenario("Enable on creation, disabled on delete") {
         val bridge = newBridge("bridge0", tenant=Some(tenantId))
 
@@ -358,14 +225,8 @@ class TraceRequestTest extends MidolmanSpec {
         deleteBridge(bridge)
 
         VirtualTopologyActor.clearTopology()
-        if (useNewStorageStack) {
-            intercept[NotFoundException] {
-                fetchDevice[SimChain](chain.get)
-            }
-        } else {
-            intercept[TimeoutException] {
-                fetchDevice[SimChain](chain.get)
-            }
+        intercept[NotFoundException] {
+            fetchDevice[SimChain](chain.get)
         }
     }
 }

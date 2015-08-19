@@ -29,9 +29,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class SessionUnawareConnectionWatcher
     implements ZkConnectionAwareWatcher {
 
-    private final static Logger log = getLogger(
-        SessionUnawareConnectionWatcher.class);
-
+    private final static Logger log =
+        getLogger(SessionUnawareConnectionWatcher.class);
     private ZkConnection conn;
 
     @Override

@@ -27,9 +27,7 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 import akka.actor.ActorRef
-
 import org.apache.zookeeper.KeeperException
-
 import rx.Subscription
 
 import org.midonet.cluster.Client
@@ -42,9 +40,8 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.routingprotocols.RoutingWorkflow.RoutingInfo
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.state.{StateAccessException, ZkConnectionAwareWatcher}
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.topology.devices.{BgpPort, BgpPortDeleted, BgpRouterDeleted}
-import org.midonet.midolman.topology.{VirtualTopology, VirtualTopologyActor}
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
@@ -148,7 +145,6 @@ object RoutingHandler {
             import context.system
 
             private var zebra: ActorRef = null
-            private val modelTranslator = new BgpModelTranslator(rport.id, config, (r, s) => self ! Update(r, s))
 
             private final val BGP_VTY_LOCAL_IP =
                 new IPv4Subnet(IPv4Addr.fromInt(BGP_IP_INT_PREFIX + 1 + 4 * bgpIdx), 30)
@@ -183,19 +179,9 @@ object RoutingHandler {
                 log.info(s"Starting, port ${rport.id}")
                 super.preStart()
 
-                if (config.zookeeper.useNewStack) {
-                    // Subscribe to the BGP port mapper for BGP updates.
-                    bgpSubscription = VirtualTopology.observable[BgpPort](rport.id)
-                                                     .subscribe(this)
-                } else {
-                    // Watch the BGP session information for this port.
-                    // In the future we may also watch for session configurations of
-                    // other routing protocols.
-                    client.subscribeBgp(rport.id, modelTranslator)
-
-                    // Subscribe to the VTA for updates to the Port configuration.
-                    VirtualTopologyActor ! PortRequest(rport.id, update = true)
-                }
+                // Subscribe to the BGP port mapper for BGP updates.
+                bgpSubscription = VirtualTopology.observable[BgpPort](rport.id)
+                                                 .subscribe(this)
 
                 system.scheduler.schedule(2 seconds, 5 seconds,
                                           self, FETCH_BGPD_STATUS)(context.dispatcher)
@@ -357,16 +343,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             Future.successful(true)
     }
 
-    private val eventHandlerV1: PartialFunction[Any, Future[_]] = eventHandlerBase orElse {
-        case port: RouterPort =>
-            portUpdated(port)
-
-        case Update(newConf, peers) =>
-            configurationUpdated(newConf.copy(id = rport.portIp), peers)
-
-    }
-
-    private val eventHandlerV2: PartialFunction[Any, Future[_]] = eventHandlerBase orElse {
+    private val eventHandler: PartialFunction[Any, Future[_]] = eventHandlerBase orElse {
         case BgpPort(port, router, neighborIds) =>
             log.info("BGP port and configuration changed {} {}", port, router)
             portUpdated(port).flatMap[Any] { _ =>
@@ -390,11 +367,6 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             log.error("Unexpected completion of the BGP observable: stopping " +
                       "bgpd")
             stopBgpd()
-    }
-
-    private def eventHandler = {
-        if (config.zookeeper.useNewStack) eventHandlerV2
-        else eventHandlerV1
     }
 
     override def receive = super.receive orElse {

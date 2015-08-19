@@ -17,16 +17,12 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
-import scala.collection.JavaConversions._
-
 import com.google.inject._
-import com.typesafe.config.{ConfigFactory, Config, ConfigValueFactory}
-
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
-import org.midonet.cluster.{Client,DataClient,ExplodingClient}
-import org.midonet.cluster.{ExplodingDataClient,ExplodingLegacyStorage,ExplodingZkManager}
-import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService}
-import org.midonet.cluster.state.LegacyStorage
+import org.slf4j.LoggerFactory
+
+import org.midonet.cluster.services.{LegacyStorageService, MidonetBackend}
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster._
@@ -38,11 +34,12 @@ import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
 import org.midonet.midolman.simulation.CustomMatchers
-import org.midonet.midolman.state.{PathBuilder,ZkManager}
 import org.midonet.midolman.util.guice.MockMidolmanModule
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
-import org.midonet.util.concurrent.{MockClock, NanoClock}
-import org.slf4j.LoggerFactory
+import org.midonet.util.concurrent.NanoClock
+
+import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
 /**
  * A base trait to be used for new style Midolman simulation tests with Midolman
@@ -113,15 +110,15 @@ trait MidolmanSpec extends FeatureSpecLike
         val defaults = """cassandra.servers = "localhost:9171""""
 
         config.withFallback(ConfigFactory.parseString(defaults))
-            .withValue("zookeeper.use_new_stack",
-                       ConfigValueFactory.fromAnyRef(useNewStorageStack))
+              .withValue("zookeeper.use_new_stack",
+                       ConfigValueFactory.fromAnyRef(true))
     }
 
     def awaitingImpl: Boolean = System.getProperty("midonet.awaitingImpl") != null
 
     protected def getModules = {
         val conf = MidoTestConfigurator.forAgents(fillConfig())
-        val modules = List(
+        List (
             new SerializationModule(),
             new MidolmanConfigModule(conf),
             new MockDatapathModule(),
@@ -154,27 +151,15 @@ trait MidolmanSpec extends FeatureSpecLike
                             .to(classOf[MockInterfaceScanner]).asEagerSingleton()
                     expose(classOf[InterfaceScanner])
                 }
-            })
-        if (useNewStorageStack) {
-            log.info("Using zoom storage")
-            modules ++ List(new LegacyClusterModule(), // needed for LegacyStorage
-                            new AbstractModule {
-                                override def configure() {
-                                    bind(classOf[VirtualConfigurationBuilders])
-                                        .to(classOf[ZoomVirtualConfigurationBuilders])
-                                        .asEagerSingleton()
-                                }
-                            })
-        } else {
-            log.info("Using legacy storage")
-            modules ++ List(new LegacyClusterModule(),
-                            new AbstractModule {
-                                override def configure() {
-                                    bind(classOf[VirtualConfigurationBuilders])
-                                        .to(classOf[LegacyVirtualConfigurationBuilders])
-                                        .asEagerSingleton()
-                                }
-                            })
-        }
+            },
+            new AbstractModule {
+                override def configure() {
+                    bind(classOf[VirtualConfigurationBuilders])
+                        .to(classOf[ZoomVirtualConfigurationBuilders])
+                        .asEagerSingleton()
+                }
+            },
+            new LegacyClusterModule()
+        ).asJava
     }
 }

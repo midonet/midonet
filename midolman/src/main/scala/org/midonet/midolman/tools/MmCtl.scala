@@ -21,10 +21,13 @@ import java.util.concurrent.TimeUnit
 
 import scala.util.control.NonFatal
 
+import scala.util.{Failure, Success, Try}
+
 import com.google.inject.{Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
 import org.apache.commons.cli._
 import org.apache.curator.framework.CuratorFramework
+
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
@@ -37,8 +40,6 @@ import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.concurrent.toFutureOps
-
-import scala.util.{Failure, Success, Try}
 
 
 object MmCtlResult {
@@ -150,15 +151,13 @@ class MmCtl(injector: Injector) {
     }
 
     private def getPortBinder(injector: Injector): PortBinder = {
-        val config = injector.getInstance(classOf[MidonetBackendConfig])
+        val curator = injector.getInstance(classOf[CuratorFramework])
+        curator.start()
 
-        if (config.useNewStack) {
-            val curator = injector.getInstance(classOf[CuratorFramework])
-            curator.start()
+        val backend = injector.getInstance(classOf[MidonetBackend])
+        backend.setupBindings()
 
-            val backend = injector.getInstance(classOf[MidonetBackend])
-            backend.setupBindings()
-
+<<<<<<< HEAD
             val lockFactory = injector.getInstance(
                 classOf[ZookeeperLockFactory])
             new ZoomPortBinder(backend.store, lockFactory)
@@ -166,6 +165,9 @@ class MmCtl(injector: Injector) {
             val dataClient = injector.getInstance(classOf[DataClient])
             new DataClientPortBinder(dataClient)
         }
+=======
+        new ZoomPortBinder(backend.store)
+>>>>>>> 28a7b67... Clean dead code and v1 stuff from midolman
     }
 
     def bindPort(portId: UUID, deviceName: String): MmCtlRetCode = {

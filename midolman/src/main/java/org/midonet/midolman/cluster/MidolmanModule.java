@@ -56,7 +56,6 @@ public class MidolmanModule extends PrivateModule {
         binder().requireExplicitBindings();
 
         requireBinding(MidolmanConfig.class);
-        requireBinding(Client.class);
         requireBinding(DatapathConnectionService.class);
         requireBinding(MidolmanActorsService.class);
 

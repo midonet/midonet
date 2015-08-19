@@ -194,7 +194,7 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
     override def stateStore: StateStorage = zoom
 
     protected override def doStart(): Unit = {
-        log.info(s"Starting backend ${this} store: $store")
+        log.info(s"Starting backend store")
         try {
             if (curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()

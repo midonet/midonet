@@ -34,7 +34,7 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.simulation.DhcpConfigFromZoom
+import org.midonet.midolman.simulation.DhcpConfigFromNsdb
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -158,7 +158,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
 
     protected def propsForWorker(index: Int) = {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
-        val dhcpConfig = new DhcpConfigFromZoom(vt)
+        val dhcpConfig = new DhcpConfigFromNsdb(vt)
 
         Props(
             classOf[PacketWorkflow],

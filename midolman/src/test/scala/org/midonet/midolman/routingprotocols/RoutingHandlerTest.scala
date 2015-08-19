@@ -16,43 +16,47 @@
 
 package org.midonet.midolman.routingprotocols
 
-import java.util
 import java.util.UUID
 
 import scala.concurrent.Future
 
 import akka.actor._
 import akka.testkit.TestActorRef
-
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
-import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Route
+import org.midonet.cluster.data.storage.InMemoryStorage
+import org.midonet.cluster.state.RoutingTableStorage._
+import org.midonet.cluster.storage.MidonetTestBackend
+import org.midonet.cluster.topology.TopologyBuilder
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.routingprotocols.RoutingManagerActor.{RoutingStorageForV1, RoutingStorage}
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.simulation.RouterPort
+import org.midonet.midolman.topology.devices.BgpPort
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
-import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor, Network}
+import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor}
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga.{BgpConnection, BgpdProcess}
+import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class RoutingHandlerTest extends FeatureSpecLike
                                     with Matchers
                                     with BeforeAndAfter
-                                    with MockitoSugar {
+                                    with MockitoSugar
+                                    with TopologyBuilder {
     var rport: RouterPort = _
     var bgpd: MockBgpdProcess = _
-    var dataClient: DataClient = _
+    var backend: InMemoryStorage = _
     var routingStorage: RoutingStorage = _
     def vty = bgpd.vty
     var routingHandler: ActorRef = _
@@ -73,27 +77,33 @@ class RoutingHandlerTest extends FeatureSpecLike
     before {
         as = ActorSystem("RoutingHandlerTest")
 
+        val router = createRouter()
         rport = RouterPort(
                 id = UUID.randomUUID(),
                 tunnelKey = 1,
                 isActive = true,
-                routerId = UUID.randomUUID(),
+                routerId = UUIDUtil.fromProto(router.getId),
                 portSubnet = IPv4Subnet.fromCidr("192.168.80.0/24"),
                 portIp = IPv4Addr.fromString("192.168.80.1"),
                 portMac = MAC.random())
 
+        createRouterPort(rport.id, Some(rport.routerId), None, None,
+                         rport.tunnelKey, None, None, None, None,
+                         adminStateUp = true, Set.empty,
+                         rport.portSubnet, rport.portIp, rport.portMac)
+
         bgpd = new MockBgpdProcess
-        dataClient = mock[DataClient]
-        routingStorage = new RoutingStorageForV1(dataClient)
+        val backend = new MidonetTestBackend()
+        backend.setupBindings()
+        routingStorage = new RoutingStorage(backend.stateStore)
         invalidations = Nil
         routingHandler = TestActorRef(new TestableRoutingHandler(rport,
                                                     invalidations ::= _,
                                                     routingStorage,
                                                     config,
                                                     bgpd))
-        routingHandler ! rport
         bgpd.state should be (bgpd.NOT_STARTED)
-        routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
+        routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
         bgpd.state should be (bgpd.RUNNING)
         bgpd.starts should be (1)
         reset(bgpd.vty)
@@ -106,20 +116,21 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     feature ("manages the bgpd lifecycle") {
         scenario("starts and stops bgpd") {
-            routingHandler ! RoutingHandler.Update(baseConfig.copy(neighbors = Map.empty), Set.empty)
+            routingHandler ! BgpPort(rport,
+                                     baseConfig.copy(neighbors = Map.empty),
+                                     Set())
             bgpd.state should be (bgpd.NOT_STARTED)
-
-            routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
+            routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
             bgpd.state should be (bgpd.RUNNING)
         }
 
         scenario("change in the router port address") {
             val p = rport.copy(isActive = true, portIp = IPv4Addr.fromString("192.168.80.2"))
-            routingHandler ! p
+            routingHandler ! BgpPort(p, baseConfig, Set(peer1Id))
             bgpd.state should be (bgpd.RUNNING)
             bgpd.starts should be (2)
 
-            routingHandler ! p
+            routingHandler ! BgpPort(p, baseConfig, Set(peer1Id))
             bgpd.state should be (bgpd.RUNNING)
             bgpd.starts should be (2)
         }
@@ -190,25 +201,33 @@ class RoutingHandlerTest extends FeatureSpecLike
             routingHandler ! RoutingHandler.AddPeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw), 100)
 
-            verify(dataClient).routesCreateEphemeral(argThat(matchRoute(dst, gw)))
+            val routes = backend.getPortRoutes(rport.id).await()
+            routes should have size 1
+            routes.head.getNextHopGateway shouldBe gw
+            routes.head.getDstNetworkAddr shouldBe dst
+            routes.head.isLearned shouldBe true
         }
 
         scenario("peer stops announcing a route") {
             val dst = "10.10.10.0/24"
             val gw = "192.168.80.254"
-            val routeId = UUID.randomUUID()
-
-            when(dataClient.routesCreateEphemeral(anyObject())).thenReturn(routeId)
 
             routingHandler ! RoutingHandler.AddPeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw), 100)
+
+            val routes = backend.getPortRoutes(rport.id).await()
+            routes should have size 1
+            routes.head.getNextHopGateway shouldBe gw
+            routes.head.getDstNetworkAddr shouldBe dst
+            routes.head.isLearned shouldBe true
+
             routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw))
 
-            verify(dataClient).routesCreateEphemeral(argThat(matchRoute(dst, gw)))
-            verify(dataClient).routesDelete(routeId)
+            backend.getPortRoutes(rport.id).await() shouldBe empty
         }
 
+        /*
         scenario("routes are synced after a glitch") {
             val dst1 = "10.10.10.0/24"
             val dst2 = "10.10.20.0/24"
@@ -277,12 +296,14 @@ class RoutingHandlerTest extends FeatureSpecLike
             verify(bgpd.vty).deleteNetwork(MY_AS, net2.cidr)
             verify(bgpd.vty).deleteNetwork(MY_AS, net3.cidr)
         }
+        */
 
         scenario("timer values change") {
             val update = new BgpRouter(MY_AS, rport.portIp,
                 Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
 
             routingHandler ! RoutingHandler.Update(update, Set(peer1Id))
+            routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
             verify(bgpd.vty).addPeer(MY_AS, peer1, 100, 29, 30, 31)
         }
     }

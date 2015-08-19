@@ -29,33 +29,20 @@ import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
 import com.google.inject.Injector
 
-import org.midonet.cluster.DataClient
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman._
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.FlowRecorderFactory
-import org.midonet.midolman.simulation.SimDevice
-
-import org.midonet.midolman.simulation.{Bridge => SimBridge,
-                                        Chain => SimChain,
-                                        Port => SimPort,
-                                        BridgePort => SimBridgePort,
-                                        DhcpConfigFromDataclient,
-                                        DhcpConfigFromZoom,
-                                        PacketContext, PacketEmitter,
-                                        Router => SimRouter, Pool, LoadBalancer,
-                                        _}
+import org.midonet.midolman.simulation.{Bridge => SimBridge, BridgePort => SimBridgePort, Chain => SimChain, DhcpConfigFromNsdb, LoadBalancer, PacketContext, PacketEmitter, Pool, Port => SimPort, Router => SimRouter, SimDevice, _}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockStateStorage}
-
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
+import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, DeviceRequest, LoadBalancerRequest, PoolRequest, PortRequest, RouterRequest}
 import org.midonet.midolman.topology.devices.Host
-import org.midonet.midolman.topology.{VirtualTopology, VirtualToPhysicalMapper, VirtualTopologyActor}
-import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, BridgeRequest, ChainRequest, IPAddrGroupRequest,
-                                                           PortRequest, RouterRequest, PoolRequest, LoadBalancerRequest}
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology, VirtualTopologyActor}
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.InternalPort
@@ -320,11 +307,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                 (dpPortToVport map (_.swap) toMap) get vportId map Integer.valueOf orNull
         }
 
-        val dhcpConfig = if (useNewStorageStack) {
-            new DhcpConfigFromZoom(injector.getInstance(classOf[VirtualTopology]))
-        } else {
-            new DhcpConfigFromDataclient(injector.getInstance(classOf[DataClient]))
-        }
+        val dhcpConfig = new DhcpConfigFromNsdb(
+            injector.getInstance(classOf[VirtualTopology]))
 
         TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
             config,
