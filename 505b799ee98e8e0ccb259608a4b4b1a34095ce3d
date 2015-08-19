@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_97574fca",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/data/VtepStateStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-19T15:29:02Z",
+      "side": 1,
+      "message": "Do we need the individual ones? Any reason for not doing a single setVtepInfo? I guess we\u0027ll have a service watching the Physical_Switch table, which will give us a single row with the equivalent of a VtepInfo instance, so I don\u0027t see a use case for the 3 individual ones.",
+      "revId": "505b799ee98e8e0ccb259608a4b4b1a34095ce3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d7f717d3",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-19T15:29:02Z",
+      "side": 1,
+      "message": "VtepConfiguration maybe, but not a strong opinion",
+      "range": {
+        "startLine": 74,
+        "startChar": 8,
+        "endLine": 74,
+        "endChar": 23
+      },
+      "revId": "505b799ee98e8e0ccb259608a4b4b1a34095ce3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
