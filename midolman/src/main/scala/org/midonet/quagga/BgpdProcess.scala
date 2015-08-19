@@ -22,22 +22,25 @@ import org.midonet.packets.{IPv4Subnet, MAC}
 import org.midonet.util.process.ProcessHelper
 import org.midonet.util.process.ProcessHelper.ProcessResult
 
-trait BgpdProcess {
-    def vty: BgpConnection
+trait QuaggaEnvironment {
+    def bgpVty: BgpConnection
     def prepare(): Unit
     def stop(): Boolean
     def isAlive: Boolean
     def start(): Unit
 }
 
-case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
-                              routerIp: IPv4Subnet, routerMac: MAC, vtyPortNumber: Int,
-                              bgpdHelperScript: String = "/usr/lib/midolman/bgpd-helper",
-                              confFile: String = "/etc/midolman/quagga/bgpd.conf") extends BgpdProcess {
+case class DefaultBgpdEnvironment(bgpIndex: Int, localVtyIp: IPv4Subnet,
+                                  remoteVtyIp: IPv4Subnet,
+                                  routerIp: IPv4Subnet, routerMac: MAC,
+                                  vtyPortNumber: Int,
+                                  bgpdHelperScript: String = "/usr/lib/midolman/bgpd-helper",
+                                  confFile: String = "/etc/midolman/quagga/bgpd.conf")
+        extends QuaggaEnvironment {
 
     private final val log = LoggerFactory.getLogger(s"org.midonet.routing.bgpd-helper-$bgpIndex")
 
-    val vty = new BgpVtyConnection(remoteVtyIp.getAddress.toString, vtyPortNumber)
+    val bgpVty = new BgpVtyConnection(remoteVtyIp.getAddress.toString, vtyPortNumber)
 
     private var bgpdProcess: Process = null
 
@@ -73,7 +76,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
     }
 
     def stop(): Boolean = {
-        vty.close()
+        bgpVty.close()
 
         val cmd = s"$bgpdHelperScript down $bgpIndex"
         val result = ProcessHelper.executeCommandLine(cmd, true)
@@ -104,7 +107,7 @@ case class DefaultBgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp
 
     private def connectVty(retries: Int = 10): Unit = {
         try {
-            vty.open()
+            bgpVty.open()
         } catch {
             case e: Exception if retries > 0 =>
                 Thread.sleep(500)

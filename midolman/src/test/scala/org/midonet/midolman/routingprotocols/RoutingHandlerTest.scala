@@ -43,7 +43,7 @@ import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor, Network}
 import org.midonet.quagga.ZebraProtocol.RIBType
-import org.midonet.quagga.{BgpConnection, BgpdProcess}
+import org.midonet.quagga.{BgpConnection, QuaggaEnvironment}
 
 @RunWith(classOf[JUnitRunner])
 class RoutingHandlerTest extends FeatureSpecLike
@@ -51,10 +51,10 @@ class RoutingHandlerTest extends FeatureSpecLike
                                     with BeforeAndAfter
                                     with MockitoSugar {
     var rport: RouterPort = _
-    var bgpd: MockBgpdProcess = _
+    var quaggaEnv: MockBgpdProcess = _
     var dataClient: DataClient = _
     var routingStorage: RoutingStorage = _
-    def vty = bgpd.vty
+    def vty = quaggaEnv.bgpVty
     var routingHandler: ActorRef = _
     var invalidations = List[BackChannelMessage]()
     val config = MidolmanConfig.forTests
@@ -82,7 +82,7 @@ class RoutingHandlerTest extends FeatureSpecLike
                 portIp = IPv4Addr.fromString("192.168.80.1"),
                 portMac = MAC.random())
 
-        bgpd = new MockBgpdProcess
+        quaggaEnv = new MockBgpdProcess
         dataClient = mock[DataClient]
         routingStorage = new RoutingStorageForV1(dataClient)
         invalidations = Nil
@@ -90,13 +90,13 @@ class RoutingHandlerTest extends FeatureSpecLike
                                                     invalidations ::= _,
                                                     routingStorage,
                                                     config,
-                                                    bgpd))
+                                                    quaggaEnv))
         routingHandler ! rport
-        bgpd.state should be (bgpd.NOT_STARTED)
+        quaggaEnv.state should be (quaggaEnv.NOT_STARTED)
         routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
-        bgpd.state should be (bgpd.RUNNING)
-        bgpd.starts should be (1)
-        reset(bgpd.vty)
+        quaggaEnv.state should be (quaggaEnv.RUNNING)
+        quaggaEnv.starts should be (1)
+        reset(quaggaEnv.bgpVty)
     }
 
     after {
@@ -104,63 +104,63 @@ class RoutingHandlerTest extends FeatureSpecLike
         as.shutdown()
     }
 
-    feature ("manages the bgpd lifecycle") {
+    feature ("manages the bgpd-quagga environment lifecycle") {
         scenario("starts and stops bgpd") {
             routingHandler ! RoutingHandler.Update(baseConfig.copy(neighbors = Map.empty), Set.empty)
-            bgpd.state should be (bgpd.NOT_STARTED)
+            quaggaEnv.state should be (quaggaEnv.NOT_STARTED)
 
             routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
-            bgpd.state should be (bgpd.RUNNING)
+            quaggaEnv.state should be (quaggaEnv.RUNNING)
         }
 
         scenario("change in the router port address") {
             val p = rport.copy(isActive = true, portIp = IPv4Addr.fromString("192.168.80.2"))
             routingHandler ! p
-            bgpd.state should be (bgpd.RUNNING)
-            bgpd.starts should be (2)
+            quaggaEnv.state should be (quaggaEnv.RUNNING)
+            quaggaEnv.starts should be (2)
 
             routingHandler ! p
-            bgpd.state should be (bgpd.RUNNING)
-            bgpd.starts should be (2)
+            quaggaEnv.state should be (quaggaEnv.RUNNING)
+            quaggaEnv.starts should be (2)
         }
 
         scenario("port goes up and down") {
             routingHandler ! RoutingHandler.PortActive(false)
-            bgpd.state should be (bgpd.NOT_STARTED)
+            quaggaEnv.state should be (quaggaEnv.NOT_STARTED)
 
             routingHandler ! RoutingHandler.PortActive(true)
-            bgpd.state should be (bgpd.RUNNING)
+            quaggaEnv.state should be (quaggaEnv.RUNNING)
         }
 
         scenario("zookepeer goes on and off") {
             routingHandler ! RoutingHandler.ZookeeperConnected(false)
-            bgpd.state should be (bgpd.NOT_STARTED)
+            quaggaEnv.state should be (quaggaEnv.NOT_STARTED)
 
             routingHandler ! RoutingHandler.ZookeeperConnected(true)
-            bgpd.state should be (bgpd.RUNNING)
+            quaggaEnv.state should be (quaggaEnv.RUNNING)
         }
 
         scenario("zookeeper and the port go on and off") {
             routingHandler ! RoutingHandler.ZookeeperConnected(false)
-            bgpd.state should be (bgpd.NOT_STARTED)
+            quaggaEnv.state should be (quaggaEnv.NOT_STARTED)
 
             routingHandler ! RoutingHandler.PortActive(false)
             routingHandler ! RoutingHandler.ZookeeperConnected(true)
-            bgpd.state should be (bgpd.NOT_STARTED)
+            quaggaEnv.state should be (quaggaEnv.NOT_STARTED)
 
             routingHandler ! RoutingHandler.ZookeeperConnected(false)
             routingHandler ! RoutingHandler.PortActive(true)
-            bgpd.state should be (bgpd.NOT_STARTED)
+            quaggaEnv.state should be (quaggaEnv.NOT_STARTED)
 
             routingHandler ! RoutingHandler.ZookeeperConnected(true)
-            bgpd.state should be (bgpd.RUNNING)
+            quaggaEnv.state should be (quaggaEnv.RUNNING)
         }
 
         scenario("bgp dies") {
-            bgpd.die()
+            quaggaEnv.die()
             routingHandler ! RoutingHandler.FETCH_BGPD_STATUS
-            bgpd.state should be (bgpd.RUNNING)
-            bgpd.starts should be (2)
+            quaggaEnv.state should be (quaggaEnv.RUNNING)
+            quaggaEnv.starts should be (2)
         }
     }
 
@@ -251,11 +251,11 @@ class RoutingHandlerTest extends FeatureSpecLike
 
             routingHandler ! RoutingHandler.Update(update, Set(peer1Id, peer2Id))
             routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
-            verify(bgpd.vty).addPeer(MY_AS, peer2, 200,
+            verify(quaggaEnv.bgpVty).addPeer(MY_AS, peer2, 200,
                                      config.bgpKeepAlive,
                                      config.bgpHoldTime,
                                      config.bgpConnectRetry)
-            verify(bgpd.vty).deletePeer(MY_AS, peer2)
+            verify(quaggaEnv.bgpVty).deletePeer(MY_AS, peer2)
         }
 
         scenario("routes are announced and removed") {
@@ -268,14 +268,16 @@ class RoutingHandlerTest extends FeatureSpecLike
             routingHandler ! RoutingHandler.Update(
                 baseConfig.copy(networks = Set(net1)), Set(peer1Id))
 
-            verify(bgpd.vty, times(3)).addNetwork(anyInt(), anyObject())
-            verify(bgpd.vty).addNetwork(MY_AS, net1.cidr)
-            verify(bgpd.vty).addNetwork(MY_AS, net2.cidr)
-            verify(bgpd.vty).addNetwork(MY_AS, net3.cidr)
+            verify(quaggaEnv.bgpVty, times(3)).addNetwork(anyInt(),
+                                                          anyObject())
+            verify(quaggaEnv.bgpVty).addNetwork(MY_AS, net1.cidr)
+            verify(quaggaEnv.bgpVty).addNetwork(MY_AS, net2.cidr)
+            verify(quaggaEnv.bgpVty).addNetwork(MY_AS, net3.cidr)
 
-            verify(bgpd.vty, times(2)).deleteNetwork(anyInt(), anyObject())
-            verify(bgpd.vty).deleteNetwork(MY_AS, net2.cidr)
-            verify(bgpd.vty).deleteNetwork(MY_AS, net3.cidr)
+            verify(quaggaEnv.bgpVty, times(2)).deleteNetwork(anyInt(),
+                                                             anyObject())
+            verify(quaggaEnv.bgpVty).deleteNetwork(MY_AS, net2.cidr)
+            verify(quaggaEnv.bgpVty).deleteNetwork(MY_AS, net3.cidr)
         }
 
         scenario("timer values change") {
@@ -283,17 +285,17 @@ class RoutingHandlerTest extends FeatureSpecLike
                 Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
 
             routingHandler ! RoutingHandler.Update(update, Set(peer1Id))
-            verify(bgpd.vty).addPeer(MY_AS, peer1, 100, 29, 30, 31)
+            verify(quaggaEnv.bgpVty).addPeer(MY_AS, peer1, 100, 29, 30, 31)
         }
     }
 }
 
-class MockBgpdProcess extends BgpdProcess with MockitoSugar {
+class MockBgpdProcess extends QuaggaEnvironment with MockitoSugar {
     val NOT_STARTED = "NOT_STARTED"
     val PREPARED = "PREPARED"
     val RUNNING = "RUNNING"
 
-    override val vty = mock[BgpConnection]
+    override val bgpVty = mock[BgpConnection]
 
     var state = NOT_STARTED
 
@@ -333,7 +335,7 @@ class TestableRoutingHandler(rport: RouterPort,
                              flowInvalidator: (BackChannelMessage) => Unit,
                              routingStorage: RoutingStorage,
                              config: MidolmanConfig,
-                             override val bgpd: MockBgpdProcess)
+                             override val quaggaEnv: MockBgpdProcess)
             extends RoutingHandler(rport, 1, flowInvalidator, routingStorage,
                                    config, new MockZkConnWatcher()) {
 

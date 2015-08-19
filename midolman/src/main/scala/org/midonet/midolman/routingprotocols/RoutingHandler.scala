@@ -155,9 +155,10 @@ object RoutingHandler {
             private final val BGP_VTY_MIRROR_IP =
                 new IPv4Subnet(IPv4Addr.fromInt(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx), 30)
 
-            override protected val bgpd: BgpdProcess = new DefaultBgpdProcess(bgpIdx, BGP_VTY_LOCAL_IP,
-                BGP_VTY_MIRROR_IP, rport.portSubnet,
-                rport.portMac, BGP_VTY_PORT)
+            override protected val quaggaEnv: QuaggaEnvironment =
+                new DefaultBgpdEnvironment(bgpIdx, BGP_VTY_LOCAL_IP,
+                                           BGP_VTY_MIRROR_IP, rport.portSubnet,
+                                           rport.portMac, BGP_VTY_PORT)
 
             val lazyConnWatcher = new LazyZkConnectionMonitor(
                 () => self ! ZookeeperConnected(false),
@@ -285,7 +286,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     protected def deleteDpPort(port: NetDevPort): Future[_]
     protected def startZebra(): Unit
     protected def stopZebra(): Unit
-    protected val bgpd: BgpdProcess
+    protected val quaggaEnv: QuaggaEnvironment
 
     override def postStop() {
         super.postStop()
@@ -374,21 +375,21 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             }(singleThreadExecutionContext)
 
         case OnError(BgpPortDeleted(portId)) =>
-            log.warn("Port {} deleted: stopping bgpd", portId)
+            log.warn("Port {} deleted: stopping quagga", portId)
             stopBgpd()
 
         case OnError(BgpRouterDeleted(portId, routerId)) =>
-            log.warn("Router {} for port {} deleted: stopping bgpd",
+            log.warn("Router {} for port {} deleted: stopping quagga",
                      routerId, portId)
             stopBgpd()
 
         case OnError(e) =>
-            log.error("Error on BGP port observable: stopping bgpd", e)
+            log.error("Error on BGP port observable: stopping quagga", e)
             stopBgpd()
 
         case OnCompleted =>
             log.error("Unexpected completion of the BGP observable: stopping " +
-                      "bgpd")
+                      "quagga")
             stopBgpd()
     }
 
@@ -404,11 +405,11 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     private def portUpdated(port: RouterPort): Future[_] = {
-        if (bgpd.isAlive) {
+        if (quaggaEnv.isAlive) {
             if (port.portIp != rport.portIp ||
                 port.portSubnet != rport.portSubnet ||
                 port.portMac != rport.portMac) {
-                log.info("Port addresses changed, restarting bgpd")
+                log.info("Port addresses changed, restarting quagga")
                 rport = port
                 restartBgpd()
             } else {
@@ -417,7 +418,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 Future.successful(true)
             }
         } else {
-            log.info("new port but bgpd is down")
+            log.info("new port but quagga is down")
             rport = port
             Future.successful(true)
         }
@@ -492,31 +493,32 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     private def updateBgpdStatus(): Future[_] = {
-        var status = "bgpd daemon is not ready"
+        var status = "quagga daemon is not ready"
         checkBgpdHealth().andThen { case _ =>
             try {
-                if (bgpd.isAlive) {
-                    status = bgpd.vty.showGeneric("show ip bgp nei").
+                if (quaggaEnv.isAlive) {
+                    status = quaggaEnv.bgpVty.showGeneric("show ip bgp nei").
                         filterNot(_.startsWith("bgpd#")).
                         filterNot(_.startsWith("show ip bgp nei")).
                         foldRight("")((a, b) => s"$a\n$b")
                 }
             } catch {
-                case e: Exception => log.warn("Failed to check bgpd status", e)
+                case e: Exception => log.warn("Failed to check quagga status",
+                                              e)
             }
 
             for (id <- bgpPeerIds) {
                 routingStorage.setStatus(id, status).onFailure { case e =>
-                    log.warn("Failed to set bgpd status", e)
+                    log.warn("Failed to set quagga status", e)
                 }(singleThreadExecutionContext)
             }
         }(singleThreadExecutionContext)
     }
 
     private def update(newConfig: BgpRouter, newPeers: Set[UUID]): Future[_] = {
-        (bgpd.isAlive match {
+        (quaggaEnv.isAlive match {
             case true if newConfig.as != bgpConfig.as =>
-                log.info("BGP AS number changed, restarting bgpd")
+                log.info("BGP AS number changed, restarting quagga")
                 stopBgpd()
             case true =>
                 updateLocalNetworks(bgpConfig.networks, newConfig.networks)
@@ -538,12 +540,12 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         for (peer <- lost) {
             log.info(s"Forgetting BGP neighbor ${peer.as} at ${peer.address}")
-            bgpd.vty.deletePeer(bgpConfig.as, peer.address)
+            quaggaEnv.bgpVty.deletePeer(bgpConfig.as, peer.address)
             routingInfo.peers.remove(peer.address)
         }
 
         for (peer <- gained) {
-            bgpd.vty.addPeer(bgpConfig.as, peer.address, peer.as,
+            quaggaEnv.bgpVty.addPeer(bgpConfig.as, peer.address, peer.as,
                 peer.keepalive.getOrElse(config.bgpKeepAlive),
                 peer.holdtime.getOrElse(config.bgpHoldTime),
                 peer.connect.getOrElse(config.bgpConnectRetry))
@@ -560,13 +562,13 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     private def bootstrapBgpdConfig() {
-        log.debug(s"Configuring bgpd")
+        log.debug(s"Configuring quagga")
 
-        bgpd.vty.setAs(bgpConfig.as)
-        bgpd.vty.setRouterId(bgpConfig.as, bgpConfig.id)
+        quaggaEnv.bgpVty.setAs(bgpConfig.as)
+        quaggaEnv.bgpVty.setRouterId(bgpConfig.as, bgpConfig.id)
 
         for (neigh <- bgpConfig.neighbors.values) {
-            bgpd.vty.addPeer(bgpConfig.as, neigh.address, neigh.as,
+            quaggaEnv.bgpVty.addPeer(bgpConfig.as, neigh.address, neigh.as,
                 neigh.keepalive.getOrElse(config.bgpKeepAlive),
                 neigh.holdtime.getOrElse(config.bgpHoldTime),
                 neigh.connect.getOrElse(config.bgpConnectRetry))
@@ -576,11 +578,11 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         for (net <- bgpConfig.networks) {
             log.info(s"Announcing route to peers: ${net.cidr}")
-            bgpd.vty.addNetwork(bgpConfig.as, net.cidr)
+            quaggaEnv.bgpVty.addNetwork(bgpConfig.as, net.cidr)
         }
 
         if (log.underlying.isDebugEnabled)
-            bgpd.vty.setDebug(enabled = true)
+            quaggaEnv.bgpVty.setDebug(enabled = true)
     }
 
     private def updateLocalNetworks(currentNetworks: Set[Network],
@@ -590,25 +592,25 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         for (net <- lost) {
             log.info(s"Withdrawing route announcement: ${net.cidr}")
-            bgpd.vty.deleteNetwork(bgpConfig.as, net.cidr)
+            quaggaEnv.bgpVty.deleteNetwork(bgpConfig.as, net.cidr)
         }
 
         for (net <- gained) {
             log.info(s"Announcing route to peers: ${net.cidr}")
-            bgpd.vty.addNetwork(bgpConfig.as, net.cidr)
+            quaggaEnv.bgpVty.addNetwork(bgpConfig.as, net.cidr)
         }
     }
 
     private def bgpdPrepare(): Future[(DpPort, Int)] = {
-        log.debug("preparing environment for bgpd")
+        log.debug("preparing environment for quagga")
 
         try {
             startZebra()
-            bgpd.prepare()
+            quaggaEnv.prepare()
             createDpPort(BGP_NETDEV_PORT_NAME)
         } catch {
             case e: Exception =>
-                log.warn("Could not prepare bgpd environment", e)
+                log.warn("Could not prepare quagga environment", e)
                 Future.failed(e)
         }
     }
@@ -616,7 +618,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private def startBgpd(): Future[_] = {
         bgpdPrepare().map {
             case (dpPort, pid) =>
-                log.debug("datapath port is ready, starting bgpd")
+                log.debug("datapath port is ready, starting quagga")
                 theDatapathPort = Some(dpPort.asInstanceOf[NetDevPort])
 
                 routingInfo.uplinkPid = pid
@@ -629,12 +631,12 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 RoutingWorkflow.routerPortToDatapathInfo.put(rport.id, routingInfo)
                 invalidateFlows()
 
-                bgpd.start()
+                quaggaEnv.start()
                 bootstrapBgpdConfig()
                 true
         }(singleThreadExecutionContext).recoverWith {
             case e =>
-                log.warn("Could not initialize bgpd", e)
+                log.warn("Could not initialize quagga", e)
                 stopBgpd()
         }(singleThreadExecutionContext)
     }
@@ -644,8 +646,8 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         clearRoutingWorkflow()
         stopZebra()
 
-        log.debug("stopping bgpd")
-        bgpd.stop()
+        log.debug("stopping quagga")
+        quaggaEnv.stop()
         invalidateFlows()
         handleLearnedRouteError {
             val futures = new ArrayBuffer[Future[Route]]()
@@ -663,8 +665,8 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     private def checkBgpdHealth(): Future[_] = {
-        if (bgpdShouldRun && !bgpd.isAlive) {
-            log.warn("bgpd died, restarting")
+        if (bgpdShouldRun && !quaggaEnv.isAlive) {
+            log.warn("quagga died, restarting")
             restartBgpd()
         } else {
             Future.successful(true)
@@ -672,9 +674,9 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     private def startOrStopBgpd(): Future[_] = {
-        if (bgpdShouldRun && !bgpd.isAlive)
+        if (bgpdShouldRun && !quaggaEnv.isAlive)
             startBgpd()
-        else if (bgpd.isAlive && !bgpdShouldRun)
+        else if (quaggaEnv.isAlive && !bgpdShouldRun)
             stopBgpd()
         else
             Future.successful(true)
