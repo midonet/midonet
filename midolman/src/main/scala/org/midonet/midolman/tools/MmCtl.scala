@@ -17,17 +17,18 @@
 package org.midonet.midolman.tools
 
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 import com.google.inject.{Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
 import org.apache.commons.cli._
 import org.apache.curator.framework.CuratorFramework
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule}
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.{DataClient, ZookeeperLockFactory}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
@@ -87,7 +88,10 @@ class DataClientPortBinder(dataClient: DataClient) extends PortBinder {
     }
 }
 
-class ZoomPortBinder(storage: Storage) extends PortBinder {
+class ZoomPortBinder(storage: Storage,
+                     lockFactory: ZookeeperLockFactory) extends PortBinder {
+
+    private val LockWaitSec = 5
 
     private def getPortBuilder(portId: UUID): Topology.Port.Builder =
         storage.get(classOf[Topology.Port], portId).await().toBuilder
@@ -95,20 +99,34 @@ class ZoomPortBinder(storage: Storage) extends PortBinder {
     override def bindPort(portId: UUID, hostId: UUID,
                           deviceName: String): Try[Unit] = {
 
-        Try(getPortBuilder(portId)
-                .setHostId(UUIDUtil.toProto(hostId))
-                .setInterfaceName(deviceName)
-                .build())
-            .flatMap { p => Try(storage.update(p)) }
+        val lock = lockFactory.createShared(
+            ZookeeperLockFactory.NEUTRON_ZOOM)
+        lock.acquire(LockWaitSec, TimeUnit.SECONDS)
+
+        val ret = Try(getPortBuilder(portId)
+                         .setHostId(UUIDUtil.toProto(hostId))
+                         .setInterfaceName(deviceName)
+                         .build())
+                      .flatMap { p => Try(storage.update(p)) }
+
+        lock.release()
+        ret
     }
 
     override def unbindPort(portId: UUID, hostId: UUID): Try[Unit] = {
 
-        Try(getPortBuilder(portId)
-                .clearHostId()
-                .clearInterfaceName()
-                .build())
-            .flatMap { p => Try(storage.update(p)) }
+        val lock = lockFactory.createShared(
+            ZookeeperLockFactory.NEUTRON_ZOOM)
+        lock.acquire(LockWaitSec, TimeUnit.SECONDS)
+
+        val ret = Try(getPortBuilder(portId)
+                          .clearHostId()
+                          .clearInterfaceName()
+                          .build())
+                      .flatMap { p => Try(storage.update(p)) }
+
+        lock.release()
+        ret
     }
 }
 
@@ -142,7 +160,9 @@ class MmCtl(injector: Injector) {
             val backend = injector.getInstance(classOf[MidonetBackend])
             backend.setupBindings()
 
-            new ZoomPortBinder(backend.store)
+            val lockFactory = injector.getInstance(
+                classOf[ZookeeperLockFactory])
+            new ZoomPortBinder(backend.store, lockFactory)
         } else {
             val dataClient = injector.getInstance(classOf[DataClient])
             new DataClientPortBinder(dataClient)

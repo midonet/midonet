@@ -65,13 +65,12 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
                                                   pathBuilder)
 
     private val lockOpNumber = new AtomicInteger(0)
-    private val lockName = "neutron-zoom"
 
     private def tryRead[T](f: => T): T = tryStorageOp(f)
 
     private def tryWrite(f: => Unit): Unit = {
         val lock = new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
-                                lockName)
+                                ZookeeperLockFactory.NEUTRON_ZOOM)
         try lock.acquire() catch {
             case NonFatal(t) =>
                 log.error("Could not acquire Zookeeper lock.", t)
