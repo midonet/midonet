@@ -21,13 +21,12 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.TextFormat
-
 import rx.Observable
 
 import org.midonet.cluster.data.storage.{SingleValueKey, StateResult, StateStorage, StorageException}
 import org.midonet.cluster.models.State.{VtepConfiguration, VtepConnectionState}
 import org.midonet.cluster.models.Topology.Vtep
-import org.midonet.cluster.services.MidonetBackend.{VtepConnState, VtepConfig}
+import org.midonet.cluster.services.MidonetBackend.{VtepConfig, VtepConnState}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.packets.IPAddr
