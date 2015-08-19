@@ -32,24 +32,21 @@ import org.slf4j.{LoggerFactory, MDC}
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
-import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.midolman.flows.FlowExpirationIndexer
+import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.midolman.logging.{ActorLogWithoutPath, FlowTracingContext}
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.FlowRecorder
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPhysicalPacket
-import org.midonet.midolman.simulation._
+import org.midonet.midolman.simulation.PacketEmitter.{GeneratedLogicalPacket, GeneratedPacket, GeneratedPhysicalPacket}
+import org.midonet.midolman.simulation.{Port, _}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser, _}
-import org.midonet.midolman.simulation.Port
-import org.midonet.midolman.topology.{RouterManager, VirtualTopologyActor, VxLanPortMapper}
+import org.midonet.midolman.topology.{RouterManager, VirtualTopologyActor, VxLanPortMappingService}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowActions.output
@@ -106,7 +103,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     private def handleFromVtep(context: PacketContext): SimulationResult = {
         val srcTunIp = IPv4Addr(context.wcmatch.getTunnelSrc)
         val vni = context.wcmatch.getTunnelKey.toInt
-        val portIdOpt = VxLanPortMapper uuidOf (srcTunIp, vni)
+        val portIdOpt = VxLanPortMappingService uuidOf (srcTunIp, vni)
         val simResult = if (portIdOpt.isDefined) {
             context.inputPort = portIdOpt.get
             simulatePacketIn(context)
