@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_7e6c6809",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T07:55:11Z",
+      "side": 1,
+      "message": "should we rename this variable into \"quagga\" ? Idioms like bgpd.bgpVty look redundant.",
+      "revId": "af2ed2882ee0cec0ddbef6a82e261a8990ee550b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
