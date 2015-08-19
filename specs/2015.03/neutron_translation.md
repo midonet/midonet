@@ -759,6 +759,74 @@ Unbind the port whose ID is provided in the 'reource_id' of the task.  This
 operation is idempotent.
 
 
+## FIREWALL
+
+In the Firewall object sent as input for create and update, both the firewall
+and the firewall rules are included.
+
+### CREATE
+
+Create two MidoNet chains for the firewall with deterministic IDs generated
+from the firewall ID.  One chain will be used for the inbound (pre-routing) and
+the other for the outbound (post-routing) chains of the routers that the
+firewall is associated with.
+
+On the pre-routing chain, add the following rules in the order specified:
+
+ * Return rule matching on everything if admin_state_up is true.
+ * Rule matching on the return flow to allow return traffic in.
+ * Rules included in the input firewall object are translated to MidoNet rules
+   in the same exact order.  Rule field translations are:
+
+    * protocol string translated to protocol number.
+    * source IP, which could be either IP address or CIDR, translated as
+      IPSubnet.
+    * destination IP, which could be either IP address or CIDR, translated as
+      IPSubnet.
+    * source port, which could be a single int value or a range delimited by
+      ':', translated as Int32Range.
+    * destination port, which could be a single int value or a range delimited
+      by ':', translated as Int32Range.
+    * Action of DENY is translated as DROP and ALLOW is translated as ACCEPT.
+
+  * Rule dropping all traffic.
+
+  On the post-routing chain, add the following rules in the order specified:
+
+   * Return rule matching on everything if admin_state_up is true.
+   * Rule matching on the forward flow to start connection tracking.
+
+For each router associated, create jump rules to the firewall chains.  On the
+pre-routing chain of the router, insert the jump rule at index 0 so that the
+firewall rules are evaluated before the NAT rules that may also exist.  On the
+post-routing chain of the router, insert the jump rule at the end for no other
+reason than to be symmetric.
+
+
+### UPDATE
+
+From the firewall rules provided, calculate the rules added, removed and
+modified, and then add/remove/update them appropriately.  Update the chain to
+maintain the rule order.
+
+For each router associated, create jump rules to the firewall chains.  On the
+pre-routing chain of the router, insert the jump rule at index 0 so that the
+firewall rules are evaluated before the NAT rules that may also exist.  On the
+post-routing chain of the router, insert the jump rule at the end for no other
+reason than to be symmetric.
+
+For the routers disassociated, delete the jump rules to the firewall chains.
+
+It is possible that Neutron sends in the 'add-router-ids' list with routers
+that are already associated, and in the 'del-router-ids' list with routers that
+are not associated.  Handle each case without throwing an exception.
+
+
+### DELETE
+
+Delete the two chains associated with the firewall being deleted.
+
+
 # References
 
 [1]
