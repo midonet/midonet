@@ -166,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d78717b5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_a8523f66",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e84c47cb",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -177,6 +201,24 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "Please remove the extra white line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_378f63ce",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e84c47cb",
       "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -206,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_b22461b0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "I will change it to postRoutingRules and preRoutingRules to be clear which chain on the router they apply to.",
+      "parentUuid": "9ad9bd40_68d037ca",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 42,
+        "endChar": 28
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_084a4bac",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -217,6 +283,24 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "Please remove the extra empty line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_57bb0775",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_084a4bac",
       "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -240,6 +324,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_77c00be1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_b311d055",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6811175d",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -251,6 +353,30 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "This is a bad name as this can be used only Update case. Perhaps translateRuleChainUpdate?",
+      "range": {
+        "startLine": 81,
+        "startChar": 16,
+        "endLine": 81,
+        "endChar": 30
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f7ab3b1c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_6811175d",
       "range": {
         "startLine": 81,
         "startChar": 16,
@@ -286,6 +412,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d7ae372f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_c807831c",
+      "range": {
+        "startLine": 83,
+        "startChar": 31,
+        "endLine": 83,
+        "endChar": 40
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2849cf8e",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -309,6 +459,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_17a97f24",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_2849cf8e",
+      "range": {
+        "startLine": 84,
+        "startChar": 4,
+        "endLine": 84,
+        "endChar": 20
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_88481b89",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -320,6 +494,24 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "Please delete the empty line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_57622717",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_88481b89",
       "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -372,6 +564,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_52feb506",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "I believe so to set the order of the rules.  I\u0027ll add a comment about it and we can discuss further in the smaller patch that I will send for this.",
+      "parentUuid": "9ad9bd40_481c5378",
+      "range": {
+        "startLine": 99,
+        "startChar": 8,
+        "endLine": 100,
+        "endChar": 59
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_13199c79",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -383,6 +599,24 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "Please remove the extra white line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_77672b26",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_13199c79",
       "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -406,6 +640,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_172edfa5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_3325c0ae",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1330bce7",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -417,6 +669,24 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "Please delete the extra line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b771b3e2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_1330bce7",
       "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -446,6 +716,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_17809f8a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d33574dc",
+      "range": {
+        "startLine": 119,
+        "startChar": 12,
+        "endLine": 119,
+        "endChar": 64
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f33278f1",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -457,6 +751,24 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "Ditto.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5749478d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f33278f1",
       "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -480,6 +792,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d77557cd",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_334ce076",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e8fa8742",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -491,6 +821,30 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "Please append Id to the method names of this and those below.",
+      "range": {
+        "startLine": 170,
+        "startChar": 8,
+        "endLine": 170,
+        "endChar": 31
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b73ff3d5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e8fa8742",
       "range": {
         "startLine": 170,
         "startChar": 8,
@@ -526,6 +880,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_774e4b98",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e8e367a2",
+      "range": {
+        "startLine": 192,
+        "startChar": 48,
+        "endLine": 192,
+        "endChar": 49
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_88badb6c",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -537,6 +915,24 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "Please delete the empty line.",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b748d388",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_88badb6c",
       "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -560,6 +956,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f7597b5c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_a8aebf2d",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c8ab031d",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -577,6 +991,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_1757bf27",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_c8ab031d",
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e8a8c722",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 11
@@ -588,6 +1020,30 @@
       "writtenOn": "2015-08-17T17:25:06Z",
       "side": 1,
       "message": "Not necessary.",
+      "range": {
+        "startLine": 255,
+        "startChar": 30,
+        "endLine": 255,
+        "endChar": 38
+      },
+      "revId": "5bc9bd54f3e0c1a0f3053d9420e0e1916dcb54bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_77356bf6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-19T16:44:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e8a8c722",
       "range": {
         "startLine": 255,
         "startChar": 30,
