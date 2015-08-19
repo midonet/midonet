@@ -45,7 +45,7 @@ import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser, _}
 import org.midonet.midolman.simulation.Port
-import org.midonet.midolman.topology.{RouterManager, VirtualTopologyActor, VxLanPortMapper}
+import org.midonet.midolman.topology.{RouterManager, VirtualTopologyActor, VxLanPortMappingService}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.packets._
@@ -101,7 +101,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     private def handleFromVtep(context: PacketContext): SimulationResult = {
         val srcTunIp = IPv4Addr(context.wcmatch.getTunnelSrc)
         val vni = context.wcmatch.getTunnelKey.toInt
-        val portIdOpt = VxLanPortMapper uuidOf (srcTunIp, vni)
+        val portIdOpt = VxLanPortMappingService uuidOf (srcTunIp, vni)
         val simResult = if (portIdOpt.isDefined) {
             context.inputPort = portIdOpt.get
             simulatePacketIn(context)
