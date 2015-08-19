@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_fcf400d1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-19T12:55:31Z",
+      "side": 1,
+      "message": "old code looked better and less error prone. now the owner is implicit, whereas before it was explicit. does Chain still need to be a ForwardingDevice?",
+      "revId": "92ec91d3b0da49a22dae6397970be5078eccc794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_dcdbbc7b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-19T12:55:31Z",
+      "side": 1,
+      "message": "move below SimDevice?",
+      "revId": "92ec91d3b0da49a22dae6397970be5078eccc794",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
