@@ -16,23 +16,20 @@
 package org.midonet.midolman.topology
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{Set => JSet, UUID}
+import java.util.UUID
 
-import scala.collection.mutable
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.{ClassTag, classTag}
-import scala.util.{Success, Failure}
+import scala.util.{Failure, Success}
 
 import akka.actor._
 import akka.util.Timeout
-
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-
 import org.slf4j.LoggerFactory
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -46,8 +43,6 @@ import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.state.Directory.TypedWatcher
-import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{Host, TunnelZone => NewTunnelZone}
 import org.midonet.util.concurrent._
@@ -410,13 +405,14 @@ trait DeviceManagement {
 abstract class VirtualToPhysicalMapperBase
     extends VtpmRedirector with SubscriberActor {
 
+    import VirtualToPhysicalMapper._
+    import context.system
+
     val cluster: DataClient
 
-    import VirtualToPhysicalMapper._
+    private var vxlanPortService: VxLanPortService = _
 
     override def subscribedClasses = Seq(classOf[LocalPortActive])
-
-    import context.system
 
     def notifyLocalPortActive(vportID: UUID, active: Boolean): Unit
     def clearLocalPortActive(): Unit
@@ -444,24 +440,14 @@ abstract class VirtualToPhysicalMapperBase
     override def preStart(): Unit = {
         super.preStart()
         DeviceCaches.clear()
-        startVxLanPortMapper()
+        vxlanPortService = new VxLanPortService(vt)
+        vxlanPortService.startAsync().awaitRunning()
     }
 
     override def postStop(): Unit = {
         clearLocalPortActive()
         super.postStop()
-    }
-
-    def startVxLanPortMapper() {
-        val provider = new VxLanIdsProvider {
-            def vxLanPortIdsAsyncGet(cb: DirectoryCallback[JSet[UUID]],
-                                     watcher: TypedWatcher) {
-                cluster vxLanPortIdsAsyncGet (cb, watcher)
-            }
-        }
-        val props = VxLanPortMapper props (VirtualTopologyActor, provider,
-                                           context.props.dispatcher)
-        context actorOf (props, "VxLanPortMapper")
+        vxlanPortService.stopAsync().awaitTerminated()
     }
 
     protected override def deviceUpdated(update: AnyRef, createHandler: Boolean)
