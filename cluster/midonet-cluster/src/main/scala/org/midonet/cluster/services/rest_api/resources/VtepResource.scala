@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
@@ -28,14 +27,14 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.data.storage.NotFoundException
-import org.midonet.cluster.models.State.{VtepConnectionState, VtepConfiguration}
 import org.midonet.cluster.models.State.VtepConnectionState._
+import org.midonet.cluster.models.State.{VtepConfiguration, VtepConnectionState}
+import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneType
 import org.midonet.cluster.rest_api.models.Vtep.ConnectionState._
 import org.midonet.cluster.rest_api.models.{Host, TunnelZone, Vtep}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._

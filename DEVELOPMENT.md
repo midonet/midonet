@@ -92,7 +92,7 @@ Contains the *MidoNet* edge controller code, as described [here](docs/midolman.m
 
 ### midonet-api
 
-Contains the implementation of the *MidoNet* REST API.
+Contains the unit tests of the *MidoNet* REST API.
 
 ### netlink
 
@@ -150,8 +150,9 @@ To skip the tests, you can run the command:
 
 ### Distro packages
 
-The build script provides targets to build debian and rpm packages. In all cases
-packages will be found in midolman/build/packages/ and midonet-api/build/packages.
+The build script provides targets to build debian and rpm packages. In
+all cases packages will be found in midolman/build/packages/ and
+cluster/midonet-cluster/build/packages.
 
 Building debian packages:
 

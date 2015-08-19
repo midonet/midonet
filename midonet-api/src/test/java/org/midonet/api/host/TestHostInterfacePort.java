@@ -199,7 +199,7 @@ public class TestHostInterfacePort {
                     APPLICATION_HOST_INTERFACE_PORT_JSON,
                     mapping);
             assertErrorMatchesLiteral(error,
-                    getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE));
+                    getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, host1Id));
         }
 
         @Test

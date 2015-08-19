@@ -21,16 +21,15 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
-import org.midonet.cluster.rest_api.validation.MessageProperty
-import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_INTERFACE_IS_USED, PORT_ALREADY_BOUND, getMessage}
+import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_INTERFACE_IS_USED, HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, PORT_ALREADY_BOUND, getMessage}
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -77,17 +76,20 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
         val store = resContext.backend.store
         val h = store.get(classOf[Topology.Host], hostId).getOrThrow
         if (h.getTunnelZoneIdsList.isEmpty) {
-            throw new BadRequestHttpException(s"Host $hostId does not belong " +
-                                              "to any tunnel zones")
+            throw new BadRequestHttpException(
+                getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, hostId))
         }
 
         val oldP = store.get(classOf[Topology.Port], binding.portId).getOrThrow
         if (oldP.hasInterfaceName) {
             throw new BadRequestHttpException(
-                getMessage(PORT_ALREADY_BOUND, binding.portId))
+                getMessage(PORT_ALREADY_BOUND, binding.portId,
+                           oldP.getInterfaceName,
+                           UUIDUtil.fromProto(oldP.getHostId))
         }
 
-        store.getAll(classOf[Topology.Port], h.getPortIdsList)
+        val portIds = h.getPortIdsList map UUIDUtil.fromProto
+        store.getAll(classOf[Topology.Port], portIds)
              .getOrThrow
              .find (
                 // of those ports in the host, see if any has the same ifc
@@ -95,7 +97,9 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
             ) match {
                 case Some(conflictingPort) =>
                     throw new BadRequestHttpException(
-                        getMessage(HOST_INTERFACE_IS_USED))
+                        getMessage(HOST_INTERFACE_IS_USED,
+                                   binding.interfaceName, hostId,
+                                   conflictingPort.getId))
                 case _ =>
             }
 
