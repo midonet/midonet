@@ -80,9 +80,15 @@ public class NeutronResource {
         return new SecurityGroupRuleResource(uriInfo, api);
     }
 
+    @Path(NeutronUriBuilder.FIREWALLS)
+    public FirewallResource getFirewallResource() {
+        return new FirewallResource(uriInfo, api);
+    }
+
     @GET
     @Produces({NeutronMediaType.NEUTRON_JSON_V1,
-               NeutronMediaType.NEUTRON_JSON_V2})
+               NeutronMediaType.NEUTRON_JSON_V2,
+               NeutronMediaType.NEUTRON_JSON_V3})
     public Neutron get() {
 
         Neutron neutron = new Neutron();
@@ -91,7 +97,7 @@ public class NeutronResource {
         neutron.uri = NeutronUriBuilder.getNeutron(baseUri);
         neutron.networks = NeutronUriBuilder.getNetworks(baseUri);
         neutron.networkTemplate = NeutronUriBuilder.getNetworkTemplate(
-                baseUri);
+            baseUri);
         neutron.subnets = NeutronUriBuilder.getSubnets(baseUri);
         neutron.subnetTemplate = NeutronUriBuilder.getSubnetTemplate(baseUri);
         neutron.ports = NeutronUriBuilder.getPorts(baseUri);
@@ -99,20 +105,23 @@ public class NeutronResource {
         neutron.routers = NeutronUriBuilder.getRouters(baseUri);
         neutron.routerTemplate = NeutronUriBuilder.getRouterTemplate(baseUri);
         neutron.addRouterInterfaceTemplate =
-                NeutronUriBuilder.getAddRouterInterfaceTemplate(baseUri);
+            NeutronUriBuilder.getAddRouterInterfaceTemplate(baseUri);
         neutron.removeRouterInterfaceTemplate =
-                NeutronUriBuilder.getRemoveRouterInterfaceTemplate(baseUri);
+            NeutronUriBuilder.getRemoveRouterInterfaceTemplate(baseUri);
         neutron.floatingIps = NeutronUriBuilder.getFloatingIps(baseUri);
         neutron.floatingIpTemplate = NeutronUriBuilder.getFloatingIpTemplate(
             baseUri);
         neutron.securityGroups = NeutronUriBuilder.getSecurityGroups(baseUri);
         neutron.securityGroupTemplate =
-                NeutronUriBuilder.getSecurityGroupTemplate(baseUri);
+            NeutronUriBuilder.getSecurityGroupTemplate(baseUri);
         neutron.securityGroupRules =
-                NeutronUriBuilder.getSecurityGroupRules(baseUri);
+            NeutronUriBuilder.getSecurityGroupRules(baseUri);
         neutron.securityGroupRuleTemplate =
-                NeutronUriBuilder.getSecurityGroupRuleTemplate(baseUri);
+            NeutronUriBuilder.getSecurityGroupRuleTemplate(baseUri);
         neutron.loadBalancer = LBResource.buildLoadBalancer(baseUri);
+        neutron.firewalls = NeutronUriBuilder.getFirewalls(baseUri);
+        neutron.firewallTemplate = NeutronUriBuilder.getFirewallTemplate(
+            baseUri);
         return neutron;
     }
 
