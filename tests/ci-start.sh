@@ -9,5 +9,4 @@ sudo dpkg -i *.deb
 pushd tests/mmm
 ./init
 ./boot
-./bootstrap_v2
 popd

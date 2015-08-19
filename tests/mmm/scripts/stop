@@ -16,7 +16,7 @@
 
 . mmmrc
 
-(cd midonet-api && bash stop)
+(cd midonet-cluster && bash stop)
 (cd midolman && bash stop)
 (cd dnsmasq && bash stop)
 (cd quagga && bash stop)

@@ -25,14 +25,12 @@ import com.sun.jersey.api.client.WebResource;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
@@ -42,6 +40,8 @@ import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoVtep;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -151,9 +151,8 @@ public class TestTunnelZone {
          * not be possible to delete the tunnel zone.
          */
         @Test
+        @Ignore("TODO FIXME - pending implementation in v2")
         public void testDeleteFailsIfVTEPUsingTunnelZone() {
-
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
 
             DtoApplication app = topology.getApplication();
             URI tunnelZonesUri = app.getTunnelZones();

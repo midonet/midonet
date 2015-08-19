@@ -23,27 +23,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import scala.concurrent.Promise;
+import scala.concurrent.Promise$;
+
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.jna.LastErrorException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigRenderOptions;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
-import org.midonet.conf.HostIdGenerator;
-import org.midonet.conf.LoggerLevelWatcher;
-import org.midonet.conf.MidoNodeConfigurator;
-import org.midonet.midolman.config.MidolmanConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendModule;
-import org.midonet.event.agent.ServiceEvent;
+import org.midonet.conf.HostIdGenerator;
+import org.midonet.conf.LoggerLevelWatcher;
+import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.MidolmanActorsModule;
 import org.midonet.midolman.cluster.MidolmanModule;
@@ -52,19 +54,17 @@ import org.midonet.midolman.cluster.datapath.DatapathModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.state.FlowStateStorageModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.util.cLibrary;
-import scala.concurrent.Promise;
-import scala.concurrent.Promise$;
 
 public class Midolman {
 
     static final Logger log = LoggerFactory.getLogger(Midolman.class);
-    static private final ServiceEvent serviceEvent = new ServiceEvent();
 
     public static final int MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE = 1;
     public static final int MIDOLMAN_ERROR_CODE_LOST_HOST_OWNERSHIP = 2;
@@ -219,7 +219,8 @@ public class Midolman {
                     setOriginComments(false).
                     setFormatted(true);
         Config conf = injector.getInstance(MidolmanConfig.class).conf();
-        log.info("Loaded configuration: {}", configurator.dropSchema(conf).root().render(renderOpts));
+        log.info("Loaded configuration: {}",
+                 configurator.dropSchema(conf).root().render(renderOpts));
 
         configurator.observableRuntimeConfig(HostIdGenerator.getHostId()).
                 subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
@@ -235,7 +236,6 @@ public class Midolman {
             lockMemory();
 
         initializationPromise.success(true);
-        serviceEvent.start();
         log.info("main finish");
 
         injector.getInstance(MidolmanService.class).awaitTerminated();
@@ -259,7 +259,6 @@ public class Midolman {
             log.error("Exception ", e);
         } finally {
             log.info("Exiting. BYE (signal)!");
-            serviceEvent.exit();
         }
     }
 
@@ -288,7 +287,6 @@ public class Midolman {
         } catch (Throwable e) {
             log.error("main caught", e);
             dumpStacks();
-            serviceEvent.exit();
             System.exit(-1);
         }
     }

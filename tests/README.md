@@ -43,7 +43,6 @@ midonet$ git submodule update --init --recursive
 midonet$ ./gradlew clean
 midonet$ ./gradlew -x test debian
 midonet$ find . -name "*.deb"
-./midonet-api/build/packages/midonet-api_2015.05~201506030403.f4646d4_all.deb
 ./midolman/build/packages/midolman_2015.05~201506030403.f4646d4_all.deb
 ./python-midonetclient/python-midonetclient_2015.05~201506030403.f4646d4_all.deb
 ./cluster/midonet-cluster/build/packages/midonet-cluster_2015.05~201506030403.f4646d4_all.deb

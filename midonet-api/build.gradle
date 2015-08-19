@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-apply plugin: 'war'
-apply plugin: 'java-library-distribution'
 apply plugin: 'jetty'
-apply from: "${rootProject.projectDir}/fpm.gradle"
 
 jar {
     manifest {
@@ -56,107 +53,12 @@ dependencies {
             libraries.commons_codec,
             libraries.hamcrest_core, libraries.hamcrest_lib,
             libraries.validation, libraries.hibernate_validator,
-            libraries.guice_multibind, libraries.vmware_midoapi,
-            libraries.jcabi, libraries.scala, libraries.protobuf
+            libraries.guice_multibind,
+            libraries.scala, libraries.protobuf
 
-    runtime libraries.aspectj
-
-    testCompile libraries.hamcrest_integration, libraries.grizzly_servlet,
+    testCompile project(":cluster:midonet-cluster"),
+                libraries.hamcrest_integration, libraries.grizzly_servlet,
                 libraries.jersey_grizzly, libraries.jersey_test_grizzly,
                 libraries.jersey_test_core, libraries.curator_test,
                 libraries.commons_io
-}
-
-distributions {
-    main {
-        baseName = project.name
-    }
-}
-
-task preparePkg(type: Copy, dependsOn: installDist) {
-    String webapp = "usr/share/midonet-api"
-
-    from("${buildDir}/install/midonet-api/lib/") {
-        include "*.jar"
-        into "${webapp}/WEB-INF/lib/"
-    }
-    from("${buildDir}/classes/main") {
-        into "${webapp}/WEB-INF/classes/"
-        include "**/*"
-    }
-    from("${buildDir}/resources/main") {
-        into "${webapp}/WEB-INF/classes/"
-        include "**/*"
-    }
-    from("CHANGE-LOG.txt") {
-        into "usr/share/doc/midonet-api/"
-    }
-    from("src/main/webapp/WEB-INF/web.xml.prod") {
-        into "${webapp}/WEB-INF"
-        rename ('web.xml.prod', 'web.xml')
-    }
-    from("conf/logback.xml.prod") {
-        into "${webapp}/WEB-INF/classes"
-        rename ('logback.xml.prod', 'logback.xml')
-    }
-    into "${pkgDestDir}"
-
-    doLast {
-        new File("${pkgDestDir}/${webapp}/META-INF").mkdirs()
-    }
-    // XXX - guillermo: create a main output dir for installDist because
-    // otherwise installDist will fail to run the second time.
-    doFirst {
-        new File("${buildDir}/install/${project.name}/main").mkdirs()
-    }
-}
-
-packaging {
-    version = project.debVersion
-    maintainer = project.maintainer
-    vendor = project.vendor
-    url = project.url
-    description = 'Midonet-API is the REST API for Midolman, a virtual network controller'
-    confFiles = ['/usr/share/midonet-api/WEB-INF/web.xml',
-                 '/usr/share/midonet-api/WEB-INF/classes/logback.xml']
-    fpmOpts = ['-a', 'all', '--epoch', '2']
-}
-
-preparePkg.dependsOn cleanPkg
-debian.dependsOn preparePkg
-rpm.dependsOn preparePkg
-
-debian.doFirst {
-    project.packaging.version = project.debVersion
-    project.packaging.fpmOpts.addAll([
-        '-d', 'java7-runtime-headless',
-        '--deb-recommends', 'java7-runtime-headless | java7-runtime'])
-}
-
-rpm.doFirst {
-    project.packaging.version = project.rpmVersion
-    project.packaging.iteration = project.rpmRelease
-    project.packaging.fpmOpts.addAll([
-        '--depends', 'java-1.7.0'])
-}
-
-debian.doLast {
-    new File("${buildDir}/install/${project.name}").deleteDir()
-}
-rpm.doLast {
-    new File("${buildDir}/install/${project.name}").deleteDir()
-}
-
-// You can specify a specific port (8080 by default) with -Pport= option as follows:
-// ./gradlew :midonet-api:jettyRun -Pport=8888
-jettyRun {
-    if (project.hasProperty('port')) {
-        httpPort = port.toInteger()
-    }
-
-    if (project.hasProperty('webXml')) {
-        webXml = file("${project.webXml}")
-    } else {
-        webXml = file("${project.webAppDir}/WEB-INF/web.xml.dev")
-    }
 }

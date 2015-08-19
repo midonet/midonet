@@ -20,7 +20,6 @@ echo $0 called at `date` with args $*
 
 sudo service zookeeper stop || true
 sudo service cassandra stop || true
-sudo service tomcat7 stop || true
 
 sudo rm -rf /var/lib/cassandra/*
 

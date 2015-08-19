@@ -124,14 +124,9 @@ else
     sudo  apt-get install -y openvswitch-datapath-dkms=1.10.2-0ubuntu2~cloud0
 fi
 
-# Install tomcat and python web tools
-sudo apt-get install -y tomcat7
+# Install python web tools
 sudo apt-get install -y python-httplib2
 sudo apt-get install --no-install-recommends -y python-webob python-eventlet
-
-sudo service tomcat7 stop && true
-sudo sed -i 's/#\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/zulu-8-amd64/' /etc/default/tomcat7
-sudo update-rc.d tomcat7 enable
 
 # dmasq
 sudo apt-get install -y dnsmasq-base
