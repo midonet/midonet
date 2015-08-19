@@ -1,6 +1,4 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-
-# Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+# Copyright (c) 2015 Midokura SARL, All Rights Reserved.
 # All Rights Reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -16,7 +14,7 @@
 # under the License.
 
 
-NEUTRON = "application/vnd.org.midonet.neutron.Neutron-v2+json"
+NEUTRON = "application/vnd.org.midonet.neutron.Neutron-v3+json"
 NETWORK = "application/vnd.org.midonet.neutron.Network-v1+json"
 NETWORKS = "application/vnd.org.midonet.neutron.Networks-v1+json"
 SUBNET = "application/vnd.org.midonet.neutron.Subnet-v1+json"
@@ -54,3 +52,6 @@ HEALTH_MONITORS = ("application/vnd.org.midonet"
 
 POOL_HEALTH_MONITOR = ("application/vnd.org.midonet"
                        ".neutron.lb.PoolHealthMonitor-v1+json")
+
+# Firewall extension
+FIREWALLS = "application/vnd.org.midonet.neutron.Firewall-v1+json"
