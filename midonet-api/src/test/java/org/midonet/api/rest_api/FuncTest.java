@@ -38,8 +38,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.test.TestingServer;
 
-import org.midonet.api.auth.AuthConfig;
-import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
@@ -82,61 +80,15 @@ public class FuncTest {
                 String.valueOf((int)(Math.random() * 1000) + 62000));
     }
 
-    public static WildcardJacksonJaxbJsonProvider jacksonJaxbJsonProvider;
-
-    /**
-     * Choose the right Builder.  Defaults to the old midonet-api, but will
-     * return the new cluster-based midonet-api if the midonet.newStack env.
-     * variable is set to "true".
-     */
     public static WebAppDescriptor.Builder getBuilder() {
-        if (isCompatApiEnabled()) {
-            return getBuilderForVladimir();
-        } else {
-            return getBuilderForLegacyApi();
-        }
-    }
-
-    /**
-     * Tells if we're testing against the Compat API.
-     */
-    public static boolean isCompatApiEnabled() {
-        return System.getProperty("midonet.newStack") != null;
-    }
-
-    /**
-     * Tells that a test should be ignored because the implementation is
-     * missing.
-     */
-    public static boolean isAwaitingImpl() {
-        return System.getProperty("midonet.awaitingImpl") != null;
-    }
-
-    private static WebAppDescriptor.Builder getBuilderForLegacyApi() {
-
-        ObjectMapperProvider mapperProvider = new ObjectMapperProvider();
-        jacksonJaxbJsonProvider =
-            new WildcardJacksonJaxbJsonProvider(mapperProvider);
-        config.getSingletons().add(jacksonJaxbJsonProvider);
-
-        String zkRoot = ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID();
+        config.getSingletons()
+              .add(new WildcardJacksonJaxbJsonProvider(
+                  new ObjectMapperProvider()));
         return new WebAppDescriptor.Builder()
-                .contextListenerClass(JerseyGuiceTestServletContextListener.class)
-                .filterClass(GuiceFilter.class)
-                .servletPath("/")
-                .contextParam(getConfigKey(AuthConfig.GROUP_NAME,
-                                           AuthConfig.AUTH_PROVIDER),
-                              "org.midonet.api.auth.MockAuthService")
-                .contextParam(getConfigKey("zookeeper",
-                                           "zookeeper_hosts"),
-                                           FuncTest.ZK_TEST_SERVER)
-                .contextParam(getConfigKey("zookeeper", "curator_enabled"), "true")
-                .contextParam(getConfigKey("zookeeper", "midolman_root_key"),
-                              zkRoot)
-                .contextParam(getConfigKey("zookeeper", "root_key"), zkRoot)
-                .contextParam(getConfigKey("zookeeper", "use_new_stack"),
-                              "false")
-                .contextPath(CONTEXT_PATH).clientConfig(config);
+            .contextListenerClass(VladimirServletContextListener.class)
+            .filterClass(GuiceFilter.class)
+            .servletPath("/")
+            .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 
     public static class VladimirServletContextListener
@@ -213,19 +165,6 @@ public class FuncTest {
         }
     }
 
-    private static WebAppDescriptor.Builder getBuilderForVladimir() {
-        config.getSingletons()
-              .add(new WildcardJacksonJaxbJsonProvider(
-                  new ObjectMapperProvider()));
-        getLogger(FuncTest.class)
-                     .info("TESTING MIDONET API AGAINST ZOOM IMPLEMENTATION");
-        return new WebAppDescriptor.Builder()
-            .contextListenerClass(VladimirServletContextListener.class)
-            .filterClass(GuiceFilter.class)
-            .servletPath("/")
-            .contextPath(CONTEXT_PATH).clientConfig(config);
-    }
-
     public static final AppDescriptor appDesc = getBuilder().build();
 
     public static final AppDescriptor appDescOverrideBaseUri =
@@ -237,9 +176,5 @@ public class FuncTest {
         }
         String[] tmp = location.toString().split("/");
         return UUID.fromString(tmp[tmp.length - 1]);
-    }
-
-    public static String getConfigKey(String section, String key) {
-        return section + "-" + key;
     }
 }

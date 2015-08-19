@@ -151,8 +151,6 @@ public class TestTunnelZone {
         public void testDeleteFailsIfVTEPUsingTunnelZone() {
 
             /*
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
-
             DtoApplication app = topology.getApplication();
             URI tunnelZonesUri = app.getTunnelZones();
             DtoTunnelZone tunnelZone = new DtoTunnelZone();

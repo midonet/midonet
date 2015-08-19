@@ -22,8 +22,8 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
-import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.midonet.api.rest_api.FuncTest;
@@ -64,10 +64,8 @@ public class TestHostVersion extends JerseyTest {
     }
 
     @Test
+    @Ignore("TODO FIXME - pending implementation in v2")
     public void testGet() throws StateAccessException {
-
-        Assume.assumeFalse(FuncTest.isAwaitingImpl());
-
         UUID myUuid = UUID.randomUUID();
         UUID anotherUuid = UUID.randomUUID();
 
