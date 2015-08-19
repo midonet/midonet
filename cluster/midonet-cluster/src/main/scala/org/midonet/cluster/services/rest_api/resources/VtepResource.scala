@@ -60,7 +60,8 @@ class VtepResource @Inject()(resContext: ResourceContext)
             .map(_.find(_.managementIp == mgmtIp))
             .getOrThrow
             .getOrElse(throw new NotFoundHttpException(
-                                    getMessage(RESOURCE_NOT_FOUND)))
+                                    getMessage(RESOURCE_NOT_FOUND,
+                                               "VTEP", mgmtIp)))
     }
 
     @Path("{mgmtIp}/bindings")
@@ -81,7 +82,8 @@ class VtepResource @Inject()(resContext: ResourceContext)
             // Validate there is no conflict with existing VTEPs.
             for (v <- vteps if v.managementIp == vtep.managementIp) {
                 throw new ApiException(Status.CONFLICT,
-                                       getMessage(VTEP_HOST_IP_CONFLICT))
+                                       getMessage(VTEP_EXISTS,
+                                                  vtep.managementIp))
             }
         }).getOrThrow
         vtep.create()

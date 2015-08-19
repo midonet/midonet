@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.rest_api.ResourceUris;
@@ -41,7 +40,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.midonet.api.rest_api.FuncTest._injector;
 import static org.midonet.api.rest_api.FuncTest.appDesc;
-import static org.midonet.api.rest_api.FuncTest.isCompatApiEnabled;
 
 /**
  * Tests tenant API operations.  Currently assumes MockAuth is being used.
@@ -60,19 +58,11 @@ public class TestTenant extends JerseyTest {
 
         for (int i = 0 ; i < count ; i++) {
             String tenantId = Integer.toString(i);
-            if (isCompatApiEnabled()) {
-                // In the new storage stack we don't store tenants in MidoNet
-                // and instead fetch them directly from the AuthService, so
-                // let's add them there.
-                AuthService as = _injector.getInstance(AuthService.class);
-                ((MockAuthService)as).addTenant(tenantId, tenantId);
-            } else {
-                // TODO: remove when old stack is removed
-                DtoBridge bridge = new DtoBridge();
-                bridge.setName(tenantId);
-                bridge.setTenantId(tenantId);
-                builder.create(tenantId, bridge);
-            }
+            // In the new storage stack we don't store tenants in MidoNet
+            // and instead fetch them directly from the AuthService, so
+            // let's add them there.
+            AuthService as = _injector.getInstance(AuthService.class);
+            ((MockAuthService)as).addTenant(tenantId, tenantId);
         }
 
         topology = builder.build();

@@ -28,14 +28,13 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
-import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.rest_api.TopologyBackdoor;
@@ -63,7 +62,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.midonet.api.rest_api.FuncTest._injector;
 import static org.midonet.api.rest_api.FuncTest.appDesc;
-import static org.midonet.api.rest_api.FuncTest.isCompatApiEnabled;
 import static org.midonet.api.rest_api.FuncTest.objectMapper;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
@@ -88,13 +86,11 @@ public class TestRouter {
         private void addActualRouters(Topology.Builder builder, String tenantId,
                                       int count) {
             for (int i = 0 ; i < count ; i++) {
-                if (isCompatApiEnabled()) {
-                    // In the new storage stack we don't store tenants in MidoNet
-                    // and instead fetch them directly from the AuthService, so
-                    // let's add them there.
-                    AuthService as = _injector.getInstance(AuthService.class);
-                    ((MockAuthService)as).addTenant(tenantId, tenantId);
-                }
+                // In the new storage stack we don't store tenants in MidoNet
+                // and instead fetch them directly from the AuthService, so
+                // let's add them there.
+                AuthService as = _injector.getInstance(AuthService.class);
+                ((MockAuthService)as).addTenant(tenantId, tenantId);
                 DtoRouter router = new DtoRouter();
                 String tag = Integer.toString(i) + tenantId;
                 router.setName(tag);
@@ -481,10 +477,8 @@ public class TestRouter {
         }
 
         @Test
+        @Ignore("TODO FIXME - pending implementation in v2")
         public void testRouterDeleteWithArpEntries() throws Exception {
-
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
-
             // Add a router
             DtoRouter resRouter = createRouter("router1", "tenant1-id",
                     false, false, 2);

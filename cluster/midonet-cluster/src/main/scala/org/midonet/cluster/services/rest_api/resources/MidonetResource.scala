@@ -44,6 +44,8 @@ import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowGet, AllowList
 import org.midonet.cluster.rest_api.models.UriResource
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse
+import org.midonet.cluster.rest_api.validation.MessageProperty
+import org.midonet.cluster.rest_api.validation.MessageProperty.{RESOURCE_NOT_FOUND, getMessage}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser
@@ -81,19 +83,17 @@ object MidonetResource {
         }
     }
 
-    protected[resources] def tryRead[T](f: => T): T = {
-        try {
-            f
-        } catch {
-            case e: NotFoundException =>
-                throw new NotFoundHttpException(e.getMessage)
-            case e: ObjectReferencedException =>
-                throw new WebApplicationException(e, Status.NOT_ACCEPTABLE)
-            case e: ReferenceConflictException =>
-                throw new ConflictHttpException(e.getMessage)
-            case e: ObjectExistsException =>
-                throw new ConflictHttpException(e.getMessage)
-        }
+    protected[resources] def tryRead[T](f: => T): T = try {
+        f
+    } catch {
+        case e: NotFoundException =>
+            throw new NotFoundHttpException(e.getMessage)
+        case e: ObjectReferencedException =>
+            throw new WebApplicationException(e, Status.NOT_ACCEPTABLE)
+        case e: ReferenceConflictException =>
+            throw new ConflictHttpException(e.getMessage)
+        case e: ObjectExistsException =>
+            throw new ConflictHttpException(e.getMessage)
     }
 
     protected[resources] def tryWrite[R](f: => Response)(implicit log: Logger)

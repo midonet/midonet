@@ -21,12 +21,8 @@ import scala.collection.mutable
 import scala.reflect.ClassTag
 
 import akka.actor.{Actor, ActorRef}
-
-import com.google.inject.Inject
-
 import rx.Subscriber
 
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -58,9 +54,6 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
     }
 
     private val subscriptions = new mutable.HashMap[UUID, DeviceSubscriber]()
-
-    @Inject
-    private val newBackend: MidonetBackend = null
 
     protected def manageDevice(request: DeviceRequest, createManager: Boolean): Unit
     protected def deviceRequested(request: DeviceRequest, useCache: Boolean): Unit
@@ -125,18 +118,7 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
         deviceError(id, e)
     }
 
-    /** Removes an unsubscribed device from the virtual topology. */
-    private def cleanup(id: UUID): Unit = {
-        if(!hasSubscribers(id)) {
-            subscriptions.remove(id) foreach { subscription =>
-                log.debug("Device {} has zero subscribers: unsubscribing", id)
-                subscription.unsubscribe()
-                deviceDeleted(id)
-            }
-        }
-    }
-
-    def receive = if (!newBackend.isEnabled) Actor.emptyBehavior else {
+    def receive = {
         case r: PortRequest =>
             log.debug("Request for port {}", r.id)
             onRequest[Port](r)
