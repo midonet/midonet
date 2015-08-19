@@ -80,6 +80,8 @@ done
 
 if [ ! -z "$JAVA_HOME" ]; then
     JAVA_HOME_CANDIDATES="$JAVA_HOME ${JAVA_HOME_CANDIDATES}"
+elif [ -x /usr/libexec/java_home ]; then
+    JAVA_HOME_CANDIDATES="$(/usr/libexec/java_home) ${JAVA_HOME_CANDIDATES}"
 fi
 
 JAVA_HOME=
