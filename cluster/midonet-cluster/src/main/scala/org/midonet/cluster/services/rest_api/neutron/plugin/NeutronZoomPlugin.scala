@@ -52,7 +52,8 @@ import org.midonet.util.concurrent.toFutureOps
 class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
                                   pathBuilder: PathBuilder,
                                   lockFactory: ZookeeperLockFactory)
-    extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi {
+    extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi
+            with FirewallApi {
 
     private val log = LoggerFactory.getLogger("org.midonet.rest_api.neutron")
 
@@ -188,7 +189,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
         val dtos = tryRead {
             store.getAll(protoClass, ids).await(timeout)
-                 .map(fromProto(_, dtoClass)).toList
+                  .map(fromProto(_, dtoClass)).toList
         }
 
         log.debug(s"List ${dtoClass.getSimpleName} succeeded: $ids")
@@ -420,4 +421,9 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     override def deletePoolHealthMonitor(poolId: UUID, hmId: UUID): Unit = ???
 
+    override def createFirewall(dto: Firewall): Unit = create(dto)
+
+    override def updateFirewall(dto: Firewall): Unit = update(dto)
+
+    override def deleteFirewall(id: UUID): Unit = delete(id, classOf[Firewall])
 }
