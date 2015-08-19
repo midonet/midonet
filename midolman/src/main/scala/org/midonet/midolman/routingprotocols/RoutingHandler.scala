@@ -116,6 +116,9 @@ object RoutingHandler {
 
     val NO_UUID = new UUID(0, 0)
 
+    /** val to indicate that the FPM server needs to be reconnected */
+    val FPM_RECONNECT = "FPM_RECONNECT"
+
     // BgpdProcess will notify via these messages
     case object FETCH_BGPD_STATUS
     case object SYNC_PEER_ROUTES
@@ -132,6 +135,9 @@ object RoutingHandler {
                                        gateway: IPv4Addr)
 
     case class Update(config: BgpRouter, peerIds: Set[UUID])
+
+    case class AddZebraPeerRoute(destination: IPv4Subnet, gateway: IPv4Addr)
+    case class RemoveZebraPeerRoute(destination: IPv4Subnet, gateway: IPv4Addr)
 
 
     def apply(rport: RouterPort, bgpIdx: Int,
