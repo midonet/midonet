@@ -1,0 +1,163 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_1e2b5c95",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:12:22Z",
+      "side": 1,
+      "message": "looks unused.",
+      "revId": "3c3e3c98b7956967a1336d26b4f05547131be767",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_612a0d80",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:12:22Z",
+      "side": 1,
+      "message": "how is this an actor? i don\u0027t see it extending from Actor or having a receive() loop.",
+      "revId": "3c3e3c98b7956967a1336d26b4f05547131be767",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3e174056",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:12:22Z",
+      "side": 1,
+      "message": "maybe set to INFO level?",
+      "revId": "3c3e3c98b7956967a1336d26b4f05547131be767",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5e1c0478",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:12:22Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "3c3e3c98b7956967a1336d26b4f05547131be767",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_41fee906",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:12:22Z",
+      "side": 1,
+      "message": "if these fail the actor will crash, maybe we want some softer error handling.",
+      "revId": "3c3e3c98b7956967a1336d26b4f05547131be767",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2119e579",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:12:22Z",
+      "side": 1,
+      "message": "should just be a warning.",
+      "revId": "3c3e3c98b7956967a1336d26b4f05547131be767",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c1111955",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:12:22Z",
+      "side": 1,
+      "message": "change to lower case.",
+      "revId": "3c3e3c98b7956967a1336d26b4f05547131be767",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8108f129",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:12:22Z",
+      "side": 1,
+      "message": "s/rem/remove/ ?",
+      "range": {
+        "startLine": 343,
+        "startChar": 13,
+        "endLine": 343,
+        "endChar": 14
+      },
+      "revId": "3c3e3c98b7956967a1336d26b4f05547131be767",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e10e1d32",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:12:22Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "3c3e3c98b7956967a1336d26b4f05547131be767",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
