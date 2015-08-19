@@ -84,7 +84,7 @@ class VtepBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
         listResources(classOf[Vtep])
             .map(_.find(_.managementIp == mgmtIp)
                   .getOrElse(throw new ApiException(Status.NOT_FOUND,
-                                                    getMessage(VTEP_NOT_FOUND))))
+                            getMessage(RESOURCE_NOT_FOUND, "VTEP", mgmtIp))))
     }
 
 }

@@ -15,13 +15,12 @@
  */
 package org.midonet.cluster.rest_api.validation;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 
 @Singleton
 public class GuiceConstraintValidatorFactory implements
@@ -38,6 +37,10 @@ public class GuiceConstraintValidatorFactory implements
     public <T extends ConstraintValidator<?, ?>> T getInstance(
             final Class<T> key) {
         return injector.getInstance(key);
+    }
+
+    @Override
+    public void releaseInstance(ConstraintValidator<?, ?> instance) {
     }
 
 }

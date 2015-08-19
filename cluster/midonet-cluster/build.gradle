@@ -72,6 +72,7 @@ dependencies {
             libraries.curator_framework,
             libraries.guava,
             libraries.guice,
+            libraries.jcabi,
             libraries.jetty_server,
             libraries.jetty_servlet,
             libraries.mockit,
@@ -81,7 +82,10 @@ dependencies {
             libraries.rx,
             libraries.scala,
             libraries.typesafeconf,
+            libraries.vmware_midoapi,
             libraries.zookeeper
+
+    runtime libraries.aspectj // needed for vsphere?
 
     testCompile project(path: ':nsdb', configuration: 'tests')
     testCompile project(path: ':midolman', configuration: 'tests')

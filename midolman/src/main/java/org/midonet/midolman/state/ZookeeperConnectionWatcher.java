@@ -23,13 +23,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.event.agent.NsdbEvent;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.util.eventloop.Reactor;
@@ -37,7 +37,6 @@ import org.midonet.util.eventloop.Reactor;
 public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
     static final Logger log = LoggerFactory.getLogger(ZookeeperConnectionWatcher.class);
-    private static final NsdbEvent nsdbEvent = new NsdbEvent();
 
     private ScheduledFuture<?> disconnectHandle;
     private ZkConnection conn = null;
@@ -65,14 +64,12 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
             log.warn("KeeperState is Disconnected, will shutdown in {} " +
                 "milliseconds if the connection is not restored.",
                 config.graceTime());
-            nsdbEvent.disconnect();
 
             disconnectHandle = reactorLoop.schedule(new Runnable() {
                 @Override
                 public void run() {
                     log.error("have been disconnected for {} milliseconds, " +
                               "so exiting", config.graceTime());
-                    nsdbEvent.connExpire();
                     System.exit(7453);
                 }
             }, config.graceTime(), TimeUnit.MILLISECONDS);
@@ -91,8 +88,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
                 }
 
                 log.info("KeeperState is SyncConnected, SessionId={}",
-                        conn.getZooKeeper().getSessionId());
-                nsdbEvent.connect();
+                         conn.getZooKeeper().getSessionId());
             } else {
                 log.error("Got ZK connection event but ZkConnection "+
                           "has not been supplied, cannot track sessions");
@@ -109,7 +105,6 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
 
         if (event.getState() == Watcher.Event.KeeperState.Expired) {
             log.warn("KeeperState is Expired, shutdown now");
-            nsdbEvent.connExpire();
             System.exit(-1);
         }
 
@@ -119,7 +114,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private void submitReconnectCallbacks() {
         if (!reconnectCallbacks.isEmpty()) {
             List<Runnable> callbacks = this.reconnectCallbacks;
-            this.reconnectCallbacks = new LinkedList<Runnable>();
+            this.reconnectCallbacks = new LinkedList<>();
             log.info("ZK connection restored, re-issuing {} requests",
                     callbacks.size());
             for (Runnable r: callbacks)
@@ -130,7 +125,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     private void submitDisconnectCallbacks() {
         if (!disconnectCallbacks.isEmpty()) {
             List<Runnable> callbacks = this.disconnectCallbacks;
-            this.disconnectCallbacks = new LinkedList<Runnable>();
+            this.disconnectCallbacks = new LinkedList<>();
             log.info("ZK connection lost, firing {} disconnect callbacks",
                      callbacks.size());
             for (Runnable r: callbacks)

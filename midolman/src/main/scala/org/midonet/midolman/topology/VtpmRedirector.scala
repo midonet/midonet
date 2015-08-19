@@ -21,7 +21,6 @@ import scala.collection.mutable
 import scala.reflect._
 
 import akka.actor.{Actor, ActorRef}
-
 import com.google.inject.Inject
 import rx.{Observable, Subscriber}
 
@@ -154,7 +153,7 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
         removeFromCache[D](deviceId)
     }
 
-    def receive = if (!backend.isEnabled) Actor.emptyBehavior else {
+    def receive = {
         case r: TunnelZoneRequest =>
             log.debug("Request for tunnel zone with id {}", r.zoneId)
             onRequest[TunnelZone](r)
