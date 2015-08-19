@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_37f84349",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-19T16:19:21Z",
+      "side": 1,
+      "message": "Let\u0027s remove the code that we don\u0027t need at the moment so that we would be able to minimise what we have to maintain ;)\n\nPlease also update the commit log.",
+      "parentUuid": "9ad9bd40_d752b767",
+      "range": {
+        "startLine": 44,
+        "startChar": 18,
+        "endLine": 44,
+        "endChar": 38
+      },
+      "revId": "8625f3dcb3d8bad754e4f5c9c87c4280a54befc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f7d89b81",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
         "patchSetId": 1
