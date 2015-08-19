@@ -66,8 +66,7 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
         }
 
         val vtepId = randomUUID()
-        store.create(createVtep(vtepId, IPv4Addr.random, 6632, tzId,
-                                bindings = Set.empty[(Short, String, UUID)]))
+        store.create(createVtep(vtepId, IPv4Addr.random, 6632, tzId))
         def vtep = reload()
 
         Mockito.when(ovsdb.observable).thenReturn(ovsdbConnEvents)

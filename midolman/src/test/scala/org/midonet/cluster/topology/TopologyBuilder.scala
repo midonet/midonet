@@ -43,31 +43,6 @@ import org.midonet.util.Range
 trait TopologyBuilder {
 
     import TopologyBuilder._
-    import scala.collection.JavaConversions._
-    import scala.collection.JavaConverters._
-
-    def createVtep(id: UUID = UUID.randomUUID(),
-                  mgmtIp: IPv4Addr = IPv4Addr.random,
-                  mgmtPort: Int = 6632,
-                  tzId: UUID = UUID.randomUUID(),
-                  bindings: java.util.Set[(Short, String, UUID)]): Vtep = {
-
-        val protoBindings = bindings.map { bdg =>
-            Vtep.Binding.newBuilder()
-                .setVlanId(bdg._1)
-                .setPortName(bdg._2)
-                .setNetworkId(UUIDUtil.toProto(bdg._3))
-                .build()
-        }
-
-        Vtep.newBuilder()
-            .setId(UUIDUtil.toProto(id))
-            .setTunnelZoneId(UUIDUtil.toProto(tzId))
-            .setManagementIp(IPAddressUtil.toProto(mgmtIp))
-            .setManagementPort(mgmtPort)
-            .addAllBindings(protoBindings)
-            .build()
-    }
 
     def createBridgePort(id: UUID = UUID.randomUUID,
                          bridgeId: Option[UUID] = None,
@@ -116,6 +91,9 @@ trait TopologyBuilder {
         builder.build()
     }
 
+    /** Creates a VxLAN port.  IMPORTANT: note that upon saving, you'll have
+      * to update the backreferences list in the corresponding Network, as this
+      * is not explicitly declared in the bindings. */
     def createVxLanPort(id: UUID = UUID.randomUUID,
                         bridgeId: Option[UUID] = None,
                         inboundFilterId: Option[UUID] = None,
@@ -127,12 +105,12 @@ trait TopologyBuilder {
                         interfaceName: Option[String] = None,
                         adminStateUp: Boolean = false,
                         portGroupIds: Set[UUID] = Set.empty,
-                        vtepMgmtIp: IPv4Addr = IPv4Addr.random): Port = {
+                        vtepId: Option[UUID] = None): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
-            .setVtepId(UUIDUtil.toProto(0, vtepMgmtIp.toInt))
         if (bridgeId.isDefined) builder.setNetworkId(bridgeId.get.asProto)
+        if (vtepId.isDefined) builder.setVtepId(vtepId.get.asProto)
         builder.build()
     }
 
@@ -170,8 +148,8 @@ trait TopologyBuilder {
                      outboundFilterId: Option[UUID] = None,
                      portIds: Set[UUID] = Set.empty,
                      vxlanPortIds: Set[UUID] = Set.empty,
-                     dhcpIds: Seq[UUID] = Seq.empty,
-                     vni: Option[Int] = None): Network = {
+                     vni: Option[Int] = None,
+                     dhcpIds: Seq[UUID] = Seq.empty): Network = {
         val builder = Network.newBuilder
             .setId(id.asProto)
             .setAdminStateUp(adminStateUp)
@@ -800,6 +778,50 @@ trait TopologyBuilder {
             builder.setMaxRetries(maxRetries.get)
         builder.build()
     }
+
+    def createVtep(id: UUID = UUID.randomUUID(),
+                   mgmtIp: IPv4Addr = IPv4Addr.random,
+                   mgmtPort: Int = random.nextInt(),
+                   tunnelZoneId: UUID = UUID.randomUUID(),
+                   bindings: Set[(Short, String, UUID)] = Set.empty)
+    : Vtep = {
+        Vtep.newBuilder()
+            .setId(UUIDUtil.toProto(id))
+            .setTunnelZoneId(UUIDUtil.toProto(tunnelZoneId))
+            .setManagementIp(IPAddressUtil.toProto(mgmtIp))
+            .setManagementPort(mgmtPort)
+            .addAllBindings(bindings.map { bdg =>
+                Vtep.Binding.newBuilder()
+                            .setVlanId(bdg._1)
+                            .setPortName(bdg._2)
+                            .setNetworkId(UUIDUtil.toProto(bdg._3))
+                            .build()
+            }.asJava)
+            .build()
+    }
+
+    def createVtepOneBinding(id: UUID = UUID.randomUUID(),
+                             mgmtIp: Option[IPv4Addr] = None,
+                             mgmtPort: Option[Int] = None,
+                             tunnelZoneId: Option[UUID] = None,
+                             portName: Option[String] = None,
+                             vlanId: Option[Int] = None,
+                             networkId: Option[UUID] = None): Vtep = {
+
+        val builder = Vtep.newBuilder()
+            .setId(id.asProto)
+        if (mgmtIp.isDefined) builder.setManagementIp(mgmtIp.get.asProto)
+        if (mgmtPort.isDefined) builder.setManagementPort(mgmtPort.get)
+        if (tunnelZoneId.isDefined) builder.setTunnelZoneId(tunnelZoneId.get.asProto)
+
+        val binding = Vtep.Binding.newBuilder()
+        if (portName.isDefined) binding.setPortName(portName.get)
+        if (vlanId.isDefined) binding.setVlanId(vlanId.get)
+        if (networkId.isDefined) binding.setNetworkId(networkId.get.asProto)
+        builder.addBindings(binding)
+        builder.build()
+    }
+
 }
 
 object TopologyBuilder {

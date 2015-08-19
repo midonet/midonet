@@ -602,7 +602,7 @@ object InMemoryStorage {
         override def call(child: Subscriber[_ >: T]): Unit = {
             this.synchronized {
                 if (emitting) {
-                    subject subscribe child
+                    subject unsafeSubscribe child
                     child onNext f
                 } else if (error ne null) {
                     child onError error
