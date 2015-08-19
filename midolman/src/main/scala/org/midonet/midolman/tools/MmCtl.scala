@@ -19,6 +19,8 @@ package org.midonet.midolman.tools
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import scala.util.control.NonFatal
+
 import com.google.inject.{Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
 import org.apache.commons.cli._
@@ -51,40 +53,38 @@ object MmCtlResult {
 
     case object UNKNOWN_ERROR extends MmCtlRetCode(-1, "Command failed")
     case object SUCCESS extends MmCtlRetCode(0, "Command succeeded")
-    case object BAD_COMMAND extends MmCtlRetCode(1, "Invalid command")
-    case object HOST_ID_NOT_FOUND extends MmCtlRetCode(2,
-                                                       "Failed to get host ID")
-    case object STATE_ERROR extends MmCtlRetCode(3,
-                                                 "State configuration error")
+    case class BAD_COMMAND(detailMsg: String)
+        extends MmCtlRetCode(1, "Invalid command: " + detailMsg)
+    case object HOST_ID_NOT_FOUND
+        extends MmCtlRetCode(2, "Failed to get host ID")
+    case object STATE_ERROR extends MmCtlRetCode(
+        3, "State configuration error")
     case object PERMISSION_DENIED extends MmCtlRetCode(13, "Permission denied")
 }
 
 trait PortBinder {
 
-    def bindPort(portId: UUID, hostId: UUID, deviceName: String): Try[Unit]
-    def unbindPort(portId: UUID, hostId: UUID): Try[Unit]
+    def bindPort(portId: UUID, hostId: UUID, deviceName: String)
+    def unbindPort(portId: UUID, hostId: UUID)
 
-    private def tryGetHostId(): Try[UUID] =
-        Try { HostIdGenerator.getHostId }
-
-    def bindPort(portId: UUID, deviceName: String): Try[Unit] = {
-        tryGetHostId().flatMap { h => bindPort(portId, h, deviceName) }
+    def bindPort(portId: UUID, deviceName: String): Unit = {
+        bindPort(portId, HostIdGenerator.getHostId, deviceName)
     }
 
-    def unbindPort(portId: UUID): Try[Unit] = {
-        tryGetHostId().flatMap { h => unbindPort(portId, h) }
+    def unbindPort(portId: UUID): Unit = {
+        unbindPort(portId, HostIdGenerator.getHostId)
     }
 }
 
 class DataClientPortBinder(dataClient: DataClient) extends PortBinder {
 
     override def bindPort(portId: UUID, hostId: UUID,
-                          deviceName: String): Try[Unit] = {
-        Try(dataClient.hostsAddVrnPortMapping(hostId, portId, deviceName))
+                          deviceName: String): Unit = {
+        dataClient.hostsAddVrnPortMapping(hostId, portId, deviceName)
     }
 
-    override def unbindPort(portId: UUID, hostId: UUID): Try[Unit] = {
-        Try(dataClient.hostsDelVrnPortMapping(hostId, portId))
+    override def unbindPort(portId: UUID, hostId: UUID): Unit = {
+        dataClient.hostsDelVrnPortMapping(hostId, portId)
     }
 }
 
@@ -97,36 +97,33 @@ class ZoomPortBinder(storage: Storage,
         storage.get(classOf[Topology.Port], portId).await().toBuilder
 
     override def bindPort(portId: UUID, hostId: UUID,
-                          deviceName: String): Try[Unit] = {
+                          deviceName: String): Unit = {
 
         val lock = lockFactory.createShared(
-            ZookeeperLockFactory.NEUTRON_ZOOM)
+            ZookeeperLockFactory.ZOOM_TOPOLOGY)
         lock.acquire(LockWaitSec, TimeUnit.SECONDS)
 
-        val ret = Try(getPortBuilder(portId)
+        val p = getPortBuilder(portId)
                          .setHostId(UUIDUtil.toProto(hostId))
                          .setInterfaceName(deviceName)
-                         .build())
-                      .flatMap { p => Try(storage.update(p)) }
-
+                         .build()
+        storage.update(p)
         lock.release()
-        ret
     }
 
-    override def unbindPort(portId: UUID, hostId: UUID): Try[Unit] = {
+    override def unbindPort(portId: UUID, hostId: UUID): Unit = {
 
         val lock = lockFactory.createShared(
-            ZookeeperLockFactory.NEUTRON_ZOOM)
+            ZookeeperLockFactory.ZOOM_TOPOLOGY)
         lock.acquire(LockWaitSec, TimeUnit.SECONDS)
 
-        val ret = Try(getPortBuilder(portId)
+        val p = getPortBuilder(portId)
                           .clearHostId()
                           .clearInterfaceName()
-                          .build())
-                      .flatMap { p => Try(storage.update(p)) }
+                          .build()
+        storage.update(p)
 
         lock.release()
-        ret
     }
 }
 
@@ -136,18 +133,20 @@ class MmCtl(injector: Injector) {
 
     val portBinder = getPortBinder(injector)
 
-    private def handleResult(res: Try[Unit]): MmCtlRetCode = {
+    private def handleResult(f: => Unit): MmCtlRetCode = {
 
-        res recover {
+        try {
+            f
+            SUCCESS
+        } catch {
             case e: HostIdGenerator.PropertiesFileNotWritableException =>
-                return HOST_ID_NOT_FOUND
+                HOST_ID_NOT_FOUND
             case e: StateAccessException =>
-                return STATE_ERROR
-            case e: Exception =>
-                e.printStackTrace(System.err)
-                return UNKNOWN_ERROR
+                STATE_ERROR
+            case NonFatal(t) =>
+                t.printStackTrace(System.err)
+                UNKNOWN_ERROR
         }
-        SUCCESS
     }
 
     private def getPortBinder(injector: Injector): PortBinder = {
@@ -236,51 +235,37 @@ object MmCtl {
         val parser = new PosixParser
         val cl = parser.parse(options, args)
         val mmctl = new MmCtl(getInjector)
-        var res: MmCtlRetCode = null
-        var cmdErrMsg: String = null
 
-        if (cl.hasOption("bind-port")) {
+        val res: MmCtlRetCode = if (cl.hasOption("bind-port")) {
             val opts = cl.getOptionValues("bind-port")
 
             if (opts != null && opts.length >= 2) {
-
-                res = Try(UUID.fromString(opts(0))) match {
-                    case Success(p) =>
-                        mmctl.bindPort(p, opts(1))
-                    case Failure(e) =>
-                        cmdErrMsg = "Invalid port ID specified"
-                        BAD_COMMAND
+                Try(UUID.fromString(opts(0))) match {
+                    case Success(portId) => mmctl.bindPort(portId, opts(1))
+                    case Failure(_) => BAD_COMMAND("Invalid port ID specified")
                 }
-
             } else {
-                cmdErrMsg = "bind-port requires port ID and device name"
-                res = BAD_COMMAND
+                BAD_COMMAND("bind-port requires port ID and device name")
             }
 
         } else if (cl.hasOption("unbind-port")) {
 
             val opt = cl.getOptionValue("unbind-port")
 
-            res = Try(UUID.fromString(opt)) match {
-                case Success(p) =>
-                    mmctl.unbindPort(p)
-                case Failure(e) =>
-                    cmdErrMsg = "Invalid port ID specified"
-                    BAD_COMMAND
+            Try(UUID.fromString(opt)) match {
+                case Success(portId) => mmctl.unbindPort(portId)
+                case Failure(_) => BAD_COMMAND("Invalid port ID specified")
             }
         } else {
-            res = UNKNOWN_ERROR
+            BAD_COMMAND("Unrecognized command")
         }
 
         res match {
-
             case SUCCESS =>
                 System.out.println(res.getMessage)
 
-            case BAD_COMMAND =>
+            case BAD_COMMAND(msg) =>
                 System.err.println(res.getMessage)
-                if (cmdErrMsg != null)
-                    System.err.println(cmdErrMsg)
                 val formatter = new HelpFormatter
                 formatter.printHelp("mm-ctl", options)
 
