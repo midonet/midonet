@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_bc80b847",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortGroupMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-19T12:40:24Z",
+      "side": 1,
+      "message": "do we need the explicit type? if so, space after :",
+      "revId": "cea47546ca0cadb15c3427fa3e21dd2c746defbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1c8fe476",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-19T12:40:24Z",
+      "side": 1,
+      "message": "i\u0027d like to have some smarter invalidation here, and invalidate flows based on flow state only if the port changed from inactive to active and from admin state down to up, but maybe this is another patch.",
+      "revId": "cea47546ca0cadb15c3427fa3e21dd2c746defbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
