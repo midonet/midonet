@@ -30,6 +30,7 @@ import org.midonet.cluster.rest_api.neutron.models.Router;
 import org.midonet.cluster.rest_api.neutron.models.RouterInterface;
 import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.neutron.resources.RouterResource;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -65,7 +66,7 @@ public class TestRouterResource extends ResourceTest {
 
         super.setUp();
 
-        testObject = new RouterResource(config, uriInfo, context, plugin);
+        testObject = new RouterResource(uriInfo, plugin);
     }
 
     @Test

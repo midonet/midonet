@@ -21,7 +21,6 @@ import scala.util.{Failure, Success, Try}
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.Logger
-
 import org.apache.commons.configuration.ConfigurationException
 
 import org.midonet.cluster.AuthConfig
@@ -66,6 +65,8 @@ class AuthModule(config: AuthConfig, log: Logger) extends AbstractModule {
                 throw new ConfigurationException(
                     s"Cannot find authentication provider  " +
                     s"$authProvider in current class path", e)
+            case Failure(t) =>
+                throw new ConfigurationException(t)
             }
     }
 
