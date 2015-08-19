@@ -25,7 +25,6 @@ import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-
 import rx.Observable
 import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
@@ -41,7 +40,7 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{BackChannelMessage, NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.functors.{makeFunc1, makeRunnable, Predicate}
+import org.midonet.util.functors.{Predicate, makeFunc1, makeRunnable}
 import org.midonet.util.reactivex._
 
 /**
@@ -172,7 +171,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val simBackChannel: SimulationBackChannel,
                                  val actorsService: MidolmanActorsService,
                                  @Named(VirtualTopology.VtExecutorName)
-                                 vtExecutor: ExecutorService,
+                                 val vtExecutor: ExecutorService,
                                  @Named(VirtualTopology.VtExecutorCheckerName)
                                  vtExecutorCheck: Predicate,
                                  @Named(VirtualTopology.IoExecutorName)
