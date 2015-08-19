@@ -22,18 +22,14 @@ import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.resource.AdRoute;
 import org.midonet.client.resource.Application;
-import org.midonet.client.resource.Bgp;
 import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostVersion;
 import org.midonet.client.resource.Port;
 import org.midonet.client.resource.PortGroup;
 import org.midonet.client.resource.ResourceCollection;
-import org.midonet.client.resource.Route;
 import org.midonet.client.resource.Router;
-import org.midonet.client.resource.Rule;
 import org.midonet.client.resource.RuleChain;
 import org.midonet.client.resource.SystemState;
 import org.midonet.client.resource.Tenant;
@@ -66,10 +62,6 @@ public class MidonetApi {
         resource.enableLogging();
     }
 
-    public void disableLogging() {
-        resource.disableLogging();
-    }
-
     /**
      * Adds a Bridge.
      *
@@ -88,26 +80,6 @@ public class MidonetApi {
     public Router addRouter() {
         ensureApplication();
         return application.addRouter();
-    }
-
-    /**
-     * Adds a Chain.
-     *
-     * @return chain resource
-     */
-    public RuleChain addChain() {
-        ensureApplication();
-        return application.addChain();
-    }
-
-    /**
-     * Adds a PortGroup.
-     *
-     * @return port group resource
-     */
-    public PortGroup addPortGroup() {
-        ensureApplication();
-        return application.addPortGroup();
     }
 
     /**
@@ -143,17 +115,6 @@ public class MidonetApi {
     }
 
     /**
-     * Gets Chains.
-     *
-     * @return collection of chain
-     */
-    public ResourceCollection<RuleChain> getChains(
-            MultivaluedMap<String,String> queryParams) {
-        ensureApplication();
-        return application.getChains(queryParams);
-    }
-
-    /**
      * Gets PortGroups.
      *
      * @return collection of port group
@@ -182,38 +143,6 @@ public class MidonetApi {
     public ResourceCollection<Tenant> getTenants() {
         ensureApplication();
         return application.getTenants(null);
-    }
-
-    /**
-     * Gets Tunnel Zones
-     *
-     * @return collection of tunnel zone
-     */
-    public ResourceCollection<TunnelZone> getTunnelZones() {
-        ensureApplication();
-        return application.getTunnelZones(null);
-    }
-
-    /**
-     * Returns an ad route
-     *
-     * @param id ID of ad route
-     * @return AdRoute
-     */
-    public AdRoute getAdRoute(UUID id) {
-        ensureApplication();
-        return application.getAdRoute(id);
-    }
-
-    /**
-     * Returns BGP object
-     *
-     * @param id ID of BGP
-     * @return BGP
-     */
-    public Bgp getBgp(UUID id) {
-        ensureApplication();
-        return application.getBgp(id);
     }
 
     /**
@@ -272,17 +201,6 @@ public class MidonetApi {
     }
 
     /**
-     * Returns Route object
-     *
-     * @param id ID of route
-     * @return Route
-     * */
-    public Route getRoute(UUID id) {
-        ensureApplication();
-        return application.getRoute(id);
-    }
-
-    /**
      * Returns Router object
      *
      * @param id ID of router
@@ -291,28 +209,6 @@ public class MidonetApi {
     public Router getRouter(UUID id) {
         ensureApplication();
         return application.getRouter(id);
-    }
-
-    /**
-     * Returns Rule object
-     *
-     * @param id ID of rule
-     * @return Rule
-     */
-    public Rule getRule(UUID id) {
-        ensureApplication();
-        return application.getRule(id);
-    }
-
-    /**
-     * Returns Tenant object
-     *
-     * @param id ID of tenant
-     * @return Tenant
-     */
-    public Tenant getTenant(String id) {
-        ensureApplication();
-        return application.getTenant(id);
     }
 
     /**
@@ -341,17 +237,6 @@ public class MidonetApi {
     public ResourceCollection<HostVersion> getHostVersions() {
         ensureApplication();
         return application.getHostVersions();
-    }
-
-    /**
-     * Returns TunnelZone object
-     *
-     * @param id ID of tunnel zone
-     * @return TunnelZone
-     */
-    public TunnelZone getTunnelZone(UUID id) {
-        ensureApplication();
-        return application.getTunnelZone(id);
     }
 
     private void ensureApplication() {
