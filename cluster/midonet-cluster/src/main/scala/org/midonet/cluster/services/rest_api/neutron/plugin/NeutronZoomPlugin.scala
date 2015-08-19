@@ -70,7 +70,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     private def tryWrite(f: => Unit): Unit = {
         val lock = new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
-                                ZookeeperLockFactory.NEUTRON_ZOOM)
+                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
         try lock.acquire() catch {
             case NonFatal(t) =>
                 log.error("Could not acquire Zookeeper lock.", t)

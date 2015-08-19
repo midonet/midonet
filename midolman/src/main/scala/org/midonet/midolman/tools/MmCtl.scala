@@ -61,30 +61,30 @@ object MmCtlResult {
 
 trait PortBinder {
 
-    def bindPort(portId: UUID, hostId: UUID, deviceName: String): Try[Unit]
-    def unbindPort(portId: UUID, hostId: UUID): Try[Unit]
+    def bindPort(portId: UUID, hostId: UUID, deviceName: String)
+    def unbindPort(portId: UUID, hostId: UUID)
 
     private def tryGetHostId(): Try[UUID] =
         Try { HostIdGenerator.getHostId }
 
     def bindPort(portId: UUID, deviceName: String): Try[Unit] = {
-        tryGetHostId().flatMap { h => bindPort(portId, h, deviceName) }
+        tryGetHostId().flatMap { h => Try(bindPort(portId, h, deviceName)) }
     }
 
     def unbindPort(portId: UUID): Try[Unit] = {
-        tryGetHostId().flatMap { h => unbindPort(portId, h) }
+        tryGetHostId().flatMap { h => Try(unbindPort(portId, h)) }
     }
 }
 
 class DataClientPortBinder(dataClient: DataClient) extends PortBinder {
 
     override def bindPort(portId: UUID, hostId: UUID,
-                          deviceName: String): Try[Unit] = {
-        Try(dataClient.hostsAddVrnPortMapping(hostId, portId, deviceName))
+                          deviceName: String): Unit = {
+        dataClient.hostsAddVrnPortMapping(hostId, portId, deviceName)
     }
 
-    override def unbindPort(portId: UUID, hostId: UUID): Try[Unit] = {
-        Try(dataClient.hostsDelVrnPortMapping(hostId, portId))
+    override def unbindPort(portId: UUID, hostId: UUID): Unit = {
+        dataClient.hostsDelVrnPortMapping(hostId, portId)
     }
 }
 
@@ -97,36 +97,33 @@ class ZoomPortBinder(storage: Storage,
         storage.get(classOf[Topology.Port], portId).await().toBuilder
 
     override def bindPort(portId: UUID, hostId: UUID,
-                          deviceName: String): Try[Unit] = {
+                          deviceName: String): Unit = {
 
         val lock = lockFactory.createShared(
-            ZookeeperLockFactory.NEUTRON_ZOOM)
+            ZookeeperLockFactory.ZOOM_TOPOLOGY)
         lock.acquire(LockWaitSec, TimeUnit.SECONDS)
 
-        val ret = Try(getPortBuilder(portId)
+        val p = getPortBuilder(portId)
                          .setHostId(UUIDUtil.toProto(hostId))
                          .setInterfaceName(deviceName)
-                         .build())
-                      .flatMap { p => Try(storage.update(p)) }
-
+                         .build()
+        storage.update(p)
         lock.release()
-        ret
     }
 
-    override def unbindPort(portId: UUID, hostId: UUID): Try[Unit] = {
+    override def unbindPort(portId: UUID, hostId: UUID): Unit = {
 
         val lock = lockFactory.createShared(
-            ZookeeperLockFactory.NEUTRON_ZOOM)
+            ZookeeperLockFactory.ZOOM_TOPOLOGY)
         lock.acquire(LockWaitSec, TimeUnit.SECONDS)
 
-        val ret = Try(getPortBuilder(portId)
+        val p = getPortBuilder(portId)
                           .clearHostId()
                           .clearInterfaceName()
-                          .build())
-                      .flatMap { p => Try(storage.update(p)) }
+                          .build()
+        storage.update(p)
 
         lock.release()
-        ret
     }
 }
 
