@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_41034976",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/data/VtepStateStorage.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-19T10:49:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_3403e677",
+      "range": {
+        "startLine": 42,
+        "startChar": 52,
+        "endLine": 42,
+        "endChar": 55
+      },
+      "revId": "b00435c2c3ae666abd2a4a5381dacfb534928016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_341126b0",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/data/VtepStateStorageTest.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-18T12:15:47Z",
       "side": 1,
       "message": "TestAwaitableObserver?",
+      "range": {
+        "startLine": 209,
+        "startChar": 22,
+        "endLine": 210,
+        "endChar": 61
+      },
+      "revId": "b00435c2c3ae666abd2a4a5381dacfb534928016",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_81fd5171",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/data/VtepStateStorageTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-19T10:49:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_341126b0",
       "range": {
         "startLine": 209,
         "startChar": 22,
