@@ -25,10 +25,11 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import org.midonet.api.ResourceTest;
-import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
-import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
 import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
+import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
+import org.midonet.cluster.rest_api.neutron.resources.SecurityGroupRuleResource;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -54,8 +55,7 @@ public class TestSecurityGroupRuleResource extends ResourceTest {
 
         super.setUp();
 
-        testObject = new SecurityGroupRuleResource(config, uriInfo, context,
-                plugin);
+        testObject = new SecurityGroupRuleResource(uriInfo, plugin);
     }
 
     @Test
