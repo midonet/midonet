@@ -22,6 +22,30 @@
       "revId": "abcec619de02de36704f345ab49a09cb1b421faf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_be70b074",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkUtil.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-19T04:10:39Z",
+      "side": 1,
+      "message": "i\u0027m not sure i understand the rationale to use allocateDirect here.\ncan you explain?\n\ngiven that it isn\u0027t a single static buffer anymore,\nthe downsides might be more significant.",
+      "parentUuid": "9ad9bd40_1468a286",
+      "range": {
+        "startLine": 75,
+        "startChar": 35,
+        "endLine": 75,
+        "endChar": 43
+      },
+      "revId": "abcec619de02de36704f345ab49a09cb1b421faf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
