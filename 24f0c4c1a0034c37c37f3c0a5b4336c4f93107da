@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_def494d1",
+        "filename": "midolman/src/main/java/org/midonet/cluster/ZookeeperLockFactory.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-19T04:24:30Z",
+      "side": 1,
+      "message": "Maybe we should give it a more general name, since it isn\u0027t just used for NeutronZoomPlugin anymore. How about zoom-topology?",
+      "revId": "24f0c4c1a0034c37c37f3c0a5b4336c4f93107da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3e04a0c5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/tools/MmCtl.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-19T04:24:30Z",
+      "side": 1,
+      "message": "FYI, you can pass a multi-statement function to Try():\n\n    Try {\n        val p \u003d getPortBuilder(portId)\n            .setHostId(UUIDUtil.toProto(hostId))\n            .setInterfaceName(deviceName)\n            .build()\n        storage.update(p)\n    }\n\nSo no need for the flatMap.\n\nThat said, why are you passing a Try around anyway, when all you do is unwrap it and handle the exception up in MmCtl.bindPort() and .unbindPort()? Seems like it clutters up the code for no real reason, when you can just catch the exceptions up at the top, e.g.:\n\n  def bindPont(portId: UUID, deviceName: String): MmCtlRetCode \u003d\n      handleResult(Try(portBinder.bindPort(portId, deviceName)))",
+      "range": {
+        "startLine": 106,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 62
+      },
+      "revId": "24f0c4c1a0034c37c37f3c0a5b4336c4f93107da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
