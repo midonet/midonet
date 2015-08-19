@@ -52,7 +52,8 @@ import org.midonet.util.concurrent.toFutureOps
 class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
                                   pathBuilder: PathBuilder,
                                   lockFactory: ZookeeperLockFactory)
-    extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi {
+    extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi
+            with FirewallApi {
 
     private val log = LoggerFactory.getLogger("org.midonet.rest_api.neutron")
 
@@ -180,16 +181,16 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     }
 
     def list[T >: Null <: ZoomObject](ids: util.List[UUID])
-                                    (implicit ct: ClassTag[T]): util.List[T] = {
+                                     (implicit ct: ClassTag[T]): util.List[T] = {
         val dtoClass = ct.runtimeClass.asInstanceOf[Class[T]]
         val protoClass = protoClassOf(dtoClass)
 
         log.info(s"List ${dtoClass.getSimpleName}: $ids")
 
         val dtos = tryRead {
-            store.getAll(protoClass, ids).await(timeout)
-                 .map(fromProto(_, dtoClass)).toList
-        }
+                               store.getAll(protoClass, ids).await(timeout)
+                                   .map(fromProto(_, dtoClass)).toList
+                           }
 
         log.debug(s"List ${dtoClass.getSimpleName} succeeded: $ids")
         dtos
@@ -200,10 +201,10 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         log.info(s"List all ${dtoClass.getSimpleName}")
 
         val dtos = tryRead {
-            store.getAll(protoClass).await(timeout)
-                 .map(fromProto(_, dtoClass))
-                 .toList
-        }
+                               store.getAll(protoClass).await(timeout)
+                                   .map(fromProto(_, dtoClass))
+                                   .toList
+                           }
 
         log.debug(s"List all ${dtoClass.getSimpleName} succeeded")
         dtos
@@ -420,4 +421,9 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     override def deletePoolHealthMonitor(poolId: UUID, hmId: UUID): Unit = ???
 
+    override def createFirewall(dto: Firewall): Unit = create(dto)
+
+    override def updateFirewall(dto: Firewall): Unit = update(dto)
+
+    override def deleteFirewall(id: UUID): Unit = delete(id, classOf[Firewall])
 }
