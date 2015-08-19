@@ -56,7 +56,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
@@ -455,25 +458,6 @@ public class TestHost extends JerseyTest {
                    host.getAddresses(), not(nullValue()));
 
         assertFalse("The host should not be alive", host.isAlive());
-
-        if (!FuncTest.isCompatApiEnabled()) {
-            // V2 has no addresses in the host metadata
-            assertEquals(
-                "The returned host should have the same number of addresses "
-                + "as the metadata",
-                host.getAddresses().length, addrs.length);
-
-            for (int i = 0; i < addrs.length; i++) {
-                InetAddress inetAddress = addrs[i];
-
-                assertNotNull("Returned address in the dto should not be null",
-                              host.getAddresses()[i]);
-
-                assertEquals("Address from the Dto should match the one in "
-                             + "metadata", host.getAddresses()[i],
-                             inetAddress.toString());
-            }
-        }
     }
 
     @Test
@@ -496,10 +480,6 @@ public class TestHost extends JerseyTest {
         assertThat(
             "The returned host should have the same UUID as the one in ZK",
             hosts.get(0).isAlive(), equalTo(false));
-
-//       assertThat("The host delete was successful",
-//                   response.getClientResponseStatus(),
-//                   equalTo(ClientResponse.Status.NO_CONTENT));
 
         //NOTE: right now client library doesn't store http response status.
         //       maybe store the most recent response object in resource object.

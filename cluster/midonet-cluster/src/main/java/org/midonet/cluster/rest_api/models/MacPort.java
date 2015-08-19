@@ -56,6 +56,12 @@ public class MacPort extends UriResource {
     public MacPort() {
     }
 
+    public MacPort(URI baseUri, UUID bridgeId, String macAddr, UUID portId,
+                   Short vlanId) {
+        this(baseUri, bridgeId, macAddr, portId);
+        this.vlanId = vlanId;
+    }
+
     public MacPort(URI baseUri, UUID bridgeId, String macAddr, UUID portId) {
         setBaseUri(baseUri);
         this.bridgeId = bridgeId;

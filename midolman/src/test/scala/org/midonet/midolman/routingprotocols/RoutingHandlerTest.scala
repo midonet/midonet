@@ -34,6 +34,7 @@ import org.scalatest.mock.MockitoSugar
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Route
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.{RoutingStorageForV1, RoutingStorage}
@@ -86,10 +87,20 @@ class RoutingHandlerTest extends FeatureSpecLike
         dataClient = mock[DataClient]
         routingStorage = new RoutingStorageForV1(dataClient)
         invalidations = Nil
+
+        // In the config we OVERRIDE the new stack to false, because this
+        // test is still not written for v2.  It's not worth disabling it
+        // because the code under test has stuff that's not specific to the v1
+        // stack.  Issue created to track and fix this: MNA-798
+        val forceV1Config = new MidolmanConfig(config.conf) {
+            override val zookeeper = new MidonetBackendConfig(config.conf) {
+                override def useNewStack = false
+            }
+        }
         routingHandler = TestActorRef(new TestableRoutingHandler(rport,
                                                     invalidations ::= _,
                                                     routingStorage,
-                                                    config,
+                                                    forceV1Config,
                                                     bgpd))
         routingHandler ! rport
         bgpd.state should be (bgpd.NOT_STARTED)
