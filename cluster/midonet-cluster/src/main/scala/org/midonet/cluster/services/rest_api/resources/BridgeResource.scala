@@ -354,7 +354,8 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                 p.getVlanId != UNTAGGED_VLAN_ID &&
                 p.getVlanId != macPort.vlanId) {
                 throw new BadRequestHttpException(
-                    getMessage(VLAN_ID_MATCHES_PORT_VLAN_ID))
+                    getMessage(VLAN_ID_MATCHES_PORT_VLAN_ID,
+                               Int.box(p.getVlanId)))
             }
         } catch {
             case _: NotFoundHttpException =>
@@ -394,7 +395,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         } catch {
             case _: NoNodeException =>
                 throw new NotFoundHttpException(
-                    s"Bridge does not have vlan $vlan")
+                    getMessage(BRIDGE_HAS_VLAN, Short.box(vlan)))
         }
 
         try {
@@ -426,7 +427,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             case _: NoNodeException => null
         }
         if (node == null) {
-            throw new NotFoundHttpException("Entry not found")
+            throw new NotFoundHttpException(getMessage(BRIDGE_HAS_MAC_PORT))
         }
 
         val macPort = new MacPort(resContext.uriInfo.getBaseUri, bridgeId,
@@ -434,13 +435,4 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         macPort.vlanId = vlanId
         macPort
     }
-
-    private def macOrThrow(s: String): MAC = try {
-        MAC.fromString(s)
-    } catch {
-        case t: InvalidMacException =>
-            throw new BadRequestHttpException(getMessage(MAC_URI_FORMAT))
-    }
-
-
 }

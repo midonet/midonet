@@ -30,8 +30,8 @@ import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -42,7 +42,6 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.TopologyBackdoor;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
@@ -59,8 +58,6 @@ import org.midonet.packets.MAC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_ID_IS_INVALID;
-import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZoneHost {
@@ -274,10 +271,8 @@ public class TestTunnelZoneHost {
         }
 
         @Test
+        @Ignore("TODO FIXME - pending implementation in v2")
         public void testBaseUriOverride() throws Exception {
-
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
-
             URI baseUri = resource().getURI();
             MidonetApi api = new MidonetApi(baseUri.toString());
             api.enableLogging();

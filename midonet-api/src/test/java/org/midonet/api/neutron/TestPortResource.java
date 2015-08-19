@@ -25,10 +25,11 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import org.midonet.api.ResourceTest;
-import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
-import org.midonet.cluster.rest_api.neutron.models.Port;
 import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
+import org.midonet.cluster.rest_api.neutron.models.Port;
+import org.midonet.cluster.rest_api.neutron.resources.PortResource;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -54,7 +55,7 @@ public class TestPortResource extends ResourceTest {
 
         super.setUp();
 
-        testObject = new PortResource(config, uriInfo, context, plugin);
+        testObject = new PortResource(uriInfo, plugin);
     }
 
     @Test

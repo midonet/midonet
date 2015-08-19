@@ -24,7 +24,6 @@ import akka.event.LoggingReceive
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.services.HostIdProviderService
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
@@ -34,7 +33,8 @@ import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.simulation.{DhcpConfigFromDataclient, DhcpConfigFromZoom}
+import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.simulation.DhcpConfigFromZoom
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -158,11 +158,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
 
     protected def propsForWorker(index: Int) = {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
-        val dhcpConfig = if (config.zookeeper.useNewStack) {
-            new DhcpConfigFromZoom(vt)
-        } else {
-            new DhcpConfigFromDataclient(clusterDataClient)
-        }
+        val dhcpConfig = new DhcpConfigFromZoom(vt)
 
         Props(
             classOf[PacketWorkflow],
