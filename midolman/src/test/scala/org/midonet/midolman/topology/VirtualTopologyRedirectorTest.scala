@@ -74,7 +74,6 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
 
     override def beforeTest(): Unit = {
         backend = injector.getInstance(classOf[MidonetBackend])
-        backend.isEnabled shouldBe true
         vt = injector.getInstance(classOf[VirtualTopology])
         vta = VirtualTopologyActor.as[TestableVTA]
         senderRef = TestActorRef(Props(new AwaitableActor

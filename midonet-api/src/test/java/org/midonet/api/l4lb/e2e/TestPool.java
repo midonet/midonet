@@ -23,13 +23,12 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.sun.jersey.api.client.ClientResponse;
 
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.DtoLoadBalancer;
@@ -38,6 +37,7 @@ import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.LBStatus;
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.HealthMonitor;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -130,10 +130,8 @@ public class TestPool {
         }
 
         @Test
+        @Ignore("TODO FIXME - pending implementation in v2")
         public void testCreateIntializesReferences() {
-
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
-
             DtoPool pool = getStockPool(loadBalancer.getId());
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
             pool.setHealthMonitorId(healthMonitor.getId());
@@ -143,11 +141,9 @@ public class TestPool {
         }
 
         @Test
+        @Ignore("TODO FIXME - pending implementation in v2")
         public void testUpdateReferences()
                 throws SerializationException, StateAccessException {
-
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
-
             // Start with no health monitor.
             DtoPool pool = createStockPool(loadBalancer.getId());
             assertNull(pool.getHealthMonitor());
@@ -201,7 +197,7 @@ public class TestPool {
             pool2.setId(pool1.getId());
             DtoError error = dtoResource.postAndVerifyError(
                     topLevelPoolsUri, APPLICATION_POOL_JSON, pool2, CONFLICT);
-            assertErrorMatches(error, RESOURCE_EXISTS, "pool", pool2.getId());
+            assertErrorMatches(error, RESOURCE_EXISTS, "Pool", pool2.getId());
         }
 
         @Test
@@ -219,7 +215,7 @@ public class TestPool {
             URI uri = addIdToUri(topLevelPoolsUri, id);
             DtoError error = dtoResource.getAndVerifyNotFound(
                     uri, APPLICATION_POOL_JSON);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool", id);
         }
 
         @Test
@@ -235,7 +231,7 @@ public class TestPool {
             pool.setUri(addIdToUri(topLevelPoolsUri, pool.getId()));
             DtoError error = dtoResource.putAndVerifyNotFound(
                     pool.getUri(), APPLICATION_POOL_JSON, pool);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", pool.getId());
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool", pool.getId());
         }
 
         @Test
@@ -247,7 +243,8 @@ public class TestPool {
                 NOT_FOUND.getStatusCode());
             assertErrorMatches(res.getEntity(DtoError.class),
                                RESOURCE_NOT_FOUND,
-                               "health monitor", pool.getHealthMonitorId());
+                               HealthMonitor.class.getSimpleName(),
+                               pool.getHealthMonitorId());
         }
 
         @Test
@@ -293,7 +290,7 @@ public class TestPool {
             URI uri = new URI(topLevelPoolsUri + "/" + id + "/vips");
             DtoError error = dtoResource.getAndVerifyNotFound(
                     uri, APPLICATION_VIP_COLLECTION_JSON);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool", id);
         }
 
         @Test
@@ -302,7 +299,7 @@ public class TestPool {
             URI uri = new URI(topLevelPoolsUri + "/" + id + "/pool_members");
             DtoError error = dtoResource.getAndVerifyNotFound(
                     uri, APPLICATION_POOL_MEMBER_COLLECTION_JSON);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool", id);
         }
 
         @Test
@@ -366,11 +363,9 @@ public class TestPool {
         }
 
         @Test
+        @Ignore("TODO FIXME - pending implementation in v2")
         public void testServiceUnavailableWithNullHealthMonitor()
                 throws Exception {
-
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
-
             DtoPool pool = createStockPool(loadBalancer.getId());
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
             pool.setHealthMonitorId(healthMonitor.getId());

@@ -41,7 +41,5 @@ use it to build the right dependency packages.
 
 Simply execute the following command from the root directory of the clone:
 
-    ./gradlew cluster:midonet-cluster:run -Pcluster/midonet-cluster/conf/cluster.conf
+    ./gradlew cluster:midonet-cluster:run -Pconf=cluster/midonet-cluster/conf/midonet-cluster.conf
 
-You want to have a logback.xml file in the classpath. You'll find a sample one
-in cluster/midonet-cluster/conf/logback.xml.
