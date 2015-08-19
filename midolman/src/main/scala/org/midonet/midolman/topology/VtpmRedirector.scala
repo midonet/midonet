@@ -50,6 +50,9 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
     override def logSource = "org.midonet.devices.underlay"
 
     @Inject
+    protected var vt: VirtualTopology = _
+
+    @Inject
     var backend: MidonetBackend = _
 
     /* Device subscriptions per device id */

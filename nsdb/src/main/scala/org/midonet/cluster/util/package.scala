@@ -32,7 +32,7 @@ package object util {
 
     /** An Observable that will recover itself if an error is emitted */
     def selfHealingTypeObservable[T](store: Storage, retries: Int = 10)
-                                (implicit ct: ClassTag[T]):
+                                    (implicit ct: ClassTag[T]):
     Observable[Observable[T]] = {
         store.observable(ct.runtimeClass.asInstanceOf[Class[T]])
              .onErrorResumeNext(makeFunc1[Throwable,
@@ -52,8 +52,8 @@ package object util {
 
     /** An Observable that will recover itself if an error is emitted */
     def selfHealingEntityObservable[T](store: Storage, id: UUID,
-                                 retries: Int = 10)
-                                (implicit ct: ClassTag[T]): Observable[T] = {
+                                       retries: Int = 10)
+                                      (implicit ct: ClassTag[T]): Observable[T] = {
         store.observable(ct.runtimeClass.asInstanceOf[Class[T]], id)
              .onErrorResumeNext ( makeFunc1[Throwable, Observable[T]] {
                 case t: NotFoundException =>
