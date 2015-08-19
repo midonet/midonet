@@ -33,7 +33,7 @@ public class ZookeeperLockFactory {
     private static final Logger logger =
         LoggerFactory.getLogger(ZookeeperLockFactory.class);
 
-    public final static String NEUTRON_ZOOM = "neutron-zoom";
+    public final static String ZOOM_TOPOLOGY = "zoom-topology";
 
     private final CuratorFramework client;
     private final PathBuilder paths;
