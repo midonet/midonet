@@ -174,6 +174,10 @@ trait BgpConnection {
 
     def setRouterId(as: Int, localAddr: IPAddr)
 
+    def setPeerAdInterval(as: Int, peer: IPAddr, adInterval: Int)
+
+    def setPeerMultihop(as: Int, peer: IPAddr, hops: Int)
+
     def addPeer(as: Int, peerAddr: IPAddr, peerAs: Int, keepAliveSecs: Int,
                 holdTimeSecs: Int, connectRetrySecs: Int)
 
@@ -211,6 +215,19 @@ class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port
 
     override def setRouterId(as: Int, localAddr: IPAddr) {
         exec(SetAs(as, s"bgp router-id $localAddr"))
+    }
+
+    override def setPeerMultihop(as: Int, peer: IPAddr, hops: Int): Unit = {
+        exec(SetAs(as){ List(
+            s"neighbor $peer ebgp-multihop $hops")
+        } )
+    }
+
+    override def setPeerAdInterval(as: Int, peer: IPAddr,
+                                   adInterval: Int): Unit = {
+        exec(SetAs(as){ List(
+            s"neighbor $peer advertisement-interval $adInterval")
+        } )
     }
 
     override def addPeer(as: Int, peer: IPAddr, peerAs: Int, keepAliveSecs: Int,
