@@ -74,6 +74,8 @@ if [ -n "$JAVA_HOME" ]; then
     if [ $? -ne 0 ]; then
         JAVA_HOME=""
     fi
+elif [ -x /usr/libexec/java_home ]; then
+    JAVA_HOME=$(/usr/libexec/java_home)
 fi
 
 if [ -z "$JAVA_HOME" ]; then
