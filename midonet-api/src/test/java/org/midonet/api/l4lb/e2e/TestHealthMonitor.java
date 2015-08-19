@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.client.dto.DtoError;
@@ -111,7 +112,8 @@ public class TestHealthMonitor {
                     VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
                     hm, NOT_FOUND);
             assertErrorMatches(error, MessageProperty.RESOURCE_NOT_FOUND,
-                               "health monitor", hm.getId());
+                               Topology.HealthMonitor.class.getSimpleName(),
+                               hm.getId());
         }
 
         @Test

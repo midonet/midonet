@@ -20,7 +20,6 @@ import java.net.{InetAddress, UnknownHostException}
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{CountDownLatch, TimeUnit, TimeoutException}
 import java.util.{ConcurrentModificationException, UUID}
-
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
@@ -32,7 +31,6 @@ import scala.util.control.NonFatal
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import com.google.inject.name.Named
-
 import rx.{Observer, Subscription}
 
 import org.midonet.cluster.data.ZoomConvert
@@ -174,11 +172,7 @@ class HostService @Inject()(config: MidolmanConfig,
                         (aliveState.get != OwnershipState.Acquired)) {
                         return
                     }
-                    if (backendConfig.useNewStack) {
-                        updateInterfacesInV2()
-                    } else {
-                        updateInterfacesInV1()
-                    }
+                    updateInterfaces()
                 }
             })
             identifyHost()
@@ -209,27 +203,21 @@ class HostService @Inject()(config: MidolmanConfig,
         }
 
         // If the cluster storage is enabled, delete the ownership.
-        if (backendConfig.useNewStack) {
-            if (aliveSubscription ne null) {
-                aliveSubscription.unsubscribe()
-                aliveSubscription = null
-            }
-            try {
-                val f1 = stateStore.removeValue(classOf[Host], hostId, AliveKey,
-                                                null).asFuture
-                val f2 = stateStore.removeValue(classOf[Host], hostId,
-                                                HostKey, null).asFuture
-                Await.ready(f1, timeout)
-                Await.ready(f2, timeout)
-            } catch {
-                case NonFatal(e) =>
-                    log.warn("MidoNet agent host service failed to cleanup " +
-                        "host ownership", e)
-            }
-        } else {
-            // Disconnect from ZooKeeper: this will cause the ephemeral nodes to
-            // disappear.
-            zkManager.disconnect()
+        if (aliveSubscription ne null) {
+            aliveSubscription.unsubscribe()
+            aliveSubscription = null
+        }
+        try {
+            val f1 = stateStore.removeValue(classOf[Host], hostId, AliveKey,
+                                            null).asFuture
+            val f2 = stateStore.removeValue(classOf[Host], hostId,
+                                            HostKey, null).asFuture
+            Await.ready(f1, timeout)
+            Await.ready(f2, timeout)
+        } catch {
+            case NonFatal(e) =>
+                log.warn("MidoNet agent host service failed to cleanup " +
+                         "host ownership", e)
         }
 
         notifyStopped()
@@ -284,47 +272,6 @@ class HostService @Inject()(config: MidolmanConfig,
     @throws[StateAccessException]
     @throws[SerializationException]
     private def create(): Boolean = {
-        if (backendConfig.useNewStack) {
-            createInV2()
-        } else {
-            createInV1()
-        }
-    }
-
-    /** Creates the host in v1.x storage. */
-    @throws[StateAccessException]
-    @throws[SerializationException]
-    private def createInV1(): Boolean = {
-        if (backendConfig.useNewStack)
-            return true
-        log.debug("Creating/updating host in legacy storage")
-        val metadata = new HostMetadata
-        metadata.setName(hostName)
-        metadata.setEpoch(epoch)
-        metadata.setAddresses(getInterfaceAddresses.toArray)
-        if (hostZkManager.exists(hostId)) {
-            if (!metadata.isSameHost(hostZkManager.get(hostId))) {
-                if (hostZkManager.isAlive(hostId)) {
-                    return false
-                }
-            }
-            hostZkManager.updateMetadata(hostId, metadata)
-        }
-        else {
-            hostZkManager.createHost(hostId, metadata)
-        }
-        hostZkManager.makeAlive(hostId)
-        hostZkManager.setHostVersion(hostId)
-        aliveState.set(OwnershipState.Acquired)
-
-        updateInterfacesInV1()
-        true
-    }
-
-    /** Creates the host in v2.x storage. */
-    private def createInV2(): Boolean = {
-        if (!backendConfig.useNewStack)
-            return true
         // Only try to acquire ownership if it has been lost.
         if (!aliveState.compareAndSet(OwnershipState.Released,
             OwnershipState.Acquiring))
@@ -354,7 +301,7 @@ class HostService @Inject()(config: MidolmanConfig,
             // Set the alive state and update the interfaces.
             stateStore.addValue(classOf[Host], hostId, AliveKey,AliveKey)
                 .await(timeout)
-            updateInterfacesInV2()
+            updateInterfaces()
 
             aliveState.set(OwnershipState.Acquired)
 
@@ -433,18 +380,9 @@ class HostService @Inject()(config: MidolmanConfig,
     }
 
     /**
-     * Updates the host with the current set of interfaces in V1.x storage.
-     */
-    private def updateInterfacesInV1(): Unit = {
-        log.debug("Updating host interfaces {}: {}", hostId, currentInterfaces)
-        interfaceDataUpdater.updateInterfacesData(hostId, null,
-            currentInterfaces.asJava)
-    }
-
-    /**
      * Updates the host with the current set of interfaces in V2.x storage.
      */
-    private def updateInterfacesInV2(): Unit = {
+    private def updateInterfaces(): Unit = {
         log.debug("Updating host interfaces {}: {}", hostId, currentInterfaces)
 
         try {

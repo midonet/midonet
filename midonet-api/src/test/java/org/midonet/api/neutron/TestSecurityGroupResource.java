@@ -29,6 +29,7 @@ import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroup;
 import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.neutron.resources.SecurityGroupResource;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -54,7 +55,7 @@ public class TestSecurityGroupResource extends ResourceTest {
 
         super.setUp();
 
-        testObject = new SecurityGroupResource(config, uriInfo, context, plugin);
+        testObject = new SecurityGroupResource(uriInfo, plugin);
     }
 
     @Test

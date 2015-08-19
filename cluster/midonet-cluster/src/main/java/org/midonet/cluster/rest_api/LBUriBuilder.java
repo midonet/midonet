@@ -24,22 +24,14 @@ import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 
 public final class LBUriBuilder {
 
-    public static final String ID_TOKEN = "/{id}";
-
     // LBaaS resources
     public static final String LB = "/lb";
     public static final String VIPS = "/vips";
     public static final String POOLS = "/pools";
-    public static final String MEMBERS = "/members";
     public static final String HEALTH_MONITORS = "/health_monitors";
-    public static final String POOL_HEALTH_MONITOR = "/pool_health_monitor";
 
     private LBUriBuilder() {
         // not called
-    }
-
-    public static String buildIdTemplateUri(URI uri) {
-        return uri.toString() + ID_TOKEN;
     }
 
     public static URI getLoadBalancer(URI baseUri) {
@@ -52,15 +44,6 @@ public final class LBUriBuilder {
         return UriBuilder.fromUri(getLoadBalancer(baseUri)).path(VIPS).build();
     }
 
-    public static URI getVip(URI baseUri, UUID id) {
-        return UriBuilder.fromUri(
-            getVips(baseUri)).path(id.toString()).build();
-    }
-
-    public static String getVipTemplate(URI baseUri) {
-        return buildIdTemplateUri(getVips(baseUri));
-    }
-
     // Pools
     public static URI getPools(URI baseUri) {
         return UriBuilder.fromUri(getLoadBalancer(baseUri)).path(POOLS).build();
@@ -69,25 +52,6 @@ public final class LBUriBuilder {
     public static URI getPool(URI baseUri, UUID id) {
         return UriBuilder.fromUri(
             getPools(baseUri)).path(id.toString()).build();
-    }
-
-    public static String getPoolTemplate(URI baseUri) {
-        return buildIdTemplateUri(getPools(baseUri));
-    }
-
-    // Pool Members
-    public static URI getMembers(URI baseUri) {
-        return UriBuilder.fromUri(getLoadBalancer(baseUri)).path(MEMBERS)
-            .build();
-    }
-
-    public static URI getMember(URI baseUri, UUID id) {
-        return UriBuilder.fromUri(
-            getMembers(baseUri)).path(id.toString()).build();
-    }
-
-    public static String getMemberTemplate(URI baseUri) {
-        return buildIdTemplateUri(getMembers(baseUri));
     }
 
     // Health Monitors
@@ -99,15 +63,5 @@ public final class LBUriBuilder {
     public static URI getHealthMonitor(URI baseUri, UUID id) {
         return UriBuilder.fromUri(
             getHealthMonitors(baseUri)).path(id.toString()).build();
-    }
-
-    public static String getHealthMonitorTemplate(URI baseUri) {
-        return buildIdTemplateUri(getHealthMonitors(baseUri));
-    }
-
-    // Pool Health Monitor
-    public static URI getPoolHealthMonitor(URI baseUri) {
-        return UriBuilder.fromUri(getLoadBalancer(baseUri))
-            .path(POOL_HEALTH_MONITOR).build();
     }
 }

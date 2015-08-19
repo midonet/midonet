@@ -39,6 +39,9 @@ import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.services.rest_api.neutron.plugin.SecurityGroupApi;
 
+import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+
 public class SecurityGroupRuleResource {
 
     private final SecurityGroupApi api;
@@ -81,8 +84,8 @@ public class SecurityGroupRuleResource {
     public SecurityGroupRule get(@PathParam("id") UUID id) {
         SecurityGroupRule rule = api.getSecurityGroupRule(id);
         if (rule == null) {
-            throw new NotFoundHttpException(MessageProperty.getMessage
-                (MessageProperty.RESOURCE_NOT_FOUND, id));
+            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND,
+                                                   "SecurityGroupRule", id));
         }
         return rule;
     }

@@ -19,7 +19,6 @@ package org.midonet.cluster.services.rest_api.resources
 import java.net.URLEncoder
 import java.util.function.Predicate
 import java.util.{List => JList, UUID}
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
@@ -34,7 +33,7 @@ import org.midonet.cluster.rest_api.models.{Bridge, Vtep, VtepBinding}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException, ServiceUnavailableHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, OkCreated, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkCreated, OkNoContentResponse, ResourceContext}
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.OvsdbVtepDataClient
 
