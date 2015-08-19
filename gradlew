@@ -68,17 +68,22 @@ if [ -n "`which java`" ]; then
     JVM_SEARCH_DIRS="$(basename $JDK_DIR) $JVM_SEARCH_DIRS"
 fi
 
-if [ ! -z "$JAVA_HOME" ]; then
-    JVM_SEARCH_DIRS="$JAVA_HOME $JVM_SEARCH_DIRS"
-fi
-
-JAVA_HOME=
+JAVA_HOME_CANDIDATES=
 for jdir in $JVM_SEARCH_DIRS; do
     if $darwin ; then
 	jdir="/Library/Java/JavaVirtualMachines/$jdir/Contents/Home"
     else
         jdir="/usr/lib/jvm/$jdir"
     fi
+    JAVA_HOME_CANDIDATES="$jdir ${JAVA_HOME_CANDIDATES}"
+done
+
+if [ ! -z "$JAVA_HOME" ]; then
+    JAVA_HOME_CANDIDATES="$JAVA_HOME ${JAVA_HOME_CANDIDATES}"
+fi
+
+JAVA_HOME=
+for jdir in ${JAVA_HOME_CANDIDATES}; do
     check_for_java8 "$jdir/bin/java"
     if [ $? -eq 0 ]; then
         JAVA_HOME="$jdir"
