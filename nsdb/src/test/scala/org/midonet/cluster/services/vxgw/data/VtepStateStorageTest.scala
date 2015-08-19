@@ -24,14 +24,13 @@ import scala.util.Random
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
-
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage.{StateResult, UnmodifiableStateException, ZookeeperObjectMapper}
-import org.midonet.cluster.models.State.{VtepConnectionState, VtepConfiguration}
+import org.midonet.cluster.models.State.{VtepConfiguration, VtepConnectionState}
 import org.midonet.cluster.models.Topology.Vtep
-import org.midonet.cluster.services.MidonetBackend.{VtepConnState, VtepConfig}
+import org.midonet.cluster.services.MidonetBackend.{VtepConfig, VtepConnState}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.cluster.util.IPAddressUtil._
