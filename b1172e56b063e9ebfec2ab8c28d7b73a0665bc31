@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5e4ec497",
+        "filename": "midolman/src/integration/scala/org/midonet/quagga/QuaggaEnvironmentTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:02:53Z",
+      "side": 1,
+      "message": "you say \"most relevant features\",  what are the others, do they need testing?",
+      "revId": "b1172e56b063e9ebfec2ab8c28d7b73a0665bc31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9e3f6cd6",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/DefaultQuaggaEnvironment.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-19T08:02:53Z",
+      "side": 1,
+      "message": "I see a lot of shared code with the BgpdEnv class, is that one going away? If not, can we factor out the shared code?",
+      "revId": "b1172e56b063e9ebfec2ab8c28d7b73a0665bc31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
