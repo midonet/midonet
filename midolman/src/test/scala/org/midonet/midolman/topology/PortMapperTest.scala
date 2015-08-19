@@ -129,7 +129,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val id = UUID.randomUUID
 
             And("A VXLAN port")
-            val port = createVxLanPort(id = id)
+            val port = createVxLanPort(id = id, vtepId = Some(UUID.randomUUID()))
             store.create(port)
 
             And("A port mapper")
