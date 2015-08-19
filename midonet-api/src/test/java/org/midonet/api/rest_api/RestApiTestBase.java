@@ -77,9 +77,7 @@ public abstract class RestApiTestBase extends JerseyTest {
     protected void assertErrorMatches(
             DtoError actual, String expectedTemplateCode, Object... args) {
         String expectedMsg = getMessage(expectedTemplateCode, args);
-        if (!FuncTest.isCompatApiEnabled()) {
-            assertErrorMatchesLiteral(actual, expectedMsg);
-        }
+        assertErrorMatchesLiteral(actual, expectedMsg);
     }
 
     protected void assertErrorMatchesLiteral(DtoError actual,
@@ -87,9 +85,7 @@ public abstract class RestApiTestBase extends JerseyTest {
         String actualMsg = (actual.getViolations().isEmpty()) ?
                 actual.getMessage() :
                 actual.getViolations().get(0).get("message");
-        if (!FuncTest.isCompatApiEnabled()) {
-            assertEquals(expectedMsg, actualMsg);
-        }
+        assertEquals(expectedMsg, actualMsg);
     }
 
     protected void assertErrorMatchesPropMsg(

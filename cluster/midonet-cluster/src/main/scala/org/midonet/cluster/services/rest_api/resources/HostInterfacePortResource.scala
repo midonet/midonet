@@ -30,7 +30,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
 import org.midonet.cluster.rest_api.validation.MessageProperty
-import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_INTERFACE_IS_USED, PORT_ALREADY_BOUND, getMessage}
+import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, HOST_INTERFACE_IS_USED, PORT_ALREADY_BOUND, getMessage}
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -77,8 +77,8 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
         val store = resContext.backend.store
         val h = store.get(classOf[Topology.Host], hostId).getOrThrow
         if (h.getTunnelZoneIdsList.isEmpty) {
-            throw new BadRequestHttpException(s"Host $hostId does not belong " +
-                                              "to any tunnel zones")
+            throw new BadRequestHttpException(
+                getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, hostId))
         }
 
         val oldP = store.get(classOf[Topology.Port], binding.portId).getOrThrow

@@ -50,7 +50,6 @@ import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterfacePort;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -61,7 +60,8 @@ import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTE
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
-import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_IS_NOT_IN_ANY_TUNNEL_ZONE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RunWith(Enclosed.class)
 public class TestHostInterfacePort {
@@ -199,7 +199,7 @@ public class TestHostInterfacePort {
                     APPLICATION_HOST_INTERFACE_PORT_JSON,
                     mapping);
             assertErrorMatchesLiteral(error,
-                    getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE));
+                    getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, host1Id));
         }
 
         @Test

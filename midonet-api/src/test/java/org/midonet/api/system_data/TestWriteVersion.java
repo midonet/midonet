@@ -20,16 +20,16 @@ import java.net.URI;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.MidonetApi;
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.midolman.version.DataWriteVersion;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.midonet.midolman.version.DataWriteVersion.CURRENT;
 
 public class TestWriteVersion extends JerseyTest {
 
@@ -50,15 +50,12 @@ public class TestWriteVersion extends JerseyTest {
     }
 
     @Test
+    @Ignore("TODO FIXME - pending implementation in v2")
     public void testGetUpdate() {
-
-        Assume.assumeFalse(FuncTest.isAwaitingImpl());
-
         org.midonet.client.resource.WriteVersion writeVersion =
                 api.getWriteVersion();
         assertThat("The version should be the current version",
-                writeVersion.getVersion().equals(
-                        DataWriteVersion.CURRENT));
+                writeVersion.getVersion().equals(CURRENT));
 
         writeVersion.version("1.100");
 
