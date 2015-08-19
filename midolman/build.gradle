@@ -47,7 +47,8 @@ sourceSets {
 
 dependencies {
     compile project(':midonet-util'), project(':netlink'),
-            project(':odp'), project(':nsdb')
+            project(':odp'), project(':nsdb'),
+            project(':cluster:midonet-cluster')
 
     compile libraries.scala, libraries.akka, libraries.hamcrest, libraries.jna,
             libraries.commons_lang, libraries.commons_lang3,
