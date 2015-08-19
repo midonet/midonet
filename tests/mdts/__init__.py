@@ -55,7 +55,7 @@ def build_simple_topology():
         .port_id(port_id) \
         .interface_name(host_ifname).create()
 
-    await_port_active(port_id, active=True, timeout=20, sleep_period=1)
+    await_port_active(port_id, active=True, timeout=60, sleep_period=1)
 
     return host, interface, tz, bridge, port
 

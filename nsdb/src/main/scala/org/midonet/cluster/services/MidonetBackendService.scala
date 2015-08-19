@@ -45,8 +45,6 @@ object MidonetBackend {
 /** The trait that models the new Midonet Backend, managing all relevant
   * connections and APIs to interact with backend storages. */
 abstract class MidonetBackend extends AbstractService {
-    /** Indicates whether the new backend stack is active */
-    def isEnabled = false
     /** Provides access to the Topology storage API */
     def store: Storage
     def stateStore: StateStorage
@@ -202,19 +200,15 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
-    override def isEnabled = cfg.useNewStack
 
     protected override def doStart(): Unit = {
         log.info(s"Starting backend ${this} store: $store")
         try {
-            if ((cfg.curatorEnabled || cfg.useNewStack) &&
-                curator.getState != CuratorFrameworkState.STARTED) {
+            if (curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()
             }
-            if (cfg.useNewStack) {
-                log.info("Setting up storage bindings")
-                setupBindings()
-            }
+            log.info("Setting up storage bindings")
+            setupBindings()
             notifyStarted()
         } catch {
             case e: Exception =>

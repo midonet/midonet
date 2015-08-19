@@ -178,7 +178,7 @@ public class TestPoolMember {
                     topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
                     member2, CONFLICT);
             assertErrorMatches(
-                    error, RESOURCE_EXISTS, "pool member", member.getId());
+                    error, RESOURCE_EXISTS, "PoolMember", member.getId());
         }
 
         @Test
@@ -196,7 +196,7 @@ public class TestPoolMember {
             DtoError error = dtoResource.postAndVerifyError(
                     topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
                     member, NOT_FOUND);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool",
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool",
                                member.getPoolId());
         }
 
@@ -261,7 +261,7 @@ public class TestPoolMember {
             DtoError error = dtoResource.getAndVerifyNotFound(
                     addIdToUri(topLevelPoolMembersUri, id),
                     APPLICATION_POOL_MEMBER_JSON);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool member", id);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "PoolMember", id);
         }
 
         @Test
@@ -271,7 +271,7 @@ public class TestPoolMember {
             DtoError error = dtoResource.putAndVerifyNotFound(
                 member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
-                               "pool member", member.getId());
+                               "PoolMember", member.getId());
         }
 
         @Test
@@ -280,7 +280,7 @@ public class TestPoolMember {
             DtoError error = dtoResource.putAndVerifyNotFound(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(
-                    error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
+                    error, RESOURCE_NOT_FOUND, "Pool", member.getPoolId());
         }
 
         @Test

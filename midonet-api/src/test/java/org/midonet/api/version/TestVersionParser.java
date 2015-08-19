@@ -15,14 +15,14 @@
  */
 package org.midonet.api.version;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import org.midonet.cluster.rest_api.version.VersionParser;
 
@@ -44,7 +44,7 @@ public class TestVersionParser {
     @Parameterized.Parameters
     public static Collection<Object[]> inputs() {
 
-        List<Object[]> params = new ArrayList<Object[]>();
+        List<Object[]> params = new ArrayList<>();
 
         params.add(new Object[]{
                 "application/vnd.org.midonet.Application-v1+json", 1});

@@ -74,11 +74,6 @@ public class WebResource {
         client.addFilter(clientFilter);
     }
 
-    public void disableLogging() {
-        client.removeFilter(clientFilter);
-        clientFilter = null;
-    }
-
     public URI post(URI uri, Object entity, String mediaType) {
         ClientResponse response = resource()
             .uri(uri)
