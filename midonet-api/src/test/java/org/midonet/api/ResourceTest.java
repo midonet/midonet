@@ -16,9 +16,7 @@
 package org.midonet.api;
 
 import org.junit.Before;
-import org.midonet.api.neutron.NeutronResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
+
 import org.mockito.Answers;
 import org.mockito.Mock;
 
@@ -26,6 +24,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+
+import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -37,19 +37,13 @@ public abstract class ResourceTest {
     public final static URI BASE_URI = URI.create("http://base_url.net");
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    protected RestApiConfig config;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
     protected SecurityContext context;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     protected UriInfo uriInfo;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    protected NeutronResourceFactory factory;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    protected NeutronPlugin plugin;
+    protected NeutronZoomPlugin plugin;
 
     @Before
     public void setUp() throws Exception {
