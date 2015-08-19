@@ -71,7 +71,7 @@ function package_rpm() {
     RPM_ARGS="$RPM_ARGS -v $version"
     RPM_ARGS="$RPM_ARGS -C build/rpm"
     RPM_ARGS="$RPM_ARGS -d 'python >= 2.6' -d 'python < 2.8'"
-    RPM_ARGS="$RPM_ARGS --epoch 1"
+    RPM_ARGS="$RPM_ARGS --epoch 2"
     RPM_ARGS="$RPM_ARGS --iteration $rpm_revision"
     eval fpm $FPM_BASE_ARGS $RPM_ARGS -t rpm .
 }
@@ -88,6 +88,7 @@ function package_deb() {
 
     DEB_ARGS="$DEB_ARGS -v $version"
     DEB_ARGS="$DEB_ARGS -C build/deb"
+    RPM_ARGS="$DEB_ARGS --epoch 2"
     DEB_ARGS="$DEB_ARGS --deb-priority optional"
 
     eval fpm $FPM_BASE_ARGS $DEB_ARGS -t deb .
