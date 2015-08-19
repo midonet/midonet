@@ -23,8 +23,8 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.midonet.api.rest_api.FuncTest;
@@ -55,9 +55,8 @@ public class TestSystemState extends JerseyTest {
     }
 
     @Test
+    @Ignore("TODO FIXME - pending implementation in v2")
     public void testGetUpdate() throws StateAccessException {
-
-        Assume.assumeFalse(FuncTest.isAwaitingImpl());
 
         org.midonet.client.resource.SystemState systemState =
                 api.getSystemState();
@@ -122,10 +121,8 @@ public class TestSystemState extends JerseyTest {
     }
 
     @Test
+    @Ignore("TODO FIXME - pending implementation in v2")
     public void testReadOnlyMode() throws StateAccessException {
-
-        Assume.assumeFalse(FuncTest.isAwaitingImpl());
-
         org.midonet.client.resource.SystemState systemState =
                 api.getSystemState();
 

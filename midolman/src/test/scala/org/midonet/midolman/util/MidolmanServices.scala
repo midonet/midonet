@@ -59,7 +59,7 @@ trait MidolmanServices {
     def virtConfBuilderImpl =
         injector.getInstance(classOf[VirtualConfigurationBuilders])
 
-    def useNewStorageStack: Boolean = System.getProperty("midonet.newStack") != null
+    def useNewStorageStack: Boolean = true
 
     def setPortActive(portId: UUID, hostId: UUID, active: Boolean): Unit = {
         if (useNewStorageStack) {

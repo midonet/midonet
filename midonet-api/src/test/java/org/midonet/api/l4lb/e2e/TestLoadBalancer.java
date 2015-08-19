@@ -19,12 +19,12 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.cluster.rest_api.Status;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoVip;
+import org.midonet.cluster.rest_api.Status;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.junit.Assert.assertEquals;

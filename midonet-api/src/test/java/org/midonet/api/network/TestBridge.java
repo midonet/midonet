@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -38,7 +37,6 @@ import org.junit.runner.RunWith;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
@@ -51,6 +49,7 @@ import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
+import org.midonet.cluster.rest_api.models.MacPort;
 import org.midonet.cluster.rest_api.models.Tenant;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 
@@ -65,7 +64,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.midonet.api.rest_api.FuncTest._injector;
 import static org.midonet.api.rest_api.FuncTest.appDesc;
-import static org.midonet.api.rest_api.FuncTest.isCompatApiEnabled;
+import static org.midonet.api.rest_api.FuncTest.appDescOverrideBaseUri;
 import static org.midonet.api.rest_api.FuncTest.objectMapper;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
@@ -96,13 +95,11 @@ public class TestBridge {
         private void addActualBridges(Topology.Builder builder, String tenantId,
                                       int count) {
             for (int i = 0 ; i < count ; i++) {
-                if (isCompatApiEnabled()) {
-                    // In the new storage stack we don't store tenants in MidoNet
-                    // and instead fetch them directly from the AuthService, so
-                    // let's add them there.
-                    AuthService as = _injector.getInstance(AuthService.class);
-                    ((MockAuthService)as).addTenant(tenantId, tenantId);
-                }
+                // In the new storage stack we don't store tenants in MidoNet
+                // and instead fetch them directly from the AuthService, so
+                // let's add them there.
+                AuthService as = _injector.getInstance(AuthService.class);
+                ((MockAuthService)as).addTenant(tenantId, tenantId);
                 DtoBridge bridge = new DtoBridge();
                 String tag = Integer.toString(i) + tenantId;
                 bridge.setName(tag);
@@ -291,46 +288,47 @@ public class TestBridge {
         private void deleteMacPort(DtoBridge bridge, Short vlanId,
                               String macAddr, UUID portId)
                 throws URISyntaxException {
-            dtoResource.deleteAndVerifyNoContent(
-                    ResourceUriBuilder.getMacPort(
-                            bridge.getUri(), vlanId, macAddr, portId),
-                    APPLICATION_MAC_PORT_JSON_V2);
+            MacPort mp = new MacPort(app.getUri(), bridge.getId(), macAddr,
+                                     portId, vlanId);
+            dtoResource.deleteAndVerifyNoContent(mp.getUri(),
+                                                 APPLICATION_MAC_PORT_JSON_V2);
         }
 
         private DtoError deleteMacPortWithNotFoundError(
-                URI bridgeUri, Short vlanId, String macAddr, UUID portId)
+                UUID bridgeId, Short vlanId, String macAddr, UUID portId)
                 throws URISyntaxException {
-            return dtoResource.deleteAndVerifyNotFound(
-                    ResourceUriBuilder.getMacPort(
-                            bridgeUri, vlanId, macAddr, portId),
+            MacPort mp = new MacPort(app.getUri(), bridgeId, macAddr,
+                                     portId, vlanId);
+            return dtoResource.deleteAndVerifyNotFound(mp.getUri(),
                     APPLICATION_JSON_V5);
         }
 
-        private DtoMacPort getMacPort(URI bridgeUri, Short vlanId,
-                              String macAddr, UUID portId)
+        private DtoMacPort getMacPort(UUID bridgeId, Short vlanId,
+                                      String macAddr, UUID portId)
                 throws URISyntaxException {
-            return dtoResource.getAndVerifyOk(
-                    ResourceUriBuilder.getMacPort(
-                            bridgeUri, vlanId, macAddr, portId),
-                    APPLICATION_MAC_PORT_JSON_V2, DtoMacPort.class);
+            MacPort mp = new MacPort(app.getUri(), bridgeId, macAddr,
+                                     portId, vlanId);
+            return dtoResource.getAndVerifyOk(mp.getUri(),
+                                              APPLICATION_MAC_PORT_JSON_V2,
+                                              DtoMacPort.class);
         }
 
         private DtoError getMacPortWithNotFoundError(
-                URI bridgeUri, Short vlanId, String macAddr, UUID portId)
+                UUID bridgeId, Short vlanId, String macAddr, UUID portId)
                 throws URISyntaxException {
-            return dtoResource.getAndVerifyNotFound(
-                    ResourceUriBuilder.getMacPort(
-                            bridgeUri, vlanId, macAddr, portId),
-                    APPLICATION_MAC_PORT_JSON_V2);
+            MacPort mp = new MacPort(app.getUri(), bridgeId, macAddr,
+                                     portId, vlanId);
+            return dtoResource.getAndVerifyNotFound(mp.getUri(),
+                                                APPLICATION_MAC_PORT_JSON_V2);
         }
 
         private DtoError getMacPortWithBadRequestError(
-                URI bridgeUri, Short vlanId, String macAddr, UUID portId)
+                UUID bridgeId, Short vlanId, String macAddr, UUID portId)
                 throws URISyntaxException {
-            return dtoResource.getAndVerifyBadRequest(
-                    ResourceUriBuilder.getMacPort(
-                            bridgeUri, vlanId, macAddr, portId),
-                    APPLICATION_MAC_PORT_JSON_V2);
+            MacPort mp = new MacPort(app.getUri(), bridgeId, macAddr,
+                                     portId, vlanId);
+            return dtoResource.getAndVerifyBadRequest(mp.getUri(),
+                                                  APPLICATION_MAC_PORT_JSON_V2);
         }
 
         private DtoMacPort[] getMacTable(DtoBridge bridge) {
@@ -738,40 +736,36 @@ public class TestBridge {
 
             // Try to get a mapping from a non-existing bridge.
             UUID fakeBridgeId = new UUID(1234L, 5678L);
-            URI fakeBridgeUri =
-                    ResourceUriBuilder.getBridge(
-                            bridge1.getUri().resolve(".."), fakeBridgeId);
             DtoError error = getMacPortWithNotFoundError(
-                    fakeBridgeUri, null, mac0, bridge1ip0.getId());
+                    fakeBridgeId, null, mac0, bridge1ip0.getId());
             assertErrorMatches(error,
-                    MessageProperty.RESOURCE_NOT_FOUND, "bridge", fakeBridgeId);
+                    MessageProperty.RESOURCE_NOT_FOUND, "Network",
+                               fakeBridgeId);
 
             // Try to get a mapping from a VLAN that the bridge doesn't have.
             error = getMacPortWithNotFoundError(
-                    bridge1.getUri(), (short)2, mac0, bridge1ip0.getId());
-            assertErrorMatches(error,
-                    MessageProperty.BRIDGE_HAS_VLAN, 2);
+                    bridge1.getId(), (short)2, mac0, bridge1ip0.getId());
 
             // Try to get a mapping with a malformed MAC address.
-            error = getMacPortWithBadRequestError(bridge1.getUri(),
+            error = getMacPortWithBadRequestError(bridge1.getId(),
                     null, "no-ta-ma-ca-dd-re", bridge1ip0.getId());
             assertErrorMatches(error,
                     MessageProperty.MAC_URI_FORMAT);
 
             // Try to get a mapping from the wrong bridge.
             error = getMacPortWithNotFoundError(
-                    bridge1.getUri(), null, mac2, bridge2ip0.getId());
+                    bridge1.getId(), null, mac2, bridge2ip0.getId());
             assertErrorMatches(error, MessageProperty.BRIDGE_HAS_MAC_PORT);
 
             // Now get each mapping successfully.
-            getMacPort(bridge1.getUri(), null, mac0, bridge1ip0.getId());
-            getMacPort(bridge1.getUri(), null, mac1, bridge1ip0.getId());
-            getMacPort(bridge1.getUri(), (short)1, mac1, bridge1ip1.getId());
-            getMacPort(bridge1.getUri(), (short)1, mac2, bridge1ip1.getId());
-            getMacPort(bridge2.getUri(), null, mac1, bridge2ip0.getId());
-            getMacPort(bridge2.getUri(), null, mac2, bridge2ip0.getId());
-            getMacPort(bridge2.getUri(), (short)2, mac2, bridge2ip2.getId());
-            getMacPort(bridge2.getUri(), (short)2, mac3, bridge2ip2.getId());
+            getMacPort(bridge1.getId(), null, mac0, bridge1ip0.getId());
+            getMacPort(bridge1.getId(), null, mac1, bridge1ip0.getId());
+            getMacPort(bridge1.getId(), (short)1, mac1, bridge1ip1.getId());
+            getMacPort(bridge1.getId(), (short)1, mac2, bridge1ip1.getId());
+            getMacPort(bridge2.getId(), null, mac1, bridge2ip0.getId());
+            getMacPort(bridge2.getId(), null, mac2, bridge2ip0.getId());
+            getMacPort(bridge2.getId(), (short)2, mac2, bridge2ip2.getId());
+            getMacPort(bridge2.getId(), (short)2, mac3, bridge2ip2.getId());
         }
 
         @Test
@@ -801,18 +795,15 @@ public class TestBridge {
 
             // Attempt to delete a mapping with a non-existing bridge.
             UUID fakeBridgeId = new UUID(1234L, 5678L);
-            URI fakeBridgeUri =
-                    ResourceUriBuilder.getBridge(
-                            bridge1.getUri().resolve(".."), fakeBridgeId);
             DtoError error = deleteMacPortWithNotFoundError(
-                    fakeBridgeUri, null, mac0, bridge1ip1.getId());
+                    fakeBridgeId, null, mac0, bridge1ip1.getId());
             assertErrorMatches(error, MessageProperty.RESOURCE_NOT_FOUND,
-                               "bridge", fakeBridgeId);
+                               "Network", fakeBridgeId);
 
             // Attempt to delete a mapping for a VLAN that doesn't exist
             // on this bridge.
             error = deleteMacPortWithNotFoundError(
-                    bridge1.getUri(), (short)2, mac1, bridge1ip1.getId());
+                    bridge1.getId(), (short)2, mac1, bridge1ip1.getId());
             assertErrorMatches(error, MessageProperty.BRIDGE_HAS_VLAN, 2);
 
             // Attempt to delete a mapping that only exists for the bridge's
