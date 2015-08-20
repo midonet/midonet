@@ -1,1 +1,1 @@
-__version__ = "master"
+__version__ = "2015.6.2"
