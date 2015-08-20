@@ -39,23 +39,26 @@ import org.midonet.vtep.schema.Table
 class OvsdbCachedTable[T <: Table, Entry <: VtepEntry](val client: OvsdbClient,
                                                        val table: T,
                                                        val clazz: Class[Entry],
-                                                       val vtepThread: Executor)
+                                                       val vtepExecutor: Executor,
+                                                       val eventExecutor: Executor)
     extends VtepCachedTable[T, Entry] {
 
-    val MAX_BACKPRESSURE_BUFFER = 100000
+    val MaxBackpressureBuffer = 100000
 
     case class Data(value: Entry, owner: UUID)
 
     private val log = LoggerFactory.getLogger(this.getClass)
-    private val executionContext = ExecutionContext.fromExecutor(vtepThread)
-    private val scheduler = Schedulers.from(vtepThread)
+    private val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
+    private val vtepScheduler = Schedulers.from(vtepExecutor)
 
     private var map: Map[UUID, List[Data]] = Map()
     private val filled = Promise[Boolean]()
-    private val monitor = new OvsdbTableMonitor[T, Entry](client, table, clazz)
+    private val monitor =
+        new OvsdbTableMonitor[T, Entry](client, table, clazz, eventExecutor)
+
     monitor.observable
-        .onBackpressureBuffer(MAX_BACKPRESSURE_BUFFER, panicAlert(log))
-        .observeOn(scheduler)
+        .onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
+        .observeOn(vtepScheduler)
         .subscribe(new Observer[VtepTableUpdate[Entry]] {
             override def onCompleted(): Unit = {
                 log.debug("vtep monitor closed")
@@ -84,14 +87,14 @@ class OvsdbCachedTable[T <: Table, Entry <: VtepEntry](val client: OvsdbClient,
     override def insert(row: Entry): Future[UUID] = {
         val result = Promise[UUID]()
         val hint = insertHint(row)
-        OvsdbTools.insert(client, table, table.insert(row))
+        OvsdbTools.insert(client, table, table.insert(row), vtepExecutor)
                   .future.onComplete {
                       case Failure(exc) =>
                           removeHint(row.uuid, hint)
                           result.failure(exc)
                       case Success(uuid) =>
                           result.success(uuid)
-                  }(executionContext)
+                  }(vtepContext)
         result.future
     }
 

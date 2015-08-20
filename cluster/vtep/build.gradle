@@ -26,7 +26,6 @@ jar {
 
 repositories {
     maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
-    maven { url "http://nexus.opendaylight.org/content/repositories/public/"  }
 }
 
 sourceSets {
@@ -44,7 +43,7 @@ dependencies {
     compile project(':midonet-util'),
             project(':nsdb'),
             libraries.rx,
-            "org.opendaylight.ovsdb:library:1.0.0-Helium"
+            "org.opendaylight.ovsdb:library:1.1.1-Lithium-SR1"
 
     testCompile libraries.mockit,
                 libraries.scalatest

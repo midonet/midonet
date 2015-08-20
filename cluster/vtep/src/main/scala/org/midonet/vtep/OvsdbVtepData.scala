@@ -36,31 +36,32 @@ import rx.{Observable, Observer, Subscriber}
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.data.vtep.{VtepStateException, VtepConfigException, VtepData}
 import org.midonet.packets.IPv4Addr
-import org.midonet.util.concurrent.{CallingThreadExecutionContext, _}
+import org.midonet.util.concurrent._
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 import org.midonet.vtep.schema.Table.OvsdbOperation
 import org.midonet.vtep.schema._
 
 /**
- * This class handles the data from an ovsdb-compliant vtep
+ * This class handles the data from an OVSDB-compliant VTEP.
  */
 class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
-                    val dbSchema: DatabaseSchema, val vtepThread: Executor)
+                    val dbSchema: DatabaseSchema, val vtepExecutor: Executor,
+                    val eventExecutor: Executor)
     extends VtepData {
     import OvsdbVtepData._
 
     val MaxBackpressureBuffer = 100000
 
     private val log = LoggerFactory.getLogger(classOf[OvsdbVtepData])
-    private val vtepContext = ExecutionContext.fromExecutor(vtepThread)
-    private val vtepScheduler = Schedulers.from(vtepThread)
+    private val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
+    private val vtepScheduler = Schedulers.from(vtepExecutor)
 
     case class ConfigException(msg: String)
         extends VtepConfigException(endPoint, msg)
 
     private def cachedTable[T <: Table, E <: VtepEntry]
         (table: T, clazz: Class[E]): OvsdbCachedTable[T, E] =
-        new OvsdbCachedTable[T, E](client, table, clazz, vtepThread)
+        new OvsdbCachedTable[T, E](client, table, clazz, vtepExecutor, eventExecutor)
 
     private val lsTable =
         cachedTable(new LogicalSwitchTable(dbSchema), classOf[LogicalSwitch])
@@ -84,10 +85,10 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
 
     private val uLocalMonitor =
         new OvsdbTableMonitor[UcastMacsLocalTable, UcastMac](
-            client, uLocalTable.table, classOf[UcastMac])
+            client, uLocalTable.table, classOf[UcastMac], eventExecutor)
     private val mLocalMonitor =
         new OvsdbTableMonitor[McastMacsLocalTable, McastMac](
-            client, mLocalTable.table, classOf[McastMac])
+            client, mLocalTable.table, classOf[McastMac], eventExecutor)
 
     private val tables = List(lsTable, psTable, portTable,
                               locSetTable, locTable,
@@ -96,7 +97,7 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
 
     private val ready: Future[Boolean] =
         Future.reduce[Boolean, Boolean](
-            tables.map(_.ready))(_ && _)(CallingThreadExecutionContext)
+            tables.map(_.ready))(_ && _)(vtepContext)
 
     private def physicalSwitch: Option[PhysicalSwitch] =
         psTable.getAll.values.find(_.mgmtIps.contains(endPoint.mgmtIp))
@@ -190,12 +191,14 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                         ops.add(portTable.table.updateBindings(p))
                         portTable.insertHint(p, hint)
                     })
-                    val status = OvsdbTools.multiOp(client, dbSchema, ops).future
+                    val status =
+                        OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
+                                  .future
                     status.onFailure {case e: Throwable =>
                         ports.values.foreach(
                             p => portTable.removeHint(p.uuid, hint))
                     } (vtepContext)
-                    status.map(r => {})(CallingThreadExecutionContext)
+                    status.map(r => {})(vtepContext)
             }
         }(vtepContext)
     }
@@ -223,8 +226,9 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                     // delete the switch
                     ops.add(lsTable.table.deleteByName(ls.name))
 
-                    OvsdbTools.multiOp(client, dbSchema, ops).future
-                        .map(r => {})(CallingThreadExecutionContext)
+                    OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
+                              .future
+                              .map(r => {})(vtepContext)
             }
         } (vtepContext)
     }
@@ -254,13 +258,15 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                 case u: UcastMac => ops.add(uRemoteTable.table.insert(u))
                 case m: McastMac => ops.add(mRemoteTable.table.insert(m))
             })
-            OvsdbTools.multiOp(client, dbSchema, ops).future.onComplete({
+            OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
+                      .future
+                      .onComplete {
                 case Failure(err) =>
                     log.warn("failed to insert entries: " + entries, err)
                     MacRemoteUpdater.this.request(1)
                 case Success(_) =>
                     MacRemoteUpdater.this.request(1)
-            }) (CallingThreadExecutionContext)
+            }(vtepContext)
         }
 
         private def applyRemoteMacDeletion(macLocation: MacLocation): Unit = {
@@ -270,13 +276,15 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                 case u: UcastMac => ops.add(uRemoteTable.table.delete(u))
                 case m: McastMac => ops.add(mRemoteTable.table.delete(m))
             })
-            OvsdbTools.multiOp(client, dbSchema, ops).future.onComplete({
+            OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
+                      .future
+                      .onComplete {
                 case Failure(err) =>
                     log.warn("failed to remove entries: " + entries, err)
                     MacRemoteUpdater.this.request(1)
                 case Success(_) =>
                     MacRemoteUpdater.this.request(1)
-            }) (CallingThreadExecutionContext)
+            }(vtepContext)
         }
     }
 
@@ -358,9 +366,9 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                         // we will catch locator insertion errors during the
                         // insertion of the entries; this way we don't have
                         // to block and we keep the order of the updates
-                        locTable.insert(loc).onFailure {case e: Throwable =>
+                        locTable.insert(loc).onFailure { case e: Throwable =>
                             log.warn("failed to insert locator " + loc, e)
-                        } (CallingThreadExecutionContext)
+                        }(vtepContext)
                         Seq(UcastMac(ls.uuid, ml.mac, ml.ipAddr, loc.uuid))
                     case entries => entries
                 }
@@ -373,9 +381,9 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                         // we will catch locator insertion errors during the
                         // insertion of the entries; this way we don't have
                         // to block and we keep the order of the updates
-                        locTable.insert(loc).onFailure {case e: Throwable =>
+                        locTable.insert(loc).onFailure { case e: Throwable =>
                             log.warn("failed to insert locator " + loc, e)
-                        } (CallingThreadExecutionContext)
+                        }(vtepContext)
                         List(loc.uuid)
                     case ids => ids
                 }
@@ -389,9 +397,9 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                         // insertion of the entries; this way we don't have
                         // to block and we keep the order of the updates
                         locSetTable.insert(set)
-                        locSetTable.insert(set).onFailure {case e: Throwable =>
+                        locSetTable.insert(set).onFailure { case e: Throwable =>
                             log.warn("failed to insert locator set " + set, e)
-                        } (CallingThreadExecutionContext)
+                        }(vtepContext)
                         Seq(McastMac(ls.uuid, ml.mac, ml.ipAddr, set.uuid))
                     case entries => entries
                 }

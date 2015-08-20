@@ -16,18 +16,18 @@
 
 package org.midonet.cluster.data.vtep
 
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 
-import rx.{Observable, Observer}
+import rx.{Notification, Observable, Observer}
 
 import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState.State
-import org.midonet.cluster.data.vtep.model.{MacLocation, LogicalSwitch}
+import org.midonet.cluster.data.vtep.model.{VtepEndPoint, MacLocation, LogicalSwitch}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors.makeFunc1
+import org.midonet.util.reactivex._
 
 /**
  * A client class for the connection to a VTEP-enabled switch. A client
@@ -41,25 +41,28 @@ trait VtepDataClient extends VtepConnection with VtepData
  * Handle connections to a VTEP
  */
 trait VtepConnection {
-    /** @return The VTEP management IP */
-    def getManagementIp: IPv4Addr
 
-    /** @return The VTEP management port */
-    def getManagementPort: Int
+    /**
+     * The management end-point for the VTEP connection.
+     */
+    def endPoint: VtepEndPoint
 
     /**
      * Connect to the VTEP using a specific user. If the VTEP is already
-     * connected or connecting, it does nothing;
-     * @param user The user asking for the connection
+     * connected or connecting, it does nothing.
      */
-    def connect(user: UUID): Unit
+    def connect(): Future[State]
 
     /**
      * Disconnects from the VTEP. If the VTEP is already disconnecting
-     * or disconnected, it does nothing;
-     * @param user The user that previously asked for this connection
+     * or disconnected, it does nothing.
      */
-    def disconnect(user: UUID): Unit
+    def disconnect(): Future[State]
+
+    /**
+     * Releases all resources used by the VTEP connection.
+     */
+    def close()(implicit ex: ExecutionContext): Future[State]
 
     /**
      * Get a observable to get the current state and monitor connection changes
@@ -92,6 +95,7 @@ trait VtepConnection {
                   .toFuture
                   .get(timeout.toMillis, TimeUnit.MILLISECONDS)
     }
+
 }
 
 object VtepConnection {
@@ -101,17 +105,18 @@ object VtepConnection {
       * When `isDecisive` is true, the current connection state allows a
       * data operation to complete, either successfully or not. Otherwise, when
       * `isDecisive` is false any data operation should be postponed until
-      * the VTEP connection reaches a decisive state. The `isFatal` field
+      * the VTEP connection reaches a decisive state. The `isFailed` field
       * indicates whether a data operation should always fail for the current
       * state. */
     object ConnectionState extends Enumeration {
-        class State(val isDecisive: Boolean, val isFatal: Boolean) extends Val
+        class State(val isDecisive: Boolean, val isFailed: Boolean) extends Val
         final val Disconnected = new State(true, true)
         final val Connected = new State(false, false)
         final val Ready = new State(true, false)
         final val Disconnecting = new State(false, true)
         final val Broken = new State(true, true)
         final val Connecting = new State(false, false)
+        final val Failed = new State(true, true)
         final val Disposed = new State(true, true)
     }
     /** A connection handle to be used to perform operations on the vtep */
