@@ -16,17 +16,20 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.models.Commons.{Protocol, UUID}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
-import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.services.c3po.C3POStorageManager.OpType
-import org.midonet.cluster.services.c3po.{midonet, neutron}
-import org.midonet.cluster.util.UUIDUtil.randomUuidProto
+import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 
 /* A common base class for testing NeutronPort CRUD translation. */
+@RunWith(classOf[JUnitRunner])
 class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
                                       with ChainManager {
     protected var translator: SecurityGroupRuleTranslator = _
@@ -90,9 +93,7 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         inChain shouldBe null
 
         val outChain = findChainOp(midoOps, OpType.Update, outChainId(sgId))
-        outChain should not be null
-        outChain.getRuleIdsList.size shouldBe 2
-        midoOps should contain (midonet.Create(mSshInRule))
+        outChain shouldBe null
     }
 
     "SSH rule" should "be deleted when deleting the rule" in {
@@ -100,9 +101,7 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
             neutron.Delete(classOf[SecurityGroupRule], sgrId))
 
         val chain = findChainOp(midoOps, OpType.Update, mChainId)
-        chain should not be null
-        chain.getRuleIdsList.size shouldBe 0
-        midoOps should contain (midonet.Delete(classOf[Rule], sgrId))
+        chain shouldBe null
     }
 
     "Ingress SecurityGroupRule translation" should "correspond " +
@@ -153,5 +152,33 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         mRule.getCondition.getTpDst.getStart shouldBe start
         mRule.getCondition.getTpDst.getEnd shouldBe end
         mRule.getCondition.getNwDstIp.getAddress shouldBe ip
+    }
+
+    "Rule" should "allow lower-bounded open port range" in {
+        val ruleText = sgRuleBase() + s"""
+            direction: INGRESS
+            port_range_min: 10
+        """.stripMargin
+        val nRule = nSecurityGroupRuleFromTxt(ruleText)
+
+        val mRule = SecurityGroupRuleManager.translate(nRule)
+        mRule.getId shouldBe sgrId
+        mRule.getCondition.getTpDst.hasStart shouldBe true
+        mRule.getCondition.getTpDst.getStart shouldBe 10
+        mRule.getCondition.getTpDst.hasEnd shouldBe false
+    }
+
+    "Rule" should "allow upper-bounded open port range" in {
+        val ruleText = sgRuleBase() + s"""
+            direction: INGRESS
+            port_range_max: 10
+        """.stripMargin
+        val nRule = nSecurityGroupRuleFromTxt(ruleText)
+
+        val mRule = SecurityGroupRuleManager.translate(nRule)
+        mRule.getId shouldBe sgrId
+        mRule.getCondition.getTpDst.hasStart shouldBe false
+        mRule.getCondition.getTpDst.hasEnd shouldBe true
+        mRule.getCondition.getTpDst.getEnd shouldBe 10
     }
 }

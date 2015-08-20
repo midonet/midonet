@@ -25,9 +25,9 @@ import org.midonet.cluster.util.IPSubnetUtil
  * Contains rule-related operations shared by multiple translators.
  */
 object SecurityGroupRuleManager extends ChainManager {
-  /**
-   * Translate a Neutron SecurityGroupRule to a Midonet Rule.
-   */
+    /**
+     * Translate a Neutron SecurityGroupRule to a Midonet Rule.
+     */
     def translate(sgRule: SecurityGroupRule): Rule = {
         val bldr = Rule.newBuilder
             .setId(sgRule.getId)
@@ -39,29 +39,31 @@ object SecurityGroupRuleManager extends ChainManager {
             condBldr.setNwProto(sgRule.getProtocol.getNumber)
         if (sgRule.hasEthertype)
             condBldr.setDlType(sgRule.getEthertype.getNumber)
-        if (sgRule.hasPortRangeMin)
-            condBldr.setTpDst(createRange(sgRule.getPortRangeMin,
-                                      sgRule.getPortRangeMax))
+        if (sgRule.hasPortRangeMin || sgRule.hasPortRangeMax)
+            condBldr.setTpDst(createRange(sgRule))
 
         if (sgRule.getDirection == RuleDirection.INGRESS) {
             bldr.setChainId(outChainId(sgRule.getSecurityGroupId))
             if (sgRule.hasRemoteIpPrefix)
                 condBldr.setNwSrcIp(IPSubnetUtil.toProto(
-                                        sgRule.getRemoteIpPrefix))
+                    sgRule.getRemoteIpPrefix))
             if (sgRule.hasRemoteGroupId)
                 condBldr.setIpAddrGroupIdSrc(sgRule.getRemoteGroupId)
         } else {
             bldr.setChainId(inChainId(sgRule.getSecurityGroupId))
             if (sgRule.hasRemoteIpPrefix)
                 condBldr.setNwDstIp(IPSubnetUtil.toProto(
-                                        sgRule.getRemoteIpPrefix))
+                    sgRule.getRemoteIpPrefix))
             if (sgRule.hasRemoteGroupId)
                 condBldr.setIpAddrGroupIdDst(sgRule.getRemoteGroupId)
         }
         bldr.setCondition(condBldr).build()
     }
 
-    private def createRange(start: Int, end: Int): Int32Range = {
-        Int32Range.newBuilder.setStart(start).setEnd(end).build()
+    private def createRange(sgRule: SecurityGroupRule): Int32Range = {
+        val builder = Int32Range.newBuilder
+        if (sgRule.hasPortRangeMin) builder.setStart(sgRule.getPortRangeMin)
+        if (sgRule.hasPortRangeMax) builder.setEnd(sgRule.getPortRangeMax)
+        builder.build()
     }
 }
