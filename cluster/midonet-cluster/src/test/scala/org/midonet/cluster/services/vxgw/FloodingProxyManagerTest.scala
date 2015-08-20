@@ -84,7 +84,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
                .getKey(classOf[TunnelZone], tzId, FloodingProxyKey)
                .toBlocking.single() match {
                    case SingleValueKey(_, v, _) =>
-                       v.map(FloodingProxyHerald.deserialize)
+                       v.map(FloodingProxyHerald.deserialize(tzId, _))
                    case _ => None
                }
     }
@@ -186,7 +186,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         if (hostId == null) {
             currentFp(tzId) shouldBe None
         } else {
-            currentFp(tzId) shouldBe Option(FloodingProxy(hostId, tunIp))
+            currentFp(tzId) shouldBe Option(FloodingProxy(tzId, hostId, tunIp))
         }
     }
 }
