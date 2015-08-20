@@ -17,13 +17,16 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import javax.ws.rs.core.{MediaType, NewCookie, Response}
-import javax.ws.rs.{POST, Produces}
+import javax.ws.rs.{Path, POST, Produces}
 
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.auth.Token
+import org.midonet.cluster.rest_api.annotation.ApiResource
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TOKEN_JSON
 
+@ApiResource(version = 1)
+@Path("login")
 @RequestScoped
 class LoginResource {
 

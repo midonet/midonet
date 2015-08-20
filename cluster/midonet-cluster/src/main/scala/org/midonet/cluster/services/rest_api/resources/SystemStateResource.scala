@@ -17,13 +17,16 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import javax.ws.rs.core.MediaType
-import javax.ws.rs.{GET, Produces}
+import javax.ws.rs.{Path, GET, Produces}
 
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.annotation.ApiResource
 import org.midonet.cluster.rest_api.models.SystemState
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes
 
+@ApiResource(version = 1)
+@Path("system_state")
 @RequestScoped
 class SystemStateResource {
 

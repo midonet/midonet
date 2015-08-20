@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.UUID
 
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
@@ -27,12 +27,14 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.{NotFoundHttpException, BadRequestHttpException}
-import org.midonet.cluster.rest_api.annotation.{AllowList, AllowCreate, AllowDelete, AllowGet}
-import org.midonet.cluster.rest_api.models.{JumpRule, Chain, Rule}
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList, ApiResource}
+import org.midonet.cluster.rest_api.models.{Chain, JumpRule, Rule}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
+@ApiResource(version = 1)
+@Path("rules")
 @RequestScoped
 @AllowGet(Array(APPLICATION_RULE_JSON,
                 APPLICATION_RULE_JSON_V2,
