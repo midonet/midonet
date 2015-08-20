@@ -453,7 +453,6 @@ message Vtep {
     optional IPAddress management_ip = 2;
     optional uint32 management_port = 3;
     optional UUID tunnel_zone_id = 4;
-    repeated string tunnel_ips = 5;
 
     message Binding {
         optional string port_name = 1;
