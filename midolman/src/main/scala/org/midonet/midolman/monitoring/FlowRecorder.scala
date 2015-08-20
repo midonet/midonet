@@ -39,7 +39,7 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.packets.MAC
-import org.midonet.sdn.flows.FlowTagger.{_}
+import org.midonet.sdn.flows.FlowTagger._
 
 trait FlowRecorder {
     def record(pktContext: PacketContext, simRes: MMSimRes): Unit

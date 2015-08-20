@@ -28,4 +28,5 @@ class PortGroup(val id: UUID,
     extends VirtualDevice {
 
     val deviceTag = FlowTagger.tagForPortGroup(id)
+    val flowStateTag = FlowTagger.tagForFlowStateDevice(id)
 }
