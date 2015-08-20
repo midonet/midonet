@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_31f04ec9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-20T08:36:00Z",
+      "side": 1,
+      "message": "These seem out-of-order, by the way.",
+      "range": {
+        "startLine": 21,
+        "startChar": 43,
+        "endLine": 21,
+        "endChar": 73
+      },
+      "revId": "8f7ef25d7aec1795ec35c77be9c9b5d7e72a0f9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
