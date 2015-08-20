@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_cd75c8cd",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/NeutronDeserializerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-20T04:59:35Z",
+      "side": 1,
+      "message": "This doesn\u0027t need to be changed, but for future reference a more concise and less error-prone way to do this is something like:\n\n  val fwId \u003d UUID.randomUUID()\n\nThen use string interpolation to insert it into the JSON, and replace these two lines with UUIDUtil.fromProto(fw.getId) shouldBe fwId",
+      "range": {
+        "startLine": 304,
+        "startChar": 0,
+        "endLine": 305,
+        "endChar": 52
+      },
+      "revId": "7a85f5d2321b56ebfb973e2171c6ddd597ea7148",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
