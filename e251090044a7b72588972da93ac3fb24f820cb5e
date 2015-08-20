@@ -1,0 +1,556 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_34dafc17",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "Midonet V2?",
+      "range": {
+        "startLine": 2,
+        "startChar": 4,
+        "endLine": 2,
+        "endChar": 28
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_34f11c96",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "simulate the packet\u0027s path in the overlay topology?",
+      "range": {
+        "startLine": 9,
+        "startChar": 42,
+        "endLine": 10,
+        "endChar": 38
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b4fd2c71",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "the packet (you start the sentence by saying \"When *a* packet...\"",
+      "range": {
+        "startLine": 11,
+        "startChar": 32,
+        "endLine": 11,
+        "endChar": 39
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d439d042",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 13,
+        "startChar": 10,
+        "endLine": 13,
+        "endChar": 17
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f43df42d",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": ". One example is datapath ports.",
+      "range": {
+        "startLine": 14,
+        "startChar": 60,
+        "endLine": 15,
+        "endChar": 15
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7411e4ae",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "What is the relation between this example and datapath ports?",
+      "range": {
+        "startLine": 15,
+        "startChar": 17,
+        "endLine": 17,
+        "endChar": 25
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_941668a6",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 16
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b40b6c7c",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 19,
+        "startChar": 31,
+        "endLine": 19,
+        "endChar": 38
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d410f0aa",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "replace by \u0027The\u0027",
+      "range": {
+        "startLine": 22,
+        "startChar": 7,
+        "endLine": 22,
+        "endChar": 31
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f4241410",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "well-established?",
+      "range": {
+        "startLine": 23,
+        "startChar": 25,
+        "endLine": 23,
+        "endChar": 31
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_341f5cb9",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": ".",
+      "range": {
+        "startLine": 24,
+        "startChar": 16,
+        "endLine": 24,
+        "endChar": 17
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_541ce0c1",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "Perhaps this can be removed, it is not clear to me why relying on ZK would necessarily mean that its primary task is performed efficiently.",
+      "range": {
+        "startLine": 24,
+        "startChar": 18,
+        "endLine": 25,
+        "endChar": 27
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_947d88ea",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "perhaps instead of talking about efficiency why not just referring to modularity or using building blocks (such as ZK) leads to a cleaner design?",
+      "range": {
+        "startLine": 32,
+        "startChar": 20,
+        "endLine": 33,
+        "endChar": 55
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b4828cc6",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "we",
+      "range": {
+        "startLine": 40,
+        "startChar": 41,
+        "endLine": 40,
+        "endChar": 45
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d48710d6",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 42,
+        "endChar": 17
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_14697825",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "now resides in?",
+      "range": {
+        "startLine": 42,
+        "startChar": 23,
+        "endLine": 42,
+        "endChar": 42
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_34767c07",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "The design also allows to",
+      "range": {
+        "startLine": 43,
+        "startChar": 24,
+        "endLine": 43,
+        "endChar": 37
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_54730015",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "heterogeneity?",
+      "range": {
+        "startLine": 46,
+        "startChar": 25,
+        "endLine": 46,
+        "endChar": 38
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9464a84a",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "to manage?",
+      "range": {
+        "startLine": 47,
+        "startChar": 30,
+        "endLine": 47,
+        "endChar": 43
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b459ac90",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 51,
+        "startChar": 41,
+        "endLine": 51,
+        "endChar": 57
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f4525467",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "link to blog post on Zoom?",
+      "range": {
+        "startLine": 56,
+        "startChar": 20,
+        "endLine": 56,
+        "endChar": 21
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_344d9cc5",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 59,
+        "startChar": 22,
+        "endLine": 59,
+        "endChar": 57
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_94cbc81d",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "Cool!",
+      "range": {
+        "startLine": 64,
+        "startChar": 35,
+        "endLine": 66,
+        "endChar": 42
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d4d550ba",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-20T12:29:48Z",
+      "side": 1,
+      "message": "we?",
+      "range": {
+        "startLine": 68,
+        "startChar": 17,
+        "endLine": 68,
+        "endChar": 18
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
