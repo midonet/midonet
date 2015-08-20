@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.vxgw
 
 import java.util
+import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -41,7 +42,7 @@ object FloodingProxyCalculator {
      * Note that hosts are only eligible to act as flooding proxy if their
      * weight is > 0.
      */
-    def calculate(candidates: util.Map[Host, IPv4Addr])
+    def calculate(tzId: UUID, candidates: util.Map[Host, IPv4Addr])
     : Option[FloodingProxy] = {
         val eligible = candidates.keySet.filter { _.getFloodingProxyWeight > 0 }
         if (eligible.isEmpty) {
@@ -63,7 +64,7 @@ object FloodingProxyCalculator {
             sum += chosen.getFloodingProxyWeight
             index = index + 1
         }
-        Some(FloodingProxy(chosen.getId, candidates.get(chosen)))
+        Some(FloodingProxy(tzId, chosen.getId, candidates.get(chosen)))
     }
 
 }
