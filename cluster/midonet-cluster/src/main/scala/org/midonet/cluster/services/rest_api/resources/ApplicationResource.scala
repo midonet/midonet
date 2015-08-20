@@ -45,5 +45,4 @@ class ApplicationResource @Inject()(resProvider: ResourceProvider,
     def resource(@PathParam("name")name: String): Class[_] = {
         resProvider get name
     }
-
 }

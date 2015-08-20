@@ -20,16 +20,26 @@ import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 
+import com.google.protobuf.Message;
+
 import org.midonet.cluster.data.TraceRequest.DeviceType;
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomConvert;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.cluster.util.UUIDUtil;
 
 /* Class representing trace info */
+@ZoomClass(clazz = Topology.TraceRequest.class)
 public class TraceRequest extends UriResource {
 
     @NotNull
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
     @NotNull
+    @ZoomField(name = "name")
     public String name;
 
     @NotNull
@@ -39,13 +49,17 @@ public class TraceRequest extends UriResource {
     public UUID deviceId;
 
     @NotNull
+    @ZoomField(name = "condition")
     public Condition condition;
 
+    @ZoomField(name = "createTimestampMs")
     public long creationTimestampMs = System.currentTimeMillis();
 
+    @ZoomField(name = "limit")
     public long limit = Long.MAX_VALUE;
 
     @NotNull
+    @ZoomField(name = "enabled")
     public boolean enabled;
 
     public TraceRequest() {
@@ -81,5 +95,50 @@ public class TraceRequest extends UriResource {
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.TRACE_REQUESTS, id);
+    }
+
+    @Override
+    public void afterFromProto(Message proto) {
+        super.afterFromProto(proto);
+
+        if (proto instanceof Topology.TraceRequest) {
+            Topology.TraceRequest tr = (Topology.TraceRequest)proto;
+            if (tr.hasPortId()) {
+                deviceType = DeviceType.PORT;
+                deviceId = UUIDUtil.fromProto(tr.getPortId());
+            } else if (tr.hasNetworkId()) {
+                deviceType = DeviceType.BRIDGE;
+                deviceId = UUIDUtil.fromProto(tr.getNetworkId());
+            } else if (tr.hasRouterId()) {
+                deviceType = DeviceType.ROUTER;
+                deviceId = UUIDUtil.fromProto(tr.getRouterId());
+            }
+        } else {
+            throw new ZoomConvert.ConvertException("Message should be a Rule");
+        }
+    }
+
+    @Override
+    public void afterToProto(Message.Builder builder) {
+        super.afterToProto(builder);
+
+        if (builder instanceof Topology.TraceRequest.Builder) {
+            Topology.TraceRequest.Builder trBuilder
+                = (Topology.TraceRequest.Builder)builder;
+            switch (deviceType) {
+            case PORT:
+                trBuilder.setPortId(UUIDUtil.toProto(deviceId));
+                break;
+            case BRIDGE:
+                trBuilder.setNetworkId(UUIDUtil.toProto(deviceId));
+                break;
+            case ROUTER:
+                trBuilder.setRouterId(UUIDUtil.toProto(deviceId));
+                break;
+            }
+        } else {
+            throw new ZoomConvert.ConvertException(
+                    "Builder should be a TraceRequest");
+        }
     }
 }
