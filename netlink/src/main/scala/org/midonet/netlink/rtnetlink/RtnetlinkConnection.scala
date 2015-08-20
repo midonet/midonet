@@ -234,6 +234,9 @@ class RtnetlinkConnection(val channel: NetlinkChannel,
         sendRequest(observer)(buf =>
             protocol.prepareAddrGet(buf, ifIndex, family))
 
+    override def addrsSet(addr: Addr, observer: Observer[Boolean]): Unit =
+        sendRequest(observer)(buf => protocol.prepareAddrSet(buf, addr))
+
     override def routesList(observer: Observer[Set[Route]]): Unit =
         sendRequest(observer)(protocol.prepareRouteList)
 
