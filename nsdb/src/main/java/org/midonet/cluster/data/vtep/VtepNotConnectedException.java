@@ -25,7 +25,7 @@ public class VtepNotConnectedException extends VtepException {
     private static final long serialVersionUID = 2817256740296080692L;
 
     public VtepNotConnectedException(VtepEndPoint vtep) {
-        super(vtep);
+        super(vtep, "VTEP " + vtep + " is not connected");
     }
 
 }

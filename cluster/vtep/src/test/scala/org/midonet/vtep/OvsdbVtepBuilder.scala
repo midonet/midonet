@@ -17,6 +17,7 @@
 package org.midonet.vtep
 
 import java.util.UUID
+import java.util.concurrent.Executor
 
 import scala.concurrent.duration._
 import scala.util.Random
@@ -25,6 +26,7 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.{MAC, IPv4Addr}
+import org.midonet.util.concurrent.CallingThreadExecutionContext
 import org.midonet.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.vtep.schema.{UcastMacsLocalTable, LogicalSwitchTable, PhysicalPortTable, PhysicalSwitchTable}
 
@@ -41,12 +43,13 @@ object OvsdbVtepBuilder {
 class OvsdbVtepBuilder(val vtep: InMemoryOvsdbVtep) extends AnyVal {
 
     private def schema: DatabaseSchema = {
-        OvsdbTools.getDbSchema(vtep.getHandle, OvsdbTools.DB_HARDWARE_VTEP)
-            .result(5 seconds)
+        OvsdbTools.getDbSchema(vtep.getClient, OvsdbTools.DB_HARDWARE_VTEP,
+                               CallingThreadExecutionContext.asInstanceOf[Executor])
+                  .result(5 seconds)
     }
 
     def endPoint: VtepEndPoint = {
-        OvsdbTools.endPointFromOvsdbClient(vtep.getHandle)
+        OvsdbTools.endPointFromOvsdbClient(vtep.getClient)
     }
 
     def createPhysicalPort(id: UUID = UUID.randomUUID(),

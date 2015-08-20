@@ -16,7 +16,10 @@
 
 package org.midonet.vtep
 
+import java.util.concurrent.Executor
+
 import scala.collection.JavaConversions.{asJavaIterable, iterableAsScalaIterable}
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 import org.opendaylight.ovsdb.lib.OvsdbClient
@@ -26,7 +29,6 @@ import rx.Observable.OnSubscribe
 import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.data.vtep.model.VtepEntry
-import org.midonet.util.concurrent.CallingThreadExecutionContext
 import org.midonet.util.functors.makeFunc1
 import org.midonet.vtep.OvsdbTools.{tableUpdates, tableEntries}
 import org.midonet.vtep.VtepEntryUpdate.addition
@@ -37,7 +39,8 @@ import org.midonet.vtep.schema.Table
  */
 class OvsdbTableMonitor[T <: Table, Entry <: VtepEntry](client: OvsdbClient,
                                                         table: T,
-                                                        clazz: Class[Entry])
+                                                        clazz: Class[Entry],
+                                                        executor: Executor)
     extends VtepTableMonitor[Entry] {
 
     private val onUpdate = makeFunc1[TableUpdate[GenericTableSchema],
@@ -54,8 +57,8 @@ class OvsdbTableMonitor[T <: Table, Entry <: VtepEntry](client: OvsdbClient,
 
             val entries = tableEntries(client, table.getDbSchema,
                                        table.getSchema, table.getColumnSchemas,
-                                       null)
-            entries.future.onComplete({
+                                       null, executor)
+            entries.future.onComplete {
                 case Failure(exc) => s.onError(exc)
                 case Success(rows) =>
                     rows.toIterable.foreach(r => s.onNext (
@@ -66,7 +69,7 @@ class OvsdbTableMonitor[T <: Table, Entry <: VtepEntry](client: OvsdbClient,
                         .concatMap(onUpdate)
                         .startWith(VtepTableReady[Entry]())
                         .subscribe(s)
-            })(CallingThreadExecutionContext)
+            }(ExecutionContext.fromExecutor(executor))
         }
     }
 

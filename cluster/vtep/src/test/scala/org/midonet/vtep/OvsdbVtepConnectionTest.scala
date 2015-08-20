@@ -16,45 +16,47 @@
 
 package org.midonet.vtep
 
-import java.net.InetAddress
+import java.net.ConnectException
 import java.util
-import java.util.UUID
-import java.util.concurrent.{Executor, ScheduledThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{Executor, ExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 
-import scala.collection.JavaConversions._
-import scala.concurrent.duration.{Duration, _}
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 import com.google.common.util.concurrent.ListenableFuture
 
+import io.netty.channel.{Channel, ChannelFuture, DefaultChannelPromise}
+import io.netty.util.concurrent.ImmediateEventExecutor
+
 import org.junit.runner.RunWith
-import org.mockito.invocation.InvocationOnMock
-import org.mockito.stubbing.Answer
-import org.mockito.{Matchers => MockitoMatchers, Mockito}
+import org.mockito.Mockito
+import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
-import org.opendaylight.ovsdb.lib.{OvsdbClient, OvsdbConnection, OvsdbConnectionListener}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
+import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
 import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState._
+import org.midonet.cluster.data.vtep.{VtepStateException, VtepNotConnectedException}
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
+import org.midonet.util.concurrent._
 import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class OvsdbVtepConnectionTest extends FeatureSpec
-                                      with Matchers
-                                      with BeforeAndAfter {
+class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
+                              with BeforeAndAfter with GivenWhenThen {
 
-    val timeout = Duration(5, TimeUnit.SECONDS)
+    private val timeout = 5 seconds
+    private val endpoint = VtepEndPoint("127.0.0.1", 6632)
 
-    val endpoint = VtepEndPoint("127.0.0.1", 6632)
-    val dbNameList =
+    private val dbNameList =
         util.Collections.singletonList(OvsdbTools.DB_HARDWARE_VTEP)
-    val futureDbList =
+    private val futureDbList =
         new MockListenableFuture[util.List[String]](dbNameList)
 
-    var vtepThread: ScheduledThreadPoolExecutor = _
-    var connectionService: OvsdbConnection = _
-    var listeners: Set[OvsdbConnectionListener] = _
+    private var vtepExecutor: ScheduledThreadPoolExecutor = _
+    private implicit var vtepContext: ExecutionContext = _
+    private var channel: Channel = _
+    private var closeFuture: DefaultChannelPromise = _
 
     type VtepObserver = TestAwaitableObserver[State]
 
@@ -81,256 +83,326 @@ class OvsdbVtepConnectionTest extends FeatureSpec
     def awaitState(vtep: OvsdbVtepConnection, st: State, t: Duration): State =
         vtep.awaitState(Set(st), t)
 
+    class TestableConnection(override val endPoint: VtepEndPoint,
+                             vtepExecutor: ExecutorService,
+                             retryInterval: Duration, maxRetries: Long,
+                             channel: Channel = null,
+                             client: OvsdbClient = null)
+        extends OvsdbVtepConnection(endPoint, vtepExecutor, retryInterval,
+                                    maxRetries) {
+        def break(future: ChannelFuture): Unit = {
+            newCloseListener(channel, client).operationComplete(future)
+        }
+        protected override def openChannel(): Future[Channel] = {
+            Future.successful(channel)
+        }
+        protected override def initializeClient(channel: Channel)
+        : (Channel, OvsdbClient) = {
+            (channel, client)
+        }
+    }
+
     before {
-        vtepThread = new ScheduledThreadPoolExecutor(1)
-        connectionService = Mockito.mock(classOf[OvsdbConnection])
-        listeners = Set()
-        Mockito
-            .when(connectionService.registerConnectionListener(
-                  MockitoMatchers.any[OvsdbConnectionListener]))
-            .thenAnswer(new Answer[Unit] {
-            override def answer(invocation: InvocationOnMock): Unit = {
-                val args = invocation.getArguments
-                val cb = args(0).asInstanceOf[OvsdbConnectionListener]
-                listeners = listeners + cb
-            }
-        })
+        vtepExecutor = new ScheduledThreadPoolExecutor(1)
+        vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
+        channel = Mockito.mock(classOf[Channel])
+        closeFuture = new DefaultChannelPromise(channel,
+                                                ImmediateEventExecutor.INSTANCE)
+
+        Mockito.when(channel.closeFuture()).thenReturn(closeFuture)
+        Mockito.when(channel.close()).thenReturn(closeFuture)
     }
 
     after {
-        vtepThread.shutdown()
-        if (!vtepThread.awaitTermination(2, TimeUnit.SECONDS)) {
-            vtepThread.shutdownNow()
-            vtepThread.awaitTermination(2, TimeUnit.SECONDS)
+        vtepExecutor.shutdown()
+        if (!vtepExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+            vtepExecutor.shutdownNow()
+            vtepExecutor.awaitTermination(2, TimeUnit.SECONDS)
         }
     }
 
     feature("VTEP connection") {
+        scenario("Check the initial state") {
+            Given("A VTEP connection")
+            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+                                              1)
 
-        scenario("check initial state") {
-            val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0 seconds, 1)
+            Then("The VTEP should be disconnecyed")
             vtep.getState shouldBe Disconnected
-            listeners.size shouldBe 1
 
-            Mockito.verify(connectionService, Mockito.times(1))
-                .registerConnectionListener(
-                    MockitoMatchers.any[OvsdbConnectionListener])
-            Mockito.verifyNoMoreInteractions(connectionService)
-
+            And("Wating for disconnected state should complete")
             awaitState(vtep, Disconnected, timeout) shouldBe Disconnected
+
+            vtep.close().await(timeout)
         }
 
-        scenario("connect to vtep") {
+        scenario("Connect to the VTEP") {
+            Given("A VTEP client")
             val client = newMockClient
-            Mockito
-                .when(connectionService.connect(
-                    MockitoMatchers.any[InetAddress](),
-                    MockitoMatchers.anyInt()))
-                .thenReturn(client)
 
-            val user = UUID.randomUUID()
-            val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0 seconds, 1)
+            And("A VTEP connection")
+            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+                                              1, channel, client)
 
-            val monitor = new VtepObserver
-            val subscription = vtep.observable.subscribe(monitor)
+            And("A VTEP connection observer")
+            val observer = new VtepObserver
+            val subscription = vtep.observable.subscribe(observer)
 
-            vtep.connect(user)
+            When("Connecting to the VTEP")
+            val connected = vtep.connect()
+
+            Then("The connection state should be ready")
             awaitState(vtep, Ready, timeout) shouldBe Ready
-            monitor.awaitOnNext(3, timeout) shouldBe true
 
-            val events = monitor.getOnNextEvents.toList
-            events shouldBe List(Disconnected, Connected, Ready)
+            And("The future should be completed")
+            connected.await(timeout) shouldBe Ready
 
-            Mockito.verify(connectionService, Mockito.times(1))
-                .registerConnectionListener(
-                    MockitoMatchers.any[OvsdbConnectionListener])
-            Mockito.verify(connectionService, Mockito.times(1))
-                .connect(MockitoMatchers.any[InetAddress](),
-                         MockitoMatchers.anyInt())
-            Mockito.verifyNoMoreInteractions(connectionService)
+            And("The observer should have received three notifications")
+            observer.awaitOnNext(4, timeout) shouldBe true
+            observer.getOnNextEvents should contain theSameElementsInOrderAs Vector(
+                Disconnected, Connecting, Connected, Ready)
 
+            And("The connection should have initialized the NETTY channel")
+            Mockito.verify(channel, Mockito.times(1)).closeFuture()
+            Mockito.verifyNoMoreInteractions(channel)
+
+            And("The connection should have fetched the VTEP schema")
             Mockito.verify(client, Mockito.times(1)).getDatabases
             Mockito.verify(client, Mockito.times(1))
                 .getSchema(OvsdbTools.DB_HARDWARE_VTEP)
             Mockito.verifyNoMoreInteractions(client)
+
             subscription.unsubscribe()
+            closeFuture.setSuccess()
+            vtep.close().await(timeout)
         }
 
-        scenario("disconnect from vtep") {
+        scenario("Disconnect from the VTEP") {
+            Given("A VTEP client")
             val client = newMockClient
-            Mockito
-                .when(connectionService.connect(
-                MockitoMatchers.any[InetAddress](),
-                MockitoMatchers.anyInt()))
-                .thenReturn(client)
 
-            val user = UUID.randomUUID()
-            val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0 seconds, 1)
+            And("A VTEP connection")
+            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+                                              1, channel, client)
 
-            val monitor = new VtepObserver
-            val subscription = vtep.observable.subscribe(monitor)
+            And("A VTEP connection observer")
+            val observer = new VtepObserver
+            val subscription = vtep.observable.subscribe(observer)
 
-            vtep.connect(user)
+            When("Connecting to the VTEP")
+            val connected = vtep.connect()
+
+            Then("The connection should be ready")
             awaitState(vtep, Ready, timeout) shouldBe Ready
-            monitor.awaitOnNext(3, timeout) shouldBe true
+            observer.awaitOnNext(4, timeout) shouldBe true
 
-            vtep.disconnect(user)
+            And("The future should be completed")
+            connected.await(timeout) shouldBe Ready
+
+            When("Disconnecting to the VTEP")
+            val disconnected = vtep.disconnect()
             awaitState(vtep, Disconnecting, timeout) shouldBe Disconnecting
-            monitor.awaitOnNext(4, timeout) shouldBe true
+            observer.awaitOnNext(5, timeout) shouldBe true
 
-            // emulate async close event
-            listeners.foreach(_.disconnected(client))
+            And("Emulating the channel close event")
+            closeFuture.setSuccess()
 
+            Then("The state should be disconnected")
             awaitState(vtep, Disconnected, timeout) shouldBe Disconnected
-            monitor.awaitOnNext(5, timeout) shouldBe true
 
-            val events = monitor.getOnNextEvents.toList
-            events shouldBe
-                List(Disconnected, Connected, Ready, Disconnecting, Disconnected)
+            And("The future should be completed")
+            disconnected.await(timeout) shouldBe Disconnected
 
-            Mockito.verify(connectionService, Mockito.times(1))
-                .registerConnectionListener(
-                    MockitoMatchers.any[OvsdbConnectionListener])
-            Mockito.verify(connectionService, Mockito.times(1))
-                .connect(MockitoMatchers.any[InetAddress](),
-                         MockitoMatchers.anyInt())
-            Mockito.verify(connectionService, Mockito.times(1))
-                .disconnect(client)
-            Mockito.verifyNoMoreInteractions(connectionService)
+            And("The observer should have received all notifications")
+            observer.awaitOnNext(6, timeout) shouldBe true
+            observer.getOnNextEvents should contain theSameElementsInOrderAs Vector(
+                Disconnected, Connecting, Connected, Ready, Disconnecting,
+                Disconnected)
 
+            And("The connection should have closed the NETTY channel")
+            Mockito.verify(channel, Mockito.times(1)).closeFuture()
+            Mockito.verify(channel, Mockito.times(1)).close()
+            Mockito.verifyNoMoreInteractions(channel)
+
+            And("The connection should have fetched the VTEP schema")
             Mockito.verify(client, Mockito.times(1)).getDatabases
             Mockito.verify(client, Mockito.times(1))
                 .getSchema(OvsdbTools.DB_HARDWARE_VTEP)
             Mockito.verifyNoMoreInteractions(client)
+
             subscription.unsubscribe()
+            vtep.close().await(timeout)
         }
 
-        scenario("multi-user connection") {
+        scenario("Automatic reconnection") {
+            Given("A VTEP client")
             val client = newMockClient
-            Mockito
-                .when(connectionService.connect(
-                MockitoMatchers.any[InetAddress](),
-                MockitoMatchers.anyInt()))
-                .thenReturn(client)
 
-            val user1 = UUID.randomUUID()
-            val user2 = UUID.randomUUID()
-            val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0 seconds, 1)
+            And("A VTEP connection")
+            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+                                              1, channel, client)
 
-            val monitor = new VtepObserver
-            val subscription = vtep.observable.subscribe(monitor)
+            And("A VTEP connection observer")
+            val observer = new VtepObserver
+            val subscription = vtep.observable.subscribe(observer)
 
-            vtep.connect(user1)
-            vtep.connect(user2)
+            When("Connecting to the VTEP")
+            val connected = vtep.connect()
+
+            Then("The connection should be ready")
             awaitState(vtep, Ready, timeout) shouldBe Ready
-            monitor.awaitOnNext(3, timeout) shouldBe true
+            observer.awaitOnNext(4, timeout) shouldBe true
 
-            vtep.disconnect(user1)
-            Thread.sleep(500)
-            vtep.getState shouldBe Ready
+            And("The future should be completed")
+            connected.await(timeout) shouldBe Ready
 
-            vtep.disconnect(user2)
-            awaitState(vtep, Disconnecting, timeout) shouldBe Disconnecting
-            monitor.awaitOnNext(4, timeout) shouldBe true
+            When("The connection becomes broken")
+            vtep.break(new DefaultChannelPromise(channel,
+                                                 ImmediateEventExecutor.INSTANCE))
 
-            // emulate async close event
-            listeners.foreach(_.disconnected(client))
-
-            awaitState(vtep, Disconnected, timeout) shouldBe Disconnected
-            monitor.awaitOnNext(5, timeout) shouldBe true
-
-            val events = monitor.getOnNextEvents.toList
-            events shouldBe
-                List(Disconnected, Connected, Ready, Disconnecting, Disconnected)
-
-            Mockito.verify(connectionService, Mockito.times(1))
-                .registerConnectionListener(
-                    MockitoMatchers.any[OvsdbConnectionListener])
-            Mockito.verify(connectionService, Mockito.times(1))
-                .connect(MockitoMatchers.any[InetAddress](),
-                         MockitoMatchers.anyInt())
-            Mockito.verify(connectionService, Mockito.times(1))
-                .disconnect(client)
-            Mockito.verifyNoMoreInteractions(connectionService)
-
-            Mockito.verify(client, Mockito.times(1)).getDatabases
-            Mockito.verify(client, Mockito.times(1))
-                .getSchema(OvsdbTools.DB_HARDWARE_VTEP)
-            Mockito.verifyNoMoreInteractions(client)
-            subscription.unsubscribe()
-        }
-
-        scenario("automatic reconnection") {
-            val client = newMockClient
-            Mockito
-                .when(connectionService.connect(
-                MockitoMatchers.any[InetAddress](),
-                MockitoMatchers.anyInt()))
-                .thenReturn(client)
-
-            val user = UUID.randomUUID()
-            val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0 seconds, 1)
-
-            val monitor = new VtepObserver
-            val subscription = vtep.observable.subscribe(monitor)
-
-            vtep.connect(user)
+            Then("The connection should re-establish")
+            observer.awaitOnNext(8, timeout) shouldBe true
             awaitState(vtep, Ready, timeout) shouldBe Ready
-            monitor.awaitOnNext(3, timeout) shouldBe true
+            observer.getOnNextEvents should contain theSameElementsInOrderAs Vector(
+                Disconnected, Connecting, Connected, Ready, Disconnected,
+                Connecting, Connected, Ready)
 
-            // emulate broken connection
-            listeners.foreach(_.disconnected(client))
+            And("The connection should have closed the NETTY channel")
+            Mockito.verify(channel, Mockito.times(2)).closeFuture()
+            Mockito.verifyNoMoreInteractions(channel)
 
-            monitor.awaitOnNext(7, timeout) shouldBe true
-            awaitState(vtep, Ready, timeout) shouldBe Ready
-
-            val events = monitor.getOnNextEvents.toList
-            events shouldBe
-                List(Disconnected, Connected, Ready, Broken,
-                     Connecting, Connected, Ready)
-
-            Mockito.verify(connectionService, Mockito.times(1))
-                .registerConnectionListener(
-                    MockitoMatchers.any[OvsdbConnectionListener])
-            Mockito.verify(connectionService, Mockito.times(2))
-                .connect(MockitoMatchers.any[InetAddress](),
-                         MockitoMatchers.anyInt())
-            Mockito.verifyNoMoreInteractions(connectionService)
-
+            And("The connection should have fetched the VTEP schema")
             Mockito.verify(client, Mockito.times(2)).getDatabases
             Mockito.verify(client, Mockito.times(2))
                 .getSchema(OvsdbTools.DB_HARDWARE_VTEP)
             Mockito.verifyNoMoreInteractions(client)
+
             subscription.unsubscribe()
+            closeFuture.setSuccess()
+            vtep.close().await(timeout)
         }
 
-        scenario("bad address") {
-            Mockito
-                .when(connectionService.connect(
-                    MockitoMatchers.any[InetAddress](),
-                    MockitoMatchers.anyInt()))
-                .thenThrow(new RuntimeException("failed connection"))
+        scenario("Bad connection") {
+            Given("A VTEP client")
+            val client = newMockClient
 
-            val user = UUID.randomUUID()
-            val vtep = new OvsdbVtepConnection(endpoint, vtepThread,
-                                               connectionService, 0 seconds, 1)
+            And("A VTEP connection")
+            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+                                              0, channel, client) {
+                protected override def openChannel(): Future[Channel] = {
+                    Future.failed(new ConnectException())
+                }
+            }
 
-            val monitor = new VtepObserver
-            val subscription = vtep.observable.subscribe(monitor)
+            And("A VTEP connection observer")
+            val observer = new VtepObserver
+            val subscription = vtep.observable.subscribe(observer)
 
-            vtep.connect(user)
-            monitor.awaitOnNext(5, timeout) shouldBe true
+            When("Connecting to the VTEP")
+            val connected = vtep.connect()
+
+            Then("The connection should be failed")
+            awaitState(vtep, Failed, timeout) shouldBe Failed
+            observer.awaitOnNext(3, timeout) shouldBe true
+            observer.getOnNextEvents should contain theSameElementsInOrderAs
+                List(Disconnected, Connecting, Failed)
+
+            And("The future should have failed")
+            intercept[VtepNotConnectedException] {
+                connected.await(timeout)
+            }
+
+            subscription.unsubscribe()
+            closeFuture.setSuccess()
+            vtep.close().await(timeout)
+        }
+
+        scenario("VTEP disconnects on close") {
+            Given("A VTEP client")
+            val client = newMockClient
+
+            And("A VTEP connection")
+            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+                                              1, channel, client)
+
+            And("A VTEP connection observer")
+            val observer = new VtepObserver
+            val subscription = vtep.observable.subscribe(observer)
+
+            When("Connecting to the VTEP")
+            val connected = vtep.connect()
+
+            Then("The connection should be ready")
+            awaitState(vtep, Ready, timeout) shouldBe Ready
+            observer.awaitOnNext(4, timeout) shouldBe true
+
+            And("The future should be completed")
+            connected.await(timeout) shouldBe Ready
+
+            When("Closing the VTEP connection")
+            val closed = vtep.close()
+            awaitState(vtep, Disconnecting, timeout) shouldBe Disconnecting
+            observer.awaitOnNext(5, timeout) shouldBe true
+
+            And("Emulating the channel close event")
+            closeFuture.setSuccess()
+
+            Then("The state should be disposed")
             awaitState(vtep, Disposed, timeout) shouldBe Disposed
 
-            val events = monitor.getOnNextEvents.toList
-            events shouldBe
-                List(Disconnected, Broken, Connecting, Broken, Disposed)
+            And("The observer should have received all notifications")
+            observer.awaitOnNext(7, timeout) shouldBe true
+            observer.getOnNextEvents should contain theSameElementsInOrderAs Vector(
+                Disconnected, Connecting, Connected, Ready, Disconnecting,
+                Disconnected, Disposed)
+
+            And("The closed future should be completed")
+            closed.await(timeout) shouldBe Disposed
+
+            And("The connection should have closed the NETTY channel")
+            Mockito.verify(channel, Mockito.times(1)).closeFuture()
+            Mockito.verify(channel, Mockito.times(1)).close()
+            Mockito.verifyNoMoreInteractions(channel)
+
+            And("The connection should have fetched the VTEP schema")
+            Mockito.verify(client, Mockito.times(1)).getDatabases
+            Mockito.verify(client, Mockito.times(1))
+                .getSchema(OvsdbTools.DB_HARDWARE_VTEP)
+            Mockito.verifyNoMoreInteractions(client)
+
             subscription.unsubscribe()
+            vtep.close().await(timeout)
+        }
+
+        scenario("VTEP connection always fails when disposed") {
+            Given("A VTEP client")
+            val client = newMockClient
+
+            And("A VTEP connection")
+            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+                                              1, channel, client)
+
+            And("A VTEP connection observer")
+            val observer = new VtepObserver
+            val subscription = vtep.observable.subscribe(observer)
+
+            When("The connection is closed")
+            vtep.close().await(timeout) shouldBe Disposed
+
+            Then("The observer should have received all notifications")
+            observer.awaitOnNext(2, timeout) shouldBe true
+            observer.getOnNextEvents should contain theSameElementsInOrderAs Vector(
+                Disconnected, Disposed)
+
+            And("Connecting should fail")
+            intercept[VtepStateException] {
+                vtep.connect().await(timeout)
+            }
+
+            And("Disconnecting should fail")
+            intercept[VtepStateException] {
+                vtep.disconnect().await(timeout)
+            }
         }
     }
 }

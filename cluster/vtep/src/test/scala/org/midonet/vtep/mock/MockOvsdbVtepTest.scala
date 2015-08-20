@@ -70,13 +70,13 @@ class MockOvsdbVtepTest extends FeatureSpec with Matchers {
     feature("vtep interface") {
         scenario("returns a usable handle") {
             val vtep = new InMemoryOvsdbVtep
-            val client = vtep.getHandle
+            val client = vtep.getClient
 
             client.isActive shouldBe true
             client.getDatabases.get().toSet shouldBe
                 Set(MockOvsdbVtep.DB_HARDWARE_VTEP)
             client.getSchema(MockOvsdbVtep.DB_HARDWARE_VTEP).get()
-                .getName shouldBe MockOvsdbVtep.DB_HARDWARE_VTEP
+                  .getName shouldBe MockOvsdbVtep.DB_HARDWARE_VTEP
         }
     }
     feature("direct data manipulation") {
@@ -120,7 +120,7 @@ class MockOvsdbVtepTest extends FeatureSpec with Matchers {
     feature("table monitoring") {
         scenario("inserted data") {
             val vtep = new InMemoryOvsdbVtep
-            val client = vtep.getHandle
+            val client = vtep.getClient
             val db = vtep.getDbSchema(MockOvsdbVtep.DB_HARDWARE_VTEP)
             val t = new PhysicalLocatorTable(db)
             val monitor = new TestMonitor(client, t)
@@ -141,7 +141,7 @@ class MockOvsdbVtepTest extends FeatureSpec with Matchers {
         }
         scenario("updated data") {
             val vtep = new InMemoryOvsdbVtep
-            val client = vtep.getHandle
+            val client = vtep.getClient
             val db = vtep.getDbSchema(MockOvsdbVtep.DB_HARDWARE_VTEP)
             val t = new PhysicalLocatorTable(db)
             val monitor = new TestMonitor(client, t)
@@ -167,7 +167,7 @@ class MockOvsdbVtepTest extends FeatureSpec with Matchers {
         }
         scenario("removed data") {
             val vtep = new InMemoryOvsdbVtep
-            val client = vtep.getHandle
+            val client = vtep.getClient
             val db = vtep.getDbSchema(MockOvsdbVtep.DB_HARDWARE_VTEP)
             val t = new PhysicalLocatorTable(db)
             val monitor = new TestMonitor(client, t)
