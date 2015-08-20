@@ -172,8 +172,8 @@ debian.doFirst {
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
-            '-d', 'java7-runtime-headless',
-            '--deb-recommends', 'java7-runtime-headless | java7-runtime',
+            '-d', 'java8-runtime-headless | java8-runtime',
+            '--deb-recommends', 'java8-runtime-headless | java8-runtime',
             '--after-install', "${project.projectDir}/src/deb/control/postinst",
             '--before-install', "${project.projectDir}/src/deb/control/preinst",
             '--after-remove', "${project.projectDir}/src/deb/control/postrm",
@@ -190,13 +190,13 @@ rpm.doFirst {
                 '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
                 '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
                 '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
-                '--depends', 'java-1.7.0'])
+                '--depends', 'java-1.8.0-openjdk-headless | zulu-8'])
     } else {
         project.packaging.fpmOpts.addAll([
                 '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
                 '--before-install', "${project.projectDir}/src/rhel6/control/preinst",
                 '--before-remove', "${project.projectDir}/src/rhel6/control/prerm",
-                '--depends', 'java7'])
+                '--depends', 'java-1.8.0-openjdk-headless | zulu-8'])
     }
 }
 
