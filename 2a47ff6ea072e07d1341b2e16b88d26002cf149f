@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_8d5740ca",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-20T08:32:42Z",
+      "side": 1,
+      "message": "Which documentation?",
+      "range": {
+        "startLine": 167,
+        "startChar": 17,
+        "endLine": 167,
+        "endChar": 34
+      },
+      "revId": "2a47ff6ea072e07d1341b2e16b88d26002cf149f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ed6d2c9b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-20T08:32:42Z",
+      "side": 1,
+      "message": "\":\" after PLAIN to make it consistent with \"SSL:\".",
+      "range": {
+        "startLine": 121,
+        "startChar": 19,
+        "endLine": 121,
+        "endChar": 24
+      },
+      "revId": "2a47ff6ea072e07d1341b2e16b88d26002cf149f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0d6b3086",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-20T08:32:42Z",
+      "side": 1,
+      "message": "Please align \"*\".",
+      "range": {
+        "startLine": 159,
+        "startChar": 7,
+        "endLine": 159,
+        "endChar": 16
+      },
+      "revId": "2a47ff6ea072e07d1341b2e16b88d26002cf149f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_71d2d635",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-20T08:32:42Z",
+      "side": 1,
+      "message": "If this may be used to build a configuration for HTTPS, then why don\u0027t we rename this as baseHttpConfiguration or something similar?",
+      "range": {
+        "startLine": 179,
+        "startChar": 16,
+        "endLine": 179,
+        "endChar": 33
+      },
+      "revId": "2a47ff6ea072e07d1341b2e16b88d26002cf149f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b1253e5e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-20T08:32:42Z",
+      "side": 1,
+      "message": "Either \"Build and configure\" or \"Builds and configures\".",
+      "range": {
+        "startLine": 197,
+        "startChar": 7,
+        "endLine": 197,
+        "endChar": 27
+      },
+      "revId": "2a47ff6ea072e07d1341b2e16b88d26002cf149f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8d0e60e4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-20T08:32:42Z",
+      "side": 1,
+      "message": "\": \" (a colon followd by a white space) may be appended after \"pass\"?",
+      "range": {
+        "startLine": 225,
+        "startChar": 18,
+        "endLine": 225,
+        "endChar": 31
+      },
+      "revId": "2a47ff6ea072e07d1341b2e16b88d26002cf149f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_91d75a23",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-20T08:32:42Z",
+      "side": 1,
+      "message": "Let\u0027s rename this as httpsConnFactory for consistency and readability.",
+      "range": {
+        "startLine": 236,
+        "startChar": 12,
+        "endLine": 236,
+        "endChar": 27
+      },
+      "revId": "2a47ff6ea072e07d1341b2e16b88d26002cf149f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
