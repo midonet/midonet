@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8d43c06b",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/NeutronDeserializerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-20T05:12:24Z",
+      "side": 1,
+      "message": "Noted.  I just followed the convention that I saw here but I can create a separate patch to fix these later for clean-up.",
+      "parentUuid": "9ad9bd40_cd75c8cd",
+      "range": {
+        "startLine": 304,
+        "startChar": 0,
+        "endLine": 305,
+        "endChar": 52
+      },
+      "revId": "7a85f5d2321b56ebfb973e2171c6ddd597ea7148",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0d80908a",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-20T05:03:02Z",
       "side": 1,
       "message": "Should this be an enum?",
+      "range": {
+        "startLine": 280,
+        "startChar": 4,
+        "endLine": 280,
+        "endChar": 31
+      },
+      "revId": "7a85f5d2321b56ebfb973e2171c6ddd597ea7148",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6d4e7c98",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-20T05:12:24Z",
+      "side": 1,
+      "message": "It is defined globally in Neutron for all the services to use (FW, LB, etc).  I could create an enum for this but will need to update other models too.  I think it\u0027s a good idea but prefer to submit that in a separate patch.",
+      "parentUuid": "9ad9bd40_0d80908a",
       "range": {
         "startLine": 280,
         "startChar": 4,
