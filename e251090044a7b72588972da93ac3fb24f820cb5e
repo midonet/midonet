@@ -25,6 +25,57 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7403a476",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-20T12:34:24Z",
+      "side": 1,
+      "message": "define next :-)",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_54d780ed",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-20T12:34:24Z",
+      "side": 1,
+      "message": "pointer to arch overview can be helpful",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_94082893",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-20T12:34:24Z",
+      "side": 1,
+      "message": "first ingressing",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_34f11c96",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -186,6 +237,23 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_143b3839",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-20T12:34:24Z",
+      "side": 1,
+      "message": "are already responsible",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d410f0aa",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -278,6 +346,40 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_14225801",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-20T12:34:24Z",
+      "side": 1,
+      "message": "VxLAN Gateways,just to be consistent with above",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_745f2476",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-20T12:34:24Z",
+      "side": 1,
+      "message": "I would add that it is questionable if agent should deal with the mentioned functionality. Frankly, it makes sense that such logic is not supposed to be managed by compute/gateway agent. Of course we could have some sort of remote agent that manages VxGW. But since this is not the case, it makes sense to run this as cluster service",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_947d88ea",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -318,6 +420,23 @@
         "endLine": 40,
         "endChar": 45
       },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1450985d",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-20T12:34:24Z",
+      "side": 1,
+      "message": "who will support?",
       "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -502,6 +621,23 @@
         "endLine": 59,
         "endChar": 57
       },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_14fed838",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-20T12:34:24Z",
+      "side": 1,
+      "message": "Will this be A/A or A/P? Is it configurable?",
       "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
