@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_3adae317",
+        "filename": "midonet-api/src/test/java/org/midonet/api/system_data/TestTraceRequest.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-20T17:27:14Z",
+      "side": 1,
+      "message": "one have too many",
+      "range": {
+        "startLine": 202,
+        "startChar": 38,
+        "endLine": 202,
+        "endChar": 51
+      },
+      "revId": "269466957585e53a572d4d72295f68322c32da8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
