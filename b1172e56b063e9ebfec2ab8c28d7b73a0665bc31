@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ed07ec1b",
+        "filename": "midolman/src/integration/scala/org/midonet/quagga/QuaggaEnvironmentTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-08-20T06:30:02Z",
+      "side": 1,
+      "message": "good point. I should have worded this \"tests all of the features we use\".",
+      "parentUuid": "9ad9bd40_5e4ec497",
+      "revId": "b1172e56b063e9ebfec2ab8c28d7b73a0665bc31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_9e3f6cd6",
         "filename": "midolman/src/main/scala/org/midonet/quagga/DefaultQuaggaEnvironment.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-08-19T08:02:53Z",
       "side": 1,
       "message": "I see a lot of shared code with the BgpdEnv class, is that one going away? If not, can we factor out the shared code?",
+      "revId": "b1172e56b063e9ebfec2ab8c28d7b73a0665bc31",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cd0a2827",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/DefaultQuaggaEnvironment.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-08-20T06:30:02Z",
+      "side": 1,
+      "message": "Yes, once we switch over to zebra usage, BgpdEnv will go away.",
+      "parentUuid": "9ad9bd40_9e3f6cd6",
       "revId": "b1172e56b063e9ebfec2ab8c28d7b73a0665bc31",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
