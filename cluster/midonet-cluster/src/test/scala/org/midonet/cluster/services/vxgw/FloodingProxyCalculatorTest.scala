@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.vxgw
 
+import java.util.UUID
+
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
@@ -34,13 +36,15 @@ class FloodingProxyCalculatorTest extends FlatSpec with Matchers
                                   with BeforeAndAfter with GivenWhenThen
                                   with TopologyBuilder {
 
+    val id = UUID.randomUUID()
+
     "No hosts" should "produce no FP" in {
-        calculate(Map.empty[Host, IPv4Addr]) shouldBe None
+        calculate(id, Map.empty[Host, IPv4Addr]) shouldBe None
     }
 
     "One host with the veto weight" should "produce no FP" in {
         val h = createHost().toBuilder.setFloodingProxyWeight(0).build()
-        calculate(Map(h -> IPv4Addr.random).asJava) shouldBe None
+        calculate(id, Map(h -> IPv4Addr.random).asJava) shouldBe None
     }
 
     "Happy case" should "work" in {
@@ -49,7 +53,7 @@ class FloodingProxyCalculatorTest extends FlatSpec with Matchers
             createHost().toBuilder.setFloodingProxyWeight(i).build()
         }
         hosts foreach { h => candidates.put(h, IPv4Addr.random) }
-        val fp = calculate(candidates).orNull
+        val fp = calculate(UUID.randomUUID(), candidates).orNull
         fp.tunnelIp shouldNot be (null)
 
         val fpHost = hosts.find(h => UUIDUtil.fromProto(h.getId) == fp.hostId)

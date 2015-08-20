@@ -73,19 +73,23 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
         }
     }
 
+    def randId() = UUID.randomUUID()
+
     feature("The herald publishes updates properly") {
 
         scenario("State key serialization") {
-            val fp = FloodingProxy(UUID.randomUUID(), IPv4Addr.random)
-            val _1 = FloodingProxyHerald.deserialize(s"${fp.hostId}#${fp.tunnelIp}")
-            val _2 = FloodingProxy(fp.hostId, fp.tunnelIp)
+            val fp = FloodingProxy(randId(), randId(), IPv4Addr.random)
+            val _1 = FloodingProxyHerald.deserialize(fp.tunnelZoneId,
+                                                 s"${fp.hostId}#${fp.tunnelIp}")
+            val _2 = FloodingProxy(fp.tunnelZoneId, fp.hostId, fp.tunnelIp)
             _1 shouldBe _2
-            _1.toString shouldBe FloodingProxy(fp.hostId, fp.tunnelIp).toString
+            _1.toString shouldBe FloodingProxy(fp.tunnelZoneId, fp.hostId,
+                                               fp.tunnelIp).toString
         }
 
         scenario("Happy case of the fp lifecycle") {
 
-            val initialFp = FloodingProxy(h1Id, IPv4Addr.random)
+            val initialFp = FloodingProxy(randId(), h1Id, IPv4Addr.random)
             val stateInjector = PublishSubject.create[StateKey]
             val initialState = SingleValueKey(FloodingProxyKey,
                                               Some(initialFp.toString), 0)
@@ -111,8 +115,8 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
 
             stateInjector.onNext(initialState)
 
-            val fp = FloodingProxy(h2Id, IPv4Addr.random)
-            herald.announce(tzId, fp, inocuousRetrier)
+            val fp = FloodingProxy(tzId, h2Id, IPv4Addr.random)
+            herald.announce(fp, inocuousRetrier)
             // mock the NSDB notifying back
             stateInjector.onNext(SingleValueKey(FloodingProxyKey,
                                                 Some(fp.toString), 0))
@@ -159,8 +163,8 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
                                                          sameThreadExecutor())
             herald.lookup(tzId) shouldBe None
 
-            val fp = FloodingProxy(h2Id, IPv4Addr.random)
-            herald.announce(tzId, fp, retry)
+            val fp = FloodingProxy(randId(), h2Id, IPv4Addr.random)
+            herald.announce(fp, retry)
 
             latch.await(1, TimeUnit.SECONDS) shouldBe true
 
