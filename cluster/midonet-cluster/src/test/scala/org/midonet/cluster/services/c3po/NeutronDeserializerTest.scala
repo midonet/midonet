@@ -17,6 +17,9 @@
 package org.midonet.cluster.services.c3po
 
 import org.junit.runner.RunWith
+import org.midonet.cluster.models.Commons.Protocol
+import org.midonet.cluster.models.Neutron.NeutronFirewallRule.FirewallRuleAction
+import org.midonet.cluster.util.IPSubnetUtil
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FunSuite, Matchers}
 
@@ -262,4 +265,77 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         port.hasDeviceOwner shouldBe false
         port.getStatus shouldBe "valid"
     }
+
+    test("Neutron Firewall deserialization") {
+        val json =
+            """
+              |{
+              |    "name": "test-fw",
+              |    "description": "test-desc",
+              |    "shared": true,
+              |    "status": "ACTIVE",
+              |    "firewall_policy_id": "c63e3aa8-45d7-11e5-8181-0242ac110002",
+              |    "admin_state_up": true,
+              |    "tenant_id": "test-tenant",
+              |    "id": "9b77a944-45d7-11e5-a6b4-0242ac110002",
+              |    "firewall_rule_list": [
+              |        {"id": "158dac38-45d8-11e5-b408-0242ac110002",
+              |         "tenant_id": "test-tenant",
+              |         "name": "test-fw-rule",
+              |         "description": "test-desc",
+              |         "shared": true,
+              |         "protocol": "tcp",
+              |         "ip_version": 4,
+              |         "source_ip_address": "10.0.0.0/24",
+              |         "destination_ip_address": "200.0.0.1",
+              |         "source_port": "80",
+              |         "destination_port": "8080:8085",
+              |         "action": "deny",
+              |         "position": 4,
+              |         "enabled": false
+              |        }
+              |    ],
+              |    "add-router-ids": ["f51c6aa2-45d7-11e5-83a4-0242ac110002"],
+              |    "del-router-ids": ["fdcb8f84-45d7-11e5-84a9-0242ac110002"]
+              |}
+            """.stripMargin
+
+        val fw = NeutronDeserializer.toMessage(json, classOf[NeutronFirewall])
+        fw.getId.getMsb shouldBe 0x9b77a94445d711e5L
+        fw.getId.getLsb shouldBe 0xa6b40242ac110002L
+        fw.getName shouldBe "test-fw"
+        fw.getDescription shouldBe "test-desc"
+        fw.getShared shouldBe true
+        fw.getStatus shouldBe "ACTIVE"
+        fw.getFirewallPolicyId.getMsb shouldBe 0xc63e3aa845d711e5L
+        fw.getFirewallPolicyId.getLsb shouldBe 0x81810242ac110002L
+        fw.getAdminStateUp shouldBe true
+        fw.getTenantId shouldBe "test-tenant"
+
+        fw.getAddRouterIdsCount shouldBe 1
+        fw.getAddRouterIds(0).getMsb shouldBe 0xf51c6aa245d711e5L
+        fw.getAddRouterIds(0).getLsb shouldBe 0x83a40242ac110002L
+        fw.getDelRouterIdsCount shouldBe 1
+        fw.getDelRouterIds(0).getMsb shouldBe 0xfdcb8f8445d711e5L
+        fw.getDelRouterIdsOrBuilder(0).getLsb shouldBe 0x84a90242ac110002L
+
+        fw.getFirewallRuleListCount shouldBe 1
+        fw.getFirewallRuleList(0).getId.getMsb shouldBe 0x158dac3845d811e5L
+        fw.getFirewallRuleList(0).getId.getLsb shouldBe 0xb4080242ac110002L
+        fw.getFirewallRuleList(0).getTenantId shouldBe "test-tenant"
+        fw.getFirewallRuleList(0).getName shouldBe "test-fw-rule"
+        fw.getFirewallRuleList(0).getDescription shouldBe "test-desc"
+        fw.getFirewallRuleList(0).getShared shouldBe true
+        fw.getFirewallRuleList(0).getProtocol shouldBe Protocol.TCP
+        fw.getFirewallRuleList(0).getIpVersion shouldBe 4
+        fw.getFirewallRuleList(0).getSourceIpAddress shouldBe
+            IPSubnetUtil.toProto("10.0.0.0/24")
+        fw.getFirewallRuleList(0).getDestinationIpAddress shouldBe
+            IPSubnetUtil.fromAddr("200.0.0.1")
+        fw.getFirewallRuleList(0).getSourcePort shouldBe "80"
+        fw.getFirewallRuleList(0).getDestinationPort shouldBe "8080:8085"
+        fw.getFirewallRuleList(0).getAction shouldBe FirewallRuleAction.DENY
+        fw.getFirewallRuleList(0).getPosition shouldBe 4
+        fw.getFirewallRuleList(0).getEnabled shouldBe false
+     }
 }

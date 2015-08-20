@@ -67,7 +67,7 @@ object NeutronDeserializer {
         val classDesc = descriptorFor(clazz)
         for (field <- node.fields.asScala
              if !nullOrEmptyString(field.getValue)) {
-            val name = cleanUpProjectPrefix(field.getKey)
+            val name = cleanUpFieldName(field.getKey)
             getFieldDesc(classDesc, name) match {
                 case Some(fd) =>
                     val converter = fd.getType match {
@@ -109,8 +109,12 @@ object NeutronDeserializer {
         node.isNull || (node.isTextual && node.asText() == "")
 
     /* Some fields have a name / value in the form "project:field_or_val". We
-     * just ignore the project name part. */
-    private def cleanUpProjectPrefix(txt: String) = txt.split(':').last
+     * just ignore the project name part.
+     *
+     * Also, '-' chars are replaced with '_'
+     */
+    private def cleanUpFieldName(txt: String) =
+        txt.split(':').last.replace('-', '_')
 
     private def parseNestedMsg(desc: Descriptor)(node: JsonNode): Message = {
         // Have to do this because Protocol Buffers provides no way to get
@@ -124,6 +128,8 @@ object NeutronDeserializer {
                 parseIpAddr(node.asText)
             case "org.midonet.cluster.models.IPSubnet" =>
                 parseIpSubnet(node.asText)
+            case "org.midonet.cluster.models.NeutronFirewallRule" =>
+                toMessage(node, classOf[NeutronFirewallRule])
             case "org.midonet.cluster.models.NeutronHealthMonitor.Pool" =>
                 toMessage(node, classOf[NeutronHealthMonitor.Pool])
             case "org.midonet.cluster.models.NeutronPort.BindingProfile" =>
@@ -159,7 +165,7 @@ object NeutronDeserializer {
                 && node.asText.startsWith(DeviceOwner.COMPUTE_PREFIX))
                 "COMPUTE"
             else
-                cleanUpProjectPrefix(node.asText).toUpperCase
+                cleanUpFieldName(node.asText).toUpperCase
         val enumVal = desc.findValueByName(textVal)
         if (enumVal == null)
             throw new NeutronDeserializationException(
