@@ -404,7 +404,9 @@ message TraceRequest {
     optional UUID id = 1;
     optional bool enabled = 2;
     optional Condition condition = 3;
-    optional uint32 limit = 4;
+    optional uint64 limit = 4;
+    optional string name = 5;
+    optional uint64 createTimestampMs = 6;
 
     optional UUID port_id = 101;
     optional UUID network_id = 102;

@@ -49,6 +49,7 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
                                     ruleResource: RuleResource,
                                     systemStateResource: SystemStateResource,
                                     tenantResource: TenantResource,
+                                    traceRequestResource: TraceRequestResource,
                                     tunnelZoneResource: TunnelZoneResource,
                                     vipResource: VipResource,
                                     vtepResource: VtepResource)
@@ -121,6 +122,9 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
 
     @Path("tenants")
     def tenants = tenantResource
+
+    @Path("traces")
+    def traceRequests = traceRequestResource
 
     @Path("ip_addr_groups")
     def ipAddrGroups = ipAddrGroupsResource
