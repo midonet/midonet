@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_115a6a50",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/data/VtepStateStorage.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-20T10:14:18Z",
+      "side": 1,
+      "message": "I wasn\u0027t sure about this: removing.",
+      "parentUuid": "9ad9bd40_97574fca",
+      "revId": "505b799ee98e8e0ccb259608a4b4b1a34095ce3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d7f717d3",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 5
@@ -30,6 +48,30 @@
       "writtenOn": "2015-08-19T15:29:02Z",
       "side": 1,
       "message": "VtepConfiguration maybe, but not a strong opinion",
+      "range": {
+        "startLine": 74,
+        "startChar": 8,
+        "endLine": 74,
+        "endChar": 23
+      },
+      "revId": "505b799ee98e8e0ccb259608a4b4b1a34095ce3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_31576e28",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-20T10:14:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d7f717d3",
       "range": {
         "startLine": 74,
         "startChar": 8,
