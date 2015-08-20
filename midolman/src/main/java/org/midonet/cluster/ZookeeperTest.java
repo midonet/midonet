@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.curator.test.TestingServer;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
@@ -61,12 +64,11 @@ import static org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider.DIRECT
  */
 public abstract class ZookeeperTest {
 
-    protected static final int ZK_PORT = (int)(Math.random() * 1000) + 64000;
-
+    protected static TestingServer zkServer;
     protected Injector injector;
     private String zkRoot;
 
-    private static Config getConfig(String zkRoot) {
+    private static Config getConfig(String zkRoot, int zkPort) {
         scala.Option<String> None = scala.Option.apply(null);
         Config config = MidoNodeConfigurator.bootstrapConfig(None);
         config = config.withValue("zookeeper.root_key",
@@ -74,7 +76,7 @@ public abstract class ZookeeperTest {
         config = config.withValue("zookeeper.use_new_stack",
             ConfigValueFactory.fromAnyRef(true));
         config = config.withValue("zookeeper.zookeeper_hosts",
-            ConfigValueFactory.fromAnyRef("127.0.0.1:" + ZK_PORT));
+            ConfigValueFactory.fromAnyRef("127.0.0.1:" + zkPort));
         return config;
     }
 
@@ -94,8 +96,8 @@ public abstract class ZookeeperTest {
         return zkRoot + relPath;
     }
 
-    private List<PrivateModule> getDepModules() {
-        Config conf = MidoTestConfigurator.forAgents(getConfig(zkRoot));
+    private List<PrivateModule> getDepModules(int zkPort) {
+        Config conf = MidoTestConfigurator.forAgents(getConfig(zkRoot, zkPort));
         MidolmanConfig config = MidolmanConfigModule.createConfig(conf);
 
         List<PrivateModule> modules = new ArrayList<>();
@@ -104,7 +106,8 @@ public abstract class ZookeeperTest {
                 new SerializationModule(),
                 new MidolmanConfigModule(config),
                 new MidonetBackendModule(config.zookeeper()),
-                new ZookeeperConnectionModule(SessionUnawareConnectionWatcher.class),
+                new ZookeeperConnectionModule(
+                    SessionUnawareConnectionWatcher.class),
                 new LegacyClusterModule())
         );
 
@@ -112,11 +115,29 @@ public abstract class ZookeeperTest {
         return modules;
     }
 
-    public void setUp() throws Exception {
+    protected static void initZkServer() throws Exception {
+        zkServer = new TestingServer();
+    }
 
+    protected static void shutdownZkServer() {
+        if (zkServer != null) {
+            try {
+                zkServer.close();
+            } catch (Throwable e) {
+                LoggerFactory.getLogger(ZookeeperTest.class)
+                    .warn("Failed to stop ZK testing server", e);
+            } finally {
+                zkServer = null;
+            }
+        }
+    }
+
+    public void setUp() throws Exception {
         // Run the test on a new directory
         zkRoot = "/test_" + UUID.randomUUID();
-        injector = Guice.createInjector(getDepModules());
+        injector = Guice.createInjector(
+            getDepModules(zkServer != null ? zkServer.getPort() : 0)
+        );
         injector.getInstance(LegacyStorageService.class)
                 .startAsync()
                 .awaitRunning();

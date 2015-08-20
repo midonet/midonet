@@ -24,14 +24,12 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Suite}
 
 import org.midonet.conf.MidoTestConfigurator
 
-/**
- * Created by galo on 28/07/2015.
- */
 trait ZookeeperTestSuite extends BeforeAndAfterAll with BeforeAndAfter { this: Suite =>
+
     var zkServer: TestingServer = _
     var zkClient: CuratorFramework = _
 
-    val ZK_PORT: Int = 10000 + (Math.random() * 50000).toInt
+    var ZK_PORT: Int = _
     val ZK_ROOT = "/test"
 
     protected def config = MidoTestConfigurator.forClusters(ConfigFactory.parseString(
@@ -43,10 +41,9 @@ trait ZookeeperTestSuite extends BeforeAndAfterAll with BeforeAndAfter { this: S
     override def beforeAll(): Unit = {
         super.beforeAll()
         if (zkServer eq null) {
-            zkServer = new TestingServer(ZK_PORT)
-            zkServer.start()
+            zkServer = new TestingServer()
+            ZK_PORT = zkServer.getPort
         }
-
         zkClient = CuratorFrameworkFactory.newClient(
                 zkServer.getConnectString, new RetryNTimes(1, 1000))
         zkClient.start()
