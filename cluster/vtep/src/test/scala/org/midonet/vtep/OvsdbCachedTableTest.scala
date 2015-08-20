@@ -66,14 +66,14 @@ class OvsdbCachedTableTest extends FeatureSpec
 
     before {
         vtep = new InMemoryOvsdbVtep
-        client = vtep.getHandle
-        db = OvsdbTools.getDbSchema(client, VtepDB).result(timeout)
+        client = vtep.getClient
+        db = OvsdbTools.getDbSchema(client, VtepDB, exec).result(timeout)
     }
 
     feature("table monitor") {
         scenario("empty table") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, t.getEntryClass, exec)
+            val ct = new OvsdbCachedTable(client, t, t.getEntryClass, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -89,16 +89,16 @@ class OvsdbCachedTableTest extends FeatureSpec
             )
             data.foreach(e => vtep.putEntry(t, e, e.getClass))
 
-            val ct = new OvsdbCachedTable(client, t, t.getEntryClass, exec)
+            val ct = new OvsdbCachedTable(client, t, t.getEntryClass, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.size shouldBe data.size
-            data.forall(e => ct.get(e.uuid) == Some(e)) shouldBe true
+            data.forall(e => ct.get(e.uuid).contains(e)) shouldBe true
         }
 
         scenario("additions on empty table") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, t.getEntryClass, exec)
+            val ct = new OvsdbCachedTable(client, t, t.getEntryClass, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -113,7 +113,7 @@ class OvsdbCachedTableTest extends FeatureSpec
 
             eventually {
                 ct.getAll.size shouldBe chgs.size
-                chgs.forall(e => ct.get(e.uuid) == Some(e)) shouldBe true
+                chgs.forall(e => ct.get(e.uuid).contains(e)) shouldBe true
             }
         }
     }
@@ -122,7 +122,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         scenario("explicit insertion") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec)
+                                          exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -139,7 +139,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         scenario("background insertion") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec)
+                                          exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -157,7 +157,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         scenario("explicit update") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec)
+                                          exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -183,7 +183,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         scenario("background update") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec)
+                                          exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -210,7 +210,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         scenario("background removal") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec)
+                                          exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -236,7 +236,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         scenario("unconfirmed hint") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec)
+                                          exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -256,7 +256,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         scenario("confirmed hint") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec)
+                                          exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -283,7 +283,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         scenario("overriden hint") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec)
+                                          exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -312,7 +312,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         scenario("multiple hint") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec)
+                                          exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true

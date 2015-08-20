@@ -16,269 +16,181 @@
 
 package org.midonet.vtep
 
-import java.net.{InetAddress, UnknownHostException}
-import java.util.UUID
+import java.net.{ConnectException, InetAddress, SocketException, UnknownHostException}
 import java.util.concurrent._
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
+import scala.async.Async
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include
+import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
+import com.typesafe.scalalogging.Logger
+
+import io.netty.bootstrap.Bootstrap
+import io.netty.channel._
+import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.SocketChannel
+import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.handler.codec.string.StringEncoder
+import io.netty.handler.timeout.IdleStateHandler
+import io.netty.util.CharsetUtil
+
+import org.opendaylight.ovsdb.lib.OvsdbClient
+import org.opendaylight.ovsdb.lib.OvsdbConnectionInfo.ConnectionType
+import org.opendaylight.ovsdb.lib.impl.OvsdbClientImpl
+import org.opendaylight.ovsdb.lib.jsonrpc.{ExceptionHandler, JsonRpcDecoder, JsonRpcEndpoint, JsonRpcServiceBinderHandler}
+import org.opendaylight.ovsdb.lib.message.OvsdbRPC
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
-import org.opendaylight.ovsdb.lib.{OvsdbClient, OvsdbConnection, OvsdbConnectionListener}
 import org.slf4j.LoggerFactory
 
 import rx.schedulers.Schedulers
 import rx.subjects.BehaviorSubject
+import rx.{Observable, Subscription}
 
 import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState.State
+import org.midonet.cluster.data.vtep.VtepConnection.{ConnectionState, VtepHandle}
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
-import org.midonet.cluster.data.vtep.{VtepConnection, VtepStateException}
-import org.midonet.util.functors.{makeAction1, makeFunc1, makeRunnable}
+import org.midonet.cluster.data.vtep.{VtepConnection, VtepNotConnectedException, VtepStateException}
+import org.midonet.util.functors.{makeAction1, makeFunc1}
 import org.midonet.vtep.OvsdbVtepConnection._
 
-/**
- * This class handles the connection to an ovsdb-compliant vtep
- */
-object OvsdbVtepConnection {
-    import VtepConnection._
+import io.netty.util.concurrent.GenericFutureListener
 
-    // Timer thread
-    protected[OvsdbVtepConnection] val timerThread =
-        new ScheduledThreadPoolExecutor(1)
+object OvsdbVtepConnection {
+
+    val SuccessfulFuture = Future.successful({})
 
     // Connection handle
     case class OvsdbHandle(client: OvsdbClient, db: DatabaseSchema)
         extends VtepHandle
 
     // Connection states
-    abstract class ConnectionStatus(val state: State)
+    abstract class ConnectionStatus(val state: State) {
+        override def toString = state.toString
+    }
 
     // - Disconnected: The state when:
     //   (a) The client is created.
     //   (b) Connection has been terminated by a explicit user request
     case object Disconnected
         extends ConnectionStatus(ConnectionState.Disconnected)
+    // - Connecting: The state during an asynchronous connect operation to the
+    //   VTEP. The client is connecting when:
+    //   (a) The connect method is called on a disconnected client
+    //   (b) The connection is broken, and a reconnection is attempted
+    case class Connecting(retries: Long, complete: Future[Unit])
+        extends ConnectionStatus(ConnectionState.Connecting)
     // - Connected: The state when:
-    //   (a) The connection to the vtep has been successfully established
-    case class Connected(client: OvsdbClient)
+    //   (a) The connection to the VTEP has been successfully established
+    case class Connected(channel: Channel, client: OvsdbClient,
+                         complete: Future[Unit])
         extends ConnectionStatus(ConnectionState.Connected)
+    // - Ready: The state when:
+    //   (a) The connection has been established and the table schema
+    //       information has been downloaded from the VTEP.
+    case class Ready(channel: Channel, client: OvsdbClient, handle: OvsdbHandle)
+        extends ConnectionStatus(ConnectionState.Ready)
     // - Disconnecting: The state when:
     //   (a) A disconnection has ben requested, but the operation has not
     //       yet been completed.
-    case class Disconnecting(Client: OvsdbClient)
+    case class Disconnecting(complete: Future[Unit])
         extends ConnectionStatus(ConnectionState.Disconnecting)
     // - Broken: The state when:
     //   (a) A connection request failed
     //   (b) A connection was dropped from the vtep/network
-    case class Broken(retryInterval: Duration, retries: Long)
+    case class Broken(retryInterval: Duration, retries: Long,
+                      subscription: Subscription)
         extends ConnectionStatus(ConnectionState.Broken)
-    // - Connecting: The state when:
-    //   (a) A connection was broken and it's waiting for re-connection
-    case class Connecting(retryInterval: Duration, retries: Long,
-                          task: ScheduledFuture[_])
-        extends ConnectionStatus(ConnectionState.Connecting)
-    // - Ready: The state when:
-    //   (a) The connection has been established and the table schema
-    //       information has been downloaded from the vtep.
-    case class Ready(handle: OvsdbHandle)
-        extends ConnectionStatus(ConnectionState.Ready)
-    // - Disposed: The state when:
+    // - Failed: The state when:
     //   (a) The connection is broken and no retries are left
+    //   (b) Connecting failed for any reason other than a connection or socket
+    //       exception
+    case object Failed
+        extends ConnectionStatus(ConnectionState.Failed)
+    // - Disposed: The state when:
+    //   (a) The connection has been closed and all connection resources (e.g.
+    //       threads, executors, etc.) have been released. Once a connection is
+    //       disposed it cannot be re-open.
     case object Disposed
         extends ConnectionStatus(ConnectionState.Disposed)
 }
 
-class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
-                          connectionService: OvsdbConnection,
+/**
+ * This class handles the connection to an OVSDB-compliant VTEP.
+ */
+class OvsdbVtepConnection(override val endPoint: VtepEndPoint,
+                          vtepExecutor: ExecutorService,
                           retryInterval: Duration, maxRetries: Long)
     extends VtepConnection {
 
-    private val log = LoggerFactory.getLogger(classOf[OvsdbVtepConnection])
-    private val vtepScheduler = Schedulers.from(vtepThread)
-    private val vtepContext = ExecutionContext.fromExecutor(vtepThread)
+    private type Handler = PartialFunction[ConnectionStatus, Future[Unit]]
 
-    override def getManagementIp = endPoint.mgmtIp
-    override def getManagementPort = endPoint.mgmtPort
+    private val log =
+        Logger(LoggerFactory.getLogger(s"org.midonet.vtep.vtep-$endPoint"))
+
+    private val vtepScheduler = Schedulers.from(vtepExecutor)
+    private implicit val vtepContext =
+        ExecutionContext.fromExecutor(vtepExecutor)
+
+    private val vtepEventLoopId = new AtomicInteger
+    private val vtepEventLoopGroup = new NioEventLoopGroup(0, new ThreadFactory {
+        override def newThread(r: Runnable): Thread = {
+            new Thread(r, s"vtep-$endPoint-nio-" +
+                          s"${vtepEventLoopId.getAndIncrement()}")
+        }
+    })
 
     private val state = new AtomicReference[ConnectionStatus](Disconnected)
     private val stateSubject = BehaviorSubject.create[ConnectionStatus](state.get)
-    private val connState = stateSubject.asObservable.distinctUntilChanged()
-        .onBackpressureBuffer().observeOn(vtepScheduler)
+    private val stateObservable = stateSubject.asObservable
+                                              .map[State](makeFunc1(_.state))
 
-    /** an observable with the vtep connection states */
-    private val stateObservable = connState.map[State](makeFunc1(_.state))
+    private val connections = new mutable.HashMap[OvsdbClient, Channel]
 
-    private val users = new mutable.HashSet[UUID]()
-
-    case class StateException(msg: String)
-        extends VtepStateException(endPoint, msg)
-
-    // Setup automatic connection retry
-    connState.subscribe(makeAction1[ConnectionStatus] {
-        case Broken(ms, left) if left > 0 => onRetry()
-        case Broken(ms, left) =>
-            log.error("VTEP connection failure: {}", endPoint)
-            state.set(Disposed)
-            stateSubject.onNext(state.get())
-        case Connected(client) => onConnected()
-        case _ =>
-    })
-
-    /** Process connection-closed events from vtep/network.
-      * This must be executed from the vtep execution thread */
-    private def onClose(ovsdbClient: OvsdbClient): Unit = {
-        state.get() match {
-            case Disconnecting(client) if client == ovsdbClient =>
-                state.set(Disconnected)
-            case Connected(client) if client == ovsdbClient =>
-                state.set(Broken(retryInterval, maxRetries))
-            case Ready(handle) if handle.client == ovsdbClient =>
-                state.set(Broken(retryInterval, maxRetries))
-            case other =>
-                log.debug("unexpected vtep client close event: " + ovsdbClient +
-                          ", state: " + other)
-        }
-        stateSubject.onNext(state.get())
-    }
-    connectionService.registerConnectionListener(new OvsdbConnectionListener {
-        override def connected(client: OvsdbClient): Unit = {}
-        override def disconnected(client: OvsdbClient): Unit =
-            vtepThread.execute(makeRunnable(onClose(client)))
-    })
-
-    // Log connection failure and set state to broken
-    private def vtepFailed(e: Throwable, retriesLeft: Long): Unit = e match {
-        case t: UnknownHostException =>
-            log.warn("Unknown VTEP address: " + endPoint, e)
-            state.set(Broken(retryInterval, retriesLeft))
-        case NonFatal(t) =>
-            log.warn("VTEP connection failure: " + endPoint, t)
-            state.set(Broken(retryInterval, retriesLeft))
-    }
-
-    /** Activate connection to vtep.
-      * This must be executed from the vtep execution thread
-      * @param user is the user requiring the activation (null on retry) */
-    private def onActivate(user: UUID): Unit = {
-        if (user != null)
-            users.add(user)
-        state.get() match {
-            case Disconnected if user != null => try {
-                val address = InetAddress.getByName(endPoint.mgmtIpString)
-                val client = connectionService
-                    .connect(address, endPoint.mgmtPort)
-                state.set(Connected(client))
-            } catch {
-                case NonFatal(e) => vtepFailed(e, maxRetries)
-            }
-            case Connecting(ms, left, _) => try {
-                val address = InetAddress.getByName(endPoint.mgmtIpString)
-                val client = connectionService
-                    .connect(address, endPoint.mgmtPort)
-                state.set(Connected(client))
-            } catch {
-                case NonFatal(e) => vtepFailed(e, left - 1)
-            }
-            case other =>
-                log.debug("ignoring connection request for: " + endPoint +
-                          ", state: " + other + ", user: " + user)
-        }
-        stateSubject.onNext(state.get())
-    }
-
-    /** Try to restore a broken connection
-      * This must be executed from the vtep execution thread. */
-    private def onRetry() = {
-        state.get() match {
-            case Broken(interval, left) if left > 0 =>
-                val reconnect = makeRunnable(vtepThread.execute(
-                    makeRunnable(onActivate(user = null))))
-                val task = timerThread.schedule(
-                    reconnect, interval.toMillis, TimeUnit.MILLISECONDS)
-                state.set(Connecting(interval, left, task))
-            case other =>
-                log.debug("ignoring retry request for: " + endPoint +
-                          ", state: " + other)
-        }
-        stateSubject.onNext(state.get())
-    }
-
-    /** Download table data from the vtep, once the connection is established
-      * This must be executed from the vtep execution thread. */
-    private def onConnected() = {
-        state.get() match {
-            case Connected(client) =>
-                OvsdbTools.getDbSchema(client, OvsdbTools.DB_HARDWARE_VTEP)
-                    .future.onComplete({
-                    case Failure(e) =>
-                        log.error("cannot get ovsdb schema for" + endPoint, e)
-                        // the following results in a 'BROKEN' state
-                        // and causes a retry
-                        connectionService.disconnect(client)
-                    case Success(dbSchema) =>
-                        log.info("retrieved hardware vtep schema")
-                        state.get() match {
-                            case Connected(cl) if cl == client =>
-                                state.set(Ready(OvsdbHandle(client, dbSchema)))
-                                stateSubject.onNext(state.get())
-                            case _ =>
-                                log.debug("ignored vtep schema on changed state")
-                        }
-                })(vtepContext)
-            case other =>
-                log.debug("ignoring ready request for: " + endPoint +
-                          ", state: " + other)
-        }
-    }
-
-    /** Deactivate connection to vtep.
-      * This must bue executed from the vtep execution thread.
-      * @param user is the user abandoning the vtep (null on vtep-initiated) */
-    private def onDeactivate(user: UUID) = {
-        if (user == null || users.remove(user)) {
-            if (users.nonEmpty) {
-                log.debug("remaining users: ignoring disconnect request for: " +
-                          endPoint + ", state: " + state.get + ", user: " + user)
-            } else state.get() match {
-                case Connected(client) =>
-                    state.set(Disconnecting(client))
-                    connectionService.disconnect(client)
-                case Ready(handle) =>
-                    state.set(Disconnecting(handle.client))
-                    connectionService.disconnect(handle.client)
-                case Broken(_, _) =>
-                    state.set(Disconnected)
-                case Disposed  =>
-                    state.set(Disconnected)
-                case Connecting(_, _, task) =>
-                    task.cancel(false)
-                    state.set(Disconnected)
-                case other =>
-                    log.debug("ignoring disconnect request for: " + endPoint +
-                              ", state: " + other + ", user: " + user)
-            }
-            stateSubject.onNext(state.get())
+    protected class ChannelCloseListener(val channel: Channel,
+                                       val client: OvsdbClient)
+        extends ChannelFutureListener {
+        @throws[Exception]
+        override def operationComplete(future: ChannelFuture): Unit = {
+            handle(onBroken(channel, client))
         }
     }
 
     /**
-     * Connect to vtep, registering the given user reference
+     * Connects to the VTEP.
      */
-    override def connect(user: UUID): Unit = {
-        vtepThread.execute(makeRunnable(onActivate(user)))
+    override def connect(): Future[State] = {
+        handle(onConnect) map { _ => state.get.state }
     }
 
     /**
-     * Disconnect from vtep and return a future, satisfied with a boolean
-     * indicating if the vtep was actually disconnected (true) or it is still
-     * connected because there are remaining users (false)
+     * Disconnects from the VTEP.
      */
-    override def disconnect(user: UUID): Unit = {
-        vtepThread.execute(makeRunnable(onDeactivate(user)))
+    override def disconnect(): Future[State] = {
+        handle(onDisconnect) map { _ => state.get.state }
+    }
+
+    /**
+     * Releases the resources used by the VTEP connection. If the VTEP is
+     * connected, it first disconnects from the VTEP. The method receives
+     * as argument an execution context, on which the cleanup is performed.
+     */
+    override def close()(implicit ex: ExecutionContext): Future[State] = {
+        handle(onDisconnect) recover { case _ => } flatMap { case _ =>
+            updateStatus(Disposed)
+            val promise = Promise[State]()
+            vtepEventLoopGroup.shutdownGracefully()
+                              .addListener(new GenericFutureListener[Nothing] {
+                override def operationComplete(future: Nothing): Unit = {
+                    promise.success(state.get.state)
+                }
+            })
+            promise.future
+        }
     }
 
     /**
@@ -295,8 +207,345 @@ class OvsdbVtepConnection(val endPoint: VtepEndPoint, vtepThread: Executor,
      * Get the current ovsdb client handler
      */
     override def getHandle: Option[OvsdbHandle] = state.get() match {
-        case Ready(handle) => Some(handle)
+        case Ready(_,_, handle) => Some(handle)
         case _ => None
     }
+
+    /** Updates the current local state and emits a notification on the state
+      * observable. */
+    private def updateStatus(status: ConnectionStatus): Unit = {
+        log.debug("Connection status changed: {}", status.state)
+        state set status
+        stateSubject onNext status
+    }
+
+    /** Connection state machine transition that handles the call to
+      * `onConnect`. The partial function returns a future which:
+      * - If the connection state is [[Disconnected]], [[Failed]] or [[Broken]]
+      *   transitions the connection state to [[Connecting]] and then calls the
+      *   `onConnecting` handler.
+      * - If the connection state is [[Disconnecting]] it fails immediately.
+      * - If the connection state is [[Disposed]] it fails immediately.
+      * - If the connection state is [[Connecting]], [[Connected]] or [[Ready]]
+      *   it succeeds immediately. */
+    private lazy val onConnect: Handler = {
+        case Disconnected | Failed =>
+            log.info("Connect ({}): connecting to VTEP", state.get)
+            val complete = handle(onConnecting)
+            updateStatus(Connecting(maxRetries, complete))
+            complete
+        case Broken(interval, retries, subscription) =>
+            log.info("Connect ({}): re-connecting to VTEP retry {} of {}",
+                     state.get, Long.box(maxRetries - retries + 1),
+                     Long.box(maxRetries))
+            subscription.unsubscribe()
+            val complete = handle(onConnecting)
+            updateStatus(Connecting(retries - 1, complete))
+            complete
+        case Disconnecting(_) =>
+            log.warn("Connect ({}): connecting to VTEP failed because it is " +
+                     "disconnecting", state.get)
+            Future.failed(new VtepStateException(endPoint,
+                                                 "VTEP is disconnecting"))
+        case Disposed =>
+            Future.failed(new VtepStateException(endPoint,
+                                                 "Connection is disposed"))
+        case other =>
+            log.debug("Connect ({}): already connecting/connected", state.get)
+            SuccessfulFuture
+    }
+
+    /** Connection state machine transition that handles the call to
+      * `onConnecting`. The partial function returns a future which:
+      * - If the connection state is [[Connecting]] it asynchronously opens
+      *   a channel, initializes the RPC client, transitions the state to
+      *   [[Connected]] if successful and calls the `onConnected` handler.
+      * - If the connection state is [[Connected]] or [[Ready]] it succeeds
+      *   immediately.
+      * - It fails immediately if the connection state is any other.
+      */
+    private lazy val onConnecting: Handler = {
+        case Connecting(retries, _) =>
+            openChannel() map { initializeClient } flatMap { pair =>
+                state.get match {
+                    case Connecting(_, _) =>
+                        val complete = handle(onConnected)
+                        val status = Connected(pair._1, pair._2, complete)
+                        log.info("Connecting ({}): succeeded", status)
+                        updateStatus(status)
+                        complete
+                    case Disconnecting(_) =>
+                        log.info("Connecting ({}): connection canceled",
+                                 state.get)
+                        closeChannel(pair._1, pair._2) flatMap { _ =>
+                            Future.failed(new VtepStateException(
+                                endPoint, "Connection canceled"))
+                        }
+                    case _ =>
+                        log.warn("Connection ({}): connection failed",
+                                 state.get)
+                        closeChannel(pair._1, pair._2) flatMap { _ =>
+                            Future.failed(new VtepStateException(
+                                endPoint, "Connection state changed"))
+                        }
+                }
+            } recoverWith {
+                case e @ (_: ConnectException |
+                          _: SocketException |
+                          _: UnknownHostException |
+                          _: VtepNotConnectedException) =>
+                    if (retries > 0 && retryInterval.length > 0) {
+                        log.warn("Connecting ({}): failed {} retries left " +
+                                 "in {})", state.get, Long.box(retries),
+                                 retryInterval, e)
+                        val subscription = Observable
+                            .timer(retryInterval.toMillis, TimeUnit.MILLISECONDS,
+                                   vtepScheduler)
+                            .subscribe(makeAction1((_: java.lang.Long) => {
+                                handle(onConnect)
+                            }))
+                        updateStatus(Broken(retryInterval, retries, subscription))
+                    } else {
+                        log.warn("Connecting ({}): failed", state.get, e)
+                        updateStatus(Failed)
+                    }
+                    Future.failed(new VtepNotConnectedException(endPoint))
+                case NonFatal(e) =>
+                    log.error("Connecting ({}): unexpected error", state.get, e)
+                    updateStatus(Failed)
+                    Future.failed(new VtepNotConnectedException(endPoint))
+            }
+        case Connected(_,_, complete) =>
+            log.debug("Connecting ({}): already connecting", state.get)
+            complete
+        case Ready(_,_,_) =>
+            log.debug("Connecting ({}): already connected", state.get)
+            SuccessfulFuture
+        case other =>
+            log.warn("Connecting ({}): VTEP not connecting", state.get)
+            Future.failed(new VtepNotConnectedException(endPoint))
+    }
+
+    /** Connection state machine transition that handles the call to
+      * `onConnected`. The partial function returns a future which:
+      * - If the connection state is [[Connected]] it retrieves the OVSDB VTEP
+      *   schema and transitions the state to [[Ready]].
+      * - It fails immediately if the connection state is any other. */
+    private lazy val onConnected: Handler = {
+        case Connected(channel, client, _) =>
+            log.info("Connected ({}): retrieving VTEP schema", state.get)
+            OvsdbTools.getDbSchema(client, OvsdbTools.DB_HARDWARE_VTEP,
+                                   vtepExecutor, channel.closeFuture(),
+                                   new VtepNotConnectedException(endPoint))
+                      .future flatMap { schema =>
+                log.info("Connected ({}): retrieved hardware VTEP schema",
+                         state.get)
+                state.get match {
+                    case Connected(ch, c, _) if c == client =>
+                        updateStatus(Ready(channel, client,
+                                           OvsdbHandle(client, schema)))
+                        SuccessfulFuture
+                    case Disconnecting(_) =>
+                        log.info("Connected ({}): connection canceled",
+                                 state.get)
+                        closeChannel(channel, client) flatMap { _ =>
+                            Future.failed(new VtepStateException(
+                                endPoint, "Connection canceled"))
+                        }
+                    case Disconnected | Broken(_,_,_) | Failed =>
+                        log.warn("Connected ({}): connection failed", state.get)
+                        Future.failed(new VtepNotConnectedException(endPoint))
+                    case _ =>
+                        log.debug("Connected ({}): ignore VTEP schema because " +
+                                  "connection state changed", state.get)
+                        SuccessfulFuture
+                }
+            }
+        case other =>
+            log.warn("Connecting ({}): VTEP not connected", state.get)
+            Future.failed(new VtepNotConnectedException(endPoint))
+    }
+
+    /** Connection state machine transition that handles the call to
+      * `onDisconnect`. The partial function returns a future which:
+      * - If the connection state is [[Disconnected]], succeeds immediately.
+      * - If the connection state is [[Disconnecting]], it returns the future
+      *   of the current disconnecting state.
+      * - If the connection state is [[Disposed]], fail immediately.
+      * - If the connection state is [[Failed]], it changes the state to
+      *   [[Disconnected]] and succeeds immediately.
+      * - If the connection state is [[Broken]], it cancels the re-connect
+      *   subscription, changes the state to [[Disconnected]] and succeeds
+      *   immediately.
+      * - If the connection state is [[Connecting]], it enqueues to the current
+      *   connecting future a new `onDisconnect` transition and it returns that
+      *   future.
+      * - If the connection state is [[Connected]], it enqueues to the current
+      *   connected future a new `onDisconnect` transition and it returns that
+      *   future.
+      * - If the connection state is [[Ready]], it closes the NETTY channel
+      *   and changes the state to [[Disconnecting]]. */
+    private lazy val onDisconnect: Handler = {
+        case Disconnected =>
+            log.debug("Disconnect ({}): VTEP already disconnected", state.get)
+            SuccessfulFuture
+        case Disconnecting(complete) =>
+            log.debug("Disconnect ({}): VTEP already disconnecting", state.get)
+            complete
+        case Disposed =>
+            log.error("Disconnect ({}): VTEP connection is disposed", state.get)
+            Future.failed(new VtepStateException(endPoint,
+                                                 "Connection is disposed"))
+        case Failed =>
+            log.info("Disconnect ({}): VTEP disconnected", state.get)
+            updateStatus(Disconnected)
+            SuccessfulFuture
+        case Broken(_,_, subscription) =>
+            log.info("Disconnect ({}): VTEP disconnected", state.get)
+            subscription.unsubscribe()
+            updateStatus(Disconnected)
+            SuccessfulFuture
+        case Connecting(_, complete) =>
+            log.info("Disconnect ({}): VTEP connection canceled", state.get)
+            complete recover { case _ => } flatMap { _ => handle(onDisconnect) }
+        case Connected(_,_, complete) =>
+            log.info("Disconnect ({}): VTEP connection canceled", state.get)
+            complete flatMap { _ => handle(onDisconnect) }
+        case Ready(channel, client, _) =>
+            log.info("Disconnect ({}): VTEP disconnecting", state.get)
+            val complete = closeChannel(channel, client) flatMap { _ =>
+                handle(onDisconnected)
+            }
+            updateStatus(Disconnecting(complete))
+            complete
+    }
+
+    /** Connection state machine transition that handles the completion of
+      * the [[Disconnecting]] state. The partial function returns a future,
+      * which:
+      * - If the connection state is [[Disconnecting]], it changes the state
+      *   to [[Disconnected]] and succeeds immediately.
+      * - Otherwise, it fails immediately. */
+    private lazy val onDisconnected: Handler = {
+        case Disconnecting(_) =>
+            log.info("Disconnected ({}): VTEP disconnected", Disconnected)
+            updateStatus(Disconnected)
+            SuccessfulFuture
+        case _ =>
+            log.warn("Disconnected ({}): VTEP disconnecting failed", state.get)
+            Future.failed(new VtepStateException(endPoint,
+                                                 "Failed to disconnect"))
+    }
+
+    /** Connection state machine transition that handles a broken connection.
+      * The partial function only applies to a connection in the [[Ready]]
+      * state, when the connection state is changed to [[Disconnected]] and
+      * immediately attempts to reconnect. */
+    private def onBroken(channel: Channel, client: OvsdbClient): Handler = {
+        case Ready(ch, cl, _) if channel == ch && client == cl =>
+            log.warn("Broken ({}): VTEP connection lost", state.get)
+            updateStatus(Disconnected)
+            handle(onConnect)
+        case _ => // For all other states, the broken connection will be
+                  // handled by the respective state.
+            SuccessfulFuture
+    }
+
+    /**
+     * Handles the specified VTEP connection state machine transition. The
+     * method receives as argument a [[Handler]], which is a partial function
+     * to which the current connection state is applied.
+     */
+    private def handle(handler: Handler): Future[Unit] = Async.async {
+        Async.await(handler apply state.get)
+    }
+
+    /**
+     * Opens a NETTY channel to the current VTEP end-point. The method is
+     * asynchronous and returns a future, which when successful completes with
+     * the current channel instance.
+     */
+    protected def openChannel(): Future[Channel] = {
+        val address = InetAddress.getByName(endPoint.mgmtIpString)
+
+        val bootstrap = new Bootstrap()
+        bootstrap.group(vtepEventLoopGroup)
+        bootstrap.channel(classOf[NioSocketChannel])
+        bootstrap.option(ChannelOption.TCP_NODELAY, Boolean.box(true))
+        bootstrap.option(ChannelOption.RCVBUF_ALLOCATOR,
+                         new AdaptiveRecvByteBufAllocator(65535, 65535,
+                                                          65535))
+        bootstrap.handler(new ChannelInitializer[SocketChannel]() {
+            @throws(classOf[Exception])
+            def initChannel(channel: SocketChannel) {
+                channel.pipeline.addLast(new JsonRpcDecoder(100000),
+                                         new StringEncoder(CharsetUtil.UTF_8),
+                                         new ExceptionHandler)
+            }
+        })
+
+        val promise = Promise[Channel]()
+        bootstrap.connect(address, endPoint.mgmtPort)
+                 .addListener(new ChannelFutureListener {
+            override def operationComplete(future: ChannelFuture): Unit = {
+                if (future.isSuccess) promise success future.channel()
+                else promise failure future.cause()
+            }
+        })
+
+        promise.future
+    }
+
+    /**
+     * Initializes the JSON RPC client for the specified NETTY channel. The
+     * method is synchronous and returns the current NETTY channel and RPC
+     * client.
+     */
+    protected def initializeClient(channel: Channel): (Channel, OvsdbClient) = {
+        val objectMapper = new ObjectMapper
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                               false)
+        objectMapper.setSerializationInclusion(Include.NON_NULL)
+
+        val factory = new JsonRpcEndpoint(objectMapper, channel)
+        val binderHandler = new JsonRpcServiceBinderHandler(factory)
+        binderHandler.setContext(channel)
+        val idleHandler = new IdleStateHandler(30, 30, 0)
+        channel.pipeline.addLast(idleHandler)
+        channel.pipeline.addLast(binderHandler)
+
+        val rpc = factory.getClient(channel, classOf[OvsdbRPC])
+        val client = new OvsdbClientImpl(rpc, channel, ConnectionType.ACTIVE,
+                                         vtepExecutor)
+        connections += client -> channel
+        channel.closeFuture.addListener(newCloseListener(channel, client))
+        (channel, client)
+    }
+
+    /**
+     * Closes the NETTY channel and returns a future which completes when the
+     * connection has been closed.
+     */
+    protected def closeChannel(channel: Channel, client: OvsdbClient)
+    : Future[Channel] = {
+        connections remove client
+        val promise = Promise[Channel]()
+        channel.close().addListener(new ChannelFutureListener {
+            override def operationComplete(future: ChannelFuture): Unit = {
+                if (future.isSuccess) promise success future.channel()
+                else promise failure future.cause()
+            }
+        })
+        promise.future
+    }
+
+    /**
+     * Creates a new channel close listener for this OVSDB VTEP connection.
+     */
+    protected def newCloseListener(channel: Channel, client: OvsdbClient)
+    : ChannelCloseListener = {
+        new ChannelCloseListener(channel, client)
+    }
+
 }
 

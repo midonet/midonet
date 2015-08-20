@@ -34,6 +34,7 @@ import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.vtep.OvsdbTranslator.toOvsdb
+import org.midonet.vtep.OvsdbVtepConnection.OvsdbHandle
 import org.midonet.vtep.mock.MockOvsdbClient.{TransactionEngine, MonitorRegistration}
 import org.midonet.vtep.mock.MockOvsdbColumn.{mkColumnSchema, mkMapColumnSchema, mkSetColumnSchema}
 import org.midonet.vtep.schema._
@@ -167,8 +168,11 @@ abstract class MockOvsdbVtep {
     def getDbSchema(name: String): DatabaseSchema =
         if (name != MockOvsdbVtep.DB_HARDWARE_VTEP) null else databaseSchema
 
-    /** Get a client handle */
-    def getHandle: OvsdbClient
+    /** Gets the client. */
+    def getClient: OvsdbClient
+
+    /** Get the handle. */
+    def getHandle: OvsdbHandle
 }
 
 object MockOvsdbVtep {
@@ -299,9 +303,11 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
             }
     }
 
-    override val getHandle: OvsdbClient =
+    override val getClient =
         new MockOvsdbClient(databaseSchema, monitorRegistration,
                             transactionEngine)
+
+    override val getHandle = OvsdbHandle(getClient, databaseSchema)
 
     /** Evaluate if a row satisfies a given condition. Note that not all
       * possible condition definitions are implmemented (only those required

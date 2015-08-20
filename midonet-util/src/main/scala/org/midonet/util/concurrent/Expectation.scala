@@ -35,6 +35,10 @@ class Expectation[T](final val promise: Promise[T]) {
     def success(value: T): Unit = promise.success(value)
     /** Set the failure exception */
     def failure(exception: Throwable): Unit = promise.failure(exception)
+    /** Try set the success value */
+    def trySuccess(value: T): Unit = promise.trySuccess(value)
+    /** Try set the failure exception */
+    def tryFailure(exception: Throwable): Unit = promise.tryFailure(exception)
 
 
     /** Callbacks for promise completion */

@@ -17,7 +17,7 @@
 package org.midonet.vtep
 
 import java.util.{Random, UUID}
-import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
+import java.util.concurrent.{Executor, ExecutorService, Executors, TimeUnit}
 
 import scala.concurrent.{ExecutionContext, Await, Future, blocking}
 import scala.concurrent.duration.Duration
@@ -32,6 +32,7 @@ import rx.subjects.PublishSubject
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.{MAC, IPv4Addr}
 import org.midonet.util.MidonetEventually
+import org.midonet.util.concurrent.CallingThreadExecutionContext
 import org.midonet.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.vtep.schema._
 
@@ -70,10 +71,11 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
 
     before {
         vtep = new InMemoryOvsdbVtep()
-        client = vtep.getHandle
+        client = vtep.getClient
         endPoint = OvsdbTools.endPointFromOvsdbClient(client)
-        db = OvsdbTools.getDbSchema(client, OvsdbTools.DB_HARDWARE_VTEP)
-            .result(timeout)
+        db = OvsdbTools.getDbSchema(client, OvsdbTools.DB_HARDWARE_VTEP,
+                                    CallingThreadExecutionContext.asInstanceOf[Executor])
+                       .result(timeout)
         psTable = new PhysicalSwitchTable(db)
         portTable = new PhysicalPortTable(db)
         lsTable = new LogicalSwitchTable(db)
@@ -116,7 +118,8 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
 
     feature("Tunnel IP") {
         scenario("get tunnel ip") {
-            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
+                                               vtepThread)
             timed(timeout) {
                 Await.result(vtepHandle.vxlanTunnelIp, timeout)
             } shouldBe Some(vxlanIp)
@@ -130,7 +133,8 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
             val unknownLsName =
                 LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
 
-            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
+                                               vtepThread)
             val updates = PublishSubject.create[MacLocation]()
             val updater = Await.result(vtepHandle.macRemoteUpdater, timeout)
             val subscription = updates.subscribe(updater)
@@ -174,7 +178,8 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
             val unknownLsName =
                 LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
 
-            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread)
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
+                                               vtepThread)
             val updates = PublishSubject.create[MacLocation]()
             val updater = Await.result(vtepHandle.macRemoteUpdater, timeout)
             val subscription = updates.subscribe(updater)

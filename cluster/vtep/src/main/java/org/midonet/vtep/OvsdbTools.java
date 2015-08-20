@@ -20,7 +20,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nonnull;
 
@@ -52,9 +56,15 @@ import rx.Subscriber;
 import org.midonet.cluster.data.vtep.VtepException;
 import org.midonet.cluster.data.vtep.model.VtepEndPoint;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.util.concurrent.CallingThreadExecutionContext$;
+import org.midonet.util.concurrent.package$;
 import org.midonet.vtep.schema.Table;
 import org.midonet.util.concurrent.Expectation;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 
 /**
@@ -62,12 +72,126 @@ import org.midonet.util.concurrent.Expectation;
  */
 public class OvsdbTools {
 
-    static private final ExecutionContext callingThreadContext =
-        CallingThreadExecutionContext$.MODULE$;
-    static private final Executor callingThreadExecutor =
-        (Executor)CallingThreadExecutionContext$.MODULE$;
-
     static public final String DB_HARDWARE_VTEP = "hardware_vtep";
+    static public final ChannelFuture VOID_FUTURE = new ChannelFuture() {
+        @Override
+        public Channel channel() {
+            return null;
+        }
+
+        @Override
+        public ChannelFuture addListener(
+            GenericFutureListener<? extends Future<? super Void>> listener) {
+            return this;
+        }
+
+        @Override
+        @SafeVarargs
+        public final ChannelFuture addListeners(
+            GenericFutureListener<? extends Future<? super Void>>... listeners) {
+            return this;
+        }
+
+        @Override
+        public ChannelFuture removeListener(
+            GenericFutureListener<? extends Future<? super Void>> listener) {
+            return this;
+        }
+
+        @Override
+        @SafeVarargs
+        public final ChannelFuture removeListeners(
+            GenericFutureListener<? extends Future<? super Void>>... listeners) {
+            return this;
+        }
+
+        @Override
+        public ChannelFuture sync() throws InterruptedException {
+            return this;
+        }
+
+        @Override
+        public ChannelFuture syncUninterruptibly() {
+            return this;
+        }
+
+        @Override
+        public ChannelFuture await() throws InterruptedException {
+            return this;
+        }
+
+        @Override
+        public ChannelFuture awaitUninterruptibly() {
+            return this;
+        }
+
+        @Override
+        public boolean isSuccess() {
+            return false;
+        }
+
+        @Override
+        public boolean isCancellable() {
+            return false;
+        }
+
+        @Override
+        public Throwable cause() {
+            return null;
+        }
+
+        @Override
+        public boolean await(long timeout, TimeUnit unit)
+            throws InterruptedException {
+            return false;
+        }
+
+        @Override
+        public boolean await(long timeoutMillis) throws InterruptedException {
+            return false;
+        }
+
+        @Override
+        public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
+            return false;
+        }
+
+        @Override
+        public boolean awaitUninterruptibly(long timeoutMillis) {
+            return false;
+        }
+
+        @Override
+        public Void getNow() {
+            return null;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
+
+        @Override
+        public boolean isDone() {
+            return false;
+        }
+
+        @Override
+        public Void get() throws InterruptedException, ExecutionException {
+            return null;
+        }
+
+        @Override
+        public Void get(long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+            return null;
+        }
+    };
 
     static public class OvsdbException extends VtepException {
         public OvsdbException(OvsdbClient client, String msg) {
@@ -122,9 +246,10 @@ public class OvsdbTools {
      * Perform a single operation in the ovs database and expect a result
      */
     static public Expectation<OperationResult> singleOp(
-        final OvsdbClient client, DatabaseSchema dbs, Table.OvsdbOperation op) {
+        final OvsdbClient client, DatabaseSchema dbs, Table.OvsdbOperation op,
+        Executor executor) {
         final Expectation<OperationResult> result = new Expectation<>();
-        multiOp(client, dbs, Collections.singletonList(op)).onComplete(
+        multiOp(client, dbs, Collections.singletonList(op), executor).onComplete(
             new Expectation.OnComplete<List<OperationResult>>() {
                 @Override
                 public void onSuccess(List<OperationResult> rlist) {
@@ -135,7 +260,7 @@ public class OvsdbTools {
                 public void onFailure(@Nonnull Throwable exc) {
                     result.failure(exc);
                 }
-            }, callingThreadContext);
+            }, package$.MODULE$.toExecutionContext(executor));
         return result;
     }
 
@@ -144,7 +269,8 @@ public class OvsdbTools {
      */
     static public Expectation<List<OperationResult>> multiOp(
         final OvsdbClient client, DatabaseSchema dbs,
-        final List<Table.OvsdbOperation> ops) {
+        final List<Table.OvsdbOperation> ops,
+        Executor executor) {
         final Expectation<List<OperationResult>> result = new Expectation<>();
         TransactionBuilder transaction = client.transactBuilder(dbs);
         for (Table.OvsdbOperation op: ops) {
@@ -172,26 +298,51 @@ public class OvsdbTools {
                     result.failure(new OvsdbException(client, exc));
                 }
             };
-        Futures.addCallback(transaction.execute(), cb, callingThreadExecutor);
+        Futures.addCallback(transaction.execute(), cb, executor);
         return result;
     }
 
     /**
-     * Retrieve the database schema from the ovsdb-based vtep asynchronously
+     * Retrieves the database schema from the OVSDB-based VTEP asynchronously.
      */
     static public Expectation<DatabaseSchema> getDbSchema(
-        final OvsdbClient client, final String dbName) {
+        OvsdbClient client, String dbName, Executor executor) {
+        return getDbSchema(client, dbName, executor, VOID_FUTURE, null);
+    }
+
+    /**
+     * Retrieves the database schema from the OVSDB-based VTEP asynchronously.
+     * The method receives a channel future, which, when completed will
+     * complete the returned expectation a failure.
+     */
+    static public Expectation<DatabaseSchema> getDbSchema(
+        final OvsdbClient client, final String dbName,
+        final Executor executor,
+        final ChannelFuture closeFuture,
+        final Exception closeException) {
         final Expectation<DatabaseSchema> result = new Expectation<>();
+
+        final ChannelFutureListener channelListener = new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future)
+                throws Exception {
+                future.removeListener(this);
+                result.tryFailure(closeException);
+            }
+        };
+        closeFuture.addListener(channelListener);
 
         final FutureCallback<DatabaseSchema> dbsCb =
             new FutureCallback<DatabaseSchema>() {
             @Override
             public void onSuccess(DatabaseSchema dbs) {
-                result.success(dbs);
+                closeFuture.removeListener(channelListener);
+                result.trySuccess(dbs);
             }
             @Override
             public void onFailure(@Nonnull Throwable exc) {
-                result.failure(new OvsdbException(client, exc));
+                closeFuture.removeListener(channelListener);
+                result.tryFailure(new OvsdbException(client, exc));
             }
         };
 
@@ -200,21 +351,22 @@ public class OvsdbTools {
             @Override
             public void onSuccess(List<String> dbList) {
                 if (!dbList.contains(dbName)) {
-                    result.failure(new OvsdbNotFoundException(
+                    closeFuture.removeListener(channelListener);
+                    result.tryFailure(new OvsdbNotFoundException(
                         client, "db not found: " + dbName));
                 } else {
                     Futures.addCallback(client.getSchema(dbName), dbsCb,
-                                        callingThreadExecutor);
+                                        executor);
                 }
             }
             @Override
             public void onFailure(@Nonnull Throwable exc) {
-                result.failure(new OvsdbException(client, exc));
+                closeFuture.removeListener(channelListener);
+                result.tryFailure(new OvsdbException(client, exc));
             }
         };
 
-        Futures.addCallback(client.getDatabases(), dbListCb,
-                            callingThreadExecutor);
+        Futures.addCallback(client.getDatabases(), dbListCb, executor);
         return result;
     }
 
@@ -238,29 +390,24 @@ public class OvsdbTools {
 
         // Start monitoring on subscribe
         Observable.OnSubscribe<TableUpdate<GenericTableSchema>> onSubscribe =
-            new Observable.OnSubscribe<TableUpdate<GenericTableSchema>>() {
-                @Override
-                public void call(
-                    final Subscriber<? super TableUpdate<GenericTableSchema>>
-                        subscriber) {
-                    MonitorCallBack cb = new MonitorCallBack() {
-                        @Override
-                        public void update(TableUpdates updates,
-                                           DatabaseSchema dbSchema) {
-                            TableUpdate<GenericTableSchema> update =
-                                updates.getUpdate(table);
-                            if (update != null)
-                                subscriber.onNext(update);
-                        }
-                        @Override
-                        public void exception(Throwable throwable) {
-                            subscriber.onError(
-                                new OvsdbException(client, throwable));
+            (Subscriber<? super TableUpdate<GenericTableSchema>> subscriber) -> {
+                MonitorCallBack cb = new MonitorCallBack() {
+                    @Override
+                    public void update(TableUpdates updates,
+                                       DatabaseSchema dbSchema) {
+                        TableUpdate<GenericTableSchema> update =
+                            updates.getUpdate(table);
+                        if (update != null)
+                            subscriber.onNext(update);
+                    }
+                    @Override
+                    public void exception(Throwable throwable) {
+                        subscriber.onError(
+                            new OvsdbException(client, throwable));
 
-                        }
-                    };
-                    client.monitor(db, req, cb);
-                }
+                    }
+                };
+                client.monitor(db, req, cb);
             };
 
         return Observable.create(onSubscribe);
@@ -290,25 +437,26 @@ public class OvsdbTools {
         DatabaseSchema db,
         GenericTableSchema table,
         Collection<ColumnSchema<GenericTableSchema, ?>> columns,
-        Condition cond) {
+        Condition cond,
+        Executor executor) {
 
         final Expectation<Collection<Row<GenericTableSchema>>> result =
             new Expectation<>();
         Select<GenericTableSchema> op = new Select<>(table);
-        for (ColumnSchema<GenericTableSchema, ?> col: columns) {
+        for (ColumnSchema<GenericTableSchema, ?> col : columns) {
             op.column(col);
         }
         if (cond != null)
             op.addCondition(cond);
 
         Expectation<OperationResult> opResult =
-            singleOp(client, db, new Table.OvsdbSelect(op));
+            singleOp(client, db, new Table.OvsdbSelect(op), executor);
         opResult.onComplete(
             new ResultWrapper<Collection<Row<GenericTableSchema>>>(result) {
             @Override public void onSuccess(OperationResult r) {
                 result.success(r.getRows());
             }
-        }, callingThreadContext);
+        }, package$.MODULE$.toExecutionContext(executor));
 
         return result;
     }
@@ -318,10 +466,11 @@ public class OvsdbTools {
      */
     static public Expectation<java.util.UUID> insert(final OvsdbClient client,
                                                      final Table table,
-                                                     Table.OvsdbInsert op) {
+                                                     Table.OvsdbInsert op,
+                                                     Executor executor) {
         final Expectation<java.util.UUID> result = new Expectation<>();
         Expectation<OperationResult> opResult =
-            singleOp(client, table.getDbSchema(), op);
+            singleOp(client, table.getDbSchema(), op, executor);
         opResult.onComplete(new ResultWrapper<java.util.UUID>(result) {
             @Override
             public void onSuccess(OperationResult r) {
@@ -332,7 +481,7 @@ public class OvsdbTools {
                     result.success(null);
                 }
             }
-        }, callingThreadContext);
+        }, package$.MODULE$.toExecutionContext(executor));
         return result;
     }
 
@@ -341,16 +490,17 @@ public class OvsdbTools {
      */
     static public Expectation<Integer> delete(final OvsdbClient client,
                                               Table table,
-                                              Table.OvsdbDelete op) {
+                                              Table.OvsdbDelete op,
+                                              Executor executor) {
         final Expectation<Integer> result = new Expectation<>();
         Expectation<OperationResult> opResult =
-            singleOp(client, table.getDbSchema(), op);
+            singleOp(client, table.getDbSchema(), op, executor);
         opResult.onComplete(new ResultWrapper<Integer>(result) {
             @Override
             public void onSuccess(OperationResult r) {
                 result.success(r.getCount());
             }
-        }, callingThreadContext);
+        }, package$.MODULE$.toExecutionContext(executor));
         return result;
     }
 }
