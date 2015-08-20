@@ -38,10 +38,10 @@ class WritableFloodingProxyHerald(backend: MidonetBackend, executor: Executor)
     /** Asynchronously publish the given hostId as Flooding Proxy for the given
       * tunnel zone.
       */
-    private[vxgw] def announce(tzId: UUID, fp: FloodingProxy,
+    private[vxgw] def announce(fp: FloodingProxy,
                                onError: Throwable => Unit): Unit = (
-        if (fp == null) removal(tzId)
-        else update(tzId, fp)
+        if (fp == null) removal(fp.tunnelZoneId)
+        else update(fp.tunnelZoneId, fp)
     ).subscribe(reactivex.retryObserver[StateResult](onError))
 
     /** Asynchronously publishes a removal of the flooding proxy, emitting the

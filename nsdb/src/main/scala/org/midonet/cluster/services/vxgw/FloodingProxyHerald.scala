@@ -20,9 +20,9 @@ import java.util.UUID
 import java.util.concurrent.{ConcurrentHashMap, Executor}
 
 import com.typesafe.scalalogging.Logger
-
 import org.slf4j.LoggerFactory.getLogger
 import rx.schedulers.Schedulers
+import rx.subjects.PublishSubject
 import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
@@ -33,18 +33,23 @@ import org.midonet.cluster.services.MidonetBackend.FloodingProxyKey
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.util.{UUIDUtil, selfHealingTzObservable}
 import org.midonet.packets.IPv4Addr
-import org.midonet.util.functors.makeFunc1
+import org.midonet.util.functors.{makeAction1, makeFunc1}
 
 object FloodingProxyHerald {
 
-    def deserialize(s: String): FloodingProxy = {
+    /** Deserializes a state string into a FloodingProxy object for the given
+      * tunnel zone.
+      */
+    def deserialize(tunnelZoneId: UUID, s: String): FloodingProxy = {
         val split = s.split("#")
-        FloodingProxy(UUID.fromString(split(0)), IPv4Addr.fromString(split(1)))
+        FloodingProxy(tunnelZoneId, UUID.fromString(split(0)),
+                      IPv4Addr.fromString(split(1)))
     }
 
     // Note that IPv4 is intentional, as this feature is only for VxGW, and
     // here IPv6 is not supported.
-    case class FloodingProxy(hostId: UUID, tunnelIp: IPv4Addr) {
+    case class FloodingProxy(tunnelZoneId: UUID, hostId: UUID,
+                             tunnelIp: IPv4Addr) {
         private val serialized = s"$hostId#$tunnelIp"
         override def toString = serialized
     }
@@ -59,12 +64,16 @@ class FloodingProxyHerald(backend: MidonetBackend, executor: Executor) {
     protected val log = Logger(getLogger("org.midonet.cluster.flooding-proxies"))
 
     private val fpIndex = new ConcurrentHashMap[UUID, FloodingProxy]()
+    private val updateStream = PublishSubject.create[FloodingProxy]()
 
     /** Returns the current flooding proxy for this tunnel zone.  This method
       * works off a local cache so consider that a lookup here may not have the
       * latest value if the notification from storage hasn't been processed yet.
       */
     def lookup(tzId: UUID): Option[FloodingProxy] = Option(fpIndex.get(tzId))
+
+    /** Exposes the latest flooding proxy for each VTEP tunnel zone */
+    val observable = updateStream.asObservable()
 
     /** A dedicated observer for the given tunnel zone that will update the
       * internal cache of flooding proxies.  When the tunnel zone is deleted,
@@ -78,10 +87,11 @@ class FloodingProxyHerald(backend: MidonetBackend, executor: Executor) {
         override def onError(throwable: Throwable): Unit = {}
         override def onNext(t: StateKey): Unit = t match {
             case SingleValueKey(_, Some(v), _) =>
-                val fp = FloodingProxyHerald.deserialize(v)
-                log.debug("Zone {} new flooding proxy {} at {}", tzId, v,
+                val fp = FloodingProxyHerald.deserialize(tzId, v)
+                log.debug("Zone {} has new flooding proxy {} at {}", tzId, v,
                           fp.tunnelIp)
                 fpIndex.put(tzId, fp)
+                updateStream.onNext(fp)
             case SingleValueKey(_, None, _) =>
                 val oldFp = fpIndex.remove(tzId)
                 log.debug("Zone {} loses flooding proxy (was: {})", tzId, oldFp)
@@ -92,19 +102,16 @@ class FloodingProxyHerald(backend: MidonetBackend, executor: Executor) {
     Observable.merge(selfHealingTzObservable(backend.store))
         .filter(makeFunc1 { t: TunnelZone => t.getType == VTEP })
         .observeOn(Schedulers.from(executor))
-        .subscribe(new Observer[TunnelZone] {
-            override def onCompleted(): Unit = {}
-            override def onError(t: Throwable): Unit = {}
-            override def onNext(t: TunnelZone): Unit = {
-                val tzId = UUIDUtil.fromProto(t.getId)
-                if (!fpIndex.contains(tzId)) {
-                    log.debug("Watching zone {}", tzId)
-                    backend.stateStore
-                           .keyObservable(classOf[TunnelZone], tzId,
-                                          FloodingProxyKey)
-                           .subscribe(tzObserver(tzId))
-                }
+        .subscribe(makeAction1[TunnelZone] { t =>
+            val tzId = UUIDUtil.fromProto(t.getId)
+            if (!fpIndex.contains(tzId)) {
+                log.debug("Start to watch tunnel zone {}", tzId)
+                backend.stateStore
+                       .keyObservable(classOf[TunnelZone], tzId,
+                                      FloodingProxyKey)
+                       .subscribe(tzObserver(tzId))
             }
-    })
+        }
+    )
 
 }

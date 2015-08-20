@@ -26,7 +26,6 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 import org.slf4j.LoggerFactory
-
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import rx.subscriptions.CompositeSubscription
@@ -188,7 +187,7 @@ class FloodingProxyManager(backend: MidonetBackend) {
                                              retries: Int = MaxFpRetries)
     : Unit = recalculateFpFor(tzId).onComplete {
         case Success(fp) =>
-            _herald.announce(tzId, fp, { _ =>
+            _herald.announce(fp, { _ =>
                 cacheAndPublishFloodingProxy(tzId, retries -1 )
             })
         case Failure(t) => log.warn("Error calculating flooding proxy", t)
@@ -202,7 +201,7 @@ class FloodingProxyManager(backend: MidonetBackend) {
     : Future[FloodingProxy] = {
         store.get(classOf[TunnelZone], tzId) // should be cached locally
              .map { loadLiveHosts }
-             .map(hosts => FloodingProxyCalculator.calculate(hosts).orNull)
+             .map(hosts => FloodingProxyCalculator.calculate(tzId, hosts).orNull)
              .recoverWith[FloodingProxy] {
                  case t: Throwable if retries > 0 =>
                      log.warn("Failed to calculate flooding proxy for " +
