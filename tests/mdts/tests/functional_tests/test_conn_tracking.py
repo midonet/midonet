@@ -18,11 +18,11 @@ from nose.plugins.attrib import attr
 from mdts.lib.binding_manager import BindingManager
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
-from mdts.tests.utils.asserts import receives
+from mdts.tests.utils.asserts import receives, async_assert_that
 from mdts.tests.utils.asserts import should_NOT_receive
 from mdts.tests.utils.asserts import within_sec
-from mdts.tests.utils import bindings
-from mdts.tests.utils import wait_on_futures
+from mdts.tests.utils.utils import bindings
+from mdts.tests.utils.utils import wait_on_futures
 
 import logging
 import random
@@ -31,9 +31,9 @@ import time
 
 LOG = logging.getLogger(__name__)
 PTM = PhysicalTopologyManager(
-        '../topologies/mmm_physical_test_conn_tracking.yaml')
+    '../topologies/mmm_physical_test_conn_tracking.yaml')
 VTM = VirtualTopologyManager(
-        '../topologies/mmm_virtual_test_conn_tracking.yaml')
+    '../topologies/mmm_virtual_test_conn_tracking.yaml')
 BM = BindingManager(PTM, VTM)
 
 
@@ -62,19 +62,8 @@ binding_multihost = {
     }
 
 
-def setup():
-    PTM.build()
-    VTM.build()
-    random.seed()
-
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
-
-
-def set_bridge_port_filters(bridge_name, port_id, inbound_filter_name, outbound_filter_name):
+def set_bridge_port_filters(bridge_name, port_id, inbound_filter_name,
+                            outbound_filter_name):
     '''Sets an in-bound filter to a bridge.'''
     bridge_port = VTM.get_device_port(bridge_name, port_id)
 
@@ -124,22 +113,26 @@ def test_filtering_by_network_address():
     unset_bridge_port_filters('bridge-000-001', 3)
 
     port_num = get_random_port_num()
-    f1 = sender.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
+    # FIXME: do not use harcoded values!
+    f1 = async_assert_that(receiver,
+                           receives('dst host 172.16.1.2 and udp',
+                                    within_sec(5)),
+                           'No filtering: receives UDP packets from sender.')
+    f2 = sender.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
                          src_port=port_num, dst_port=port_num)
-    assert_that(receiver, receives('dst host 172.16.1.2 and udp', within_sec(5)),
-                'No filtering: receiver receives UDP packets from sender.')
-    wait_on_futures([f1])
+    wait_on_futures([f1, f2])
 
     # Set a filtering rule based on network address.
     set_bridge_port_filters('bridge-000-001', 3, 'connection_tracking_nw_in',
                             'connection_tracking_nw_out')
 
-    f1 = sender.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
+    f1 = async_assert_that(receiver, should_NOT_receive(
+        'dst host 172.16.1.2 and udp',
+        within_sec(5)),
+        'Packets are filtered based on IP address.')
+    f2 = sender.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
                          src_port=port_num, dst_port=port_num)
-    assert_that(receiver, should_NOT_receive('dst host 172.16.1.2 and udp',
-                                             within_sec(5)),
-                'Packets are filtered based on IP address.')
-    wait_on_futures([f1])
+    wait_on_futures([f1, f2])
 
 
 @attr(version="v1.2.0", slow=False)
@@ -165,18 +158,23 @@ def test_connection_tracking_by_network_addres():
     # Send forward packets to set up a connection-tracking based peep hole in
     # the filter.
     port_num = get_random_port_num()
-    f1 = inside.send_udp('aa:bb:cc:00:01:01', '172.16.1.1', 41,
+    f1 = async_assert_that(outside,
+                           receives('dst host 172.16.1.1 and udp',
+                                    within_sec(5)),
+                           'Outside host receives forward packets from inside.')
+    f2 = inside.send_udp('aa:bb:cc:00:01:01', '172.16.1.1', 41,
                          src_port=port_num, dst_port=port_num)
-    assert_that(outside, receives('dst host 172.16.1.1 and udp', within_sec(5)),
-                'Outside host receives forward packets from inside.')
-    wait_on_futures([f1])
+    wait_on_futures([f1, f2])
 
     # Verify the peep hole.
-    f1 = outside.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
-                         src_port=port_num, dst_port=port_num)
-    assert_that(inside, receives('dst host 172.16.1.2 and udp', within_sec(5)),
-                'Outside host can send packets to inside via a peep hole.')
-    wait_on_futures([f1])
+    f1 = async_assert_that(inside,
+                           receives('dst host 172.16.1.2 and udp',
+                                    within_sec(5)),
+                           'Outside host can send packets to inside '
+                           'via a peep hole.')
+    f2 = outside.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
+                          src_port=port_num, dst_port=port_num)
+    wait_on_futures([f1, f2])
 
 
 @attr(version="v1.2.0", slow=False)
@@ -198,22 +196,27 @@ def test_filtering_by_dl():
     unset_bridge_port_filters('bridge-000-001', 3)
 
     port_num = get_random_port_num()
-    f1 = outside.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
+    f1 = async_assert_that(
+        inside,
+        receives('dst host 172.16.1.2 and udp',
+                 within_sec(5)),
+        'No filtering: inside receives UDP packets from outside.')
+    f2 = outside.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
                           src_port=port_num, dst_port=port_num)
-    assert_that(inside, receives('dst host 172.16.1.2 and udp', within_sec(5)),
-                'No filtering: inside receives UDP packets from outside.')
-    wait_on_futures([f1])
+    wait_on_futures([f1, f2])
 
     # Set a filtering rule based on mac addresses
     set_bridge_port_filters('bridge-000-001', 3, 'connection_tracking_dl_in',
                             'connection_tracking_dl_out')
 
-    f1 = outside.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
+    f1 = async_assert_that(inside,
+                           should_NOT_receive(
+                               'dst host 172.16.1.2 and udp',
+                               within_sec(5)),
+                           'Packets are filtered based on mac address.')
+    f2 = outside.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
                           src_port=port_num, dst_port=port_num)
-    assert_that(inside, should_NOT_receive('dst host 172.16.1.2 and udp',
-                                           within_sec(5)),
-                'Packets are filtered based on mac address.')
-    wait_on_futures([f1])
+    wait_on_futures([f1, f2])
 
 
 @attr(version="v1.2.0", slow=False)
@@ -238,16 +241,21 @@ def test_connection_tracking_with_drop_by_dl():
     # Send forward packets to set up a connection-tracking based peep hole in
     # the filter.
     port_num = get_random_port_num()
-    f1 = inside.send_udp('aa:bb:cc:00:01:01', '172.16.1.1', 41,
+    f1 = async_assert_that(outside,
+                           receives('dst host 172.16.1.1 and udp',
+                                    within_sec(5)),
+                           'The outside host receives forward packets '
+                           'from the inside.')
+    f2 = inside.send_udp('aa:bb:cc:00:01:01', '172.16.1.1', 41,
                          src_port=port_num, dst_port=port_num)
-    assert_that(outside, receives('dst host 172.16.1.1 and udp', within_sec(5)),
-                'The outside host receives forward packets from the inside.')
-    wait_on_futures([f1])
+    wait_on_futures([f1, f2])
 
     # Verify the peep hole.
-    f1 = outside.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
+    f1 = async_assert_that(inside,
+                           receives('dst host 172.16.1.2 and udp',
+                                    within_sec(5)),
+                           'The outside host can now send packets to the inside'
+                           'via a peep hole.')
+    f2 = outside.send_udp('aa:bb:cc:00:01:02', '172.16.1.2', 41,
                           src_port=port_num, dst_port=port_num)
-    assert_that(inside, receives('dst host 172.16.1.2 and udp', within_sec(5)),
-                'The outside host can now send packets to the inside via a '
-                'peep hole.')
-    wait_on_futures([f1])
+    wait_on_futures([f1, f2])

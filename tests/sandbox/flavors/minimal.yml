@@ -1,0 +1,72 @@
+zookeeper1:
+  extends:
+    file: $BASE/zookeeper.yml
+    service: zookeeper
+  hostname: zookeeper1
+  image: sandbox/zookeeper:3.4.5
+  labels:
+      interface: mdts.services.zookeeper.ZookeeperHost
+      type: zookeeper
+  volumes:
+  - /zoo/conf/
+  environment:
+  - ZOO_ID=1
+
+zookeeper2:
+  extends:
+    file: $BASE/zookeeper.yml
+    service: zookeeper
+  image: sandbox/zookeeper:3.4.5
+  hostname: zookeeper2
+  labels:
+      interface: mdts.services.zookeeper.ZookeeperHost
+      type: zookeeper
+  environment:
+  - ZOO_ID=2
+  volumes_from:
+  - zookeeper1
+
+zookeeper3:
+  extends:
+    file: $BASE/zookeeper.yml
+    service: zookeeper
+  image: sandbox/zookeeper:3.4.5
+  hostname: zookeeper3
+  labels:
+      interface: mdts.services.zookeeper.ZookeeperHost
+      type: zookeeper
+  environment:
+  - ZOO_ID=3
+  volumes_from:
+  - zookeeper1
+  links:
+  - zookeeper1:zookeeper1
+  - zookeeper2:zookeeper2
+
+api:
+  extends:
+    file: $BASE/midonet-api.yml
+    service: api
+  image: sandbox/midonet-api:master
+  hostname: api
+  labels:
+      interface: mdts.services.midonet_api.MidonetApiHost
+      type: midonet-api
+  links:
+  - "zookeeper1:zk1"
+  - "zookeeper2:zk2"
+  - "zookeeper3:zk3"
+
+midolman1:
+  extends:
+    file: $BASE/midolman.yml
+    service: midolman
+  image: sandbox/midolman:master
+  hostname: midolman1
+  labels:
+      interface: mdts.services.midonet_agent.MidonetAgentHost
+      type: midolman
+  links:
+  - "zookeeper1:zk1"
+  - "zookeeper2:zk2"
+  - "zookeeper3:zk3"

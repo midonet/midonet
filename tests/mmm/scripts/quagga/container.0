@@ -1,2 +1,0 @@
-#! /bin/sh
-exec sh netns.sh ns000 0 -- ${*:-"/bin/bash"}

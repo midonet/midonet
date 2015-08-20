@@ -27,7 +27,6 @@ from mdts.lib.resource_reference import ResourceReference
 from mdts.lib.router import Router
 from mdts.lib.tenants import get_or_create_tenant
 from mdts.lib.topology_manager import TopologyManager
-from mdts.tests.config import TEST_TENANT_NAME_PREFIX
 from mdts.tests.utils.utils import clear_virtual_topology_for_tenants
 
 from midonetclient.api import MidonetApi
@@ -86,6 +85,8 @@ class VirtualTopologyManager(TopologyManager):
         """ Generates virtual topology resources (bridges, routers, chains, etc.
         From the data loaded from the input yaml file.
         """
+
+        self._api = self._midonet_api_host.get_midonet_api()
 
         for health_monitor in self._vt.get('health_monitors') or []:
             self.add_health_monitor(health_monitor['health_monitor'])
@@ -207,6 +208,10 @@ class VirtualTopologyManager(TopologyManager):
 
         for port_group in self._port_groups.values(): port_group.destroy()
         self._port_groups.clear()
+
+        # Missing clearing these
+        self._resource_references = []
+        self._links = []
 
     def get_device_port(self, device_name, port_id):
         """ Returns a bridge/router port for specified device and port ID. """
@@ -343,20 +348,4 @@ class VirtualTopologyManager(TopologyManager):
     def get_port_group(self, name):
         return self._port_groups.get(name)
 
-    def clear(self):
-        """
-        This method deletes MidoNet virtual topology without
-        looking at the objects we created. After that, we delete
-        all the objects we created referencing MidoNet ones.
-        """
-        clear_virtual_topology_for_tenants(
-            tenant_name_prefix=TEST_TENANT_NAME_PREFIX)
-
-        del self._resource_references[:]
-        self._routers.clear()
-        self._bridges.clear()
-        self._bridge_router.clear()
-        self._chains.clear()
-        self._port_groups.clear()
-        del self._links[:]
 

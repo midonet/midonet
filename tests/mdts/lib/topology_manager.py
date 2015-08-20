@@ -17,16 +17,15 @@
 from midonetclient.api import MidonetApi
 
 import yaml
+from mdts.services import service
+from mdts.tests.utils.utils import get_midonet_api
 
 
 class TopologyManager(object):
 
     def __init__(self, filename=None, data=None, midonet_api=None):
         self._data = self._get_data(filename, data)
-        if not midonet_api:
-            midonet_api = MidonetApi(
-                'http://127.0.0.1:8080/midonet-api','admin','*')
-        self._api = midonet_api
+        self._midonet_api_host = service.get_container_by_hostname('api')
 
     def _deserialize(self, filename):
         with open(filename) as f:
