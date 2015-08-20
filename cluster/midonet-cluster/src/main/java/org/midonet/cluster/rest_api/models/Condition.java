@@ -28,6 +28,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.protobuf.Message;
 
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
@@ -53,6 +54,7 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLIC
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @IsValidFragmentType
+@ZoomClass(clazz = Commons.Condition.class)
 public class Condition extends UriResource {
 
     /** This enumeration is equivalent with

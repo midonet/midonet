@@ -117,7 +117,6 @@ public class TraceRequest
                 return false;
             }
 
-            System.out.println("other " + other + " this " + this);
             Data that = (Data)other;
             return Objects.equals(name, that.name)
                 && deviceType == that.deviceType
