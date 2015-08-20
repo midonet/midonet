@@ -22,6 +22,12 @@ public class ArrayListUtil {
 
     public static <T> void resetWith(ArrayList<T> from, ArrayList<T> to) {
         to.clear();
+        addAll(from, to);
+    }
+
+    // TODO: Consider implementing a custom ArrayList so we can take
+    //       advantage of System.arrayCopy
+    public static <T> void addAll(ArrayList<T> from, ArrayList<T> to) {
         int size = from.size();
         for (int i = 0; i < size; ++i)
             to.add(from.get(i));
