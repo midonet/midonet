@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_573062e8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/ResourceProvider.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-20T13:12:45Z",
+      "side": 1,
+      "message": "Ah true, I thought for some reason that this was loaded by each resource class",
+      "parentUuid": "9ad9bd40_28046fc5",
+      "range": {
+        "startLine": 31,
+        "startChar": 6,
+        "endLine": 31,
+        "endChar": 22
+      },
+      "revId": "dc82307766222a3e11b752a470ca863c85aa7bca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_42bef4d5",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/ResourceProvider.scala",
         "patchSetId": 1
