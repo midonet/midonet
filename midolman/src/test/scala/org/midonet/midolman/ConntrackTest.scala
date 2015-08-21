@@ -16,6 +16,7 @@
 package org.midonet.midolman
 
 import java.util.UUID
+import scala.collection.JavaConversions._
 
 import org.junit.runner.RunWith
 import org.midonet.midolman.PacketWorkflow.Drop
@@ -51,9 +52,9 @@ class ConntrackTest extends MidolmanSpec {
         clusterBridge should not be null
 
         leftPort = newBridgePort(clusterBridge)
-        setPortActive(leftPort, host, true)
+        materializePort(leftPort, host, "left")
         rightPort = newBridgePort(clusterBridge)
-        setPortActive(rightPort, host, true)
+        materializePort(rightPort, host, "right")
 
         val brChain = newInboundChainOnBridge("brChain", clusterBridge)
 
@@ -123,12 +124,12 @@ class ConntrackTest extends MidolmanSpec {
                 conntrackTx.commit()
                 conntrackTx.flush()
                 pktCtx.isForwardFlow should be (true)
-                fwdAct should be (ToPortAction(rightPort))
+                pktCtx.virtualFlowActions.head should be (ToPortAction(rightPort))
 
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort)
                 conntrackTx.size() should be (0)
                 retContext.isForwardFlow should be (false)
-                retAct should be (ToPortAction(leftPort))
+                retContext.virtualFlowActions.head should be (ToPortAction(leftPort))
             }
         }
 
@@ -141,7 +142,7 @@ class ConntrackTest extends MidolmanSpec {
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
                 val (fwdContext, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort)
                 fwdContext.isForwardFlow should be (true)
-                fwdAct should be (ToPortAction(rightPort))
+                fwdContext should be (toPorts(rightPort))
 
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort)
                 retContext.isForwardFlow should be (true)

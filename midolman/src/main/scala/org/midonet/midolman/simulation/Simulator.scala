@@ -28,6 +28,8 @@ import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
 import org.midonet.util.concurrent.{InstanceStash1, InstanceStash2}
 
+import scala.annotation.tailrec
+
 object Simulator {
     val MAX_DEVICES_TRAVERSED = 12
 
@@ -39,6 +41,8 @@ object Simulator {
     // broadcast from the virtual network. It will output it to all its
     // materialized ports and to the logical port that connects it to the VAB
     case class ForkAction(var first: Result, var second: Result) extends ForwardAction
+
+    case class ContinueWith(var step: SimStep) extends ForwardAction
 
     case object Continue extends ForwardAction
 
@@ -59,6 +63,7 @@ object Simulator {
         Fork.reUp()
         PooledMatches.reUp()
         RuleResults.reUp()
+        Continuations.reUp()
     }
 
     val Fork = new InstanceStash2[ForkAction, Result, Result](
@@ -66,6 +71,12 @@ object Simulator {
             (fork, a, b) => {
                 fork.first = a
                 fork.second = b
+            })
+
+    val Continuations = new InstanceStash1[ContinueWith, SimStep](
+            () => ContinueWith(null),
+            (cont, step) => {
+                cont.step = step
             })
 
     val PooledMatches = new InstanceStash1[FlowMatch, FlowMatch](
@@ -110,14 +121,16 @@ trait SimDevice {
             case (PacketWorkflow.ErrorDrop, _) => ErrorDrop
             case (_, PacketWorkflow.ErrorDrop) => ErrorDrop
 
-            case (firstAction, secondAction) =>
-                val clazz1 = firstAction.getClass
-                val clazz2 = secondAction.getClass
+            case (first, second) =>
+                val clazz1 = first.getClass
+                val clazz2 = second.getClass
                 if (clazz1 != clazz2) {
-                    context.log.error("Matching actions of different types {} & {}!",
-                        clazz1, clazz2)
+                    context.log.error(s"Matching actions ($first, $second) of " +
+                                      s"different types $clazz1 & $clazz2!")
+                    ErrorDrop
+                } else {
+                    first
                 }
-                firstAction
         }
         context.log.debug(s"Forked action merged results $result")
         result
@@ -132,12 +145,21 @@ trait SimDevice {
         }
     }
 
-    def continue(context: PacketContext, simRes: Result)(
-        implicit as: ActorSystem) : Result = simRes match {
+    @tailrec
+    final def continue(context: PacketContext, simRes: Result)(
+                       implicit as: ActorSystem): Result = simRes match {
         case ForkAction(first, second) => merge(context,
                                                 branch(context, first),
                                                 branch(context, second))
-        case ToPortAction(port) => tryAsk[Port](port).egress(context, as)
+        case ToPortAction(port) => continue(context,
+                                       tryAsk[Port](port).egress(context, as))
+        case ContinueWith(step) => continue(context, step(context, as))
+        case res => res
+    }
+
+    def unwind(context: PacketContext, simRes: Result)(
+               implicit as: ActorSystem): Result = simRes match {
+        case ContinueWith(step) => step(context, as)
         case res => res
     }
 }

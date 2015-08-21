@@ -301,5 +301,5 @@ class PacketContext(val cookie: Int,
     def markUserspaceOnly(): Unit =
         wcmatch.markUserspaceOnly()
 
-    override def toString = s"PacketContext[$cookieStr]"
+    override def toString = s"PacketContext($cookieStr tags$flowTags actions$virtualFlowActions)"
 }

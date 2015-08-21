@@ -16,11 +16,12 @@
 package org.midonet.midolman
 
 import java.util.UUID
+import scala.collection.JavaConversions._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.PacketWorkflow.ErrorDrop
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, ErrorDrop}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.services.HostIdProviderService
@@ -138,7 +139,8 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
             When("a packet hits a forwarding route")
             val (ctx, action) = simulateDevice(simRouter,
                 frameThatWillBeForwarded, leftPort)
-            action shouldEqual ToPortAction(rightPort)
+            ctx should be (toPorts(rightPort))
+            action should be (AddVirtualWildcardFlow)
 
             And("the routing table changes")
             flowInvalidator.clear()

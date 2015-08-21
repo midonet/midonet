@@ -17,6 +17,7 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 import akka.pattern.AskTimeoutException
+import sun.reflect.generics.reflectiveObjects.NotImplementedException
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}

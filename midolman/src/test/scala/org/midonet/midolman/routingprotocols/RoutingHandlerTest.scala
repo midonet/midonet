@@ -168,7 +168,6 @@ class RoutingHandlerTest extends FeatureSpecLike
         override def matches(o: AnyRef): Boolean = {
             val r = o.asInstanceOf[Route]
             val dstNet = IPv4Subnet.fromCidr(dst)
-            println(s"ROUTE: ${r.getDstNetworkAddr}")
             if (!r.isLearned)
                 false
             else if (r.getDstNetworkAddr != dstNet.getAddress.toString)

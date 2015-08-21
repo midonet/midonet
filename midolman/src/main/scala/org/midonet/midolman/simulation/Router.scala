@@ -15,7 +15,8 @@
  */
 package org.midonet.midolman.simulation
 
-import java.util.UUID
+import java.util
+import java.util.{UUID, List => JList}
 
 import org.midonet.sdn.flows.FlowTagger
 
@@ -47,7 +48,9 @@ object Router {
     case class Config(adminStateUp: Boolean = true,
                       inboundFilter: UUID = null,
                       outboundFilter: UUID = null,
-                      loadBalancer: UUID = null) {
+                      loadBalancer: UUID = null,
+                      inboundMirrors: JList[UUID] = new util.ArrayList[UUID](),
+                      outboundMirrors: JList[UUID] = new util.ArrayList[UUID]()) {
         override def toString =
             s"adminStateUp=$adminStateUp inboundFilter=$inboundFilter " +
             s"outboundFilter=$outboundFilter loadBalancer=$loadBalancer"
@@ -74,7 +77,10 @@ class Router(override val id: UUID,
              override val routerMgrTagger: TagManager,
              val arpCache: ArpCache)
             (implicit system: ActorSystem)
-        extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) {
+        extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) with MirroringDevice {
+
+    override def inboundMirrors = cfg.inboundMirrors
+    override def outboundMirrors = cfg.outboundMirrors
 
     override def isValidEthertype(ether: Short) =
         ether == IPv4.ETHERTYPE || ether == ARP.ETHERTYPE

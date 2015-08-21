@@ -15,13 +15,29 @@
  */
 package org.midonet.cluster.topology
 
+import org.midonet.cluster.data.ZoomConvert
+
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
 import org.scalatest.Matchers
 
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
-import org.midonet.cluster.models.Topology.{Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIpAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, Vip => TopologyVip}
+import org.midonet.cluster.models.Commons.{Condition => TopologyCondition}
+import org.midonet.cluster.models.Topology.{Chain => TopologyChain,
+                                            HealthMonitor => TopologyHealthMonitor,
+                                            IPAddrGroup => TopologyIpAddrGroup,
+                                            LoadBalancer => TopologyLB,
+                                            Mirror => TopologyMirror,
+                                            Network => TopologyBridge,
+                                            Pool => TopologyPool,
+                                            PoolMember => TopologyPoolMember,
+                                            Port => TopologyPort,
+                                            PortGroup => TopologyPortGroup,
+                                            Route => TopologyRoute,
+                                            Router => TopologyRouter,
+                                            Rule => TopologyRule,
+                                            Vip => TopologyVip}
 import org.midonet.cluster.topology.TopologyMatchers._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -32,7 +48,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
 import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, Vip}
 import org.midonet.midolman.state.l4lb
-import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher}
+import org.midonet.cluster.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, ConditionMatcher, _}
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.simulation.{BridgePort, Port, _}
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -88,6 +104,19 @@ object TopologyMatchers {
         override def shouldBeDeviceOf(p: TopologyPort): Unit = {
             super.shouldBeDeviceOf(p)
             port.vtepId shouldBe (if (p.hasVtepId) p.getVtepId.asJava else null)
+        }
+    }
+
+    class MirrorMatcher(mirror: Mirror) extends TopologyMatchers with DeviceMatcher[TopologyMirror] {
+        override def shouldBeDeviceOf(m: TopologyMirror): Unit = {
+            mirror.id shouldBe m.getId.asJava
+            mirror.toPort shouldBe m.getToPort.asJava
+            mirror.conditions.size() should === (m.getConditionsList.size())
+            var i = 0
+            while (i < mirror.conditions.size()) {
+                mirror.conditions.get(i) shouldBeDeviceOf m.getConditionsList.get(i)
+                i += 1
+            }
         }
     }
 
@@ -163,7 +192,7 @@ object TopologyMatchers {
             r.getAction.name shouldBe rule.action.name
             r.getChainId shouldBe rule.chainId.asProto
 
-            rule.getCondition shouldBeDeviceOf r
+            rule.getCondition shouldBeDeviceOf r.getCondition
         }
     }
 
@@ -205,52 +234,9 @@ object TopologyMatchers {
         }
     }
 
-    class ConditionMatcher(cond: Condition) extends DeviceMatcher[TopologyRule] {
-        override def shouldBeDeviceOf(r: TopologyRule): Unit = {
-            val c = r.getCondition
-            c.getConjunctionInv shouldBe cond.conjunctionInv
-            c.getMatchForwardFlow shouldBe cond.matchForwardFlow
-            c.getMatchReturnFlow shouldBe cond.matchReturnFlow
-
-            c.getInPortIdsCount shouldBe cond.inPortIds.size
-            c.getInPortIdsList.asScala.map(_.asJava) should
-                contain theSameElementsAs cond.inPortIds.asScala
-            c.getInPortInv shouldBe cond.inPortInv
-
-            c.getOutPortIdsCount shouldBe cond.outPortIds.size
-            c.getOutPortIdsList.asScala.map(_.asJava) should
-                contain theSameElementsAs cond.outPortIds.asScala
-            c.getOutPortInv shouldBe cond.outPortInv
-
-            c.getPortGroupId shouldBe cond.portGroup.asProto
-            c.getInvPortGroup shouldBe cond.invPortGroup
-            c.getIpAddrGroupIdSrc shouldBe cond.ipAddrGroupIdSrc.asProto
-            c.getInvIpAddrGroupIdSrc shouldBe cond.invIpAddrGroupIdSrc
-            c.getIpAddrGroupIdDst shouldBe cond.ipAddrGroupIdDst.asProto
-            c.getInvIpAddrGroupIdDst shouldBe cond.invIpAddrGroupIdDst
-            c.getDlType shouldBe cond.etherType
-            c.getInvDlType shouldBe cond.invDlType
-            c.getDlSrc shouldBe cond.ethSrc.toString
-            c.getDlSrcMask shouldBe cond.ethSrcMask
-            c.getInvDlSrc shouldBe cond.invDlSrc
-            c.getDlDst shouldBe cond.ethDst.toString
-            c.getDlDstMask shouldBe cond.dlDstMask
-            c.getInvDlDst shouldBe cond.invDlDst
-            c.getNwTos shouldBe cond.nwTos
-            c.getNwTosInv shouldBe cond.nwTosInv
-            c.getNwProto shouldBe cond.nwProto
-            c.getNwProtoInv shouldBe cond.nwProtoInv
-            c.getNwSrcIp shouldBe IPSubnetUtil.toProto(cond.nwSrcIp)
-            c.getNwDstIp shouldBe IPSubnetUtil.toProto(cond.nwDstIp)
-            c.getTpSrc shouldBe RangeUtil.toProto(cond.tpSrc)
-            c.getTpDst shouldBe RangeUtil.toProto(cond.tpDst)
-            c.getNwSrcInv shouldBe cond.nwSrcInv
-            c.getNwDstInv shouldBe cond.nwDstInv
-            c.getTpSrcInv shouldBe cond.tpSrcInv
-            c.getTpDstInv shouldBe cond.tpDstInv
-            c.getTraversedDevice shouldBe cond.traversedDevice.asProto
-            c.getTraversedDeviceInv shouldBe cond.traversedDeviceInv
-            c.getFragmentPolicy.name shouldBe cond.fragmentPolicy.name
+    class ConditionMatcher(cond: Condition) extends DeviceMatcher[TopologyCondition] {
+        override def shouldBeDeviceOf(protoCond: TopologyCondition): Unit = {
+            cond shouldBe ZoomConvert.fromProto(protoCond, classOf[Condition])
         }
     }
 
@@ -344,6 +330,9 @@ trait TopologyMatchers {
             case p: VxLanPort => asMatcher(p)
         }
     }
+
+    implicit def asMatcher(mirror: Mirror): MirrorMatcher =
+        new MirrorMatcher(mirror)
 
     implicit def asMatcher(port: BridgePort): BridgePortMatcher =
         new BridgePortMatcher(port)
