@@ -1,0 +1,5 @@
+git bisect start
+# bad: [9e92b904df976f77672ef2eeab9792cf196e0918] Merge "Thread safe test observers"
+git bisect bad 9e92b904df976f77672ef2eeab9792cf196e0918
+# good: [90de6576c1fdf12ba7f6d3916f57adb118dafe31] Minor corrections to the HostMapper
+git bisect good 90de6576c1fdf12ba7f6d3916f57adb118dafe31
