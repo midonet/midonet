@@ -67,6 +67,7 @@ object SessionInventory {
             case h: HealthMonitor => Update.newBuilder().setHealthMonitor(h).build()
             case h: Host => Update.newBuilder().setHost(h).build()
             case h: IPAddrGroup => Update.newBuilder().setIpAddrGroup(h).build()
+            case h: Mirror => Update.newBuilder().setMirror(h).build()
             case h: Network => Update.newBuilder().setNetwork(h).build()
             case h: Pool => Update.newBuilder().setPool(h).build()
             case h: PoolMember => Update.newBuilder().setPoolMember(h).build()

@@ -200,6 +200,7 @@ message Response {
             TunnelZone tunnel_zone = 19;
             Vip vip = 20;
             Vtep vtep = 21;
+            Mirror mirror = 22;
         }
     }
     message Snapshot {
