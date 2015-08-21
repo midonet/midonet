@@ -29,6 +29,7 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.simulation.{Router => SimRouter, RouterPort, RouteBalancer}
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -444,8 +445,9 @@ class RouterSimulationTest extends MidolmanSpec {
                           fromIp: IPv4Addr, toIp: IPv4Addr, `type`: Byte,
                           code: Byte): Unit = {
         generatedPackets should have size 1
-        generatedPackets.get(0).egressPort should be (egressPort)
-        val genPkt = generatedPackets.get(0).eth
+        val pkt = generatedPackets.get(0).asInstanceOf[GeneratedLogicalPacket]
+        pkt.egressPort should be (egressPort)
+        val genPkt = pkt.eth
         genPkt.getSourceMACAddress should be (fromMac)
         genPkt.getDestinationMACAddress should be (toMac)
         val genIp = genPkt.getPayload.asInstanceOf[IPv4]
