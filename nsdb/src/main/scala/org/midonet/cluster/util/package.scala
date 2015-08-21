@@ -16,23 +16,57 @@
 
 package org.midonet.cluster
 
+import java.util.UUID
+
+import scala.reflect.ClassTag
+
+import org.slf4j.LoggerFactory
 import rx.Observable
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
-import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.util.functors.makeFunc1
 
 package object util {
 
+    private val log = LoggerFactory.getLogger("org.midonet.cluster.nsdb")
+
     /** An Observable that will recover itself if an error is emitted */
-    def selfHealingTzObservable(store: Storage):
-    Observable[Observable[TunnelZone]] =
-        store.observable(classOf[TunnelZone])
+    def selfHealingTypeObservable[T](store: Storage, retries: Int = 10)
+                                (implicit ct: ClassTag[T]):
+    Observable[Observable[T]] = {
+        store.observable(ct.runtimeClass.asInstanceOf[Class[T]])
              .onErrorResumeNext(makeFunc1[Throwable,
-                                          Observable[Observable[TunnelZone]]] {
-                     case t: NotFoundException => Observable.empty()
-                     case _ => selfHealingTzObservable(store)
-                 }
-             )
+                                          Observable[Observable[T]]] {
+                     case t: NotFoundException =>
+                         Observable.empty[Observable[T]]()
+                     case _ if retries <= 0 =>
+                         log.warn(s"Update stream of type ${ct.runtimeClass} " +
+                                  "cannot be recovered again!")
+                         Observable.empty[Observable[T]]()
+                     case _ =>
+                         log.info(s"Update stream of type ${ct.runtimeClass} " +
+                                  "failed, recover")
+                         selfHealingTypeObservable[T](store, retries - 1)
+             })
+    }
+
+    /** An Observable that will recover itself if an error is emitted */
+    def selfHealingEntityObservable[T](store: Storage, id: UUID,
+                                 retries: Int = 10)
+                                (implicit ct: ClassTag[T]): Observable[T] = {
+        store.observable(ct.runtimeClass.asInstanceOf[Class[T]], id)
+             .onErrorResumeNext ( makeFunc1[Throwable, Observable[T]] {
+                case t: NotFoundException =>
+                    Observable.empty[T]()
+                case _ if retries <= 0 =>
+                    log.warn(s"Update stream for $id of type " +
+                             s"${ct.runtimeClass} cannot be recovered again!")
+                    Observable.empty[T]()
+                case _ =>
+                    log.info(s"Update stream for $id of type " +
+                             s"${ct.runtimeClass} failed, recover")
+                    selfHealingEntityObservable[T](store, id, retries - 1)(ct)
+            })
+    }
 
 }
