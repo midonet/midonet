@@ -33,6 +33,7 @@ import org.midonet.cluster.data.{Entity}
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
@@ -425,7 +426,8 @@ class AdminStateTest extends MidolmanSpec {
     private[this] def assertExpectedIcmpProhibitPacket(routerPort: UUID,
                                                        context: PacketContext): Unit = {
         context.packetEmitter.pendingPackets should be (1)
-        val generatedPacket = context.packetEmitter.poll()
+        val generatedPacket =
+            context.packetEmitter.poll().asInstanceOf[GeneratedLogicalPacket]
         generatedPacket.egressPort should be(routerPort)
 
         val ipPkt = generatedPacket.eth.getPayload.asInstanceOf[IPv4]
