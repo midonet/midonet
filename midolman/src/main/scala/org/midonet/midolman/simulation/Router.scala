@@ -29,7 +29,7 @@ import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{ErrorDrop, Drop, NoOp, SimulationResult}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.VirtualTopologyActor._
@@ -182,7 +182,7 @@ class Router(override val id: UUID,
             // Construct the reply, reversing src/dst fields from the request.
             val eth = ARP.makeArpReply(inPort.portMac, sha,
                 pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
-            packetEmitter.schedule(GeneratedPacket(inPort.id, eth))
+            packetEmitter.schedule(GeneratedLogicalPacket(inPort.id, eth))
         }(ExecutionContext.callingThread)
     }
 

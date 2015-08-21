@@ -16,6 +16,7 @@
 
 package org.midonet.midolman
 
+import java.lang.{Integer => JInteger}
 import java.util.UUID
 
 import scala.concurrent.duration._
@@ -40,6 +41,8 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPhysicalPacket
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -49,6 +52,7 @@ import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology.{RouterManager, VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
+import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger._
@@ -283,18 +287,27 @@ class PacketWorkflow(
     }
 
     protected def packetContext(packet: Packet): PacketContext =
-        initialize(packet, packet.getMatch, null)
+        initialize(packet, packet.getMatch, null, null)
 
-    protected def generatedPacketContext(egressPort: UUID, eth: Ethernet) = {
-        val fmatch = FlowMatches.fromEthernetPacket(eth)
-        val packet = new Packet(eth, fmatch)
-        initialize(packet, fmatch, egressPort)
+    protected def generatedPacketContext(p: GeneratedPacket) = {
+        p match {
+            case GeneratedLogicalPacket(portId, eth) =>
+                val fmatch = FlowMatches.fromEthernetPacket(eth)
+                val packet = new Packet(eth, fmatch)
+                initialize(packet, fmatch, portId, null)
+            case GeneratedPhysicalPacket(portNo, eth) =>
+                val fmatch = FlowMatches.fromEthernetPacket(eth)
+                val packet = new Packet(eth, fmatch)
+                initialize(packet, fmatch, null, portNo)
+        }
     }
 
-    private def initialize(packet: Packet, fmatch: FlowMatch, egressPort: UUID) = {
+    private def initialize(packet: Packet, fmatch: FlowMatch,
+                           egressPortId: UUID, egressPortNo: JInteger) = {
         val cookie = cookieGen.next
         log.debug(s"Creating new PacketContext for cookie $cookie")
-        val context = new PacketContext(cookie, packet, fmatch, egressPort)
+        val context = new PacketContext(cookie, packet, fmatch,
+                                        egressPortId, egressPortNo)
         context.reset(genPacketEmitter, arpBroker)
         context.initialize(connTrackTx, natTx, natLeaser, traceStateTx)
         context.log = PacketTracing.loggerFor(fmatch)
@@ -420,7 +433,7 @@ class PacketWorkflow(
 
     private val runGeneratedPacket = (p: GeneratedPacket) => {
         log.debug(s"Executing generated packet $p")
-        startWorkflow(generatedPacketContext(p.egressPort, p.eth))
+        startWorkflow(generatedPacketContext(p))
     }
 
     private def processPacket(packet: Packet): Unit =
@@ -505,7 +518,12 @@ class PacketWorkflow(
 
     private def handlePacketEgress(context: PacketContext) = {
         context.log.debug("Handling generated packet")
-        processSimulationResult(context, Simulator.simulate(context))
+        if (context.egressPort ne null) {
+            processSimulationResult(context, Simulator.simulate(context))
+        } else {
+            context.addVirtualAction(output(context.egressPortNo))
+            processSimulationResult(context, AddVirtualWildcardFlow)
+        }
     }
 
     def processSimulationResult(context: PacketContext,
