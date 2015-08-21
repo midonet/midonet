@@ -44,6 +44,7 @@ import org.opendaylight.ovsdb.lib.jsonrpc.{ExceptionHandler, JsonRpcDecoder, Jso
 import org.opendaylight.ovsdb.lib.message.OvsdbRPC
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.slf4j.LoggerFactory
+import org.slf4j.LoggerFactory.getLogger
 import rx.schedulers.Schedulers
 import rx.subjects.BehaviorSubject
 import rx.{Observable, Subscription}
@@ -124,8 +125,9 @@ class OvsdbVtepConnection(override val endPoint: VtepEndPoint,
 
     private type Handler = PartialFunction[ConnectionStatus, Future[Unit]]
 
+    private val loggableEndpoint = endPoint.toString.replaceAll("\\.", "_")
     private val log =
-        Logger(LoggerFactory.getLogger(s"org.midonet.vtep.vtep-$endPoint"))
+        Logger(getLogger(s"org.midonet.vtep.vtep-$loggableEndpoint"))
 
     private val scheduler = Schedulers.from(executor)
     private implicit val executionContext =
