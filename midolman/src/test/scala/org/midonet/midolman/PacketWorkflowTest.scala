@@ -31,7 +31,9 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.FlowRecorderFactory
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPhysicalPacket
 import org.midonet.midolman.simulation.{DhcpConfig, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -142,7 +144,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetsSeen map (_.cookie) should be (1 to 4)
         }
 
-        scenario("simulates generated packets") {
+        scenario("simulates generated logical packets") {
             Given("a simulation that generates a packet")
             val pkt = makePacket(1)
             ddaRef ! PacketWorkflow.HandlePackets(Array(pkt))
@@ -150,9 +152,27 @@ class PacketWorkflowTest extends MidolmanSpec {
             When("the simulation completes")
             val id = UUID.randomUUID()
             val frame: Ethernet = makeFrame(1)
-            dda.completeWithGenerated(List(output(1)), GeneratedPacket(id, frame))
+            dda.completeWithGenerated(List(output(1)),
+                                      GeneratedLogicalPacket(id, frame))
 
             Then("the generated packet should be simulated")
+            packetsSeen map { _.ethernet } should be (List(frame))
+
+            And("packetsOut should not be called for the generated packet")
+            packetsOut should be (1)
+        }
+
+        scenario("simulates generated physical packets") {
+            Given("a simulation that generates a packet")
+            val pkt = makePacket(1)
+            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt))
+
+            When("the simulation completes")
+            val frame: Ethernet = makeFrame(1)
+            dda.completeWithGenerated(List(),
+                                      GeneratedPhysicalPacket(2, frame))
+
+            Then("the generated packet should be seen")
             packetsSeen map { _.ethernet } should be (List(frame))
 
             And("packetsOut should not be called for the generated packet")
