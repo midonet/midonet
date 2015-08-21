@@ -125,8 +125,19 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         // No corresponding Midonet port for ports on uplink networks.
         val isOnUplinkNw = isOnUplinkNetwork(nPort)
-        if (!isOnUplinkNw)
-            midoOps += Delete(classOf[Port], id)
+        if (isOnUplinkNw) {
+            // We don't create a corresponding Midonet network port for Neutron
+            // ports on uplink networks, but for router interface ports, we do
+            // need to delete the corresponding router port.
+            if (!isRouterInterfacePort(nPort)) {
+                return List()
+            } else {
+                return List(Delete(classOf[Port],
+                                   routerInterfacePortPeerId(nPort.getId)))
+            }
+        }
+
+        midoOps += Delete(classOf[Port], id)
 
         if (isRouterGatewayPort(nPort)) {
             // Delete the router port.
