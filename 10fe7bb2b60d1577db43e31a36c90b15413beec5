@@ -1,0 +1,95 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_668e9629",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Mirror.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-21T15:35:54Z",
+      "side": 1,
+      "message": "shouldn\u0027t you be adding the tag for the port also?",
+      "revId": "10fe7bb2b60d1577db43e31a36c90b15413beec5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_66b5b6cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-21T15:35:54Z",
+      "side": 1,
+      "message": "you may as well put to match in while you\u0027re at it.",
+      "revId": "10fe7bb2b60d1577db43e31a36c90b15413beec5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_46a9927a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-21T15:35:54Z",
+      "side": 1,
+      "message": "isn\u0027t this just a special case of continue? does mirroring need to leave ForkActions and ToPortActions intact if it\u0027s the outbound mirror?",
+      "revId": "10fe7bb2b60d1577db43e31a36c90b15413beec5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_46c0b22a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 540,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-21T15:35:54Z",
+      "side": 1,
+      "message": "mirror updated",
+      "range": {
+        "startLine": 540,
+        "startChar": 26,
+        "endLine": 540,
+        "endChar": 31
+      },
+      "revId": "10fe7bb2b60d1577db43e31a36c90b15413beec5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e6cf0656",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-21T15:35:54Z",
+      "side": 1,
+      "message": "junk import, and probably not even the one you want. Shouldn\u0027t it be NotImplementedError?",
+      "revId": "10fe7bb2b60d1577db43e31a36c90b15413beec5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
