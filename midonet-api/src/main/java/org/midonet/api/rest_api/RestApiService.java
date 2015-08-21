@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.services.MidonetBackend;
-import org.midonet.cluster.services.MidonetBackendService;
 
 /**
  * Manages all the services for Midolman REST API.
