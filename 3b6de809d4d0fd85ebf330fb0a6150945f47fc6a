@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_808c6237",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-21T09:58:50Z",
+      "side": 1,
+      "message": "Nit: braces not needed",
+      "range": {
+        "startLine": 44,
+        "startChar": 35,
+        "endLine": 44,
+        "endChar": 36
+      },
+      "revId": "3b6de809d4d0fd85ebf330fb0a6150945f47fc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a08246c6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-21T09:58:50Z",
+      "side": 1,
+      "message": "Throwable",
+      "range": {
+        "startLine": 330,
+        "startChar": 19,
+        "endLine": 330,
+        "endChar": 42
+      },
+      "revId": "3b6de809d4d0fd85ebf330fb0a6150945f47fc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_80cb821d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 531,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-21T09:58:50Z",
+      "side": 1,
+      "message": "I think doing this for get is a bit too heavyweight. The reason is that if there exists a closed observable for this node, than get will create a new one, subscribe to it, get the first value, unsubscribe and close the observable. The next get will do the same, ..., etc. And creating a node observable by installing watchers, connection listeners, etc is a lot of more work than simply doing an async get.",
+      "range": {
+        "startLine": 531,
+        "startChar": 38,
+        "endLine": 531,
+        "endChar": 72
+      },
+      "revId": "3b6de809d4d0fd85ebf330fb0a6150945f47fc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_40e17a99",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-21T09:58:50Z",
+      "side": 1,
+      "message": "Is this intended?",
+      "range": {
+        "startLine": 248,
+        "startChar": 12,
+        "endLine": 248,
+        "endChar": 44
+      },
+      "revId": "3b6de809d4d0fd85ebf330fb0a6150945f47fc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
