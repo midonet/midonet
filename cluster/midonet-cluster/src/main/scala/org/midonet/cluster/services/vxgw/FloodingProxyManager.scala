@@ -31,14 +31,14 @@ import rx.subjects.PublishSubject
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer, Subscription}
 
-import org.midonet.cluster.data.storage.{NotFoundException, StateKey}
+import org.midonet.cluster.data.storage.StateKey
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.services.vxgw.FloodingProxyManager.{HostFpState, MaxFpRetries}
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.util.{IPAddressUtil, selfHealingTzObservable}
+import org.midonet.cluster.util.{IPAddressUtil, selfHealingTypeObservable, selfHealingEntityObservable}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
 
@@ -134,7 +134,8 @@ class FloodingProxyManager(backend: MidonetBackend) {
     def start(): Unit = {
         subscriptions.add(allHosts.observeOn(rxScheduler)
                                   .subscribe(hostObserver))
-        subscriptions.add(Observable.merge(selfHealingTzObservable(store))
+        val tunnelZoneObs = selfHealingTypeObservable[TunnelZone](store)
+        subscriptions.add(Observable.merge(tunnelZoneObs)
                                     .observeOn(rxScheduler)
                                     .subscribe(tzObserver))
     }
@@ -164,7 +165,7 @@ class FloodingProxyManager(backend: MidonetBackend) {
 
     private def trackHost(id: UUID, onTz: UUID): Unit  = {
         log.debug(s"New host $id on VTEP tunnel zone $onTz")
-        val obs = selfHealingHostObservable(id)
+        val obs = selfHealingEntityObservable[Host](store, id)
         val stateObs = stateStore.keyObservable(classOf[Host], id, AliveKey)
         val sub = new CompositeSubscription
         val combiner = makeFunc2[Host, StateKey, HostFpState] {
@@ -240,17 +241,4 @@ class FloodingProxyManager(backend: MidonetBackend) {
         hosts
     }
 
-    /**
-     * A Host Observable that will recover itself if an error is emitted.
-     */
-    private def selfHealingHostObservable(id: UUID): Observable[Host] = {
-        store.observable(classOf[Host], id)
-             .onErrorResumeNext ( makeFunc1[Throwable, Observable[Host]] {
-                 case t: NotFoundException => Observable.empty()
-                 case _ =>
-                     log.info(s"Update stream for host $id failed, recover")
-                     selfHealingHostObservable(id)
-                 }
-             )
-    }
 }
