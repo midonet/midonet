@@ -88,7 +88,8 @@ class FloodingProxyHerald(backend: MidonetBackend, executor: Executor) {
     /** Exposes the latest flooding proxy for each VTEP tunnel zone.  Do not
       * worry about errors, we won't emit any.
       */
-    val observable = updateStream.asObservable().distinctUntilChanged()
+    val observable = updateStream.distinctUntilChanged()
+                                 .asObservable().distinctUntilChanged()
 
     /** A dedicated observer for the given tunnel zone that will update the
       * internal cache of flooding proxies.  When the tunnel zone is deleted,
@@ -98,7 +99,8 @@ class FloodingProxyHerald(backend: MidonetBackend, executor: Executor) {
         override def onCompleted(): Unit = {
             log.debug("Zone {} was deleted", tzId)
             fpIndex.remove(tzId)
-            updateStream.onNext(FloodingProxy(tzId, null, null))
+            updateStream.onNext(FloodingProxy(tzId, hostId = null,
+                                              tunnelIp = null))
         }
         override def onError(throwable: Throwable): Unit = {}
         override def onNext(t: StateKey): Unit = t match {

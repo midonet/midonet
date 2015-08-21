@@ -31,8 +31,8 @@ import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.vtep.model.PhysicalLocator
 import org.midonet.packets.IPv4Addr
-import org.midonet.southbound.vtep.schema._
 import org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb
+import org.midonet.southbound.vtep.schema._
 import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
