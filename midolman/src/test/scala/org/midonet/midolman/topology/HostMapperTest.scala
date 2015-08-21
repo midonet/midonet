@@ -27,7 +27,9 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.{StateStorage, Storage}
+import org.midonet.cluster.data.storage.{CreateOp, StateStorage, Storage}
+import org.midonet.cluster.models.Commons.{IPVersion, IPAddress}
+import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.AliveKey
@@ -162,6 +164,42 @@ class HostMapperTest extends MidolmanSpec
             hostObs.awaitOnNext(2, timeout) shouldBe true
             hostObs.getOnNextEvents should have size 2
         }
+
+        scenario("The host mapper discards tunnel zones that emit errors") {
+            Given("A host member of one tunnel zone")
+            val (host, tunnelZone1) = createHostAndTunnelZone()
+            val hostMapper = new HostMapper(host.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = new DeviceObserver[SimHost](vt)
+            observable.subscribe(hostObs)
+
+            And("Waiting for the host")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+
+            When("Updating the tunnel-zone with invalid input")
+            val tunnelZone2 = tunnelZone1.toBuilder
+                .addHostIds(host.getId)
+                .clearHosts()
+                .addHosts(HostToIp.newBuilder().build())
+                .build()
+            store.update(tunnelZone2)
+
+            Then("We receive a single host notification without the tunnel zone")
+            hostObs.awaitOnNext(2, timeout) shouldBe true
+            hostObs.getOnNextEvents.get(1).tunnelZones shouldBe empty
+
+            When("Updating the host by binding a port")
+            val Seq(port) = createRouterWithPorts(1)
+            bindPort(port, host, "eth0")
+
+            Then("We receive a single host notification without the tunnel zone")
+            hostObs.awaitOnNext(3, timeout) shouldBe true
+            hostObs.getOnNextEvents.get(2).tunnelZones shouldBe empty
+        }
     }
 
     feature("A host's port bindings should be handled") {
@@ -288,6 +326,49 @@ class HostMapperTest extends MidolmanSpec
             And("The host mapper is not watching the deleted port")
             hostMapper.isObservingPort(port1.getId) shouldBe false
             hostMapper.isObservingPort(port2.getId) shouldBe true
+        }
+
+        scenario("The host mapper discards ports that emit errors") {
+            Given("A host member of one tunnel zone")
+            val (host, _) = createHostAndTunnelZone()
+            val Seq(port1) = createRouterWithPorts(1)
+            bindPort(port1, host, "eth0")
+            val hostMapper = new HostMapper(host.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = new DeviceObserver[SimHost](vt)
+            observable.subscribe(hostObs)
+
+            And("Waiting for the host")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+
+            When("Updating the port with invalid input")
+            val port2 = port1.toBuilder
+                             .setPortAddress(IPAddress.newBuilder()
+                                                      .setVersion(IPVersion.V4)
+                                                      .setAddress("")
+                                                      .build())
+                             .build()
+            store.update(port2)
+
+            Then("We receive a single host notification without the port")
+            hostObs.awaitOnNext(2, timeout) shouldBe true
+            hostObs.getOnNextEvents.get(1).portBindings shouldBe empty
+            hostObs.getOnNextEvents.get(1).portIds shouldBe empty
+
+            When("Updating the host by binding a port")
+            val Seq(port3) = createRouterWithPorts(1)
+            bindPort(port3, host, "eth0")
+
+            Then("We receive a single host notification without the first port")
+            hostObs.awaitOnNext(3, timeout) shouldBe true
+            hostObs.getOnNextEvents.get(2).portBindings should have size 1
+            hostObs.getOnNextEvents.get(2).portIds should have size 1
+            hostObs.getOnNextEvents.get(2).portBindings should not contain key(port1.getId.asJava)
+            hostObs.getOnNextEvents.get(2).portIds should not contain port1.getId.asJava
         }
     }
 
@@ -519,14 +600,13 @@ class HostMapperTest extends MidolmanSpec
     }
 
     private def createHostAndTunnelZone(): (Host, TunnelZone) = {
-        val hostId = UUID.randomUUID()
-        val protoTunnelZone = newTunnelZone(hostId)
-        val protoHost = newHost(hostId, Set(protoTunnelZone.getId.asJava))
-        store.create(protoTunnelZone)
-        store.create(protoHost)
+        val hostId = UUID.randomUUID
+        val tunnelZone = newTunnelZone(hostId)
+        val host = newHost(hostId, Set(tunnelZone.getId.asJava))
+        store.multi(Seq(CreateOp(tunnelZone), CreateOp(host)))
         stateStore.addValue(classOf[Host], hostId, AliveKey, AliveKey)
                   .await(timeout)
-        (protoHost, protoTunnelZone)
+        (host, tunnelZone)
     }
 
     private def createRouterWithPorts(numPorts: Int): Seq[Port] = {

@@ -71,7 +71,7 @@ object DeviceMapper {
      * topology or the storage backend.
      */
     protected[topology] class DeviceState[T >: Null <: AnyRef]
-                                                  (id: UUID, source: Observable[T]) {
+                                         (id: UUID, source: Observable[T]) {
         protected var currentDevice: T = null
         protected val mark = PublishSubject.create[T]
 
@@ -221,14 +221,24 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
 
     /**
      * The same as `updateDeviceState` for devices fetched from the virtual
-     * topology.
+     * topology. The method takes two `onCompleted` and `onError` functions,
+     * which are called when the observable for a device completes or emits
+     * an error. In the latter case, the function may return a recovery
+     * observable.
      */
     protected def updateTopologyDeviceState[T >: Null <: Device](
-            deviceIds: Set[UUID], devices: mutable.Map[UUID, DeviceState[T]],
-            devicesObserver: Observer[Observable[T]])
+            deviceIds: Set[UUID],
+            devices: mutable.Map[UUID, DeviceState[T]],
+            devicesObserver: Observer[Observable[T]],
+            onCompleted: (UUID) => Unit = _ => { },
+            onError: (UUID, Throwable) => Observable[T] =
+                (id: UUID, e: Throwable) => Observable.error[T](e))
             (implicit tag: ClassTag[T]): Unit = {
         updateDeviceState(deviceIds, devices, devicesObserver) { id =>
-            new DeviceState[T](id, VirtualTopology.observable[T](id))
+            new DeviceState[T](id, VirtualTopology
+                .observable[T](id)
+                .doOnCompleted(makeAction0 { onCompleted(id) })
+                .onErrorResumeNext(makeFunc1 { e: Throwable => onError(id, e) }))
         }
     }
 

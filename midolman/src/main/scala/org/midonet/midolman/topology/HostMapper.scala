@@ -98,9 +98,30 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                 log.debug("Host updated with tunnel zones: {} bound ports: {}",
                           tunnelZoneIds, portIds)
 
-                updateTopologyDeviceState(tunnelZoneIds, tunnelZones,
-                                          tunnelZonesSubject)
-                updateTopologyDeviceState(portIds, ports, portsSubject)
+                updateTopologyDeviceState(
+                    tunnelZoneIds, tunnelZones, tunnelZonesSubject,
+                    (id: UUID) => {
+                        log.debug("Tunnel-zone {} deleted", id)
+                        tunnelZones -= id
+                    },
+                    (id: UUID, e: Throwable) => {
+                        log.error("Tunnel-zone {} error and is discarded by " +
+                                  "this host", id, e)
+                        tunnelZones -= id
+                        Observable.just[TunnelZone](null)
+                    })
+                updateTopologyDeviceState(
+                    portIds, ports, portsSubject,
+                    (id: UUID) => {
+                        log.debug("Port {} deleted", id)
+                        ports -= id
+                    },
+                    (id: UUID, e: Throwable) => {
+                        log.error("Port {} error and is discarded by this host",
+                                  id, e)
+                        ports -= id
+                        Observable.just[Port](null)
+                    })
 
                 currentHost = host
             case a: Boolean =>
@@ -110,6 +131,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                 log.debug("Host tunnel zone updated: {}", tunnelZone.id)
             case port: Port if ports.contains(port.id) =>
                 log.debug("Host bound port updated: {}", port)
+            case null => // Ignore null updates
             case _ => log.warn("Unexpected update: ignoring")
         }
 
