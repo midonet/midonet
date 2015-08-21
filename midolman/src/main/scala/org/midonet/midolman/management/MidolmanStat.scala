@@ -257,9 +257,11 @@ object MidolmanStat extends App {
         val conn = connect(opts.host.get.get, opts.port.get.get)
         val metrics = new MidolmanMetricCatalog.AllMetrics(conn)
         metrics.run(opts.delay.get.get, opts.count.get.get)
-    } catch {
-        case e: Throwable =>
-            System.err.println("[mm-stat] " + e.getMessage)
-            System.exit(1)
+    } catch { case e: Throwable =>
+        var t = e
+        while ((t.getCause ne null) && (t.getMessage eq null))
+            t = e.getCause
+        System.err.println(s"[\033[31m${opts.printedName}\033[0m] Unexpected error: ${t.getMessage}")
+        System.exit(1)
     }
 }

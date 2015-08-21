@@ -51,9 +51,11 @@ class PacketPipelineMetrics(val registry: MetricRegistry,
         classOf[PacketPipelineAccumulatedTime],
         "simulationAccumulatedTime"))
 
-    val currentDpFlowsMetric = registry.register("currentDatapathFlows",
-                                                 new Gauge[Long] with FlowTablesGauge {
-        override def getValue: Long = dpFlowsMetric.getCount - dpFlowsRemovedMetric.getCount
+    val currentDpFlowsMetric = registry.register(
+        name(classOf[FlowTablesGauge], "currentDatapathFlows"),
+        new Gauge[Long] {
+            override def getValue: Long =
+                dpFlowsMetric.getCount - dpFlowsRemovedMetric.getCount
     })
 
     val dpFlowsMetric = registry.meter(name(
