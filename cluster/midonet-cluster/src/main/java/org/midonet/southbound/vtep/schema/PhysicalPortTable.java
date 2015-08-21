@@ -32,9 +32,9 @@ import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 import org.midonet.cluster.data.vtep.model.PhysicalPort;
 import org.midonet.cluster.data.vtep.model.VtepEntry;
 
-import static scala.collection.JavaConversions.setAsJavaSet;
 import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdb;
 import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
+import static scala.collection.JavaConversions.setAsJavaSet;
 
 /**
  * Schema for the Ovsdb physical port table
@@ -98,16 +98,10 @@ public final class PhysicalPortTable extends Table {
         return new Condition(COL_NAME, Function.EQUALS, value);
     }
 
-    /**
-     * Extract the name
-     */
     private String parseName(Row<GenericTableSchema> row) {
         return extractString(row, getNameSchema());
     }
 
-    /**
-     * Extract the description
-     */
     private String parseDescription(Row<GenericTableSchema> row) {
         return extractString(row, getDescriptionSchema());
     }

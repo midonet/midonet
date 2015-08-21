@@ -53,6 +53,7 @@ import org.midonet.cluster.data.vtep.VtepConnection.{ConnectionState, VtepHandle
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
 import org.midonet.cluster.data.vtep.{VtepConnection, VtepNotConnectedException, VtepStateException}
 import org.midonet.southbound.vtep.OvsdbVtepConnection._
+import org.midonet.southbound.vtep.OvsdbTools
 import org.midonet.util.functors.{makeAction1, makeFunc1}
 
 object OvsdbVtepConnection {

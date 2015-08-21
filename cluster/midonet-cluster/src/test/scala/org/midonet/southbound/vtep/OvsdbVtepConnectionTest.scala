@@ -382,7 +382,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
 
             And("A VTEP connection observer")
             val observer = new VtepObserver
-            val subscription = vtep.observable.subscribe(observer)
+            vtep.observable.subscribe(observer)
 
             When("The connection is closed")
             vtep.close().await(timeout) shouldBe Disposed
