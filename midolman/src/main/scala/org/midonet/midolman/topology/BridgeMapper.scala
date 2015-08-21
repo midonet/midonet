@@ -39,7 +39,7 @@ import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, RouterPort, Chain}
-import org.midonet.midolman.simulation.{BridgePort, Port}
+import org.midonet.midolman.simulation.{BridgePort, Port, _}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state.{ReplicatedMap, StateAccessException}
@@ -270,7 +270,7 @@ object BridgeMapper {
 final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopology,
                          _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
                         (implicit actorSystem: ActorSystem)
-        extends DeviceWithChainsMapper[SimulationBridge](bridgeId, vt)
+        extends VirtualDeviceMapper[SimulationBridge](bridgeId, vt)
         with TraceRequestChainMapper[SimulationBridge] {
 
     import BridgeMapper._
@@ -279,6 +279,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
     override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
         _traceChainMap
 
+    private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
     private var bridge: TopologyBridge = null
     private val localPorts = new mutable.HashMap[UUID, LocalPortState]
     private val peerPorts = new mutable.HashMap[UUID, PeerPortState]
@@ -363,7 +364,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         .merge[TopologyBridge](connectionObservable, portsObservable,
                                traceChainObservable.map[TopologyBridge](
                                    makeFunc1(traceChainUpdated)),
-                               chainsObservable
+                               chainsTracker.refsObservable
                                    .map[TopologyBridge](makeFunc1(chainUpdated)),
                                bridgeObservable)
         .doOnError(makeAction1(bridgeError))
@@ -378,7 +379,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         assertThread()
         val ready: JBoolean =
             localPorts.forall(_._2.isReady) && peerPorts.forall(_._2.isReady) &&
-            areChainsReady && isTracingReady
+            isTracingReady && chainsTracker.areRefsReady
         log.debug("Bridge ready: {}", ready)
         ready
     }
@@ -405,8 +406,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             ipv4MacMap.complete()
         }
         portsSubject.onCompleted()
-        completeChains()
         completeTraceChain()
+        chainsTracker.completeRefs()
         macUpdatesSubject.onCompleted()
         connectionSubject.onCompleted()
         macUpdatesSubscription.unsubscribe()
@@ -471,7 +472,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
                           bridge.getTraceRequestIdsList.asScala.map(_.asJava).toList)
 
         // Request the chains for this bridge.
-        requestChains(
+        chainsTracker.requestRefs(
             if (bridge.hasInboundFilterId) bridge.getInboundFilterId else null,
             if (bridge.hasOutboundFilterId) bridge.getOutboundFilterId else null)
     }
@@ -525,6 +526,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         traceChain = chainId
         bridge
     }
+
     /**
      * Emits an error on the connection observable to complete the device
      * notifications.
@@ -744,6 +746,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
                     Some(bridge.getInboundFilterId.asJava)
                 } else None
         }
+
         // Create the simulation bridge.
         val device = new SimulationBridge(
             bridge.getId,

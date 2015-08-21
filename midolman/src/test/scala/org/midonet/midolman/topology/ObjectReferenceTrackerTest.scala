@@ -41,7 +41,7 @@ import org.midonet.util.reactivex.AwaitableObserver
 import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
-class DeviceWithChainsMapperTest extends MidolmanSpec with TopologyBuilder
+class ObjectReferenceTrackerTest extends MidolmanSpec with TopologyBuilder
                                  with TopologyMatchers {
 
     import TopologyBuilder._
@@ -63,7 +63,9 @@ class DeviceWithChainsMapperTest extends MidolmanSpec with TopologyBuilder
 
     class TestableMapper(id: UUID, obs: Observable[TestableDevice])
                         (implicit vt: VirtualTopology)
-        extends DeviceWithChainsMapper[TestableDevice](id, vt) {
+        extends VirtualDeviceMapper[TestableDevice](id, vt) {
+
+        private val chainsTracker = new ObjectReferenceTracker[SimulationChain](vt)
 
         @volatile private var device: TestableDevice = null
         private lazy val deviceObservable = obs
@@ -71,29 +73,28 @@ class DeviceWithChainsMapperTest extends MidolmanSpec with TopologyBuilder
             .doOnCompleted(makeAction0(deviceDeleted()))
             .doOnNext(makeAction1(deviceUpdated))
         protected lazy val observable = Observable
-            .merge(chainsObservable.map[TestableDevice](makeFunc1(_ =>
-                    TestableDevice(device.id, currentChains.keySet.toSeq: _*))),
+            .merge(chainsTracker.refsObservable.map[TestableDevice](makeFunc1(_ =>
+                    TestableDevice(device.id, chainsTracker.currentRefs.keySet.toSeq: _*))),
                    deviceObservable)
             .filter(makeFunc1(isDeviceReady))
 
-        private def deviceDeleted(): Unit = completeChains()
+        private def deviceDeleted(): Unit = chainsTracker.completeRefs()
 
         private def deviceUpdated(device: TestableDevice): Unit = {
             this.device = TestableDevice(device.id,
-                                         currentChains.keySet.toSeq: _*)
-            requestChains(device.chainIds)
+                                         chainsTracker.currentRefs.keySet.toSeq: _*)
+            chainsTracker.requestRefs(device.chainIds)
         }
 
         private def isDeviceReady(device: TestableDevice): Boolean = {
-            val ready = areChainsReady
-            if (ready) device.chains = currentChains
+            val ready = chainsTracker.areRefsReady
+            if (ready) device.chains = chainsTracker.currentRefs
             ready
         }
     }
 
     object TestableObservable {
-        def apply(id: UUID) =
-            Observable.create(new TestableMapper(id, stream))
+        def apply(id: UUID) = Observable.create(new TestableMapper(id, stream))
     }
 
     private implicit var vt: VirtualTopology = _
