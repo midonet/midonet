@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_cb45ab18",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-21T13:47:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_808c6237",
+      "range": {
+        "startLine": 44,
+        "startChar": 35,
+        "endLine": 44,
+        "endChar": 36
+      },
+      "revId": "3b6de809d4d0fd85ebf330fb0a6150945f47fc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a08246c6",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 15
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-21T09:58:50Z",
       "side": 1,
       "message": "Throwable",
+      "range": {
+        "startLine": 330,
+        "startChar": 19,
+        "endLine": 330,
+        "endChar": 42
+      },
+      "revId": "3b6de809d4d0fd85ebf330fb0a6150945f47fc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6b5d7fec",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-21T13:47:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_a08246c6",
       "range": {
         "startLine": 330,
         "startChar": 19,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4b8fdbcc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 531,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-21T13:47:16Z",
+      "side": 1,
+      "message": "If you don\u0027t mind, let\u0027s take care of this in a subsequent patch.",
+      "parentUuid": "9ad9bd40_80cb821d",
+      "range": {
+        "startLine": 531,
+        "startChar": 38,
+        "endLine": 531,
+        "endChar": 72
+      },
+      "revId": "3b6de809d4d0fd85ebf330fb0a6150945f47fc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_40e17a99",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
         "patchSetId": 15
@@ -82,6 +154,30 @@
       "writtenOn": "2015-08-21T09:58:50Z",
       "side": 1,
       "message": "Is this intended?",
+      "range": {
+        "startLine": 248,
+        "startChar": 12,
+        "endLine": 248,
+        "endChar": 44
+      },
+      "revId": "3b6de809d4d0fd85ebf330fb0a6150945f47fc6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2b5457c9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-21T13:47:16Z",
+      "side": 1,
+      "message": "removed, this was probably a left-over from debugging.",
+      "parentUuid": "9ad9bd40_40e17a99",
       "range": {
         "startLine": 248,
         "startChar": 12,
