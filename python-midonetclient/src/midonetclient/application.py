@@ -38,11 +38,13 @@ from midonetclient import rule
 from midonetclient import system_state
 from midonetclient import tenant
 from midonetclient import tunnel_zone
+from midonetclient import tracerequest
 from midonetclient import vendor_media_type
 from midonetclient import vip
 from midonetclient import vtep
 from midonetclient import write_version
 
+import uuid
 
 class Application(resource_base.ResourceBase):
 
@@ -149,6 +151,9 @@ class Application(resource_base.ResourceBase):
 
     def get_pool_statistic_template(self):
         return self.dto['poolStatisticTemplate']
+
+    def get_tracerequest_template(self):
+        return self.dto['traceRequestTemplate']
 
     def get_tenants(self, query):
         headers = {'Accept':
@@ -523,3 +528,24 @@ class Application(resource_base.ResourceBase):
     def delete_vtep(self, mgmt_ip):
         return self._delete_resource_by_ip_addr(self.get_vtep_template(),
                                                 mgmt_ip)
+
+    def get_tracerequests(self):
+        headers = {'Accept':
+                  vendor_media_type.APPLICATION_TRACE_REQUEST_COLLECTION_JSON}
+        return self.get_children(self.dto['traceRequests'], {}, headers,
+                                 tracerequest.TraceRequest)
+
+    def add_tracerequest(self):
+        return tracerequest.TraceRequest(self.dto['traceRequests'],
+                                         {"id" : str(uuid.uuid4())},
+                                         self.auth)
+
+    def get_tracerequest(self, _id):
+        return self._get_resource_by_id(tracerequest.TraceRequest,
+                                        self.dto['traceRequests'],
+                                        self.get_tracerequest_template(),
+                                        _id)
+
+    def delete_tracerequest(self, _id):
+        return self._delete_resource_by_id(self.get_tracerequest_template(),
+                                           _id)

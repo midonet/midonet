@@ -538,6 +538,22 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.delete_vtep(mgmt_ip)
 
+    def get_tracerequests(self):
+        self._ensure_application()
+        return self.app.get_tracerequests()
+
+    def add_tracerequest(self):
+        self._ensure_application()
+        return self.app.add_tracerequest()
+
+    def get_tracerequest(self, _id):
+        self._ensure_application()
+        return self.app.get_tracerequest(_id)
+
+    def delete_tracerequest(self, _id):
+        self._ensure_application()
+        return self.app.delete_tracerequest(_id)
+
     def _ensure_application(self):
         if self.app is None:
             self.app = application.Application(None, {'uri': self.base_uri},

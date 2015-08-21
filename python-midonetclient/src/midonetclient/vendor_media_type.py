@@ -168,3 +168,7 @@ APPLICATION_VTEP_BINDING_JSON = \
     "application/vnd.org.midonet.VTEPBinding-v1+json"
 APPLICATION_VTEP_BINDING_COLLECTION_JSON = \
             "application/vnd.org.midonet.collection.VTEPBinding-v1+json"
+
+# trace requests
+APPLICATION_TRACE_REQUEST_JSON = "application/vnd.org.midonet.TraceRequest-v1+json"
+APPLICATION_TRACE_REQUEST_COLLECTION_JSON = "application/vnd.org.midonet.collection.TraceRequest-v1+json"

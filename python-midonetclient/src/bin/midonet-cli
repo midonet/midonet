@@ -2418,6 +2418,36 @@ class VtepBinding(ObjectType):
     def type_name(self):
         return "binding"
 
+class TraceRequest(Condition):
+    def __init__(self, obj):
+        super(TraceRequest, self).__init__(obj)
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 setter = 'set_name',
+                                 getter = 'get_name'))
+        self.put_attr(SingleAttr(name = 'port',
+                                 value_type = PortRef(),
+                                 setter = 'set_port',
+                                 getter = 'get_port'))
+        self.put_attr(SingleAttr(name = 'router',
+                                 value_type = ObjectRef('router'),
+                                 setter = 'set_router',
+                                 getter = 'get_router'))
+        self.put_attr(SingleAttr(name = 'bridge',
+                                 value_type = ObjectRef('bridge'),
+                                 setter = 'set_bridge',
+                                 getter = 'get_bridge'))
+        self.put_attr(SingleAttr(name = 'limit',
+                                 value_type = StringType(),
+                                 setter = 'set_limit',
+                                 getter = 'get_limit'))
+        self.put_attr(BooleanAttr(name = 'enabled',
+                                 setter = 'set_enabled',
+                                 getter = 'get_enabled'))
+
+    def type_name(self):
+        return "tracerequest"
+
 def _port_resolver(port):
     # This function dispatches the appropriate port class depending on the
     # given port's type and instantiate it.
@@ -2519,6 +2549,11 @@ class Midonet(ObjectType):
                                  list_method = 'get_vteps',
                                  getter = 'get_vtep',
                                  factory_method = 'add_vtep'))
+        self.put_attr(Collection(name = 'tracerequest',
+                                 element_type = TraceRequest,
+                                 list_method = 'get_tracerequests',
+                                 getter = 'get_tracerequest',
+                                 factory_method = 'add_tracerequest'))
 
 
 ################################################################################

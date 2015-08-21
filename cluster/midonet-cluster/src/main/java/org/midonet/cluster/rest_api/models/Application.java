@@ -248,4 +248,8 @@ public class Application {
         return uriFor(ResourceUris.TRACE_REQUESTS);
     }
 
+    @JsonProperty("traceRequestTemplate")
+    public String getTraceRequestTemplate() {
+        return templateFor(ResourceUris.TRACE_REQUESTS);
+    }
 }
