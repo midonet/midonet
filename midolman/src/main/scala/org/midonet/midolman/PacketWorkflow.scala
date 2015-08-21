@@ -477,7 +477,7 @@ class PacketWorkflow(
     private def handlePacketIngress(context: PacketContext): SimulationResult = {
         if (!context.origMatch.isUsed(Field.InputPortNumber)) {
             context.log.error("packet had no inPort number")
-            processSimulationResult(context, ErrorDrop)
+            return processSimulationResult(context, ErrorDrop)
         }
 
         val inPortNo = context.origMatch.getInputPortNumber
