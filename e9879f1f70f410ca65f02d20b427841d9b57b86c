@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_7aff06ab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-21T18:08:16Z",
+      "side": 1,
+      "message": "seems more link unwrapping then unwinding :p",
+      "revId": "e9879f1f70f410ca65f02d20b427841d9b57b86c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ba30ae9f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-21T18:08:16Z",
+      "side": 1,
+      "message": "doesn\u0027t a call to continue usually come after a call to unwind? it would be the same as passing the ContinueWith to continue(), right? it\u0027s not clear to me why this method is needed",
+      "revId": "e9879f1f70f410ca65f02d20b427841d9b57b86c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
