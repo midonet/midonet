@@ -47,6 +47,19 @@ trait CustomMatchers {
                 expectedTags forall pktCtx.flowTags .contains,
                 s"a PacketContext containing tags {${expectedTags.toList}"))
 
+    def processedWith(actionTypes: Class[_]*) =
+        BePropertyMatcher((pktCtx: PacketContext) =>
+            BePropertyMatchResult(
+                pktCtx.virtualFlowActions map (_.getClass) sameElements actionTypes.toList ,
+                s"a PacketContext containing action types {${actionTypes.toList}"))
+
+    def toPorts(ports: UUID*) =
+        BePropertyMatcher((pktCtx: PacketContext) =>
+            BePropertyMatchResult(
+                (ports map ToPortAction forall pktCtx.virtualFlowActions .contains) &&
+                ((pktCtx.virtualFlowActions filter(_.isInstanceOf[ToPortAction])).size == ports.length),
+                s"a PacketContext forwarding to ports {${ports.toList}"))
+
     def dropped(expectedTags: FlowTag*) =
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
             def apply(simRes: (SimulationResult, PacketContext)) =
@@ -56,7 +69,7 @@ trait CustomMatchers {
                     case _ =>
                         false
                 }, s"a drop flow containing tags {${expectedTags.toList}")
-    }
+        }
 
     def toPort(portId: UUID)(expectedTags: FlowTag*) =
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
