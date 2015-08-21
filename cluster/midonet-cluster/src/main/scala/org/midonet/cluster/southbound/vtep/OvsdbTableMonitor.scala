@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.midonet.southbound.vtep
+package org.midonet.cluster.southbound.vtep
 
 import java.util.concurrent.Executor
 
-import scala.collection.JavaConversions.{asJavaIterable, iterableAsScalaIterable}
+import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
@@ -30,8 +30,8 @@ import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.data.vtep.model.VtepEntry
 import org.midonet.cluster.southbound.vtep.OvsdbTools.{tableEntries, tableUpdates}
+import org.midonet.cluster.southbound.vtep.VtepEntryUpdate.addition
 import org.midonet.cluster.southbound.vtep.schema.Table
-import org.midonet.southbound.vtep.VtepEntryUpdate.addition
 import org.midonet.util.functors.makeFunc1
 
 /**

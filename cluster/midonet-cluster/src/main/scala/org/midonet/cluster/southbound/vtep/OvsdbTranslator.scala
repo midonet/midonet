@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.vtep
+package org.midonet.cluster.southbound.vtep
 
 import java.util
 import java.util.UUID

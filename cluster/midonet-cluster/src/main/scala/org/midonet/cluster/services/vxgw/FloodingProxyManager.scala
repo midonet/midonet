@@ -48,14 +48,18 @@ object FloodingProxyManager {
     val MaxFpRetries = 3
 
     case class HostFpState(host: Host, tzId: UUID, isAlive: Boolean,
-                           sub: Subscription) {
-        def toggle(newAlive: Boolean) = HostFpState(host, tzId, newAlive, sub)
-    }
+                           sub: Subscription)
 
 }
 
 /** This class is responsible for tracking all VTEP tunnel zones and ensure
   * Flooding Proxy is being calculated and published.
+  *
+  * The manager exposes two methods, start and stop that allow controlling
+  * when the flooding proxy election process is active.  Invoking active will
+  * start watching all VTEP tunnel zones and chosing the right FP out of its
+  * members, based on their flooding proxy weight.  Invoking stop will halt
+  * the process and yield this manager unusable.
   */
 class FloodingProxyManager(backend: MidonetBackend) {
 
@@ -67,9 +71,6 @@ class FloodingProxyManager(backend: MidonetBackend) {
     // An index of each host we're tracking, plus its state
     private val trackedHosts = new ConcurrentHashMap[UUID,
         FloodingProxyManager.HostFpState]
-
-    // An observable to emit all hosts that are being modified
-    private val allHosts = PublishSubject.create[HostFpState]()
 
     // We will process all notifications on this thread
     private val executor = Executors.newSingleThreadExecutor()
@@ -85,20 +86,21 @@ class FloodingProxyManager(backend: MidonetBackend) {
     // This Observer will track all tunnel zones, and ensure that the allHosts
     // subject emits all updates for all hosts that belong to them.
     private val tzObserver = new Observer[TunnelZone] {
-        override def onError(t: Throwable): Unit = {}
+        override def onError(t: Throwable): Unit = {
+            log.debug("Tunnel zone update stream failed")
+        }
         override def onCompleted(): Unit = {
             // The tunnel zone is removed, so all hosts should no longer be
             // watched.  We don't really need to do anything because the
             // deletion of the TZ will cascade a change in the Host backrefs,
             // so the host watcher can deal with its own removal.
+            log.debug("Tunnel zone was removed")
         }
         override def onNext(tz: TunnelZone): Unit = {
-            val tzId = fromProto(tz.getId)
+            log.debug(s"Tunnel zone was modified ${fromProto(tz.getId)}")
             if (tz.getType != TunnelZone.Type.VTEP) {
-                log.debug(s"Ignoring tunnel zone $tzId")
                 return
             }
-            log.info(s"VTEP tunnel zone updated: $tzId")
             ensureHostsTracked(tz)
         }
     }
@@ -107,22 +109,29 @@ class FloodingProxyManager(backend: MidonetBackend) {
     // Whenever a new one is emitted (that is: it's updated), we'll find out
     // what VTEP tunnel zone it belongs to, and recompute the flooding proxy.
     private val hostObserver = new Observer[HostFpState] {
-        override def onCompleted(): Unit = { /* Irrelevant */ }
+        override def onCompleted(): Unit = {
+            // We ignore these: host deletions will trigger a removal of them
+            // from the tunnel zone, hence an update on the tunnel zone.
+        }
         override def onError(throwable: Throwable): Unit = { /* Irrelevant */ }
         override def onNext(newState: HostFpState): Unit = {
             val id = fromProto(newState.host.getId)
             trackedHosts.get(id) match {
-                case null => log.info(s"Host $id is not in a VTEP tunnel zone")
+                case null =>
+                    log.debug(s"Host $id is not in a VTEP tunnel zone")
                 case HostFpState(host, tzId, isAlive, subscription) =>
-                    val currTunnelZones =
+                    val currTzs =
                         newState.host.getTunnelZoneIdsList.map(fromProto)
-                    if (!currTunnelZones.contains(tzId)) {
+                    if (!currTzs.contains(tzId)) {
                         log.debug(s"Host is no longer on tunnel zone $tzId")
-                        trackedHosts.remove(id)
+                        // We don't trigger an FP recalculation as the Tz
+                        // itself should notify a change and do it
                         subscription.unsubscribe()
                     }
-                    trackedHosts.replace(id, newState)
-                    cacheAndPublishFloodingProxy(tzId)
+                    val oldState = trackedHosts.replace(id, newState)
+                    if (oldState != newState) {
+                        cacheAndPublishFloodingProxy(tzId)
+                    }
             }
         }
     }
@@ -132,18 +141,20 @@ class FloodingProxyManager(backend: MidonetBackend) {
 
     /** Starts watching the VTEP tunnel zone. */
     def start(): Unit = {
-        subscriptions.add(allHosts.observeOn(rxScheduler)
-                                  .subscribe(hostObserver))
-        val tunnelZoneObs = selfHealingTypeObservable[TunnelZone](store)
-        subscriptions.add(Observable.merge(tunnelZoneObs)
-                                    .observeOn(rxScheduler)
-                                    .subscribe(tzObserver))
+        log.info("Flooding proxy manager is started")
+        subscriptions.add(
+            // backpressure omitted here, we're not expecting > 128 TZs!
+            Observable.merge(selfHealingTypeObservable[TunnelZone](store))
+                      .observeOn(rxScheduler)
+                      .subscribe(tzObserver))
     }
 
     /** Stop tracking VTEP tunnel zones */
     def stop(): Unit = {
         subscriptions.unsubscribe()
+        subscriptions.clear()
         trackedHosts.clear()
+        log.info("Flooding proxy manager is stopped")
     }
 
     /** Ensure that the host is tracked on the given tunnel zone.  Note that
@@ -154,30 +165,53 @@ class FloodingProxyManager(backend: MidonetBackend) {
       * already known on the tunnel zone.
       */
     private def ensureHostsTracked(tz: TunnelZone): Unit = {
-        val onTz = fromProto(tz.getId)
+        val tzId = fromProto(tz.getId)
+        val knownIds = new java.util.ArrayList[UUID](tz.getHostIdsCount)
         tz.getHostIdsList.foreach { pId =>
             val hostId = fromProto(pId)
+            knownIds.add(hostId)
+            log.debug(s"Host $hostId is on tunnel zone $tzId")
             if (!trackedHosts.contains(hostId)) {
-                trackHost(hostId, onTz)
+                trackHost(hostId, tzId)
+            }
+        }
+
+        val toRemove = trackedHosts.keys().filterNot(knownIds.contains)
+        toRemove.foreach { id =>
+            log.debug(s"Stop tracking host $id, no longer in zone $tzId")
+            val nwSt = trackedHosts.remove(id)
+            nwSt.sub.unsubscribe()
+            herald.lookup(tzId) match {
+                case Some(fp) if fp.hostId == id =>
+                    log.debug("Host was current flooding proxy, recalculate")
+                    cacheAndPublishFloodingProxy(tzId)
+                case None =>
             }
         }
     }
 
     private def trackHost(id: UUID, onTz: UUID): Unit  = {
-        log.debug(s"New host $id on VTEP tunnel zone $onTz")
         val obs = selfHealingEntityObservable[Host](store, id)
         val stateObs = stateStore.keyObservable(classOf[Host], id, AliveKey)
         val sub = new CompositeSubscription
-        val combiner = makeFunc2[Host, StateKey, HostFpState] {
-                           case (h: Host, s: StateKey) =>
-                               HostFpState(h, onTz, s.nonEmpty, sub)
-                       }
-        sub.add (
-            Observable.combineLatest[Host, StateKey, HostFpState]
-                (obs, stateObs, combiner).subscribe(allHosts)
-        )
+        val combiner = makeFunc2[Host, StateKey, HostFpState] { (h, s) =>
+            HostFpState(h, onTz, s.nonEmpty, sub)
+        }
 
         trackedHosts.put(id, HostFpState(null, onTz, isAlive = false, sub))
+
+        // We need to keep the individual subscription to this host in case
+        // it is removed from the tunnel zone, so that we can unsubscribe
+        // just from it
+        sub.add (
+            Observable.combineLatest[Host, StateKey, HostFpState](obs, stateObs, combiner)
+                      .observeOn(rxScheduler)
+                      .subscribe(hostObserver)
+        )
+
+        // We also add it to the global subscriptions, so we can unsubscribe
+        // at once from everything if the service is stopped
+        subscriptions.add(sub)
     }
 
     /** Trigger the recalculation of a Flooding Proxy for the given tunnel zone,
@@ -187,9 +221,11 @@ class FloodingProxyManager(backend: MidonetBackend) {
     private def cacheAndPublishFloodingProxy(tzId: UUID,
                                              retries: Int = MaxFpRetries)
     : Unit = recalculateFpFor(tzId).onComplete {
+        case Success(null) =>
         case Success(fp) =>
-            _herald.announce(fp, { _ =>
-                cacheAndPublishFloodingProxy(tzId, retries -1 )
+            log.debug("Announcing Flooding Proxy" + fp)
+            _herald.announce(fp, t => {
+                cacheAndPublishFloodingProxy(tzId, retries - 1)
             })
         case Failure(t) => log.warn("Error calculating flooding proxy", t)
     }
@@ -200,18 +236,20 @@ class FloodingProxyManager(backend: MidonetBackend) {
       */
     private def recalculateFpFor(tzId: UUID, retries: Int = MaxFpRetries)
     : Future[FloodingProxy] = {
+        log.debug(s"Recalculating flooding proxy for tunnel zone $tzId")
         store.get(classOf[TunnelZone], tzId) // should be cached locally
              .map { loadLiveHosts }
-             .map ( hosts =>
-                FloodingProxyCalculator.calculate(tzId, hosts).getOrElse (
+             .map { hosts =>
+                FloodingProxyCalculator.calculate(tzId, hosts).getOrElse {
+                    log.info("FALLBACK")
                     FloodingProxy(tzId, null, null)
-                )
-             ).recoverWith[FloodingProxy] {
+                }
+             }.recoverWith[FloodingProxy] {
                  case t: Throwable if retries > 0 =>
                      log.warn("Failed to calculate flooding proxy for " +
                               s"tunnel zone $tzId, (${retries - 1}) left.", t)
                      recalculateFpFor(tzId, retries - 1)
-                 case t: Throwable =>
+                 case t =>
                      log.error("Failed to calculate flooding proxy for " +
                                s"tunnel zone $tzId, no retries left.", t)
                      Future.successful(null)
@@ -232,7 +270,8 @@ class FloodingProxyManager(backend: MidonetBackend) {
                 if (state != null && state.isAlive) {
                     hosts += state.host -> ip
                 } else {
-                    log.debug(s"Host $id is not eligible for flooding proxy")
+                    log.debug(s"Host $id is not eligible for flooding proxy " +
+                              s"($state)")
                 }
             } catch {
                 case NonFatal(t) => log.warn(s"Host $id could not be retrieved")

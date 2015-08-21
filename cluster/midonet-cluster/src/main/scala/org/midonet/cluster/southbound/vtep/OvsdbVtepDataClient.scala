@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.southbound.vtep
+package org.midonet.cluster.southbound.vtep
 
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicReference
@@ -23,7 +23,9 @@ import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{ExecutionContext, Future}
 
 import com.google.common.annotations.VisibleForTesting
+
 import org.slf4j.LoggerFactory
+
 import rx.subjects.BehaviorSubject
 import rx.{Observable, Observer}
 

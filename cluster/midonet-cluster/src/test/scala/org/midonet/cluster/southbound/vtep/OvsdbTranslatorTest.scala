@@ -21,14 +21,12 @@ import java.util.{Random, UUID}
 
 import scala.collection.JavaConversions._
 
-import org.opendaylight.ovsdb.lib.notation.{UUID => OvsdbUUID}
-
 import org.junit.runner.RunWith
+import org.opendaylight.ovsdb.lib.notation.{UUID => OvsdbUUID}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.packets.IPv4Addr
-import org.midonet.vtep.OvsdbTranslator
 
 @RunWith(classOf[JUnitRunner])
 class OvsdbTranslatorTest extends FeatureSpec with Matchers {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.southbound.vtep
+package org.midonet.cluster.southbound.vtep
 
 import java.util
 import java.util.UUID
@@ -34,7 +34,6 @@ import rx.{Observable, Observer, Subscriber}
 
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.data.vtep.{VtepConfigException, VtepData, VtepStateException}
-import org.midonet.cluster.southbound.vtep.OvsdbTools._
 import org.midonet.cluster.southbound.vtep.schema.Table.OvsdbOperation
 import org.midonet.cluster.southbound.vtep.schema._
 import org.midonet.packets.IPv4Addr
@@ -191,8 +190,9 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                         ops.add(portTable.table.updateBindings(p))
                         portTable.insertHint(p, hint)
                     })
-                    val status = multiOp(client, dbSchema, ops, vtepExecutor)
-                                 .future
+                    val status =
+                        OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
+                                  .future
                     status.onFailure {case e: Throwable =>
                         ports.values.foreach(
                             p => portTable.removeHint(p.uuid, hint))
@@ -225,7 +225,7 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                     // delete the switch
                     ops.add(lsTable.table.deleteByName(ls.name))
 
-                    multiOp(client, dbSchema, ops, vtepExecutor)
+                    OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
                               .future
                               .map(r => {})(vtepContext)
             }
@@ -257,7 +257,7 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                 case u: UcastMac => ops.add(uRemoteTable.table.insert(u))
                 case m: McastMac => ops.add(mRemoteTable.table.insert(m))
             })
-            multiOp(client, dbSchema, ops, vtepExecutor)
+            OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
                       .future
                       .onComplete {
                 case Failure(err) =>
@@ -275,7 +275,7 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                 case u: UcastMac => ops.add(uRemoteTable.table.delete(u))
                 case m: McastMac => ops.add(mRemoteTable.table.delete(m))
             })
-            multiOp(client, dbSchema, ops, vtepExecutor)
+            OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
                       .future
                       .onComplete {
                 case Failure(err) =>

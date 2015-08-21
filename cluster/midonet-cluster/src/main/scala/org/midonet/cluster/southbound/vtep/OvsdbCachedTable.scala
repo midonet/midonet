@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.southbound.vtep
+package org.midonet.cluster.southbound.vtep
 
 import java.util.UUID
 import java.util.concurrent.Executor
@@ -28,9 +28,8 @@ import rx.Observer
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.data.vtep.model.VtepEntry
-import org.midonet.cluster.southbound.vtep.OvsdbTools
+import org.midonet.cluster.southbound.vtep.OvsdbVtepData._
 import org.midonet.cluster.southbound.vtep.schema.Table
-import org.midonet.southbound.vtep.OvsdbVtepData.panicAlert
 
 /**
  * A local mirror of a VTEP cache
