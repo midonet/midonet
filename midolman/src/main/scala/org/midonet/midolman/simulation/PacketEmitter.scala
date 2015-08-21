@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.simulation
 
+import java.lang.{Integer => JInteger}
 import java.util.{Queue, UUID}
 
 import akka.actor.ActorRef
@@ -24,7 +25,12 @@ import org.midonet.midolman.CheckBackchannels
 import org.midonet.packets.Ethernet
 
 object PacketEmitter {
-    case class GeneratedPacket(egressPort: UUID, eth: Ethernet)
+    trait GeneratedPacket
+
+    case class GeneratedLogicalPacket(egressPort: UUID, eth: Ethernet)
+        extends GeneratedPacket
+    case class GeneratedPhysicalPacket(egressPort: JInteger, eth: Ethernet)
+        extends GeneratedPacket
 }
 
 class PacketEmitter(queue: Queue[PacketEmitter.GeneratedPacket],

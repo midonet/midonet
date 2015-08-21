@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.{SimulationBackChannel, NotYetException}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation._
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
@@ -290,7 +290,7 @@ class SingleRouterArpRequestBroker(id: UUID,
         val loop = new ArpLoop(ip, port)
 
         val arp = makeArpRequest(port.portMac, port.portAddr.getAddress, ip)
-        emitter.schedule(GeneratedPacket(port.id, arp))
+        emitter.schedule(GeneratedLogicalPacket(port.id, arp))
 
         arpLoops.add(ip)
         arpLoopQ.add(loop)
@@ -359,7 +359,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                 val arp = makeArpRequest(loop.port.portMac,
                                          loop.port.portAddr.getAddress,
                                          loop.ip)
-                emitter.schedule(GeneratedPacket(loop.port.id, arp))
+                emitter.schedule(GeneratedLogicalPacket(loop.port.id, arp))
                 loop.tick()
                 arpLoopQ.add(loop)
             }

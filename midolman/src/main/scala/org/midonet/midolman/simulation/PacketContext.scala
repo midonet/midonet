@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.simulation
 
+import java.lang.{Integer => JInteger}
 import java.util.{Arrays, ArrayList, HashSet, Set => JSet, UUID}
 import org.midonet.midolman.layer3.Route
 
@@ -26,7 +27,8 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman._
 import org.midonet.midolman.flows.ManagedFlow
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedPhysicalPacket
 import org.midonet.midolman.state.{ArpRequestBroker, FlowStatePackets}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.odp.{FlowMatch, Packet}
@@ -221,7 +223,8 @@ trait RecordedContext extends Clearable {
 class PacketContext(val cookie: Int,
                     val packet: Packet,
                     val origMatch: FlowMatch,
-                    val egressPort: UUID = null) extends Clearable
+                    val egressPort: UUID = null,
+                    val egressPortNo: JInteger = null) extends Clearable
                                                  with FlowContext
                                                  with RecordedContext
                                                  with StateContext {
@@ -258,8 +261,8 @@ class PacketContext(val cookie: Int,
 
     def ethernet = packet.getEthernet
 
-    def isGenerated = egressPort ne null
-    def ingressed = egressPort eq null
+    def isGenerated = (egressPort ne null) || (egressPortNo ne null)
+    def ingressed = !isGenerated
     def isStateMessage = origMatch.getTunnelKey == FlowStatePackets.TUNNEL_KEY
 
     def cookieStr = s"[cookie:$cookie]"
@@ -296,10 +299,22 @@ class PacketContext(val cookie: Int,
     }
 
     def addGeneratedPacket(uuid: UUID, ethernet: Ethernet): Unit =
-        packetEmitter.schedule(GeneratedPacket(uuid, ethernet))
+        packetEmitter.schedule(GeneratedLogicalPacket(uuid, ethernet))
+
+    def addGeneratedPhysicalPacket(portNo: JInteger,
+                                   ethernet: Ethernet): Unit =
+        packetEmitter.schedule(GeneratedPhysicalPacket(portNo, ethernet))
 
     def markUserspaceOnly(): Unit =
         wcmatch.markUserspaceOnly()
 
     override def toString = s"PacketContext[$cookieStr]"
+
+    /*
+     * The default values doesn't work in case called from java.
+     * Workaound it by overloading the constructor.
+     */
+    def this(cookie: Int, packet: Packet, origMatch: FlowMatch,
+             egressPort: UUID) =
+        this(cookie, packet, origMatch, egressPort, null)
 }

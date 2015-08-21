@@ -29,6 +29,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Bridge, DhcpValueParser, Router}
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -152,8 +153,9 @@ class DhcpTest extends MidolmanSpec {
         workflow.start(pktCtx)
 
         emitter should have size 1
-        emitter.head.egressPort should be (port)
-        emitter.head.eth
+        val generatedPkt = emitter.head.asInstanceOf[GeneratedLogicalPacket]
+        generatedPkt.egressPort should be (port)
+        generatedPkt.eth
     }
 
     def extractDhcpReply(ethPkt : Ethernet) = {
