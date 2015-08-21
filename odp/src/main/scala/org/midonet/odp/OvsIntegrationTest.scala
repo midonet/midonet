@@ -73,19 +73,17 @@ trait DatapathTest {
 
     val dpname1 = "ovsdp-foo"
     val dpname2 = "ovsdp-bar"
-    val dpname3 = "ovsdp-baz"
 
     def datapathTests() = {
         Try(Await.result(con.delDp(dpname1), Duration.Inf))
         Try(Await.result(con.delDp(dpname2), Duration.Inf))
-        Try(Await.result(con.delDp(dpname3), Duration.Inf))
         val dpF1 = con createDp dpname1
         val dpF2 = dpF1 flatMap { case _ => con ensureDp dpname2}
         val enum = dpF2 flatMap { case _ => con enumDps()}
         val dpGet1 = enum flatMap { case _ => con getDp dpname1}
 
-        val dps = Seq[(String, Future[Datapath])]((dpname1, dpF1),
-            (dpname2, dpF2))
+        val dps = Seq[(String, Future[Datapath])](
+            (dpname1, dpF1), (dpname2, dpF2))
         val tests = Seq[(String, Future[Any])](
             ("can create a datapath", dpF1),
             ("can create several datapath", dpF2),
