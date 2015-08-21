@@ -27,7 +27,7 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
-import org.midonet.midolman.simulation.{Port => SimulationPort, Chain}
+import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc2}
 
 /**
@@ -68,6 +68,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         _traceChainMap
 
     private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
+    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
 
     private lazy val combinator =
         makeFunc2[TopologyPort, Boolean, SimulationPort](
@@ -92,6 +93,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     protected override val observable = Observable
         .merge(chainsTracker.refsObservable.map[SimulationPort](makeFunc1(refUpdated)),
                traceChainObservable.map[SimulationPort](makeFunc1(traceUpdated)),
+               mirrorsTracker.refsObservable.map[SimulationPort](makeFunc1(refUpdated)),
                portObservable.map[SimulationPort](makeFunc1(portUpdated)))
         .filter(makeFunc1(isPortReady))
         .doOnNext(makeAction1(maybeInvalidateFlowState(_)))
@@ -103,6 +105,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
         // Request the chains for this port.
         chainsTracker.requestRefs(port.inboundFilter, port.outboundFilter)
+
+        mirrorsTracker.requestRefs(port.inboundMirrors.asScala :_*)
+        mirrorsTracker.requestRefs(port.outboundMirrors.asScala :_*)
 
         requestTraceChain(Option(port.inboundFilter), traceRequestIds)
 
@@ -136,6 +141,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         log.debug("Port deleted")
         completeTraceChain()
         chainsTracker.completeRefs()
+        mirrorsTracker.completeRefs()
     }
 
     /** Handles updates to the chains. */
@@ -151,6 +157,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private def isPortReady(port: SimulationPort): Boolean = {
         (currentPort ne null) &&
             chainsTracker.areRefsReady &&
-                isTracingReady
+                mirrorsTracker.areRefsReady &&
+                    isTracingReady
     }
 }
