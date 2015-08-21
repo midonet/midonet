@@ -16,10 +16,12 @@
 
 package org.midonet.cluster.services.c3po
 
+import java.util.UUID
+
 import org.junit.runner.RunWith
 import org.midonet.cluster.models.Commons.Protocol
 import org.midonet.cluster.models.Neutron.NeutronFirewallRule.FirewallRuleAction
-import org.midonet.cluster.util.IPSubnetUtil
+import org.midonet.cluster.util.{UUIDUtil, IPSubnetUtil}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FunSuite, Matchers}
 
@@ -35,15 +37,16 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
     // 2. Field named "router:external." Deserializer should strip out the part
     //    up to and including the colon, reading it as just "external."
     test("Neutron Network deserialization") {
+        val netId = UUID.randomUUID()
         val json =
-            """
+            s"""
               |{
               |    "status": "ACTIVE",
               |    "name": "private-network",
               |    "admin_state_up": true,
               |    "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
               |    "shared": true,
-              |    "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
+              |    "id": "$netId",
               |    "router:external": true
               |}
             """.stripMargin
@@ -55,8 +58,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         network.getAdminStateUp shouldBe true
         network.getTenantId should equal("4fd44f30292945e481c7b8a0c8908869")
         network.getShared shouldBe true
-        network.getId.getMsb shouldBe 0xd32019d3bc6e4319L
-        network.getId.getLsb shouldBe 0x9c1d6722fc136a22L
+        network.getId shouldBe UUIDUtil.toProto(netId)
     }
 
     // Interesting features:
@@ -65,17 +67,20 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
     //    is a repeated field.
     // 3. Enums (EtherType, Protocol, RuleDirection).
     test("Neutron SecurityGroup deserialization.") {
+        val sgId = UUID.randomUUID()
+        val rule1Id = UUID.randomUUID()
+        val rule2Id = UUID.randomUUID()
         val json =
-            """
+            s"""
               |{
-              |    "id": "cbb90306-60e8-446a-9a8a-e31840951096",
+              |    "id": "$sgId",
               |    "tenant_id": "dffc89ff6f1644ba8b00af458fa2b76d",
               |    "name": "secgrp1",
               |    "description": "Test security group",
               |    "security_group_rules": [
               |        {
-              |            "id": "6a7e9264-8fe9-4429-809a-cf2514275b75",
-              |            "security_group_id": "cbb90306-60e8-446a-9a8a-e31840951096",
+              |            "id": "$rule1Id",
+              |            "security_group_id": "$sgId",
               |            "direction": "egress",
               |            "ethertype": "IPv4",
               |            "protocol": "TCP",
@@ -83,8 +88,8 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
               |            "port_range_max": 10009
               |        },
               |        {
-              |            "id": "1af2f735-6a02-4954-ae21-8316086c2e5e",
-              |            "security_group_id": "cbb90306-60e8-446a-9a8a-e31840951096",
+              |            "id": "$rule2Id",
+              |            "security_group_id": "$sgId",
               |            "direction": "ingress",
               |            "ethertype": "IPv6",
               |            "protocol": "ICMPv6"
@@ -95,14 +100,12 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
 
         val secGrp =
             NeutronDeserializer.toMessage(json, classOf[SecurityGroup])
-        secGrp.getId.getMsb shouldBe 0xcbb9030660e8446aL
-        secGrp.getId.getLsb shouldBe 0x9a8ae31840951096L
+        secGrp.getId shouldBe UUIDUtil.toProto(sgId)
         secGrp.getTenantId shouldBe "dffc89ff6f1644ba8b00af458fa2b76d"
         secGrp.getDescription shouldBe "Test security group"
 
         val rule1 = secGrp.getSecurityGroupRules(0)
-        rule1.getId.getMsb shouldBe 0x6a7e92648fe94429L
-        rule1.getId.getLsb shouldBe 0x809acf2514275b75L
+        rule1.getId shouldBe UUIDUtil.toProto(rule1Id)
         rule1.getSecurityGroupId should equal(secGrp.getId)
         rule1.getDirection shouldBe Commons.RuleDirection.EGRESS
         rule1.getEthertype shouldBe Commons.EtherType.IPV4
@@ -111,8 +114,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         rule1.getPortRangeMax shouldBe 10009
 
         val rule2 = secGrp.getSecurityGroupRules(1)
-        rule2.getId.getMsb shouldBe 0x1af2f7356a024954L
-        rule2.getId.getLsb shouldBe 0xae218316086c2e5eL
+        rule2.getId shouldBe UUIDUtil.toProto(rule2Id)
         rule2.getSecurityGroupId should equal(secGrp.getId)
         rule2.getDirection shouldBe Commons.RuleDirection.INGRESS
         rule2.getEthertype shouldBe Commons.EtherType.IPV6
@@ -125,10 +127,11 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
     test("NeutronSubnet deserialization") {
         // Skipping a bunch of fields since they're basically the same as
         // fields covered in other tests.
+        val subId = UUID.randomUUID()
         val json =
-            """
+            s"""
               |{
-              |    "id": "cfb29505-5daf-4624-b3de-64e36908e795",
+              |    "id": "$subId",
               |    "name": "Test subnet",
               |    "gateway_ip": "123.45.67.89",
               |    "allocation_pools": [
@@ -150,6 +153,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
 
         val subnet =
             NeutronDeserializer.toMessage(json, classOf[NeutronSubnet])
+        subnet.getId shouldBe UUIDUtil.toProto(subId)
         subnet.getName shouldBe "Test subnet"
         subnet.getGatewayIp.getVersion shouldBe Commons.IPVersion.V4
         subnet.getGatewayIp.getAddress shouldBe "123.45.67.89"
@@ -175,13 +179,14 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
     }
 
     test("Neutron Port deserialization") {
+        val portId = UUID.randomUUID()
         val json =
-            """
+            s"""
               |{
               |    "name": "router-gateway-port",
               |    "admin_state_up": true,
               |    "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
-              |    "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
+              |    "id": "$portId",
               |    "device_owner": "network:router_interface",
               |    "port_security_enabled": true,
               |    "allowed_address_pairs": [{"ip_address": "1.2.3.4", "mac_address": "01:02:03:04:05:06"}]
@@ -193,8 +198,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         port.getName should equal("router-gateway-port")
         port.getAdminStateUp shouldBe true
         port.getTenantId should equal("4fd44f30292945e481c7b8a0c8908869")
-        port.getId.getMsb shouldBe 0xd32019d3bc6e4319L
-        port.getId.getLsb shouldBe 0x9c1d6722fc136a22L
+        port.getId shouldBe UUIDUtil.toProto(portId)
         port.getDeviceOwner shouldBe NeutronPort.DeviceOwner.ROUTER_INTERFACE
         port.getPortSecurityEnabled shouldBe true
         port.getAllowedAddressPairsCount shouldBe 1
@@ -203,13 +207,14 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
     }
 
     test("Neutron Compute Port deserialization") {
+        val portId = UUID.randomUUID()
         val json =
-            """
+            s"""
               |{
               |    "name": "compute-port",
               |    "admin_state_up": true,
               |    "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
-              |    "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
+              |    "id": "$portId",
               |    "device_owner": "compute:some_az"
               |}
             """.stripMargin
@@ -219,20 +224,20 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         port.getName should equal("compute-port")
         port.getAdminStateUp shouldBe true
         port.getTenantId should equal("4fd44f30292945e481c7b8a0c8908869")
-        port.getId.getMsb shouldBe 0xd32019d3bc6e4319L
-        port.getId.getLsb shouldBe 0x9c1d6722fc136a22L
+        port.getId shouldBe UUIDUtil.toProto(portId)
         port.getDeviceOwner shouldBe NeutronPort.DeviceOwner.COMPUTE
         port.getPortSecurityEnabled shouldBe true
         port.getAllowedAddressPairsCount shouldBe 0
     }
 
     test("Neutron Router deserialization") {
+        val routerId = UUID.randomUUID()
         val json =
-            """
+            s"""
               |{
               |    "name": "test-router",
               |    "admin_state_up": true,
-              |    "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
+              |    "id": "$routerId",
               |    "external_gateway_info": {
               |        "enable_snat": true,
               |        "fixed_external_ips": [ "10.0.0.1", "10.0.0.2"]
@@ -245,8 +250,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
             NeutronDeserializer.toMessage(json, classOf[NeutronRouter])
         router.getName should equal("test-router")
         router.getAdminStateUp shouldBe true
-        router.getId.getMsb shouldBe 0xd32019d3bc6e4319L
-        router.getId.getLsb shouldBe 0x9c1d6722fc136a22L
+        router.getId shouldBe UUIDUtil.toProto(routerId)
         router.getExternalGatewayInfo.getEnableSnat shouldBe true
     }
 
@@ -267,19 +271,24 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
     }
 
     test("Neutron Firewall deserialization") {
+        val fwId = UUID.randomUUID()
+        val fwPolicyId = UUID.randomUUID()
+        val router1Id = UUID.randomUUID()
+        val router2Id = UUID.randomUUID()
+        val fwRuleId = UUID.randomUUID()
         val json =
-            """
+            s"""
               |{
               |    "name": "test-fw",
               |    "description": "test-desc",
               |    "shared": true,
               |    "status": "ACTIVE",
-              |    "firewall_policy_id": "c63e3aa8-45d7-11e5-8181-0242ac110002",
+              |    "firewall_policy_id": "$fwPolicyId",
               |    "admin_state_up": true,
               |    "tenant_id": "test-tenant",
-              |    "id": "9b77a944-45d7-11e5-a6b4-0242ac110002",
+              |    "id": "$fwId",
               |    "firewall_rule_list": [
-              |        {"id": "158dac38-45d8-11e5-b408-0242ac110002",
+              |        {"id": "$fwRuleId",
               |         "tenant_id": "test-tenant",
               |         "name": "test-fw-rule",
               |         "description": "test-desc",
@@ -295,33 +304,28 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
               |         "enabled": false
               |        }
               |    ],
-              |    "add-router-ids": ["f51c6aa2-45d7-11e5-83a4-0242ac110002"],
-              |    "del-router-ids": ["fdcb8f84-45d7-11e5-84a9-0242ac110002"]
+              |    "add-router-ids": ["$router1Id"],
+              |    "del-router-ids": ["$router2Id"]
               |}
             """.stripMargin
 
         val fw = NeutronDeserializer.toMessage(json, classOf[NeutronFirewall])
-        fw.getId.getMsb shouldBe 0x9b77a94445d711e5L
-        fw.getId.getLsb shouldBe 0xa6b40242ac110002L
+        fw.getId shouldBe UUIDUtil.toProto(fwId)
         fw.getName shouldBe "test-fw"
         fw.getDescription shouldBe "test-desc"
         fw.getShared shouldBe true
         fw.getStatus shouldBe "ACTIVE"
-        fw.getFirewallPolicyId.getMsb shouldBe 0xc63e3aa845d711e5L
-        fw.getFirewallPolicyId.getLsb shouldBe 0x81810242ac110002L
+        fw.getFirewallPolicyId shouldBe UUIDUtil.toProto(fwPolicyId)
         fw.getAdminStateUp shouldBe true
         fw.getTenantId shouldBe "test-tenant"
 
         fw.getAddRouterIdsCount shouldBe 1
-        fw.getAddRouterIds(0).getMsb shouldBe 0xf51c6aa245d711e5L
-        fw.getAddRouterIds(0).getLsb shouldBe 0x83a40242ac110002L
+        fw.getAddRouterIds(0) shouldBe  UUIDUtil.toProto(router1Id)
         fw.getDelRouterIdsCount shouldBe 1
-        fw.getDelRouterIds(0).getMsb shouldBe 0xfdcb8f8445d711e5L
-        fw.getDelRouterIdsOrBuilder(0).getLsb shouldBe 0x84a90242ac110002L
+        fw.getDelRouterIds(0) shouldBe  UUIDUtil.toProto(router2Id)
 
         fw.getFirewallRuleListCount shouldBe 1
-        fw.getFirewallRuleList(0).getId.getMsb shouldBe 0x158dac3845d811e5L
-        fw.getFirewallRuleList(0).getId.getLsb shouldBe 0xb4080242ac110002L
+        fw.getFirewallRuleList(0).getId shouldBe  UUIDUtil.toProto(fwRuleId)
         fw.getFirewallRuleList(0).getTenantId shouldBe "test-tenant"
         fw.getFirewallRuleList(0).getName shouldBe "test-fw-rule"
         fw.getFirewallRuleList(0).getDescription shouldBe "test-desc"
