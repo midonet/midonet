@@ -242,6 +242,75 @@ trait TopologyBuilder {
         builder.build()
     }
 
+    def createMirror(id: UUID = UUID.randomUUID,
+                     toPort: UUID): Mirror = {
+        val builder = Mirror.newBuilder
+            .setId(id.asProto)
+            .setToPort(toPort.asProto)
+        builder.build()
+    }
+
+    def addMirrorCondition(mirrorBuilder: Mirror.Builder,
+                           conjunctionInv: Option[Boolean] = None,
+                           matchForwardFlow: Option[Boolean] = None,
+                           matchReturnFlow: Option[Boolean] = None,
+                           inPortIds: Option[Set[UUID]] = None,
+                           inPortInv: Option[Boolean] = None,
+                           outPortIds: Option[Set[UUID]] = None,
+                           outPortInv: Option[Boolean] = None,
+                           portGroup: Option[UUID] = None,
+                           invPortGroup: Option[Boolean] = None,
+                           ipAddrGroupIdSrc: Option[UUID] = None,
+                           invIpAddrGroupIdSrc: Option[Boolean] = None,
+                           ipAddrGroupIdDst: Option[UUID] = None,
+                           invIpAddrGroupIdDst: Option[Boolean] = None,
+                           etherType: Option[Int] = None,
+                           invDlType: Option[Boolean] = None,
+                           ethSrc: Option[MAC] = None,
+                           ethSrcMask: Option[Long] = None,
+                           invDlSrc: Option[Boolean] = None,
+                           ethDst: Option[MAC] = None,
+                           dlDstMask: Option[Long] = None,
+                           invDlDst: Option[Boolean] = None,
+                           nwTos: Option[Byte] = None,
+                           nwTosInv: Option[Boolean] = None,
+                           nwProto: Option[Byte] = None,
+                           nwProtoInv: Option[Boolean] = None,
+                           nwSrcIp: Option[IPSubnet[_]] = None,
+                           nwDstIp: Option[IPSubnet[_]] = None,
+                           tpSrc: Option[Range[Integer]] = None,
+                           tpDst: Option[Range[Integer]] = None,
+                           nwSrcInv: Option[Boolean] = None,
+                           nwDstInv: Option[Boolean] = None,
+                           tpSrcInv: Option[Boolean] = None,
+                           tpDstInv: Option[Boolean] = None,
+                           traversedDevice: Option[UUID] = None,
+                           traversedDeviceInv: Option[Boolean] = None,
+                           fragmentPolicy: Option[FragmentPolicy] = None)
+    : Mirror.Builder = {
+        val condBuilder = Condition.newBuilder()
+        setConditionParameters(condBuilder, conjunctionInv, matchForwardFlow,
+            matchReturnFlow, inPortIds, inPortInv,
+            outPortIds, outPortInv, portGroup,
+            invPortGroup, ipAddrGroupIdSrc,
+            invIpAddrGroupIdSrc, ipAddrGroupIdDst,
+            invIpAddrGroupIdDst, etherType,
+            invDlType, ethSrc, ethSrcMask, invDlSrc,
+            ethDst, dlDstMask, invDlDst,
+            nwTos, nwTosInv, nwProto,
+            nwProtoInv, nwSrcIp, nwDstIp,
+            tpSrc, tpDst, nwSrcInv, nwDstInv,
+            tpSrcInv, tpDstInv, traversedDevice,
+            traversedDeviceInv, fragmentPolicy)
+        mirrorBuilder.addConditions(condBuilder)
+        mirrorBuilder
+    }
+
+    def createMirrorBuilder(id: UUID = UUID.randomUUID, toPort: UUID): Mirror.Builder = {
+        Mirror.newBuilder().setId(UUIDUtil.toProto(id)).
+                            setToPort(UUIDUtil.toProto(toPort))
+    }
+
     def setCondition(ruleBuilder: Rule.Builder,
                      conjunctionInv: Option[Boolean] = None,
                      matchForwardFlow: Option[Boolean] = None,

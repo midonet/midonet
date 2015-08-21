@@ -79,6 +79,7 @@ object FlowTagger {
     class BridgeDeviceTag(device: UUID) extends DeviceTag(device)
     class RouterDeviceTag(device: UUID) extends DeviceTag(device)
     class PortDeviceTag(device: UUID) extends DeviceTag(device)
+    class MirrorDeviceTag(device: UUID) extends DeviceTag(device)
     class ChainDeviceTag(device: UUID) extends DeviceTag(device)
 
     val cachedDeviceTags = new ThreadLocal[TagsTrie] {
@@ -92,6 +93,7 @@ object FlowTagger {
         classTag[BridgeDeviceTag] -> (new BridgeDeviceTag(_)),
         classTag[RouterDeviceTag] -> (new RouterDeviceTag(_)),
         classTag[PortDeviceTag] -> (new PortDeviceTag(_)),
+        classTag[MirrorDeviceTag] -> (new MirrorDeviceTag(_)),
         classTag[ChainDeviceTag] -> (new ChainDeviceTag(_)))
 
     private def tagForDevice[T <: DeviceTag](device: UUID)(implicit ctag: ClassTag[T]): FlowTag = {
@@ -113,6 +115,7 @@ object FlowTagger {
     def tagForRouter(device: UUID) = tagForDevice[RouterDeviceTag](device)
     def tagForPort(device: UUID) = tagForDevice[PortDeviceTag](device)
     def tagForChain(device: UUID) = tagForDevice[ChainDeviceTag](device)
+    def tagForMirror(device: UUID) = tagForDevice[MirrorDeviceTag](device)
 
     case class PortTxTag(port: UUID) extends FlowTag with MeterTag {
         override def toString = "port:tx:" + port
