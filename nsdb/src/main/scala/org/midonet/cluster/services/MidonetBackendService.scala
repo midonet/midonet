@@ -40,19 +40,11 @@ object MidonetBackend {
     final val RoutesKey = "routes"
     final val VtepConfig = "config"
     final val VtepConnState = "connection_state"
-}
-
-/** The trait that models the new Midonet Backend, managing all relevant
-  * connections and APIs to interact with backend storages. */
-abstract class MidonetBackend extends AbstractService {
-    /** Provides access to the Topology storage API */
-    def store: Storage
-    def stateStore: StateStorage
-    def curator: CuratorFramework
+    final val VtepVxgwManager = "vxgw_manager"
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
-    final def setupBindings(): Unit = {
+    final def setupBindings(store: Storage, stateStore: StateStorage): Unit = {
         List(classOf[AgentMembership],
              classOf[BgpNetwork],
              classOf[BgpPeer],
@@ -201,10 +193,26 @@ abstract class MidonetBackend extends AbstractService {
         stateStore.registerKey(classOf[TunnelZone], FloodingProxyKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepConfig, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepConnState, SingleLastWriteWins)
+        stateStore.registerKey(classOf[Vtep], VtepVxgwManager, SingleLastWriteWins)
 
         store.build()
     }
 
+}
+
+/** The trait that models the new Midonet Backend, managing all relevant
+  * connections and APIs to interact with backend storages. */
+abstract class MidonetBackend extends AbstractService {
+    /** Indicates whether the new backend stack is active */
+    def isEnabled = false
+    /** Provides access to the Topology Model API */
+    def store: Storage
+    /** Provides access to the Topology State API */
+    def stateStore: StateStorage
+    /** The Curator instance being used */
+    def curator: CuratorFramework
+    /** The current config being used on this backend */
+    def config: MidonetBackendConfig
 }
 
 /** Class responsible for providing services to access to the new Storage
@@ -221,6 +229,7 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
+    override def config: MidonetBackendConfig = cfg
 
     protected override def doStart(): Unit = {
         log.info(s"Starting backend ${this} store: $store")
@@ -229,7 +238,7 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
                 curator.start()
             }
             log.info("Setting up storage bindings")
-            setupBindings()
+            MidonetBackend.setupBindings(zoom, zoom)
             notifyStarted()
         } catch {
             case e: Exception =>

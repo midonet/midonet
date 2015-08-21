@@ -98,7 +98,8 @@ class FloodingProxyHerald(backend: MidonetBackend, executor: Executor) {
         override def onCompleted(): Unit = {
             log.debug("Zone {} was deleted", tzId)
             fpIndex.remove(tzId)
-            updateStream.onNext(FloodingProxy(tzId, null, null))
+            updateStream.onNext(FloodingProxy(tzId, hostId = null,
+                                              tunnelIp = null))
         }
         override def onError(throwable: Throwable): Unit = {}
         override def onNext(t: StateKey): Unit = t match {

@@ -40,9 +40,10 @@ class MidonetTestBackend extends MidonetBackend {
     override def store: Storage = inMemoryZoom
     override def stateStore: StateStorage = inMemoryZoom
     override def curator: CuratorFramework = null
+    override def config: MidonetBackendConfig = cfg
 
     override def doStart(): Unit = {
-        setupBindings()
+        MidonetBackend.setupBindings(store, stateStore)
         notifyStarted()
     }
 

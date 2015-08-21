@@ -42,11 +42,11 @@ import org.midonet.client.dto.DtoVtepBinding;
 import org.midonet.client.dto.DtoVtepPort;
 import org.midonet.client.dto.DtoVxLanPort;
 import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.models.State;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Vtep;
 import org.midonet.cluster.rest_api.models.VtepBinding;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.midolman.state.VtepConnectionState;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -55,6 +55,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.midonet.api.network.TestPort.createBridgePort;
+import static org.midonet.cluster.models.State.VtepConnectionState.VTEP_CONNECTED;
+import static org.midonet.cluster.models.State.VtepConnectionState.VTEP_ERROR;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V2;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_JSON;
@@ -146,7 +148,7 @@ public class TestVtep extends RestApiTestBase {
     @Ignore("TODO FIXME - pending implementation in v2")
     public void testCreate() {
         DtoVtep vtep = postVtep();
-        assertEquals(VtepConnectionState.CONNECTED.toString(),
+        assertEquals(VTEP_CONNECTED.toString(),
                      vtep.getConnectionState());
         assertEquals(mockVtep1.desc(), vtep.getDescription());
         assertEquals(mockVtep1.mgmtIp(), vtep.getManagementIp());
@@ -214,7 +216,7 @@ public class TestVtep extends RestApiTestBase {
     @Ignore("TODO FIXME - pending implementation in v2")
     public void testCreateWithInaccessibleIpAddr() {
         DtoVtep vtep = postVtep("10.0.0.1", 10001);
-        assertEquals(VtepConnectionState.ERROR.toString(),
+        assertEquals(VTEP_ERROR.toString(),
                      vtep.getConnectionState());
         assertNull(vtep.getDescription());
         assertEquals("10.0.0.1", vtep.getManagementIp());
@@ -280,10 +282,10 @@ public class TestVtep extends RestApiTestBase {
         // only one will successfully connect.
         DtoVtep[] expectedVteps = new DtoVtep[2];
         expectedVteps[0] = postVtep("10.0.0.1", 10001);
-        assertEquals(VtepConnectionState.ERROR.toString(),
+        assertEquals(VTEP_ERROR.toString(),
                      expectedVteps[0].getConnectionState());
         expectedVteps[1] = postVtep();
-        assertEquals(VtepConnectionState.CONNECTED.toString(),
+        assertEquals(VTEP_CONNECTED.toString(),
                      expectedVteps[1].getConnectionState());
 
         DtoVtep[] actualVteps = listVteps();

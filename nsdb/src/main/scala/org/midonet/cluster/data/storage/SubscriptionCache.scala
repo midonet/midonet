@@ -26,6 +26,7 @@ import org.apache.zookeeper.KeeperException.NoNodeException
 import rx.Observable
 import rx.functions.Func1
 
+import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.cluster.util.{ObservableNodeCache, ObservablePathChildrenCache}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
