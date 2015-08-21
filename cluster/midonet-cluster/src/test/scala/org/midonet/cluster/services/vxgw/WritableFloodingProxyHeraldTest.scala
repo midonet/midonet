@@ -36,6 +36,7 @@ import org.midonet.cluster.models.Topology.TunnelZone.Type
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.FloodingProxyKey
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.packets.IPv4Addr
@@ -70,6 +71,7 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             override def curator: CuratorFramework = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
+            override def config(): MidonetBackendConfig = ???
         }
     }
 
@@ -78,7 +80,8 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
     feature("The herald publishes updates properly") {
 
         scenario("State key serialization") {
-            val fp = FloodingProxy(randId(), randId(), IPv4Addr.random)
+            val fp = FloodingProxy(tunnelZoneId = randId(),
+                                   hostId = randId(), IPv4Addr.random)
             val _1 = FloodingProxyHerald.deserialize(fp.tunnelZoneId,
                                                  s"${fp.hostId}#${fp.tunnelIp}")
             val _2 = FloodingProxy(fp.tunnelZoneId, fp.hostId, fp.tunnelIp)
@@ -163,7 +166,8 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
                                                          sameThreadExecutor())
             herald.lookup(tzId) shouldBe None
 
-            val fp = FloodingProxy(randId(), h2Id, IPv4Addr.random)
+            val fp = FloodingProxy(tunnelZoneId = randId(), h2Id,
+                                   IPv4Addr.random)
             herald.announce(fp, retry)
 
             latch.await(1, TimeUnit.SECONDS) shouldBe true

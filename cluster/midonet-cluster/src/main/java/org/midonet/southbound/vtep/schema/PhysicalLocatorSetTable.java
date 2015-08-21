@@ -30,8 +30,8 @@ import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 import org.midonet.cluster.data.vtep.model.PhysicalLocatorSet;
 import org.midonet.cluster.data.vtep.model.VtepEntry;
 
-import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
-import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdb;
+import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
 
 /**
  * Schema for the Ovsdb physical switch table

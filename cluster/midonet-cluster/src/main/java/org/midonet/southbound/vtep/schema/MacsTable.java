@@ -33,7 +33,7 @@ import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.cluster.data.vtep.model.VtepMAC;
 import org.midonet.packets.IPv4Addr;
 
-import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
 
 /**
  * Common schema sections for the {Ucast|Mcast}Mac{Local|Remote} tables

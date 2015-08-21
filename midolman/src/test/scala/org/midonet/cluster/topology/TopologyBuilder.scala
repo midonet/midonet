@@ -33,7 +33,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.state.l4lb.{LBStatus => L4LBStatus}
 import org.midonet.midolman.{layer3 => l3}
@@ -43,6 +43,18 @@ import org.midonet.util.Range
 trait TopologyBuilder {
 
     import TopologyBuilder._
+
+    def createVtep(id: UUID = UUID.randomUUID(),
+                  mgmtIp: IPv4Addr = IPv4Addr.random,
+                  mgmtPort: Int = 6632,
+                  tzId: UUID = UUID.randomUUID()): Vtep = {
+        return Vtep.newBuilder()
+            .setId(UUIDUtil.toProto(id))
+            .setTunnelZoneId(UUIDUtil.toProto(tzId))
+            .setManagementIp(IPAddressUtil.toProto(mgmtIp))
+            .setManagementPort(mgmtPort)
+            .build()
+    }
 
     def createBridgePort(id: UUID = UUID.randomUUID,
                          bridgeId: Option[UUID] = None,

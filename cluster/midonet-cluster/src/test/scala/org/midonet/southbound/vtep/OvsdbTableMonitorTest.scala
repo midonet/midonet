@@ -31,6 +31,7 @@ import rx.Observer
 
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtep.{VtepEntryUpdate, VtepTableReady, VtepTableUpdate, OvsdbTableMonitor}
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema.PhysicalLocatorTable
 import org.midonet.util.concurrent.CallingThreadExecutionContext

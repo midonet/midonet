@@ -36,6 +36,7 @@ import rx.{Observable, Observer, Subscriber}
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.data.vtep.{VtepConfigException, VtepData, VtepStateException}
 import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtep.OvsdbTools
 import org.midonet.southbound.vtep.schema.Table.OvsdbOperation
 import org.midonet.southbound.vtep.schema._
 import org.midonet.util.concurrent._
