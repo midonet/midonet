@@ -503,7 +503,7 @@ class PacketWorkflow(
         } else if (resolveVport(context, inPortNo)) {
             val result = handleMetadataIngress(context)
 
-            if (result != NoOp) {
+            if (result ne null) {
                 processSimulationResult(context, result)
             } else {
                 processSimulationResult(context, simulatePacketIn(context))
@@ -511,7 +511,7 @@ class PacketWorkflow(
         } else {
             val result = handleMetadataEgress(context)
 
-            if (result != NoOp) {
+            if (result ne null) {
                 processSimulationResult(context, result)
             } else {
                 processSimulationResult(context, handleBgp(context, inPortNo))

@@ -47,14 +47,9 @@ class Plumber(val dpState: DatapathState) {
         log debug s"Plumbing ${vmDpPortNo} ${addr} ${vmInfo} ${mdInfo}"
 
         /*
-         * Install a static ARP entry for the VM.
-         * The specific MAC address here doesn't actually matter because
-         * it's always overwritten by our flows anyway.
-         *
-         * XXX better to use rtnetlink
-         * XXX error check
+         * TODO(yamamoto): we should set up arp responder
+         * for RFC compliant guests and no router case.
          */
-        Process(s"arp -s ${addr} ${vmInfo.mac}").!
 
         addr
     }
@@ -63,11 +58,5 @@ class Plumber(val dpState: DatapathState) {
         val vmDpPortNo = AddressManager remoteAddressToDpPort addr
 
         log debug s"Unpluming ${vmDpPortNo} ${addr} ${vmInfo} ${mdInfo}"
-
-        /*
-         * XXX better to use rtnetlink
-         * XXX error check
-         */
-        Process(s"arp -d ${addr}").!
     }
 }
