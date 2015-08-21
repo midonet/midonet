@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c0874ad6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-21T09:51:11Z",
+      "side": 1,
+      "message": "can we make this call a no-op if metadata service is disabled in configuration? The rationale is that the match in handleMetadata*() will interfere with megaflow.",
+      "revId": "649c11b7189b37265cc524c546c965947b811a7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
