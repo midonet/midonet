@@ -492,20 +492,19 @@ class PacketWorkflow(
         if (context.origMatch.isFromTunnel) {
             handleFromTunnel(context, inPortNo)
         } else if (resolveVport(context, inPortNo)) {
-            val result = handleMetadataIngress(context)
-
-            if (result != NoOp) {
-                processSimulationResult(context, result)
-            } else {
-                processSimulationResult(context, simulatePacketIn(context))
+            handleMetadataIngress(context) match {
+                case Some(result) =>
+                    processSimulationResult(context, result)
+                case None =>
+                    processSimulationResult(context, simulatePacketIn(context))
             }
         } else {
-            val result = handleMetadataEgress(context)
-
-            if (result != NoOp) {
-                processSimulationResult(context, result)
-            } else {
-                processSimulationResult(context, handleBgp(context, inPortNo))
+            handleMetadataEgress(context) match {
+                case Some(result) =>
+                    processSimulationResult(context, result)
+                case None =>
+                    processSimulationResult(context,
+                                            handleBgp(context, inPortNo))
             }
         }
     }
