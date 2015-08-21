@@ -19,8 +19,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.util.UUID;
 
-import javax.ws.rs.core.Response.Status;
-
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -41,10 +39,10 @@ import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Vtep;
 import org.midonet.cluster.rest_api.models.VtepBinding;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4Addr;
 
 import static java.util.UUID.randomUUID;
+import static javax.ws.rs.core.Response.Status;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -55,6 +53,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.midonet.api.network.TestPort.createBridgePort;
+import static org.midonet.cluster.models.State.VtepConnectionState.VTEP_ERROR;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_BINDING_COLLECTION_JSON;
@@ -179,7 +178,7 @@ public class TestVtep extends RestApiTestBase {
     @Ignore // we need to make the mock provider return non-connectable VTEPs
     public void testCreateWithInaccessibleIpAddr() {
         DtoVtep vtep = postVtep("10.0.0.1", 10001);
-        assertEquals(VtepConnectionState.ERROR.toString(),
+        assertEquals(VTEP_ERROR.toString(),
                      vtep.getConnectionState());
         assertNull(vtep.getDescription());
         assertEquals("10.0.0.1", vtep.getManagementIp());
@@ -536,8 +535,8 @@ public class TestVtep extends RestApiTestBase {
     public void testListVtepPorts() {
         DtoVtep vtep = postVtep();
         DtoVtepPort[] ports = dtoResource.getAndVerifyOk(vtep.getPorts(),
-                                                         APPLICATION_VTEP_PORT_COLLECTION_JSON,
-                                                         DtoVtepPort[].class);
+                                     APPLICATION_VTEP_PORT_COLLECTION_JSON,
+                                     DtoVtepPort[].class);
 
         DtoVtepPort[] expectedPorts =
             new DtoVtepPort[mockVtep1.portNames().length];
