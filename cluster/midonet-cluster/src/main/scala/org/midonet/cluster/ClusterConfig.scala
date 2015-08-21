@@ -101,8 +101,6 @@ class VxGwConfig(val conf: Config) extends MinionConfig[VxlanGatewayService] {
     final val Prefix = "cluster.vxgw"
 
     override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
-
-    def networkBufferSize = conf.getInt(s"$Prefix.network_buffer_size")
 }
 
 class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiService] {

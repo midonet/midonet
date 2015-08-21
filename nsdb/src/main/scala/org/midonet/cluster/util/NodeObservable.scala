@@ -196,6 +196,7 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
         if (event.getResultCode == Code.OK.intValue) {
             val childData = new ChildData(path, event.getStat, event.getData)
             currentData.set(childData)
+            log.debug(s"Emitting child data for path $path")
             subject.onNext(childData)
         } else if (event.getResultCode == Code.NONODE.intValue) {
             if (completeOnDelete) {

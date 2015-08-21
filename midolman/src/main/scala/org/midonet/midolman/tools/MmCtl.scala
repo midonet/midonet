@@ -159,7 +159,7 @@ class MmCtl(injector: Injector) {
         curator.start()
 
         val backend = injector.getInstance(classOf[MidonetBackend])
-        backend.setupBindings()
+        MidonetBackend.setupBindings(backend.store, backend.stateStore)
 
         val lockFactory = injector.getInstance(classOf[ZookeeperLockFactory])
         new ZoomPortBinder(backend.store, lockFactory)
