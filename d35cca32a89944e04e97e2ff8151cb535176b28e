@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_a6597e90",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "These are out-of-order.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e0944e8e",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 3
@@ -48,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6694d6e8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "If I understand what Ryu wrote in the spec correctly, it seems possible that Neutron sends an ID of a router with which the firewall is no longer associated.",
+      "parentUuid": "9ad9bd40_20b8f629",
+      "range": {
+        "startLine": 109,
+        "startChar": 12,
+        "endLine": 109,
+        "endChar": 69
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_40b5fa2f",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 3
@@ -71,6 +118,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8699da21",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "9ad9bd40_40b5fa2f",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 114,
+        "endChar": 42
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a07b267a",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 3
@@ -82,6 +153,30 @@
       "writtenOn": "2015-08-21T07:18:53Z",
       "side": 1,
       "message": "Comment to explain why this check is necessary.\n\nAlso, maybe add a comment on the add_router_ids and del_router_ids field in neutron.proto, since the meaning is so counterintuitive.",
+      "range": {
+        "startLine": 119,
+        "startChar": 16,
+        "endLine": 119,
+        "endChar": 71
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e68706b5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Again if I understand the spec correctly, Neutron may do a stupid thing, and that\u0027s why.\n\nAlso, we may want to execute two \"exists\" Futures concurrently for efficiency reason.",
+      "parentUuid": "9ad9bd40_a07b267a",
       "range": {
         "startLine": 119,
         "startChar": 16,
@@ -140,6 +235,121 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_66621618",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Does Neutron guarantee to provide an ID for each Firewall Rule?",
+      "range": {
+        "startLine": 231,
+        "startChar": 19,
+        "endLine": 231,
+        "endChar": 26
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_467d12b1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Could you please revert those changes?",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 60,
+        "endChar": 40
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_46735215",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Please revert this change as it\u0027s not necessary.",
+      "range": {
+        "startLine": 78,
+        "startChar": 4,
+        "endLine": 84,
+        "endChar": 42
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c68762d6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Perhaps we can now inline this method.",
+      "range": {
+        "startLine": 135,
+        "startChar": 16,
+        "endLine": 135,
+        "endChar": 32
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c6168255",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Please sort these.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 40
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_40e33a33",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
         "patchSetId": 3
@@ -156,6 +366,46 @@
         "startChar": 42,
         "endLine": 43,
         "endChar": 50
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ba2a6e7c",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Can you bring this at the end of the line just above?",
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9a4cca78",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "expectedNum?",
+      "range": {
+        "startLine": 346,
+        "startChar": 12,
+        "endLine": 346,
+        "endChar": 20
       },
       "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -186,6 +436,69 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_3a3d7ebc",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Instead of retrieving rules one by one, isn\u0027t more efficient to call getAll()?",
+      "range": {
+        "startLine": 354,
+        "startChar": 16,
+        "endLine": 354,
+        "endChar": 67
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7a47064c",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Please swap \"ruleIds\" (expected) with inChainRuleIds (actual).",
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ba78ae90",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 376,
+        "startChar": 12,
+        "endLine": 376,
+        "endChar": 20
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_40ba5a0b",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
         "patchSetId": 3
@@ -203,6 +516,350 @@
         "endLine": 389,
         "endChar": 56
       },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ba9fceb3",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "I don\u0027t really think we need to test these here as those have already been tested elsewhere... If you want, \"r.hasInboundFilterId shouldBe true\" seems sufficient.",
+      "range": {
+        "startLine": 428,
+        "startChar": 12,
+        "endLine": 430,
+        "endChar": 56
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_faa956e0",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Again, I don\u0027t like this extra empty space just below \"ARG \u003d\u003e\". I think this actually makes the code less readable.",
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e65c664f",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Please sort.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 38
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_065a2a50",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Please align the indentation.",
+      "range": {
+        "startLine": 39,
+        "startChar": 34,
+        "endLine": 39,
+        "endChar": 52
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_66305608",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "You can use UUIDUtil.randomUuidProto()",
+      "range": {
+        "startLine": 49,
+        "startChar": 19,
+        "endLine": 49,
+        "endChar": 54
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c63f62d5",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "This doesn\u0027t really test if NeutronTranslator.toTopologyRuleAction does the correct mapping.",
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_66177655",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "The same point applies here as well.",
+      "range": {
+        "startLine": 100,
+        "startChar": 8,
+        "endLine": 101,
+        "endChar": 51
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_861c7a79",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "This should be placed in the line  below.",
+      "range": {
+        "startLine": 159,
+        "startChar": 97,
+        "endLine": 159,
+        "endChar": 98
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a6433e6b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "We don\u0027t have a translator for NeutronFirewallRule yet, so we\u0027re not storing NeutronFirewallRule and therefore don\u0027t need register NeutronFirewallRule here.",
+      "range": {
+        "startLine": 70,
+        "startChar": 13,
+        "endLine": 70,
+        "endChar": 41
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c65e8276",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 776,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "if admin_state_up is false? Also, if I understand correctly, if the admin_state_up is false, there\u0027s no need to add the rest of the rules?",
+      "range": {
+        "startLine": 776,
+        "startChar": 59,
+        "endLine": 776,
+        "endChar": 63
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_86939a4e",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 779,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "This is already stated by \"in the order specified\" at line 774. Please remove.",
+      "range": {
+        "startLine": 779,
+        "startChar": 3,
+        "endLine": 779,
+        "endChar": 27
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e6c8e658",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 793,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "An extra preceding white space. this \"* Rule\" should be aligned with \"*\" in line 776-778.",
+      "range": {
+        "startLine": 793,
+        "startChar": 0,
+        "endLine": 793,
+        "endChar": 3
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_66c69618",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 797,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "false?",
+      "range": {
+        "startLine": 797,
+        "startChar": 61,
+        "endLine": 797,
+        "endChar": 65
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a6afbe7c",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 800,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Could you please add descriptions for the semantics of add_router_ids and del_router_ids? Is it correct to understand that add_router_ids contain IDs of the routers with which this newly created Firewall is associated?",
+      "range": {
+        "startLine": 800,
+        "startChar": 0,
+        "endLine": 800,
+        "endChar": 26
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_26c3ae39",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 807,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "What are the fields that can be updated besides rule and add / del router IDs? Possibly only admin_state_up?",
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c6b4c2d3",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 828,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-21T17:14:47Z",
+      "side": 1,
+      "message": "Does Neutron  provides the list of IDs of all the router that this Firewall has been associated in del_router_ids? or do we need to keep track of them by back-reference?",
       "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
