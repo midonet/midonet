@@ -31,9 +31,6 @@ package object vxgw {
     // For interaction with the MidoNet side of a VxGW
     def vxgwMidonetLog(networkId: UUID)
         = s"org.midonet.vxgw.vxgw-controller-midonet-$networkId"
-    // For processes syncing macs among MidoNet and Hardware VTEPs
-    def vxgwMacSyncingLog(networkId: UUID)
-        = s"org.midonet.vxgw.vxgw-mac-sync-$networkId"
     // For management of a VxGW joining a Network with Hardware VTEPs
     def vxgwMgmtLog(networkId: UUID)
         = s"org.midonet.vxgw.vxgw-manager.$networkId"

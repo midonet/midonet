@@ -23,16 +23,15 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
 import com.typesafe.scalalogging.Logger
-
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.slf4j.LoggerFactory
 import rx.Observer
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.data.vtep.model.VtepEntry
+import org.midonet.southbound.vtep.OvsdbVtepData._
 import org.midonet.southbound.vtep.OvsdbTools
 import org.midonet.southbound.vtep.schema.Table
-import org.midonet.southbound.vtep.OvsdbVtepData.panicAlert
 
 /**
  * A local mirror of a VTEP cache

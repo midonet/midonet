@@ -23,7 +23,9 @@ import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{ExecutionContext, Future}
 
 import com.google.common.annotations.VisibleForTesting
+
 import org.slf4j.LoggerFactory
+
 import rx.subjects.BehaviorSubject
 import rx.{Observable, Observer}
 

@@ -28,14 +28,14 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 
-import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
-import static org.midonet.vtep.OvsdbTranslator.fromOvsdbIpSet;
-import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
-import static org.midonet.vtep.OvsdbTranslator.toOvsdbIpSet;
+import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdb;
+import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdbIpSet;
+import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdbIpSet;
 
 /**
  * Schema for the Ovsdb physical switch table

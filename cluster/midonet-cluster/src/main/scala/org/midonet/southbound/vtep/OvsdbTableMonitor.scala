@@ -18,7 +18,7 @@ package org.midonet.southbound.vtep
 
 import java.util.concurrent.Executor
 
-import scala.collection.JavaConversions.{asJavaIterable, iterableAsScalaIterable}
+import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
@@ -29,8 +29,8 @@ import rx.Observable.OnSubscribe
 import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.data.vtep.model.VtepEntry
-import org.midonet.southbound.vtep.OvsdbTools.{tableEntries, tableUpdates}
 import org.midonet.southbound.vtep.VtepEntryUpdate.addition
+import org.midonet.southbound.vtep.OvsdbTools.{tableEntries, tableUpdates}
 import org.midonet.southbound.vtep.schema.Table
 import org.midonet.util.functors.makeFunc1
 
