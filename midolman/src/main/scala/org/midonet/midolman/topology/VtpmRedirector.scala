@@ -23,13 +23,14 @@ import scala.reflect._
 import akka.actor.{Actor, ActorRef}
 
 import com.google.inject.Inject
-import rx.Subscriber
+import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe, TunnelZoneRequest, TunnelZoneUnsubscribe}
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{Host, TunnelZone}
+import org.midonet.util.functors.makeFunc1
 
 /**
  * The VTPM Redirector is a class meant to be used temporarily. It eases the
@@ -57,7 +58,7 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
         new mutable.HashMap[UUID,DeviceSubscriber[_ <: Device]]()
 
     /* Methods implemented by sub-classes */
-    protected def deviceRequested(request: VTPMRequest[_],
+    protected def deviceRequested(request: VtpmRequest[_],
                                   createHandler: Boolean): Unit
     protected def deviceUpdated(device: AnyRef, createHandler: Boolean): Unit
     protected def removeAllClientSubscriptions[D <: Device](deviceId: UUID)
@@ -86,8 +87,18 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
             self ! OnNext[D](deviceId, device)
     }
 
+    private def recoverableObservable[D <: Device](deviceId: UUID)
+                                                  (implicit t: ClassTag[D])
+    : Observable[D] = {
+        VirtualTopology.observable[D](deviceId)
+                       .onErrorResumeNext(makeFunc1 { e: Throwable =>
+                           log.error("Device {}/{} error", t.runtimeClass,
+                                     deviceId, e)
+                           recoverableObservable[D](deviceId)
+                       })
+    }
 
-    private def onRequest[D <: Device](request: VTPMRequest[_])
+    private def onRequest[D <: Device](request: VtpmRequest[_])
                                       (implicit t: ClassTag[D]): Unit = {
 
         val deviceId = request match {
@@ -101,10 +112,7 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
         // Get or create the virtual topology subscription for this device.
         deviceSubscriptions.getOrElseUpdate(deviceId, {
             val subscriber = new DeviceSubscriber[D](deviceId)
-
-            VirtualTopology
-                .observable[D](deviceId)
-                .subscribe(subscriber)
+            recoverableObservable[D](deviceId).subscribe(subscriber)
             subscriber
         })
     }

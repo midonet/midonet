@@ -42,7 +42,6 @@ import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.state.LegacyStorage
-import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
@@ -58,7 +57,7 @@ object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
 }
 
-sealed trait VTPMRequest[D] {
+sealed trait VtpmRequest[D] {
     protected[topology] val tag: ClassTag[D]
     def getCached: Option[D]
 }
@@ -90,14 +89,14 @@ object VirtualToPhysicalMapper extends Referenceable {
         PublishSubject.create[LocalPortActive]
 
     case class HostRequest(hostId: UUID, update: Boolean = true)
-        extends VTPMRequest[Host] {
+        extends VtpmRequest[Host] {
         protected[topology] val tag = classTag[Host]
         override def getCached = DeviceCaches.host(hostId)
     }
 
     case class HostUnsubscribe(hostId: UUID)
 
-    case class TunnelZoneRequest(zoneId: UUID) extends VTPMRequest[ZoneMembers] {
+    case class TunnelZoneRequest(zoneId: UUID) extends VtpmRequest[ZoneMembers] {
         protected[topology] val tag = classTag[ZoneMembers]
         override def getCached = DeviceCaches.tunnelZone(zoneId)
     }
@@ -124,7 +123,7 @@ object VirtualToPhysicalMapper extends Referenceable {
     }
 
     @throws(classOf[NotYetException])
-    def tryAsk[D](req: VTPMRequest[D])
+    def tryAsk[D](req: VtpmRequest[D])
                  (implicit system: ActorSystem): D = {
         req.getCached match {
             case Some(d) => d
@@ -136,7 +135,7 @@ object VirtualToPhysicalMapper extends Referenceable {
     def localPortActiveObservable: Observable[LocalPortActive] =
         subjectLocalPortActive.asObservable
 
-    private def makeRequest[D](req: VTPMRequest[D])
+    private def makeRequest[D](req: VtpmRequest[D])
                               (implicit system: ActorSystem): Future[D] =
         (VirtualToPhysicalMapper ? req).mapTo[D](req.tag).andThen {
                 case Failure(ex: ClassCastException) =>
@@ -503,7 +502,7 @@ abstract class VirtualToPhysicalMapperBase
         case _ => log.warn("Unknown device update {}", update)
     }
 
-    protected override def deviceRequested(request: VTPMRequest[_],
+    protected override def deviceRequested(request: VtpmRequest[_],
                                            createHandler: Boolean)
     : Unit = request match {
 
@@ -569,7 +568,7 @@ abstract class VirtualToPhysicalMapperBase
     }
 
     override def receive = super.receive orElse {
-        case request: VTPMRequest[_] =>
+        case request: VtpmRequest[_] =>
             deviceRequested(request, createHandler=true)
 
         case host: Host =>
