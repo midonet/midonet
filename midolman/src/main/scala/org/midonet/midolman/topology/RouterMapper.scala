@@ -36,7 +36,7 @@ import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
-import org.midonet.midolman.simulation.{Router => SimulationRouter, RouterPort, Chain, LoadBalancer}
+import org.midonet.midolman.simulation.{Router => SimulationRouter, Mirror, RouterPort, Chain, LoadBalancer}
 import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.RouterMapper._
 import org.midonet.odp.FlowMatch
@@ -391,6 +391,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
     }
 
     private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
+    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
 
     private lazy val mark =
         PublishSubject.create[Config]
@@ -465,6 +466,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
                          traceChainObservable.map[Config](
                              makeFunc1(traceChainUpdated)),
                          chainsTracker.refsObservable.map[Config](makeFunc1(refUpdated)),
+                         mirrorsTracker.refsObservable.map[Config](makeFunc1(refUpdated)),
                          loadBalancerObservable,
                          routerObservable)
             .takeUntil(mark)
@@ -480,7 +482,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         ready = (config ne null) && (arpCache ne null) &&
                 (if (loadBalancer ne null) loadBalancer.isReady else true) &&
                 ports.forall(_._2.isReady) && localRoutes.forall(_._2.isReady) &&
-                chainsTracker.areRefsReady && isTracingReady
+                chainsTracker.areRefsReady && mirrorsTracker.areRefsReady && isTracingReady
         log.debug("Router ready: {} ", Boolean.box(ready))
         ready
     }
@@ -497,6 +499,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         // Complete the mapper observables.
         completeTraceChain()
         chainsTracker.completeRefs()
+        mirrorsTracker.completeRefs()
         mark.onCompleted()
     }
 
@@ -512,12 +515,19 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
     private def routerUpdated(router: TopologyRouter): Config = {
         assertThread()
 
+        val inboundMirrors = new java.util.ArrayList[UUID]()
+        inboundMirrors.addAll(router.getInboundMirrorsList.asScala.map(_.asJava).asJava)
+        val outboundMirrors = new java.util.ArrayList[UUID]()
+        outboundMirrors.addAll(router.getOutboundMirrorsList.asScala.map(_.asJava).asJava)
+
         // Create the router configuration.
         val cfg = Config(
             if (router.hasAdminStateUp) router.getAdminStateUp else false,
             if (router.hasInboundFilterId) router.getInboundFilterId else null,
             if (router.hasOutboundFilterId) router.getOutboundFilterId else null,
-            if (router.hasLoadBalancerId) router.getLoadBalancerId else null)
+            if (router.hasLoadBalancerId) router.getLoadBalancerId else null,
+            inboundMirrors,
+            outboundMirrors)
         log.debug("Router updated: {}", cfg)
 
         val portIds = router.getPortIdsList.asScala.map(_.asJava).toSet
@@ -551,6 +561,10 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         chainsTracker.requestRefs(
             if (router.hasInboundFilterId) router.getInboundFilterId else null,
             if (router.hasOutboundFilterId) router.getOutboundFilterId else null)
+
+        // Request the mirrors for this router.
+        mirrorsTracker.requestRefs(router.getInboundMirrorsList.asScala map (_.asJava) :_*)
+        mirrorsTracker.requestRefs(router.getOutboundMirrorsList.asScala map (_.asJava) :_*)
 
         // Complete the previous load-balancer state, if any and different from
         // the current one.
