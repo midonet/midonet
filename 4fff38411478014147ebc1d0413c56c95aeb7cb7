@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_863b9a9b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 495,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-21T14:37:16Z",
+      "side": 1,
+      "message": "this allocates an Option for every packet. actually two, because of how pattern matching is implemented. we need the fast path to be garbage free",
+      "revId": "4fff38411478014147ebc1d0413c56c95aeb7cb7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_46ba720b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-21T14:37:16Z",
+      "side": 1,
+      "message": "would it be feasible for there to be a virtual port associated with mdInfo.dpPortNo do the machinery in the previous patch wouldn\u0027t be needed?",
+      "revId": "4fff38411478014147ebc1d0413c56c95aeb7cb7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
