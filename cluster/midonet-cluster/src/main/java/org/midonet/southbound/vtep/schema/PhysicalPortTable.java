@@ -97,16 +97,10 @@ public final class PhysicalPortTable extends Table<PhysicalPort> {
         return new Condition(COL_NAME, Function.EQUALS, value);
     }
 
-    /**
-     * Extract the name
-     */
     private String parseName(Row<GenericTableSchema> row) {
         return extractString(row, getNameSchema());
     }
 
-    /**
-     * Extract the description
-     */
     private String parseDescription(Row<GenericTableSchema> row) {
         return extractString(row, getDescriptionSchema());
     }

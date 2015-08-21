@@ -158,12 +158,7 @@ class VtepResource @Inject()(resContext: ResourceContext,
         } map { connectionState =>
             vtep.connectionState = connectionState match {
                 case VTEP_DISCONNECTED => disconnected
-                case VTEP_DISCONNECTING => disconnecting
                 case VTEP_CONNECTED => connected
-                case VTEP_CONNECTING => connecting
-                case VTEP_READY => ready
-                case VTEP_BROKEN => broken
-                case VTEP_FAILED => failed
                 case VTEP_ERROR => error
             }
             vtep
