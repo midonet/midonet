@@ -29,6 +29,7 @@ import org.midonet.midolman.PacketWorkflow.{SimulationResult, ErrorDrop}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
 import org.midonet.midolman.rules.RuleResult.Action
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -251,7 +252,8 @@ class IPFragmentationTest extends MidolmanSpec {
 
     private def assertIcmpFragNeededMessageReceived(context: PacketContext) {
         context.packetEmitter.pendingPackets should be (1)
-        val generatedPacket = context.packetEmitter.poll()
+        val generatedPacket =
+            context.packetEmitter.poll().asInstanceOf[GeneratedLogicalPacket]
 
         generatedPacket.egressPort should be(srcPort)
 
