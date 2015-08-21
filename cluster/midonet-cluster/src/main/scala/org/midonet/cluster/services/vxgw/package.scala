@@ -23,19 +23,10 @@ import org.midonet.packets.IPv4Addr
 package object vxgw {
 
     // Top level logger
-    val vxgwLog = "org.midonet.vxgw"
-
-    // For control of the hardware VTEP
-    def vxgwVtepControlLog(ip: IPv4Addr, port: Int)
-        = s"org.midonet.vxgw.vxgw-controller-vtep-${ip.toString.replaceAll("\\.", "_")}:$port"
-    // For interaction with the MidoNet side of a VxGW
+    val vxgwLog = "org.midonet.cluster.vxgw"
+    def vxgwVtepControlLog(vtepId: UUID)
+        = s"org.midonet.cluster.vxgw.vxgw-vtep-$vtepId"
     def vxgwMidonetLog(networkId: UUID)
-        = s"org.midonet.vxgw.vxgw-controller-midonet-$networkId"
-    // For processes syncing macs among MidoNet and Hardware VTEPs
-    def vxgwMacSyncingLog(networkId: UUID)
-        = s"org.midonet.vxgw.vxgw-mac-sync-$networkId"
-    // For management of a VxGW joining a Network with Hardware VTEPs
-    def vxgwMgmtLog(networkId: UUID)
-        = s"org.midonet.vxgw.vxgw-manager.$networkId"
+        = s"org.midonet.cluster.vxgw.vxgw-midonet-$networkId"
 
 }
