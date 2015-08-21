@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_a66c1e0a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-21T16:33:56Z",
+      "side": 1,
+      "message": "should these count? it feels like cramming all sorts of packets in one metric would pollute it.",
+      "revId": "3dde1342cf2f4a1bcda62994e4f95728590d313c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
