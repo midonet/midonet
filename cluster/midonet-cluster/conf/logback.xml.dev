@@ -51,25 +51,15 @@
     <!-- Loggers for specific VxGW processes -->
 
     <!-- Information about hardware VTEP controllers bound to networks.
-         Replace $VTEP with the management IP and port in this format:
-         10_2_4_4:6632 (an ordinary IPv4, with _ instead of .)
+         Replace $VTEP with the VTEP UUID if you want to filter for specific
+         ones.  -->
+    <!-- <logger name="org.midonet.cluster.vxgw-vtep-$VTEP" level="DEBUG"/> -->
+
+    <!-- Information about processes syncing from the MidoNet NSDB to
+         hardware VTEPs.  Replace $NETWORK_ID with a given neutron network UUID
+         for finer grain filtering.
          -->
-    <!-- <logger name="org.midonet.vxgw.vxgw-controller-vtep-$VTEP" level="DEBUG"/> -->
-
-    <!-- Information about the controller of networks bound to VTEPs.
-         Replace $NETWORK_ID with a given neutron network UUID
-        -->
-    <!-- <logger name="org.midonet.vxgw.vxgw-controller-midonet-$NETWORK_ID" level="DEBUG" /> -->
-
-    <!-- Information about MAC table syncing among hardware VTEPs and networks
-         inside MidoNet.
-         Replace $NETWORK_ID with a given neutron network UUID -->
-    <!-- <logger name="org.midonet.vxgw.vxgw-mac-sync-$NETWORK_ID" level="DEBUG" /> -->
-
-    <!-- Information about the control process that monitors newly bound to VTEPs.
-         Replace $NETWORK_ID with a given neutron network UUID
-         -->
-    <!-- <logger name="org.midonet.vxgw.vxgw-manager-$NETWORK_ID" level="DEBUG"/> -->
+    <!-- <logger name="org.midonet.vxgw.vxgw-midonet-$NETWORK_ID" level="DEBUG" /> -->
 
     <!-- Some tweaks to the OVSDB plugin to reduce verbosity -->
     <logger name="org.opendaylight" level="WARN"/>
