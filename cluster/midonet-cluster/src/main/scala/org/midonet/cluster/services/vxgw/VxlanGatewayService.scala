@@ -16,14 +16,29 @@
 
 package org.midonet.cluster.services.vxgw
 
+import java.util.UUID
+import scala.concurrent.duration._
+import java.util.concurrent.Executors.newSingleThreadExecutor
+import java.util.concurrent.TimeUnit.SECONDS
+
+import scala.collection.JavaConversions._
+
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.slf4j.LoggerFactory
+import rx.schedulers.Schedulers
+import rx.{Observable, Observer, Subscription}
 
 import org.midonet.cluster._
-import org.midonet.cluster.services.{ClusterService, Minion}
+import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.Topology.Vtep
+import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
+import org.midonet.cluster.util.{UUIDUtil, selfHealingTypeObservable}
 import org.midonet.midolman.state.ZookeeperConnectionWatcher
+import org.midonet.southbound.vtep.OvsdbVtepDataClient
+import org.midonet.util.concurrent.NamedThreadFactory
+import org.midonet.util.functors._
 
 /** An implementation of the VxLAN Gateway Service that supports high
   * availability on the hardware VTEPs. The service allows making bindings
@@ -40,6 +55,7 @@ import org.midonet.midolman.state.ZookeeperConnectionWatcher
 @ClusterService(name = "vxgw")
 class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                                     dataClient: DataClient,
+                                    backend: MidonetBackend,
                                     zkConnWatcher: ZookeeperConnectionWatcher,
                                     curator: CuratorFramework,
                                     metrics: MetricRegistry,
@@ -48,22 +64,57 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
     private val log = LoggerFactory.getLogger(vxgwLog)
 
-    // TODO: take these out to a service metrics container
-    private val networkCount = metrics.counter(s"${conf.vxgw.Prefix}.networks")
-    private val vxgwCount = metrics.counter(s"${conf.vxgw.Prefix}.vxgws")
-    def numNetworks: Long = networkCount.getCount
-    def numVxGWs: Long = vxgwCount.getCount
+    private val fpManager: FloodingProxyManager =
+        new FloodingProxyManager(backend)
+    private val vtepSyncers = new java.util.HashMap[UUID,Subscription]()
+
+    // Executor on which we schedule tasks to release the ZK event thread.
+    private val executor = newSingleThreadExecutor(
+        new NamedThreadFactory("vxgw-gateway-initializer")
+    )
 
     override def isEnabled = conf.vxgw.isEnabled
 
+    private def watchVtep = new Observer[Vtep] {
+        var vtepId: UUID = null
+        override def onCompleted(): Unit = {}
+        override def onError(e: Throwable): Unit = onCompleted()
+        override def onNext(vtep: Vtep): Unit = {
+            if (vtepId == null) {
+                vtepId = UUIDUtil.fromProto(vtep.getId)
+                startVtepSync(vtepId)
+            }
+        }
+    }
+
+    private val maxVtepBuffer = 10000
+    private val alertOverflow = makeAction0 {
+        log.error("VTEP buffer overflow (>$maxVtepBuffer) - terminating")
+        notifyFailed(new IllegalStateException("Using > $maxVtepBuffer VTEPs"))
+        shutdown()
+    }
+
     override def doStart(): Unit = {
-        log.info("THIS SERVICE IS TEMPORARILY DISABLED DURING MIGRATION TO")
+        log.info("Starting service")
+        // TODO: the FP manager should run with a latch
+        fpManager.start()
+        selfHealingTypeObservable[Topology.Vtep](backend.store)
+            .onBackpressureBuffer(10000, alertOverflow)
+            .observeOn(Schedulers.from(executor))
+            .subscribe(new Observer[Observable[Topology.Vtep]] {
+                override def onCompleted(): Unit = {}
+                override def onError(e: Throwable): Unit = {}
+                override def onNext(v: Observable[Vtep]): Unit = {
+                    v.subscribe(watchVtep)
+                }
+            })
         notifyStarted()
     }
 
     override def doStop(): Unit = {
         try {
             shutdown()
+            vtepSyncers.keySet().foreach(stopVtepSync)
             notifyStopped()
         } catch {
             case t: Throwable =>
@@ -74,7 +125,34 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     }
 
     private def shutdown(): Unit = {
+        executor.shutdown()
+        if (!executor.awaitTermination(5, SECONDS)) {
+            log.warn("Failed to stop executor orderly, insisting..")
+            executor.shutdownNow()
+        }
     }
 
+    private def startVtepSync(vtepId: UUID): Unit = {
+        val syncer = new VtepSynchronizer(vtepId, nodeCtx.nodeId,
+                                          backend.store, backend.stateStore,
+                                          dataClient, fpManager.herald,
+                                          (mgmtIp, mgmtPort) =>
+                                            OvsdbVtepDataClient.apply (
+                                                mgmtIp, mgmtPort, 10 seconds, 50
+                                          ))
+        vtepSyncers.put(
+            vtepId,
+            backend.store.observable(classOf[Vtep], vtepId).subscribe(syncer)
+        )
+    }
+
+    private def stopVtepSync(vtepId: UUID): Unit = {
+        vtepSyncers.remove(vtepId) match {
+            case null =>
+            case syncer =>
+                log.info("Stop managing VTEP $vtepId")
+                syncer.unsubscribe()
+        }
+    }
 }
 
