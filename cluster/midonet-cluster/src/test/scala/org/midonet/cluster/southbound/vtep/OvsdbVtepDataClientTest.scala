@@ -30,7 +30,6 @@ import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.data.vtep.{VtepDataClient, VtepStateException}
 import org.midonet.cluster.southbound.vtep.OvsdbVtepBuilder._
 import org.midonet.cluster.southbound.vtep.mock.InMemoryOvsdbVtep
-import org.midonet.southbound.vtep.{OvsdbVtepConnection, OvsdbVtepDataClient}
 import org.midonet.util.concurrent._
 import org.midonet.util.reactivex.TestAwaitableObserver
 

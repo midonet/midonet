@@ -33,7 +33,6 @@ import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.cluster.southbound.vtep.schema._
 import org.midonet.packets.IPv4Addr
-import org.midonet.southbound.vtep.OvsdbCachedTable
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])

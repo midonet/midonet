@@ -25,19 +25,19 @@ import scala.collection.concurrent.TrieMap
 
 import com.google.common.collect.Lists
 import com.google.common.util.concurrent.ListenableFuture
-import org.opendaylight.ovsdb.lib._
 import org.opendaylight.ovsdb.lib.message.{TableUpdate, TransactBuilder}
 import org.opendaylight.ovsdb.lib.notation.{Condition, Function => OvsdbFunction, Row, UUID => OvsdbUUID}
 import org.opendaylight.ovsdb.lib.operations._
 import org.opendaylight.ovsdb.lib.schema.{ColumnSchema, DatabaseSchema, GenericTableSchema}
+import org.opendaylight.ovsdb.lib.{MonitorCallBack, OvsdbClient}
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.vtep.model._
+import org.midonet.cluster.southbound.vtep.OvsdbTranslator._
+import org.midonet.cluster.southbound.vtep.OvsdbVtepConnection.OvsdbHandle
 import org.midonet.cluster.southbound.vtep.mock.MockOvsdbClient.{MonitorRegistration, TransactionEngine}
 import org.midonet.cluster.southbound.vtep.mock.MockOvsdbColumn.{mkColumnSchema, mkMapColumnSchema, mkSetColumnSchema}
 import org.midonet.cluster.southbound.vtep.schema._
-import org.midonet.southbound.vtep.OvsdbVtepConnection.OvsdbHandle
-import org.midonet.vtep.OvsdbTranslator.toOvsdb
 
 /**
  * A class containing the schema definitions for an Ovsdb-based vtep.

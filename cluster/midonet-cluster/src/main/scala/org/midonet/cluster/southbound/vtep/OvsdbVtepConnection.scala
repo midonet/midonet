@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.southbound.vtep
+package org.midonet.cluster.southbound.vtep
 
 import java.net.{ConnectException, InetAddress, SocketException, UnknownHostException}
 import java.util.concurrent._
@@ -52,8 +52,7 @@ import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState.State
 import org.midonet.cluster.data.vtep.VtepConnection.{ConnectionState, VtepHandle}
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
 import org.midonet.cluster.data.vtep.{VtepConnection, VtepNotConnectedException, VtepStateException}
-import org.midonet.cluster.southbound.vtep.OvsdbTools
-import org.midonet.southbound.vtep.OvsdbVtepConnection._
+import org.midonet.cluster.southbound.vtep.OvsdbVtepConnection._
 import org.midonet.util.functors.{makeAction1, makeFunc1}
 
 object OvsdbVtepConnection {

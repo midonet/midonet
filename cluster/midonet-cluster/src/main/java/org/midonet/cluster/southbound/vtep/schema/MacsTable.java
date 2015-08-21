@@ -28,12 +28,12 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
-import org.midonet.cluster.data.vtep.model.VtepEntry;
-import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.MacEntry;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.cluster.data.vtep.model.VtepMAC;
+import org.midonet.packets.IPv4Addr;
 
-import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.cluster.southbound.vtep.OvsdbTranslator.toOvsdb;
 
 /**
  * Common schema sections for the {Ucast|Mcast}Mac{Local|Remote} tables

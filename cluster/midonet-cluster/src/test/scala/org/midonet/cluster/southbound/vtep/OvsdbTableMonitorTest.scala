@@ -27,14 +27,12 @@ import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
-
 import rx.Observer
 
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.cluster.southbound.vtep.schema.PhysicalLocatorTable
 import org.midonet.packets.IPv4Addr
-import org.midonet.southbound.vtep.{VtepEntryUpdate, VtepTableReady, VtepTableUpdate, OvsdbTableMonitor}
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 import org.midonet.util.reactivex.TestAwaitableObserver
 

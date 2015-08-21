@@ -19,7 +19,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class InMemoryStorageTest extends StorageTest {
+trait InMemoryStorageTest extends StorageTest {
 
     before {
         val inMemoryStorage = new InMemoryStorage

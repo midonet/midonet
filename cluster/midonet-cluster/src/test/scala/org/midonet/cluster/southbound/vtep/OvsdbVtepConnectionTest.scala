@@ -36,7 +36,6 @@ import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState._
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
 import org.midonet.cluster.data.vtep.{VtepNotConnectedException, VtepStateException}
-import org.midonet.southbound.vtep.OvsdbVtepConnection
 import org.midonet.util.concurrent._
 import org.midonet.util.reactivex.TestAwaitableObserver
 
@@ -383,7 +382,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
 
             And("A VTEP connection observer")
             val observer = new VtepObserver
-            val subscription = vtep.observable.subscribe(observer)
+            vtep.observable.subscribe(observer)
 
             When("The connection is closed")
             vtep.close().await(timeout) shouldBe Disposed

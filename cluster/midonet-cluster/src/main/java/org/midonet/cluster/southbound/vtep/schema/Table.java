@@ -42,8 +42,8 @@ import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.VtepEntry;
 
-import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
-import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.cluster.southbound.vtep.OvsdbTranslator.fromOvsdb;
+import static org.midonet.cluster.southbound.vtep.OvsdbTranslator.toOvsdb;
 
 /**
  * Generic ovsdb table schema. This class (and its subclasses) aims

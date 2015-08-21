@@ -27,7 +27,7 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.cluster.southbound.vtep.schema._
-import org.midonet.packets.{MAC, IPv4Addr}
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 object OvsdbVtepBuilder {

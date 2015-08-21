@@ -18,16 +18,15 @@ package org.midonet.cluster.data.vtep
 
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 
-import rx.{Notification, Observable, Observer}
+import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState.State
-import org.midonet.cluster.data.vtep.model.{VtepEndPoint, MacLocation, LogicalSwitch}
+import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation, VtepEndPoint}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors.makeFunc1
-import org.midonet.util.reactivex._
 
 /**
  * A client class for the connection to a VTEP-enabled switch. A client
