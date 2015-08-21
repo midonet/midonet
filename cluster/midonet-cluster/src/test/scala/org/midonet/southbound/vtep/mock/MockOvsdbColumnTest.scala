@@ -23,8 +23,8 @@ import org.junit.runner.RunWith
 import org.opendaylight.ovsdb.lib.notation.{UUID => OvsdbUUID}
 import org.opendaylight.ovsdb.lib.schema.ColumnType.KeyValuedColumnType
 import org.opendaylight.ovsdb.lib.schema.{ColumnSchema, GenericTableSchema}
-import org.scalatest.{Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FeatureSpec, Matchers}
 
 @RunWith(classOf[JUnitRunner])
 class MockOvsdbColumnTest extends FeatureSpec with Matchers {

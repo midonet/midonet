@@ -78,7 +78,8 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
     feature("The herald publishes updates properly") {
 
         scenario("State key serialization") {
-            val fp = FloodingProxy(randId(), randId(), IPv4Addr.random)
+            val fp = FloodingProxy(tunnelZoneId = randId(),
+                                   hostId = randId(), IPv4Addr.random)
             val _1 = FloodingProxyHerald.deserialize(fp.tunnelZoneId,
                                                  s"${fp.hostId}#${fp.tunnelIp}")
             val _2 = FloodingProxy(fp.tunnelZoneId, fp.hostId, fp.tunnelIp)
@@ -163,7 +164,8 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
                                                          sameThreadExecutor())
             herald.lookup(tzId) shouldBe None
 
-            val fp = FloodingProxy(randId(), h2Id, IPv4Addr.random)
+            val fp = FloodingProxy(tunnelZoneId = randId(), h2Id,
+                                   IPv4Addr.random)
             herald.announce(fp, retry)
 
             latch.await(1, TimeUnit.SECONDS) shouldBe true
