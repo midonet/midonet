@@ -16,6 +16,24 @@
       "revId": "3dde1342cf2f4a1bcda62994e4f95728590d313c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fa5b162c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-21T17:04:22Z",
+      "side": 1,
+      "message": "\"these\" are no-ops and drops, right? they should all count towards packets processed for sure. as for latency, i agree. ideally, these would count only towards a simulation-only histogram. and we\u0027d have an output-stage only histogram. that would give us better visibility.\n\ni wouldn\u0027t want to get into those changes now though",
+      "parentUuid": "9ad9bd40_a66c1e0a",
+      "revId": "3dde1342cf2f4a1bcda62994e4f95728590d313c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
