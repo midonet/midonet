@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_a6c97eae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-21T14:32:58Z",
+      "side": 1,
+      "message": "should we really add a flow?",
+      "revId": "0976ea6c921952464d3d2517fd7098f01c1085c7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
