@@ -15,29 +15,25 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.util.concurrent.Executors.newSingleThreadExecutor
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
-import java.util.concurrent.{ExecutorService, ConcurrentHashMap, ThreadFactory}
 
 import scala.collection.JavaConversions._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext.fromExecutorService
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import org.apache.zookeeper.KeeperException.{BadVersionException, Code}
-
 import rx.Observable.OnSubscribe
 import rx._
-import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.InMemoryStorage.{PrimedSubject, asObservable, copyObj, DefaultOwnerId}
+import org.midonet.cluster.data.storage.InMemoryStorage.{DefaultOwnerId, PrimedSubject, asObservable, copyObj}
+import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
 import org.midonet.cluster.data.storage.TransactionManager._
-import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException

@@ -28,6 +28,9 @@ import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema._
+import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
+import org.midonet.southbound.vtep.schema._
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 object OvsdbVtepBuilder {
