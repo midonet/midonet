@@ -231,24 +231,6 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                 })
     }
 
-    def deleteExistingPort(port: DpPort, conn: OvsConnectionOps) = port match {
-        case internalPort: InternalPort =>
-            log.debug("Keeping {} found during initialization", port)
-            registerInternalPort(internalPort)
-            Future successful port
-        case _ =>
-            log.debug("Deleting {} found during initialization", port)
-            ensureDeletePort(port, conn)
-    }
-
-    def ensureDeletePort(port: DpPort, conn: OvsConnectionOps): Future[DpPort] =
-        conn.delPort(port, driver.datapath) recoverWith {
-            case ex: Throwable =>
-                log.warn("retrying deletion of " + port.getName +
-                         " because of {}", ex)
-                after(1 second, system.scheduler)(ensureDeletePort(port, conn))
-        }
-
     def makeTunnelPort[P <: DpPort](t: ChannelType)(portFact: () => P)
                                    (implicit tag: ClassTag[P]): Future[P] =
         upcallConnManager.createAndHookDpPort(driver.datapath, portFact(), t) map {
