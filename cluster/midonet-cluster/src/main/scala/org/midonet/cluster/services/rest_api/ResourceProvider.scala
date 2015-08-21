@@ -32,7 +32,8 @@ class ResourceProvider(log: Logger) {
 
     log info "Scanning classpath for pluggable API resources"
     private val reflections =
-        new Reflections("org.midonet.cluster.services.rest_api")
+        new Reflections("org.midonet.cluster.services.rest_api",
+                        "org.midonet.cluster.rest_api")
     private val annotated =
         reflections.getTypesAnnotatedWith(classOf[ApiResource]).asScala
     private val allResources =
