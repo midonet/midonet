@@ -88,7 +88,7 @@ function package_deb() {
 
     DEB_ARGS="$DEB_ARGS -v $version"
     DEB_ARGS="$DEB_ARGS -C build/deb"
-    RPM_ARGS="$DEB_ARGS --epoch 2"
+    DEB_ARGS="$DEB_ARGS --epoch 2"
     DEB_ARGS="$DEB_ARGS --deb-priority optional"
 
     eval fpm $FPM_BASE_ARGS $DEB_ARGS -t deb .
