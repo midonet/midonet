@@ -46,10 +46,14 @@ object MidonetBackend {
 abstract class MidonetBackend extends AbstractService {
     /** Indicates whether the new backend stack is active */
     def isEnabled = false
-    /** Provides access to the Topology storage API */
+    /** Provides access to the Topology Model API */
     def store: Storage
+    /** Provides access to the Topology State API */
     def stateStore: StateStorage
+    /** The Curator instance being used */
     def curator: CuratorFramework
+    /** The current config being used on this backend */
+    def config: MidonetBackendConfig
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
@@ -201,6 +205,7 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
     override def isEnabled = cfg.useNewStack
+    override def config: MidonetBackendConfig = cfg
 
     protected override def doStart(): Unit = {
         log.info(s"Starting backend ${this} store: $store")

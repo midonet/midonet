@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.{ConcurrentHashMap, RejectedExecutionException}
 import java.util.{Random, UUID}
 
-import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
 
 import com.codahale.metrics.MetricRegistry
@@ -83,7 +82,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
     // Index of VxLAN Gateway managers for each neutron network with bindings
     // to hardware VTEPs.
-    private val managers = new ConcurrentHashMap[UUID, VxlanGatewayManager]()
+    private val managers = new ConcurrentHashMap[UUID, VtepSynchronizer]()
 
     // Watch bridge creations and deletions.
     private val networkUpdateMonitor =
@@ -99,10 +98,6 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                                                        zkConnWatcher,
                                                        hostsState,
                                                        new Random())
-
-    // VTEP controllers
-    private val vteps = new VtepPool(nodeCtx.nodeId, dataClient, zkConnWatcher,
-                                     tzState, vtepDataClientFactory)
 
     // An observer that bootstraps a new VxLAN Gateway service whenever a
     // neutron network that has bindings to hardware VTEP(s) is created.
@@ -211,7 +206,9 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
     /** Create and run a new VxlanGatewayManager for the given network id */
     private def initVxlanGatewayManager(id: UUID) {
-        val nw = new VxlanGatewayManager(id, dataClient, vteps,
+        ???
+        /*
+        val nw = new VtepSynchronizer()(id, dataClient, vteps,
                                          tzState, zkConnWatcher,
                                          () => {
                                              managers.remove(id)
@@ -224,7 +221,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
         } else {
             log.debug(s"VxLAN Gateway manager already exists for network $id")
         }
-
+        */
     }
 
     // A callback when a change in this node's leadership status happens
@@ -259,7 +256,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                     log.info("Unsubscribe irrelevant: executor is closing...")
             }
         }
-        managers.values().foreach { _.terminate() }
+        /* managers.values().foreach { _.terminate() } */
     }
 
     override def doStop(): Unit = {

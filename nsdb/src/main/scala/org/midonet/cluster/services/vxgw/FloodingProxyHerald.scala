@@ -72,7 +72,9 @@ class FloodingProxyHerald(backend: MidonetBackend, executor: Executor) {
       */
     def lookup(tzId: UUID): Option[FloodingProxy] = Option(fpIndex.get(tzId))
 
-    /** Exposes the latest flooding proxy for each VTEP tunnel zone */
+    /** Exposes the latest flooding proxy for each VTEP tunnel zone.  Do not
+      * worry about errors, we won't emit any.
+      */
     val observable = updateStream.asObservable()
 
     /** A dedicated observer for the given tunnel zone that will update the

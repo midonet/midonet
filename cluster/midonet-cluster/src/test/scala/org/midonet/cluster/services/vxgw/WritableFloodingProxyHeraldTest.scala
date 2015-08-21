@@ -36,6 +36,7 @@ import org.midonet.cluster.models.Topology.TunnelZone.Type
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.FloodingProxyKey
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.packets.IPv4Addr
@@ -70,6 +71,7 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             override def curator: CuratorFramework = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
+            override def config(): MidonetBackendConfig = ???
         }
     }
 
