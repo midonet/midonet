@@ -34,6 +34,29 @@
       "revId": "649c11b7189b37265cc524c546c965947b811a7d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_26e48eab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceWorkflow.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-21T16:21:03Z",
+      "side": 1,
+      "message": "this is very confusing if you don\u0027t know how fmatch works. You are mutating fmatch, but it looks like you\u0027re just reading a field. It would be clearer to make FlowMatch#fieldSeen public, and set the field as seen explictly.",
+      "range": {
+        "startLine": 54,
+        "startChar": 15,
+        "endLine": 54,
+        "endChar": 30
+      },
+      "revId": "649c11b7189b37265cc524c546c965947b811a7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
