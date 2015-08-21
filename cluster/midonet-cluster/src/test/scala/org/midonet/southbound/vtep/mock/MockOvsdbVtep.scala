@@ -27,7 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import com.google.common.collect.Lists
 import com.google.common.util.concurrent.ListenableFuture
-import org.opendaylight.ovsdb.lib._
+import org.opendaylight.ovsdb.lib.MonitorCallBack
 import org.opendaylight.ovsdb.lib.message.{TableUpdate, TransactBuilder}
 import org.opendaylight.ovsdb.lib.notation.{Column, Condition, Function => OvsdbFunction, Row, UUID => OvsdbUUID}
 import org.opendaylight.ovsdb.lib.operations._
@@ -38,7 +38,7 @@ import rx.subjects.{BehaviorSubject, PublishSubject}
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.OvsdbUtil.toOvsdb
-import org.midonet.southbound.vtep.OvsdbVtepConnection._
+import org.midonet.southbound.vtep.OvsdbVtepConnection.OvsdbHandle
 import org.midonet.southbound.vtep.VtepConnection.ConnectionState
 import org.midonet.southbound.vtep.VtepConnection.ConnectionState.State
 import org.midonet.southbound.vtep.mock.MockOvsdbClient.{MonitorRegistration, TransactionEngine}
@@ -475,16 +475,7 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
         Future.successful(ConnectionState.Disconnected)
     }
     override def observable: Observable[State] = stateSubject
-
-    def goBroken(): Unit = {
-        stateSubject.onNext(ConnectionState.Broken)
-    }
-    
-    def goConnecting(): Unit = {
-        stateSubject.onNext(ConnectionState.Connecting)
-    }
-
-    def goReady(): Unit = {
-        stateSubject.onNext(ConnectionState.Ready)
-    }
+    def goBroken(): Unit = stateSubject.onNext(ConnectionState.Broken)
+    def goConnecting(): Unit = stateSubject.onNext(ConnectionState.Connecting)
+    def goReady(): Unit = stateSubject.onNext(ConnectionState.Ready)
 }
