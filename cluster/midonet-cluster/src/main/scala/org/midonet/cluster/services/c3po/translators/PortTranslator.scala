@@ -124,9 +124,19 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val midoOps = new MidoOpListBuffer
 
         // No corresponding Midonet port for ports on uplink networks.
-        val isOnUplinkNw = isOnUplinkNetwork(nPort)
-        if (!isOnUplinkNw)
-            midoOps += Delete(classOf[Port], id)
+        if (isOnUplinkNetwork(nPort)) {
+            // We don't create a corresponding Midonet network port for Neutron
+            // ports on uplink networks, but for router interface ports, we do
+            // need to delete the corresponding router port.
+            if (!isRouterInterfacePort(nPort)) {
+                return List()
+            } else {
+                return List(Delete(classOf[Port],
+                                   routerInterfacePortPeerId(nPort.getId)))
+            }
+        }
+
+        midoOps += Delete(classOf[Port], id)
 
         if (isRouterGatewayPort(nPort)) {
             // Delete the router port.
@@ -139,11 +149,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             // Delete the ARP entry in the external network if it exists.
             midoOps ++= deleteArpEntry(nPort)
         } else if (isRouterInterfacePort(nPort)) {
-            if (!isOnUplinkNw) {
-                // Update any routes using this port as a gateway.
-                val subnetId = nPort.getFixedIps(0).getSubnetId
-                midoOps ++= updateGatewayRoutesOps(null, subnetId)
-            }
+            // Update any routes using this port as a gateway.
+            val subnetId = nPort.getFixedIps(0).getSubnetId
+            midoOps ++= updateGatewayRoutesOps(null, subnetId)
 
             // Delete the peer router port.
             midoOps += Delete(classOf[Port],

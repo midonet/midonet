@@ -20,9 +20,10 @@ import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Network, Route}
-import org.midonet.cluster.services.c3po.midonet.{Create, MidoOp}
+import org.midonet.cluster.services.c3po.midonet.{Create, Update, MidoOp}
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -108,6 +109,13 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
             midoOps ++= createMetadataServiceRoute(
                 routerPortId, nPort.getNetworkId, portSubnet)
             midoOps ++= updateGatewayRoutesOps(gatewayIp, ns.getId)
+        }
+
+        // Convert Neutron Port to router interface port if it isn't already.
+        if (nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE) {
+            midoOps += Update(nPort.toBuilder
+                                  .setDeviceOwner(DeviceOwner.ROUTER_INTERFACE)
+                                  .build())
         }
 
         midoOps.toList
