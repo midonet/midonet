@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_cbeccb92",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-21T13:57:54Z",
+      "side": 1,
+      "message": "Just a note that you can also create a keypair like this:\n\n  keytool -genkeypair -keystore cluster.ks -storetype jks -keyalg rsa -alias jetty -dname \"cn\u003dMy X.500 name,o\u003dMy company,c\u003dUS\" -storepass \"midonet\" -keypass \"midonet\" -validity 3650",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 102
+      },
+      "revId": "f915af37d1bfab7a7a0a57267eaa648a638ab3bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7a038b76",
         "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 3
