@@ -22,6 +22,8 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.util.Random
 
+import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.util.UUIDUtil.fromProto
