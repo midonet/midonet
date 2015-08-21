@@ -28,9 +28,9 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 
 import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdb;
 import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdbIpSet;
