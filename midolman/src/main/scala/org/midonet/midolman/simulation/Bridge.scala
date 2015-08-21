@@ -16,6 +16,8 @@
 package org.midonet.midolman.simulation
 
 import java.lang.{Short => JShort}
+import java.util
+import java.util.{List => JList}
 import java.util.UUID
 
 import scala.collection.{Map => ROMap}
@@ -104,10 +106,13 @@ class Bridge(val id: UUID,
              val ipToMac: ROMap[IPAddr, MAC],
              val vlanToPort: VlanPortMap,
              val exteriorPorts: List[UUID],
-             val subnetIds: List[UUID])
+             val subnetIds: List[UUID],
+             val inboundMirrors: JList[UUID] = new util.ArrayList[UUID](),
+             val outboundMirrors: JList[UUID] = new util.ArrayList[UUID]())
             (implicit val actorSystem: ActorSystem) extends SimDevice
                                                     with ForwardingDevice
                                                     with InAndOutFilters
+                                                    with MirroringDevice
                                                     with VirtualDevice {
 
     import org.midonet.midolman.simulation.Simulator._
@@ -141,6 +146,9 @@ class Bridge(val id: UUID,
     override def process(context: PacketContext): Result = {
         implicit val ctx = context
 
+        context.currentDevice = id
+        context.addFlowTag(deviceTag)
+
         context.log.debug(s"Entering bridge $id with infilter: $infilter")
         context.log.debug("Current vlanPortId {}.", vlanPortId)
         context.log.debug("Current vlan-port map {}", vlanToPort)
@@ -148,21 +156,17 @@ class Bridge(val id: UUID,
         // Some basic sanity checks
         if (context.wcmatch.getEthSrc.mcast) {
             context.log.info("Packet has multi/broadcast source, DROP")
-            Drop
+            mirroringInbound(context, Drop, actorSystem)
+        } else if (adminStateUp) {
+            mirroringInbound(context, normalProcess, actorSystem)
         } else {
-            normalProcess()
+            context.log.debug("Bridge {} is down, DROP", id)
+            Drop
         }
     }
 
-    @throws[NotYetException]
-    def normalProcess()(implicit context: PacketContext,
-                                 actorSystem: ActorSystem) : Result = {
-        context.currentDevice = id
-        context.addFlowTag(deviceTag)
-        if (!adminStateUp) {
-            context.log.debug("Bridge {} is down, DROP", id)
-            Drop
-        } else if (areChainsApplicable()) {
+    val normalProcess = ContinueWith((context, actorSystem) => {
+        if (areChainsApplicable()(context)) {
             // Call ingress (pre-bridging) chain. InputPort is already set.
             context.outPortId = null
             filterIn(context, actorSystem, continueIn)
@@ -170,7 +174,7 @@ class Bridge(val id: UUID,
             context.log.debug("Ignoring pre/post chains on vlan tagged traffic")
             continueIn(context, actorSystem)
         }
-    }
+    })
 
     private val continueIn: SimStep = (context, as) => {
         // Learn the entry
@@ -463,7 +467,11 @@ class Bridge(val id: UUID,
             case _ =>
         }
 
-        filterOut(context, actorSystem, act.simStep)
+        val result = filterOut(context, actorSystem, act.simStep)
+        if (result eq act)
+            mirroringOutbound(context, result, actorSystem)
+        else
+            result
     }
 
     /**
