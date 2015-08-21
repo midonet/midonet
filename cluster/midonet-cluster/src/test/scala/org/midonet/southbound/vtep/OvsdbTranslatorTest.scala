@@ -26,6 +26,7 @@ import org.opendaylight.ovsdb.lib.notation.{UUID => OvsdbUUID}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 
+import org.midonet.southbound.vtep.OvsdbTranslator
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])

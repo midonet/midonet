@@ -216,7 +216,8 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
                                          // happen in the same thrad
                 val it = childStreams.values.iterator // NPE-safe
                 while(it.hasNext && failure.get() == null) {
-                    s onNext it.next()
+                    val x = it.next()
+                    s onNext x
                 }
             }
             if (!isFailed) {

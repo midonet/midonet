@@ -36,9 +36,9 @@ class MacLocation (val mac: VtepMAC, val ipAddr: IPv4Addr,
                    val logicalSwitchName: String,
                    val vxlanTunnelEndpoint: IPv4Addr) {
 
-    private val str = "MacLocation{logicalSwitchName='" + logicalSwitchName +
+    private val str = "MacLocation{logicalSwitch='" + logicalSwitchName +
                       "', mac=" + mac + ", ipAddr='" + ipAddr +
-                      "', vxlanTunnelEndpoint=" + vxlanTunnelEndpoint + "}"
+                      "', tunnelEndpoint=" + vxlanTunnelEndpoint + "}"
 
     if (mac == null) {
         throw new NullPointerException("MAC is null")
