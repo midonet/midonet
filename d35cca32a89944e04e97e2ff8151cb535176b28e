@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e0944e8e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-21T07:18:53Z",
+      "side": 1,
+      "message": "Already a list.",
+      "range": {
+        "startLine": 85,
+        "startChar": 38,
+        "endLine": 85,
+        "endChar": 44
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_20b8f629",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-21T07:18:53Z",
+      "side": 1,
+      "message": "This comment seems to imply that we expect these not to exist sometimes. But that\u0027s not the case, is it? Unless something\u0027s gone wrong, it seems to me that they should always exist.",
+      "range": {
+        "startLine": 109,
+        "startChar": 12,
+        "endLine": 109,
+        "endChar": 69
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_40b5fa2f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-21T07:18:53Z",
+      "side": 1,
+      "message": "Is this outer if-check necessary? If we just do the foreach and the list happens to be empty, then it\u0027ll be a no-op.",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 114,
+        "endChar": 42
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a07b267a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-21T07:18:53Z",
+      "side": 1,
+      "message": "Comment to explain why this check is necessary.\n\nAlso, maybe add a comment on the add_router_ids and del_router_ids field in neutron.proto, since the meaning is so counterintuitive.",
+      "range": {
+        "startLine": 119,
+        "startChar": 16,
+        "endLine": 119,
+        "endChar": 71
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c0802a49",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-21T07:18:53Z",
+      "side": 1,
+      "message": "This is fine as is, but if you hate unnecessary line wrapping as much as I do:\n\n        val chainIds \u003d List(inChainId(fw.getId), outChainId(fw.getId))\n        val chains \u003d storage.getAll(classOf[Chain], chainIds).await()",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 153,
+        "endChar": 71
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ed59ac5c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-21T07:18:53Z",
+      "side": 1,
+      "message": "I would put this in RangeUtil.",
+      "range": {
+        "startLine": 172,
+        "startChar": 0,
+        "endLine": 188,
+        "endChar": 5
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_40e33a33",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-21T07:18:53Z",
+      "side": 1,
+      "message": "Not necessary, since this argument defaults to List().",
+      "range": {
+        "startLine": 43,
+        "startChar": 42,
+        "endLine": 43,
+        "endChar": 50
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a00ec6e3",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-21T07:18:53Z",
+      "side": 1,
+      "message": "Don\u0027t make me come over there.",
+      "range": {
+        "startLine": 352,
+        "startChar": 13,
+        "endLine": 352,
+        "endChar": 15
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_40ba5a0b",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-21T07:18:53Z",
+      "side": 1,
+      "message": "You can eliminate the vars like this:\n\n        if (!adminStateUp) {\n            val r \u003d storage.get(classOf[Rule], chain.getRuleIds(0)).await()\n            r.getAction shouldBe Action.RETURN\n        }\n\n        val r \u003d storage.get(classOf[Rule],\n                            chain.getRuleIds(totalNum - 1)).await()\n        r.getCondition.getMatchForwardFlow shouldBe true",
+      "range": {
+        "startLine": 380,
+        "startChar": 0,
+        "endLine": 389,
+        "endChar": 56
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
