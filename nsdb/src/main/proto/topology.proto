@@ -301,6 +301,8 @@ message Port {
     repeated UUID insertions = 110;
     repeated UUID srv_insertions = 111;
     optional UUID l2service = 112;
+    optional UUID port_vlan_binding = 113;
+    repeated UUID trunk_port_bindings = 114;
 }
 
 message PortGroup {
@@ -311,6 +313,17 @@ message PortGroup {
 
     // Backreferences
     repeated UUID port_ids = 101;
+}
+
+message PortVlanBinding {
+    optional UUID id = 1;
+    optional UUID trunk_port_id = 2;
+    optional UUID vlan_port_id = 3;
+    optional uint32 vlan = 4;
+
+    // Keep a reference to the corresponding port rules
+    optional UUID trunk_rule = 100;
+    optional UUID vlan_port_rule = 101;
 }
 
 message Route {

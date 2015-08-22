@@ -380,7 +380,7 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             var result = simulate(packetContext)
 
             Then("It's dropped because svc1 is down")
-            result should be(dropped(FlowTagger.tagForPort(vm1Port.getId),
+            result should be(dropped(FlowTagger.tagForPortRx(vm1Port.getId),
                                   FlowTagger.tagForPort(svc1Port.getId)))
 
             // Now set FAIL_OPEN to true on the Redirect to svc1. Traffic from

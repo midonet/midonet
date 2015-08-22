@@ -47,30 +47,33 @@ object L2InsertionTranslation {
         ruleBuilder
     }
 
-    def ensureRedirectChains(store: Storage,
-                             portId: UUID): (Chain, Chain) = {
+    def ensureRedirectChains(namePrefix: String,
+                             store: Storage,
+                             portId: UUID, in: Boolean = true): Chain = {
         var port = store.get(classOf[Port], portId.asProto).getOrThrow
-        var ops = List.empty[PersistenceOp]
-        if (port.getInboundChainCount == 0) {
-            val chain: Chain = Chain.newBuilder()
-                .setId(UUID.randomUUID.asProto)
-                .setName("InboundRedirect" + port.getId.toString).build
-            ops = ops :+ CreateOp(chain)
-            port = port.toBuilder.addInboundChain(chain.getId).build
+        val chainIdList = in match {
+            case true => port.getInboundChainList.asScala
+            case false => port.getOutboundChainList.asScala
         }
-        if (port.getOutboundChainCount == 0) {
-            val chain = Chain.newBuilder()
-                .setId(UUID.randomUUID.asProto)
-                .setName("OutboundRedirect" + port.getId.toString).build
-            ops = ops :+ CreateOp(chain)
-            port = port.toBuilder.addOutboundChain(chain.getId).build
+        chainIdList.find(
+            x => store.get(classOf[Chain], x).getOrThrow.getName.startsWith(namePrefix)
+        ) match {
+            case None =>
+                var ops = List.empty[PersistenceOp]
+                val chain: Chain = Chain.newBuilder()
+                    .setId(UUID.randomUUID.asProto)
+                    .setName(namePrefix + port.getId.toString).build
+                val p = in match {
+                    case true =>
+                        port.toBuilder.addInboundChain(chain.getId).build
+                    case false =>
+                        port.toBuilder.addOutboundChain(chain.getId).build
+                }
+                store.multi(Seq(CreateOp(chain), UpdateOp(p)))
+                return store.get(classOf[Chain], chain.getId).getOrThrow
+            case Some(chainId) =>
+                return store.get(classOf[Chain], chainId).getOrThrow
         }
-        if (ops.size > 0) {
-            ops = ops :+ UpdateOp(port)
-            store.multi(ops)
-        }
-        (store.get(classOf[Chain], port.getInboundChain(0)).getOrThrow,
-            store.get(classOf[Chain], port.getOutboundChain(0)).getOrThrow)
     }
 
     implicit object InsertOrdering extends Ordering[L2Insertion] {
@@ -132,8 +135,9 @@ object L2InsertionTranslation {
                 return false
         }
 
-        var (inChain, outChain) = ensureRedirectChains(store, portId)
-        var (inSrvChain, _) = ensureRedirectChains(store, srvPortId)
+        var inChain = ensureRedirectChains("InboundRedirect", store, portId)
+        var outChain = ensureRedirectChains("OutboundRedirect", store, portId, false)
+        var inSrvChain = ensureRedirectChains("InboundRedirect", store, srvPortId)
 
         // Get the inspected and service port
         var port: Port = store.get(classOf[Port], portId).getOrThrow

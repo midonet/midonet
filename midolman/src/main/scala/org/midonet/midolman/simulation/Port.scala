@@ -194,8 +194,7 @@ trait Port extends VirtualDevice with Cloneable {
         if (context.devicesTraversed >= Simulator.MAX_DEVICES_TRAVERSED) {
             ErrorDrop
         } else {
-            context.addFlowTag(deviceTag)
-            context.addFlowTag(rxTag)
+            addTags(context, true)
             ingressAdminState(context, as)
         }
     }
@@ -252,9 +251,10 @@ trait Port extends VirtualDevice with Cloneable {
                     return Drop
                 case RuleResult.Action.REDIRECT =>
                     val targetPort = tryAsk[Port](result.redirectPort)
-                    targetPort.addTags(context)
-                    if(result.redirectIngress)
+                    if(result.redirectIngress) {
+                        targetPort.addTags(context, true)
                         return targetPort.ingressUp(context, as)
+                    }
                     else if (result.redirectFailOpen) {
                         // Implement FAIL_OPEN
                         // Specifically, if ingress=false, fail_open=true, and targetPort is:
@@ -266,9 +266,12 @@ trait Port extends VirtualDevice with Cloneable {
                         // reachable and it allowed the packet.
                         val targetPort = tryAsk[Port](result.redirectPort)
                         if (targetPort.isExterior &&
-                            (!targetPort.adminStateUp || !targetPort.isActive))
+                            (!targetPort.adminStateUp || !targetPort.isActive)) {
+                            targetPort.addTags(context, true)
                             return targetPort.ingressUp(context, as)
+                        }
                     }
+                    targetPort.addTags(context, false)
                     if (!targetPort.adminStateUp)
                         return Drop
                     // Call emit instead of egressUp in order to skip filters
@@ -284,13 +287,16 @@ trait Port extends VirtualDevice with Cloneable {
     }
 
     final def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
-        addTags(context)
+        addTags(context, false)
         egressAdminState(context, as)
     }
 
-    def addTags(context: PacketContext): Unit = {
+    def addTags(context: PacketContext, in: Boolean): Unit = {
         context.addFlowTag(deviceTag)
-        context.addFlowTag(txTag)
+        in match {
+            case true => context.addFlowTag(rxTag)
+            case false => context.addFlowTag(txTag)
+        }
     }
 
     override def toString =
