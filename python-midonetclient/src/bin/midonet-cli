@@ -1777,6 +1777,24 @@ class Bridge(ObjectType):
     def type_name(self):
         return "bridge"
 
+class PortVlanBinding(ObjectType):
+    def __init__(self, obj):
+        super(PortVlanBinding, self).__init__(obj)
+        self.put_attr(SingleAttr(name = 'vlan-port',
+                                 value_type = PortRef(),
+                                 getter = 'get_vlan_port',
+                                 setter = 'vlan_port'))
+        self.put_attr(SingleAttr(name = 'trunk-port',
+                                 value_type = PortRef(),
+                                 getter = 'get_trunk_port',
+                                 setter = 'trunk_port'))
+        self.put_attr(SingleAttr(name = 'vlan',
+                                 value_type = StringType(),
+                                 getter = 'get_vlan',
+                                 setter = 'vlan'))
+    def type_name(self):
+        return "port-vlan-binding"
+
 class L2Insertion(ObjectType):
     def __init__(self, obj):
         super(L2Insertion, self).__init__(obj)
@@ -2551,6 +2569,12 @@ class Midonet(ObjectType):
                                  list_method = 'get_ports',
                                  getter = 'get_port',
                                  list_with_tenant = True))
+        self.put_attr(Collection(name = 'port-vlan-binding',
+                                 element_type = PortVlanBinding,
+                                 list_method = 'get_port_vlan_bindings',
+                                 getter = 'get_port_vlan_binding',
+                                 list_with_tenant = True,
+                                 factory_method = 'add_port_vlan_binding'))
         self.put_attr(Collection(name = 'chain',
                                  element_type = Chain,
                                  list_method = 'get_chains',

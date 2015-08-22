@@ -58,6 +58,11 @@ public class Application {
         return uriFor(ResourceUris.BRIDGES);
     }
 
+    @JsonProperty("portVlanBindings")
+    public URI getPortVlanBindings() {
+        return uriFor(ResourceUris.PORT_VLAN_BINDINGS);
+    }
+
     @JsonProperty("l2insertions")
     public URI getL2Insertions() {
         return uriFor(ResourceUris.L2INSERTIONS);
@@ -226,6 +231,11 @@ public class Application {
     @JsonProperty("routerTemplate")
     public String getRouterTemplate() {
         return templateFor(ResourceUris.ROUTERS);
+    }
+
+    @JsonProperty("PortVlanBindingTemplate")
+    public String getPortVlanBindingTemplate() {
+        return templateFor(ResourceUris.PORT_VLAN_BINDINGS);
     }
 
     @JsonProperty("l2InsertionTemplate")

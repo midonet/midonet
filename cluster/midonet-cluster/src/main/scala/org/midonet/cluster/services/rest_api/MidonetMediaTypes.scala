@@ -124,6 +124,8 @@ object MidonetMediaTypes {
     final val APPLICATION_POOL_COLLECTION_JSON = "application/vnd.org.midonet.collection.Pool-v1+json"
     final val APPLICATION_VIP_JSON = "application/vnd.org.midonet.VIP-v1+json"
     final val APPLICATION_VIP_COLLECTION_JSON = "application/vnd.org.midonet.collection.VIP-v1+json"
+    final val APPLICATION_PORT_VLAN_BINDING_JSON = "application/vnd.org.midonet.VlanPortBinding-v1+json"
+    final val APPLICATION_PORT_VLAN_BINDING_COLLECTION_JSON = "application/vnd.org.midonet.collection.VlanPortBinding-v1+json"
 
     // VXGW
     final val APPLICATION_VTEP_JSON = "application/vnd.org.midonet.VTEP-v1+json"

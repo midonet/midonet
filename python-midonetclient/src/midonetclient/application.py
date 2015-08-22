@@ -33,6 +33,7 @@ from midonetclient import pool_member
 from midonetclient import pool_statistic
 from midonetclient import port
 from midonetclient import port_group
+from midonetclient import port_vlan_binding
 from midonetclient import resource_base
 from midonetclient import route
 from midonetclient import router
@@ -292,6 +293,22 @@ class Application(resource_base.ResourceBase):
     def get_route(self, id_):
         return self._get_resource_by_id(route.Route, None,
                                         self.get_route_template(), id_)
+
+    def delete_port_vlan_binding(self, id_):
+        return self._delete_resource_by_id(self.get_port_vlan_binding_template(), id_)
+
+    def get_port_vlan_binding(self, id_):
+        return self._get_resource_by_id(port_vlan_binding.PortVlanBinding, self.dto['port_vlan_bindings'],
+                                        self.get_port_vlan_binding_template(), id_)
+
+    def get_port_vlan_bindings(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_PORT_VLAN_BINDING_COLLECTION_JSON}
+        return self.get_children(self.dto['port_vlan_bindings'], query, headers,
+                                 port_vlan_binding.PortVlanBinding)
+
+    def add_port_vlan_binding(self):
+        return port_vlan_binding.PortVlanBinding(self.dto['port_vlan_bindings'], {}, self.auth)
 
     def delete_l2insertion(self, id_):
         return self._delete_resource_by_id(self.get_l2insertion_template(), id_)

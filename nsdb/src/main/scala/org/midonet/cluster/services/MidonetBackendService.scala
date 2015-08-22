@@ -85,6 +85,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Port],
              classOf[PortBinding],
              classOf[PortGroup],
+             classOf[PortVlanBinding],
              classOf[Route],
              classOf[Router],
              classOf[Rule],
@@ -95,6 +96,11 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Vip],
              classOf[Vtep]
         ).foreach(store.registerClass)
+
+        store.declareBinding(classOf[Port], "port_vlan_binding", CLEAR,
+                             classOf[PortVlanBinding], "vlan_port_id", CLEAR)
+        store.declareBinding(classOf[Port], "trunk_port_bindings", CASCADE,
+                             classOf[PortVlanBinding], "trunk_port_id", CLEAR)
 
         store.declareBinding(classOf[Port], "insertions", CASCADE,
                              classOf[L2Insertion], "port", CLEAR)

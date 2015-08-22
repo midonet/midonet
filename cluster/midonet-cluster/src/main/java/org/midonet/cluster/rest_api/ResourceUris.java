@@ -60,6 +60,7 @@ public final class ResourceUris {
     public static final String VERSIONS = "versions";
     public static final String VIPS = "vips";
     public static final String VLANS = "vlans";
+    public static final String PORT_VLAN_BINDINGS = "port_vlan_bindings";
     public static final String VTEPS = "vteps";
     public static final String VTEP_BINDINGS = "vtep_bindings";
     public static final String VXLAN_PORT = "vxlan_port";

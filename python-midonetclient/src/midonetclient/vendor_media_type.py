@@ -52,6 +52,11 @@ APPLICATION_CHAIN_JSON = "application/vnd.org.midonet.Chain-v1+json"
 APPLICATION_CHAIN_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Chain-v1+json"
 
+APPLICATION_PORT_VLAN_BINDING_JSON = \
+    "application/vnd.org.midonet.VlanPortBinding-v1+json"
+APPLICATION_PORT_VLAN_BINDING_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.VlanPortBinding-v1+json"
+
 APPLICATION_L2INSERTION_JSON = \
     "application/vnd.org.midonet.L2Insertion-v1+json"
 APPLICATION_L2INSERTION_COLLECTION_JSON = \

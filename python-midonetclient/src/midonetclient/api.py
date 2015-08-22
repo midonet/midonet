@@ -42,6 +42,22 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_tenants(query)
 
+    def delete_port_vlan_binding(self, id_):
+        self._ensure_application()
+        return self.app.delete_port_vlan_binding(id_)
+
+    def get_port_vlan_bindings(self, query):
+        self._ensure_application()
+        return self.app.get_port_vlan_bindings(query)
+
+    def get_port_vlan_binding(self, id_):
+        self._ensure_application()
+        return self.app.get_port_vlan_binding(id_)
+
+    def add_port_vlan_binding(self):
+        self._ensure_application()
+        return self.app.add_port_vlan_binding()
+
     def delete_l2insertion(self, id_):
         self._ensure_application()
         return self.app.delete_l2insertion(id_)
