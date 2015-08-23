@@ -61,6 +61,19 @@ APPLICATION_L2SERVICE_JSON = \
 APPLICATION_L2SERVICE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.L2Service-v1+json"
 
+APPLICATION_SERVICE_JSON = \
+    "application/vnd.org.midonet.Service-v1+json"
+APPLICATION_SERVICE_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.Service-v1+json"
+APPLICATION_SERVICE_CHAIN_JSON = \
+    "application/vnd.org.midonet.ServiceChain-v1+json"
+APPLICATION_SERVICE_CHAIN_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.ServiceChain-v1+json"
+APPLICATION_SERVICE_CHAIN_ELEM_JSON = \
+    "application/vnd.org.midonet.ServiceChainElem-v1+json"
+APPLICATION_SERVICE_CHAIN_ELEM_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.ServiceChainElem-v1+json"
+
 APPLICATION_RULE_JSON = "application/vnd.org.midonet.Rule-v2+json"
 APPLICATION_RULE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Rule-v2+json"

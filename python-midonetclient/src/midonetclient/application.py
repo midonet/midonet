@@ -37,6 +37,9 @@ from midonetclient import resource_base
 from midonetclient import route
 from midonetclient import router
 from midonetclient import rule
+from midonetclient import service
+from midonetclient import service_chain
+from midonetclient import service_chain_elem
 from midonetclient import system_state
 from midonetclient import tenant
 from midonetclient import tunnel_zone
@@ -80,6 +83,15 @@ class Application(resource_base.ResourceBase):
 
     def get_l2service_template(self):
         return self.dto['l2ServiceTemplate']
+
+    def get_service_template(self):
+        return self.dto['serviceTemplate']
+
+    def get_service_chain_template(self):
+        return self.dto['serviceChainTemplate']
+
+    def get_service_chain_elem_template(self):
+        return self.dto['serviceChainElemTemplate']
 
     def get_host_template(self):
         return self.dto['hostTemplate']
@@ -314,6 +326,7 @@ class Application(resource_base.ResourceBase):
     def add_l2insertion(self):
         return l2insertion.L2Insertion(self.dto['l2insertions'], {}, self.auth)
 
+    ###########################################################################
     def delete_l2service(self, id_):
         return self._delete_resource_by_id(self.get_l2service_template(), id_)
 
@@ -328,6 +341,54 @@ class Application(resource_base.ResourceBase):
 
     def add_l2service(self):
         return l2service.L2Service(self.dto['l2services'], {}, self.auth)
+
+    ###########################################################################
+    def delete_service(self, id_):
+        return self._delete_resource_by_id(self.get_service_template(), id_)
+
+    def get_service(self, id_):
+        return self._get_resource_by_id(service.Service, self.dto['services'],
+                                        self.get_service_template(), id_)
+    def get_services(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_SERVICE_COLLECTION_JSON}
+        return self.get_children(self.dto['services'], query, headers,
+                                 service.Service)
+
+    def add_service(self):
+        return service.Service(self.dto['services'], {}, self.auth)
+
+    ###########################################################################
+    def delete_service_chain(self, id_):
+        return self._delete_resource_by_id(self.get_service_chain_template(), id_)
+
+    def get_service_chain(self, id_):
+        return self._get_resource_by_id(service_chain.ServiceChain, self.dto['serviceChains'],
+                                        self.get_service_chain_template(), id_)
+    def get_service_chains(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_SERVICE_CHAIN_COLLECTION_JSON}
+        return self.get_children(self.dto['serviceChains'], query, headers,
+                                 service_chain.ServiceChain)
+
+    def add_service_chain(self):
+        return service_chain.ServiceChain(self.dto['serviceChains'], {}, self.auth)
+
+    ###########################################################################
+    def delete_service_chain_elem(self, id_):
+        return self._delete_resource_by_id(self.get_service_chain_elem_template(), id_)
+
+    def get_service_chain_elem(self, id_):
+        return self._get_resource_by_id(service_chain_elem.ServiceChainElem, self.dto['serviceChainElems'],
+                                        self.get_service_chain_elem_template(), id_)
+    def get_service_chain_elems(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_SERVICE_CHAIN_ELEM_COLLECTION_JSON}
+        return self.get_children(self.dto['serviceChainElems'], query, headers,
+                                 service_chain_elem.ServiceChainElem)
+
+    def add_service_chain_elem(self):
+        return service_chain_elem.ServiceChainElem(self.dto['serviceChainElems'], {}, self.auth)
 
     def delete_router(self, id_):
         return self._delete_resource_by_id(self.get_router_template(), id_)

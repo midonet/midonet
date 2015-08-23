@@ -80,6 +80,14 @@ object MidonetMediaTypes {
     final val APPLICATION_BGP_PEER_JSON = "application/vnd.org.midonet.BgpPeer-v1+json"
     final val APPLICATION_BGP_PEER_COLLECTION_JSON = "application/vnd.org.midonet.collection.BgpPeer-v1+json"
 
+    /* Service Chaining */
+    final val APPLICATION_SERVICE_JSON = "application/vnd.org.midonet.Service-v1+json"
+    final val APPLICATION_SERVICE_COLLECTION_JSON = "application/vnd.org.midonet.collection.Service-v1+json"
+    final val APPLICATION_SERVICE_CHAIN_JSON = "application/vnd.org.midonet.ServiceChain-v1+json"
+    final val APPLICATION_SERVICE_CHAIN_COLLECTION_JSON = "application/vnd.org.midonet.collection.ServiceChain-v1+json"
+    final val APPLICATION_SERVICE_CHAIN_ELEM_JSON = "application/vnd.org.midonet.ServiceChainElem-v1+json"
+    final val APPLICATION_SERVICE_CHAIN_ELEM_COLLECTION_JSON = "application/vnd.org.midonet.collection.ServiceChainElem-v1+json"
+
     /* DHCP configuration types. */
     final val APPLICATION_DHCP_SUBNET_JSON = "application/vnd.org.midonet.DhcpSubnet-v1+json"
     final val APPLICATION_DHCP_SUBNET_JSON_V2 = "application/vnd.org.midonet.DhcpSubnet-v2+json"

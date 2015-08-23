@@ -45,6 +45,9 @@ enum Type {
     VTEP = 21;
     L2INSERTION = 31;
     L2SERVICE = 32;
+    SERVICE = 33;
+    SERVICE_CHAIN = 34;
+    SERVICE_CHAIN_ELEM = 35;
 }
 
 message BgpNetwork {
@@ -301,6 +304,8 @@ message Port {
     repeated UUID insertions = 110;
     repeated UUID srv_insertions = 111;
     optional UUID l2service = 112;
+    optional UUID service2 = 113;
+    repeated UUID service_chains = 114;
 }
 
 message PortGroup {
@@ -452,6 +457,46 @@ message L2Insertion {
 message L2Service {
     optional UUID id = 1;
     optional UUID port = 2;
+}
+
+message Service {
+    optional UUID id = 1;
+    optional UUID port = 2;
+    optional string mac = 3; // L3 appliances accept only traffic with this mac
+    optional IPAddress ip = 4; // If L3 appliance's mac is not known, we can resolve it
+
+    // backreferences
+    repeated UUID elem_ids = 100;
+}
+
+message ServiceChain {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional UUID port = 3;
+    optional bool port_ingress = 4;
+    repeated Condition classifiers = 5;
+    // If there are multiple ServiceChains for the same port, they are
+    // evaluated in this order.
+    optional uint32 position = 6;
+
+    // backreferences
+    repeated UUID elem_ids = 100;
+    // Translation references
+    optional UUID classifier_chain = 110;
+    optional UUID elem_chain = 111;
+}
+
+message ServiceChainElem {
+    optional UUID id = 1;
+    optional UUID chain_id = 2;
+    optional UUID service_id = 3;
+    optional uint32 vlan = 4; // push/pop this vlan on traffic to the service
+    optional bool fail_open = 5;
+    optional uint32 position = 6; // LB between elems with same position
+    optional string mac = 7; // If supplied, use this to identify the chain (instead of the vlan) - only for L2 appliances
+
+    // Translation references
+    optional UUID service_rule = 100;
 }
 
 message TunnelZone {

@@ -90,6 +90,9 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Rule],
              classOf[SecurityGroup],
              classOf[SecurityGroupRule],
+             classOf[Service],
+             classOf[ServiceChain],
+             classOf[ServiceChainElem],
              classOf[TraceRequest],
              classOf[TunnelZone],
              classOf[Vip],
@@ -100,6 +103,16 @@ abstract class MidonetBackend extends AbstractService {
                              classOf[L2Insertion], "port", CLEAR)
         store.declareBinding(classOf[Port], "srv_insertions", CASCADE,
                              classOf[L2Insertion], "srv_port", CLEAR)
+
+        store.declareBinding(classOf[Service], "elem_ids", CASCADE,
+                             classOf[ServiceChainElem], "service_id", CLEAR)
+        store.declareBinding(classOf[ServiceChain], "elem_ids", CASCADE,
+                             classOf[ServiceChainElem], "service_chain_id", CLEAR)
+
+        store.declareBinding(classOf[Port], "service2", CLEAR,
+                             classOf[Service], "port", CLEAR)
+        store.declareBinding(classOf[Port], "service_chains", CASCADE,
+                             classOf[ServiceChain], "port", CLEAR)
 
         store.declareBinding(classOf[Network], "port_ids", CASCADE,
                              classOf[Port], "network_id", CLEAR)
