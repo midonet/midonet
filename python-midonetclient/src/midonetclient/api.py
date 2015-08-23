@@ -58,6 +58,7 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.add_l2insertion()
 
+    ##########################################
     def delete_l2service(self, id_):
         self._ensure_application()
         return self.app.delete_l2service(id_)
@@ -73,6 +74,55 @@ class MidonetApi(object):
     def add_l2service(self):
         self._ensure_application()
         return self.app.add_l2service()
+
+    ##########################################
+    def delete_service(self, id_):
+        self._ensure_application()
+        return self.app.delete_service(id_)
+
+    def get_services(self, query):
+        self._ensure_application()
+        return self.app.get_services(query)
+
+    def get_service(self, id_):
+        self._ensure_application()
+        return self.app.get_service(id_)
+
+    def add_service(self):
+        self._ensure_application()
+        return self.app.add_service()
+    ##########################################
+    def delete_service_chain(self, id_):
+        self._ensure_application()
+        return self.app.delete_service_chain(id_)
+
+    def get_service_chains(self, query):
+        self._ensure_application()
+        return self.app.get_service_chains(query)
+
+    def get_service_chain(self, id_):
+        self._ensure_application()
+        return self.app.get_service_chain(id_)
+
+    def add_service_chain(self):
+        self._ensure_application()
+        return self.app.add_service_chain()
+    ##########################################
+    def delete_service_chain_elem(self, id_):
+        self._ensure_application()
+        return self.app.delete_service_chain_elem(id_)
+
+    def get_service_chain_elems(self, query):
+        self._ensure_application()
+        return self.app.get_service_chain_elems(query)
+
+    def get_service_chain_elem(self, id_):
+        self._ensure_application()
+        return self.app.get_service_chain_elem(id_)
+
+    def add_service_chain_elem(self):
+        self._ensure_application()
+        return self.app.add_service_chain_elem()
 
     def delete_router(self, id_):
         self._ensure_application()

@@ -68,6 +68,21 @@ public class Application {
         return uriFor(ResourceUris.L2SERVICES);
     }
 
+    @JsonProperty("services")
+    public URI getServices() {
+        return uriFor(ResourceUris.SERVICES);
+    }
+
+    @JsonProperty("serviceChains")
+    public URI getServiceChains() {
+        return uriFor(ResourceUris.SERVICE_CHAINS);
+    }
+
+    @JsonProperty("serviceChainElems")
+    public URI getServiceChainElems() {
+        return uriFor(ResourceUris.SERVICE_CHAIN_ELEMS);
+    }
+
     @JsonProperty("routers")
     public URI getRouters() {
         return uriFor(ResourceUris.ROUTERS);
@@ -236,6 +251,21 @@ public class Application {
     @JsonProperty("l2ServiceTemplate")
     public String getL2ServiceTemplate() {
         return templateFor(ResourceUris.L2SERVICES);
+    }
+
+    @JsonProperty("serviceTemplate")
+    public String getServiceTemplate() {
+        return templateFor(ResourceUris.SERVICES);
+    }
+
+    @JsonProperty("serviceChainTemplate")
+    public String getServiceChainTemplate() {
+        return templateFor(ResourceUris.SERVICE_CHAINS);
+    }
+
+    @JsonProperty("serviceChainElemTemplate")
+    public String getServiceChainElemTemplate() {
+        return templateFor(ResourceUris.SERVICE_CHAIN_ELEMS);
     }
 
     @JsonProperty("ruleTemplate")
