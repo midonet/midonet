@@ -79,6 +79,15 @@ class Application(resource_base.ResourceBase):
     def get_l2service_template(self):
         return self.dto['l2ServiceTemplate']
 
+    def get_service_template(self):
+        return self.dto['serviceTemplate']
+
+    def get_service_chain_template(self):
+        return self.dto['serviceChainTemplate']
+
+    def get_service_chain_elem_template(self):
+        return self.dto['serviceChainElemTemplate']
+
     def get_host_template(self):
         return self.dto['hostTemplate']
 

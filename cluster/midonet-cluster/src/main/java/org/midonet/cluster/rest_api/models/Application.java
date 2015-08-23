@@ -238,6 +238,21 @@ public class Application {
         return templateFor(ResourceUris.L2SERVICES);
     }
 
+    @JsonProperty("serviceTemplate")
+    public String getServiceTemplate() {
+        return templateFor(ResourceUris.SERVICES);
+    }
+
+    @JsonProperty("serviceChainTemplate")
+    public String getServiceChainTemplate() {
+        return templateFor(ResourceUris.SERVICE_CHAINS);
+    }
+
+    @JsonProperty("serviceChainElemTemplate")
+    public String getServiceChainElemTemplate() {
+        return templateFor(ResourceUris.SERVICE_CHAIN_ELEMS);
+    }
+
     @JsonProperty("ruleTemplate")
     public String getRuleTemplate() {
         return templateFor(ResourceUris.RULES);

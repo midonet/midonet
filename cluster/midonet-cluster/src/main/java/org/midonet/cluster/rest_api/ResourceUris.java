@@ -53,6 +53,9 @@ public final class ResourceUris {
     public static final String ROUTERS = "routers";
     public static final String ROUTES = "routes";
     public static final String RULES = "rules";
+    public static final String SERVICES = "services";
+    public static final String SERVICE_CHAINS = "service_chains";
+    public static final String SERVICE_CHAIN_ELEMS = "service_chain_elems";
     public static final String SYSTEM_STATE = "system_state";
     public static final String TENANTS = "tenants";
     public static final String TRACE_REQUESTS = "traces";
