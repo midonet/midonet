@@ -151,6 +151,24 @@
       "revId": "26c4832a802d42e6bce286fb98767de1652af841",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8eb56cd2",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T12:43:33Z",
+      "side": 1,
+      "message": "In order to do cascading-delete jump chains upon the firewall rule chain deletion, you need a new field binding between Rule\u0027s jump_chain_id and Chain, which doesn\u0027t exist at the moment. Unfortunately jump_chain_id is in an embedded message, and Zoom currently doesn\u0027t handle binding with an embedded message field. So I think we need to handle it manually, but fortunately we can reuse most of the existing code.\n\nBesides, those are implementation details, so the spec for DELETE should mention that we need to disassociate Routers from the deleted Firewall.",
+      "parentUuid": "9ad9bd40_8e2bac32",
+      "revId": "26c4832a802d42e6bce286fb98767de1652af841",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
