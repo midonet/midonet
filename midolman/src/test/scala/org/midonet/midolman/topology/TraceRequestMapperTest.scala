@@ -600,7 +600,7 @@ class TraceRequestTestMapper[D <: VirtualDevice](deviceId: UUID,
                                                  vt: VirtualTopology,
                                                  _traceChainMap: mutable.Map[UUID,Subject[SimChain,SimChain]])
                             (implicit tag: ClassTag[D])
-        extends DeviceWithChainsMapper[D](deviceId, vt)
+        extends VirtualDeviceMapper[D](deviceId, vt)
         with TraceRequestChainMapper[D] {
 
     override def traceChainMap: mutable.Map[UUID,Subject[SimChain,SimChain]] = _traceChainMap
