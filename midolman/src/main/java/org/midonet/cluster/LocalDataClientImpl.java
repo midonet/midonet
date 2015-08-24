@@ -418,13 +418,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Ip4ToMacReplicatedMap bridgeGetArpTable(@Nonnull UUID bridgeId)
-        throws StateAccessException {
-        return new Ip4ToMacReplicatedMap(
-            bridgeZkManager.getIP4MacMapDirectory(bridgeId));
-    }
-
-    @Override
     public Map<IPv4Addr, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
         throws StateAccessException {
         return Ip4ToMacReplicatedMap.getAsMap(
@@ -452,24 +445,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void bridgeAddLearnedIp4Mac(
-        @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
-        throws StateAccessException {
-        // TODO: potential race conditions (see MN-2637)
-        Directory dir = bridgeZkManager.getIP4MacMapDirectory(bridgeId);
-        MAC oldMac = Ip4ToMacReplicatedMap.getEntry(dir, ip4);
-        if (oldMac != null) {
-            if (mac.equals(oldMac) ||
-                Ip4ToMacReplicatedMap.hasPersistentEntry(dir, ip4, oldMac)) {
-                return;
-            }
-            Ip4ToMacReplicatedMap.deleteEntry(dir, ip4, oldMac);
-        }
-        Ip4ToMacReplicatedMap.addLearnedEntry(
-            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
-    }
-
-    @Override
     public boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
                                        @Nonnull IPv4Addr ip, @Nonnull MAC mac)
         throws StateAccessException {
@@ -484,22 +459,6 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException {
         Ip4ToMacReplicatedMap.deleteEntry(
             bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
-    }
-
-    @Override
-    public void bridgeDeleteLearnedIp4Mac(
-        @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
-        throws StateAccessException {
-        Ip4ToMacReplicatedMap.deleteLearnedEntry(
-            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
-    }
-
-    @Override
-    public Set<IPv4Addr> bridgeGetIp4ByMac(
-        @Nonnull UUID bridgeId, @Nonnull MAC mac)
-        throws StateAccessException {
-        return Ip4ToMacReplicatedMap.getByMacValue(
-            bridgeZkManager.getIP4MacMapDirectory(bridgeId), mac);
     }
 
     @Override
@@ -563,13 +522,6 @@ public class LocalDataClientImpl implements DataClient {
 
         log.debug("bridgesGetAll exiting: {} bridges found", bridges.size());
         return bridges;
-    }
-
-    @Override
-    public EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
-        ZookeeperConnectionWatcher zkConnection)
-        throws StateAccessException {
-        return new EntityIdSetMonitor<>(bridgeZkManager, zkConnection);
     }
 
     @Override
@@ -801,47 +753,6 @@ public class LocalDataClientImpl implements DataClient {
     public void tunnelZonesDeleteMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException {
         zonesZkManager.delMembership(zoneId, membershipId);
-    }
-
-    @Override
-    public EntityMonitor<UUID, TunnelZone.Data, TunnelZone> tunnelZonesGetMonitor(
-        ZookeeperConnectionWatcher zkConnection) {
-        return new EntityMonitor<>(
-            zonesZkManager, zkConnection,
-            new EntityMonitor.Transformer<UUID, TunnelZone.Data, TunnelZone> () {
-                @Override
-                public TunnelZone transform(UUID id, TunnelZone.Data data) {
-                    return new TunnelZone(id, data);
-                }
-            });
-    }
-
-    @Override
-    public EntityIdSetMonitor<UUID> tunnelZonesGetUuidSetMonitor(
-        ZookeeperConnectionWatcher zkConnection)
-        throws StateAccessException {
-        return new EntityIdSetMonitor(zonesZkManager, zkConnection);
-    }
-
-    @Override
-    public EntityIdSetMonitor<UUID> tunnelZonesGetMembershipsMonitor(
-        @Nonnull final UUID zoneId, ZookeeperConnectionWatcher zkConnection)
-        throws StateAccessException {
-        return new EntityIdSetMonitor<>(
-            new WatchableZkManager<UUID, TunnelZone.HostConfig>() {
-                @Override
-                public List<UUID> getAndWatchIdList(Runnable watcher)
-                    throws StateAccessException {
-                    return zonesZkManager.getAndWatchMembershipsList(
-                        zoneId, watcher);
-                }
-
-                @Override
-                public TunnelZone.HostConfig get(UUID id, Runnable watcher)
-                    throws StateAccessException, SerializationException {
-                    return null;
-                }
-            }, zkConnection);
     }
 
     @Override
@@ -1154,12 +1065,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public boolean hostsIsAlive(UUID hostId, Watcher watcher)
-        throws StateAccessException {
-        return hostZkManager.isAlive(hostId, watcher);
-    }
-
-    @Override
     public boolean hostsHasPortBindings(UUID hostId)
             throws StateAccessException {
         return hostZkManager.hasPortBindings(hostId);
@@ -1184,43 +1089,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return hosts;
-    }
-
-    @Override
-    public EntityMonitor<UUID, HostDirectory.Metadata, Host> hostsGetMonitor(
-        ZookeeperConnectionWatcher zkConnection) {
-        return new EntityMonitor<>(
-            hostZkManager, zkConnection,
-            new EntityMonitor.Transformer<UUID, HostDirectory.Metadata, Host> () {
-                @Override
-                public Host transform(UUID id, HostDirectory.Metadata data) {
-                    Host host = Converter.fromHostConfig(data);
-                    host.setId(id);
-                    Integer floodingProxyWeight = null;
-                    try {
-                        floodingProxyWeight =
-                            hostZkManager.getFloodingProxyWeight(id);
-                    } catch (StateAccessException | SerializationException e) {
-                        log.warn("Failure getting flooding proxy weight", e);
-                    }
-                    try {
-                        host.setIsAlive(hostsIsAlive(id));
-                    } catch (StateAccessException e) {
-                        log.warn("Failure getting host status", e);
-                    }
-                    if (floodingProxyWeight != null) {
-                        host.setFloodingProxyWeight(floodingProxyWeight);
-                    }
-                    return host;
-                }
-            });
-    }
-
-    @Override
-    public EntityIdSetMonitor<UUID> hostsGetUuidSetMonitor(
-        ZookeeperConnectionWatcher zkConnection)
-        throws StateAccessException {
-        return new EntityIdSetMonitor<>(hostZkManager, zkConnection);
     }
 
     @Override
@@ -2759,12 +2627,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Integer hostsGetFloodingProxyWeight(UUID hostId, Watcher watcher)
-            throws StateAccessException, SerializationException {
-        return hostZkManager.getFloodingProxyWeight(hostId, watcher);
-    }
-
-    @Override
     public @CheckForNull Route routesGet(UUID id)
             throws StateAccessException, SerializationException {
         log.debug("Entered: id={}", id);
@@ -3507,29 +3369,6 @@ public class LocalDataClientImpl implements DataClient {
         return vtepZkManager.getNewVni();
     }
 
-    @Override
-    public IPv4Addr vxlanTunnelEndpointFor(UUID bridgePort)
-        throws SerializationException, StateAccessException {
-        BridgePort port = (BridgePort) portsGet(bridgePort);
-        if (port == null) {
-            return null;
-        }
-
-        if (!port.isExterior()) {
-            throw new IllegalArgumentException("Port " + port.getId() + " is " +
-                                               "not exterior");
-        }
-
-        Bridge b = bridgesGet(port.getDeviceId());
-        if (null == b) {
-            log.warn("Bridge {} for port {} does not exist anymore",
-                     port.getDeviceId(), port.getId());
-            return null;
-        }
-
-        return vxlanTunnelEndpointForInternal(b, port);
-    }
-
     /*
      * Utility method to use internaly. It assumes that the caller has verified
      * that both the bridge and port are non-null.
@@ -3700,25 +3539,6 @@ public class LocalDataClientImpl implements DataClient {
             portConfig.device_id));
 
         zkManager.multi(ops);
-    }
-
-    @Override
-    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID ownerId)
-        throws SerializationException, StateAccessException {
-        return vtepZkManager.tryOwnVtep(mgmtIp, ownerId);
-    }
-
-    @Override
-    public Bridge bridgeGetAndWatch(UUID id, Directory.TypedWatcher watcher)
-        throws StateAccessException, SerializationException {
-        try {
-            BridgeConfig bc = bridgeZkManager.get(id, watcher);
-            Bridge b = Converter.fromBridgeConfig(bc);
-            b.setId(id);
-            return b;
-        } catch (NoStatePathException e) {
-            return null;
-        }
     }
 
     @Override

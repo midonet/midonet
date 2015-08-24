@@ -26,7 +26,6 @@ import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.services.vxgw.VxlanGatewayService;
-import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 import org.midonet.config.ConfigProvider;
 
 public class RestApiModule extends AbstractModule {
@@ -44,8 +43,6 @@ public class RestApiModule extends AbstractModule {
 
         bind(WebApplicationExceptionMapper.class).asEagerSingleton();
 
-        bindVtepDataClientFactory(); // allow mocking
-
         bind(ApplicationResource.class);
         install(new FactoryModuleBuilder().build(ResourceFactory.class));
 
@@ -54,10 +51,6 @@ public class RestApiModule extends AbstractModule {
         bind(ConfMinion.class).asEagerSingleton();
 
         log.debug("configure: exiting.");
-    }
-
-    protected void bindVtepDataClientFactory() {
-        bind(VtepDataClientFactory.class).asEagerSingleton();
     }
 
     @Provides

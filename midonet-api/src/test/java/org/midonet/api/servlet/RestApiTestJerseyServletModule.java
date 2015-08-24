@@ -17,11 +17,11 @@ package org.midonet.api.servlet;
 
 import javax.servlet.ServletContext;
 
+import com.google.inject.AbstractModule;
+
 import org.midonet.api.rest_api.DataclientTopologyBackdoor;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.rest_api.TopologyBackdoor;
-import org.midonet.api.vtep.VtepMockableDataClientFactory;
-import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 
 /**
  * Jersey servlet module for MidoNet REST API application, for testing.
@@ -39,17 +39,15 @@ public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
 
     @Override
     protected void installRestApiModule() {
-        install(new RestApiModule() {
-            protected void bindVtepDataClientFactory() {
-                bind(VtepDataClientFactory.class)
-                    .to(VtepMockableDataClientFactory.class)
-                    .asEagerSingleton();
-
+        install(new AbstractModule() {
+            @Override
+            protected void configure() {
                 // Gives access to the backend storage, based on the dataclient
                 bind(TopologyBackdoor.class)
                     .to(DataclientTopologyBackdoor.class);
             }
         });
+        install(new RestApiModule());
     }
 
 }
