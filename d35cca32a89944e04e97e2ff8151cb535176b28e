@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_aed4f047",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-24T11:02:42Z",
+      "side": 1,
+      "message": "Looks like you don\u0027t have IDEA configured with our style settings. Just copy midonet/java-code-styles.xml to config/codestyles/ under your IDEA installation, restart IDEA, and then change the code style to Midokura under Settings|Editor|Code Styles. Then Ctrl-alt-O should put imports in the right order.",
+      "parentUuid": "9ad9bd40_93875512",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e0944e8e",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 3
@@ -802,6 +826,30 @@
       "side": 1,
       "message": "var r: Rule \u003d null here?\n\nOr did I just commit another Scala sin?",
       "parentUuid": "9ad9bd40_a00ec6e3",
+      "range": {
+        "startLine": 352,
+        "startChar": 13,
+        "endLine": 352,
+        "endChar": 15
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4ebd2402",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-24T11:02:42Z",
+      "side": 1,
+      "message": "Yeah, colon placement.",
+      "parentUuid": "9ad9bd40_1076dbd8",
       "range": {
         "startLine": 352,
         "startChar": 13,
