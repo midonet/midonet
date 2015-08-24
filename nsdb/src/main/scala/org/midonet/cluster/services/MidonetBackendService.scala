@@ -172,7 +172,7 @@ object MidonetBackend {
         stateStore.registerKey(classOf[TunnelZone], FloodingProxyKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepConfig, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepConnState, SingleLastWriteWins)
-        stateStore.registerKey(classOf[Vtep], VtepVxgwManager, SingleLastWriteWins)
+        stateStore.registerKey(classOf[Vtep], VtepVxgwManager, SingleFirstWriteWins)
 
         store.build()
     }
