@@ -34,6 +34,24 @@
       "revId": "0976ea6c921952464d3d2517fd7098f01c1085c7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_93a035a7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-24T07:59:08Z",
+      "side": 1,
+      "message": "you\u0027re right, of course. i didn\u0027t think it through :p",
+      "parentUuid": "9ad9bd40_90782bfa",
+      "revId": "0976ea6c921952464d3d2517fd7098f01c1085c7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
