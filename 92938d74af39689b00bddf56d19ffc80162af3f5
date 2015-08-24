@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_a9514a10",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-24T14:28:44Z",
+      "side": 1,
+      "message": "Just my personal preference that it\u0027s more readable if this was instead:\n\nif (isRouterInterfacePort(nPort)) {\n    return List(Delete(classOf[Port],\n                       routerInterfacePortPeerId(nPort.getId)))\n} else {\n    return List()\n}",
+      "revId": "92938d74af39689b00bddf56d19ffc80162af3f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
