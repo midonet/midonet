@@ -73,13 +73,6 @@ public class TestTraceRequest extends JerseyTest {
               .build());
     }
 
-    @BeforeClass
-    public static void ignoreIfNewStack() {
-        // TODO: remove this check once trace request is migrated to the new
-        //       stack
-        Assume.assumeFalse(FuncTest.isCompatApiEnabled());
-    }
-
     @Before
     public void setUp() throws InterruptedException,
                                KeeperException,
@@ -142,11 +135,12 @@ public class TestTraceRequest extends JerseyTest {
         request.setBaseUri(resource().getURI());
 
         List<TraceRequest> traces = traceResource
-            .get(new GenericType<List<TraceRequest>>() {
-            });
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_COLLECTION_JSON)
+            .get(new GenericType<List<TraceRequest>>() {});
         assertThat("The trace request is listed", traces.size(), equalTo(1));
 
         TraceRequest readRequest = traceResource.uri(request.getUri())
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
             .get(TraceRequest.class);
         assertThat("The object is different", request != readRequest);
         assertThat("The content is the same",
@@ -163,7 +157,9 @@ public class TestTraceRequest extends JerseyTest {
                 response2.getClientResponseStatus(), equalTo(Status.CREATED));
         request2.id = toUUID(response.getLocation());
 
-        traces = traceResource.get(new GenericType<List<TraceRequest>>() {});
+        traces = traceResource
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_COLLECTION_JSON)
+            .get(new GenericType<List<TraceRequest>>() {});
         assertThat("There should be two now", traces.size(), equalTo(2));
 
         // delete one
@@ -174,11 +170,14 @@ public class TestTraceRequest extends JerseyTest {
 
         // should not be able to read it now
         ClientResponse response4 = traceResource.uri(request.getUri())
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
             .get(ClientResponse.class);
         assertThat("Should be gone", response4.getClientResponseStatus(),
                    equalTo(Status.NOT_FOUND));
 
-        traces = traceResource.get(new GenericType<List<TraceRequest>>() {});
+        traces = traceResource
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_COLLECTION_JSON)
+            .get(new GenericType<List<TraceRequest>>() {});
         assertThat("There should be one now", traces.size(), equalTo(1));
     }
 
@@ -198,13 +197,18 @@ public class TestTraceRequest extends JerseyTest {
 
         response = traceResource
             .type(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
-            .post(ClientResponse.class,
-                                                     request);
-        assertThat("Create should have not have succeeded",
-                   response.getClientResponseStatus(),
-                   equalTo(Status.INTERNAL_SERVER_ERROR));
-
+            .post(ClientResponse.class, request);
+        if (FuncTest.isCompatApiEnabled()) {
+            assertThat("Create should not have succeeded",
+                       response.getClientResponseStatus(),
+                       equalTo(Status.CONFLICT));
+        } else {
+            assertThat("Create should not have succeeded",
+                       response.getClientResponseStatus(),
+                       equalTo(Status.INTERNAL_SERVER_ERROR));
+        }
         List<TraceRequest> traces = traceResource
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_COLLECTION_JSON)
             .get(new GenericType<List<TraceRequest>>() {});
         assertThat("The trace request is listed", traces.size(), equalTo(1));
     }
@@ -241,7 +245,9 @@ public class TestTraceRequest extends JerseyTest {
 
         // tenant should only see the port trace
         List<TraceRequest> traces = traceResource
+            .queryParam("tenant_id", TENANT0)
             .header(HEADER_X_AUTH_TOKEN, TENANT0)
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_COLLECTION_JSON)
             .get(new GenericType<List<TraceRequest>>() {});
         assertThat("The trace request is listed", traces.size(), equalTo(1));
         assertThat("Should be the port trace",
@@ -250,57 +256,68 @@ public class TestTraceRequest extends JerseyTest {
         // admin should see all
         traces = traceResource
             .header(HEADER_X_AUTH_TOKEN, ADMIN0)
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_COLLECTION_JSON)
             .get(new GenericType<List<TraceRequest>>() {});
         assertThat("Both trace requests are listed", traces.size(), equalTo(2));
 
         // tenant can delete port trace but not bridge trace
         response = traceResource.uri(portTrace.getUri())
+            .queryParam("tenant_id", TENANT0)
             .header(HEADER_X_AUTH_TOKEN, TENANT0)
             .delete(ClientResponse.class);
         assertThat("Delete should have succeeded for portTrace",
                 response.getClientResponseStatus(),
                 equalTo(Status.NO_CONTENT));
 
-        response = traceResource.uri(bridgeTrace.getUri())
-            .header(HEADER_X_AUTH_TOKEN, TENANT0)
-            .delete(ClientResponse.class);
-        assertThat("Delete should have failed",
-                response.getClientResponseStatus(),
-                equalTo(Status.FORBIDDEN));
+        if (!FuncTest.isCompatApiEnabled()) {
+            response = traceResource.uri(bridgeTrace.getUri())
+                .queryParam("tenant_id", TENANT0)
+                .header(HEADER_X_AUTH_TOKEN, TENANT0)
+                .delete(ClientResponse.class);
+            assertThat("Delete should have failed",
+                       response.getClientResponseStatus(),
+                       equalTo(Status.FORBIDDEN));
 
-        traces = traceResource
-            .header(HEADER_X_AUTH_TOKEN, ADMIN0)
-            .get(new GenericType<List<TraceRequest>>() {});
-        assertThat("Only one race requests is listed", traces.size(), equalTo(1));
+            traces = traceResource
+                .header(HEADER_X_AUTH_TOKEN, ADMIN0)
+                .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_COLLECTION_JSON)
+                .get(new GenericType<List<TraceRequest>>() {});
+            assertThat("Only one race requests is listed", traces.size(), equalTo(1));
 
-        // tenant can create trace on router, but not bridge
-        TraceRequest bridgeTrace2 = traceRequest(
-                UUID.randomUUID(), "foobar2",
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
-                new Condition());
-        TraceRequest portTrace2 = traceRequest(
-                UUID.randomUUID(), "foobar3",
-                DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
-                new Condition());
+            // tenant can create trace on router, but not bridge
+            TraceRequest bridgeTrace2 = traceRequest(
+                    UUID.randomUUID(), "foobar2",
+                    DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                    new Condition());
+            TraceRequest portTrace2 = traceRequest(
+                    UUID.randomUUID(), "foobar3",
+                    DeviceType.PORT, topology.getRouterPort(PORT0).getId(),
+                    new Condition());
 
-        response = traceResource
-            .header(HEADER_X_AUTH_TOKEN, TENANT0)
-            .type(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
-            .post(ClientResponse.class, portTrace2);
-        assertThat("Create should have succeeded",
-                response.getClientResponseStatus(), equalTo(Status.CREATED));
+            response = traceResource
+                .queryParam("tenant_id", TENANT0)
+                .header(HEADER_X_AUTH_TOKEN, TENANT0)
+                .type(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
+                .post(ClientResponse.class, portTrace2);
+            assertThat("Create should have succeeded",
+                       response.getClientResponseStatus(), equalTo(Status.CREATED));
 
-        response = traceResource
-            .header(HEADER_X_AUTH_TOKEN, TENANT0)
-            .type(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
-            .post(ClientResponse.class, bridgeTrace2);
-        assertThat("Create should have failed",
-                response.getClientResponseStatus(), equalTo(Status.FORBIDDEN));
+            response = traceResource
+                .queryParam("tenant_id", TENANT0)
+                .header(HEADER_X_AUTH_TOKEN, TENANT0)
+                .type(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
+                .post(ClientResponse.class, bridgeTrace2);
+            assertThat("Create should have failed",
+                       response.getClientResponseStatus(), equalTo(Status.FORBIDDEN));
 
-        traces = traceResource
-            .header(HEADER_X_AUTH_TOKEN, ADMIN0)
-            .get(new GenericType<List<TraceRequest>>() {});
-        assertThat("Both trace requests are listed", traces.size(), equalTo(2));
+            traces = traceResource
+                .header(HEADER_X_AUTH_TOKEN, ADMIN0)
+                .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_COLLECTION_JSON)
+                .get(new GenericType<List<TraceRequest>>() {});
+            assertThat("Both trace requests are listed", traces.size(), equalTo(2));
+        } else {
+            // v2 api only has admin tenant
+        }
     }
 
     /**
@@ -327,6 +344,7 @@ public class TestTraceRequest extends JerseyTest {
         portTrace.id = toUUID(response.getLocation());
 
         TraceRequest readRequest = traceResource.uri(portTrace.getUri())
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
             .get(TraceRequest.class);
         assertThat("The object is different", portTrace != readRequest);
         assertThat("The content is the same",
@@ -344,9 +362,15 @@ public class TestTraceRequest extends JerseyTest {
         ClientResponse response = traceResource
             .type(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
             .post(ClientResponse.class, portTrace);
-        assertThat("Create should have failed",
-                   response.getClientResponseStatus(),
-                   equalTo(Status.INTERNAL_SERVER_ERROR));
+        if (!FuncTest.isCompatApiEnabled()) {
+            assertThat("Create should have failed",
+                       response.getClientResponseStatus(),
+                       equalTo(Status.INTERNAL_SERVER_ERROR));
+        } else {
+            assertThat("Create should have failed",
+                    response.getClientResponseStatus(),
+                    equalTo(Status.NOT_FOUND));
+        }
     }
 
     @Test(timeout=60000)
@@ -358,9 +382,15 @@ public class TestTraceRequest extends JerseyTest {
         ClientResponse response = traceResource
             .type(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
             .post(ClientResponse.class, portTrace);
-        assertThat("Create should have failed",
-                   response.getClientResponseStatus(),
-                   equalTo(Status.INTERNAL_SERVER_ERROR));
+        if (!FuncTest.isCompatApiEnabled()) {
+            assertThat("Create should have failed",
+                       response.getClientResponseStatus(),
+                       equalTo(Status.INTERNAL_SERVER_ERROR));
+        } else {
+            assertThat("Create should have failed",
+                       response.getClientResponseStatus(),
+                       equalTo(Status.NOT_FOUND));
+        }
     }
 
     @Test(timeout=60000)
@@ -379,6 +409,7 @@ public class TestTraceRequest extends JerseyTest {
         portTrace.setBaseUri(resource().getURI());
 
         TraceRequest readRequest = traceResource.uri(portTrace.getUri())
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
             .get(TraceRequest.class);
         assertThat("Trace hasn't been enabled",
                    readRequest.enabled, equalTo(false));
@@ -391,6 +422,7 @@ public class TestTraceRequest extends JerseyTest {
                    response.getClientResponseStatus(),
                    equalTo(Status.NO_CONTENT));
         readRequest = traceResource.uri(portTrace.getUri())
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
             .get(TraceRequest.class);
         assertThat("Trace still hasn't been enabled",
                    readRequest.enabled, equalTo(false));
@@ -404,6 +436,7 @@ public class TestTraceRequest extends JerseyTest {
                    equalTo(Status.NO_CONTENT));
 
         readRequest = traceResource.uri(portTrace.getUri())
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
             .get(TraceRequest.class);
         assertThat("Trace has been enabled",
                    readRequest.enabled, equalTo(true));
@@ -411,6 +444,8 @@ public class TestTraceRequest extends JerseyTest {
 
     @Test(timeout=60000)
     public void testEnableDisablePermissions() throws StateAccessException {
+        Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+
         TraceRequest bridgeTrace = traceRequest(UUID.randomUUID(), "foobar",
                 DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
                 new Condition());
@@ -431,6 +466,7 @@ public class TestTraceRequest extends JerseyTest {
 
         bridgeTrace.enabled = false;
         response = traceResource.uri(bridgeTrace.getUri())
+            .queryParam("tenant_id", TENANT0)
             .header(HEADER_X_AUTH_TOKEN, TENANT0)
             .type(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
             .put(ClientResponse.class, bridgeTrace);
@@ -476,6 +512,7 @@ public class TestTraceRequest extends JerseyTest {
         bridgeTrace.setBaseUri(resource().getURI());
 
         TraceRequest readRequest = traceResource.uri(bridgeTrace.getUri())
+            .accept(VendorMediaType.APPLICATION_TRACE_REQUEST_JSON)
             .get(TraceRequest.class);
         assertThat("Trace has been enabled",
                    readRequest.enabled, equalTo(true));
@@ -483,6 +520,8 @@ public class TestTraceRequest extends JerseyTest {
 
     @Test(timeout=60000)
     public void testConflictingPut() throws StateAccessException {
+        Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+
         TraceRequest bridgeTrace = traceRequest(UUID.randomUUID(), "foobar",
                 DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
                 new Condition());
