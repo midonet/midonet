@@ -103,12 +103,15 @@ class ZoomPortBinder(storage: Storage,
             ZookeeperLockFactory.ZOOM_TOPOLOGY)
         lock.acquire(LockWaitSec, TimeUnit.SECONDS)
 
-        val p = getPortBuilder(portId)
+        try {
+            val p = getPortBuilder(portId)
                          .setHostId(UUIDUtil.toProto(hostId))
                          .setInterfaceName(deviceName)
                          .build()
-        storage.update(p)
-        lock.release()
+            storage.update(p)
+        } finally {
+            lock.release()
+        }
     }
 
     override def unbindPort(portId: UUID, hostId: UUID): Unit = {
@@ -117,13 +120,15 @@ class ZoomPortBinder(storage: Storage,
             ZookeeperLockFactory.ZOOM_TOPOLOGY)
         lock.acquire(LockWaitSec, TimeUnit.SECONDS)
 
-        val p = getPortBuilder(portId)
-                          .clearHostId()
-                          .clearInterfaceName()
-                          .build()
-        storage.update(p)
-
-        lock.release()
+        try {
+            val p = getPortBuilder(portId)
+              .clearHostId()
+              .clearInterfaceName()
+              .build()
+            storage.update(p)
+        } finally {
+            lock.release()
+        }
     }
 }
 
