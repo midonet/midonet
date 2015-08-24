@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_501f83b7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 495,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-24T04:01:50Z",
+      "side": 1,
+      "message": "ok, i\u0027ll try to avoid garbage.",
+      "parentUuid": "9ad9bd40_863b9a9b",
+      "revId": "4fff38411478014147ebc1d0413c56c95aeb7cb7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_46ba720b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceWorkflow.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-08-21T14:37:16Z",
       "side": 1,
       "message": "would it be feasible for there to be a virtual port associated with mdInfo.dpPortNo do the machinery in the previous patch wouldn\u0027t be needed?",
+      "revId": "4fff38411478014147ebc1d0413c56c95aeb7cb7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3022ff01",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-24T04:01:50Z",
+      "side": 1,
+      "message": "you\u0027re right that this machinery would not be necessary if there\u0027s a virtual port associated.\n\ni\u0027m not sure how the virtual port would look like,\nor having such a virtual port is any cleaner, though.\nis there any precedent of similar virtual port?",
+      "parentUuid": "9ad9bd40_46ba720b",
       "revId": "4fff38411478014147ebc1d0413c56c95aeb7cb7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
