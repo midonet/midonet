@@ -109,7 +109,7 @@ the kernel's Open Datapath module.
 Most dependencies are pulled in by the gradle build scripts, however
 there are some prerequisites:
 
-* java 7 jdk
+* java 8 jdk
 * protobufs compiler
     * Install 2.6.1 from [here](https://github.com/google/protobuf/releases)
 * fpm (ruby gem) to build debian/rpm packages
