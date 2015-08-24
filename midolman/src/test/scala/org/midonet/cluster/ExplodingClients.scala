@@ -77,8 +77,6 @@ class ExplodingDataClient extends DataClient {
     override def bridgesCreate(bridge: Bridge): UUID = explode()
     override def bridgesUpdate(bridge: Bridge): Unit = explode()
     override def bridgesGetAll(): JList[Bridge] = explode()
-    override def bridgesGetUuidSetMonitor(
-        zkConnection: ZookeeperConnectionWatcher): EntityIdSetMonitor[UUID] = explode()
     override def bridgesFindByTenant(tenantId: String): JList[Bridge] = explode()
     override def ensureBridgeHasVlanDirectory(bridgeId: UUID): Unit = explode()
     override def bridgeHasMacTable(bridgeId: UUID, vlanId: Short): Boolean = explode()
@@ -95,21 +93,12 @@ class ExplodingDataClient extends DataClient {
                                      mac: MAC, portId: UUID): Unit = explode()
     override def bridgeAddIp4Mac(bridgeId: UUID, ip4: IPv4Addr,
                                  mac: MAC): Unit = explode()
-    override def bridgeAddLearnedIp4Mac(bridgeId: UUID, ip4: IPv4Addr,
-                                        mac: MAC): Unit = explode()
     override def bridgeHasIP4MacPair(bridgeId: UUID,
                                      ip: IPv4Addr, mac: MAC): Boolean = explode()
     override def bridgeGetIP4MacPairs(
         bridgeId: UUID): JMap[IPv4Addr, MAC] = explode()
     override def bridgeDeleteIp4Mac(bridgeId: UUID, ip4: IPv4Addr,
                                     mac: MAC): Unit = explode()
-    override def bridgeDeleteLearnedIp4Mac(bridgeId: UUID,
-                                           ip4: IPv4Addr,
-                                           mac: MAC): Unit = explode()
-    override def bridgeGetIp4ByMac(bridgeId: UUID,
-                                   mac: MAC): JSet[IPv4Addr] = explode()
-    override def bridgeGetArpTable(
-        bridgeId: UUID): Ip4ToMacReplicatedMap = explode()
     override def chainsGet(id: UUID): Chain = explode()
     override def chainsDelete(id: UUID): Unit = explode()
     override def chainsCreate(chain: Chain): UUID = explode()
@@ -168,11 +157,6 @@ class ExplodingDataClient extends DataClient {
         zoneId: UUID, hostConfig: TunnelZone.HostConfig): UUID = explode()
     override def tunnelZonesDeleteMembership(zoneId: UUID,
                                              membershipId: UUID): Unit = explode()
-    override def tunnelZonesGetMonitor(zkConnection: ZookeeperConnectionWatcher): EntityMonitor[UUID, TunnelZone.Data, TunnelZone] = explode()
-    override def tunnelZonesGetUuidSetMonitor(
-        zkConnection: ZookeeperConnectionWatcher): EntityIdSetMonitor[_] = explode()
-    override def tunnelZonesGetMembershipsMonitor(
-        zoneId: UUID, zkConnection: ZookeeperConnectionWatcher): EntityIdSetMonitor[UUID] = explode()
     override def hostsCreate(id: UUID, host: Host): UUID = explode()
     override def loadBalancerGet(id: UUID): LoadBalancer = explode()
     override def loadBalancerDelete(id: UUID): Unit = explode()
@@ -213,13 +197,8 @@ class ExplodingDataClient extends DataClient {
     override def hostsDelete(hostId: UUID): Unit = explode()
     override def hostsExists(hostId: UUID): Boolean = explode()
     override def hostsIsAlive(hostId: UUID): Boolean = explode()
-    override def hostsIsAlive(hostId: UUID, watcher: Watcher): Boolean = explode()
     override def hostsHasPortBindings(hostId: UUID): Boolean = explode()
     override def hostsGetAll(): JList[Host] = explode()
-    override def hostsGetMonitor(
-        zkConnection: ZookeeperConnectionWatcher): EntityMonitor[UUID, HostDirectory.Metadata, Host] = explode()
-    override def hostsGetUuidSetMonitor(
-        zkConnection: ZookeeperConnectionWatcher): EntityIdSetMonitor[UUID] = explode()
     override def interfacesGetByHost(hostId: UUID): JList[Interface] = explode()
     override def interfacesGet(hostId: UUID,
                                interfaceName: String): Interface = explode()
@@ -235,8 +214,6 @@ class ExplodingDataClient extends DataClient {
         hostId: UUID, portId: UUID,
         localPortName: String): Port[_,_] = explode()
     override def hostsDelVrnPortMapping(hostId: UUID, portId: UUID): Unit = explode()
-    override def hostsGetFloodingProxyWeight(hostId: UUID,
-                                             watcher: Watcher): Integer = explode()
     override def hostsSetFloodingProxyWeight(hostId: UUID,
                                              weight: Int): Unit = explode()
     override def portsExists(id: UUID): Boolean = explode()
@@ -340,10 +317,6 @@ class ExplodingDataClient extends DataClient {
     override def bridgeDeleteVxLanPort(bridgeId: UUID,
                                        vxLanPort: IPv4Addr): Unit = explode()
     override def bridgeDeleteVxLanPort(port: VxLanPort): Unit = explode()
-    override def tryOwnVtep(mgmtIp: IPv4Addr, ownerId: UUID): UUID = explode()
-    override def vxlanTunnelEndpointFor(bridgePortId: UUID): IPv4Addr = explode()
-    override def bridgeGetAndWatch(
-        id: UUID, watcher: Directory.TypedWatcher): Bridge = explode()
     override def vxLanPortIdsAsyncGet(
         callback: DirectoryCallback[JSet[UUID]], watcher: Directory.TypedWatcher) = explode()
     override def getIp4MacMap(bridgeId: UUID): Ip4ToMacReplicatedMap = explode()

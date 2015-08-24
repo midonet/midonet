@@ -56,7 +56,6 @@ import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
-import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
@@ -66,7 +65,6 @@ import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.l4lb.MappingViolationException;
@@ -127,12 +125,6 @@ public interface DataClient {
     List<Bridge> bridgesGetAll() throws StateAccessException,
             SerializationException;
 
-    /**
-     * Get an entity monitor for the set of bridges
-     */
-    EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
-        ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
-
     List<Bridge> bridgesFindByTenant(String tenantId)
             throws StateAccessException, SerializationException;
 
@@ -183,14 +175,6 @@ public interface DataClient {
         throws StateAccessException;
 
     /**
-     * Sets or replaces a learned Ip->Mac mapping, unless a persistent pair
-     * for the same IP already existed..
-     */
-    void bridgeAddLearnedIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
-                                @Nonnull MAC mac)
-        throws StateAccessException;
-
-    /**
      * Checks if a persistent or learned IP->MAC mapping exists.
      */
     boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
@@ -208,31 +192,6 @@ public interface DataClient {
      */
     void bridgeDeleteIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
                             @Nonnull MAC mac)
-        throws StateAccessException;
-
-    /**
-     * Deletes a learned IP->MAC mapping.
-     * It silently does nothing if the entry is persistent or does not exist.
-     */
-    void bridgeDeleteLearnedIp4Mac(@Nonnull UUID bridgeId,
-                                   @Nonnull IPv4Addr ip4,
-                                   @Nonnull MAC mac)
-        throws StateAccessException;
-
-    /**
-     * Get the set of IP addresses associated to a given MAC in the
-     * bridge's ARP table.
-     * The resulting set can be empty.
-     */
-    Set<IPv4Addr> bridgeGetIp4ByMac(@Nonnull UUID bridgeId, @Nonnull MAC mac)
-        throws StateAccessException;
-
-    /**
-     * Get a replicated map representing the ARP table for a given bridge.
-     * This is mainly used to set watchers; manipulation of the table
-     * should be done via the bridge*Ip4Mac* methods.
-     */
-    Ip4ToMacReplicatedMap bridgeGetArpTable(@Nonnull java.util.UUID bridgeId)
         throws StateAccessException;
 
     /* Chains related methods */
@@ -361,16 +320,6 @@ public interface DataClient {
 
     void tunnelZonesDeleteMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException;
-
-    EntityMonitor<UUID, TunnelZone.Data, TunnelZone> tunnelZonesGetMonitor(
-            ZookeeperConnectionWatcher zkConnection);
-
-    EntityIdSetMonitor tunnelZonesGetUuidSetMonitor(
-        ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
-
-    EntityIdSetMonitor<UUID> tunnelZonesGetMembershipsMonitor(
-            @Nonnull UUID zoneId,
-            ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     UUID hostsCreate(@Nonnull UUID id, @Nonnull Host host)
             throws StateAccessException, SerializationException;
@@ -509,25 +458,10 @@ public interface DataClient {
 
     boolean hostsIsAlive(UUID hostId) throws StateAccessException;
 
-    boolean hostsIsAlive(UUID hostId, Watcher watcher)
-        throws StateAccessException;
-
     boolean hostsHasPortBindings(UUID hostId) throws StateAccessException;
 
     List<Host> hostsGetAll()
             throws StateAccessException;
-
-    /**
-     * Get an entity monitor for individual hosts
-     */
-    EntityMonitor<UUID, HostDirectory.Metadata, Host> hostsGetMonitor(
-        ZookeeperConnectionWatcher zkConnection);
-
-    /**
-     * Get an entity monitor for the set of hosts
-     */
-    EntityIdSetMonitor<UUID> hostsGetUuidSetMonitor(
-        ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     List<Interface> interfacesGetByHost(UUID hostId)
             throws StateAccessException, SerializationException;
@@ -555,19 +489,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void hostsDelVrnPortMapping(UUID hostId, UUID portId)
-            throws StateAccessException, SerializationException;
-
-    /**
-     * Gets the flooding proxy weight value for the host, and sets up
-     * a watcher on the flooding proxy weight path. The method returns null, and
-     * does not set any watcher if the host node does not exist.
-     *
-     * @param hostId The host identifier.
-     * @param watcher The watcher.
-     * @return The flooding proxy weight or null if the host or the weight
-     *         ZooKeeper node does not exist.
-     */
-    Integer hostsGetFloodingProxyWeight(UUID hostId, Watcher watcher)
             throws StateAccessException, SerializationException;
 
     void hostsSetFloodingProxyWeight(UUID hostId, int weight)
@@ -997,30 +918,8 @@ public interface DataClient {
     void bridgeDeleteVxLanPort(UUID bridgeId, IPv4Addr vxLanPort)
             throws SerializationException, StateAccessException;
 
-
     void bridgeDeleteVxLanPort(VxLanPort port)
         throws SerializationException, StateAccessException;
-
-    /**
-     * Tries to take ownership of the given VTEP.
-     *
-     * @param mgmtIp The management IP of the VTEP
-     * @param ownerId The ID of the node trying to take ownership of the VTEP
-     * @return The ID of the node that owns the VTEP, never null
-     */
-    UUID tryOwnVtep(IPv4Addr mgmtIp, UUID ownerId)
-        throws SerializationException, StateAccessException;
-
-    /**
-     * See vxlanTunnelEndpointFor(BridgePort port)
-     * @return null if the bridge port id does not correspond to a bridge
-     * currently connected to a vtep.
-     */
-    IPv4Addr vxlanTunnelEndpointFor(UUID bridgePortId)
-        throws SerializationException, StateAccessException;
-
-    Bridge bridgeGetAndWatch(UUID id, Directory.TypedWatcher watcher)
-        throws StateAccessException, SerializationException;
 
     void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
                                      Directory.TypedWatcher watcher)
