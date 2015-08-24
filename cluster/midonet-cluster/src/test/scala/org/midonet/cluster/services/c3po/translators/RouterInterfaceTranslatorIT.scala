@@ -65,21 +65,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         // Creating a RouterInterface should result on a port being created on
         // the router and linked to the network port.
         createRouterInterface(7, routerId, rifPortId, subnetId)
-        val rPeerPortId = routerInterfacePortPeerId(rifPortId.asProto)
-        val rPort = eventually {
-            val Seq(nwPort, rPeerPort) = storage.getAll(
-                classOf[Port], Seq(rifPortId, rPeerPortId)).await()
-            nwPort.getPeerId shouldBe rPeerPort.getId
-            rPeerPort.getPeerId shouldBe nwPort.getId
-            rPeerPort.getPortAddress.getAddress shouldBe "10.0.0.3"
-            rPeerPort.getPortMac shouldBe "ab:cd:ef:01:02:03"
-            rPeerPort
-        }
-
-        rPort.getAdminStateUp shouldBe true
-        rPort.getPortAddress.getAddress shouldBe "10.0.0.3"
-        rPort.hasHostId shouldBe false
-        rPort.getRouterId shouldBe routerId.asProto
+        val rPort = checkRouterAndPeerPort(rifPortId, "10.0.0.3",
+                                           "ab:cd:ef:01:02:03")
 
         rPort.getRouteIdsCount shouldBe 3
         val routes = storage.getAll(
@@ -90,7 +77,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         rifRoute.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
         rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.0"
         rifRoute.getDstSubnet.getPrefixLength shouldBe 24
-        rifRoute.getNextHopPortId shouldBe rPeerPortId
+        rifRoute.getNextHopPortId shouldBe rPort.getId
 
         val mdsRouteId = metadataServiceRouteId(rPort.getId)
         val mdsRoute = routes.find(_.getId == mdsRouteId).get
@@ -98,7 +85,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         mdsRoute.getSrcSubnet.getPrefixLength shouldBe 24
         mdsRoute.getDstSubnet shouldBe RouteManager.META_DATA_SRVC
         mdsRoute.getNextHopGateway.getAddress shouldBe "10.0.0.2"
-        mdsRoute.getNextHopPortId shouldBe rPeerPortId
+        mdsRoute.getNextHopPortId shouldBe rPort.getId
 
         val localRtId = localRouteId(rPort.getId)
         val localRoute = routes.find(_.getId == localRtId).get
@@ -121,8 +108,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         }
     }
 
-    "RouterInterfaceTranslator" should "handle translation for interfaces on " +
-                                       "edge routers" in {
+    it should "handle translation for interfaces on edge routers" in {
         createUplinkNetwork(2, uplinkNetworkId)
         createSubnet(3, subnetId, uplinkNetworkId, "10.0.0.0/24")
         createDhcpPort(4, dhcpPortId, uplinkNetworkId, subnetId, "10.0.0.2")
@@ -148,46 +134,12 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
 
         createHost(hostId)
         createRouterInterface(7, routerId, rifPortId, subnetId)
-        val rPortId = routerInterfacePortPeerId(rifPortId.asProto)
-        val rPort = eventually(storage.get(classOf[Port], rPortId).await())
-        rPort.getAdminStateUp shouldBe true
-        rPort.getHostId shouldBe hostId.asProto
-        rPort.getInterfaceName shouldBe "eth0"
-        rPort.getRouterId shouldBe routerId.asProto
-        rPort.getPortAddress.getAddress shouldBe "10.0.0.3"
-        rPort.getPortMac shouldBe "ab:cd:ef:01:02:03"
 
-        rPort.getRouteIdsCount shouldBe 1
-        val rifRoute = storage.get(classOf[Route], rPort.getRouteIds(0)).await()
-        rifRoute.getId shouldBe RouteManager.routerInterfaceRouteId(rPort.getId)
-        rifRoute.getNextHopPortId shouldBe rPort.getId
-        rifRoute.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
-        rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.0"
-        rifRoute.getDstSubnet.getPrefixLength shouldBe 24
+        checkEdgeRouterInterface(rifPortId, hostId, delete = true)
 
-        val host = storage.get(classOf[Host], hostId).await()
-        host.getPortIdsList.asScala should contain only rPortId
-
-        // Deleting the router interface Port should delete the router Port.
-        insertDeleteTask(8, PortType, rifPortId)
-        eventually {
-            List(storage.exists(classOf[Port], rPortId),
-                 storage.exists(classOf[Route], rifRoute.getId))
-                .map(_.await()) shouldBe List(false, false)
-
-            val portExistsFtr = storage.exists(classOf[Port], rPortId)
-            val routeExistsFtr = storage.exists(classOf[Route], rifRoute.getId)
-            val hostV2Ftr = storage.get(classOf[Host], hostId)
-            val routerFtr = storage.get(classOf[Router], routerId)
-            portExistsFtr.await() shouldBe false
-            routeExistsFtr.await() shouldBe false
-            hostV2Ftr.await().getPortIdsList.asScala shouldBe empty
-            routerFtr.await().getPortIdsList.asScala shouldBe empty
-        }
     }
 
-    "RouterInterfaceTranslator" should "update gateway routes using the " +
-                                       "specified subnet" in {
+    it should "update gateway routes using the specified subnet" in {
 
         val extNwId = UUID.randomUUID()
         val tntRtr1Id = UUID.randomUUID()
@@ -263,20 +215,130 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         // Creating a RouterInterface should result on a port being created on
         // the router and linked to the network port.
         createRouterInterface(7, routerId, rifPortId, subnetId)
-        val rPeerPortId = routerInterfacePortPeerId(rifPortId.asProto)
-        val rPort = eventually {
-            val Seq(nwPort, rPeerPort) = storage.getAll(
-                classOf[Port], Seq(rifPortId, rPeerPortId)).await()
-            nwPort.getPeerId shouldBe rPeerPort.getId
-            rPeerPort.getPeerId shouldBe nwPort.getId
-            rPeerPort.getPortAddress.getAddress shouldBe "10.0.0.3"
-            rPeerPort.getPortMac shouldBe "ab:cd:ef:01:02:03"
-            rPeerPort
+        checkRouterAndPeerPort(rifPortId, "10.0.0.3", "ab:cd:ef:01:02:03")
+    }
+
+    it should "Update convert non-RIF port on tenant network to RIF ports " +
+              "on create" in {
+        createTenantNetwork(2, tenantNetworkId)
+        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24")
+        createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        createRouter(5, routerId)
+
+        val json = portJson(rifPortId, tenantNetworkId, name = null,
+                            deviceOwner = null, macAddr = "ab:cd:ef:01:02:03",
+                            fixedIps = List(IPAlloc("10.0.0.3", subnetId)))
+        insertCreateTask(6, PortType, json, rifPortId)
+        eventually {
+            val nPort = storage.get(classOf[NeutronPort], rifPortId).await()
+            nPort.hasDeviceOwner shouldBe false
         }
 
+        createRouterInterface(7, routerId, rifPortId, subnetId)
+        eventually {
+            val nPort = storage.get(classOf[NeutronPort], rifPortId).await()
+            nPort.hasDeviceOwner shouldBe true
+            nPort.getDeviceOwner shouldBe DeviceOwner.ROUTER_INTERFACE
+
+            checkRouterAndPeerPort(rifPortId, "10.0.0.3", "ab:cd:ef:01:02:03")
+        }
+
+        // Should be able to delete the port with no error (MNA-766)
+        insertDeleteTask(8, PortType, rifPortId)
+        eventually {
+            val rtrPortId = routerInterfacePortPeerId(rifPortId.asProto)
+            List(storage.exists(classOf[Port], rifPortId),
+                 storage.exists(classOf[Port], rtrPortId))
+                .map(_.await()) shouldBe List(false, false)
+        }
+    }
+
+    it should "Update convert non-RIF port on uplink network to RIF ports " +
+              "on create" in {
+        createUplinkNetwork(2, tenantNetworkId)
+        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24")
+        createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        createRouter(5, routerId)
+
+        val json = portJson(rifPortId, tenantNetworkId, name = null,
+                            deviceOwner = null, macAddr = "ab:cd:ef:01:02:03",
+                            fixedIps = List(IPAlloc("10.0.0.3", subnetId)),
+                            hostId = hostId, ifName = "eth0")
+        insertCreateTask(6, PortType, json, rifPortId)
+        eventually {
+            val nPort = storage.get(classOf[NeutronPort], rifPortId).await()
+            nPort.hasDeviceOwner shouldBe false
+        }
+
+        createHost(hostId)
+        createRouterInterface(7, routerId, rifPortId, subnetId)
+        eventually {
+            val nPort = storage.get(classOf[NeutronPort], rifPortId).await()
+            nPort.hasDeviceOwner shouldBe true
+            nPort.getDeviceOwner shouldBe DeviceOwner.ROUTER_INTERFACE
+        }
+
+        checkEdgeRouterInterface(rifPortId, hostId, delete = true)
+    }
+
+    private def checkRouterAndPeerPort(nwPortId: UUID, ipAddr: String,
+                                       macAddr: String): Port = {
+        val rPortId = routerInterfacePortPeerId(nwPortId.asProto)
+        eventually {
+            val Seq(nwPort, rPort) = storage.getAll(
+                classOf[Port], Seq(nwPortId, rPortId)).await()
+            nwPort.getPeerId shouldBe rPortId
+            rPort.getPeerId shouldBe nwPortId.asProto
+
+            rPort.getAdminStateUp shouldBe true
+            rPort.getPortAddress.getAddress shouldBe ipAddr
+            rPort.getPortMac shouldBe macAddr
+            rPort.hasHostId shouldBe false
+            rPort.getRouterId shouldBe routerId.asProto
+            rPort
+        }
+    }
+
+    private def checkEdgeRouterInterface(rifPortId: UUID, hostId: UUID,
+                                         delete: Boolean)
+    : Unit = {
+        val rPortId = routerInterfacePortPeerId(rifPortId.asProto)
+        val rPort = eventually(storage.get(classOf[Port], rPortId).await())
         rPort.getAdminStateUp shouldBe true
-        rPort.getPortAddress.getAddress shouldBe "10.0.0.3"
-        rPort.hasHostId shouldBe false
+        rPort.getHostId shouldBe hostId.asProto
+        rPort.getInterfaceName shouldBe "eth0"
         rPort.getRouterId shouldBe routerId.asProto
+        rPort.getPortAddress.getAddress shouldBe "10.0.0.3"
+        rPort.getPortMac shouldBe "ab:cd:ef:01:02:03"
+
+        rPort.getRouteIdsCount shouldBe 1
+        val rifRoute = storage.get(classOf[Route], rPort.getRouteIds(0)).await()
+        rifRoute.getId shouldBe RouteManager.routerInterfaceRouteId(rPort.getId)
+        rifRoute.getNextHopPortId shouldBe rPort.getId
+        rifRoute.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+        rifRoute.getDstSubnet.getAddress shouldBe "10.0.0.0"
+        rifRoute.getDstSubnet.getPrefixLength shouldBe 24
+
+        val host = storage.get(classOf[Host], hostId).await()
+        host.getPortIdsList.asScala should contain only rPortId
+
+        if (!delete) return
+
+        // Deleting the router interface Port should delete the router Port.
+        insertDeleteTask(8, PortType, rifPortId)
+        eventually {
+            List(storage.exists(classOf[Port], rPortId),
+                 storage.exists(classOf[Route], rifRoute.getId))
+                .map(_.await()) shouldBe List(false, false)
+
+            val portExistsFtr = storage.exists(classOf[Port], rPortId)
+            val routeExistsFtr = storage.exists(classOf[Route], rifRoute.getId)
+            val hostV2Ftr = storage.get(classOf[Host], hostId)
+            val routerFtr = storage.get(classOf[Router], routerId)
+            portExistsFtr.await() shouldBe false
+            routeExistsFtr.await() shouldBe false
+            hostV2Ftr.await().getPortIdsList.asScala shouldBe empty
+            routerFtr.await().getPortIdsList.asScala shouldBe empty
+        }
     }
 }
