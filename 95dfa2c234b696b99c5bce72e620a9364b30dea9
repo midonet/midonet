@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2947fa1e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-24T14:51:58Z",
+      "side": 1,
+      "message": "This is intentional, waiting for the new OVDSB client",
+      "range": {
+        "startLine": 90,
+        "startChar": 70,
+        "endLine": 90,
+        "endChar": 74
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
