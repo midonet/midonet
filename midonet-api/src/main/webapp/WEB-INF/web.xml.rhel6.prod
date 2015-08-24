@@ -116,12 +116,6 @@
     <param-value>/var/lib/tomcat6/webapps/host_uuid.properties</param-value>
   </context-param>
 
-  <!-- VXLAN gateway configuration -->
-  <context-param>
-    <param-name>midocluster-vxgw_enabled</param-name>
-    <param-value>false</param-value>
-  </context-param>
-
   <!-- Servlet Listner -->
   <listener>
      <listener-class>

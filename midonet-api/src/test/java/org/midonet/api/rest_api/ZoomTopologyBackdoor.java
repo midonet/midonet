@@ -36,13 +36,12 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import org.midonet.cluster.data.storage.SingleValueKey;
 import org.midonet.cluster.data.storage.StateKey;
 import org.midonet.cluster.data.storage.StateResult;
+import org.midonet.cluster.models.Commons.Condition;
 import org.midonet.cluster.models.State;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.models.Commons.Condition;
 import org.midonet.cluster.models.Topology.Host;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.midolman.rules.RuleResult;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 

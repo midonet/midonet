@@ -62,7 +62,7 @@ public class TestPortResource {
     @Before
     public void setUp() throws Exception {
         testObject = new PortResource(config, uriInfo, context, validator,
-                                      dataClient, factory, null);
+                                      dataClient, factory);
     }
 
     @Test

@@ -17,9 +17,12 @@ package org.midonet.api.network;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
+
+import com.google.common.collect.Sets;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,8 +31,6 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.TopologyBackdoor;
-import org.midonet.api.vtep.VtepMockableDataClientFactory;
-import org.midonet.api.vtep.VtepMockableDataClientFactory.MockableVtep;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
@@ -84,8 +85,43 @@ public class TestVtep extends RestApiTestBase {
     private UUID goodTunnelZone = null;
     private UUID badTunnelZone = null;
 
-    private MockableVtep mockVtep1 = VtepMockableDataClientFactory.MOCK_VTEP1;
-    private MockableVtep mockVtep2 = VtepMockableDataClientFactory.MOCK_VTEP2;
+    public abstract static class MockableVtep {
+        abstract public String mgmtIp();
+        abstract public int mgmtPort();
+        abstract public String name();
+        abstract public String desc();
+        abstract public Set<String> tunnelIps();
+        abstract public String[] portNames();
+    }
+
+    /** This VTEP is always mockable by default */
+    public static final MockableVtep mockVtep1 = new MockableVtep() {
+        public String mgmtIp() { return "250.132.36.225"; }
+        public int mgmtPort() { return 12345; }
+        public String name() { return "Mock Vtep"; }
+        public String desc() { return "The mock vtep description"; }
+        public Set<String> tunnelIps() {
+            return Sets.newHashSet("32.213.81.62",
+                                   "197.132.120.121",
+                                   "149.150.232.204");
+        }
+        public String[] portNames() {
+            return new String[]{"eth0", "eth1", "eth_2", "Te 0/2"};
+        }
+    };
+
+    public static final MockableVtep mockVtep2 = new MockableVtep() {
+        public String mgmtIp() { return "30.20.3.99"; }
+        public int mgmtPort() { return 3388; }
+        public String name() { return "TestVtep-mock-vtep-2"; }
+        public String desc() { return "From TestVtep"; }
+        public Set<String> tunnelIps() {
+            return Sets.newHashSet("197.22.120.100");
+        }
+        public String[] portNames() {
+            return new String[]{"eth0", "eth1", "eth_2", "Te 0/2"};
+        }
+    };
 
     @Before
     public void before() {
