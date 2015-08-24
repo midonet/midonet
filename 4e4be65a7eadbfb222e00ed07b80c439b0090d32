@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_eea998e0",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/TraceRequest.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T10:53:32Z",
+      "side": 1,
+      "message": "s/Rule/TraceRequest/",
+      "range": {
+        "startLine": 117,
+        "startChar": 72,
+        "endLine": 117,
+        "endChar": 76
+      },
+      "revId": "4e4be65a7eadbfb222e00ed07b80c439b0090d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2e92a09f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/TraceRequestResource.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T10:53:32Z",
+      "side": 1,
+      "message": "I think you can skip the outer block and just do:\n\n\n            traceRequests filter {\n                case tr if tr.deviceType \u003d\u003d DeviceType.PORT \u003d\u003e\n                    checkPortTenant(tr.deviceId, tenantId)\n                case tr if tr.deviceType \u003d\u003d DeviceType.BRIDGE \u003d\u003e\n                    checkNetworkTenant(tr.deviceId, tenantId)\n                case tr if tr.deviceType \u003d\u003d DeviceType.ROUTER \u003d\u003e\n                    checkRouterTenant(tr.deviceId, tenantId)\n                case _ \u003d\u003e false\n            }",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 13
+      },
+      "revId": "4e4be65a7eadbfb222e00ed07b80c439b0090d32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
