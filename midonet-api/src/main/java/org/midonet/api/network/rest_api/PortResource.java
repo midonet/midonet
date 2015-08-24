@@ -40,7 +40,6 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.bgp.rest_api.BgpResource;
 import org.midonet.api.network.BridgePort;
 import org.midonet.api.network.Link;
@@ -49,13 +48,13 @@ import org.midonet.api.network.PortFactory;
 import org.midonet.api.network.PortType;
 import org.midonet.api.network.RouterPort;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.BadRequestHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.southbound.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.PortGroupPort;
 import org.midonet.event.topology.PortEvent;
@@ -72,15 +71,12 @@ public class PortResource extends AbstractResource {
     private final static PortEvent portEvent = new PortEvent();
 
     private final ResourceFactory factory;
-    private final VtepClusterClient vtepClient;
 
     @Inject
     public PortResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context, Validator validator,
-                        DataClient dataClient, ResourceFactory factory,
-                        VtepClusterClient vtepClient) {
+                        DataClient dataClient, ResourceFactory factory) {
         super(config, uriInfo, context, dataClient, validator);
-        this.vtepClient = vtepClient;
         this.factory = factory;
     }
 
@@ -107,9 +103,7 @@ public class PortResource extends AbstractResource {
         Port port = PortFactory.convertToApiPort(portData);
         validate(port, Port.PortDeleteGroupSequence.class);
 
-        if (portData instanceof VxLanPort) {
-            vtepClient.deleteVxLanPort((VxLanPort)portData);
-        } else {
+        if (!(portData instanceof VxLanPort)) {
             dataClient.portsDelete(id);
         }
         portEvent.delete(id);
@@ -296,12 +290,6 @@ public class PortResource extends AbstractResource {
     public PortGroupResource.PortPortGroupResource getPortGroupResource(
             @PathParam("id") UUID id) {
         return factory.getPortPortGroupResource(id);
-    }
-
-    @Path("/{id}" + ResourceUriBuilder.VTEP_BINDINGS)
-    public VxLanPortBindingResource getVxLanPortBindingResource(
-            @PathParam("id") UUID id) {
-        return factory.getVxLanPortBindingResource(id);
     }
 
     /**
