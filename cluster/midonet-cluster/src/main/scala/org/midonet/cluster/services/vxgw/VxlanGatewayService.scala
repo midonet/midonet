@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.vxgw
 
+import java.util
 import java.util.UUID
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.TimeUnit.SECONDS
@@ -32,8 +33,9 @@ import rx.{Observable, Observer, Subscription}
 import org.midonet.cluster._
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Vtep
+import org.midonet.cluster.services.MidonetBackend.VtepVxgwManager
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
-import org.midonet.cluster.util.{UUIDUtil, selfHealingTypeObservable}
+import org.midonet.cluster.util.{Snatcher, UUIDUtil, selfHealingTypeObservable}
 import org.midonet.midolman.state.ZookeeperConnectionWatcher
 import org.midonet.southbound.vtep.OvsdbVtepDataClient
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -63,9 +65,9 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
     private val log = LoggerFactory.getLogger(vxgwLog)
 
-    private val fpManager: FloodingProxyManager =
-        new FloodingProxyManager(backend)
-    private val vtepSyncers = new java.util.HashMap[UUID,Subscription]()
+    private val fpManager = new FloodingProxyManager(backend)
+    private val vtepSyncers = new util.HashMap[UUID, Subscription]()
+    private val knownVteps = new java.util.HashMap[UUID, Snatcher[Vtep]]
 
     // Executor on which we schedule tasks to release the ZK event thread.
     private val executor = newSingleThreadExecutor(
@@ -79,18 +81,6 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     }
 
     override def isEnabled = conf.vxgw.isEnabled
-
-    private def watchVtep = new Observer[Vtep] {
-        var vtepId: UUID = null
-        override def onCompleted(): Unit = {}
-        override def onError(e: Throwable): Unit = onCompleted()
-        override def onNext(vtep: Vtep): Unit = {
-            if (vtepId == null) {
-                vtepId = UUIDUtil.fromProto(vtep.getId)
-                startVtepSync(vtepId)
-            }
-        }
-    }
 
     override def doStart(): Unit = {
         log.info("Starting service")
@@ -107,6 +97,48 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                 }
             })
         notifyStarted()
+    }
+
+    private def watchVtep = new Observer[Vtep] {
+        var vtepId: UUID = null
+        override def onCompleted(): Unit = {
+            knownVteps.remove(vtepId) match {
+                case null =>
+                case snatcher => snatcher.giveUp()
+            }
+        }
+        override def onError(e: Throwable): Unit = onCompleted()
+        override def onNext(vtep: Vtep): Unit = {
+            if (vtepId == null) {
+                vtepId = UUIDUtil.fromProto(vtep.getId)
+                val snatcher = Snatcher[Vtep](vtepId, nodeCtx.nodeId,
+                                              backend.stateStore,
+                                              VtepVxgwManager,
+                                              () => startVtepSync(vtepId),
+                                              () => stopVtepSync(vtepId))
+                knownVteps.put(vtepId, snatcher)
+            }
+        }
+    }
+
+    private def startVtepSync(vtepId: UUID): Unit = {
+        val syncer = new VtepSynchronizer(vtepId, nodeCtx.nodeId,
+                                          backend.store, backend.stateStore,
+                                          dataClient, fpManager.herald,
+                                          OvsdbVtepDataClient.apply)
+        vtepSyncers.put(
+            vtepId,
+            backend.store.observable(classOf[Vtep], vtepId).subscribe(syncer)
+        )
+    }
+
+    private def stopVtepSync(vtepId: UUID): Unit = {
+        vtepSyncers.remove(vtepId) match {
+            case null =>
+            case syncer =>
+                log.info("Stop managing VTEP $vtepId")
+                syncer.unsubscribe()
+        }
     }
 
     override def doStop(): Unit = {
@@ -130,24 +162,5 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
         }
     }
 
-    private def startVtepSync(vtepId: UUID): Unit = {
-        val syncer = new VtepSynchronizer(vtepId, nodeCtx.nodeId,
-                                          backend.store, backend.stateStore,
-                                          dataClient, fpManager.herald,
-                                          OvsdbVtepDataClient.apply)
-        vtepSyncers.put(
-            vtepId,
-            backend.store.observable(classOf[Vtep], vtepId).subscribe(syncer)
-        )
-    }
-
-    private def stopVtepSync(vtepId: UUID): Unit = {
-        vtepSyncers.remove(vtepId) match {
-            case null =>
-            case syncer =>
-                log.info("Stop managing VTEP $vtepId")
-                syncer.unsubscribe()
-        }
-    }
 }
 
