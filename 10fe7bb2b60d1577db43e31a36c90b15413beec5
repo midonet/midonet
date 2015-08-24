@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8e9accc3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-24T10:46:06Z",
+      "side": 1,
+      "message": "I was trying to do that, and thus wrote unwind(), until I fixed the implementation of continue() to execute each branch throughly and the UTs to assert on final results instead of partial ones.\n\nSo, once I did that, unwind became unnecessary. I just dropped it from the patch.",
+      "parentUuid": "9ad9bd40_46a9927a",
+      "revId": "10fe7bb2b60d1577db43e31a36c90b15413beec5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_46c0b22a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 4
