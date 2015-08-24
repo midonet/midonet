@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_8973a6b3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T15:04:57Z",
+      "side": 1,
+      "message": "s/the/that/ or s/the/the port/",
+      "range": {
+        "startLine": 12,
+        "startChar": 27,
+        "endLine": 12,
+        "endChar": 30
+      },
+      "revId": "92938d74af39689b00bddf56d19ffc80162af3f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a9514a10",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 2
@@ -13,6 +36,98 @@
       "writtenOn": "2015-08-24T14:28:44Z",
       "side": 1,
       "message": "Just my personal preference that it\u0027s more readable if this was instead:\n\nif (isRouterInterfacePort(nPort)) {\n    return List(Delete(classOf[Port],\n                       routerInterfacePortPeerId(nPort.getId)))\n} else {\n    return List()\n}",
+      "revId": "92938d74af39689b00bddf56d19ffc80162af3f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c9c92eae",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T15:04:57Z",
+      "side": 1,
+      "message": "Now you can remove this TODO.",
+      "range": {
+        "startLine": 238,
+        "startChar": 8,
+        "endLine": 240,
+        "endChar": 47
+      },
+      "revId": "92938d74af39689b00bddf56d19ffc80162af3f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_291c5a13",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T15:04:57Z",
+      "side": 1,
+      "message": "I think \"Update\" should be the subject here, replacing \"it\".",
+      "range": {
+        "startLine": 221,
+        "startChar": 4,
+        "endLine": 221,
+        "endChar": 21
+      },
+      "revId": "92938d74af39689b00bddf56d19ffc80162af3f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_892ba632",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T15:04:57Z",
+      "side": 1,
+      "message": "Instead of Boolean, it should take a task ID where \u003e 0 means that it needs to test deletion.",
+      "range": {
+        "startLine": 303,
+        "startChar": 41,
+        "endLine": 303,
+        "endChar": 56
+      },
+      "revId": "92938d74af39689b00bddf56d19ffc80162af3f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a9306a9f",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T15:04:57Z",
+      "side": 1,
+      "message": "We should parameterise this with the method argument suggested above.",
+      "range": {
+        "startLine": 328,
+        "startChar": 25,
+        "endLine": 328,
+        "endChar": 26
+      },
       "revId": "92938d74af39689b00bddf56d19ffc80162af3f5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
