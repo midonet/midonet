@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8e048cc7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-24T11:40:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d398fd6c",
+      "revId": "26c4832a802d42e6bce286fb98767de1652af841",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_73a9f17a",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2015-08-24T08:54:08Z",
       "side": 1,
       "message": "This should come after org.junit before org.midonet.",
+      "revId": "26c4832a802d42e6bce286fb98767de1652af841",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ce0e94e5",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-24T11:40:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_73a9f17a",
       "revId": "26c4832a802d42e6bce286fb98767de1652af841",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ee13580b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-24T11:40:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f3398142",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 53,
+        "endChar": 74
+      },
+      "revId": "26c4832a802d42e6bce286fb98767de1652af841",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_b31619a6",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 5
@@ -70,6 +130,24 @@
       "writtenOn": "2015-08-24T08:54:08Z",
       "side": 1,
       "message": "I\u0027m just double checking here. Does Neutron guarantee that it disassociates all the routers that have been associated with the Firewall in a preceding Update and that we don\u0027t need to disassociate Routers in deleting the Firewall itself?",
+      "revId": "26c4832a802d42e6bce286fb98767de1652af841",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8e2bac32",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-24T11:40:11Z",
+      "side": 1,
+      "message": "No it does not.  But maybe I misunderstood how ZOOM works.  When a router and a firewall are associated, we create a jump rule where \u0027jumpToChainId\u0027 is set to the firewall chain.  On firewall deletion, these chains are deleted.  I thought that this would also automatically delete the rules that refer to the chains getting deleted.  And I realized that this test case is missing so I will add it.",
+      "parentUuid": "9ad9bd40_b31619a6",
       "revId": "26c4832a802d42e6bce286fb98767de1652af841",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
