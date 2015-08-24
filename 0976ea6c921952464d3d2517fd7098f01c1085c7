@@ -16,6 +16,24 @@
       "revId": "0976ea6c921952464d3d2517fd7098f01c1085c7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_90782bfa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-24T05:12:35Z",
+      "side": 1,
+      "message": "my understanding is that this won\u0027t add a flow\nas this is egress.\ni just want to execute packet-actions.",
+      "parentUuid": "9ad9bd40_a6c97eae",
+      "revId": "0976ea6c921952464d3d2517fd7098f01c1085c7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
