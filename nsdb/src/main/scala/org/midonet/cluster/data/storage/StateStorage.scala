@@ -161,7 +161,17 @@ trait StateStorage {
       * will emit a notification with current set of values corresponding to key
       * and thereafter an additional notification whenever the set of values has
       * changed. The observable does not emit notifications for successful
-      * write operations, which do not modify the value set. */
+      * write operations, which do not modify the value set.
+      *
+      * - When the state key refers to an entity that doesn't exist at the time
+      *   of subscription to the keyObservable, it will complete.
+      *
+      * - When the state key doesn't exist, a SingleValue(_, None, _)
+      *
+      * - If the object to which the state corresponds does not exist the
+      *   keyObservable will complete.
+      *
+      */
     @throws[ServiceUnavailableException]
     def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey]

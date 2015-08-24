@@ -16,12 +16,13 @@
 
 package org.midonet.cluster.services.vxgw
 
+import java.util
 import java.util.UUID
-import scala.concurrent.duration._
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.TimeUnit.SECONDS
 
 import scala.collection.JavaConversions._
+import scala.concurrent.duration._
 
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
@@ -33,8 +34,9 @@ import rx.{Observable, Observer, Subscription}
 import org.midonet.cluster._
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Vtep
+import org.midonet.cluster.services.MidonetBackend.VtepVxgwManager
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
-import org.midonet.cluster.util.{UUIDUtil, selfHealingTypeObservable}
+import org.midonet.cluster.util.{Snatcher, UUIDUtil, selfHealingTypeObservable}
 import org.midonet.midolman.state.ZookeeperConnectionWatcher
 import org.midonet.southbound.vtep.OvsdbVtepDataClient
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -64,9 +66,9 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
     private val log = LoggerFactory.getLogger(vxgwLog)
 
-    private val fpManager: FloodingProxyManager =
-        new FloodingProxyManager(backend)
-    private val vtepSyncers = new java.util.HashMap[UUID,Subscription]()
+    private val fpManager = new FloodingProxyManager(backend)
+    private val vtepSyncers = new util.HashMap[UUID, Subscription]()
+    private val knownVteps = new java.util.HashMap[UUID, Snatcher[Vtep]]
 
     // Executor on which we schedule tasks to release the ZK event thread.
     private val executor = newSingleThreadExecutor(
@@ -74,18 +76,6 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     )
 
     override def isEnabled = conf.vxgw.isEnabled
-
-    private def watchVtep = new Observer[Vtep] {
-        var vtepId: UUID = null
-        override def onCompleted(): Unit = {}
-        override def onError(e: Throwable): Unit = onCompleted()
-        override def onNext(vtep: Vtep): Unit = {
-            if (vtepId == null) {
-                vtepId = UUIDUtil.fromProto(vtep.getId)
-                startVtepSync(vtepId)
-            }
-        }
-    }
 
     private val maxVtepBuffer = 10000
     private val alertOverflow = makeAction0 {
@@ -99,7 +89,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
         // TODO: the FP manager should run with a latch
         fpManager.start()
         selfHealingTypeObservable[Topology.Vtep](backend.store)
-            .onBackpressureBuffer(10000, alertOverflow)
+            .onBackpressureBuffer(maxVtepBuffer, alertOverflow)
             .observeOn(Schedulers.from(executor))
             .subscribe(new Observer[Observable[Topology.Vtep]] {
                 override def onCompleted(): Unit = {}
@@ -111,24 +101,25 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
         notifyStarted()
     }
 
-    override def doStop(): Unit = {
-        try {
-            shutdown()
-            vtepSyncers.keySet().foreach(stopVtepSync)
-            notifyStopped()
-        } catch {
-            case t: Throwable =>
-                log.error("Failed to shutdown executor", t)
-                Thread.currentThread().interrupt()
-                notifyFailed(t)
+    private def watchVtep = new Observer[Vtep] {
+        var vtepId: UUID = null
+        override def onCompleted(): Unit = {
+            knownVteps.remove(vtepId) match {
+                case null =>
+                case snatcher => snatcher.giveUp()
+            }
         }
-    }
-
-    private def shutdown(): Unit = {
-        executor.shutdown()
-        if (!executor.awaitTermination(5, SECONDS)) {
-            log.warn("Failed to stop executor orderly, insisting..")
-            executor.shutdownNow()
+        override def onError(e: Throwable): Unit = onCompleted()
+        override def onNext(vtep: Vtep): Unit = {
+            if (vtepId == null) {
+                vtepId = UUIDUtil.fromProto(vtep.getId)
+                val snatcher = Snatcher[Vtep](vtepId, nodeCtx.nodeId,
+                                              backend.stateStore,
+                                              VtepVxgwManager,
+                                              () => startVtepSync(vtepId),
+                                              () => stopVtepSync(vtepId))
+                knownVteps.put(vtepId, snatcher)
+            }
         }
     }
 
@@ -154,5 +145,27 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                 syncer.unsubscribe()
         }
     }
+
+    override def doStop(): Unit = {
+        try {
+            shutdown()
+            vtepSyncers.keySet().foreach(stopVtepSync)
+            notifyStopped()
+        } catch {
+            case t: Throwable =>
+                log.error("Failed to shutdown executor", t)
+                Thread.currentThread().interrupt()
+                notifyFailed(t)
+        }
+    }
+
+    private def shutdown(): Unit = {
+        executor.shutdown()
+        if (!executor.awaitTermination(5, SECONDS)) {
+            log.warn("Failed to stop executor orderly, insisting..")
+            executor.shutdownNow()
+        }
+    }
+
 }
 

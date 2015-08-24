@@ -321,7 +321,7 @@ class VtepSynchronizer(vtepId: UUID,
                 case t: Throwable =>
                     whenVtepConnected { removeLogicalSwitchWithRetry(id) }
             }
-            case None => // fine then
+            case None => // t fine then
         }
     }
 
