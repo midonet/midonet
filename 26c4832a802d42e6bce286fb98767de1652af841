@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_d398fd6c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T08:54:08Z",
+      "side": 1,
+      "message": "This should come after org.midonet.cluster..models.*",
+      "revId": "26c4832a802d42e6bce286fb98767de1652af841",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_73a9f17a",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T08:54:08Z",
+      "side": 1,
+      "message": "This should come after org.junit before org.midonet.",
+      "revId": "26c4832a802d42e6bce286fb98767de1652af841",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f3398142",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/RangeUtil.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T08:54:08Z",
+      "side": 1,
+      "message": "Now you can remove this as this is already been explained above.",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 53,
+        "endChar": 74
+      },
+      "revId": "26c4832a802d42e6bce286fb98767de1652af841",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b31619a6",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T08:54:08Z",
+      "side": 1,
+      "message": "I\u0027m just double checking here. Does Neutron guarantee that it disassociates all the routers that have been associated with the Firewall in a preceding Update and that we don\u0027t need to disassociate Routers in deleting the Firewall itself?",
+      "revId": "26c4832a802d42e6bce286fb98767de1652af841",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
