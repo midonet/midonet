@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_93875512",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T08:54:08Z",
+      "side": 1,
+      "message": "I meant that scala imports should come after java imports, followed by com.* and org.* and then org.midonet.*",
+      "parentUuid": "9ad9bd40_30fe7f39",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e0944e8e",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
         "patchSetId": 3
@@ -1218,6 +1242,24 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "9ad9bd40_c63f62d5",
+      "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f302616e",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-24T08:54:08Z",
+      "side": 1,
+      "message": "By just removing this, we\u0027re not really testing anything about action and target src/dst ports. Why don\u0027t we can keep those tests and add new tests for toTopologyRuleAction and toInt32Range?",
+      "parentUuid": "9ad9bd40_702ba794",
       "revId": "d35cca32a89944e04e97e2ff8151cb535176b28e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
