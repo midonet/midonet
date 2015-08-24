@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.cluster.LegacyClusterModule;
+import org.midonet.midolman.cluster.MetricsModule;
 import org.midonet.midolman.cluster.MidolmanActorsModule;
 import org.midonet.midolman.cluster.ResourceProtectionModule;
 import org.midonet.midolman.cluster.datapath.MockDatapathModule;
@@ -93,6 +94,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new SerializationModule(),
             new MidolmanConfigModule(configuration),
             new MockFlowStateStorageModule(),
+            new MetricsModule(),
             new MockDatapathModule(),
             new MockZookeeperConnectionModule(),
             new MockHostModule(),

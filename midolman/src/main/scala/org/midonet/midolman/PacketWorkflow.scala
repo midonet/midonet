@@ -350,11 +350,13 @@ class PacketWorkflow(
         handoff(pktCtx)
 
         if (pktCtx.ingressed) {
-            val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
-            metrics.packetsProcessed.mark()
             simRes match {
-                case StateMessage =>
-                case _ => metrics.packetSimulated(latency.toInt)
+                case StateMessage | FlowCreated | UserspaceFlow =>
+                    // Latency will be measured after packet execution
+                case _ =>
+                    val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
+                    metrics.packetSimulated(latency.toInt)
+                    metrics.packetsProcessed.mark()
             }
         }
 

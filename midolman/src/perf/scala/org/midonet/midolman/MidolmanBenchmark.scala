@@ -31,7 +31,7 @@ import org.midonet.midolman.cluster.datapath.MockDatapathModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.cluster.{LegacyClusterModule, MidolmanActorsModule, ResourceProtectionModule}
+import org.midonet.midolman.cluster.{MetricsModule, LegacyClusterModule, MidolmanActorsModule, ResourceProtectionModule}
 import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
@@ -81,6 +81,7 @@ trait MidolmanBenchmark extends MockMidolmanActors
         List(
             new SerializationModule(),
             new MidolmanConfigModule(conf),
+            new MetricsModule(),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MidonetBackendTestModule(conf),
