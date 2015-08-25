@@ -40,8 +40,23 @@ sourceSets {
 
 dependencies {
     compile project(":midonet-util")
-    compile libraries.jna, libraries.commons_io, libraries.guava, libraries.rx
+    compile libraries.hamcrest_core, libraries.hamcrest_lib,
+            libraries.commons_cli, libraries.commons_exec,
+            libraries.jna, libraries.scala, libraries.rx,
+            libraries.scallop, libraries.commons_io,
+            libraries.guava
 
     testCompile libraries.scalatest
 }
 
+
+cobertura {
+    coverageExcludes = ['.*org.midonet.odp.test.*']
+}
+
+task integrationTest(type: JavaExec, dependsOn: testClasses) {
+    main = 'org.midonet.odp.test.OvsIntegrationTest'
+    classpath sourceSets.main.runtimeClasspath
+    classpath configurations.runtime
+    jvmArgs('-Djava.library.path=/lib:/usr/lib')
+}
