@@ -17,21 +17,24 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.{Path, PathParam}
 
-import scala.collection.JavaConverters._
-
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
-
+import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
+import org.midonet.cluster.models.Topology.{Pool => TopPool}
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{LoadBalancer, Pool}
+import org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_STATUS_IS_PENDING
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
+
+import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 @ApiResource(version = 1)
 @Path("pools")
@@ -47,6 +50,8 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 class PoolResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Pool](resContext) {
 
+    private val store = resContext.backend.store
+
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): PoolVipResource = {
         getResource(classOf[Pool], id).getOrThrow
@@ -59,8 +64,28 @@ class PoolResource @Inject()(resContext: ResourceContext)
         new PoolPoolMemberResource(id, resContext)
     }
 
+    def checkMappingStatus(p: TopPool): Unit = {
+        val s = p.getMappingStatus
+        if (s == PENDING_UPDATE ||
+            s == PENDING_DELETE ||
+            s == PENDING_CREATE) {
+            throw new ServiceUnavailableHttpException(
+                MAPPING_STATUS_IS_PENDING)
+        }
+    }
+
     protected override def updateFilter(to: Pool, from: Pool): Ops = {
+        val p = store.get(classOf[TopPool], from.id).getOrThrow
+        checkMappingStatus(p)
         to.update(from)
+        NoOps
+    }
+
+    protected override def deleteFilter(id: String): Ops = {
+        if (store.exists(classOf[TopPool], id).getOrThrow) {
+            val p = store.get(classOf[TopPool], id).getOrThrow
+            checkMappingStatus(p)
+        }
         NoOps
     }
 
@@ -69,6 +94,11 @@ class PoolResource @Inject()(resContext: ResourceContext)
             OkNoContentResponse
     }
 
+    protected override def listFilter(pools: Seq[Pool]): Future[Seq[Pool]] = {
+        val hmId = resContext.uriInfo.getQueryParameters.getFirst("hm_id")
+        Future.successful(if (hmId eq null) pools
+                          else pools filter {_.healthMonitorId == hmId})
+    }
 }
 
 @RequestScoped
@@ -95,5 +125,4 @@ class LoadBalancerPoolResource @Inject()(loadBalancerId: UUID,
         pool.create(loadBalancerId)
         NoOps
     }
-
 }
