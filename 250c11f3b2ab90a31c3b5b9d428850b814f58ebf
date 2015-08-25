@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_e12a867d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T15:10:50Z",
+      "side": 1,
+      "message": "what is it a ref of? should it be called vxPortMapper or something similar instead?\n\nAlso, what about a @volatile val map \u003d .. ? I haven\u0027t seen the complete review, but I assume a swap on every newly built map is viable.",
+      "range": {
+        "startLine": 43,
+        "startChar": 16,
+        "endLine": 43,
+        "endChar": 19
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_01a5aa03",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T15:10:50Z",
+      "side": 1,
+      "message": "Do you need the entire network? why not just the VNI? Actually, the VNI will never change so you don\u0027t really need to track the network past the first load.",
+      "range": {
+        "startLine": 68,
+        "startChar": 7,
+        "endLine": 68,
+        "endChar": 47
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c19ae2c4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T15:10:50Z",
+      "side": 1,
+      "message": "Instead of subscribing to storage, would it be a good idea to request the port from the VT, and update the port mapper to compose the sim. port of type vxlan port filling the the vtep* fields, plus possibly also the VNI and even the vtep\u0027s tunnel ip?\n\nThe vni-to-port mapper can then subscribe to the updates of all ports, filter those of vxlan types, and subscribe.\n\nThe advantage I see to that approach is that we avoid adding more subscriptions to ports (which are already subscribed to in the mapper).",
+      "range": {
+        "startLine": 100,
+        "startChar": 4,
+        "endLine": 128,
+        "endChar": 5
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7e57f126",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 2
@@ -18,6 +87,86 @@
         "startChar": 0,
         "endLine": 142,
         "endChar": 39
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_21cf0eb2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T15:10:50Z",
+      "side": 1,
+      "message": "as noted below I\u0027m not sure you really need to subscribe to the network.\n\nYou can do this (ignore syntax, etc.):\n\nstore.observable(classOf[Vtep]).subscribe(\n  onNext: vtep \u003d\u003e {\n    val boundNetworks \u003d vtep.getBindingsList.fold(Set())(\n        binding \u003d\u003e binding.getNetworkId()\n    }   \n    boundNetworks foreach trackVxLanPorts \n  }  \n}\n\nWhere trackVxLanPorts subscribes to all the vxlan ports found in the given networks. All the subscribed vxlan ports are merged in a single observable, and fed into the function that composes the tunnel-vni-to-port.\n\nThe only case where you want to remove a port subscription is if this is deleted, which will be detected by the port mapper already.",
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2181ce4a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T15:10:50Z",
+      "side": 1,
+      "message": "This is not correct, each vtep may be bound to multiple networks.",
+      "range": {
+        "startLine": 210,
+        "startChar": 12,
+        "endLine": 210,
+        "endChar": 71
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_016e8ac9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T15:10:50Z",
+      "side": 1,
+      "message": "Guillermo introduced recently an ObjectReferenceTracker that you could probably leverage for this",
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_814a9a53",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T15:10:50Z",
+      "side": 1,
+      "message": "there is a uuidOf also above, what\u0027s the difference?",
+      "range": {
+        "startLine": 426,
+        "startChar": 5,
+        "endLine": 431,
+        "endChar": 38
       },
       "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
