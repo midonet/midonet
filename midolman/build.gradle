@@ -265,13 +265,13 @@ rpm.doFirst {
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
             '--depends', 'python-setproctitle',
-            '--depends', 'java-1.8.0-openjdk-headless | zulu-8'])
+            '--depends', 'java-1.8.0-openjdk-headless'])
     } else {
         project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel6/control/preinst",
             '--before-remove', "${project.projectDir}/src/rhel6/control/prerm",
-            '--depends', 'java-1.8.0-openjdk-headless | zulu-8'])
+            '--depends', 'java-1.8.0-openjdk-headless'])
     }
 }
 
