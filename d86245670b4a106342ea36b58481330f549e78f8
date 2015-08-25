@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_01b04adc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:58:23Z",
+      "side": 1,
+      "message": "place inside the if body",
+      "range": {
+        "startLine": 95,
+        "startChar": 12,
+        "endLine": 99,
+        "endChar": 44
+      },
+      "revId": "d86245670b4a106342ea36b58481330f549e78f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_61c6764b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:58:23Z",
+      "side": 1,
+      "message": "add mechanism to balance nicely the load of synching vteps among cluster nodes?",
+      "range": {
+        "startLine": 110,
+        "startChar": 16,
+        "endLine": 110,
+        "endChar": 38
+      },
+      "revId": "d86245670b4a106342ea36b58481330f549e78f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_41c97259",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:58:23Z",
+      "side": 1,
+      "message": "why commented out?",
+      "range": {
+        "startLine": 155,
+        "startChar": 8,
+        "endLine": 155,
+        "endChar": 26
+      },
+      "revId": "d86245670b4a106342ea36b58481330f549e78f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c18e6227",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:58:23Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 75,
+        "startChar": 8,
+        "endLine": 75,
+        "endChar": 27
+      },
+      "revId": "d86245670b4a106342ea36b58481330f549e78f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_41a2529b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:58:23Z",
+      "side": 1,
+      "message": "check that value is not myself",
+      "range": {
+        "startLine": 85,
+        "startChar": 31,
+        "endLine": 85,
+        "endChar": 42
+      },
+      "revId": "d86245670b4a106342ea36b58481330f549e78f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_219e2e57",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:58:23Z",
+      "side": 1,
+      "message": "value",
+      "range": {
+        "startLine": 86,
+        "startChar": 67,
+        "endLine": 86,
+        "endChar": 74
+      },
+      "revId": "d86245670b4a106342ea36b58481330f549e78f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
