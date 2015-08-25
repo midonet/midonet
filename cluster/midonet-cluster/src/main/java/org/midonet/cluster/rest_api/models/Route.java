@@ -165,6 +165,12 @@ public class Route extends UriResource {
             srcSubnet =
                 IPSubnet.fromString(srcNetworkAddr + "/" + srcNetworkLength);
         }
+
+        // In the protobuf model, a route only has next_hop_port_id or
+        // router_id set, never both.
+        if (nextHopPort != null && routerId != null) {
+            routerId = null;
+        }
     }
 
     @JsonIgnore
