@@ -60,11 +60,16 @@ public class TestPool {
     public static class TestPoolCrud extends L4LBTestBase {
 
         private DtoLoadBalancer loadBalancer;
+        private String PoolResName;
+        private String HmResName;
 
         @Before
         public void setUp() throws Exception {
             super.setUp();
             loadBalancer = createStockLoadBalancer();
+            PoolResName = FuncTest.isCompatApiEnabled() ? "Pool" : "pool";
+            HmResName = FuncTest.isCompatApiEnabled() ?
+                    "HealthMonitor" : "health monitor";
         }
 
         private void verifyNumberOfPools(int num) {
@@ -131,8 +136,6 @@ public class TestPool {
 
         @Test
         public void testCreateIntializesReferences() {
-
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
 
             DtoPool pool = getStockPool(loadBalancer.getId());
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
@@ -201,7 +204,8 @@ public class TestPool {
             pool2.setId(pool1.getId());
             DtoError error = dtoResource.postAndVerifyError(
                     topLevelPoolsUri, APPLICATION_POOL_JSON, pool2, CONFLICT);
-            assertErrorMatches(error, RESOURCE_EXISTS, "pool", pool2.getId());
+            assertErrorMatches(error, RESOURCE_EXISTS, PoolResName,
+                               pool2.getId());
         }
 
         @Test
@@ -219,7 +223,7 @@ public class TestPool {
             URI uri = addIdToUri(topLevelPoolsUri, id);
             DtoError error = dtoResource.getAndVerifyNotFound(
                     uri, APPLICATION_POOL_JSON);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, PoolResName, id);
         }
 
         @Test
@@ -235,7 +239,8 @@ public class TestPool {
             pool.setUri(addIdToUri(topLevelPoolsUri, pool.getId()));
             DtoError error = dtoResource.putAndVerifyNotFound(
                     pool.getUri(), APPLICATION_POOL_JSON, pool);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", pool.getId());
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, PoolResName,
+                               pool.getId());
         }
 
         @Test
@@ -246,8 +251,8 @@ public class TestPool {
                 pool.getUri(), APPLICATION_POOL_JSON, pool,
                 NOT_FOUND.getStatusCode());
             assertErrorMatches(res.getEntity(DtoError.class),
-                               RESOURCE_NOT_FOUND,
-                               "health monitor", pool.getHealthMonitorId());
+                               RESOURCE_NOT_FOUND, HmResName,
+                               pool.getHealthMonitorId());
         }
 
         @Test
@@ -293,7 +298,7 @@ public class TestPool {
             URI uri = new URI(topLevelPoolsUri + "/" + id + "/vips");
             DtoError error = dtoResource.getAndVerifyNotFound(
                     uri, APPLICATION_VIP_COLLECTION_JSON);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, PoolResName, id);
         }
 
         @Test
@@ -302,7 +307,7 @@ public class TestPool {
             URI uri = new URI(topLevelPoolsUri + "/" + id + "/pool_members");
             DtoError error = dtoResource.getAndVerifyNotFound(
                     uri, APPLICATION_POOL_MEMBER_COLLECTION_JSON);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", id);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, PoolResName, id);
         }
 
         @Test
