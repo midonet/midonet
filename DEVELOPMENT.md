@@ -109,11 +109,24 @@ the kernel's Open Datapath module.
 Most dependencies are pulled in by the gradle build scripts, however
 there are some prerequisites:
 
-* java 7 jdk
-* protobufs compiler
-    * Install 2.6.1 from [here](https://github.com/google/protobuf/releases)
 * fpm (ruby gem) to build debian/rpm packages
+* java 7 jdk
 * rpm
+
+You will also need to install the protobufs compiler, version 2.6.1 from
+[here](https://github.com/google/protobuf/releases/tag/v2.6.0).  Use
+these commands:
+
+    wget https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.gz
+    tar -xzf protobuf-2.6.1.tar.gz
+    cd protobuf-2.6.1
+    ./configure
+    make
+    sudo make install
+    sudo ldconfig
+    cd -
+    rm -rf protobuf-2.6.1
+    rm protobuf-2.6.1.tar.gz
 
 ## Testing tools
 
