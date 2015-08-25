@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -61,7 +62,8 @@ public class HealthMonitor extends UriResource {
     }
 
     public URI getPools() {
-        return relativeUri(ResourceUris.POOLS);
+        return UriBuilder.fromUri(getBaseUri()).segment(ResourceUris.POOLS)
+            .queryParam("hm_id", this.id).build();
     }
 
     @Override
