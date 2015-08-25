@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_246481e4",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "It\u0027s actually 5.0.0.",
+      "parentUuid": "9ad9bd40_7403a476",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_54d780ed",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -53,6 +71,24 @@
       "writtenOn": "2015-08-20T12:34:24Z",
       "side": 1,
       "message": "pointer to arch overview can be helpful",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_849aadc3",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_54d780ed",
       "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -76,6 +112,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a49fb1b3",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_94082893",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_34f11c96",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -87,6 +141,30 @@
       "writtenOn": "2015-08-20T12:29:48Z",
       "side": 1,
       "message": "simulate the packet\u0027s path in the overlay topology?",
+      "range": {
+        "startLine": 9,
+        "startChar": 42,
+        "endLine": 10,
+        "endChar": 38
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c4a4b50a",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_34f11c96",
       "range": {
         "startLine": 9,
         "startChar": 42,
@@ -122,6 +200,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_e4a9b9e0",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_b4fd2c71",
+      "range": {
+        "startLine": 11,
+        "startChar": 32,
+        "endLine": 11,
+        "endChar": 39
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d439d042",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -133,6 +235,30 @@
       "writtenOn": "2015-08-20T12:29:48Z",
       "side": 1,
       "message": "not needed",
+      "range": {
+        "startLine": 13,
+        "startChar": 10,
+        "endLine": 13,
+        "endChar": 17
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_24aba1d7",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d439d042",
       "range": {
         "startLine": 13,
         "startChar": 10,
@@ -179,6 +305,30 @@
       "writtenOn": "2015-08-20T12:29:48Z",
       "side": 1,
       "message": "What is the relation between this example and datapath ports?",
+      "range": {
+        "startLine": 15,
+        "startChar": 17,
+        "endLine": 17,
+        "endChar": 25
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_64b5a930",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "badly worded, they are unrelated examples.",
+      "parentUuid": "9ad9bd40_7411e4ae",
       "range": {
         "startLine": 15,
         "startChar": 17,
@@ -254,6 +404,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_c47bd579",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_143b3839",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d410f0aa",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -265,6 +433,30 @@
       "writtenOn": "2015-08-20T12:29:48Z",
       "side": 1,
       "message": "replace by \u0027The\u0027",
+      "range": {
+        "startLine": 22,
+        "startChar": 7,
+        "endLine": 22,
+        "endChar": 31
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3f756832",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d410f0aa",
       "range": {
         "startLine": 22,
         "startChar": 7,
@@ -300,6 +492,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_5f722c4a",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f4241410",
+      "range": {
+        "startLine": 23,
+        "startChar": 25,
+        "endLine": 23,
+        "endChar": 31
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_341f5cb9",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -311,6 +527,30 @@
       "writtenOn": "2015-08-20T12:29:48Z",
       "side": 1,
       "message": ".",
+      "range": {
+        "startLine": 24,
+        "startChar": 16,
+        "endLine": 24,
+        "endChar": 17
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7f8e1029",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_341f5cb9",
       "range": {
         "startLine": 24,
         "startChar": 16,
@@ -346,6 +586,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9f93d44e",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_541ce0c1",
+      "range": {
+        "startLine": 24,
+        "startChar": 18,
+        "endLine": 25,
+        "endChar": 27
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_14225801",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -357,6 +621,24 @@
       "writtenOn": "2015-08-20T12:34:24Z",
       "side": 1,
       "message": "VxLAN Gateways,just to be consistent with above",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_bf98986b",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_14225801",
       "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -391,6 +673,30 @@
       "writtenOn": "2015-08-20T12:29:48Z",
       "side": 1,
       "message": "perhaps instead of talking about efficiency why not just referring to modularity or using building blocks (such as ZK) leads to a cleaner design?",
+      "range": {
+        "startLine": 32,
+        "startChar": 20,
+        "endLine": 33,
+        "endChar": 55
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_df9d5c5b",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_947d88ea",
       "range": {
         "startLine": 32,
         "startChar": 20,
@@ -489,6 +795,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_bfe6d8e6",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d48710d6",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 42,
+        "endChar": 17
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_34767c07",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -500,6 +830,30 @@
       "writtenOn": "2015-08-20T12:29:48Z",
       "side": 1,
       "message": "The design also allows to",
+      "range": {
+        "startLine": 43,
+        "startChar": 24,
+        "endLine": 43,
+        "endChar": 37
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9fe114d3",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_34767c07",
       "range": {
         "startLine": 43,
         "startChar": 24,
@@ -535,6 +889,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ffcf8055",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "oops",
+      "parentUuid": "9ad9bd40_54730015",
+      "range": {
+        "startLine": 46,
+        "startChar": 25,
+        "endLine": 46,
+        "endChar": 38
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_9464a84a",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -546,6 +924,30 @@
       "writtenOn": "2015-08-20T12:29:48Z",
       "side": 1,
       "message": "to manage?",
+      "range": {
+        "startLine": 47,
+        "startChar": 30,
+        "endLine": 47,
+        "endChar": 43
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1fcd045e",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_9464a84a",
       "range": {
         "startLine": 47,
         "startChar": 30,
@@ -581,6 +983,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_3fdac817",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_b459ac90",
+      "range": {
+        "startLine": 51,
+        "startChar": 41,
+        "endLine": 51,
+        "endChar": 57
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f4525467",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -592,6 +1018,30 @@
       "writtenOn": "2015-08-20T12:29:48Z",
       "side": 1,
       "message": "link to blog post on Zoom?",
+      "range": {
+        "startLine": 56,
+        "startChar": 20,
+        "endLine": 56,
+        "endChar": 21
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7f037076",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f4525467",
       "range": {
         "startLine": 56,
         "startChar": 20,
@@ -627,6 +1077,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7f2a90e8",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Kept, as designating is not enough to get it running!",
+      "parentUuid": "9ad9bd40_344d9cc5",
+      "range": {
+        "startLine": 59,
+        "startChar": 22,
+        "endLine": 59,
+        "endChar": 57
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_14fed838",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -638,6 +1112,24 @@
       "writtenOn": "2015-08-20T12:34:24Z",
       "side": 1,
       "message": "Will this be A/A or A/P? Is it configurable?",
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1f3b4439",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "UP to the service. Clarified.",
+      "parentUuid": "9ad9bd40_14fed838",
       "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -667,6 +1159,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_df10fcaa",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_94cbc81d",
+      "range": {
+        "startLine": 64,
+        "startChar": 35,
+        "endLine": 66,
+        "endChar": 42
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d4d550ba",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 1
@@ -678,6 +1194,30 @@
       "writtenOn": "2015-08-20T12:29:48Z",
       "side": 1,
       "message": "we?",
+      "range": {
+        "startLine": 68,
+        "startChar": 17,
+        "endLine": 68,
+        "endChar": 18
+      },
+      "revId": "e251090044a7b72588972da93ac3fb24f820cb5e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1f226401",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:04:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d4d550ba",
       "range": {
         "startLine": 68,
         "startChar": 17,
