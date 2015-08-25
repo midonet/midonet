@@ -28,8 +28,12 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.models.Topology.{Pool => TopPool}
+import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{LoadBalancer, Pool}
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException
+import org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_STATUS_IS_PENDING
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
@@ -47,6 +51,8 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 class PoolResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Pool](resContext) {
 
+    private val store = resContext.backend.store
+
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): PoolVipResource = {
         getResource(classOf[Pool], id).getOrThrow
@@ -59,8 +65,28 @@ class PoolResource @Inject()(resContext: ResourceContext)
         new PoolPoolMemberResource(id, resContext)
     }
 
+    def checkMappingStatus(p: TopPool): Unit = {
+        val s = p.getMappingStatus
+        if (s == PENDING_UPDATE ||
+            s == PENDING_DELETE ||
+            s == PENDING_CREATE) {
+            throw new ServiceUnavailableHttpException(
+                MAPPING_STATUS_IS_PENDING)
+        }
+    }
+
     protected override def updateFilter(to: Pool, from: Pool): Ops = {
+        val p = store.get(classOf[TopPool], from.id).getOrThrow
+        checkMappingStatus(p)
         to.update(from)
+        NoOps
+    }
+
+    protected override def deleteFilter(id: String): Ops = {
+        if (store.exists(classOf[TopPool], id).getOrThrow) {
+            val p = store.get(classOf[TopPool], id).getOrThrow
+            checkMappingStatus(p)
+        }
         NoOps
     }
 
@@ -95,5 +121,4 @@ class LoadBalancerPoolResource @Inject()(loadBalancerId: UUID,
         pool.create(loadBalancerId)
         NoOps
     }
-
 }
