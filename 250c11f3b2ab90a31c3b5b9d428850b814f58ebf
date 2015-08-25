@@ -151,6 +151,29 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_21ec6ec7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:02:31Z",
+      "side": 1,
+      "message": "observeOn",
+      "range": {
+        "startLine": 392,
+        "startChar": 18,
+        "endLine": 392,
+        "endChar": 42
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_814a9a53",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 2
