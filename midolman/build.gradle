@@ -291,6 +291,29 @@ task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine += mainClassName
 }
 
+// run cassandra tests in series. Otherwise they interfere with each other
+task testCassandra(type:Test, dependsOn: testClasses) {
+    include 'org/midonet/midolman/logging/FlowTracingAppenderTest.class',
+            'org/midonet/midolman/logging/FlowTracingSchemaTest.class',
+            'org/midonet/midolman/state/FlowStateStorageTest.class'
+}
+
+test {
+    exclude 'org/midonet/midolman/logging/FlowTracingAppenderTest.class',
+            'org/midonet/midolman/logging/FlowTracingSchemaTest.class',
+            'org/midonet/midolman/state/FlowStateStorageTest.class'
+}
+
+task testReport(type: TestReport, dependsOn: test) {
+    destinationDir = file("$buildDir/reports/tests")
+    // Include the results from the `test` task in all subprojects
+    if (!System.getProperties().containsKey('test.single')) {
+         reportOn test, testCassandra
+    }
+}
+
+test.finalizedBy(testReport)
+
 task manpages() {
     File outputDir = new File("${buildDir}/man")
     FileTree inputFiles = fileTree(dir: "src/man", include: "*.ronn")

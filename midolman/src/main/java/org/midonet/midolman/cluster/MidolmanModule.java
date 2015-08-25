@@ -31,10 +31,13 @@ import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 
 import org.midonet.cluster.Client;
+import org.midonet.cluster.backend.cassandra.CassandraClient;
 import org.midonet.midolman.ShardedSimulationBackChannel;
 import org.midonet.midolman.ShardedSimulationBackChannel$;
 import org.midonet.midolman.SimulationBackChannel;
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.logging.FlowTracingAppender;
+import org.midonet.midolman.logging.FlowTracingSchema$;
 import org.midonet.midolman.monitoring.FlowRecorderFactory;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
@@ -68,7 +71,10 @@ public class MidolmanModule extends PrivateModule {
 
         bindVirtualTopology();
 
-
+        bind(FlowTracingAppender.class)
+            .toProvider(FlowTracingAppenderProvider.class)
+            .asEagerSingleton();
+        expose(FlowTracingAppender.class);
 
         bind(FlowRecorderFactory.class).asEagerSingleton();
         expose(FlowRecorderFactory.class);
@@ -142,5 +148,21 @@ public class MidolmanModule extends PrivateModule {
         bind(VirtualTopology.class)
             .asEagerSingleton();
         expose(VirtualTopology.class);
+    }
+
+    private static class FlowTracingAppenderProvider
+        implements Provider<FlowTracingAppender> {
+        @Inject
+        MidolmanConfig config;
+
+        @Override
+        public FlowTracingAppender get() {
+            CassandraClient cass = new CassandraClient(
+                    config.zookeeper(), config.cassandra(),
+                    FlowTracingSchema$.MODULE$.KEYSPACE_NAME(),
+                    FlowTracingSchema$.MODULE$.SCHEMA(),
+                    FlowTracingSchema$.MODULE$.SCHEMA_TABLE_NAMES());
+            return new FlowTracingAppender(cass.connect());
+        }
     }
 }

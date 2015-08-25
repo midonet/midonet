@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -55,8 +56,10 @@ import org.midonet.midolman.cluster.state.FlowStateStorageModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.host.guice.HostModule;
+import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
+import org.midonet.midolman.simulation.PacketContext$;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.util.cLibrary;
 import scala.concurrent.Promise;
@@ -230,6 +233,9 @@ public class Midolman {
         injector.getInstance(MidolmanActorsService.class).initProcessing();
         log.info("Actors service was initialized");
 
+        enableFlowTracingAppender(
+                injector.getInstance(FlowTracingAppender.class));
+
         log.info("Running manual GC to tenure preallocated objects");
         System.gc();
 
@@ -262,6 +268,29 @@ public class Midolman {
         } finally {
             log.info("Exiting. BYE (signal)!");
             serviceEvent.exit();
+        }
+    }
+
+    @VisibleForTesting
+    public static void enableFlowTracingAppender(FlowTracingAppender appender) {
+        Object logger = PacketContext$.MODULE$.traceLog().underlying();
+        Object loggerFactory = LoggerFactory.getILoggerFactory();
+        if (logger instanceof ch.qos.logback.classic.Logger
+            && loggerFactory instanceof ch.qos.logback.classic.LoggerContext) {
+            ch.qos.logback.classic.Logger logbackLogger =
+                (ch.qos.logback.classic.Logger)logger;
+            ch.qos.logback.classic.LoggerContext loggerCtx =
+                (ch.qos.logback.classic.LoggerContext)loggerFactory;
+            appender.setContext(loggerCtx);
+            appender.start();
+
+            logbackLogger.addAppender(appender);
+            logbackLogger.setAdditive(true);
+        } else {
+            log.warn("Unable to get logback logger, FlowTracingAppender"
+                    + " not enabled. Logger is of type {},"
+                    +" LoggerFactory is of type {}",
+                    logger.getClass(), loggerFactory.getClass());
         }
     }
 
