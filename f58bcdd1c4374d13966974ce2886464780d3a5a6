@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_41941244",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/WritableFloodingProxyHeraldTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T15:25:30Z",
+      "side": 1,
+      "message": "Ditto",
+      "parentUuid": "9ad9bd40_21462e24",
+      "range": {
+        "startLine": 81,
+        "startChar": 35,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "f58bcdd1c4374d13966974ce2886464780d3a5a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6147561e",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/WritableFloodingProxyHeraldTest.scala",
         "patchSetId": 7
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_c1a022a8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T15:25:30Z",
+      "side": 1,
+      "message": "That\u0027d yield an Option[Option[FloodingProxy]]",
+      "parentUuid": "9ad9bd40_41f892c4",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 85,
+        "endChar": 18
+      },
+      "revId": "f58bcdd1c4374d13966974ce2886464780d3a5a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a1ff9ea9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
         "patchSetId": 7
@@ -105,6 +153,30 @@
       "writtenOn": "2015-08-25T15:22:33Z",
       "side": 1,
       "message": "name parameters?",
+      "range": {
+        "startLine": 101,
+        "startChar": 52,
+        "endLine": 101,
+        "endChar": 62
+      },
+      "revId": "f58bcdd1c4374d13966974ce2886464780d3a5a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_21b0eef3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T15:25:30Z",
+      "side": 1,
+      "message": "Sure. If this gets a +2 from someone let me fix in one of the later patches I\u0027ll do that i can unblock the branch.",
+      "parentUuid": "9ad9bd40_e130c6a0",
       "range": {
         "startLine": 101,
         "startChar": 52,
