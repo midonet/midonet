@@ -2,6 +2,282 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_c1c66216",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 244,
+        "startChar": 20,
+        "endLine": 244,
+        "endChar": 40
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e164464b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "construct outside of the \"foreach\"",
+      "range": {
+        "startLine": 102,
+        "startChar": 16,
+        "endLine": 103,
+        "endChar": 72
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_01e76ae5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "also unsubscribe from the subscriptions",
+      "range": {
+        "startLine": 109,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 32
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c103c274",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "indentation",
+      "range": {
+        "startLine": 148,
+        "startChar": 20,
+        "endLine": 149,
+        "endChar": 40
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e108c693",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "better name?",
+      "range": {
+        "startLine": 196,
+        "startChar": 16,
+        "endLine": 196,
+        "endChar": 30
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_81f1ba97",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "only one for all networks is enough?",
+      "range": {
+        "startLine": 216,
+        "startChar": 8,
+        "endLine": 216,
+        "endChar": 42
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_213aae36",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "retrying",
+      "range": {
+        "startLine": 263,
+        "startChar": 69,
+        "endLine": 263,
+        "endChar": 76
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8148dacd",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepUpdater.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "white space",
+      "range": {
+        "startLine": 47,
+        "startChar": 3,
+        "endLine": 47,
+        "endChar": 4
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e11606a7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepUpdater.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "add ip here",
+      "range": {
+        "startLine": 166,
+        "startChar": 49,
+        "endLine": 166,
+        "endChar": 50
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e17d26e9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepUpdater.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "variable?",
+      "range": {
+        "startLine": 185,
+        "startChar": 16,
+        "endLine": 185,
+        "endChar": 18
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a11cfec2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepUpdater.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "name?",
+      "range": {
+        "startLine": 191,
+        "startChar": 62,
+        "endLine": 191,
+        "endChar": 67
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_811ffab6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepUpdater.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "ip",
+      "range": {
+        "startLine": 191,
+        "startChar": 54,
+        "endLine": 191,
+        "endChar": 55
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2947fa1e",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
         "patchSetId": 2
@@ -18,6 +294,29 @@
         "startChar": 70,
         "endLine": 90,
         "endChar": 74
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_41da52ea",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T16:41:43Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 220,
+        "startChar": 20,
+        "endLine": 220,
+        "endChar": 58
       },
       "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
