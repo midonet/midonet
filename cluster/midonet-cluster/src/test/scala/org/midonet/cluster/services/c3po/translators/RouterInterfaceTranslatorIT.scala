@@ -135,7 +135,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         createHost(hostId)
         createRouterInterface(7, routerId, rifPortId, subnetId)
 
-        checkEdgeRouterInterface(rifPortId, hostId, delete = true)
+        checkEdgeRouterInterface(rifPortId, hostId, deleteTaskId = 8)
 
     }
 
@@ -218,8 +218,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         checkRouterAndPeerPort(rifPortId, "10.0.0.3", "ab:cd:ef:01:02:03")
     }
 
-    it should "Update convert non-RIF port on tenant network to RIF ports " +
-              "on create" in {
+    it should "convert non-RIF port on tenant network to RIF ports on " +
+              "create" in {
         createTenantNetwork(2, tenantNetworkId)
         createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24")
         createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
@@ -278,7 +278,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
             nPort.getDeviceOwner shouldBe DeviceOwner.ROUTER_INTERFACE
         }
 
-        checkEdgeRouterInterface(rifPortId, hostId, delete = true)
+        checkEdgeRouterInterface(rifPortId, hostId, deleteTaskId = 8)
     }
 
     private def checkRouterAndPeerPort(nwPortId: UUID, ipAddr: String,
@@ -300,8 +300,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
     }
 
     private def checkEdgeRouterInterface(rifPortId: UUID, hostId: UUID,
-                                         delete: Boolean)
-    : Unit = {
+                                         deleteTaskId: Int = 0): Unit = {
         val rPortId = routerInterfacePortPeerId(rifPortId.asProto)
         val rPort = eventually(storage.get(classOf[Port], rPortId).await())
         rPort.getAdminStateUp shouldBe true
@@ -322,10 +321,10 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         val host = storage.get(classOf[Host], hostId).await()
         host.getPortIdsList.asScala should contain only rPortId
 
-        if (!delete) return
+        if (deleteTaskId <= 0) return
 
         // Deleting the router interface Port should delete the router Port.
-        insertDeleteTask(8, PortType, rifPortId)
+        insertDeleteTask(deleteTaskId, PortType, rifPortId)
         eventually {
             List(storage.exists(classOf[Port], rPortId),
                  storage.exists(classOf[Route], rifRoute.getId))

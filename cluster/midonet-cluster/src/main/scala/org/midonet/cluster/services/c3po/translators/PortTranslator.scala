@@ -128,11 +128,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             // We don't create a corresponding Midonet network port for Neutron
             // ports on uplink networks, but for router interface ports, we do
             // need to delete the corresponding router port.
-            if (!isRouterInterfacePort(nPort)) {
-                return List()
-            } else {
+            if (isRouterInterfacePort(nPort)) {
                 return List(Delete(classOf[Port],
                                    routerInterfacePortPeerId(nPort.getId)))
+            } else {
+                return List()
             }
         }
 
@@ -234,10 +234,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             midoOps ++= macTableUpdateOps(oldNPort, nPort)
             midoOps ++= arpTableUpdateOps(oldNPort, nPort)
         }
+
         // TODO if a DHCP port, assert that the fixed IPs haven't changed.
-        // TOOD A VIF port may be re-purposed as a Router Interface port,
-        //      however, NeutronPlugin Python code do not handle the scenario
-        //      correctly yet. Implement later.
 
         midoOps.toList
     }
