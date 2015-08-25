@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_21462e24",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/WritableFloodingProxyHeraldTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:22:33Z",
+      "side": 1,
+      "message": "name parameters?",
+      "range": {
+        "startLine": 81,
+        "startChar": 35,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "f58bcdd1c4374d13966974ce2886464780d3a5a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6147561e",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/WritableFloodingProxyHeraldTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:22:33Z",
+      "side": 1,
+      "message": "name parameters?",
+      "range": {
+        "startLine": 166,
+        "startChar": 35,
+        "endLine": 166,
+        "endChar": 49
+      },
+      "revId": "f58bcdd1c4374d13966974ce2886464780d3a5a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_41f892c4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:22:33Z",
+      "side": 1,
+      "message": "Couldn\u0027t you return just Option(value)?",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 85,
+        "endChar": 18
+      },
+      "revId": "f58bcdd1c4374d13966974ce2886464780d3a5a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a1ff9ea9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:22:33Z",
+      "side": 1,
+      "message": "I like this reconforting comment :-)",
+      "range": {
+        "startLine": 88,
+        "startChar": 70,
+        "endLine": 89,
+        "endChar": 46
+      },
+      "revId": "f58bcdd1c4374d13966974ce2886464780d3a5a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e130c6a0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-25T15:22:33Z",
+      "side": 1,
+      "message": "name parameters?",
+      "range": {
+        "startLine": 101,
+        "startChar": 52,
+        "endLine": 101,
+        "endChar": 62
+      },
+      "revId": "f58bcdd1c4374d13966974ce2886464780d3a5a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
