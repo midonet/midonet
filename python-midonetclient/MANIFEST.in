@@ -1,6 +1,6 @@
 include README
 include LICENSE
-include LICENSE.mn-ctl
+include LICENSE.midonet-cli
 include NEWS
 include MANIFEST.in
 recursive-include doc *
