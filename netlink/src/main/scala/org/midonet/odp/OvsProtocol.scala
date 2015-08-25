@@ -47,7 +47,7 @@ sealed class OvsProtocol(pid: Int,
 
     def enum(buf: ByteBuffer, datapathId: Int,
              ctx: NetlinkRequestContext): Unit =
-        messageFor(buf, datapathId, ctx, NLFlag.REQUEST | NLFlag.Get.DUMP)
+        messageFor(buf, datapathId, ctx, (NLFlag.REQUEST | NLFlag.Get.DUMP).toShort)
             .finalize(pid)
 
     def prepareDatapathGet(datapathId: Int, name: String,
@@ -72,7 +72,7 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Datapath.UserFeat
 
         val message = messageFor(buf, 0, datapathFamily.contextNew,
-            NLFlag.REQUEST | NLFlag.ECHO)
+            (NLFlag.REQUEST | NLFlag.ECHO).toShort)
         NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid)
         if (name ne null) {
             NetlinkMessage.writeStringAttr(buf, Attr.Name, name)
@@ -86,7 +86,7 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Datapath.Attr
 
         val message = messageFor(buf, datapathId, datapathFamily.contextDel,
-            NLFlag.REQUEST | NLFlag.ECHO)
+            (NLFlag.REQUEST | NLFlag.ECHO).toShort)
         if (name ne null) {
             NetlinkMessage.writeStringAttr(buf, Attr.Name, name)
         }
@@ -129,7 +129,7 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Port.Attr
 
         val message = messageFor(buf, datapathId, ctx,
-            NLFlag.REQUEST | NLFlag.ECHO)
+            (NLFlag.REQUEST | NLFlag.ECHO).toShort)
         NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid)
         port.serializeInto(buf)
         message.finalize(pid)
@@ -172,7 +172,7 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Flow.Attr
 
         val message = messageFor(buf, datapathId, flowFamily.contextSet,
-            NLFlag.REQUEST | NLFlag.ECHO)
+            (NLFlag.REQUEST | NLFlag.ECHO).toShort)
         NetlinkMessage.writeAttrSeq(buf, Attr.Key, flow.getMatch.getKeys,
             FlowKeys.writer)
         // the actions list is allowed to be empty (drop flow). Nevertheless the
@@ -191,14 +191,14 @@ sealed class OvsProtocol(pid: Int,
         import org.midonet.odp.OpenVSwitch.Flow.Attr
 
         val message = messageFor(buf, datapathId, flowFamily.contextDel,
-            NLFlag.REQUEST | NLFlag.ECHO)
+            (NLFlag.REQUEST | NLFlag.ECHO).toShort)
         NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer)
         message.finalize(pid)
     }
 
     def prepareFlowFlush(datapathId: Int, buf: ByteBuffer): Unit = {
         val message = messageFor(buf, datapathId, flowFamily.contextDel,
-            NLFlag.REQUEST | NLFlag.ACK)
+            (NLFlag.REQUEST | NLFlag.ACK).toShort)
         message.finalize(pid)
     }
 
