@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_1f8504ad",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/package.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:21:33Z",
+      "side": 1,
+      "message": "I\u0027ll fix this one in a later patch if it\u0027s ok so I can unblock the branch?",
+      "parentUuid": "9ad9bd40_7fc61018",
+      "range": {
+        "startLine": 35,
+        "startChar": 32,
+        "endLine": 35,
+        "endChar": 58
+      },
+      "revId": "bc8a0c7be03fe9106cb2558ce28c5b136bb7ad96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ffd940f5",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/package.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-25T08:11:53Z",
       "side": 1,
       "message": "anymore?",
+      "range": {
+        "startLine": 44,
+        "startChar": 55,
+        "endLine": 44,
+        "endChar": 60
+      },
+      "revId": "bc8a0c7be03fe9106cb2558ce28c5b136bb7ad96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3f92c8f6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/package.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:21:33Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "9ad9bd40_ffd940f5",
       "range": {
         "startLine": 44,
         "startChar": 55,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_bf9ed805",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/package.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:21:33Z",
+      "side": 1,
+      "message": "It\u0027s a failure so probably good to see it at least.",
+      "parentUuid": "9ad9bd40_1fd7c4c0",
+      "range": {
+        "startLine": 47,
+        "startChar": 29,
+        "endLine": 47,
+        "endChar": 33
+      },
+      "revId": "bc8a0c7be03fe9106cb2558ce28c5b136bb7ad96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_9ff2f46d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/package.scala",
         "patchSetId": 5
@@ -82,6 +154,30 @@
       "writtenOn": "2015-08-25T08:11:53Z",
       "side": 1,
       "message": "align with parameters above?",
+      "range": {
+        "startLine": 55,
+        "startChar": 33,
+        "endLine": 56,
+        "endChar": 58
+      },
+      "revId": "bc8a0c7be03fe9106cb2558ce28c5b136bb7ad96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_dfa39c4d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/package.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:21:33Z",
+      "side": 1,
+      "message": "It would go over the 80 limit",
+      "parentUuid": "9ad9bd40_9ff2f46d",
       "range": {
         "startLine": 55,
         "startChar": 33,
@@ -128,6 +224,30 @@
       "writtenOn": "2015-08-25T08:11:53Z",
       "side": 1,
       "message": "debug",
+      "range": {
+        "startLine": 66,
+        "startChar": 24,
+        "endLine": 66,
+        "endChar": 28
+      },
+      "revId": "bc8a0c7be03fe9106cb2558ce28c5b136bb7ad96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ff8780b4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/package.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-25T08:21:33Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "9ad9bd40_dfec7c92",
       "range": {
         "startLine": 66,
         "startChar": 24,
