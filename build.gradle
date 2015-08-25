@@ -402,7 +402,6 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     cobertura {
         coverageDirs << file("midonet-util/build/classes/main")
         coverageDirs << file("netlink/build/classes/main")
-        coverageDirs << file("odp/build/classes/main")
         coverageDirs << file("nsdb/build/classes/main")
         coverageDirs << file("midolman/build/classes/main")
         coverageDirs << file("midonet-api/build/classes/main")
