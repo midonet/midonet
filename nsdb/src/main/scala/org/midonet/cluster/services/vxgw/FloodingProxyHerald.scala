@@ -31,7 +31,7 @@ import org.midonet.cluster.models.Topology.TunnelZone.Type.VTEP
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.FloodingProxyKey
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
-import org.midonet.cluster.util.{UUIDUtil, selfHealingTzObservable}
+import org.midonet.cluster.util.{UUIDUtil, selfHealingTypeObservable}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors.makeFunc1
 
@@ -89,7 +89,7 @@ class FloodingProxyHerald(backend: MidonetBackend, executor: Executor) {
         }
     }
 
-    Observable.merge(selfHealingTzObservable(backend.store))
+    Observable.merge(selfHealingTypeObservable[TunnelZone](backend.store))
         .filter(makeFunc1 { t: TunnelZone => t.getType == VTEP })
         .observeOn(Schedulers.from(executor))
         .subscribe(new Observer[TunnelZone] {
