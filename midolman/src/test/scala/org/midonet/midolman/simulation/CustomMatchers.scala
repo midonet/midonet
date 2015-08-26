@@ -76,18 +76,12 @@ trait CustomMatchers {
     def toBridge(bridge: Bridge, brPorts: List[UUID], expectedTags: FlowTag*) =
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
             def apply(simRes: (SimulationResult, PacketContext)) =
-                BePropertyMatchResult((simRes._1 match {
-                        case AddVirtualWildcardFlow =>
-                            if (expectedTags forall simRes._2.flowTags.contains)
-                                simRes._2.virtualFlowActions.toList
-                            else Nil
-                        case _ => Nil
-                    }).exists({
-                        case flood if flood == bridge.floodAction => true
-                        case flood =>
-                            false
-                    }), s"a flood bridge action ${bridge.floodAction} on " +
-                        s"${bridge.id} containing tags {${expectedTags.toList}}")
+                BePropertyMatchResult(simRes._1 match {
+                    case AddVirtualWildcardFlow =>
+                        (expectedTags forall simRes._2.flowTags.contains) &&
+                        (brPorts map ToPortAction).forall(simRes._2.virtualFlowActions.contains)
+                }, s"a flood bridge action ${bridge.floodAction} on " +
+                   s"${bridge.id} containing tags {${expectedTags.toList}}")
     }
 
     def flowMatching(pkt: Ethernet, expectedTags: FlowTag*) =

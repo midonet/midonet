@@ -104,11 +104,11 @@ trait SimDevice {
 
     private def merge(context: PacketContext, a: Result, b: Result) : Result = {
         val result = (a, b) match {
-            case (PacketWorkflow.Drop, action) => action
-            case (action, PacketWorkflow.Drop) => action
+            case (Drop | ShortDrop | NoOp, action) => action
+            case (action, Drop | ShortDrop | NoOp) => action
 
-            case (PacketWorkflow.ErrorDrop, _) => ErrorDrop
-            case (_, PacketWorkflow.ErrorDrop) => ErrorDrop
+            case (ErrorDrop, _) => ErrorDrop
+            case (_, ErrorDrop) => ErrorDrop
 
             case (firstAction, secondAction) =>
                 val clazz1 = firstAction.getClass

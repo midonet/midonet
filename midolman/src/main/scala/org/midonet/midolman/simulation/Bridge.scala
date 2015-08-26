@@ -112,11 +112,8 @@ class Bridge(val id: UUID,
 
     import org.midonet.midolman.simulation.Simulator._
 
-    val floodAction: Result = (exteriorPorts map ToPortAction).
-            foldLeft(Drop: Result) { ForkAction(_, _) } match {
-                case ForkAction(Drop, a) => a
-                case a => a
-            }
+    val floodAction: Result =
+        (exteriorPorts map ToPortAction).foldLeft(NoOp: Result) (ForkAction)
 
     override def infilter: UUID =
         if ((inFilterId ne null) && inFilterId.isDefined) inFilterId.get else null
