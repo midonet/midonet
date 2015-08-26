@@ -119,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2aa44356",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-26T09:42:09Z",
+      "side": 1,
+      "message": "I think Nicolas is right, since the map returns either the value or null. Yet, a nit nonetheless.",
+      "parentUuid": "9ad9bd40_c1a022a8",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 85,
+        "endChar": 18
+      },
+      "revId": "f58bcdd1c4374d13966974ce2886464780d3a5a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a1ff9ea9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
         "patchSetId": 7
