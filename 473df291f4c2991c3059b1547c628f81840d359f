@@ -22,6 +22,30 @@
       "revId": "473df291f4c2991c3059b1547c628f81840d359f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_901c9e6c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T13:04:58Z",
+      "side": 1,
+      "message": "To be honest I\u0027m not sure. If what you see is true then I don\u0027t see why TopologyMappings would not contain all needed mappings...",
+      "parentUuid": "9ad9bd40_9502d0b2",
+      "range": {
+        "startLine": 13,
+        "startChar": 2,
+        "endLine": 13,
+        "endChar": 39
+      },
+      "revId": "473df291f4c2991c3059b1547c628f81840d359f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
