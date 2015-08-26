@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b05e0211",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T13:19:54Z",
+      "side": 1,
+      "message": "Copying from the email thread.\n\nI was thinking of ways to make this model fit with the Vtep Binding,\nwhich is defined like this:\n\n    message Binding {\n        optional string port_name \u003d 1;\n        optional uint32 vlan_id \u003d 2;    // A VLAN ID is a short int.\n        optional UUID network_id \u003d 3;\n    }\n\nPort name and vlan are obviously easy to share. As for the differences:\n- We use the network Id, you use the port. We could replace the\nnetwork_id in the Vtep Binding with a Port_id (that of the vxlan port\nid), which is both more generic, and also allows binding to another\ntype of device.\n- The rules are not used in the Vtep Binding and they would be left\nempty, although I could see them being used at some point (and\nsimulated once the packet gets to an agent).\n\nIf this works, I\u0027d propose to move Binding out of the Vtep (it\u0027s a\nnested model right now) and rename it to PortVlanBinding as a 1st\nclass model. As we\u0027re rewriting vxgw for v2, it\u0027s a good moment.",
+      "revId": "eab80b1d5f31c8c88a8038af7a10c18827f42d75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
