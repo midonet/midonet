@@ -27,6 +27,7 @@ from mdts.lib.resource_reference import ResourceReference
 from mdts.lib.router import Router
 from mdts.lib.tenants import get_or_create_tenant
 from mdts.lib.topology_manager import TopologyManager
+from mdts.lib.tracerequest import TraceRequest
 from mdts.tests.utils.utils import clear_virtual_topology_for_tenants
 
 from midonetclient.api import MidonetApi
@@ -71,6 +72,7 @@ class VirtualTopologyManager(TopologyManager):
         self._bridges = {}
         self._bridge_router = {}
         self._chains = {}
+        self._tracerequests = {}
         self._links = []
 
         #: :type: dict[str, HealthMonitor]
@@ -111,6 +113,9 @@ class VirtualTopologyManager(TopologyManager):
         # operation on chain.
         for chain in self._vt.get('chains') or []:
             self.add_chain(chain['chain'])
+
+        for tracerequest in self._vt.get('tracerequests') or []:
+            self.add_tracerequest(tracerequest['tracerequest'])
 
         referrers = {}
         for reference in self._resource_references:
@@ -272,6 +277,14 @@ class VirtualTopologyManager(TopologyManager):
 
     def get_chain(self, name):
         return self._chains.get(name)
+
+    def add_tracerequest(self, tracerequest_data):
+        tracerequest = TraceRequest(self._api, self, tracerequest_data)
+        tracerequest.build()
+        self._tracerequests[tracerequest_data['name']] = tracerequest
+
+    def get_tracerequest(self, name):
+        return self._tracerequests.get(name)
 
     def add_load_balancer(self, lb_data):
         load_balancer = LoadBalancer(self._api, self, lb_data)
