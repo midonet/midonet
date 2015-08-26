@@ -28,9 +28,9 @@ import com.google.inject.Inject;
 
 import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.neutron.loadbalancer.LBResource;
-import org.midonet.api.neutron.loadbalancer.LBUriBuilder;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.rest_api.LBUriBuilder;
 import org.midonet.cluster.rest_api.neutron.NeutronMediaType;
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.cluster.rest_api.neutron.models.Neutron;

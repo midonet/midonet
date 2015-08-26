@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.neutron.loadbalancer;
+package org.midonet.cluster.rest_api;
 
 import java.net.URI;
 import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 
 public final class LBUriBuilder {
+
+    public static final String ID_TOKEN = "/{id}";
 
     // LBaaS resources
     public static final String LB = "/lb";
@@ -35,6 +36,10 @@ public final class LBUriBuilder {
 
     private LBUriBuilder() {
         // not called
+    }
+
+    public static String buildIdTemplateUri(URI uri) {
+        return uri.toString() + ID_TOKEN;
     }
 
     public static URI getLoadBalancer(URI baseUri) {
@@ -53,7 +58,7 @@ public final class LBUriBuilder {
     }
 
     public static String getVipTemplate(URI baseUri) {
-        return ResourceUriBuilder.buildIdTemplateUri(getVips(baseUri));
+        return buildIdTemplateUri(getVips(baseUri));
     }
 
     // Pools
@@ -67,7 +72,7 @@ public final class LBUriBuilder {
     }
 
     public static String getPoolTemplate(URI baseUri) {
-        return ResourceUriBuilder.buildIdTemplateUri(getPools(baseUri));
+        return buildIdTemplateUri(getPools(baseUri));
     }
 
     // Pool Members
@@ -82,7 +87,7 @@ public final class LBUriBuilder {
     }
 
     public static String getMemberTemplate(URI baseUri) {
-        return ResourceUriBuilder.buildIdTemplateUri(getMembers(baseUri));
+        return buildIdTemplateUri(getMembers(baseUri));
     }
 
     // Health Monitors
@@ -97,8 +102,7 @@ public final class LBUriBuilder {
     }
 
     public static String getHealthMonitorTemplate(URI baseUri) {
-        return ResourceUriBuilder.buildIdTemplateUri(
-            getHealthMonitors(baseUri));
+        return buildIdTemplateUri(getHealthMonitors(baseUri));
     }
 
     // Pool Health Monitor

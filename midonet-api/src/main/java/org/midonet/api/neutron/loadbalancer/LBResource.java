@@ -25,6 +25,7 @@ import com.google.inject.Inject;
 
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.rest_api.LBUriBuilder;
 import org.midonet.cluster.rest_api.neutron.models.LoadBalancer;
 
 public class LBResource extends AbstractResource {

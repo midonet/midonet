@@ -70,7 +70,6 @@ public class Neutron {
     @JsonProperty("security_group_rule_template")
     public String securityGroupRuleTemplate;
 
-    @Since("2")
     @JsonProperty("load_balancer")
     public LoadBalancer loadBalancer;
 

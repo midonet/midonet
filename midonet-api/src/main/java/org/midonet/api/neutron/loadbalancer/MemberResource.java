@@ -33,6 +33,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 
+import org.midonet.cluster.rest_api.LBUriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
