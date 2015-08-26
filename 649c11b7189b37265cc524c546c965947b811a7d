@@ -57,6 +57,30 @@
       "revId": "649c11b7189b37265cc524c546c965947b811a7d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4f6c3937",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceWorkflow.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-26T05:33:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_26e48eab",
+      "range": {
+        "startLine": 54,
+        "startChar": 15,
+        "endLine": 54,
+        "endChar": 30
+      },
+      "revId": "649c11b7189b37265cc524c546c965947b811a7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
