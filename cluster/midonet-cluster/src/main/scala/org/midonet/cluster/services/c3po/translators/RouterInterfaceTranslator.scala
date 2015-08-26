@@ -94,18 +94,19 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
                                            id = routerInterfaceRouteId,
                                            srcSubnet = univSubnet4,
                                            dstSubnet = portSubnet)
+        val localRoute = newLocalRoute(routerPortId, gatewayIp)
 
         val midoOps = new MidoOpListBuffer
         val routerPort = routerPortBldr.build()
         midoOps += Create(routerPort)
         midoOps += Create(rifRoute)
+        midoOps += Create(localRoute)
 
         if (isUplink) {
             midoOps ++= bindPortOps(routerPort,
                                     getHostIdByName(nPort.getHostId),
                                     nPort.getProfile.getInterfaceName)
         } else {
-            midoOps ++= addLocalRouteToRouter(routerPortBldr)
             midoOps ++= createMetadataServiceRoute(
                 routerPortId, nPort.getNetworkId, portSubnet)
             midoOps ++= updateGatewayRoutesOps(gatewayIp, ns.getId)
