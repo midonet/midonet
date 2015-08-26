@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_871c65c3",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T19:17:29Z",
+      "side": 1,
+      "message": "Why this one?",
+      "range": {
+        "startLine": 25,
+        "startChar": 7,
+        "endLine": 25,
+        "endChar": 39
+      },
+      "revId": "8f50a8b888bcc1d671c410b643a3a603ba52d217",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
