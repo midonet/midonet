@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_64f03fca",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T16:20:35Z",
+      "side": 1,
+      "message": "this correspond to \u003cSOME_IP\u003e?",
+      "range": {
+        "startLine": 49,
+        "startChar": 35,
+        "endLine": 49,
+        "endChar": 46
+      },
+      "revId": "586d80283bd3043d511f16aa8523f50341d6093e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a4b967ee",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T16:20:35Z",
+      "side": 1,
+      "message": "I thought this was already explained above (in the indented paragraph).",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 63,
+        "endChar": 73
+      },
+      "revId": "586d80283bd3043d511f16aa8523f50341d6093e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_44ca5b6f",
+        "filename": "cluster/midonet-cluster/src/main/python/midonet-cluster-bootstrap",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T16:20:35Z",
+      "side": 1,
+      "message": "Is this intended to stay commented out?",
+      "range": {
+        "startLine": 73,
+        "startChar": 4,
+        "endLine": 73,
+        "endChar": 60
+      },
+      "revId": "586d80283bd3043d511f16aa8523f50341d6093e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_84c46360",
+        "filename": "cluster/midonet-cluster/src/main/python/midonet-cluster-bootstrap",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T16:20:35Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 76,
+        "startChar": 8,
+        "endLine": 77,
+        "endChar": 43
+      },
+      "revId": "586d80283bd3043d511f16aa8523f50341d6093e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
