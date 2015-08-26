@@ -151,3 +151,17 @@ class Port(resource_base.ResourceBase,
         headers = {'Accept': APPLICATION_PORTGROUP_PORT_COLLECTION_JSON}
         return self.get_children(self.dto['portGroups'], query, headers,
                                  port_group_port.PortGroupPort)
+
+    def get_inbound_mirrors(self, query=None):
+        return self.dto['inboundMirrors']
+
+    def inbound_mirrors(self, inMirrors):
+        self.dto['inboundMirrors'] = inMirrors
+        return self
+
+    def get_outbound_mirrors(self, query=None):
+        return self.dto['outboundMirrors']
+
+    def outbound_mirrors(self, outMirrors):
+        self.dto['outboundMirrors'] = outMirrors
+        return self
