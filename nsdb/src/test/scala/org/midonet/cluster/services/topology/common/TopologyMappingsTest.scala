@@ -19,19 +19,25 @@ package org.midonet.cluster.services.topology.common
 import com.google.protobuf.Message
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec, Matchers}
+import org.scalatest.{BeforeAndAfterAll, FeatureSpec, Matchers}
 
 import org.midonet.cluster.models.Topology
 
 @RunWith(classOf[JUnitRunner])
-class TopologyMappingsTest extends FeatureSpec with Matchers {
+class TopologyMappingsTest extends FeatureSpec
+                           with Matchers
+                           with BeforeAndAfterAll {
 
-    val types: List[Topology.Type] = Topology.Type.values().toList
+    var types: List[Topology.Type] = _
+    var classes: List[Class[_ <: Message]] = _
 
-    val classes: List[Class[_ <: Message]] = classOf[Topology].getClasses.toList
-        .filterNot(_.getSimpleName.matches("(.*)OrBuilder"))
-        .filterNot(_.getSimpleName.matches("Type"))
-        .asInstanceOf[List[Class[_ <: Message]]]
+    override protected def beforeAll() = {
+        types = Topology.Type.values().toList
+        classes = classOf[Topology].getClasses.toList
+            .filterNot(_.getSimpleName.matches("(.*)OrBuilder"))
+            .filterNot(_.getSimpleName.matches("Type"))
+            .asInstanceOf[List[Class[_ <: Message]]]
+    }
 
     feature("map topology classes to type ids")
     {
