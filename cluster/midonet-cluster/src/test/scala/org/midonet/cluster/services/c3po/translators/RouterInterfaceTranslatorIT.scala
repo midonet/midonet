@@ -311,7 +311,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         rPort.getPortAddress.getAddress shouldBe "10.0.0.3"
         rPort.getPortMac shouldBe "ab:cd:ef:01:02:03"
 
-        rPort.getRouteIdsCount shouldBe 1
+        rPort.getRouteIdsCount shouldBe 2
         val rifRoute = storage.get(classOf[Route], rPort.getRouteIds(0)).await()
         rifRoute.getId shouldBe RouteManager.routerInterfaceRouteId(rPort.getId)
         rifRoute.getNextHopPortId shouldBe rPort.getId
