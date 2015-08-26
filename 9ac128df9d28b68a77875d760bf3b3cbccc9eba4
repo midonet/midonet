@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ba8c1c37",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/L2Insertion.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:00:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_cfbe1765",
+      "range": {
+        "startLine": 77,
+        "startChar": 8,
+        "endLine": 80,
+        "endChar": 38
+      },
+      "revId": "9ac128df9d28b68a77875d760bf3b3cbccc9eba4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4fb20795",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/L2Service.java",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_da81e0fc",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/L2Service.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:00:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_4fb20795",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 30
+      },
+      "revId": "9ac128df9d28b68a77875d760bf3b3cbccc9eba4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_2fa30350",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Port.java",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2015-06-19T17:23:02Z",
       "side": 1,
       "message": "This is not wrong, but it will prevent changing the chains via the API by updating the port with an HTTP PUT. Another method would be needed such as using ZOOM bindings.",
+      "range": {
+        "startLine": 150,
+        "startChar": 8,
+        "endLine": 151,
+        "endChar": 45
+      },
+      "revId": "9ac128df9d28b68a77875d760bf3b3cbccc9eba4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1a7b482a",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Port.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:00:58Z",
+      "side": 1,
+      "message": "My current intention is to keep these chains hidden from the API. They should only contain chains that are translated from other objects.\n\nFrankly, this is just a temporary approach - we probably need to rethink the chain processing pipeline to make it easier for different layers to add rules without stepping on each other.",
+      "parentUuid": "facab960_2fa30350",
       "range": {
         "startLine": 150,
         "startChar": 8,
