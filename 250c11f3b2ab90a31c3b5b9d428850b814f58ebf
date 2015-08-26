@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_eaba5bbf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T10:39:21Z",
+      "side": 1,
+      "message": "I will change the name. I need an atomic ref to do a compareAndSet in method start below.",
+      "parentUuid": "9ad9bd40_e12a867d",
+      "range": {
+        "startLine": 43,
+        "startChar": 16,
+        "endLine": 43,
+        "endChar": 19
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_01a5aa03",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-25T15:10:50Z",
       "side": 1,
       "message": "Do you need the entire network? why not just the VNI? Actually, the VNI will never change so you don\u0027t really need to track the network past the first load.",
+      "range": {
+        "startLine": 68,
+        "startChar": 7,
+        "endLine": 68,
+        "endChar": 47
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ca2af7e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T10:39:21Z",
+      "side": 1,
+      "message": "I\u0027m just storing the vni, old/new port list now.",
+      "parentUuid": "9ad9bd40_01a5aa03",
       "range": {
         "startLine": 68,
         "startChar": 7,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_352584ab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T10:39:21Z",
+      "side": 1,
+      "message": "Isn\u0027t it to heavy to subscribe to updates of all ports? It seems more lightweight to get the vxlan port list as it is done now:\nvteps-\u003enetworks-\u003e port list",
+      "parentUuid": "9ad9bd40_c19ae2c4",
+      "range": {
+        "startLine": 100,
+        "startChar": 4,
+        "endLine": 128,
+        "endChar": 5
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7e57f126",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2015-08-25T14:22:36Z",
       "side": 1,
       "message": "I have to add logging.",
+      "range": {
+        "startLine": 142,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 39
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3581044b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T10:39:21Z",
+      "side": 1,
+      "message": "will fix",
+      "parentUuid": "9ad9bd40_7e57f126",
       "range": {
         "startLine": 142,
         "startChar": 0,
@@ -111,6 +207,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_954ad053",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T10:39:21Z",
+      "side": 1,
+      "message": "If you don\u0027t subscribe to the network, how do you get the vni? It seems to me that what you describe above is what I do modulo the fact that I consider the first binding only instead of all of them.",
+      "parentUuid": "9ad9bd40_21cf0eb2",
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2181ce4a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 2
@@ -122,6 +236,30 @@
       "writtenOn": "2015-08-25T15:10:50Z",
       "side": 1,
       "message": "This is not correct, each vtep may be bound to multiple networks.",
+      "range": {
+        "startLine": 210,
+        "startChar": 12,
+        "endLine": 210,
+        "endChar": 71
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_157c0072",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T10:39:21Z",
+      "side": 1,
+      "message": "Will fix.",
+      "parentUuid": "9ad9bd40_2181ce4a",
       "range": {
         "startLine": 210,
         "startChar": 12,
@@ -151,6 +289,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f5787c91",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T10:39:21Z",
+      "side": 1,
+      "message": "I don\u0027t use the whole network anymore, only the vni, oldPortIds, and newPortIds. It\u0027s the same for PortState which takes the vtepPort map. Thanks for pointing this out, though.",
+      "parentUuid": "9ad9bd40_016e8ac9",
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_21ec6ec7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 2
@@ -174,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4aa2679b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T10:39:21Z",
+      "side": 1,
+      "message": "This is not need anymore because notifications on this observable will happen on the vt thread in the next version of this patch (function VtepObservable will be executed on the vt thread).",
+      "parentUuid": "9ad9bd40_21ec6ec7",
+      "range": {
+        "startLine": 392,
+        "startChar": 18,
+        "endLine": 392,
+        "endChar": 42
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_814a9a53",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 2
@@ -185,6 +365,30 @@
       "writtenOn": "2015-08-25T15:10:50Z",
       "side": 1,
       "message": "there is a uuidOf also above, what\u0027s the difference?",
+      "range": {
+        "startLine": 426,
+        "startChar": 5,
+        "endLine": 431,
+        "endChar": 38
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8a2e2fa4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T10:39:21Z",
+      "side": 1,
+      "message": "uuidOf in the object calls uuidOf of the only instance of this class (if any).",
+      "parentUuid": "9ad9bd40_814a9a53",
       "range": {
         "startLine": 426,
         "startChar": 5,
