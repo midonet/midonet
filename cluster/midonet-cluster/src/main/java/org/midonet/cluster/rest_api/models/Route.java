@@ -172,7 +172,9 @@ public class Route extends UriResource {
         if (null == id) {
             id = UUID.randomUUID();
         }
-        this.routerId = routerId;
+        if ((type == NextHop.BlackHole) || (type == NextHop.Reject)) {
+            this.routerId = routerId;
+        }
     }
 
     public static Route fromLearned(org.midonet.midolman.layer3.Route from) {

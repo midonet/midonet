@@ -29,9 +29,9 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation.{ApiResource, AllowCreate, AllowDelete, AllowGet}
-import org.midonet.cluster.rest_api.models.{Port, Route, Router}
+import org.midonet.cluster.rest_api.models.{RouterPort, Port, Route, Router}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 import org.midonet.cluster.state.RoutingTableStorage._
@@ -45,7 +45,24 @@ import org.midonet.util.reactivex._
                 APPLICATION_JSON))
 @AllowDelete
 class RouteResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[Route](resContext)
+    extends MidonetResource[Route](resContext) {
+
+    protected override def getFilter(route: Route): Future[Route] = {
+        if (route.routerId eq null) {
+            if (route.nextHopPort ne null) {
+                getResource(classOf[RouterPort], route.nextHopPort) map { port =>
+                    route.routerId = port.routerId
+                    route
+                }
+            } else {
+                Future.failed(new InternalServerErrorHttpException(
+                    s"Route ${route.id} is missing both router ID and next " +
+                    "hop port ID"))
+            }
+        } else Future.successful(route)
+    }
+
+}
 
 
 @RequestScoped
@@ -60,14 +77,30 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[Route] = {
-        getResource(classOf[Router], routerId).flatMap(router => {
-            val futures = new ArrayBuffer[Future[Seq[Route]]]
-            futures += listResources(classOf[Route], router.routeIds.asScala)
-            for (portId <- router.portIds.asScala) {
-                futures += getLearnedRoutes(portId)
+        val future = getResource(classOf[Router], routerId) flatMap { router =>
+            listResources(classOf[RouterPort],
+                          router.portIds.asScala) flatMap { ports =>
+                val portsMap = ports.map(port => (port.id, port)).toMap
+                val futures = new ArrayBuffer[Future[Seq[Route]]]
+                futures += listResources(classOf[Route], router.routeIds.asScala)
+                for (port <- ports) {
+                    futures += listResources(classOf[Route], port.routeIds.asScala)
+                }
+                for (portId <- router.portIds.asScala) {
+                    futures += getLearnedRoutes(portId)
+                }
+                Future.sequence(futures) map { result =>
+                    for (route <- result.flatten) yield {
+                        if ((route.routerId eq null) &&
+                            (route.nextHopPort ne null)) {
+                            route.routerId = portsMap(route.nextHopPort).routerId
+                        }
+                        route
+                    }
+                }
             }
-            Future.sequence(futures)
-        }).getOrThrow.flatten.asJava
+        }
+        future.getOrThrow.asJava
     }
 
     protected override def createFilter(route: Route): Ops = {
