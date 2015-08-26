@@ -90,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6af56bca",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 19
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-26T08:20:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_6cd94656",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_eca0f691",
         "filename": "midolman/src/main/java/org/midonet/midolman/cluster/MidolmanActorsModule.java",
         "patchSetId": 19
@@ -791,6 +809,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ea309ba0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-26T08:20:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ec09d631",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_acb26ee2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
         "patchSetId": 19
@@ -855,6 +891,24 @@
       "side": 1,
       "message": "i\u0027ll take a look.",
       "parentUuid": "9ad9bd40_4ce002cd",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0a269f68",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/FlowWriter.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-26T08:20:54Z",
+      "side": 1,
+      "message": "this code is replaced by reactive model.",
+      "parentUuid": "9ad9bd40_8fa4bc08",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -1085,6 +1139,24 @@
       "side": 1,
       "message": "Yes it does, if you are on the pinned dispatcher you have a thread of your own and can block.",
       "parentUuid": "9ad9bd40_77a73d0b",
+      "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a2b6331",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-26T08:20:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_6f53f816",
       "revId": "278dcf56aa2bb4d3b089ddb7482b5647ad3e15c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
