@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_9502d0b2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T11:22:02Z",
+      "side": 1,
+      "message": "why is flakiness caused there? shouldn\u0027t the val be initialized by the time that the test runs?",
+      "range": {
+        "startLine": 13,
+        "startChar": 2,
+        "endLine": 13,
+        "endChar": 39
+      },
+      "revId": "473df291f4c2991c3059b1547c628f81840d359f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
