@@ -364,8 +364,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
             while (traceEntries.hasNext) {
                 val trace = traceEntries.next
                 val k = traceKeyFromProto(trace)
-                val ctx = new TraceContext
-                ctx.enable(trace.getFlowTraceId)
+                val ctx = new TraceContext(trace.getFlowTraceId)
+                ctx.enable()
                 val iter = trace.getRequestIdList.iterator
                 while (iter.hasNext) {
                     ctx.addRequest(iter.next)
