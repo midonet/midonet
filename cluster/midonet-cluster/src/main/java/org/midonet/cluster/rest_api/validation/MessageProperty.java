@@ -84,6 +84,8 @@ public class MessageProperty {
             "{midokura.javarx.PortGroupIdIsInvalid.message}";
     public static final String PORT_NOT_VXLAN_PORT =
             "{midokura.javarx.PortNotVxLanPort.message}";
+    public static final String PORT_ALREADY_BOUND =
+        "{midokura.javarx.PortAlreadyBound.message}";
     public static final String PORTS_LINKABLE =
             "{midokura.javarx.PortsLinkable.message}";
     public static final String RESOURCE_EXISTS =
