@@ -34,6 +34,8 @@ public class DtoBridge {
     private UUID outboundFilterId;
     private UUID vxLanPortId; // legacy
     private List<UUID> vxLanPortIds;
+    private List<UUID> inboundMirrors;
+    private List<UUID> outboundMirrors;
     private URI inboundFilter;
     private URI outboundFilter;
     private URI vxLanPort;
@@ -107,6 +109,22 @@ public class DtoBridge {
 
     public List<UUID> getVxLanPortIds() {
         return this.vxLanPortIds;
+    }
+
+    public List<UUID> getInboundMirrors() {
+        return this.inboundMirrors;
+    }
+
+    public List<UUID> getOutboundMirrors() {
+        return this.inboundMirrors;
+    }
+
+    public void setInboundMirrors(List<UUID> mirrors) {
+        this.inboundMirrors = mirrors;
+    }
+
+    public void setOutboundMirrors(List<UUID> mirrors) {
+        this.outboundMirrors = mirrors;
     }
 
     public void setVxLanPortIds(List<UUID> vxLanPortIds) {
@@ -255,6 +273,8 @@ public class DtoBridge {
                 Objects.equal(arpTable, that.getArpTable()) &&
                 Objects.equal(dhcpSubnet6s, that.getDhcpSubnet6s()) &&
                 Objects.equal(dhcpSubnets, that.getDhcpSubnets()) &&
+                Objects.equal(inboundMirrors, that.getInboundMirrors()) &&
+                Objects.equal(outboundMirrors, that.getOutboundMirrors()) &&
                 adminStateUp == that.adminStateUp;
     }
 }
