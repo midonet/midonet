@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a7363b2",
+        "filename": "build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T08:23:07Z",
+      "side": 1,
+      "message": "let\u0027s submit a separate patch with this change",
+      "revId": "b88a845049c59ad3822debb54c4c8670c3eb9f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4a67c7ea",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbTableMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T08:23:07Z",
+      "side": 1,
+      "message": "take out to a class property?",
+      "range": {
+        "startLine": 72,
+        "startChar": 14,
+        "endLine": 72,
+        "endChar": 53
+      },
+      "revId": "b88a845049c59ad3822debb54c4c8670c3eb9f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ca9af7c4",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T08:23:07Z",
+      "side": 1,
+      "message": "should we log.debug/info something?",
+      "range": {
+        "startLine": 181,
+        "startChar": 38,
+        "endLine": 181,
+        "endChar": 49
+      },
+      "revId": "b88a845049c59ad3822debb54c4c8670c3eb9f25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
