@@ -63,6 +63,11 @@ class Bridge(resource_base.ResourceBase,
         self.dto['outboundFilterId'] = id_
         return self
 
+    def get_mirrors(self, query=None):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_MIRROR_COLLECTION_JSON}
+        return self.get_children(self.dto['mirrors'], query, headers, mirror.Mirror)
+
     def get_ports(self, query=None):
         if query is None:
             query = {}
@@ -113,6 +118,12 @@ class Bridge(resource_base.ResourceBase,
     def add_port(self):
         return port.Port(self.dto['ports'],
                     {'type': port_type.BRIDGE}, self.auth)
+
+    def add_mirror(self):
+        return mirror.Mirror(self.dto['mirrors'], {}, self.auth)
+
+    def add_mirror(self):
+        return mirror.Mirror(self.dto['mirrors'], {}, self.auth)
 
     def add_dhcp_subnet(self):
         return dhcp_subnet.DhcpSubnet(self.dto['dhcpSubnets'], {}, self.auth)

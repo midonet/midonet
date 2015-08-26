@@ -151,3 +151,12 @@ class Port(resource_base.ResourceBase,
         headers = {'Accept': APPLICATION_PORTGROUP_PORT_COLLECTION_JSON}
         return self.get_children(self.dto['portGroups'], query, headers,
                                  port_group_port.PortGroupPort)
+
+    def get_mirrors(self, query=None):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_MIRROR_COLLECTION_JSON}
+        return self.get_children(self.dto['mirrors'], query, headers, mirror.Mirror)
+
+    def add_mirror(self):
+        return mirror.Mirror(self.dto['mirrors'], {}, self.auth)
+

@@ -19,6 +19,7 @@
 from midonetclient import admin_state_up_mixin
 from midonetclient import bgp_network
 from midonetclient import bgp_peer
+from midonetclient import mirror
 from midonetclient import port
 from midonetclient import port_type
 from midonetclient import resource_base
@@ -82,6 +83,11 @@ class Router(resource_base.ResourceBase,
         self.dto['asNumber'] = asn
         return self
 
+    def get_mirrors(self, query=None):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_MIRROR_COLLECTION_JSON}
+        return self.get_children(self.dto['mirrors'], query, headers, mirror.Mirror)
+
     def get_ports(self, query=None):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
@@ -120,6 +126,9 @@ class Router(resource_base.ResourceBase,
     def add_port(self):
         return port.Port(self.dto['ports'],
                          {'type': port_type.ROUTER}, self.auth)
+
+    def add_mirror(self):
+        return mirror.Mirror(self.dto['mirrors'], {}, self.auth)
 
     def add_route(self):
         return route.Route(self.dto['routes'], {}, self.auth)

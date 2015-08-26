@@ -20,6 +20,7 @@ from midonetclient import bgp
 from midonetclient import bgp_network
 from midonetclient import bgp_peer
 from midonetclient import bridge
+from midonetclient import mirror
 from midonetclient import chain
 from midonetclient import health_monitor
 from midonetclient import host
@@ -69,6 +70,9 @@ class Application(resource_base.ResourceBase):
 
     def get_bridge_template(self):
         return self.dto['bridgeTemplate']
+
+    def get_mirror_template(self):
+        return self.dto['mirrorTemplate']
 
     def get_chain_template(self):
         return self.dto['chainTemplate']
@@ -173,6 +177,12 @@ class Application(resource_base.ResourceBase):
         return self.get_children(self.dto['bridges'], query, headers,
                                  bridge.Bridge)
 
+    def get_mirrors(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_MIRROR_COLLECTION_JSON}
+        return self.get_children(self.dto['mirrors'], query, headers,
+                                 mirror.Mirror)
+
     def get_ports(self, query):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_PORT_COLLECTION_JSON}
@@ -244,10 +254,16 @@ class Application(resource_base.ResourceBase):
     def delete_bridge(self, id_):
         return self._delete_resource_by_id(self.get_bridge_template(), id_)
 
+    def delete_mirror(self, id_):
+        return self._delete_resource_by_id(self.get_mirror_template(), id_)
+
     def get_bridge(self, id_):
         return self._get_resource_by_id(bridge.Bridge, self.dto['bridges'],
                                         self.get_bridge_template(), id_)
 
+    def get_mirror(self, id_):
+        return self._get_resource_by_id(mirror.Mirror, self.dto['mirrors'],
+                                        self.get_mirror_template(), id_)
     def delete_chain(self, id_):
         return self._delete_resource_by_id(self.get_chain_template(), id_)
 
@@ -313,6 +329,9 @@ class Application(resource_base.ResourceBase):
 
     def add_bridge(self):
         return bridge.Bridge(self.dto['bridges'], {}, self.auth)
+
+    def add_mirror(self):
+        return mirror.Mirror(self.dto['mirrors'], {}, self.auth)
 
     def add_port_group(self):
         return port_group.PortGroup(self.dto['portGroups'], {}, self.auth)

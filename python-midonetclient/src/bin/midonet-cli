@@ -1777,6 +1777,18 @@ class Bridge(ObjectType):
     def type_name(self):
         return "bridge"
 
+class Mirror(ObjectType):
+    def type_name(self):
+        return "mirror"
+
+    def __init__(self, obj):
+        super(Mirror, self).__init__(obj)
+        self.put_attr(SingleAttr(name = 'to-port',
+                                 value_type = PortRef(),
+                                 getter = 'get_to_port',
+                                 setter = 'to_port',
+                                 optional = False))
+
 class Chain(ObjectType):
     def __init__(self, obj):
         super(Chain, self).__init__(obj)
@@ -2483,6 +2495,12 @@ class Midonet(ObjectType):
                                  getter = 'get_router',
                                  list_with_tenant = True,
                                  factory_method = 'add_router'))
+        self.put_attr(Collection(name = 'mirror',
+                                 element_type = Mirror,
+                                 list_method = 'get_mirrors',
+                                 getter = 'get_mirror',
+                                 list_with_tenant = True,
+                                 factory_method = 'add_mirror'))
         self.put_attr(Collection(name = 'bridge',
                                  element_type = Bridge,
                                  list_method = 'get_bridges',

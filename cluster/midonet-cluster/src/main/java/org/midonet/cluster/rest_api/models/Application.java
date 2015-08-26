@@ -73,6 +73,11 @@ public class Application {
         return uriFor(ResourceUris.HOSTS);
     }
 
+    @JsonProperty("mirrors")
+    public URI getMirrors() {
+        return uriFor(ResourceUris.MIRRORS);
+    }
+
     @JsonProperty("tenants")
     public URI getTenants() {
         return uriFor(ResourceUris.TENANTS);
