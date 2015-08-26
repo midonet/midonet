@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ea86db64",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RouteResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T07:59:34Z",
+      "side": 1,
+      "message": "Should that be called before listResources instead?",
+      "range": {
+        "startLine": 85,
+        "startChar": 16,
+        "endLine": 85,
+        "endChar": 81
+      },
+      "revId": "14d82085df895b302bc712fae5266aa902bfb505",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
