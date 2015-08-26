@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_4ad0a7f7",
+        "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-26T10:22:18Z",
+      "side": 1,
+      "message": "Is this a hint that this shouldn\u0027t be configurable? Or at least hard-code a default and not include this argument in the template?",
+      "range": {
+        "startLine": 33,
+        "startChar": 2,
+        "endLine": 33,
+        "endChar": 16
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_aaa69351",
+        "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-26T10:22:18Z",
+      "side": 1,
+      "message": "Should we change this to v2 at some point?",
+      "range": {
+        "startLine": 35,
+        "startChar": 20,
+        "endLine": 35,
+        "endChar": 22
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ca62f715",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterBootstrap.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-26T10:22:18Z",
+      "side": 1,
+      "message": "No /v1 like in the template. Is that intentional?",
+      "range": {
+        "startLine": 32,
+        "startChar": 29,
+        "endLine": 32,
+        "endChar": 36
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a7283e5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterBootstrap.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-26T10:22:18Z",
+      "side": 1,
+      "message": "This is redundant, isn\u0027t it? If you just rethrow it, it\u0027s the same as not catching it.",
+      "range": {
+        "startLine": 97,
+        "startChar": 12,
+        "endLine": 97,
+        "endChar": 39
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8a80ef8c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-26T10:22:18Z",
+      "side": 1,
+      "message": "Is this just a roundabout way of binding DataSource to a specific instance of BasicDataSource? Since we have the information needed to create it here, why add the additional level of indirection?",
+      "range": {
+        "startLine": 124,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 39
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ea1c1b7a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/zookeeper/ZooKeeperMinion.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-26T10:22:18Z",
+      "side": 1,
+      "message": "It looks like you only care whether bootstrapConfig.hosts has a value that meets the condition, and not what it is. Exists() is a better match than find() for this use case.",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 9
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_55120859",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/zookeeper/ZooKeeperMinion.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-26T10:22:18Z",
+      "side": 1,
+      "message": "Will notifyFailed() log this again?",
+      "range": {
+        "startLine": 74,
+        "startChar": 16,
+        "endLine": 74,
+        "endChar": 30
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_aa021309",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/zookeeper/ZooKeeperMinion.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-08-26T10:22:18Z",
+      "side": 1,
+      "message": "It\u0027s not entirely clear to me when it\u0027s appropriate to catch Throwable instead of NonFatal. Why did you choose to do so in this particular case?",
+      "range": {
+        "startLine": 78,
+        "startChar": 11,
+        "endLine": 78,
+        "endChar": 29
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
