@@ -21,6 +21,7 @@ import com.google.common.base.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
+import java.util.List;
 
 @XmlRootElement
 public class DtoRouter {
@@ -28,6 +29,8 @@ public class DtoRouter {
     private String name;
     private boolean adminStateUp = true;
     private String tenantId;
+    private List<UUID> inboundMirrors;
+    private List<UUID> outboundMirrors;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
     private URI inboundFilter;
@@ -41,6 +44,22 @@ public class DtoRouter {
 
     public UUID getId() {
         return id;
+    }
+
+    public List<UUID> getInboundMirrors() {
+        return this.inboundMirrors;
+    }
+
+    public List<UUID> getOutboundMirrors() {
+        return this.inboundMirrors;
+    }
+
+    public void setInboundMirrors(List<UUID> mirrors) {
+        this.inboundMirrors = mirrors;
+    }
+
+    public void setOutboundMirrors(List<UUID> mirrors) {
+        this.outboundMirrors = mirrors;
     }
 
     public void setId(UUID id) {
@@ -210,6 +229,11 @@ public class DtoRouter {
         if (!Objects.equal(this.routes, otherRouter.getRoutes())) {
             return false;
         }
+
+        if (!Objects.equal(this.inboundMirrors, otherRouter.getInboundMirrors()))
+            return false;
+        if (!Objects.equal(this.outboundMirrors, otherRouter.getOutboundMirrors()))
+            return false;
 
         if (adminStateUp != otherRouter.adminStateUp) {
             return false;
