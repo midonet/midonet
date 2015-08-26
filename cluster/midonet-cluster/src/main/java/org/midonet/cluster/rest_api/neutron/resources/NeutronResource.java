@@ -26,9 +26,8 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 
-import org.slf4j.LoggerFactory;
-
 import org.midonet.cluster.rest_api.annotation.ApiResource;
+import org.midonet.cluster.rest_api.LBUriBuilder;
 import org.midonet.cluster.rest_api.neutron.NeutronMediaType;
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.cluster.rest_api.neutron.models.Neutron;
@@ -81,6 +80,11 @@ public class NeutronResource {
     @Path(NeutronUriBuilder.SECURITY_GROUP_RULES)
     public SecurityGroupRuleResource getSecurityGroupRuleResource() {
         return new SecurityGroupRuleResource(uriInfo, api);
+    }
+
+    @Path(LBUriBuilder.LB)
+    public LBResource getLoadBalancerResource() {
+        return new LBResource(uriInfo, api);
     }
 
     @GET
