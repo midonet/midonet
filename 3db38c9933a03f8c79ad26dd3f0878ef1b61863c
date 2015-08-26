@@ -88,6 +88,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_1aa2689a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:50:17Z",
+      "side": 1,
+      "message": "Sorry, but I\u0027m not following. Would you mind explaining in more detail? Otherwise I can ask you on Slack...",
+      "parentUuid": "9ad9bd40_838b07c2",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e3f77357",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 8
@@ -99,6 +117,24 @@
       "writtenOn": "2015-07-22T17:00:37Z",
       "side": 1,
       "message": "missing space: \u0027if (\"",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5aacf08c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:50:17Z",
+      "side": 1,
+      "message": "Done. In the rebase, this is fixed in Simulator.scala doFilter",
+      "parentUuid": "9ad9bd40_e3f77357",
       "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -122,6 +158,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_daaf207c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:50:17Z",
+      "side": 1,
+      "message": "I\u0027ll add this to the documentation:\n\nRedirection has to be \"symmetric\". If you redirect before the filter on port ingress, then you have to redirect after the filter on port egress. This keeps the FlowState one one side of the Service Function. For example: packet from VM1 is redirected to F1. F1 admits the packet (retransmits it), so it returns to the port and the filters are applied, and the packet continues into the bridge and ends up at some destination, VM2. Then VM2 sends a response and the simulation gets all the way to VM1\u0027s port, you want to first go through the (outbound) port filter, then go back to F2.\n\nAt the moment I have no way of injecting the packet \"between\" the port filters (port-level firewall) and the redirection chain. So I built the chaining such that:\n- when packets are redirected \"out\" a port, they just go out without traversing any chains.\n- when packets are redirected \"into\" a port, they go through all the chains. In some cases VLAN tags are temporarily appended that say \"no-redirect\" such that the redirection chain understands that this packet already went through redirection, just pop the tag and let it proceed to the filter chain.",
+      "parentUuid": "9ad9bd40_c3fa6f42",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e38e93cf",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 8
@@ -133,6 +187,24 @@
       "writtenOn": "2015-07-22T17:00:37Z",
       "side": 1,
       "message": "If we really want to keep the old field around. Please initialize the list of filters when the port is created, otherwise we are building the same list over and over again for each packet that traverses the port.",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3ac64c4a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:50:17Z",
+      "side": 1,
+      "message": "Good point. Will fix.\n\nI found it a bit tricky... what do you think about this approach (note that the compiler doesn\u0027t like it):\n\nIn Simulator.scala, InAndOutFilters trait:\n    def inchains: Seq[UUID] \u003d Seq.empty[UUID]\n\nIn Port.scala, Port trait:\n    var allInChains: Seq[UUID] \u003d null\n    override def inchains(): Seq[UUID] \u003d {\n        if (allInChains eq null)\n            allInChains \u003d infilter match {\n                case null \u003d\u003e inchains\n                case _ \u003d\u003e inchains :+ infilter\n            }\n        return allInChains\n    }\n\n------\n\nMaybe I\u0027ll just get rid of the old field.",
+      "parentUuid": "9ad9bd40_e38e93cf",
       "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -156,6 +228,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_3acd6c5e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:50:17Z",
+      "side": 1,
+      "message": "See earlier explanation about why redirecting \"out\" a port skips the port filter.",
+      "parentUuid": "9ad9bd40_a301eb39",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_63d523b8",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 8
@@ -167,6 +257,24 @@
       "writtenOn": "2015-07-22T17:00:37Z",
       "side": 1,
       "message": "can you post a link to the documentation/discussion for the model?",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ba089c92",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:50:17Z",
+      "side": 1,
+      "message": "Yes, I\u0027ll work on this. My current documentation is customer-specific. I have to clean it up and add it to the CR.",
+      "parentUuid": "9ad9bd40_63d523b8",
       "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -190,6 +298,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_5ada3018",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:50:17Z",
+      "side": 1,
+      "message": "I don\u0027t want to remove these because I\u0027d like this \"experimental\" feature to be as decoupled as possible from existing functionality.\n\nI don\u0027t want all the users of chains to have to change how they set/insert them.",
+      "parentUuid": "9ad9bd40_e34933b8",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_03ca971a",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 8
@@ -201,6 +327,24 @@
       "writtenOn": "2015-07-22T17:00:37Z",
       "side": 1,
       "message": "what are insertions vs srv_insertions?",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9a03d875",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:50:17Z",
+      "side": 1,
+      "message": "Insertions are all the L2Insertion records that protect this port.\nSrvInsertions are all the L2Insertion records that use this port as a Network Service.\n\nAt most one of those lists can be non-empty. A port can only be protected or a service, not both.",
+      "parentUuid": "9ad9bd40_03ca971a",
       "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -224,6 +368,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_dafd6070",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:50:17Z",
+      "side": 1,
+      "message": "When vlan field is non-zero, it means that you only match packets that have that value as the outer-most vlan.\n\nvlan\u003d0 means you don\u0027t care\nno_vlan means you only want to match packets that have no vlan value at all.\n\nI\u0027m open to suggestions to improve this, but I\u0027m at a loss for ideas.",
+      "parentUuid": "9ad9bd40_83ddc7e2",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c3e34fa2",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 8
@@ -235,6 +397,24 @@
       "writtenOn": "2015-07-22T17:00:37Z",
       "side": 1,
       "message": "can we do it the right way? :-)   Can you elaborate on what was needed?",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1af7c88d",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-08-26T22:50:17Z",
+      "side": 1,
+      "message": "Well, I need the rule to push or pop a vlan, or both.\n\nThe right way to do this is to refactor rules as you\u0027ve described here:\nhttps://docs.google.com/document/d/1qQLUXX4u-5kz7dVdtRqc6n2DG4ZebOdrzGnRR4S5SeE/edit#heading\u003dh.81hs5yxq0sxi\n\nso that they can apply a sequence of actions to the packet.\n\nAgain, since the feature is experimental, I wanted to keep things simple.",
+      "parentUuid": "9ad9bd40_c3e34fa2",
       "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
