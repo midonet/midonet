@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_ca73d7b2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T07:44:50Z",
+      "side": 1,
+      "message": "choosing",
+      "range": {
+        "startLine": 60,
+        "startChar": 45,
+        "endLine": 60,
+        "endChar": 52
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c1c66216",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
         "patchSetId": 2
@@ -18,6 +41,29 @@
         "startChar": 20,
         "endLine": 244,
         "endChar": 40
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8a4aaf53",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T07:44:50Z",
+      "side": 1,
+      "message": "I couldn\u0027t find the logic that re-elects a new vtep synchronizer in case one fails or gets partitioned away. Also, it would be nice to have a description of how the different components work together (in docs/ ?).\n\nAnother thing that is not clear to me is how many flooding proxy managers are there? 1 at any time t?",
+      "range": {
+        "startLine": 67,
+        "startChar": 6,
+        "endLine": 67,
+        "endChar": 22
       },
       "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -271,6 +317,29 @@
         "startChar": 54,
         "endLine": 191,
         "endChar": 55
+      },
+      "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a5c4325",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-26T07:44:50Z",
+      "side": 1,
+      "message": "constant",
+      "range": {
+        "startLine": 79,
+        "startChar": 30,
+        "endLine": 79,
+        "endChar": 35
       },
       "revId": "95dfa2c234b696b99c5bce72e620a9364b30dea9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
