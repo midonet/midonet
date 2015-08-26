@@ -291,8 +291,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         if (traceIter.hasNext()) {
             val trace = traceIter.next()
             val k = traceFromSbe(trace)
-            val ctx = new TraceContext
-            ctx.enable(uuidFromSbe(trace.flowTraceId))
+            val ctx = new TraceContext(uuidFromSbe(trace.flowTraceId))
+            ctx.enable()
 
             val reqIdsIter = msg.traceRequestIds
             while (reqIdsIter.hasNext) {

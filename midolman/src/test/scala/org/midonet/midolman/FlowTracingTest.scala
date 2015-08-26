@@ -19,7 +19,7 @@ import java.util.{List => JList, LinkedList, UUID}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -278,6 +278,45 @@ class FlowTracingTest extends MidolmanSpec {
             tracedPktCtx.tracingEnabled.shouldBe(false) // cleared by the exception handler
             val nonTracePktCtx = pktCtxs.get(2)
             tracedPktCtx.tracingEnabled.shouldBe(false)
+        }
+
+        scenario("Flow trace id persists across NotYetException") {
+            var traceTriggered = false
+            var notYetTriggered = false
+            val requestId = UUID.randomUUID
+            val flowTraceIds = new LinkedList[UUID]()
+
+            /** There should be 4 calls to workflow.
+              * 1. throws TraceRequiredException
+              * 2. throws NotYetException
+              * 3. throws TraceRequiredException
+              *    (not yet clears the trace enabled status)
+              * 4. succussfully goes all the way through
+              */
+            val wkfl = packetWorkflow(Map(42 -> port1),
+                                      workflowTrap = pktCtx => {
+                                          try {
+                                              if (!traceTriggered) {
+                                                  traceTriggered = true
+                                                  pktCtx.enableTracing(requestId)
+                                                  throw TraceRequiredException
+                                              }
+                                              if (!notYetTriggered) {
+                                                  notYetTriggered = true
+                                                  traceTriggered = false
+                                                  throw new NotYetException(
+                                                      Promise.successful[Any](null).future)
+                                              }
+                                          } finally {
+                                              flowTraceIds.add(pktCtx.traceFlowId)
+                                          }
+                                          AddVirtualWildcardFlow
+            })
+            wkfl ! PacketWorkflow.HandlePackets(Array(makePacket(500)))
+            flowTraceIds.size shouldBe 4
+            flowTraceIds.get(0) shouldBe flowTraceIds.get(1)
+            flowTraceIds.get(1) shouldBe flowTraceIds.get(2)
+            flowTraceIds.get(2) shouldBe flowTraceIds.get(3)
         }
     }
 

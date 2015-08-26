@@ -19,6 +19,8 @@ package org.midonet.midolman.state
 import java.util.{ArrayList, List, Objects, UUID}
 import scala.concurrent.duration._
 
+import com.datastax.driver.core.utils.UUIDs
+
 import org.slf4j.{LoggerFactory,MDC}
 
 import org.midonet.midolman.logging.FlowTracingContext
@@ -70,26 +72,39 @@ object TraceState {
         expiresAfter = 5 seconds
     }
 
-    class TraceContext {
-        var flowTraceId: UUID = null
+    class TraceContext(var flowTraceId: UUID = UUIDs.timeBased()) {
+        var _enabled = false
         val requests: List[UUID] = new ArrayList[UUID](1)
 
-        def enabled: Boolean = flowTraceId != null
-        def enable(flowTraceId: UUID = UUID.randomUUID): TraceContext = {
-            this.flowTraceId = flowTraceId
+        def enabled: Boolean = _enabled
+        def enable(): TraceContext = {
+            _enabled = true
             this
         }
+        def disable(): TraceContext = {
+            _enabled = false
+            this
+        }
+
         def clear(): Unit = {
-            flowTraceId = null
+            _enabled = false
             requests.clear()
         }
         def reset(other: TraceContext): Unit = {
             clear()
             flowTraceId = other.flowTraceId
+            _enabled = other._enabled
             requests.addAll(other.requests)
         }
 
-        def addRequest(request: UUID): Boolean = requests.add(request)
+        def addRequest(request: UUID): Boolean =
+            if (!containsRequest(request)) {
+                requests.add(request)
+                true
+            } else {
+                false
+            }
+
         def containsRequest(request: UUID): Boolean = requests.contains(request)
 
         override def hashCode(): Int = Objects.hashCode(flowTraceId, requests)
@@ -112,40 +127,41 @@ trait TraceState extends FlowState { this: PacketContext =>
     var traceTxReadOnly: FlowStateTransaction[TraceKey, TraceContext] = _
     val traceContext: TraceContext = new TraceContext
 
-    private var clearEnabled = true
-
-    def prepareForSimulationWithTracing(): Unit = {
-        // clear non-trace info
-        clearEnabled = false
-        clear()
-        clearEnabled = true
-    }
-
-    abstract override def clear(): Unit = {
-        super.clear()
-
-        if (clearEnabled) {
-            traceContext.clear()
-        }
-    }
-
     def tracingContext : String = traceContext.toString
 
     def tracingEnabled: Boolean = traceContext.enabled
+
+    override def clear() {
+        super.clear()
+        traceContext.disable()
+    }
+
+    def prepareForSimulationWithTracing(): Unit = {
+        clear()
+        traceContext.enable()
+    }
 
     def tracingEnabled(traceRequestId: UUID): Boolean = {
         traceContext.enabled && traceContext.containsRequest(traceRequestId)
     }
 
-    def enableTracing(traceRequestId: UUID): Unit = {
+    /**
+      * Enable tracing for a context and add traceRequestId to the
+      * list of trace requests for the context. Returns true if the trace
+      * request is not already in the list of requests. This can happen
+      * in the case where tracing is enabled, but then a piece of topology
+      * is missing later on, so the context is cleared.
+      */
+    def enableTracing(traceRequestId: UUID): Boolean = {
         val key = TraceKey.fromFlowMatch(origMatch)
         if (!traceContext.enabled) {
-            traceContext.enable(UUID.randomUUID())
+            traceContext.enable()
         }
-        traceContext.addRequest(traceRequestId)
+        val ret = traceContext.addRequest(traceRequestId)
         log = PacketContext.traceLog
         FlowTracingContext.updateContext(traceContext.requests,
                                          traceContext.flowTraceId, key)
+        ret
     }
 
     def traceFlowId(): UUID =

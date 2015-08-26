@@ -130,10 +130,10 @@ class FlowStateReplicatorTest extends MidolmanSpec {
 
     val traces = Map(TraceKey.fromFlowMatch(
                          FlowMatches.fromEthernetPacket(tracePkt1))
-                         -> new TraceContext().enable(UUID.randomUUID),
+                         -> new TraceContext(UUID.randomUUID).enable(),
                      TraceKey.fromFlowMatch(
                          FlowMatches.fromEthernetPacket(tracePkt2))
-                         -> new TraceContext().enable(UUID.randomUUID))
+                         -> new TraceContext(UUID.randomUUID).enable())
 
 
     val statePacketExecutor = new StatePacketExecutor {
