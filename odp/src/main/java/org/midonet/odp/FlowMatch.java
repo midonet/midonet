@@ -381,7 +381,7 @@ public class FlowMatch {
      * Log the fact that <pre>field</pre> has been seen in this match. Will
      * NOT log it if <pre>doNotTrackSeenFields</pre> has last been called.
      */
-    private void fieldSeen(Field field) {
+    public void fieldSeen(Field field) {
         seenFields |= trackSeenFields << field.ordinal();
     }
 
