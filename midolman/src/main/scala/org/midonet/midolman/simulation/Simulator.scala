@@ -125,9 +125,13 @@ trait SimDevice {
 
     private def branch(context: PacketContext, result: Result)(implicit as: ActorSystem): Result = {
         val branchPoint = PooledMatches(context.wcmatch)
+        val inPortId = context.inPortId
+        val outPortId = context.outPortId
         try {
             continue(context, result)
         } finally {
+            context.outPortId = outPortId
+            context.inPortId = inPortId
             context.wcmatch.reset(branchPoint)
         }
     }
