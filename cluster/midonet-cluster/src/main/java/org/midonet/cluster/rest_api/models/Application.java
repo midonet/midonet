@@ -73,6 +73,11 @@ public class Application {
         return uriFor(ResourceUris.HOSTS);
     }
 
+    @JsonProperty("mirrors")
+    public URI getMirrors() {
+        return uriFor(ResourceUris.MIRRORS);
+    }
+
     @JsonProperty("tenants")
     public URI getTenants() {
         return uriFor(ResourceUris.TENANTS);
@@ -141,6 +146,11 @@ public class Application {
     @JsonProperty("bridgeTemplate")
     public String getBridgeTemplate() {
         return templateFor(ResourceUris.BRIDGES);
+    }
+
+    @JsonProperty("mirrorTemplate")
+    public String getMirrorTemplate() {
+        return templateFor(ResourceUris.MIRRORS);
     }
 
     @JsonProperty("portTemplate")

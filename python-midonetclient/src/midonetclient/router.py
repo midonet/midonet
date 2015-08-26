@@ -19,6 +19,7 @@
 from midonetclient import admin_state_up_mixin
 from midonetclient import bgp_network
 from midonetclient import bgp_peer
+from midonetclient import mirror
 from midonetclient import port
 from midonetclient import port_type
 from midonetclient import resource_base
@@ -80,6 +81,20 @@ class Router(resource_base.ResourceBase,
 
     def asn(self, asn):
         self.dto['asNumber'] = asn
+        return self
+
+    def get_inbound_mirrors(self, query=None):
+        return self.dto['inboundMirrors']
+
+    def inbound_mirrors(self, inMirrors):
+        self.dto['inboundMirrors'] = inMirrors
+        return self
+
+    def get_outbound_mirrors(self, query=None):
+        return self.dto['outboundMirrors']
+
+    def outbound_mirrors(self, outMirrors):
+        self.dto['outboundMirrors'] = outMirrors
         return self
 
     def get_ports(self, query=None):
