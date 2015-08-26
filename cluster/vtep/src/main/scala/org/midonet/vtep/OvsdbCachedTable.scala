@@ -22,6 +22,8 @@ import java.util.concurrent.Executor
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
+import com.typesafe.scalalogging.Logger
+
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.slf4j.LoggerFactory
 import rx.Observer
@@ -43,11 +45,11 @@ class OvsdbCachedTable[T <: Table, Entry <: VtepEntry](val client: OvsdbClient,
                                                        val eventExecutor: Executor)
     extends VtepCachedTable[T, Entry] {
 
-    val MaxBackpressureBuffer = 100000
+    private val MaxBackpressureBuffer = 100000
 
     case class Data(value: Entry, owner: UUID)
 
-    private val log = LoggerFactory.getLogger(this.getClass)
+    private val log = Logger(LoggerFactory.getLogger(this.getClass))
     private val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
     private val vtepScheduler = Schedulers.from(vtepExecutor)
 
