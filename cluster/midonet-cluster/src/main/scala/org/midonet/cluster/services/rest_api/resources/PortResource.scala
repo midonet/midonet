@@ -174,7 +174,7 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
             port.setBaseUri(resContext.uriInfo.getBaseUri)
             val route = new Route("0.0.0.0", 0, port.portAddress, 32,
                                   NextHop.Local, port.id, "255.255.255.255", 0,
-                                  routerId, false)
+                                  null, false)
             route.setBaseUri(resContext.uriInfo.getBaseUri)
             Seq(Create(route))
         }
