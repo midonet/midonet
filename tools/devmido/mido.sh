@@ -170,15 +170,15 @@ is_kmod_loaded openvswitch || sudo modprobe openvswitch
 # Java and other basic dependencies
 # =================================
 
-is_package_installed python-dev || install_package python-dev
-is_package_installed build-essential || install_package build-essential
+is_package_installed python-devel || install_package python-devel
+#is_package_installed build-essential || install_package build-essential
 is_package_installed curl || install_package curl
 is_package_installed git || install_package git
-is_package_installed libreadline-dev || install_package libreadline-dev
-is_package_installed ncurses-dev || install_package ncurses-dev
+#is_package_installed libreadline-dev || install_package libreadline-dev
+is_package_installed ncurses-devel || install_package ncurses-devel
 is_package_installed python-pip || install_package python-pip
 is_package_installed wget || install_package wget
-is_package_installed ruby-ronn || install_package ruby-ronn
+#is_package_installed ruby-ronn || install_package ruby-ronn
 
 if ! is_package_installed zulu-8; then
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0x219BD9C9
@@ -189,15 +189,18 @@ fi
 # Zookeeper
 # =========
 
-is_package_installed zookeeperd || install_package zookeeperd
+is_package_installed zookeeper || install_package zookeeper
+is_package_installed zookeeper-server || install_package zookeeper-server
 sudo rm -rf /var/lib/zookeeper/*
-sudo service zookeeper restart
+sudo service zookeeper-server init
+sudo service zookeeper-server restart
 
 
 # Cassandra
 # =========
 
-if ! is_package_installed cassandra ; then
+#if ! is_package_installed cassandra ; then
+if false ; then
     # Install cassandra
     CASSANDRA_LIST_FILE=/etc/apt/sources.list.d/cassandra.list
     if [ ! -f $CASSANDRA_LIST_FILE ]; then
