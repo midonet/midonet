@@ -297,7 +297,7 @@ class TraceRequest(resource_base.ResourceBase):
     def is_inv_ip_addr_group_src(self):
         return self.dto['condition']['invIpAddrGroupSrc']
 
-    def inv_ip_addr_group_dst(self, ipAddrGroupSrc):
+    def inv_ip_addr_group_src(self, ipAddrGroupSrc):
         self.dto['condition']['invIpAddrGroupSrc'] = ipAddrGroupSrc
         return self
 
