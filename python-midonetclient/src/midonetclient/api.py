@@ -50,6 +50,14 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_routers(query)
 
+    def delete_mirror(self, id_):
+        self._ensure_application()
+        return self.app.delete_mirror(id_)
+
+    def get_mirrors(self, query):
+        self._ensure_application()
+        return self.app.get_mirrors(query)
+
     def delete_bridge(self, id_):
         self._ensure_application()
         return self.app.delete_bridge(id_)
@@ -273,6 +281,10 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_bridge(id_)
 
+    def get_mirror(self, id_):
+        self._ensure_application()
+        return self.app.get_mirror(id_)
+
     def get_port_group(self, id_):
         self._ensure_application()
         return self.app.get_port_group(id_)
@@ -320,6 +332,10 @@ class MidonetApi(object):
     def add_bridge(self):
         self._ensure_application()
         return self.app.add_bridge()
+
+    def add_mirror(self):
+        self._ensure_application()
+        return self.app.add_mirror()
 
     def _set_op121(self, dhcp, rts):
         opt121_list = []
