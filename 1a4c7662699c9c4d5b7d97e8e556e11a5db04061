@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a49a38b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-26T10:21:43Z",
+      "side": 1,
+      "message": "isn\u0027t this the same as UUIDUtil.fromProtoList?",
+      "revId": "1a4c7662699c9c4d5b7d97e8e556e11a5db04061",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b519947b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-26T10:21:43Z",
+      "side": 1,
+      "message": "in the bridge, we don\u0027t mirror if the bridge is admin state down, but here we mirror if the router is admin state down. i think the behaviour should be consistent, and not mirror on either case.",
+      "revId": "1a4c7662699c9c4d5b7d97e8e556e11a5db04061",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
