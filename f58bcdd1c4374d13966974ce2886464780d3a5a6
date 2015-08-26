@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_75cd4c5d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T12:08:54Z",
+      "side": 1,
+      "message": "fpIndex.get returns an Option[FloodingProxy], or null. \n\nOption(value) would work if value is null. But if value is a Some(x), then the resulting type is Option[Option[FloodingProxy]]. We\u0027d need to do:\n\nif (value \u003d\u003d null) None\nelse Option(value.get)\n\nAnd the else branch object is \u003d\u003d value",
+      "parentUuid": "9ad9bd40_2aa44356",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 85,
+        "endChar": 18
+      },
+      "revId": "f58bcdd1c4374d13966974ce2886464780d3a5a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a1ff9ea9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
         "patchSetId": 7
