@@ -1,0 +1,176 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b547d44a",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T10:38:37Z",
+      "side": 1,
+      "message": "if you resubmit pls remove these chars",
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d57378b2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HealthMonitorResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T10:38:37Z",
+      "side": 1,
+      "message": "Not needed, the parent resuirce should handle this already",
+      "range": {
+        "startLine": 51,
+        "startChar": 3,
+        "endLine": 58,
+        "endChar": 5
+      },
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_156ec0c9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HealthMonitorResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T10:38:37Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 60,
+        "startChar": 4,
+        "endLine": 65,
+        "endChar": 5
+      },
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3573c4b2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HealthMonitorResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T10:38:37Z",
+      "side": 1,
+      "message": "indent?",
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d59a98c4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HealthMonitorResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T10:38:37Z",
+      "side": 1,
+      "message": "remove, this is done by the parent resource already",
+      "range": {
+        "startLine": 83,
+        "startChar": 4,
+        "endLine": 86,
+        "endChar": 5
+      },
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_35aae4d4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HealthMonitorResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T10:38:37Z",
+      "side": 1,
+      "message": "you can use listfilter to extend with just the filter",
+      "range": {
+        "startLine": 94,
+        "startChar": 3,
+        "endLine": 103,
+        "endChar": 5
+      },
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b5b51433",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T10:38:37Z",
+      "side": 1,
+      "message": "who modifies this status? if it\u0027s somethigh that the agent can write to it should move out of the Pool proto and use a StateKey, as the Agent isn\u0027t allowed to modify protos.",
+      "range": {
+        "startLine": 69,
+        "startChar": 18,
+        "endLine": 69,
+        "endChar": 34
+      },
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d581b84e",
+        "filename": "midonet-api/src/test/java/org/midonet/api/l4lb/e2e/TestPool.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-26T10:38:37Z",
+      "side": 1,
+      "message": "we\u0027re not running v1 tests anymore, so you can use the v2 option",
+      "range": {
+        "startLine": 70,
+        "startChar": 12,
+        "endLine": 72,
+        "endChar": 55
+      },
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
