@@ -29,16 +29,21 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.State;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4;
 
 @ZoomClass(clazz = Topology.Vtep.class)
 public class Vtep extends UriResource {
+
+    public enum ConnectionState {
+        disconnected, disconnecting, connected, connecting, ready, broken,
+        failed, error
+    }
 
     @JsonIgnore
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -57,21 +62,21 @@ public class Vtep extends UriResource {
     @ZoomField(name = "tunnel_zone_id", converter = UUIDUtil.Converter.class)
     public UUID tunnelZoneId;
 
+    @JsonIgnore
+    @ZoomField(name = "bindings")
+    public List<VtepBinding> bindings;
+
     public String name;
 
     public String description;
 
-    public VtepConnectionState connectionState;
+    public ConnectionState connectionState;
 
     public List<String> tunnelIpAddrs;
 
-    @JsonIgnore
-    @ZoomField(name = "bindings")
-    public List<Topology.Vtep.Binding> bindings;
-
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.VTEPS, managementIp);
+        return absoluteUri(ResourceUris.VTEPS, id);
     }
 
     public URI getBindings() {

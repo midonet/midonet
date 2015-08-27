@@ -16,10 +16,13 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList}
+import java.net.URLEncoder
+import java.util.function.Predicate
+import java.util.{List => JList, UUID}
+
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.Response.Status
+import javax.ws.rs.core.Response
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -27,17 +30,16 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.ApiException
-import org.midonet.cluster.rest_api.annotation.AllowCreate
 import org.midonet.cluster.rest_api.models.{Bridge, Vtep, VtepBinding}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
+import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException, ServiceUnavailableHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, OkCreated, ResourceContext}
+import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtep.OvsdbVtepDataClient
 
 @RequestScoped
-@AllowCreate(Array(APPLICATION_VTEP_BINDING_JSON,
-                   APPLICATION_JSON))
-class VtepBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
+class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext)
     extends MidonetResource[VtepBinding](resContext) {
 
     @GET
@@ -47,15 +49,17 @@ class VtepBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
     def get(@PathParam("portName") portName: String,
             @PathParam("vlanId") vlanId: Short): VtepBinding = {
 
-        getVtep.flatMap(vtep => {
-            listResources(classOf[VtepBinding], vtep.bindings.asScala)
-                .map(_.find(binding =>
-                                binding.portName == portName &&
-                                binding.vlanId == vlanId))
-        })
-        .getOrThrow
-        .getOrElse(throw new ApiException(Status.NOT_FOUND,
-                                          getMessage(VTEP_BINDING_NOT_FOUND)))
+        getResource(classOf[Vtep], vtepId) map { vtep =>
+            val binding = vtep.bindings.asScala
+                .find(binding =>
+                          binding.portName == portName &&
+                          binding.vlanId == vlanId)
+                .getOrElse(throw new NotFoundHttpException(
+                    getMessage(VTEP_BINDING_NOT_FOUND)))
+            binding.setBaseUri(resContext.uriInfo.getBaseUri)
+            binding.vtepId = vtepId
+            binding
+        } getOrThrow
     }
 
     @GET
@@ -63,28 +67,90 @@ class VtepBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[VtepBinding] = {
-        getVtep.flatMap(vtep => {
-            listResources(classOf[VtepBinding], vtep.bindings.asScala)
-        })
-            .getOrThrow
-            .asJava
+        getResource(classOf[Vtep], vtepId) map {
+            _.bindings.asScala
+                      .map(binding => {
+                          binding.setBaseUri(resContext.uriInfo.getBaseUri)
+                          binding.vtepId = vtepId
+                          binding
+                      })
+                      .asJava
+        } getOrThrow
     }
 
-    protected override def createFilter(binding: VtepBinding): Ops = {
+    @POST
+    @Consumes(Array(APPLICATION_VTEP_BINDING_JSON,
+                    APPLICATION_JSON))
+    override def create(binding: VtepBinding,
+                        @HeaderParam("Content-Type") contentType: String)
+    : Response = {
         throwIfViolationsOn(binding)
-        hasResource(classOf[Bridge], binding.networkId).map(exists => {
-            // Validate the bridge exists.
-            if (!exists) throw new ApiException(Status.BAD_REQUEST)
-        }).getOrThrow
-        binding.create(mgmtIp)
-        NoOps
+
+        // Validate the port name.
+        if (URLEncoder.encode(binding.portName, "UTF-8") != binding.portName) {
+            throw new BadRequestHttpException(
+                s"Port name ${binding.portName} contains invalid URI characters")
+        }
+
+        // Validate the bridge exists.
+        hasResource(classOf[Bridge], binding.networkId) map { exists =>
+            if (!exists) throw new BadRequestHttpException(
+                s"Bridge ${binding.networkId} not found")
+        } getOrThrow
+
+        // Validate the physical port exists.
+        getResource(classOf[Vtep], vtepId) map { vtep =>
+            val client = OvsdbVtepDataClient(IPv4Addr(vtep.managementIp),
+                                             vtep.managementPort)
+            try {
+                client.connect() flatMap { _ =>
+                    client.physicalSwitch
+                } flatMap {
+                    case Some(physicalSwitch) =>
+                        val futures = for(portId <- physicalSwitch.ports) yield
+                            client.physicalPort(portId)
+                        Future.sequence(futures)
+                    case None =>
+                        throw new ServiceUnavailableHttpException(
+                            s"Cannot add binding to VTEP ${vtep.managementIp}:" +
+                            s"${vtep.managementPort} because the physical " +
+                            "switch is not configured")
+                } map { ports =>
+                    if (!ports.flatten.exists(_.name == binding.portName)) {
+                        throw new ServiceUnavailableHttpException(
+                            s"Cannot add binding to VTEP ${vtep.managementIp}:" +
+                            s"${vtep.managementPort} because the physical " +
+                            s"port ${binding.portName} does not exist")
+                    }
+                    binding.setBaseUri(resContext.uriInfo.getBaseUri)
+                    binding.vtepId = vtepId
+                    vtep.bindings.add(binding)
+                    updateResource(vtep, OkCreated(binding.getUri))
+                } getOrThrow
+            } finally {
+                client.close()
+            }
+        } getOrThrow
     }
 
-    private def getVtep: Future[Vtep] = {
-        listResources(classOf[Vtep])
-            .map(_.find(_.managementIp == mgmtIp)
-                  .getOrElse(throw new ApiException(Status.NOT_FOUND,
-                                                    getMessage(VTEP_NOT_FOUND))))
+    @DELETE
+    @Path("{portName}/{vlanId}")
+    def delete(@PathParam("portName") portName: String,
+               @PathParam("vlanId") vlanId: Short): Response = {
+        // Validate the physical port exists.
+        getResource(classOf[Vtep], vtepId) map { vtep =>
+            if (vtep.bindings.removeIf(new Predicate[VtepBinding] {
+                override def test(binding: VtepBinding): Boolean = {
+                    binding.portName == portName && binding.vlanId == vlanId
+                }
+            })) {
+                updateResource(vtep, OkNoContentResponse)
+            } else {
+                throw new NotFoundHttpException(
+                    getMessage(VTEP_BINDING_NOT_FOUND, vtepId,
+                               Short.box(vlanId), portName))
+            }
+        } getOrThrow
     }
 
 }

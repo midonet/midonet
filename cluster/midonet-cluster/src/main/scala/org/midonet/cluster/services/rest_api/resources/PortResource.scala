@@ -51,9 +51,9 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
         Future.successful(setActive(port))
     }
 
-    protected override def listFilter(ports: Seq[P]): Seq[P] = {
+    protected override def listFilter(ports: Seq[P]): Future[Seq[P]] = {
         ports foreach setActive
-        ports
+        Future.successful(ports)
     }
 
     private def isActive(id: String): Boolean = {

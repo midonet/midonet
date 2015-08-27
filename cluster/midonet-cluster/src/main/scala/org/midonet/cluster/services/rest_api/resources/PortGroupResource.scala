@@ -21,6 +21,7 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -44,21 +45,22 @@ class PortGroupResource @Inject()(resContext: ResourceContext)
 
     private val uriInfo = resContext.uriInfo
 
-    protected override def listFilter(portGroups: Seq[PortGroup]): Seq[PortGroup] = {
+    protected override def listFilter(portGroups: Seq[PortGroup])
+    : Future[Seq[PortGroup]] = {
         val portIdStr = uriInfo.getQueryParameters.getFirst("port_id")
         val portId = if (portIdStr == null) null else UUID.fromString(portIdStr)
         val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
-        if ((portId ne null) && (tenantId ne null))
-            portGroups filter { portGroup =>
-                portGroup.portIds.contains(portId) &&
-                portGroup.tenantId == tenantId
-            }
-        else if (portId ne null)
-            portGroups filter { _.portIds.contains(portId) }
-        else if (tenantId ne null)
-            portGroups filter { _.tenantId == tenantId }
-        else
-            portGroups
+        Future.successful(if ((portId ne null) && (tenantId ne null))
+                              portGroups filter { portGroup =>
+                                  portGroup.portIds.contains(portId) &&
+                                  portGroup.tenantId == tenantId
+                              }
+                          else if (portId ne null)
+                              portGroups filter { _.portIds.contains(portId) }
+                          else if (tenantId ne null)
+                              portGroups filter { _.tenantId == tenantId }
+                          else
+                              portGroups)
     }
 
     @Path("{id}/ports")

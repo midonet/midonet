@@ -85,7 +85,7 @@ public class MessageProperty {
     public static final String PORT_NOT_VXLAN_PORT =
             "{midokura.javarx.PortNotVxLanPort.message}";
     public static final String PORT_ALREADY_BOUND =
-        "{midokura.javarx.PortAlreadyBound.message}";
+            "{midokura.javarx.PortAlreadyBound.message}";
     public static final String PORTS_LINKABLE =
             "{midokura.javarx.PortsLinkable.message}";
     public static final String RESOURCE_EXISTS =
@@ -102,6 +102,8 @@ public class MessageProperty {
             "{midokura.javarx.RouterIdIsInvalid.message}";
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
             "{midokura.javarx.TunnelZoneIdIsInvalid.message}";
+    public static final String TUNNEL_ZONE_NOT_VTEP =
+            "{midokura.javarx.TunnelZoneNotVtep.message}";
     public static final String UNIQUE_TUNNEL_ZONE_NAME_TYPE =
             "{midokura.javarx.TunnelZoneNameExists.message}";
     public static final String TUNNEL_ZONE_MEMBER_EXISTS =
