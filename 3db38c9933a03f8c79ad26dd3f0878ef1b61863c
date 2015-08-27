@@ -229,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_bdf2566d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-27T07:57:37Z",
+      "side": 1,
+      "message": "That looks good and we already do stuff like that. Just, that if you do \u0027override val inchains \u003d...\u0027 instead of a def, it will be calculated just once.",
+      "parentUuid": "9ad9bd40_3ac64c4a",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a301eb39",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 8
