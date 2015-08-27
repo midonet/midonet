@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2ed0cef6",
+        "filename": "python-midonetclient/src/midonetclient/mirror.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-27T15:13:00Z",
+      "side": 1,
+      "message": "I assume this is intentional?",
+      "range": {
+        "startLine": 48,
+        "startChar": 15,
+        "endLine": 48,
+        "endChar": 61
+      },
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
