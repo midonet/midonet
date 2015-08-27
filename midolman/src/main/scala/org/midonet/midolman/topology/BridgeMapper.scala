@@ -29,22 +29,22 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import akka.actor.ActorSystem
+
 import com.typesafe.scalalogging.Logger
+
 import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.VlanPortMapImpl
 import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
-import org.midonet.cluster.models.Topology.{Mirror => TopologyMirror}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge, RouterPort, Chain}
-import org.midonet.midolman.simulation.{BridgePort, Port, _}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
+import org.midonet.midolman.simulation.{Bridge => SimulationBridge, _}
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state.{ReplicatedMap, StateAccessException}
-import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
+import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent.TimedExpirationMap
@@ -699,10 +699,10 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
                               peerState.portId, localPort.id)
                     // Learn the router MAC and IP.
                     routerMacToPortMap += routerPort.portMac -> localPort.id
-                    routerIpToMacMap += routerPort.portIp -> routerPort.portMac
+                    routerIpToMacMap += routerPort.portAddress -> routerPort.portMac
                     log.debug("Add bridge port {} linked to router port MAC: " +
                               "{} IP: {}", localPort.id, routerPort.portMac,
-                              routerPort.portIp)
+                              routerPort.portAddress)
                 case _ =>
                     log.warn("Unsupported peer port for local port {}",
                              localPort.id)

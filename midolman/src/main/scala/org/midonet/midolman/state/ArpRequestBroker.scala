@@ -289,7 +289,7 @@ class SingleRouterArpRequestBroker(id: UUID,
 
         val loop = new ArpLoop(ip, port)
 
-        val arp = makeArpRequest(port.portMac, port.portAddr.getAddress, ip)
+        val arp = makeArpRequest(port.portMac, port.portAddress, ip)
         emitter.schedule(GeneratedPacket(port.id, arp))
 
         arpLoops.add(ip)
@@ -357,7 +357,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                 breakPromises(loop.ip)
             } else {
                 val arp = makeArpRequest(loop.port.portMac,
-                                         loop.port.portAddr.getAddress,
+                                         loop.port.portAddress,
                                          loop.ip)
                 emitter.schedule(GeneratedPacket(loop.port.id, arp))
                 loop.tick()
