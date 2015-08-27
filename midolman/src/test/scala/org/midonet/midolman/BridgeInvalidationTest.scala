@@ -17,7 +17,6 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 
 import com.typesafe.config.{ConfigValueFactory, Config}
@@ -306,7 +305,7 @@ class BridgeInvalidationTest extends MidolmanSpec
 
             And("The packet makes to to the router")
             val (pktContext, action) = simulateDevice(bridge, leftToRouterFrame, leftPort)
-            pktContext.virtualFlowActions should have size (0)
+            pktContext.virtualFlowActions should have size 0
             pktContext should be (taggedWith(interiorPortTag, routerPortTag))
             flowInvalidator.clear()
 

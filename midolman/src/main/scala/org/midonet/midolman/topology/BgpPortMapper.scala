@@ -328,7 +328,7 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
             else Map.empty[IPv4Addr, BgpNeighbor]
 
         BgpPort(port, BgpConfig(as = routerState.router.as,
-                                id = port.portIp,
+                                id = port.portAddress,
                                 neighbors = neighbors.mapValues(_.neighbor),
                                 networks = routerState.router.networks),
                 neighbors.values.map(_.id).toSet)
