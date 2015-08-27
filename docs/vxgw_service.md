@@ -141,7 +141,7 @@ simulation in a MidoNet Agent.
 MidoNet offers a set of REST APIs in order to bind MidoNet bridges
 (which model Neutron networks, so we'll speak only about Networks
 henceforth) to any number of port/vlan pairs in hardware VTEPs, forming
-a single L2 segment accross VxLAN tunnels.
+a single L2 segment across VxLAN tunnels.
 
 ### VTEP
 
@@ -176,145 +176,57 @@ bindings present in a given Bridge.
 
 ## VxLAN Gateway Service
 
-The VxLAN Gateway Service is a cluster service that runs temporarily
-within the MidoNet API for practical reasons until the MidoNet Cluster
-is deployed independently.  By default, MidoNet APIs do not run the
-service.  Enabling it requires a change in the web.xml configuration
-file, look for the `midocluster-vxgw_enabled` property and set it to true.
+The VxLAN Gateway Service is a cluster service that runs on every
+cluster node and is implemented in VxlanGatewayService.
 
-This service is modelled as an ordinary Guice service at
-org.midonet.cluster.services.vxgw.VxlanGatewayHA.scala.  This simply takes
-care of orchestrating two auxiliary processes:
+Instances in different nodes synchronize by claiming exclusive ownership
+of each VTEP.  When a node manages to acquire a VTEP's ownership, it
+will spawn a VtepSynchronizer, which contains all the heavy lifting
+involved in synchronizing MidoNet's NSDB with that VTEP's OVSDB.
 
-- The VtepController class implements the functionality required to open
-  a connection to a single VTEP's OVSDB instance through its management
-  IP, and both apply any configuration or state changes that are
-  required (for example, create a new LogicalSwitch, or add/remove
-  entries in the `Ucast_Macs_Remote` tables).  The VxlanGatewayHA
-  service will spawn a VtepController for each hardware VTEP.
-- The VxlanGatewayManager implements management functions for a single
-  MidoNet bridge.  This includes watching for new/deleted bindings to
-  specific port/vlan pairs in hardware VTEPs, as well as changes in the
-  bridge's state, and liaising with the corresponding VtepControllers in
-  order to apply the necessary configuration changes.
+If the cluster node fails or becomes partitioned from the cluster, the
+state key will disappear from ZK, releasing the lock on the VTEP and
+allowing other cluster nodes to compete for its ownership.
 
-### Bridge monitoring
+The service also spawns a FloodingProxyManager.  This class is
+responsible for examining all VTEP tunnel zones and calculating the
+Agent host that is elected as a Flooding Proxy (this is the service node
+where the VTEP will send all multicast and flooded traffic to.)
 
-When a VxlanGatewayHA service instance becomes a leader, it will start
-watching the full set of bridges present in the NSDB, subscribing to
-creations and deletions.  The initial load is treated as a set of
-creations, thus reducing the initialisation to a subscase of a new
-bridge.
+### The FloodingProxyManager
 
-When a new bridge is detected, the service will setup a data watch on
-the Bridge and examine its current configuration.  If the Bridge doesn't
-have any VxLanPorts on it, then it's currently not relevant for the
-service since there are no bindings to VTEPs.  If the Bridge is updated
-with a new VxLan port, the watcher will be triggered and we will re
-examine the state again.
+Note that this component runs as a singleton service across the
+cluster.  Only one node will acquire the ZK latch and subscribe to
+tunnel zones, calculating the Flooding Proxy based on the members of the
+tunnel zone and their configured Flooding Proxy Weight.  If the node
+where the FP Manager runs fails, the latch will be released and another
+node will take over.
 
-When a bridge does contain a VxLanPort then a new VxlanGatewayManager
-will be created to handle further coordination tasks.
+Designated Flooding Proxies are written to ZooKeeper.  The
+FloodingProxyHerald can be used to watch for changes on the Flooding
+Proxies.
 
-### VxLAN Gateway Manager
+### The VtepSynchronizer
 
-The org.midonet.cluster.services.vxgw.VxlanGatewayManager is responsible
-to handle all coordination functions between MidoNet and all hardware
-VTEPs bound to it that are strictly relevant for that bridge.
+The VtepSynchronizer is responsible for wiring up different components:
+- A connection to the OVSDB instance of the VTEP
+- A MidoNetUpdater, which will be responsible for handling changes tha
+  need to be propagated to MidoNet from the VTEP.
+- A VtepUpdater, which will be responsible for handling changes that
+  need to be propagated to the VTEP from MidoNet.
 
-The VxLAN Gateway Manager defines a VxlanGateway class.  Each Manager
-will create a VxlanGateway instance, containing the unique VNI that is
-used to identify the different pieces of configuration residing in
-MidoNet and all the VTEPs bound to the bridge that is being managed.
+It will do so for every Network that is bound to any port in this VTEP.
 
-The class also contains a message bus (using an RxJava Publish Subject)
-where VtepControllers and the Manager itself will publish updates about
-the locations of any given MAC that appears on the logical L2 segment.
-These updates are modelled by the MacLocation class, that informs about
-the location of a MAC/ipv4 address at a given VxLAN tunnel endpoint,
-relative to a given Logical Switch (that is, the L2 segment spanning
-MidoNet plus physical ports in VTEPs).
+This wiring leverages the various Observables exposed by each component.
 
-When created, the VxlanGatewayManager will setup the watchers on the
-following entities:
+On one side, the Vtep OVSDB client offers an Observable that emits
+notifications for all changes in the `Ucast_Macs_Local` table.
 
-- The NSDB configuration of the Bridge.  When triggered, it will examine
-  the new configuration and apply relevant configuration changes on
-  VTEPs through their respective VtepController.
-  - If a new VxlanPort is created on a bridge, the Manager will fetch
-    the VtepController that controls the hardware VTEP and ask it to
-    "join" the VxlanGateway.  See the VtepController section for further
-    details into this.
-  - If a VxlanPort is removed from the bridge, the Manager will fetch
-    the VtepController and ask it to "abandon" the VxlanGateway.
-  - When no VxLanPorts remain on the bridge, it will self-destroy the
-    Manager.
-- The memberships of the VTEP tunnel zone. These are used to determine
-  the Flooding Proxy: a MidoNet Agent that will receive all broadcast
-  traffic from all VTEPs whenever.  Changes in the flooding proxy
-  require publishing new MacLocations for the "unknown-dst" MAC wildcard
-  to all the VTEPs through their VtepControllers.
-- The bridge's MacPort table.  This watcher is started after the Bridge
-  is first loaded from NDSB.  Updates on the MacPort table result in a
-  set of MacLocation entries that represent the new state being
-  published on the VxlanGateway bus.  The actual logic to convert
-  updates in the MAC table into MacLocations are more complex than it
-  may seem, since it involves inferring the IP of the physical host
-  were the port with which the MAC is associated, or falling back to the
-  flooding proxy if the port is not bound to a physical interface (e.g.,
-  an interior port bound to a virtual Router).
-- The bridge's ARP table, same as the MacPort table.
-- Updates appearing on the VxlanGateway bus.  These are handled by an
-  instance of BusObserver, which filters updates that are relevant for
-  MidoNet and writes them in the bridge's state tables.
-
-These processes are designed to work independently and handle failures
-whenever necessary.
-
-### VtepController
-
-The VtepController relies on the a fork of the Opendaylight OVDSB
-plugin, hacked in order to implement the VTEP schema and allow it to run
-outside of an OSGi container.  This plugin is being migrated to a new
-version (based on the Helium release), which won't require a fork and
-can be used as an ordinary Maven dependency.
-
-The VtepController follows a similar approach to the
-VxlanGatewayManager.  On startup, it will start watching the VTEP's
-configuration from the NSDB, as well as the VTEP tunnel zone in order to
-detect changes in the Flooding Proxy.
-
-As we explained above, when a VxlanGatewayManager detects that a Bridge
-has its first binding to a VTEP it will ask the corresponding
-VtepController to "join" the VxlanGateway.  This involves:
-
-- Consolidating the VTEP configuration, ensuring that the LogicalSwitch
-  table contains an entry with the right VNI, and that all expected
-  bindings are there.
-- Join the MacLocation bus by subscribing to MacLocation updates
-  published by other participants of the Logical Switch.  The
-  notification handler will write the new entries in the VTEP's Remote
-  tables.
-- Publish any MACs known to the VTEP that may not be published yet to
-  the Bus.
-
-Should any failures occur at any point of that process, the
-VtepController will handle retries until the join is effective.
-
-Abandoning a VxlanGateway implies unsubscribing from the bus and
-stopping to publish updates received from the VTEP.
-
-### Vxlan Gateway high availability (controller side)
-
-The controller allows multiple active instances in an active-passive
-configuration.  This is implemented using a Curator LeaderLatch which is
-pretty straight forward.  On startup, the instance will start the
-LeaderLatch and setup a callback to react when leadership is acquired.
-When this callback is invoked, it will start watching bridges and
-spawning VxlanGatewayManagers as required.
-
-Should the leader fail, the LeaderLatch will coordinate the election of
-a new Leader among all available instances.
+On the other side, MidoNet's ARP and MacPort maps offer Observable
+streams that emit notifications on changes detected on a given Network's
+state tables.  Additionally, operators may add/remove bindings to the
+VTEP through the MidoNet API.  We also subscribe to these via
+Observables exposed by the Storage backend.
 
 ### Vxlan Gateway high availability (VTEP side, active-passive mode)
 
