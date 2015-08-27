@@ -508,7 +508,8 @@ public class DataCheckPointTest {
 
     @Test
     public void testSubnetCRUD() throws StateAccessException,
-                                        SerializationException {
+                                        SerializationException,
+                                        Rule.RuleIndexOutOfBoundsException {
         int cp1 = zkDir().createCheckPoint();
         Network network = plugin.createNetwork(createStockNetwork());
         int cp2 = zkDir().createCheckPoint();

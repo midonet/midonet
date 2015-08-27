@@ -31,42 +31,56 @@ import org.midonet.packets.Unsigned;
 
 public class RuleBuilder {
 
+    private UUID id;
     private UUID chainId;
     private Rule r;
     private Condition c;
 
-    public RuleBuilder(UUID chainId) {
+    public RuleBuilder(UUID id, UUID chainId) {
+        this.id = id;
         this.chainId = chainId;
         this.c = new Condition();
     }
 
+    public RuleBuilder(UUID chainId) {
+        this(UUID.randomUUID(), chainId);
+    }
+
     public Rule drop() {
         r = new LiteralRule(c, RuleResult.Action.DROP);
+        r.id = id;
         r.chainId = chainId;
         return r;
     }
 
     public Rule meter(String name) {
         r.setMeterName(name);
+        r.id = id;
         return r;
     }
 
     public Rule accept() {
         r = new LiteralRule(c, RuleResult.Action.ACCEPT);
+        r.id = id;
         r.chainId = chainId;
         return r;
     }
 
-    public Rule sourceNat(NatTarget nt) {
+    public Rule sourceNat(NatTarget nt, RuleResult.Action action) {
         Set<NatTarget> targets = new HashSet<>();
         targets.add(nt);
-        r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, 1, false,
-            targets);
+        r = new ForwardNatRule(c, action, chainId, 1, false, targets);
+        r.id = id;
         return r;
+    }
+
+    public Rule sourceNat(NatTarget nt) {
+        return sourceNat(nt, RuleResult.Action.ACCEPT);
     }
 
     public Rule reverseSourceNat() {
         r = new ReverseNatRule(c, RuleResult.Action.ACCEPT, false);
+        r.id = id;
         r.chainId = chainId;
         return r;
     }
@@ -76,6 +90,7 @@ public class RuleBuilder {
         targets.add(nt);
         r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, 1, true,
             targets);
+        r.id = id;
         return r;
     }
 

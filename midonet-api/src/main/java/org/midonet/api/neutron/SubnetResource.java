@@ -22,6 +22,7 @@ import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
+import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.NetworkApi;
 import org.midonet.cluster.data.neutron.Subnet;
 import org.midonet.event.neutron.SubnetEvent;
@@ -144,8 +145,9 @@ public class SubnetResource extends AbstractResource {
     @Produces(NeutronMediaType.SUBNET_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response update(@PathParam("id") UUID id, Subnet subnet)
-            throws SerializationException, StateAccessException,
-            BridgeZkManager.VxLanPortIdUpdateException {
+        throws SerializationException, StateAccessException,
+               BridgeZkManager.VxLanPortIdUpdateException,
+               Rule.RuleIndexOutOfBoundsException {
         log.info("SubnetResource.update entered {}", subnet);
 
         try {

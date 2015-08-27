@@ -143,7 +143,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             Set<UUID> portGroupIds) {
         for (UUID portGroupId : portGroupIds) {
             ops.add(Op.delete(
-                    paths.getPortGroupPortPath(portGroupId, id), -1));
+                paths.getPortGroupPortPath(portGroupId, id), -1));
         }
     }
 
@@ -238,11 +238,11 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         TunnelZkManager.TunnelKey tunnelKey =
             new TunnelZkManager.TunnelKey(id);
         ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKeyId,
-            tunnelKey));
+                                                       tunnelKey));
 
         //All unplugged ports go into the bridges/<bridge>/ports/ folder.
         ops.add(Op.create(paths.getBridgePortPath(config.device_id, id),
-            null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                          null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
 
         // Add VLAN specific MAC learning table if this is a VLAN tagged port.
@@ -613,16 +613,21 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
      */
     public void prepareUpdatePortAddress(List<Op> ops, UUID portId, int addr)
         throws SerializationException, StateAccessException {
-
         PortDirectory.RouterPortConfig port =
             (PortDirectory.RouterPortConfig) get(portId);
+        prepareUpdatePortAddress(ops, port, addr);
+    }
 
+    public void prepareUpdatePortAddress(List<Op> ops,
+                                         PortDirectory.RouterPortConfig port,
+                                         int addr)
+        throws SerializationException, StateAccessException {
         // Delete the routes containing the old port address
         routeZkManager.prepareRoutesDelete(ops, port.device_id,
                                            port.getPortAddr());
 
         port.portAddr = addr;
-        ops.add(Op.setData(paths.getPortPath(portId),
+        ops.add(Op.setData(paths.getPortPath(port.id),
                            serializer.serialize(port), -1));
 
         // Insert a new route

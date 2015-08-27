@@ -158,7 +158,8 @@ public class RouterResource extends AbstractResource {
     @RolesAllowed(AuthRole.ADMIN)
     public void addRouterInterface(@PathParam("id") UUID id,
                                    RouterInterface intf)
-            throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException,
+               Rule.RuleIndexOutOfBoundsException {
         log.info("RouterResource.addRouterInterface entered {}", intf);
 
         try {

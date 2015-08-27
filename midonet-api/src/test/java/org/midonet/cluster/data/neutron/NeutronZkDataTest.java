@@ -24,10 +24,17 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.rules.ForwardNatRule;
+import org.midonet.cluster.data.rules.ReverseNatRule;
+import org.midonet.midolman.rules.Condition;
+import org.midonet.midolman.rules.NatTarget;
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4Subnet;
 
 public final class NeutronZkDataTest extends NeutronPluginTest {
@@ -130,6 +137,36 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         verifyFipDnatRule(0);
     }
 
+    private void verifyLocalSnatRules(String ipAddr)
+        throws SerializationException, StateAccessException {
+        org.midonet.cluster.data.Router r = dataClient.routersGet(
+            router.id);
+        ForwardNatRule snatRule = (ForwardNatRule) dataClient.rulesGet(
+            L3ZkManager.localSnatRuleId(r.getOutboundFilter()));
+        ReverseNatRule revSnatRule = (ReverseNatRule) dataClient.rulesGet(
+            L3ZkManager.localSnatRuleId(r.getInboundFilter()));
+
+        Port p = dataClient.portsGet(routerInterface.portId);
+        Condition cond = snatRule.getCondition();
+        Assert.assertTrue(cond.inPortIds.contains(p.getPeerId()));
+        Assert.assertTrue(cond.outPortIds.contains(p.getPeerId()));
+        Assert.assertEquals(snatRule.getAction(), RuleResult.Action.RETURN);
+        Assert.assertEquals(snatRule.getTargets().size(), 1);
+
+        // Verify that metadata IP is skipped
+        Assert.assertEquals(MetaDataService.IPv4_SUBNET, cond.nwDstIp);
+        Assert.assertTrue(cond.nwDstInv);
+
+        NatTarget target = snatRule.getTargets().iterator().next();
+        Assert.assertEquals(target.nwStart.toString(), ipAddr);
+        Assert.assertEquals(target.nwEnd.toString(), ipAddr);
+        Assert.assertEquals(target.tpStart, 1);
+        Assert.assertEquals(target.tpEnd, 65535);
+
+        Assert.assertTrue(cond.inPortIds.contains(p.getPeerId()));
+        Assert.assertEquals(revSnatRule.getAction(), RuleResult.Action.ACCEPT);
+    }
+
     @Test
     public void testFloatingIp()
         throws SerializationException, StateAccessException,
@@ -162,10 +199,76 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         // Verify that the metadata is re-added
         verifyMetadataRoute(router.id, subnet.cidr, 1);
     }
+    private Subnet updateSubnetGatewayIp(String newGatewayIp)
+        throws Rule.RuleIndexOutOfBoundsException, SerializationException,
+               StateAccessException {
+        Subnet subnet2 = new Subnet(subnet.id, subnet.networkId,
+                                    subnet.tenantId, subnet.name,
+                                    subnet.cidr, subnet.ipVersion,
+                                    newGatewayIp, subnet.allocationPools,
+                                    subnet.dnsNameservers, subnet.hostRoutes,
+                                    subnet.enableDhcp);
+        plugin.updateSubnet(subnet.id, subnet2);
+        return subnet2;
+    }
+
+    @Test
+    public void testLocalSnatRules()
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
+
+        verifyLocalSnatRules(subnet.gatewayIp);
+
+        // Verify that the local SNAT rules are updated when the gateway IP of
+        // the subnet is updated
+        String newGatewayIp = "10.0.0.100";
+        updateSubnetGatewayIp(newGatewayIp);
+        verifyLocalSnatRules(newGatewayIp);
+
+        // Delete the SNAT rules to emulate how it looked previously
+        org.midonet.cluster.data.Router r = dataClient.routersGet(
+            router.id);
+        UUID snatRuleId = L3ZkManager.localSnatRuleId(r.getOutboundFilter());
+        UUID revSnatRuleId = L3ZkManager.localSnatRuleId(r.getInboundFilter());
+        dataClient.rulesDelete(snatRuleId);
+        dataClient.rulesDelete(revSnatRuleId);
+
+        // Now try updating the subnet gateway IP again.
+        String newGatewayIp2 = "10.0.1.100";
+        updateSubnetGatewayIp(newGatewayIp2);
+        verifyLocalSnatRules(newGatewayIp2);
+
+        // Try deleting the router interface
+        plugin.deletePort(routerInterface.portId);
+        Assert.assertNull(dataClient.rulesGet(snatRuleId));
+        Assert.assertNull(dataClient.rulesGet(revSnatRuleId));
+    }
+
+    @Test
+    public void testLocalSnatRuleDeletion()
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
+
+        verifyLocalSnatRules(subnet.gatewayIp);
+
+        // Delete the SNAT rules to emulate how it looked previously
+        org.midonet.cluster.data.Router r = dataClient.routersGet(
+            router.id);
+        UUID snatRuleId = L3ZkManager.localSnatRuleId(r.getOutboundFilter());
+        UUID revSnatRuleId = L3ZkManager.localSnatRuleId(r.getInboundFilter());
+        dataClient.rulesDelete(snatRuleId);
+        dataClient.rulesDelete(revSnatRuleId);
+
+        // Try deleting the router interface.  This should still work
+        plugin.deletePort(routerInterface.portId);
+        Assert.assertNull(dataClient.rulesGet(snatRuleId));
+        Assert.assertNull(dataClient.rulesGet(revSnatRuleId));
+    }
 
     @Test
     public void testSubnetUpdateGatewayIp()
-        throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException,
+               Rule.RuleIndexOutOfBoundsException {
 
         String newGatewayIp = "10.0.0.100";
 
@@ -174,13 +277,7 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         verifyRoute(router.id, newGatewayIp, "LOCAL", 0);
 
         // Update the subnet's gateway IP
-        Subnet subnet2 = new Subnet(subnet.id, subnet.networkId,
-                                    subnet.tenantId, subnet.name,
-                                    subnet.cidr, subnet.ipVersion,
-                                    newGatewayIp, subnet.allocationPools,
-                                    subnet.dnsNameservers, subnet.hostRoutes,
-                                    subnet.enableDhcp);
-        plugin.updateSubnet(subnet.id, subnet2);
+        updateSubnetGatewayIp(newGatewayIp);
 
         // Verify that the port local routes are updated
         verifyRoute(router.id, subnet.gatewayIp, "LOCAL", 0);
@@ -189,7 +286,8 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
 
     @Test
     public void testExternalSubnetUpdateGatewayIp()
-        throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException,
+               Rule.RuleIndexOutOfBoundsException {
 
         String newGatewayIp = "200.200.200.100";
 
