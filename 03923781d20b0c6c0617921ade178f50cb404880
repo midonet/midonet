@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_0eb94ae9",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/VtepBinding.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-27T15:07:07Z",
+      "side": 1,
+      "message": "you can delete it altogether",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 25
+      },
+      "revId": "03923781d20b0c6c0617921ade178f50cb404880",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8eff1aaa",
+        "filename": "cluster/midonet-cluster/src/main/resources/ValidationMessages.properties",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-27T15:07:07Z",
+      "side": 1,
+      "message": "of type",
+      "revId": "03923781d20b0c6c0617921ade178f50cb404880",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4ee35205",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-27T15:07:07Z",
+      "side": 1,
+      "message": "ditto as below",
+      "range": {
+        "startLine": 103,
+        "startChar": 28,
+        "endLine": 103,
+        "endChar": 33
+      },
+      "revId": "03923781d20b0c6c0617921ade178f50cb404880",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_eedc2649",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-27T15:07:07Z",
+      "side": 1,
+      "message": "maybe warn or even info, it\u0027s a user-input error, not a proble, in the APi",
+      "range": {
+        "startLine": 111,
+        "startChar": 28,
+        "endLine": 111,
+        "endChar": 33
+      },
+      "revId": "03923781d20b0c6c0617921ade178f50cb404880",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2e944e43",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-27T15:07:07Z",
+      "side": 1,
+      "message": "this is just mandated by tests, feel free to change the test so you don\u0027t need to catch and rethrow",
+      "range": {
+        "startLine": 83,
+        "startChar": 12,
+        "endLine": 85,
+        "endChar": 58
+      },
+      "revId": "03923781d20b0c6c0617921ade178f50cb404880",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4eca726f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-27T15:07:07Z",
+      "side": 1,
+      "message": "ditto, probably info or at most warn",
+      "range": {
+        "startLine": 118,
+        "startChar": 18,
+        "endLine": 118,
+        "endChar": 36
+      },
+      "revId": "03923781d20b0c6c0617921ade178f50cb404880",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
