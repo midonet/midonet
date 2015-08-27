@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_3dfe4639",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-27T08:05:21Z",
+      "side": 1,
+      "message": "if the new flag is necessary and the filterIn/Out methods needs to become defs instead of vals, you can change their signature and not make them return a \"(ctx, actorSystem, step) \u003d\u003e result\" tuple, but run the logic directly. The reason for the val was to precalculate some of the logic at device creation.",
+      "revId": "baee34c4e6c15d17e03f4fabcb40670d76639789",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1d018239",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-27T08:05:21Z",
+      "side": 1,
+      "message": "what\u0027s the rationale for \u0027ignoreAdminDown\u0027?",
+      "revId": "baee34c4e6c15d17e03f4fabcb40670d76639789",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9d94b2e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-27T08:05:21Z",
+      "side": 1,
+      "message": "As discussed elsewhere, the inchains/infilter merge is better done at device creation, the logic would be cleaner.",
+      "revId": "baee34c4e6c15d17e03f4fabcb40670d76639789",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5dfb0a47",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-27T08:05:21Z",
+      "side": 1,
+      "message": "Change to a while loop.",
+      "revId": "baee34c4e6c15d17e03f4fabcb40670d76639789",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
