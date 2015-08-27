@@ -28,7 +28,6 @@ jar {
 
 repositories {
     maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
-    maven { url "http://nexus.opendaylight.org/content/repositories/public/"  }
 }
 
 sourceSets {
@@ -43,16 +42,10 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':cluster:odl-ovsdb:ovsdb'),
-            project(':nsdb'),
+    compile project(':nsdb'),
             project(':midolman'),
             project(':midonet-util'),
-            "org.opendaylight.controller:sal.connection:0.1.1",
-            "org.opendaylight.controller:sal:0.7.0",
-            "org.opendaylight.controller:sal.networkconfiguration:0.0.2",
-            "org.opendaylight.controller:clustering.services:0.5.0",
-            "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521",
-            "org.opendaylight.ovsdb:ovsdb:0.5.0",
+            "org.opendaylight.ovsdb:library:1.1.1-Lithium-SR1",
             "org.reflections:reflections:0.9.10",
             'org.slf4j:jul-to-slf4j:1.7.12',
             libraries.metrics,

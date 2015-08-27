@@ -221,25 +221,4 @@ public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
                         "10.0.1.0_24"));
     }
 
-    @Test
-    public void tryOwnVtepTest() throws Exception {
-        UUID node1 = UUID.randomUUID();
-        UUID node2 = UUID.randomUUID();
-
-        IPv4Addr vtepIp = IPv4Addr.fromString("10.2.3.2");
-
-        VTEP vtep = new VTEP();
-        vtep.setMgmtPort(6333);
-        vtep.setId(vtepIp);
-        vtep.setTunnelZone(UUID.randomUUID());
-        client.vtepCreate(vtep);
-
-        UUID owner1 = client.tryOwnVtep(vtepIp, node1);
-        UUID owner2 = client.tryOwnVtep(vtepIp, node2);
-        UUID owner3 = client.tryOwnVtep(vtepIp, node1);
-
-        assertEquals(node1, owner1);
-        assertEquals(node1, owner2);
-        assertEquals(node1, owner3);
-    }
 }

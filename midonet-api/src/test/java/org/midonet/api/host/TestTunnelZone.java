@@ -20,19 +20,16 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
@@ -41,11 +38,10 @@ import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoTunnelZone;
-import org.midonet.client.dto.DtoVtep;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-
-import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP1;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZone {
@@ -151,8 +147,10 @@ public class TestTunnelZone {
          * not be possible to delete the tunnel zone.
          */
         @Test
+        @Ignore("Implement in V2")
         public void testDeleteFailsIfVTEPUsingTunnelZone() {
 
+            /*
             Assume.assumeFalse(FuncTest.isCompatApiEnabled());
 
             DtoApplication app = topology.getApplication();
@@ -174,6 +172,7 @@ public class TestTunnelZone {
             dtoResource.deleteAndVerifyError(tunnelZone.getUri(),
                                  VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON,
                                  ClientResponse.Status.CONFLICT.getStatusCode());
+            */
 
         }
 

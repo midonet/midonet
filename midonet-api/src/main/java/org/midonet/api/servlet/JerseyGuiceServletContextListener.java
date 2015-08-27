@@ -30,7 +30,6 @@ import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.ClusterNode;
 import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.services.vxgw.VxlanGatewayService;
-import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 
 public class JerseyGuiceServletContextListener extends
         GuiceServletContextListener {
@@ -115,8 +114,6 @@ public class JerseyGuiceServletContextListener extends
         injector.getInstance(RestApiService.class)
                 .stopAsync()
                 .awaitTerminated();
-        injector.getInstance(VtepDataClientFactory.class)
-                .dispose();
 
         log.debug("destroyApplication: exiting");
     }
