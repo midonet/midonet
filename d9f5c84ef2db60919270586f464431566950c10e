@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_3dac8635",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/southbound/vtep/schema/LogicalSwitchTable.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-27T08:16:02Z",
+      "side": 1,
+      "message": "Question: why is it necessary to move these to midonet-cluster?",
+      "range": {
+        "startLine": 17,
+        "startChar": 8,
+        "endLine": 17,
+        "endChar": 51
+      },
+      "revId": "d9f5c84ef2db60919270586f464431566950c10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
