@@ -78,9 +78,9 @@ class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
         getResource(classOf[Chain], chainId) map { _.ruleIds.asScala }
     }
 
-    protected override def listFilter(rules: Seq[Rule]): Seq[Rule] = {
+    protected override def listFilter(rules: Seq[Rule]): Future[Seq[Rule]] = {
         for (index <- rules.indices) rules(index).position = index + 1
-        rules
+        Future.successful(rules)
     }
 
     protected override def createFilter(rule: Rule): Ops = {

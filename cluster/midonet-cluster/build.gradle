@@ -44,6 +44,7 @@ sourceSets {
 
 dependencies {
     compile project(':cluster:odl-ovsdb:ovsdb'),
+            project(':cluster:vtep'),
             project(':nsdb'),
             project(':midolman'),
             project(':midonet-util'),

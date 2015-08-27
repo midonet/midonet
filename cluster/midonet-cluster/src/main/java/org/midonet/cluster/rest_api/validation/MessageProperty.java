@@ -102,6 +102,8 @@ public class MessageProperty {
             "{midokura.javarx.RouterIdIsInvalid.message}";
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
             "{midokura.javarx.TunnelZoneIdIsInvalid.message}";
+    public static final String TUNNEL_ZONE_NOT_VTEP =
+            "{midokura.javarx.TunnelZoneNotVtep.message}";
     public static final String UNIQUE_TUNNEL_ZONE_NAME_TYPE =
             "{midokura.javarx.TunnelZoneNameExists.message}";
     public static final String TUNNEL_ZONE_MEMBER_EXISTS =

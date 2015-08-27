@@ -17,8 +17,8 @@
 package org.midonet.cluster.rest_api.conversion;
 
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.models.State;
 import org.midonet.cluster.rest_api.models.Vtep;
-import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4Addr;
 
 import static scala.collection.JavaConversions.seqAsJavaList;
@@ -33,9 +33,9 @@ public class VTEPDataConverter {
         vtep.tunnelZoneId = vtepData.getTunnelZoneId();
 
         if (null == ps) {
-            vtep.connectionState = VtepConnectionState.ERROR;
+            vtep.connectionState = State.VtepConnectionState.VTEP_ERROR;
         } else {
-            vtep.connectionState = VtepConnectionState.CONNECTED;
+            vtep.connectionState = State.VtepConnectionState.VTEP_CONNECTED;
             vtep.name = ps.name();
             vtep.description = ps.description();
             vtep.tunnelIpAddrs = seqAsJavaList(ps.tunnelIpStrings().toList());

@@ -270,11 +270,11 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         }
     }
 
-    protected override def listFilter(bridges: Seq[Bridge]): Seq[Bridge] = {
+    protected override def listFilter(bridges: Seq[Bridge]): Future[Seq[Bridge]] = {
         val tenantId = resContext.uriInfo
             .getQueryParameters.getFirst("tenant_id")
-        if (tenantId eq null) bridges
-        else bridges filter { _.tenantId == tenantId }
+        Future.successful(if (tenantId eq null) bridges
+                          else bridges filter { _.tenantId == tenantId })
     }
 
     protected override def createFilter(bridge: Bridge): Ops = {
