@@ -22,6 +22,30 @@
       "revId": "d9f5c84ef2db60919270586f464431566950c10e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_98b5a033",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/southbound/vtep/schema/LogicalSwitchTable.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-27T09:05:08Z",
+      "side": 1,
+      "message": "Less modules, which is more efficient for builds.\n\nAlso, there is no clear reason to keep them in separate modules.. I don\u0027t have a strong opinion on this topic but it seems to be preferred to reduce the number of modules. In anycase, at least southbound seems appropriate.",
+      "parentUuid": "9ad9bd40_3dac8635",
+      "range": {
+        "startLine": 17,
+        "startChar": 8,
+        "endLine": 17,
+        "endChar": 51
+      },
+      "revId": "d9f5c84ef2db60919270586f464431566950c10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
