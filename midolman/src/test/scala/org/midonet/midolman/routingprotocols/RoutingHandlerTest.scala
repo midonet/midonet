@@ -64,7 +64,7 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     val peer1 = IPv4Addr.fromString("192.168.80.2")
     val peer1Id = UUID.randomUUID()
-    def baseConfig = new BgpRouter(MY_AS, rport.portIp,
+    def baseConfig = new BgpRouter(MY_AS, rport.portAddress,
                                     Map(peer1 -> Neighbor(peer1, 100)))
 
     val peer2 = IPv4Addr.fromString("192.168.80.3")
@@ -79,7 +79,7 @@ class RoutingHandlerTest extends FeatureSpecLike
                 isActive = true,
                 routerId = UUID.randomUUID(),
                 portSubnet = IPv4Subnet.fromCidr("192.168.80.0/24"),
-                portIp = IPv4Addr.fromString("192.168.80.1"),
+                portAddress = IPv4Addr.fromString("192.168.80.1"),
                 portMac = MAC.random())
 
         bgpd = new MockBgpdProcess
@@ -114,7 +114,8 @@ class RoutingHandlerTest extends FeatureSpecLike
         }
 
         scenario("change in the router port address") {
-            val p = rport.copy(isActive = true, portIp = IPv4Addr.fromString("192.168.80.2"))
+            val p = rport.copy(isActive = true,
+                               portAddress = IPv4Addr.fromString("192.168.80.2"))
             routingHandler ! p
             bgpd.state should be (bgpd.RUNNING)
             bgpd.starts should be (2)
@@ -245,7 +246,7 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     feature("reacts to changes in the bgp session configuration") {
         scenario("a new peer is added or removed") {
-            val update = new BgpRouter(MY_AS, rport.portIp,
+            val update = new BgpRouter(MY_AS, rport.portAddress,
                     Map(peer1 -> Neighbor(peer1, 100),
                         peer2 -> Neighbor(peer2, 200)))
 
@@ -279,7 +280,7 @@ class RoutingHandlerTest extends FeatureSpecLike
         }
 
         scenario("timer values change") {
-            val update = new BgpRouter(MY_AS, rport.portIp,
+            val update = new BgpRouter(MY_AS, rport.portAddress,
                 Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
 
             routingHandler ! RoutingHandler.Update(update, Set(peer1Id))

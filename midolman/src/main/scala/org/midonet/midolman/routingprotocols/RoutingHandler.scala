@@ -156,7 +156,7 @@ object RoutingHandler {
                 new IPv4Subnet(IPv4Addr.fromInt(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx), 30)
 
             override protected val bgpd: BgpdProcess = new DefaultBgpdProcess(bgpIdx, BGP_VTY_LOCAL_IP,
-                BGP_VTY_MIRROR_IP, rport.portSubnet,
+                BGP_VTY_MIRROR_IP, new IPv4Subnet(rport.portAddress, rport.portSubnet.getPrefixLen),
                 rport.portMac, BGP_VTY_PORT)
 
             val lazyConnWatcher = new LazyZkConnectionMonitor(
@@ -224,7 +224,7 @@ object RoutingHandler {
 
                 log.info("Starting zebra server")
                 val socketAddress = new AfUnix.Address(zebraSocketFile.getAbsolutePath)
-                zebra = ZebraServer(socketAddress, zebraHandler, rport.portIp,
+                zebra = ZebraServer(socketAddress, zebraHandler, rport.portAddress,
                     BGP_NETDEV_PORT_MIRROR_NAME, selectLoop)
             }
 
@@ -362,7 +362,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             portUpdated(port)
 
         case Update(newConf, peers) =>
-            configurationUpdated(newConf.copy(id = rport.portIp), peers)
+            configurationUpdated(newConf.copy(id = rport.portAddress), peers)
 
     }
 
@@ -405,7 +405,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     private def portUpdated(port: RouterPort): Future[_] = {
         if (bgpd.isAlive) {
-            if (port.portIp != rport.portIp ||
+            if (port.portAddress != rport.portAddress ||
                 port.portSubnet != rport.portSubnet ||
                 port.portMac != rport.portMac) {
                 log.info("Port addresses changed, restarting bgpd")

@@ -98,7 +98,7 @@ class RouterSimulationTest extends MidolmanSpec {
     def simRouter: SimRouter = fetchDevice[SimRouter](router)
 
     private def addressInSegment(port: UUID) : IPv4Addr = {
-        fetchDevice[RouterPort](port).portIp.next
+        fetchDevice[RouterPort](port).portAddress.next
     }
 
     private def setKey[T <: FlowKey](action: FlowAction) =
@@ -208,7 +208,7 @@ class RouterSimulationTest extends MidolmanSpec {
         val (simRes, _) = simulate(packetContextFor(pkt, port1, generatedPackets))
         simRes should be (ShortDrop)
         matchIcmp(port1, port.portMac, fromMac,
-                  port.portIp, fromIp,
+                  port.portAddress, fromIp,
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
     }
 
@@ -237,19 +237,19 @@ class RouterSimulationTest extends MidolmanSpec {
 
         val port = fetchDevice[RouterPort](port1)
         val pkt = { eth src fromMac dst uplinkMacAddr } <<
-                  { ip4 src fromIp dst port.portIp } <<
+                  { ip4 src fromIp dst port.portAddress } <<
                   { icmp.echo request }
 
         val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
         simRes should be (NoOp)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
-                  port.portIp, fromIp,
+                  port.portAddress, fromIp,
                   ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
     }
 
     scenario("ICMP echo far port with floating IP") {
         val floatingIp = IPv4Addr.fromString("176.28.127.1")
-        val privIp = fetchDevice[RouterPort](port1).portIp
+        val privIp = fetchDevice[RouterPort](port1).portAddress
 
         val dnatCond = new Condition()
         dnatCond.nwDstIp = floatingIp.subnet()
@@ -297,7 +297,7 @@ class RouterSimulationTest extends MidolmanSpec {
         simRes should be (ErrorDrop)
 
         matchIcmp(port1, port.portMac, fromMac,
-                  port.portIp, fromIp,
+                  port.portAddress, fromIp,
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
     }
 
@@ -321,7 +321,7 @@ class RouterSimulationTest extends MidolmanSpec {
         simRes should be (ShortDrop)
 
         matchIcmp(port1, port.portMac, fromMac,
-                  port.portIp, fromIp,
+                  port.portAddress, fromIp,
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
     }
 
@@ -377,14 +377,14 @@ class RouterSimulationTest extends MidolmanSpec {
 
         val port = fetchDevice[RouterPort](port1)
         val pkt = { eth src fromMac dst uplinkMacAddr } <<
-                  { ip4 src fromIp dst port.portIp } <<
+                  { ip4 src fromIp dst port.portAddress } <<
                   { icmp.echo request }
 
         val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
         simRes should be (NoOp)
 
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
-                  port.portIp, fromIp,
+                  port.portAddress, fromIp,
                   ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
     }
 
@@ -426,7 +426,7 @@ class RouterSimulationTest extends MidolmanSpec {
               { icmp.echo request }
         val (simRes3, _) = simulate(packetContextFor(pkt, port1, generatedPackets))
         simRes3 should be (ShortDrop)
-        matchIcmp(port1, port1dev.portMac, fromMac, port1dev.portIp,
+        matchIcmp(port1, port1dev.portMac, fromMac, port1dev.portAddress,
                   fromIp, ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
 
         // Reactivate port2
