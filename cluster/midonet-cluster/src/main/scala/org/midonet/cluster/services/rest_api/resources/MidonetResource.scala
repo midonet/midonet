@@ -25,10 +25,9 @@ import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core._
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -58,7 +57,7 @@ object MidonetResource {
     type Ops = Future[Seq[Multi]]
     final val NoOps = Future.successful(Seq.empty[Multi])
 
-    final val Timeout = 5 seconds
+    final val Timeout = 30 seconds
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
     final def OkCreated(uri: URI) = Response.created(uri).build()
@@ -93,6 +92,8 @@ object MidonetResource {
                 throw new ConflictHttpException(e.getMessage)
             case e: ObjectExistsException =>
                 throw new ConflictHttpException(e.getMessage)
+            case e: TimeoutException =>
+                throw new ServiceUnavailableHttpException("Request timed-out")
         }
     }
 
@@ -201,15 +202,17 @@ abstract class MidonetResource[T >: Null <: UriResource]
             log.info(s"Media type {} not acceptable", accept)
             throw new WebApplicationException(Status.NOT_ACCEPTABLE)
         }
-        listIds flatMap { ids =>
+        val list = listIds flatMap { ids =>
             if (ids eq null) {
                 listResources(tag.runtimeClass.asInstanceOf[Class[T]])
             } else {
                 listResources(tag.runtimeClass.asInstanceOf[Class[T]], ids)
             }
-        } map { list =>
-            listFilter(list).asJava
+        } flatMap { list =>
+            listFilter(list)
         } getOrThrow
+
+        list.asJava
     }
 
     @POST
@@ -265,7 +268,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected def throwIfViolationsOn[U](t: U): Unit = {
         val violations: JSet[ConstraintViolation[U]] = validator.validate(t)
-        if (violations.nonEmpty) {
+        if (!violations.isEmpty) {
             throw new BadRequestHttpException(violations)
         }
     }
@@ -278,7 +281,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected def listIds: Ids = Future.successful(null)
 
-    protected def listFilter(list: Seq[T]): Seq[T] = list
+    protected def listFilter(list: Seq[T]): Future[Seq[T]] =
+        Future.successful(list)
 
     protected def createFilter(t: T): Ops = { t.create(); NoOps }
 

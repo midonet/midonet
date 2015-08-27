@@ -35,7 +35,7 @@ import org.midonet.cluster.util.UUIDUtil;
 public class VtepBinding extends UriResource {
 
     @JsonIgnore
-    public String mgmtIp;
+    public UUID vtepId;
 
     @NotNull
     @ZoomField(name = "port_name")
@@ -50,26 +50,11 @@ public class VtepBinding extends UriResource {
     @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
     public UUID networkId;
 
-    @JsonIgnore
-    public UUID vtepId;
-
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.VTEPS, mgmtIp,
+        return absoluteUri(ResourceUris.VTEPS, vtepId,
                            ResourceUris.BINDINGS, portName,
                            Short.toString(vlanId));
-    }
-
-    @JsonIgnore
-    public void create(String mgmtIp) {
-        create();
-        this.mgmtIp = mgmtIp;
-    }
-
-    @JsonIgnore
-    public void update(VtepBinding from) {
-        mgmtIp = from.mgmtIp;
-        vtepId = from.vtepId;
     }
 
 }

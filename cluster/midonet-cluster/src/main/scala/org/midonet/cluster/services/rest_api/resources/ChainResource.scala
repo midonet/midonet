@@ -22,6 +22,7 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -49,11 +50,11 @@ class ChainResource @Inject()(resContext: ResourceContext)
         new ChainRuleResource(id, resContext)
     }
 
-    protected override def listFilter(chains: Seq[Chain]): Seq[Chain] = {
+    protected override def listFilter(chains: Seq[Chain]): Future[Seq[Chain]] = {
         val tenantId = resContext.uriInfo.getQueryParameters
                                          .getFirst("tenant_id")
-        if (tenantId eq null) chains
-        else chains filter { _.tenantId == tenantId }
+        Future.successful(if (tenantId eq null) chains
+                          else chains filter { _.tenantId == tenantId })
     }
 
     protected override def deleteFilter(chainId: String): Ops = {

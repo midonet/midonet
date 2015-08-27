@@ -21,6 +21,8 @@ import java.util.UUID
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
+import scala.concurrent.Future
+
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
@@ -77,11 +79,11 @@ class RouterResource @Inject()(resContext: ResourceContext)
         new RouterBgpPeerResource(id, resContext)
     }
 
-    protected override def listFilter(routers: Seq[Router]): Seq[Router] = {
+    protected override def listFilter(routers: Seq[Router]): Future[Seq[Router]] = {
         val tenantId = resContext.uriInfo.getQueryParameters
                                          .getFirst("tenant_id")
-        if (tenantId eq null) routers
-        else routers filter { _.tenantId == tenantId }
+        Future.successful(if (tenantId eq null) routers
+                          else routers filter { _.tenantId == tenantId })
     }
 
     protected override def createFilter(router: Router): Ops = {
