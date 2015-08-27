@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_9819207c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-27T08:40:15Z",
+      "side": 1,
+      "message": "here is where we should be able to create a virtual port, add it to the virtual topology (locally, not persistently on zookeeper) and add a binding to the DatapathController (again, locally). this can left as future work though :)",
+      "revId": "6b9bed76aa37510b3d7879d5ff1ba931b334b574",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d82ac87d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-27T08:40:15Z",
+      "side": 1,
+      "message": "the vm\u0027s don\u0027t need to use the metadata service. all it takes is a multi-second pause and some scheduling bad luck for the packet to arrive before we have set this up. \n\nthis method should at least invalidate flows, no?",
+      "revId": "6b9bed76aa37510b3d7879d5ff1ba931b334b574",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f81f8c59",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/NovaMetadataClient.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-27T08:40:15Z",
+      "side": 1,
+      "message": "this is no longer true, right?",
+      "revId": "6b9bed76aa37510b3d7879d5ff1ba931b334b574",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
