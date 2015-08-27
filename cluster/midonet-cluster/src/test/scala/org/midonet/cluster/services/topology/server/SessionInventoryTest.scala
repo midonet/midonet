@@ -19,32 +19,28 @@ package org.midonet.cluster.services.topology.server
 import java.util.UUID
 
 import scala.collection.JavaConversions._
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import com.google.protobuf.Message
-
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-
+import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
+import org.midonet.cluster.rpc.Commands.{Response, ResponseType}
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.util.MidonetEventually
-import org.midonet.util.reactivex.AwaitableObserver
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 /** Tests the session management of the Topology API service. */
 @RunWith(classOf[JUnitRunner])
 class SessionInventoryTest extends FeatureSpec
                                    with Matchers
-                                   with BeforeAndAfter
-                                   with MidonetEventually {
+                                   with BeforeAndAfter {
     var store: Storage = _
     var inv: SessionInventory = _
 
@@ -232,7 +228,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -240,7 +236,7 @@ class SessionInventoryTest extends FeatureSpec
             session.get(oId, classOf[Network], req)
 
             // wait for futures to be completed
-            collector.awaitOnNext(1, WAIT_TIME)
+            collector.awaitOnNext(1, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
@@ -252,7 +248,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -263,7 +259,7 @@ class SessionInventoryTest extends FeatureSpec
             session.get(oId, classOf[Network], req)
 
             // wait for futures to be completed
-            collector.awaitOnNext(1, WAIT_TIME)
+            collector.awaitOnNext(1, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
@@ -275,14 +271,14 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
             session.getAll(classOf[Network], req)
 
             // wait for futures to be completed
-            collector.awaitOnNext(1, WAIT_TIME)
+            collector.awaitOnNext(1, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
@@ -294,7 +290,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -307,7 +303,7 @@ class SessionInventoryTest extends FeatureSpec
             session.getAll(classOf[Network], req)
 
             // wait for futures to be completed
-            collector.awaitOnNext(1, WAIT_TIME)
+            collector.awaitOnNext(1, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
@@ -319,7 +315,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -327,7 +323,7 @@ class SessionInventoryTest extends FeatureSpec
             session.watch(oId, classOf[Network], req)
 
             // wait for futures to complete
-            collector.awaitOnNext(2, WAIT_TIME)
+            collector.awaitOnNext(2, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents).toArray
@@ -340,7 +336,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -359,7 +355,7 @@ class SessionInventoryTest extends FeatureSpec
             store.delete(classOf[Network], UUIDUtil.toProto(oId))
 
             // wait for futures to complete
-            collector.awaitOnNext(4, WAIT_TIME)
+            collector.awaitOnNext(4, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             collector.getOnCompletedEvents.size() shouldBe 0
@@ -376,7 +372,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -386,7 +382,7 @@ class SessionInventoryTest extends FeatureSpec
             session.unwatch(oId, classOf[Network], req)
 
             // wait for futures to complete
-            collector.awaitOnNext(1, WAIT_TIME)
+            collector.awaitOnNext(1, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             collector.getOnCompletedEvents.size() shouldBe 0
@@ -399,7 +395,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
@@ -414,7 +410,7 @@ class SessionInventoryTest extends FeatureSpec
             store.delete(classOf[Network], UUIDUtil.toProto(oId))
 
             // wait for futures to complete
-            collector.awaitOnNext(4, WAIT_TIME)
+            collector.awaitOnNext(4, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             collector.getOnCompletedEvents.size() shouldBe 0
@@ -430,7 +426,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -447,7 +443,7 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(b3, "bridge3"))
             store.delete(classOf[Network], UUIDUtil.toProto(b2))
 
-            collector.awaitOnNext(6, WAIT_TIME)
+            collector.awaitOnNext(6, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             collector.getOnCompletedEvents.size() shouldBe 0
@@ -465,7 +461,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -483,7 +479,7 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(b3, "bridge3"))
             store.delete(classOf[Network], UUIDUtil.toProto(b2))
 
-            collector.awaitOnNext(5, WAIT_TIME)
+            collector.awaitOnNext(5, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             collector.getOnCompletedEvents.size() shouldBe 0
@@ -501,7 +497,7 @@ class SessionInventoryTest extends FeatureSpec
             inv = new SessionInventory(store, bufferSize = 8192)
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -511,10 +507,9 @@ class SessionInventoryTest extends FeatureSpec
                 yield bridge(UUID.randomUUID(), "bridge" + i)
             bridges.foreach(store.create)
 
-            eventually {
-                Await.result(store.getAll(
-                    classOf[Network]), LONG_WAIT_TIME).length shouldBe amount
-            }
+            val obs = new TestAwaitableObserver[Observable[Network]]
+            store.observable(classOf[Network]).subscribe(obs)
+            obs.awaitOnNext(amount, LONG_WAIT_TIME) shouldBe true
 
             session.watchAll(classOf[Network], req)
 
@@ -538,7 +533,7 @@ class SessionInventoryTest extends FeatureSpec
             inv = new SessionInventory(store, bufferSize = 128)
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -548,14 +543,13 @@ class SessionInventoryTest extends FeatureSpec
                 yield bridge(UUID.randomUUID(), "bridge" + i)
             bridges.foreach(store.create)
 
-            eventually {
-                Await.result(store.getAll(
-                    classOf[Network]), LONG_WAIT_TIME).length shouldBe amount
-            }
+            val obs = new TestAwaitableObserver[Observable[Network]]
+            store.observable(classOf[Network]).subscribe(obs)
+            obs.awaitOnNext(amount, LONG_WAIT_TIME) shouldBe true
 
             session.watchAll(classOf[Network], req)
 
-            collector.awaitOnNext(amount + 1, LONG_WAIT_TIME)
+            collector.awaitOnNext(amount + 1, LONG_WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents)
@@ -571,14 +565,14 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
 
             session.unwatchAll(classOf[Network], req)
 
-            collector.awaitOnNext(1, WAIT_TIME)
+            collector.awaitOnNext(1, WAIT_TIME) shouldBe true
             subs.unsubscribe()
 
             collector.getOnCompletedEvents.size() shouldBe 0
@@ -591,7 +585,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
@@ -606,9 +600,9 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(b1, "bridge1"))
             store.create(bridge(b2, "bridge2"))
 
-            collector.awaitOnNext(3, WAIT_TIME)
+            collector.awaitOnNext(3, WAIT_TIME) shouldBe true
             session.unwatchAll(classOf[Network], req2)
-            collector.awaitOnNext(4, WAIT_TIME)
+            collector.awaitOnNext(4, WAIT_TIME) shouldBe true
 
             store.update(bridge(b1, "bridge1-update"))
             store.create(bridge(b3, "bridge3"))
@@ -629,7 +623,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             session.terminate()
@@ -646,7 +640,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
@@ -678,8 +672,8 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val partial = new TestObserver[Response] with AwaitableObserver[Response]
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val partial = new TestAwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs1 = session.observable().subscribe(partial)
 
             val req = UUID.randomUUID()
@@ -695,7 +689,7 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(b2, "bridge2"))
             store.update(bridge(b1, "bridge1-update1"))
 
-            partial.awaitOnNext(4, WAIT_TIME)
+            partial.awaitOnNext(4, WAIT_TIME) shouldBe true
             subs1.unsubscribe()
 
             store.create(bridge(b3, "bridge3"))
@@ -711,7 +705,7 @@ class SessionInventoryTest extends FeatureSpec
             store.delete(classOf[Network], UUIDUtil.toProto(b2))
 
             // await before unsubscribe, so that all events have arrived
-            collector.awaitOnNext(8, WAIT_TIME)
+            collector.awaitOnNext(8, WAIT_TIME) shouldBe true
             subs2.unsubscribe()
 
             collector.getOnCompletedEvents.isEmpty shouldBe true
@@ -740,8 +734,8 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val initial = new TestObserver[Response] with AwaitableObserver[Response]
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val initial = new TestAwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs1 = session.observable().subscribe(initial)
 
             val req = UUID.randomUUID()
@@ -755,12 +749,12 @@ class SessionInventoryTest extends FeatureSpec
             store.create(bridge(b2, "bridge2"))
             store.update(bridge(b1, "bridge1-update1"))
 
-            initial.awaitOnNext(3, WAIT_TIME)
+            initial.awaitOnNext(3, WAIT_TIME) shouldBe true
             subs1.unsubscribe()
 
             val subs2 = session.observable().subscribe(collector)
 
-            collector.awaitOnNext(4, WAIT_TIME)
+            collector.awaitOnNext(4, WAIT_TIME) shouldBe true
             subs2.unsubscribe()
 
             collector.getOnCompletedEvents.isEmpty shouldBe true
