@@ -46,6 +46,29 @@
       "revId": "473df291f4c2991c3059b1547c628f81840d359f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4eab52d6",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/topology/common/TopologyMappingsTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-27T14:37:52Z",
+      "side": 1,
+      "message": "The same comment here as Galo. Can you point to a failed job with more information?",
+      "range": {
+        "startLine": 31,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 5
+      },
+      "revId": "473df291f4c2991c3059b1547c628f81840d359f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
