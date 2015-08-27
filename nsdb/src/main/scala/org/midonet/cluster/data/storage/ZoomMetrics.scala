@@ -147,20 +147,20 @@ class JmxZoomMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
 
     registerMetrics()
 
-    private def gauge[T](f: Unit => T)(implicit ct: ClassTag[T]) =
+    private def gauge[T](f: () => T)(implicit ct: ClassTag[T]) =
         new Gauge[T] { override def getValue = f() }
 
     private def registerMetrics(): Unit = {
         val metricPrefix = "Zoom-" + zoom.basePath()
 
         registry.register(metricPrefix + "ZkConnectionState",
-                          gauge{ _ => zoom.zkConnectionState })
+                          gauge { zoom.zkConnectionState _ })
         registry.register(metricPrefix + "TypeObservableCount",
-                          gauge { _ => zoom.classObservableCount })
+                          gauge { zoom.classObservableCount _ })
         registry.register(metricPrefix + "ObjectObservableCount",
-                          gauge{_ => zoom.objectObservableCount })
+                          gauge { zoom.objectObservableCount _ })
         registry.register(metricPrefix + "ObjectObservableCountPerType",
-                          gauge { _ =>
+                          gauge { () =>
                               val res = new StringBuilder()
                               for ((clazz, count) <- zoom
                                   .objectObservableCounters) {
@@ -169,7 +169,7 @@ class JmxZoomMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
                               res.toString()
                           })
         registry.register(metricPrefix + "TypeObservableList",
-                          gauge { _ =>
+                          gauge { () =>
                               val classes = zoom.existingClassObservables
                               classes.foldLeft(
                                   new StringBuilder)((builder, clazz) => {
@@ -177,17 +177,17 @@ class JmxZoomMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
                                   }).toString()
                           })
         registry.register(metricPrefix + "ObjectWatchersTriggered",
-                          gauge { _ => objectWatcherTriggerCount.get() })
+                          gauge { objectWatcherTriggerCount.get })
         registry.register(metricPrefix + "TypeWatchersTriggered",
-                          gauge { _ => classWatcherTriggerCount.get() })
+                          gauge { classWatcherTriggerCount.get })
         registry.register(metricPrefix + "ObservablePrematureCloseCount",
-                          gauge { _ => nodeObservablePrematureCloseCount.get()})
+                          gauge { nodeObservablePrematureCloseCount.get })
         registry.register(metricPrefix + "ZKNoNodeExceptionCount",
-                          gauge { _ => zkNoNodeCount.get() })
+                          gauge { zkNoNodeCount.get })
         registry.register(metricPrefix + "ZKNodeExistsExceptionCount",
-                          gauge { _ => zkNodeExistsCount.get() })
+                          gauge { zkNodeExistsCount.get })
         registry.register(metricPrefix + "ZKConnectionLostExceptionCount",
-                          gauge { _ => zkConnectionLossCount.get()})
+                          gauge { zkConnectionLossCount.get })
 
         readLatencies = registry.histogram(metricPrefix + "readMicroSec")
         readChildrenLatencies = registry.histogram(metricPrefix +
