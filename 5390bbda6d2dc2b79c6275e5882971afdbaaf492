@@ -16,6 +16,24 @@
       "revId": "5390bbda6d2dc2b79c6275e5882971afdbaaf492",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b887c411",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-27T09:41:04Z",
+      "side": 1,
+      "message": "I fixed this and added shouldBe true for all awaitOnNext in this file.",
+      "parentUuid": "9ad9bd40_589238a0",
+      "revId": "5390bbda6d2dc2b79c6275e5882971afdbaaf492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
