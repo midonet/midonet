@@ -150,7 +150,7 @@ class TestableRtnetlinkConnection(channel: NetlinkChannel,
     val rtnetlinkNotificationReadThread = new Thread(s"$name-notification") {
         override def run(): Unit = try {
             NetlinkUtil.readNetlinkNotifications(notificationChannel,
-                notificationReader NetlinkMessage.HEADER_SIZE,
+                notificationReader, NetlinkMessage.HEADER_SIZE,
                 notificationObserver)
         } catch {
             case ex @ (_: InterruptedException |
