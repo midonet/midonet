@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_589238a0",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-27T09:07:36Z",
+      "side": 1,
+      "message": "Nit: shouldBe true",
+      "revId": "5390bbda6d2dc2b79c6275e5882971afdbaaf492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
