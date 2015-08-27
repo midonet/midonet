@@ -2,6 +2,69 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_ce2f62f5",
+        "filename": "python-midonetclient/src/midonetclient/condition.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-27T15:36:41Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 3,
+        "startChar": 12,
+        "endLine": 3,
+        "endChar": 16
+      },
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8eee3ab3",
+        "filename": "python-midonetclient/src/midonetclient/mirror.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-27T15:36:41Z",
+      "side": 1,
+      "message": "copyright",
+      "range": {
+        "startLine": 3,
+        "startChar": 12,
+        "endLine": 3,
+        "endChar": 16
+      },
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0e3a2a36",
+        "filename": "python-midonetclient/src/midonetclient/mirror.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-27T15:36:41Z",
+      "side": 1,
+      "message": "have you verified that parameters set this way can be updated and read back? the condition gave me trouble last week when I was doing this for trace requests. Also, could you update tracerequest.py to use this?",
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2ed0cef6",
         "filename": "python-midonetclient/src/midonetclient/mirror.py",
         "patchSetId": 4
