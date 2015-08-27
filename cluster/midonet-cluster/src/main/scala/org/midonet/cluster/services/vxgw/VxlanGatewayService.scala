@@ -27,6 +27,7 @@ import scala.concurrent.duration._
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.{Observable, Observer, Subscription}
@@ -36,6 +37,7 @@ import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Vtep
 import org.midonet.cluster.services.MidonetBackend.VtepVxgwManager
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{Snatcher, UUIDUtil, selfHealingTypeObservable}
 import org.midonet.midolman.state.ZookeeperConnectionWatcher
 import org.midonet.packets.IPv4Addr
@@ -60,6 +62,7 @@ class VxlanGatewayService @Inject()(
         nodeCtx: ClusterNode.Context,
         dataClient: DataClient,
         backend: MidonetBackend,
+        backendCfg: MidonetBackendConfig,
         ovsdbCnxnProvider: OvsdbVtepConnectionProvider,
         zkConnWatcher: ZookeeperConnectionWatcher,
         curator: CuratorFramework,
@@ -69,7 +72,7 @@ class VxlanGatewayService @Inject()(
 
     private val log = LoggerFactory.getLogger(vxgwLog)
 
-    private val fpManager = new FloodingProxyManager(backend)
+    private var fpManager: FloodingProxyManager = _
     private val vtepSyncers = new util.HashMap[UUID, Subscription]()
     private val knownVteps = new java.util.HashMap[UUID, Snatcher[Vtep]]
 
@@ -78,8 +81,6 @@ class VxlanGatewayService @Inject()(
         new NamedThreadFactory("vxgw-gateway-initializer", isDaemon = true)
     )
 
-    override def isEnabled = conf.vxgw.isEnabled
-
     private val maxVtepBuffer = 10000
     private val alertOverflow = makeAction0 {
         log.error("VTEP buffer overflow (>$maxVtepBuffer) - terminating")
@@ -87,22 +88,9 @@ class VxlanGatewayService @Inject()(
         shutdown()
     }
 
-    override def doStart(): Unit = {
-        log.info("Starting service")
-        // TODO: the FP manager will run with a latch
-        fpManager.start()
-        selfHealingTypeObservable[Topology.Vtep](backend.store)
-            .onBackpressureBuffer(maxVtepBuffer, alertOverflow)
-            .observeOn(Schedulers.from(executor))
-            .subscribe(new Observer[Observable[Topology.Vtep]] {
-                override def onCompleted(): Unit = {}
-                override def onError(e: Throwable): Unit = {}
-                override def onNext(v: Observable[Vtep]): Unit = {
-                    v.subscribe(watchVtep)
-                }
-            })
-        notifyStarted()
-    }
+    private val fpLatch = new LeaderLatch(curator, backendCfg.rootKey +
+                                          "/vxgw/fp-latch")
+    fpLatch.addListener(fpLatchListener)
 
     private def watchVtep = new Observer[Vtep] {
         var vtepId: UUID = null
@@ -130,6 +118,9 @@ class VxlanGatewayService @Inject()(
         }
     }
 
+    /** Whether the service is enabled on this Cluster node. */
+    override def isEnabled: Boolean = conf.vxgw.isEnabled
+
     private def startVtepSync(vtepId: UUID): Unit = {
 
         val loadOvdsbCnxn = (mgmtIp: IPv4Addr, mgmtPort: Int) => {
@@ -155,6 +146,20 @@ class VxlanGatewayService @Inject()(
         }
     }
 
+    override def doStart(): Unit = {
+        selfHealingTypeObservable[Topology.Vtep](backend.store)
+            .onBackpressureBuffer(maxVtepBuffer, alertOverflow)
+            .observeOn(Schedulers.from(executor))
+            .subscribe(new Observer[Observable[Topology.Vtep]] {
+                    override def onCompleted(): Unit = {}
+                    override def onError(e: Throwable): Unit = {}
+                    override def onNext(v: Observable[Vtep]): Unit = {
+                    v.subscribe(watchVtep)
+            }
+        })
+        notifyStarted()
+    }
+
     override def doStop(): Unit = {
         try {
             shutdown()
@@ -169,10 +174,24 @@ class VxlanGatewayService @Inject()(
     }
 
     private def shutdown(): Unit = {
+        fpLatch.close()
+        fpLatch.removeListener(fpLatchListener)
         executor.shutdown()
         if (!executor.awaitTermination(5, SECONDS)) {
             log.warn("Failed to stop executor orderly, insisting..")
             executor.shutdownNow()
+        }
+    }
+
+    private val fpLatchListener = new LeaderLatchListener {
+        override def isLeader(): Unit = {
+            fpManager = new FloodingProxyManager(backend)
+            fpManager.start()
+        }
+        override def notLeader(): Unit = {
+            val oldFpManager = fpManager
+            fpManager = null
+            oldFpManager.stop()
         }
     }
 
