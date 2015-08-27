@@ -163,6 +163,7 @@ class FlowTracingSchemaTest extends FeatureSpec
                 if (countId1 == 90) {
                     Thread.sleep(1000)
                     filterTime = System.currentTimeMillis
+                    Thread.sleep(1000)
                 }
             }
 
