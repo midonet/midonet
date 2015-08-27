@@ -135,7 +135,8 @@ public interface NetworkApi {
      * @return Updated Subnet object
      */
     Subnet updateSubnet(@Nonnull UUID id, @Nonnull Subnet subnet)
-            throws StateAccessException, SerializationException;
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException;
 
     /**
      * Create a new port data in the data store. StatePathExistsException

@@ -18,6 +18,8 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.*;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -79,16 +81,23 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         return Rule.class;
     }
 
+    public void prepareRuleAppendToEndOfChain(List<Op> ops, Rule rule)
+        throws RuleIndexOutOfBoundsException, SerializationException,
+               StateAccessException {
+        List<Rule> rules = new ArrayList<>(1);
+        rules.add(rule);
+        prepareRulesAppendToEndOfChain(ops, rule.chainId, rules);
+    }
+
     public void prepareRulesAppendToEndOfChain(List<Op> ops, UUID chainId,
-                                                   List<Rule> rules)
+                                               List<Rule> rules)
             throws RuleIndexOutOfBoundsException, StateAccessException,
             SerializationException {
 
         List<UUID> newRuleIds = new ArrayList<>();
         for (Rule r : rules) {
-            UUID id = UUID.randomUUID();
-            newRuleIds.add(id);
-            ops.addAll(prepareRuleCreate(id, r));
+            newRuleIds.add(r.id);
+            ops.addAll(prepareRuleCreate(r.id, r));
         }
 
         // Get the ordered list of rules for this chain
@@ -101,7 +110,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
 
         String path = paths.getChainRulesPath(chainId);
         ops.add(Op.setData(path, serializer.serialize(new RuleList(ruleIds)),
-            version));
+                           version));
     }
 
     public List<Op> prepareInsertPositionOrdering(UUID id, Rule ruleConfig,
@@ -168,7 +177,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         ruleIds.remove(id);
         String path = paths.getChainRulesPath(ruleConfig.chainId);
         ops.add(Op.setData(path, serializer.serialize(new RuleList(ruleIds)),
-                version));
+                           version));
 
         return ops;
     }
@@ -224,6 +233,13 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
                 version));
     }
 
+    public void prepareReplaceRule(List<Op> ops, Rule ruleToAdd)
+        throws SerializationException, StateAccessException,
+               RuleIndexOutOfBoundsException {
+        Rule ruleToRemove = get(ruleToAdd.id);
+        prepareReplaceRule(ops, ruleToAdd.id, ruleToRemove, ruleToAdd.id,
+                           ruleToAdd);
+    }
     public void prepareReplaceRule(List<Op> ops, UUID ruleIdToRemove,
                                    Rule ruleToRemove, UUID ruleIdToAdd,
                                    Rule ruleToAdd)
@@ -296,8 +312,8 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         UUID portGroupId = ruleConfig.getCondition().portGroup;
         if (portGroupId != null) {
             ops.add(Op.create(
-                    paths.getPortGroupRulePath(portGroupId, id), null,
-                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                paths.getPortGroupRulePath(portGroupId, id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
 
         // Add a reference entry to the IP address group(s) if specified.
@@ -343,7 +359,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         UUID portGroupId = rule.getCondition().portGroup;
         if (portGroupId != null) {
             ops.add(Op.delete(
-                    paths.getPortGroupRulePath(portGroupId, id), -1));
+                paths.getPortGroupRulePath(portGroupId, id), -1));
         }
 
         // Remove the reference(s) from the IP address group(s).
@@ -437,7 +453,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
 
         // Since it's a new chain, no need to check the version
         ops.add(Op.setData(paths.getChainRulesPath(rule.chainId),
-                serializer.serialize(new RuleList(ruleIds)), -1));
+                           serializer.serialize(new RuleList(ruleIds)), -1));
 
         return id;
     }
@@ -468,22 +484,23 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         String path = paths.getChainRulesPath(chainId);
 
         zk.asyncGet(
-                path,
-                DirectoryCallbackFactory.transform(
-                        ruleIdsCallback,
-                        new Functor<byte[], List<UUID>>() {
-                            @Override
-                            public List<UUID> apply(byte[] arg0) {
-                                try {
-                                    return serializer.deserialize(arg0,
-                                            RuleList.class).getRuleList();
-                                } catch (SerializationException e) {
-                                    log.warn("Could not deserialize RuleList data");
-                                }
-                                return null;
-                            }
-                        }),
-                watcher);
+            path,
+            DirectoryCallbackFactory.transform(
+                ruleIdsCallback,
+                new Functor<byte[], List<UUID>>() {
+                    @Override
+                    public List<UUID> apply(byte[] arg0) {
+                        try {
+                            return serializer.deserialize(arg0,
+                                                          RuleList.class)
+                                .getRuleList();
+                        } catch (SerializationException e) {
+                            log.warn("Could not deserialize RuleList data");
+                        }
+                        return null;
+                    }
+                }),
+            watcher);
     }
 
     /**
@@ -537,7 +554,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             .toIp(matchIp)
             .destNat(new NatTarget(newTarget, 0, 0));
         return prepareReplaceRules(ops, chainId,
-            new DnatRuleMatcher(oldTarget), r);
+                                   new DnatRuleMatcher(oldTarget), r);
     }
 
     public UUID prepareReplaceSnatRules(List<Op> ops, UUID chainId, UUID portId,
@@ -655,16 +672,13 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         return newId;
     }
 
-    private UUID prepareCreateRuleFirstPosition(List<Op> ops, Rule rule)
+    public void prepareCreateRuleFirstPosition(List<Op> ops, Rule rule)
             throws RuleIndexOutOfBoundsException, SerializationException,
             StateAccessException {
-
-        UUID id = UUID.randomUUID();
-        ops.addAll(prepareInsertPositionOrdering(id, rule, 1));
-        return id;
+        ops.addAll(prepareInsertPositionOrdering(rule.id, rule, 1));
     }
 
-    public UUID prepareCreateStaticSnatRule(List<Op> ops, UUID chainId,
+    public void prepareCreateStaticSnatRule(List<Op> ops, UUID chainId,
                                             UUID portId, IPv4Addr matchIp,
                                             IPv4Addr targetIp)
             throws RuleIndexOutOfBoundsException, SerializationException,
@@ -673,10 +687,10 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             .goingOutPort(portId)
             .fromIp(matchIp)
             .sourceNat(new NatTarget(targetIp, 0, 0));
-        return prepareCreateRuleFirstPosition(ops, rule);
+        prepareCreateRuleFirstPosition(ops, rule);
     }
 
-    public UUID prepareCreateStaticDnatRule(List<Op> ops, UUID chainId,
+    public void prepareCreateStaticDnatRule(List<Op> ops, UUID chainId,
                                             UUID portId, IPv4Addr matchIp,
                                             IPv4Addr targetIp)
             throws RuleIndexOutOfBoundsException, SerializationException,
@@ -685,7 +699,60 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             .comingInPort(portId)
             .toIp(matchIp)
             .destNat(new NatTarget(targetIp, 0, 0));
-        return prepareCreateRuleFirstPosition(ops, rule);
+        prepareCreateRuleFirstPosition(ops, rule);
+    }
+
+    public Rule sourceNatRule(UUID chainId, UUID inPortId,
+                              UUID outPortId, IPv4Addr addr,
+                              RuleResult.Action action) {
+        return sourceNatRule(UUID.randomUUID(), chainId, inPortId, outPortId,
+                             addr, action);
+    }
+
+    public Rule sourceNatRule(UUID ruleId, UUID chainId, UUID inPortId,
+                              UUID outPortId, IPv4Addr addr,
+                              RuleResult.Action action) {
+        Preconditions.checkNotNull(ruleId);
+        Preconditions.checkNotNull(chainId);
+        Preconditions.checkNotNull(addr);
+
+        RuleBuilder rb = new RuleBuilder(ruleId, chainId);
+        if (inPortId != null) {
+            rb.comingInPort(inPortId);
+        }
+
+        if (outPortId != null) {
+            rb.goingOutPort(outPortId);
+        }
+
+        return rb.sourceNat(new NatTarget(addr), action);
+    }
+
+    public Rule reverseSourceNatRule(UUID chainId, UUID inPortId,
+                                     UUID outPortId, IPv4Addr addr) {
+        return reverseSourceNatRule(UUID.randomUUID(), chainId, inPortId,
+                                    outPortId, addr);
+    }
+
+    public Rule reverseSourceNatRule(UUID ruleId, UUID chainId, UUID inPortId,
+                                     UUID outPortId, IPv4Addr addr) {
+        Preconditions.checkNotNull(ruleId);
+        Preconditions.checkNotNull(chainId);
+
+        RuleBuilder rb = new RuleBuilder(ruleId, chainId);
+        if (inPortId != null) {
+            rb.comingInPort(inPortId);
+        }
+
+        if (outPortId != null) {
+            rb.goingOutPort(outPortId);
+        }
+
+        if (addr != null) {
+            rb.hasDestIp(addr);
+        }
+
+        return rb.reverseSourceNat();
     }
 
     public void prepareCreateSourceNatRules(List<Op> ops, UUID inboundChainId,
@@ -693,29 +760,25 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
                                             IPv4Addr addr)
             throws SerializationException, StateAccessException,
             RuleIndexOutOfBoundsException {
-        Rule sourceNat = new RuleBuilder(outboundChainId)
-            .goingOutPort(portId)
-            .notSrcIp(addr)
-            .sourceNat(new NatTarget(addr));
+        Rule sourceNat = sourceNatRule(outboundChainId, null, portId, addr,
+                                       RuleResult.Action.ACCEPT);
         Rule dropUnmatched = new RuleBuilder(outboundChainId)
             .isAnyFragmentState()
             .goingOutPort(portId)
             .notSrcIp(addr)
             .drop();
 
-        Rule reverseSourceNat = new RuleBuilder(inboundChainId)
-            .hasDestIp(addr)
-            .comingInPort(portId)
-            .reverseSourceNat();
+        Rule reverseSourceNat = reverseSourceNatRule(inboundChainId, portId,
+                                                     null, addr);
         Rule dropSourceNat = new RuleBuilder(inboundChainId)
             .notICMP()
             .hasDestIp(addr)
             .drop();
 
-        ArrayList<Rule> outboudRules = new ArrayList<>(2);
-        outboudRules.add(sourceNat);
-        outboudRules.add(dropUnmatched);
-        prepareRulesAppendToEndOfChain(ops, outboundChainId, outboudRules);
+        ArrayList<Rule> outboundRules = new ArrayList<>(2);
+        outboundRules.add(sourceNat);
+        outboundRules.add(dropUnmatched);
+        prepareRulesAppendToEndOfChain(ops, outboundChainId, outboundRules);
 
         ArrayList<Rule> inboundRules = new ArrayList<>(2);
         inboundRules.add(reverseSourceNat);

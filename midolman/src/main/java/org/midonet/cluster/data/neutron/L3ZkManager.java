@@ -23,7 +23,8 @@ import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 
-import org.midonet.cluster.data.Rule;
+import org.midonet.midolman.rules.Rule;
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
@@ -35,6 +36,8 @@ import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
+import org.midonet.util.UUIDUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +80,15 @@ public class L3ZkManager extends BaseZkManager {
         this.ruleZkManager = ruleZkManager;
     }
 
+    /**
+     * Deterministically generate the local SNAT rule ID from chain ID.
+     */
+    public static UUID localSnatRuleId(UUID chainId) {
+        return UUIDUtil.xor(chainId,
+                            UUID.fromString(
+                                "3bcf2eb6-4be2-11e5-84ae-0242ac110003"));
+    }
+
     public Router getRouter(UUID routerId) throws StateAccessException,
         SerializationException {
 
@@ -114,7 +126,7 @@ public class L3ZkManager extends BaseZkManager {
 
     public void prepareCreateRouter(List<Op> ops, Router router)
             throws SerializationException, StateAccessException,
-            Rule.RuleIndexOutOfBoundsException {
+                   org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
 
         UUID preChainId = prepareCreateChain(ops, router.preRouteChainName(),
                                              router.tenantId);
@@ -176,19 +188,36 @@ public class L3ZkManager extends BaseZkManager {
         RouterConfig config = routerZkManager.get(router.id);
         config.name = router.name;
         config.adminStateUp = router.adminStateUp;
-        List<Op> updateOps = routerZkManager.prepareUpdate(router.id,
-                config);
+        List<Op> updateOps = routerZkManager.prepareUpdate(router.id, config);
         if (updateOps != null) {
             ops.addAll(updateOps);
         }
 
         // Update the neutron router config
         ops.add(zk.getSetDataOp(paths.getNeutronRouterPath(router.id),
-                serializer.serialize(router)));
+                                serializer.serialize(router)));
+    }
+
+    private Rule getLocalSnatRule(UUID chainId, UUID routerPortId,
+                                  IPv4Addr routerAddr) {
+        Rule snatRule = ruleZkManager.sourceNatRule(
+            localSnatRuleId(chainId), chainId, routerPortId,
+            routerPortId, routerAddr, RuleResult.Action.RETURN);
+        // Exclude metadata IP
+        snatRule.getCondition().nwDstIp = MetaDataService.IPv4_SUBNET;
+        snatRule.getCondition().nwDstInv = true;
+        return snatRule;
+    }
+
+    private Rule getReverseLocalSnatRule(UUID chainId, UUID routerPortId,
+                                         IPv4Addr routerAddr) {
+        return ruleZkManager.reverseSourceNatRule(
+            localSnatRuleId(chainId), chainId, routerPortId, null, routerAddr);
     }
 
     public void prepareCreateRouterInterface(List<Op> ops, RouterInterface rInt)
-            throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException,
+               org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
 
         Port port = networkZkManager.getPort(rInt.portId);
         Subnet subnet = networkZkManager.getSubnet(rInt.subnetId);
@@ -225,18 +254,18 @@ public class L3ZkManager extends BaseZkManager {
         // For IPv6, this is not supported
         if (!subnet.isIpv4()) return;
 
-        int routerAddress;
+        IPv4Addr routerAddr = null;
         if (port.firstIpv4Addr() != null) {
-            routerAddress = port.firstIpv4Addr().toInt();
+            routerAddr = port.firstIpv4Addr();
         } else {
-            routerAddress = subnet.gwIpInt();
+            routerAddr = (IPv4Addr) subnet.gatewayIpAddr();
         }
 
         // Create a router port
         UUID rpId = UUID.randomUUID();
         RouterPortConfig rpConfig = new RouterPortConfig(rInt.id,
                 subnet.cidrAddressInt(), subnet.cidrAddressLen(),
-                routerAddress, true);
+                routerAddr.toInt(), true);
         ops.addAll(portZkManager.prepareCreate(rpId, rpConfig));
 
         // Link them
@@ -247,6 +276,17 @@ public class L3ZkManager extends BaseZkManager {
                 new IPv4Subnet(0, 0), subnet.ipv4Subnet(), rpId, null, rInt.id,
                 rpConfig);
 
+        // Add a dynamic SNAT rule and the reverse SNAT on the router chains
+        // so that for any traffic that was DNATed back to the same network
+        // would still work by forcing it to come back to the router.  Such
+        // cases include Floating IP and VIP.
+        RouterConfig rCfg = routerZkManager.get(rInt.id);
+        Rule snatRule = getLocalSnatRule(rCfg.outboundFilter, rpId,
+                                         routerAddr);
+        Rule revSnatRule = getReverseLocalSnatRule(rCfg.inboundFilter, rpId,
+                                                   routerAddr);
+        ruleZkManager.prepareRuleAppendToEndOfChain(ops, snatRule);
+        ruleZkManager.prepareCreateRuleFirstPosition(ops, revSnatRule);
 
         Port dPort = networkZkManager.getDhcpPort(subnet.networkId);
         if (dPort != null && dPort.hasIp()) {
@@ -270,7 +310,8 @@ public class L3ZkManager extends BaseZkManager {
     }
 
     public void prepareUpdateSubnet(List<Op> ops, Subnet subnet)
-        throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException,
+               org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
 
         // Find the router interface with this subnet ID
         Port port = findRouterInterfacePort(subnet.id);
@@ -280,8 +321,63 @@ public class L3ZkManager extends BaseZkManager {
             // Subnet is linked to a router, so update the gateway port on
             // this subnet
             PortConfig netPort = portZkManager.get(port.id);
-            portZkManager.prepareUpdatePortAddress(ops, netPort.getPeerId(),
-                                                   subnet.gwIpInt());
+            RouterPortConfig rPort = (RouterPortConfig) portZkManager.get(
+                netPort.peerId);
+            IPv4Addr addr = (IPv4Addr) subnet.gatewayIpAddr();
+            portZkManager.prepareUpdatePortAddress(ops, rPort, addr.toInt());
+
+            // If the gateway IP address changes, the SNAT rules must change on
+            // the router
+            RouterConfig rCfg = routerZkManager.get(rPort.device_id);
+            Rule snatRule = getLocalSnatRule(rCfg.outboundFilter, rPort.id,
+                                             addr);
+            Rule revSnatRule = getReverseLocalSnatRule(rCfg.inboundFilter,
+                                                       rPort.id, addr);
+
+            // For backward compatibility, check whether these rules exist
+            if (ruleZkManager.exists(snatRule.id)) {
+                ruleZkManager.prepareReplaceRule(ops, snatRule);
+            } else {
+                ruleZkManager.prepareRuleAppendToEndOfChain(ops, snatRule);
+            }
+
+            if (ruleZkManager.exists(revSnatRule.id)) {
+                ruleZkManager.prepareReplaceRule(ops, revSnatRule);
+            } else {
+                ruleZkManager.prepareCreateRuleFirstPosition(ops, revSnatRule);
+            }
+        }
+    }
+
+    public void prepareDeleteRouterInterface(List<Op> ops, UUID portId)
+        throws StateAccessException, SerializationException {
+        networkZkManager.prepareDeletePortConfig(ops, portId);
+
+        // Delete local SNAT rules
+        PortConfig portConfig = portZkManager.get(portId);
+
+        if (portConfig.peerId == null) {
+            // Log and exit in the peer ID is null.  This should not happen,
+            // but since MidoNet API and Neutron API still get used
+            // simultaneously, it is possible that the data got corrupted.  For
+            // deletion, allow this operation to complete so that the user can
+            // clean up the data.
+            log.warn("Router interface does not have a peer port: " + portId);
+            return;
+        }
+
+        PortConfig rPortConfig = portZkManager.get(portConfig.peerId);
+        RouterConfig routerConfig = routerZkManager.get(rPortConfig.device_id);
+        UUID snatRuleId = localSnatRuleId(routerConfig.outboundFilter);
+        UUID revSnatRuleId = localSnatRuleId(routerConfig.inboundFilter);
+
+        // For backward compatibility, check the rules' existence first
+        if (ruleZkManager.exists(snatRuleId)) {
+            ops.addAll(ruleZkManager.prepareDelete(snatRuleId));
+        }
+
+        if (ruleZkManager.exists(revSnatRuleId)) {
+            ops.addAll(ruleZkManager.prepareDelete(revSnatRuleId));
         }
     }
 
@@ -359,7 +455,7 @@ public class L3ZkManager extends BaseZkManager {
 
     public void prepareDeleteGatewayPort(List<Op> ops, Port port)
             throws SerializationException, StateAccessException,
-            Rule.RuleIndexOutOfBoundsException {
+                   org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
 
         networkZkManager.prepareDeletePortConfig(ops, port.id);
 
@@ -422,7 +518,7 @@ public class L3ZkManager extends BaseZkManager {
                                             UUID inboundChainId,
                                             UUID outboundChainId)
             throws SerializationException, StateAccessException,
-            Rule.RuleIndexOutOfBoundsException {
+                   org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
 
         // Get the gateway port info.  We can assume that there is one
         // IP address assigned to this, which is reserved for gw IP.
