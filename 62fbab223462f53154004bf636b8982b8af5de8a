@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f3d08fcb",
+        "filename": "tests/mdts/tests/functional_tests/test_tracing.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-27T13:15:41Z",
+      "side": 1,
+      "message": "does this mean forward and return packets are not linked?",
+      "revId": "62fbab223462f53154004bf636b8982b8af5de8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_934ae3aa",
+        "filename": "tests/mdts/tests/functional_tests/test_tracing.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-27T13:15:41Z",
+      "side": 1,
+      "message": "these assertions seem equal to the ones above. what am i missing?",
+      "revId": "62fbab223462f53154004bf636b8982b8af5de8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
