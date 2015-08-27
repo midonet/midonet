@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f8578cc8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-08-27T09:25:37Z",
+      "side": 1,
+      "message": "I mean all the ports referenced from a vtep, gathering them as you suggest. But my point is that we can move tracking the vtep-related stuff to the port mapper, so that when you request a vxport from the VT that info is already there. \n\nThat way you don\u0027t need to implement a new POrtStae here and all the mapping stuff, and instead it gets integrated in the mapper.",
+      "parentUuid": "9ad9bd40_352584ab",
+      "range": {
+        "startLine": 100,
+        "startChar": 4,
+        "endLine": 128,
+        "endChar": 5
+      },
+      "revId": "250c11f3b2ab90a31c3b5b9d428850b814f58ebf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7e57f126",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 2
