@@ -125,6 +125,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
                 Await.result(vtepHandle.physicalSwitch, timeout)
             } shouldBe Some(ps)
         }
+
         scenario("Get the logical switch") {
             val ls = newLogicalSwitch()
             vtep.putEntry(lsTable, ls, ls.getClass)
@@ -132,6 +133,25 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
                                                vtepThread)
 
             Await.result(vtepHandle.logicalSwitch(ls.name), timeout) shouldBe Some(ls)
+        }
+
+        scenario("Get non-existing physical port") {
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
+                                               vtepThread)
+
+            Await.result(vtepHandle.physicalPort(UUID.randomUUID),
+                         timeout) shouldBe None
+        }
+
+        scenario("Get an existing physical port") {
+            val port = new PhysicalPort(UUID.randomUUID, "port", "",
+                                        Map.empty, Map.empty, Set.empty)
+            vtep.putEntry(portTable, port, port.getClass)
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
+                                               vtepThread)
+
+            Await.result(vtepHandle.physicalPort(port.uuid),
+                         timeout) shouldBe Some(port)
         }
     }
     feature("Mac remote updater") {
