@@ -46,6 +46,30 @@
       "revId": "d9f5c84ef2db60919270586f464431566950c10e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_181430f4",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/southbound/vtep/schema/LogicalSwitchTable.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-27T09:27:40Z",
+      "side": 1,
+      "message": "Ah.. okay!",
+      "parentUuid": "9ad9bd40_98b5a033",
+      "range": {
+        "startLine": 17,
+        "startChar": 8,
+        "endLine": 17,
+        "endChar": 51
+      },
+      "revId": "d9f5c84ef2db60919270586f464431566950c10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
