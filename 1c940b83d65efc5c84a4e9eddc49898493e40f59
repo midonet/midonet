@@ -65,6 +65,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a99a18c3",
+        "filename": "python-midonetclient/src/midonetclient/mirror.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-27T17:16:31Z",
+      "side": 1,
+      "message": "Yes I\u0027ve verified. If you look at the CLI patch, you\u0027ll see that I had to extend the CLI to support this type of list.\n\nNote that it means that the whole condition objects become embedded into their parent object in the json, without a specific Condition API resource.\n\nI that sounds good to you, I\u0027ll happily update trace conditions.",
+      "parentUuid": "9ad9bd40_0e3a2a36",
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2ed0cef6",
         "filename": "python-midonetclient/src/midonetclient/mirror.py",
         "patchSetId": 4
@@ -76,6 +94,30 @@
       "writtenOn": "2015-08-27T15:13:00Z",
       "side": 1,
       "message": "I assume this is intentional?",
+      "range": {
+        "startLine": 48,
+        "startChar": 15,
+        "endLine": 48,
+        "endChar": 61
+      },
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_49642ce5",
+        "filename": "python-midonetclient/src/midonetclient/mirror.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-27T17:16:31Z",
+      "side": 1,
+      "message": "Yes, because conditions are not separate URIs but directly embedded in the JSON, I didn\u0027t create a resource for them.",
+      "parentUuid": "9ad9bd40_2ed0cef6",
       "range": {
         "startLine": 48,
         "startChar": 15,
