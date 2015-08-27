@@ -59,6 +59,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
     var endPoint: VtepEndPoint = _
     var db: DatabaseSchema = _
     var vxlanIp: IPv4Addr = _
+    var ps: PhysicalSwitch = _
 
     val otherThread = Executors.newCachedThreadPool()
     val otherContext = ExecutionContext.fromExecutor(otherThread)
@@ -92,9 +93,9 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
             PhysicalPort(UUID.randomUUID(), "p1", "p1-desc"),
             PhysicalPort(UUID.randomUUID(), "p2", "p2-desc")
         )
-        val ps = PhysicalSwitch(UUID.randomUUID(), "vtep", "vtep-desc",
-                                ports.map(_.uuid).toSet, Set(endPoint.mgmtIp),
-                                Set(vxlanIp))
+        ps = PhysicalSwitch(UUID.randomUUID(), "vtep", "vtep-desc",
+                            ports.map(_.uuid).toSet, Set(endPoint.mgmtIp),
+                            Set(vxlanIp))
         vtep.putEntry(psTable, ps, ps.getClass)
         ports.foreach(p => vtep.putEntry(portTable, p, p.getClass))
 
@@ -117,13 +118,21 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
     def timed[U](t: Duration)(u: => U): U =
         Await.result(Future {blocking {u}} (otherContext), t)
 
-    feature("Tunnel IP") {
-        scenario("get tunnel ip") {
+    feature("Physical and logical switches") {
+        scenario("Get the physical switch") {
             val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
                                                vtepThread)
             timed(timeout) {
-                Await.result(vtepHandle.vxlanTunnelIp, timeout)
-            } shouldBe Some(vxlanIp)
+                Await.result(vtepHandle.physicalSwitch, timeout)
+            } shouldBe Some(ps)
+        }
+        scenario("Get the logical switch") {
+            val ls = newLogicalSwitch()
+            vtep.putEntry(lsTable, ls, ls.getClass)
+            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
+                                               vtepThread)
+
+            Await.result(vtepHandle.logicalSwitch(ls.name), timeout) shouldBe Some(ls)
         }
     }
     feature("Mac remote updater") {

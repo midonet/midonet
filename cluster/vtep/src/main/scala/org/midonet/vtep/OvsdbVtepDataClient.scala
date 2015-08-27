@@ -30,7 +30,7 @@ import rx.subjects.BehaviorSubject
 import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState._
-import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation, VtepEndPoint}
+import org.midonet.cluster.data.vtep.model.{PhysicalSwitch, LogicalSwitch, MacLocation, VtepEndPoint}
 import org.midonet.cluster.data.vtep.{VtepData, VtepDataClient, VtepStateException}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -120,8 +120,12 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
 
     override def observable = stateSubject.asObservable()
 
-    override def vxlanTunnelIp: Future[Option[IPv4Addr]] = {
-        onReady { _.vxlanTunnelIp }
+    override def physicalSwitch: Future[Option[PhysicalSwitch]] = {
+        onReady { _.physicalSwitch }
+    }
+
+    override def logicalSwitch(name: String): Future[Option[LogicalSwitch]] = {
+        onReady { _.logicalSwitch(name) }
     }
 
     override def macLocalUpdates: Observable[MacLocation] = {

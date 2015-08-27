@@ -18,16 +18,14 @@ package org.midonet.cluster.data.vtep
 
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 
-import rx.{Notification, Observable, Observer}
+import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState.State
-import org.midonet.cluster.data.vtep.model.{VtepEndPoint, MacLocation, LogicalSwitch}
-import org.midonet.packets.IPv4Addr
+import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation, PhysicalSwitch, VtepEndPoint}
 import org.midonet.util.functors.makeFunc1
-import org.midonet.util.reactivex._
 
 /**
  * A client class for the connection to a VTEP-enabled switch. A client
@@ -128,8 +126,11 @@ object VtepConnection {
  */
 trait VtepData {
 
-    /** Return the VTEP tunnel IP */
-    def vxlanTunnelIp: Future[Option[IPv4Addr]]
+    /** Returns the VTEP physical switch. */
+    def physicalSwitch: Future[Option[PhysicalSwitch]]
+
+    /** Returns the VTEP logical switch. */
+    def logicalSwitch(name: String): Future[Option[LogicalSwitch]]
 
     /** The Observable that emits updates in the *cast_Mac_Local tables, with
       * MACs that are local to the VTEP and should be published to other
