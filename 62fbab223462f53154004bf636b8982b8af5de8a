@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ae8e9e25",
+        "filename": "tests/mdts/tests/functional_tests/test_tracing.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-27T15:10:30Z",
+      "side": 1,
+      "message": "Not currently. We should add it and I\u0027ve thought about how to do it, but it\u0027s never been resourced.",
+      "parentUuid": "9ad9bd40_f3d08fcb",
+      "revId": "62fbab223462f53154004bf636b8982b8af5de8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_934ae3aa",
         "filename": "tests/mdts/tests/functional_tests/test_tracing.py",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2015-08-27T13:15:41Z",
       "side": 1,
       "message": "these assertions seem equal to the ones above. what am i missing?",
+      "revId": "62fbab223462f53154004bf636b8982b8af5de8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4e9fd250",
+        "filename": "tests/mdts/tests/functional_tests/test_tracing.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-27T15:10:30Z",
+      "side": 1,
+      "message": "There\u0027s a 0 on line 181 that\u0027s a 1 on line 182. Its getting the number of hosts that added traces for a flow trace and asserting that it\u0027s 2 (ingress and egress host).",
+      "parentUuid": "9ad9bd40_934ae3aa",
       "revId": "62fbab223462f53154004bf636b8982b8af5de8a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
