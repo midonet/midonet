@@ -41,7 +41,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
     override protected def translateCreate(ri : NeutronRouterInterface)
     : MidoOpList = {
         // At this point, we will already have translated the task to create
-        // the NeutronPort with id nm.getPortId.
+        // the NeutronPort with id ri.getPortId.
         val nPort = storage.get(classOf[NeutronPort], ri.getPortId).await()
 
         // A NeutronRouterInterface is a link between a Neutron router and a
@@ -147,7 +147,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         List()
     }
 
-    override protected def translateUpdate(nm: NeutronRouterInterface)
+    override protected def translateUpdate(ri: NeutronRouterInterface)
     : MidoOpList = {
         throw new IllegalArgumentException(
             "NeutronRouterInterface update not supported.")
