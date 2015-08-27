@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_b81184b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-27T10:06:17Z",
+      "side": 1,
+      "message": "i somehow had an (probably wrong) impression that a vport always involves zk.\n\ni\u0027ll add a revisit comment for now.",
+      "parentUuid": "9ad9bd40_9819207c",
+      "revId": "6b9bed76aa37510b3d7879d5ff1ba931b334b574",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d82ac87d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
         "patchSetId": 34
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d82f28f5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-27T10:06:17Z",
+      "side": 1,
+      "message": "this comment is talking about the case where VM makes metadata requests before we finish processing LocalPortActive.\n\ni guess you are talking about some different situation.\ncan you explain a little?",
+      "parentUuid": "9ad9bd40_d82ac87d",
+      "revId": "6b9bed76aa37510b3d7879d5ff1ba931b334b574",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f81f8c59",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/NovaMetadataClient.scala",
         "patchSetId": 34
@@ -47,6 +83,24 @@
       "writtenOn": "2015-08-27T08:40:15Z",
       "side": 1,
       "message": "this is no longer true, right?",
+      "revId": "6b9bed76aa37510b3d7879d5ff1ba931b334b574",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b8034475",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/NovaMetadataClient.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-27T10:06:17Z",
+      "side": 1,
+      "message": "the fact a request is reaching here implies that datapath was able to forward packets to us.  it also implies IntanceInfo for the requesting VM is ready.",
+      "parentUuid": "9ad9bd40_f81f8c59",
       "revId": "6b9bed76aa37510b3d7879d5ff1ba931b334b574",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
