@@ -106,6 +106,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7de1ae99",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-27T07:55:48Z",
+      "side": 1,
+      "message": "So the problem is that for loops are closures in Scala. This means that each time this loop runs Scala will create a new object for the closure. In the packet processing pipeline we use while() loops for that reason, to avoid the allocation.",
+      "parentUuid": "9ad9bd40_1aa2689a",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e3f77357",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 8
