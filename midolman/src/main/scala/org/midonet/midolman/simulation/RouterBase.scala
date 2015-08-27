@@ -295,7 +295,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
         implicit val packetContext = context
 
-        if (context.wcmatch.getNetworkDstIP == outPort.portAddr.getAddress) {
+        if (context.wcmatch.getNetworkDstIP == outPort.portAddress) {
             context.log.warn("Got a packet addressed to a port without a LOCAL route")
             return Drop
         }

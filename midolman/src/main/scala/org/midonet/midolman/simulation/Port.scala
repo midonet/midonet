@@ -16,11 +16,8 @@
 
 package org.midonet.midolman.simulation
 
+import java.util
 import java.util.UUID
-import java.util.ArrayList
-import org.midonet.midolman.simulation.Simulator.{SimHook, ToPortAction}
-
-import scala.collection.JavaConverters._
 
 import scala.collection.JavaConverters._
 
@@ -28,25 +25,30 @@ import akka.actor.ActorSystem
 
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.{Commons, Topology}
-import org.midonet.cluster.util.{IPSubnetUtil, IPAddressUtil, UUIDUtil}
-import org.midonet.midolman.PacketWorkflow.{SimStep, AddVirtualWildcardFlow, ErrorDrop, Drop, SimulationResult}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, Drop, ErrorDrop, SimStep, SimulationResult}
+import org.midonet.midolman.simulation.Simulator.{SimHook, ToPortAction}
 import org.midonet.midolman.state.PortConfig
 import org.midonet.midolman.state.PortDirectory.{BridgePortConfig, RouterPortConfig, VxLanPortConfig}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.midolman.simulation.Port.EmptyIpList
 
 object Port {
+
     import IPAddressUtil._
     import IPSubnetUtil._
     import UUIDUtil.{fromProto, fromProtoList}
+
+    val EmptyIpList = new util.ArrayList[UUID](0)
 
     private implicit def jlistToSSet(from: java.util.List[Commons.UUID]): Set[UUID] =
         if (from ne null) from.asScala.toSet map UUIDUtil.fromProto else Set.empty
 
     private def jSetToJArrayList(from: java.util.Set[UUID]): java.util.ArrayList[UUID] =
-        if (from ne null) new ArrayList(from) else new ArrayList(0)
+        if (from ne null) new util.ArrayList(from) else EmptyIpList
 
     def apply(proto: Topology.Port): Port = {
         if (proto.hasVtepId)
@@ -138,7 +140,7 @@ trait Port extends VirtualDevice with InAndOutFilters with Cloneable {
     def hostId: UUID
     def interfaceName: String
     def adminStateUp: Boolean
-    def portGroups: ArrayList[UUID] = new ArrayList(0)
+    def portGroups: util.ArrayList[UUID] = EmptyIpList
     def isActive: Boolean = false
     def deviceId: UUID
     def vlanId: Short = Bridge.UntaggedVlanId
@@ -217,7 +219,7 @@ trait Port extends VirtualDevice with InAndOutFilters with Cloneable {
         c.outPortId = id
     }
 
-    private[this] val ingressDevice: SimStep = (context, as) => {
+    private[this] lazy val ingressDevice: SimStep = (context, as) => {
         val dev = device(as)
         dev.continue(context, dev.process(context))(as)
     }
@@ -242,7 +244,7 @@ case class BridgePort(override val id: UUID,
                       override val hostId: UUID = null,
                       override val interfaceName: String = null,
                       override val adminStateUp: Boolean = true,
-                      override val portGroups: ArrayList[UUID] = new ArrayList(0),
+                      override val portGroups: util.ArrayList[UUID] = EmptyIpList,
                       override val isActive: Boolean = false,
                       override val vlanId: Short = Bridge.UntaggedVlanId,
                       networkId: UUID) extends Port {
@@ -279,15 +281,13 @@ case class RouterPort(override val id: UUID,
                       override val hostId: UUID = null,
                       override val interfaceName: String = null,
                       override val adminStateUp: Boolean = true,
-                      override val portGroups: ArrayList[UUID] = new ArrayList(0),
+                      override val portGroups: util.ArrayList[UUID] = EmptyIpList,
                       override val isActive: Boolean = false,
                       routerId: UUID,
                       portSubnet: IPv4Subnet,
-                      portIp: IPv4Addr,
+                      portAddress: IPv4Addr,
                       portMac: MAC,
                       routeIds: Set[UUID] = Set.empty) extends Port {
-
-    val _portAddr = new IPv4Subnet(portIp, portSubnet.getPrefixLen)
 
     protected def device(implicit as: ActorSystem) = tryAsk[Router](routerId)
 
@@ -295,9 +295,6 @@ case class RouterPort(override val id: UUID,
     override def updateInboundFilter(filter: UUID) = copy(inboundFilter = filter)
 
     override def deviceId = routerId
-
-    def portAddr = _portAddr
-    def nwSubnet = _portAddr
 
     override protected def reject(context: PacketContext, as: ActorSystem): Unit = {
         implicit val _as: ActorSystem = as
@@ -318,7 +315,7 @@ case class RouterPort(override val id: UUID,
 
     override def toString =
         s"RouterPort [${super.toString} routerId=$routerId " +
-        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac " +
+        s"portSubnet=$portSubnet portAddress=$portAddress portMac=$portMac " +
         s"routeIds=$routeIds]"
 }
 
@@ -328,7 +325,7 @@ case class VxLanPort(override val id: UUID,
                      override val tunnelKey: Long = 0,
                      override val peerId: UUID = null,
                      override val adminStateUp: Boolean = true,
-                     override val portGroups: ArrayList[UUID] = new ArrayList(0),
+                     override val portGroups: util.ArrayList[UUID] = EmptyIpList,
                      vtepId: UUID,
                      networkId: UUID,
                      vtepMgmtIp: IPv4Addr = null,

@@ -120,7 +120,7 @@ trait RoutingWorkflow {
 
     private def matchNetwork(fmatch: FlowMatch, bgp: RoutingInfo, port: RouterPort) =
         (bgp.peers.contains(fmatch.getNetworkSrcIP) &&
-         fmatch.getNetworkDstIP == port.portAddr.getAddress) ||
-        (fmatch.getNetworkSrcIP == port.portAddr.getAddress &&
+         fmatch.getNetworkDstIP == port.portAddress) ||
+        (fmatch.getNetworkSrcIP == port.portAddress &&
          bgp.peers.contains(fmatch.getNetworkDstIP))
 }

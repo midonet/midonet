@@ -77,7 +77,7 @@ object TopologyMatchers {
                 p.getRouterId.asJava else null)
             port.portSubnet shouldBe (if (p.hasPortSubnet)
                 p.getPortSubnet.asJava else null)
-            port.portIp shouldBe (if (p.hasPortAddress)
+            port.portAddress shouldBe (if (p.hasPortAddress)
                 p.getPortAddress.asIPv4Address else null)
             port.portMac shouldBe (if (p.hasPortMac)
                 MAC.fromString(p.getPortMac) else null)
