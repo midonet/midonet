@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8239a6da",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-28T12:40:02Z",
+      "side": 1,
+      "message": "From merge conflict: didn\u0027t see there were two different lists",
+      "parentUuid": "9ad9bd40_c7c3c036",
+      "revId": "75be84e7e1f8434f9913c3b9bb50d2e6498d8425",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e7c0c42c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2015-08-28T09:52:57Z",
       "side": 1,
       "message": "these changes feel like a separate patch",
+      "revId": "75be84e7e1f8434f9913c3b9bb50d2e6498d8425",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a236aae5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-28T12:40:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e7c0c42c",
       "revId": "75be84e7e1f8434f9913c3b9bb50d2e6498d8425",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_c233aef4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-28T12:40:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_47b090dd",
+      "revId": "75be84e7e1f8434f9913c3b9bb50d2e6498d8425",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_67b594cc",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
         "patchSetId": 3
@@ -64,6 +118,30 @@
       "writtenOn": "2015-08-28T09:52:57Z",
       "side": 1,
       "message": "now this becomes a volatile load",
+      "range": {
+        "startLine": 236,
+        "startChar": 18,
+        "endLine": 236,
+        "endChar": 22
+      },
+      "revId": "75be84e7e1f8434f9913c3b9bb50d2e6498d8425",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e230b2ea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-28T12:40:02Z",
+      "side": 1,
+      "message": "Moved above then to fix the forward reference warning",
+      "parentUuid": "9ad9bd40_67b594cc",
       "range": {
         "startLine": 236,
         "startChar": 18,
