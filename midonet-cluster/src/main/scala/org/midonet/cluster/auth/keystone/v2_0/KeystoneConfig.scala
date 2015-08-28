@@ -23,6 +23,8 @@ import org.midonet.cluster.AuthConfig
 class KeystoneConfig(conf: Config) extends AuthConfig(conf) {
 
     def tenantName = conf.getString(s"$Prefix.keystone.tenant_name")
+    def userName = conf.getString(s"$Prefix.keystone.user_name")
+    def password = conf.getString(s"$Prefix.keystone.user_password")
     def adminToken = conf.getString(s"$Prefix.keystone.admin_token")
     def protocol = conf.getString(s"$Prefix.keystone.protocol")
     def host = conf.getString(s"$Prefix.keystone.host")
