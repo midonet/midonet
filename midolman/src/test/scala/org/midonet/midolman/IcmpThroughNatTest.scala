@@ -18,12 +18,12 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
+import org.midonet.sdn.flows.FlowTagger
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -160,7 +160,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
                 simulateDevice(bridge, icmpEchoReqL2R, leftPort)
 
             Then("the bridge send the packet to the target vm")
-            action should be (ToPortAction(rightPort))
+            pktContext should be (toPorts(rightPort))
 
             And("The FlowMatch's icmp id field is not tagged")
             pktContext.wcmatch.userspaceFieldsSeen shouldBe false
@@ -176,7 +176,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
                 simulateDevice(bridge, icmpEchoRepR2L, rightPort)
 
             Then("the bridge send the packet back to the first VM")
-            action should be (ToPortAction(leftPort))
+            pktContext should be (toPorts(leftPort))
 
             And("The FlowMatch's icmp id field is not tagged")
             pktContext.wcmatch.userspaceFieldsSeen shouldBe false
@@ -194,7 +194,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
                 simulateDevice(router, icmpEchoReqL2RViaRouter, rtLeftPort)
 
             Then("the router sends the packet to the target port")
-            action should be (ToPortAction(rtRightPort))
+            pktContext should be (toPorts(rtRightPort))
 
             And("The FlowMatch's icmp id field is tagged as seen")
             pktContext.wcmatch.userspaceFieldsSeen shouldBe true

@@ -27,9 +27,9 @@ import org.scalatest.junit.JUnitRunner
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, Drop, SimulationResult}
 import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.{PacketContext, Bridge}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -115,7 +115,7 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
                                               malformed, port1OnHost1)
-        verifyFloodAction(action)
+        verifyFloodAction(action, pktCtx)
     }
 
     scenario("bridge simulation for normal packet") {
@@ -127,7 +127,7 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
                                               ethPkt, port1OnHost1)
-        verifyFloodAction(action)
+        verifyFloodAction(action, pktCtx)
 
         verifyMacLearned(srcMac, port1OnHost1)
     }
@@ -178,7 +178,7 @@ class BridgeSimulationTest extends MidolmanSpec {
         if (networkVlans.isEmpty) {
             action should be (Drop)
         } else {
-            verifyFloodAction(action)
+            verifyFloodAction(action, pktCtx)
         }
     }
 
@@ -191,7 +191,7 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
                                               ethPkt, port1OnHost1)
-        verifyFloodAction(action)
+        verifyFloodAction(action, pktCtx)
 
         //Our source MAC should also be learned
         verifyMacLearned(srcMac, port1OnHost1)
@@ -206,7 +206,7 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
                                               ethPkt, port1OnHost1)
-        verifyFloodAction(action)
+        verifyFloodAction(action, pktCtx)
 
         //Our source MAC should also be learned
         verifyMacLearned(srcMac, port1OnHost1)
@@ -221,7 +221,7 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
                                               ethPkt, port1OnHost1)
-        verifyFloodAction(action)
+        verifyFloodAction(action, pktCtx)
 
         //Our source MAC should also be learned
         verifyMacLearned(srcMac, port1OnHost1)
@@ -248,7 +248,7 @@ class BridgeSimulationTest extends MidolmanSpec {
         val bridgeDevice: Bridge = fetchDevice[Bridge](bridge)
         val (pktCtx, action) = simulateDevice(bridgeDevice,
                                               ethPkt, port1OnHost1)
-        verifyFloodAction(action)
+        verifyFloodAction(action, pktCtx)
 
         verifyMacLearned(srcMac, port1OnHost1)
 
@@ -264,11 +264,9 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         val (pktCtx2, action2) = simulateDevice(bridgeDevice,
                                                 ethPkt, port3OnHost1)
-        action2 match {
-            case ToPortAction(outPortUUID) =>
-                outPortUUID should equal (port2OnHost1)
-            case _ => fail("Not ToPortAction, instead: " + action.toString)
-        }
+        action should be (AddVirtualWildcardFlow)
+        pktCtx2.virtualFlowActions should have size (1)
+        pktCtx2.virtualFlowActions.head should be (ToPortAction(port2OnHost1))
 
         verifyMacLearned(srcMac, port3OnHost1)
     }
@@ -286,17 +284,21 @@ class BridgeSimulationTest extends MidolmanSpec {
         val bridgeDevice: Bridge = fetchDevice[Bridge](bridge)
         val (pktCtx, action) = simulateDevice(bridgeDevice,
                                               ethPkt, port2OnHost1)
-        action match {
-            case ToPortAction(outPortUUID) =>
-                outPortUUID should equal (expectedPort)
-            case _ => fail("Not ToPortAction, instead: " + action.toString)
-        }
+        action should be (AddVirtualWildcardFlow)
+        pktCtx.virtualFlowActions should have size (1)
+        pktCtx.virtualFlowActions.head should be (ToPortAction(expectedPort))
     }
 
-    private def verifyFloodAction(action: SimulationResult) : Unit = {
+    private def verifyFloodAction(action: SimulationResult, ctx: PacketContext) : Unit = {
+        val actualPorts: Set[UUID] = ctx.virtualFlowActions filter
+            (_.isInstanceOf[ToPortAction]) map
+            (_.asInstanceOf[ToPortAction].outPort) toSet
+
         val br: Bridge = fetchDevice[Bridge](bridge)
-        if (action != br.floodAction)
-            fail("Not flood action, instead: " + action.toString)
+        val expectedPorts: Set[UUID] = br.exteriorPorts filter (_ != ctx.inPortId) toSet
+
+        action should be (AddVirtualWildcardFlow)
+        actualPorts should be (expectedPorts)
     }
 }
 

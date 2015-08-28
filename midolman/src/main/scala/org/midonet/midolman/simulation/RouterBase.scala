@@ -44,7 +44,8 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                                         val routerMgrTagger: TagManager)
                                        (implicit system: ActorSystem,
                                         icmpErrors: IcmpErrorSender[IP])
-    extends SimDevice with ForwardingDevice with InAndOutFilters with RoutingWorkflow with VirtualDevice {
+    extends SimDevice with ForwardingDevice with InAndOutFilters
+        with MirroringDevice with RoutingWorkflow with VirtualDevice {
 
     import org.midonet.midolman.simulation.Simulator._
 
@@ -55,6 +56,13 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     override def infilter = cfg.inboundFilter
     override def outfilter = cfg.outboundFilter
     override def adminStateUp = cfg.adminStateUp
+
+    private val routeAndMirrorOut: ContinueWith = ContinueWith((context, actorSystem) => {
+        preRouting()(context) match {
+            case toPort: ToPortAction => mirroringOutbound(context, toPort, system)
+            case action => action
+        }
+    })
 
     /**
      * Process the packet. Will validate first the ethertype and ensure that
@@ -74,26 +82,26 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
         if (context.wcmatch.isVlanTagged) {
             context.log.debug("Dropping VLAN tagged traffic")
-            return Drop
-        }
+            Drop
+        } else {
+            if (context.wcmatch.stripEthernetPcp())
+                context.log.debug("Stripping off VLAN 0 tag")
 
-        if (context.wcmatch.stripEthernetPcp())
-            context.log.debug("Stripping off VLAN 0 tag")
-
-        if (!isValidEthertype(context.wcmatch.getEtherType)) {
-            context.log.debug(s"Dropping unsupported EtherType ${context.wcmatch.getEtherType}")
-            return Drop
-        }
-
-        tryAsk[RouterPort](context.inPortId) match {
-            case inPort if !cfg.adminStateUp =>
-                context.log.debug("Router {} state is down, DROP", id)
-                sendAnswer(inPort.id,
-                           icmpErrors.unreachableProhibitedIcmp(inPort, context))
-                context.addFlowTag(deviceTag)
+            if (!isValidEthertype(context.wcmatch.getEtherType)) {
+                context.log.debug(s"Dropping unsupported EtherType ${context.wcmatch.getEtherType}")
                 Drop
-            case inPort =>
-                preRouting(inPort)
+            } else {
+                tryAsk[RouterPort](context.inPortId) match {
+                    case inPort if !cfg.adminStateUp =>
+                        context.log.debug("Router {} state is down, DROP", id)
+                        sendAnswer(inPort.id,
+                            icmpErrors.unreachableProhibitedIcmp(inPort, context))
+                        context.addFlowTag(deviceTag)
+                        Drop
+                    case inPort =>
+                        mirroringInbound(context, routeAndMirrorOut, system)
+                }
+            }
         }
     }
 
@@ -142,8 +150,8 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         }
 
     @throws[NotYetException]
-    private def preRouting(inPort: RouterPort)
-                          (implicit context: PacketContext): SimulationResult = {
+    private def preRouting()(implicit context: PacketContext): SimulationResult = {
+        val inPort = tryAsk[RouterPort](context.inPortId)
 
         val hwDst = context.wcmatch.getEthDst
         if (Ethernet.isBroadcast(hwDst)) {
