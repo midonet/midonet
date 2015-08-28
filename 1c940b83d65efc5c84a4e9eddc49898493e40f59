@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_c21c8e6d",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-28T11:42:17Z",
+      "side": 1,
+      "message": "This is different from how we managed sub-resources previously: return uris rather than the list of ids. Is this intended?",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 38
+      },
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_02ff5602",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Mirror.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-28T11:42:17Z",
+      "side": 1,
+      "message": "Because these fields are hidden from the client, you need to copy these to the new object when updating the mirror.",
+      "range": {
+        "startLine": 46,
+        "startChar": 4,
+        "endLine": 68,
+        "endChar": 38
+      },
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e702840a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MirrorResource.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-28T11:42:17Z",
+      "side": 1,
+      "message": "If you allow updating the mirror, because the Mirror resource includes references that are not exposed to the client, you must override the updateFilter and make sure these references are copied to the updated object:\n\n   protected override def updateFilter(to: Mirror, from: Mirror): Ops \u003d {\n      to.update(from)\n      NoOps\n   }\n\nNote: we should simplify this such that it\u0027s not needed.",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 37
+      },
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ce2f62f5",
         "filename": "python-midonetclient/src/midonetclient/condition.py",
         "patchSetId": 4
