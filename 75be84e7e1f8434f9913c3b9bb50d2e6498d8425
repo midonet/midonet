@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c7c3c036",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-28T09:52:57Z",
+      "side": 1,
+      "message": "this hides the type",
+      "revId": "75be84e7e1f8434f9913c3b9bb50d2e6498d8425",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e7c0c42c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-28T09:52:57Z",
+      "side": 1,
+      "message": "these changes feel like a separate patch",
+      "revId": "75be84e7e1f8434f9913c3b9bb50d2e6498d8425",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_47b090dd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-28T09:52:57Z",
+      "side": 1,
+      "message": "CONSTANT?",
+      "revId": "75be84e7e1f8434f9913c3b9bb50d2e6498d8425",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_67b594cc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-28T09:52:57Z",
+      "side": 1,
+      "message": "now this becomes a volatile load",
+      "range": {
+        "startLine": 236,
+        "startChar": 18,
+        "endLine": 236,
+        "endChar": 22
+      },
+      "revId": "75be84e7e1f8434f9913c3b9bb50d2e6498d8425",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
