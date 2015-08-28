@@ -4,44 +4,15 @@ This module contains the Midonet Controller that is charge of all control plane
 functions.  It abstracts communication with storage systems and low level
 devices.
 
-## General design considerations
-
-TODO
-
-## VTEP support
-
-The midonet-cluster currently provides a simple API for interaction with an
-OVSDB instance holding a VTEP schema.  This depends internally on a custom fork
-of the odl-ovsdb plugin, modified to run outside of an OSGI container.
-
-The API is defined at VtepDataClient, which declares operations intended
-to interact with the VTEP to configure a VxGW. These include:
-- addLogicalSwitch: creates a new Logical Switch in the given VTEP.
-- bindVlan: associates a Midonet network to a given Logical Switch.
-
-## ODL-OVSDB dependency
-
-This project needs a package containing our fork of the ODL library. The
-odl-ovsdb directory contains a git submodule referencing the correct commit on
-our fork of this project. It has a modified build that minimizes dependencies on
-external odl modules.
-
-By having the code as a submodule, we can also run all tests as part of ordinary
-unit test runs of the midonet project. We also keep a reference to the specific
-version of the code used at any given point in time from MN.
-
-Note that in order to compile Midonet successfully, you will need to execute:
-
-    git submodule update --init --recursive
-
-before the build. This will fetch the right version of the submodule code and
-use it to build the right dependency packages.
-
-## Running the Cluster Daemon
+## Running the Cluster Daemon locally
 
 Simply execute the following command from the root directory of the clone:
 
-    ./gradlew cluster:midonet-cluster:run -Pcluster/midonet-cluster/conf/cluster.conf
+    ./gradlew cluster:midonet-cluster:run -Pconf=`pwd`/cluster/midonet-cluster/conf/cluster.conf
 
-You want to have a logback.xml file in the classpath. You'll find a sample one
-in cluster/midonet-cluster/conf/logback.xml.
+The Cluster will try to write on /etc/midonet_host_id.properties.  If
+this path is not writable you can either make it so, or override adding:
+
+    -Dmidonet.host_id_filepath=/tmp/midonet_host_id.properties
+
+to the gradlew command.

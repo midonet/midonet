@@ -139,13 +139,6 @@ repository.
 
 ## Building the project
 
-The `cluster` directory contains an odl-ovsdb git submodule with code that
-must be compiled in order to generate dependencies needed in various
-midonet components. Before any build tasks, ensure that you have the
-right version of odl-ovsdb by executing:
-
-    ~/midonet$ git submodule update --init --recursive
-
 ### Complete build
 
     ~/midonet$ ./gradlew
