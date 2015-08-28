@@ -388,6 +388,10 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
         testCompile "junit:junit:4.11"
     }
 
+    test {
+        exclude 'org/opendaylight/**'
+    }
+
     repositories {
         mavenLocal()
         maven { url "http://repo.maven.apache.org/maven2" }
