@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_81e60815",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 34
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-28T03:15:44Z",
+      "side": 1,
+      "message": "Duarte,\n\ni had a little more thought on this and have a question.\n\neven if we have a vport, there needs to be a separate type of GeneratedPacket, because what i want to generate is a packet with the opposite direction (ingress/egress) to the usual GeneratedPacket, right?",
+      "parentUuid": "9ad9bd40_b81184b1",
+      "revId": "6b9bed76aa37510b3d7879d5ff1ba931b334b574",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d82ac87d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
         "patchSetId": 34
