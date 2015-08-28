@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_96c64748",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-28T15:50:37Z",
+      "side": 1,
+      "message": "good catch! we have to preserve currentDevice too.",
+      "revId": "15d7d59bf3b5a240f5bad3df7a5d32fb64f2f29a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
