@@ -100,7 +100,6 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
         Future.reduce[Boolean, Boolean](
             tables.map(_.ready))(_ && _)
 
-
     private val macUpdateToMacLocationsFunc =
         makeFunc1[VtepTableUpdate[_ <: MacEntry], Observable[MacLocation]] {
             entry => vxlanTunnelIp.asObservable(vtepContext)
@@ -119,6 +118,10 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
         onReady {
             lsTable.getAll.values.find(_.name == name)
         }
+    }
+
+    override def physicalPort(portId: UUID): Future[Option[PhysicalPort]] = {
+        onReady { portTable.get(portId) }
     }
 
     override def macLocalUpdates: Observable[MacLocation] =

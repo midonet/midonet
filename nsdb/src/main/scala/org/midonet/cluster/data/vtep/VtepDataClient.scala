@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.data.vtep
 
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration.Duration
@@ -24,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState.State
-import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation, PhysicalSwitch, VtepEndPoint}
+import org.midonet.cluster.data.vtep.model._
 import org.midonet.util.functors.makeFunc1
 
 /**
@@ -131,6 +132,9 @@ trait VtepData {
 
     /** Returns the VTEP logical switch. */
     def logicalSwitch(name: String): Future[Option[LogicalSwitch]]
+
+    /** Returns the physical port for the given port identifier. */
+    def physicalPort(portId: UUID): Future[Option[PhysicalPort]]
 
     /** The Observable that emits updates in the *cast_Mac_Local tables, with
       * MACs that are local to the VTEP and should be published to other

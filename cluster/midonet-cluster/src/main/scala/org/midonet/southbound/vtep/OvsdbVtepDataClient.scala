@@ -16,6 +16,7 @@
 
 package org.midonet.southbound.vtep
 
+import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicReference
 
@@ -28,7 +29,7 @@ import rx.subjects.BehaviorSubject
 import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState._
-import org.midonet.cluster.data.vtep.model.{PhysicalSwitch, LogicalSwitch, MacLocation, VtepEndPoint}
+import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.data.vtep.{VtepData, VtepDataClient, VtepStateException}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -124,6 +125,10 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
 
     override def logicalSwitch(name: String): Future[Option[LogicalSwitch]] = {
         onReady { _.logicalSwitch(name) }
+    }
+
+    override def physicalPort(portId: UUID): Future[Option[PhysicalPort]] = {
+        onReady { _.physicalPort(portId) }
     }
 
     override def macLocalUpdates: Observable[MacLocation] = {
