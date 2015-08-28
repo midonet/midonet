@@ -123,6 +123,24 @@
       "revId": "62fbab223462f53154004bf636b8982b8af5de8a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_679e7458",
+        "filename": "tests/mdts/tests/functional_tests/test_tracing.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-28T09:43:43Z",
+      "side": 1,
+      "message": "There is a unit test, but there\u0027s a lot of fiddling to make sure the packet is transformed and then matched. I\u0027d be more comfortable if the match is done on a packet that\u0027s been mangled by ovs. Hence the test.",
+      "parentUuid": "9ad9bd40_278d4c32",
+      "revId": "62fbab223462f53154004bf636b8982b8af5de8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
