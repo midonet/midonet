@@ -100,9 +100,10 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
     "The happy case" should "yield happy results" in {
         fpManager.start()
 
-        val tzId = makeTz()
+        val tzId = makeTz(TunnelZone.Type.VTEP)
+
         val ip1 = IPv4Addr.random
-        val h1Id = testOnOneHost(tzId, ip1, 10)
+        val h1Id = addHostToZone(tzId, ip1, 10)
 
         obs.awaitOnNext(1, timeout) shouldBe true
         obs.getOnNextEvents.get(0).hostId shouldBe h1Id
@@ -119,7 +120,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         ensureCurrentFpIs(tzId, null, null)
 
         val ip2 = IPv4Addr.random
-        val h2Id = testOnOneHost(tzId, ip2, 1000)
+        val h2Id = addHostToZone(tzId, ip2, 1000)
 
         obs.awaitOnNext(3, timeout) shouldBe true
         obs.getOnNextEvents.get(2).hostId shouldBe h2Id
@@ -139,13 +140,27 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         }
     }
 
+    "Tunnel Zones that are not type VTEP" should "not generate any FPs" in {
+        fpManager.start()
+
+        val tzVxlan = makeTz(TunnelZone.Type.VXLAN)
+        val tzGre = makeTz(TunnelZone.Type.GRE)
+        val tunIpVx = IPv4Addr.random
+        val tunIpGre = IPv4Addr.random
+
+        addHostToZone(tzVxlan, tunIpVx)
+        addHostToZone(tzGre, tunIpGre)
+
+        obs.getOnNextEvents shouldBe empty
+    }
+
     "Zk hiccups" should "not kill the manager" in {
 
         fpManager.start()
 
-        val tzId = makeTz()
+        val tzId = makeTz(TunnelZone.Type.VTEP)
         val tunIp = IPv4Addr.random
-        val hId = testOnOneHost(tzId, tunIp)
+        val hId = addHostToZone(tzId, tunIp)
 
         obs.awaitOnNext(1, timeout) shouldBe true
         obs.getOnNextEvents.get(0).tunnelIp shouldBe tunIp
@@ -169,9 +184,9 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
 
     "Tunnel zone deletions" should "clear their flooding proxy" in {
         fpManager.start()
-        val tzId = makeTz()
+        val tzId = makeTz(TunnelZone.Type.VTEP)
         val ip = IPv4Addr.random
-        val hId = testOnOneHost(tzId, ip)
+        val hId = addHostToZone(tzId, ip)
 
         obs.awaitOnNext(1, timeout) shouldBe true
         obs.getOnNextEvents.get(0).tunnelIp shouldBe ip
@@ -186,9 +201,9 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
 
     "Host deletions" should "release the Flooding Proxy changes" in {
         fpManager.start()
-        val tzId = makeTz()
+        val tzId = makeTz(TunnelZone.Type.VTEP)
         val ip = IPv4Addr.random
-        val hId = testOnOneHost(tzId, ip)
+        val hId = addHostToZone(tzId, ip)
 
         obs.awaitOnNext(1, timeout) shouldBe true
         obs.getOnNextEvents.get(0).tunnelIp shouldBe ip
@@ -205,9 +220,9 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
 
         fpManager.start()
 
-        val tzId = makeTz()
+        val tzId = makeTz(TunnelZone.Type.VTEP)
         val tunIp1 = IPv4Addr.fromString("10.0.0.0")// IPv4Addr.random
-        val hId1 = testOnOneHost(tzId, tunIp1)
+        val hId1 = addHostToZone(tzId, tunIp1)
 
         obs.awaitOnNext(1, timeout) shouldBe true
 
@@ -220,7 +235,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
 
         // Creating a new host is inocuous, the manager is not watching
         val tunIp2 = tunIp1.next     // helpful for debugging
-        testOnOneHost(tzId, tunIp2, 1000, assertTransition = false)
+        addHostToZone(tzId, tunIp2, 1000)
 
         ensureCurrentFpIs(tzId, hId1, tunIp1)
         obs.getOnNextEvents should have size 1 // no change
@@ -235,16 +250,15 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         ensureCurrentFpIs(tzId, hId1, tunIp1)
     }
 
-    private def makeTz(): UUID = {
-        val tz = createTunnelZone(UUID.randomUUID(), TunnelZone.Type.VTEP)
+    private def makeTz(ofType: TunnelZone.Type): UUID = {
+        val tz = createTunnelZone(UUID.randomUUID(), ofType)
         val tzId = fromProto(tz.getId)
         backend.store.create(tz)
         tzId
     }
 
-    private def testOnOneHost(tzId: UUID, tunIp: IPv4Addr,
-                              weight: Int = 1,
-                              assertTransition: Boolean = true): UUID = {
+    private def addHostToZone(tzId: UUID, tunIp: IPv4Addr,
+                              weight: Int = 1): UUID = {
         val h = createHost().toBuilder.setFloodingProxyWeight(weight)
                                       .build()
         backend.store.create(h)
