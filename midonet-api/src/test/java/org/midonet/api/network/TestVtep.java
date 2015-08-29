@@ -125,9 +125,11 @@ public class TestVtep extends RestApiTestBase {
 
     @Before
     public void before() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         URI tunnelZonesUri = app.getTunnelZones();
         DtoTunnelZone tz = new DtoTunnelZone();
         tz.setName("tz");
+        tz.setType("vtep");
         tz = dtoResource.postAndVerifyCreated(tunnelZonesUri,
                   VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tz,
                   DtoTunnelZone.class);
@@ -156,6 +158,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testCreateWithNullIPAddr() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoError error = postVtepWithError(null, mockVtep1.mgmtPort(),
                                            Status.BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "managementIp", NON_NULL);
@@ -163,6 +166,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testCreateWithBadTunnelZone() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = new DtoVtep();
         vtep.setManagementIp(mockVtep1.mgmtIp());
         vtep.setManagementPort(mockVtep1.mgmtPort());
@@ -190,6 +194,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testCreateWithIllFormedIPAddr() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoError error = postVtepWithError("10.0.0.300", mockVtep1.mgmtPort(),
                                            Status.BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "managementIp", IP_ADDR_INVALID);
@@ -197,6 +202,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testCreateWithDuplicateIPAddr() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         String ipAddr = mockVtep1.mgmtIp();
         postVtep();
         DtoError error = postVtepWithError(ipAddr, mockVtep1.mgmtPort() + 1,
@@ -237,6 +243,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testGet() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         postVtep();
         DtoVtep vtep = getVtep(mockVtep1.mgmtIp());
         assertEquals(mockVtep1.mgmtIp(), vtep.getManagementIp());
@@ -245,6 +252,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testGetWithInvalidIP() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoError error = getVtepWithError("10.0.0.300", Status.BAD_REQUEST);
         assertErrorMatches(error, MessageProperty.IP_ADDR_INVALID_WITH_PARAM,
                            "10.0.0.300");
@@ -259,6 +267,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testListVtepsWithNoVteps() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep[] vteps = listVteps();
         assertEquals(0, vteps.length);
     }
@@ -304,6 +313,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testDeleteNonexistingVtep() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoError error = dtoResource.deleteAndVerifyNotFound(
             ResourceUriBuilder.getVtep(app.getUri(), "1.2.3.4"),
             APPLICATION_VTEP_JSON);
@@ -482,6 +492,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testAddBindingWithNegativeVlanId() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         DtoError error = postBindingWithError(vtep,
                 makeBinding("eth0", -1, UUID.randomUUID()), Status.BAD_REQUEST);
@@ -490,6 +501,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testAddBindingWith4096VlanId() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         DtoError error = postBindingWithError(vtep,
                 makeBinding("eth0", 4096, UUID.randomUUID()),
@@ -499,6 +511,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testAddBindingWithNullNetworkId() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         DtoError error = postBindingWithError(vtep,
                 makeBinding("eth0", 1, null), Status.BAD_REQUEST);
@@ -507,6 +520,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testAddBindingWithUnrecognizedNetworkId() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         UUID networkId = UUID.randomUUID();
         DtoError error = postBindingWithError(vtep,
@@ -516,6 +530,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testAddBindingWithNullPortName() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         DtoError error = postBindingWithError(vtep,
                 makeBinding(null, 1, UUID.randomUUID()), Status.BAD_REQUEST);
@@ -581,6 +596,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testListBindingsWithUnrecognizedVtep() throws Exception {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoError error = dtoResource.getAndVerifyNotFound(
                 ResourceUriBuilder.getVtepBindings(app.getUri(), "10.10.10.10"),
                 APPLICATION_VTEP_BINDING_COLLECTION_JSON);
@@ -589,6 +605,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testGetBindingWithUnrecognizedVtep() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         URI bindingUri = ResourceUriBuilder.getVtepBinding(
                 app.getUri(), "1.2.3.4", "a_port", (short)1);
         DtoError error = dtoResource.getAndVerifyNotFound(

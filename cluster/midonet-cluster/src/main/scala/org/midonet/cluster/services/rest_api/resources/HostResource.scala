@@ -98,9 +98,9 @@ class HostResource @Inject()(resContext: ResourceContext)
         Future.successful(initHost(host))
     }
 
-    protected override def listFilter(hosts: Seq[Host]): Seq[Host] = {
+    protected override def listFilter(hosts: Seq[Host]): Future[Seq[Host]] = {
         hosts foreach initHost
-        hosts
+        Future.successful(hosts)
     }
 
     private def initHost(host: Host): Host = {

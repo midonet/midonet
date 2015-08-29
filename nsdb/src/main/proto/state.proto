@@ -74,5 +74,7 @@ enum VtepConnectionState {
     VTEP_CONNECTED = 3;
     VTEP_CONNECTING = 4;
     VTEP_READY = 5;
-    VTEP_ERROR = 6;
+    VTEP_BROKEN = 6;
+    VTEP_FAILED = 7;
+    VTEP_ERROR = 8;
 }
