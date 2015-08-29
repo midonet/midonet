@@ -18,7 +18,7 @@ package org.midonet.cluster.services.vxgw
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.{ConcurrentHashMap, Executors}
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
@@ -28,7 +28,6 @@ import scala.util.{Failure, Success}
 import com.google.common.util.concurrent.MoreExecutors
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
-import rx.subjects.PublishSubject
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer, Subscription}
 
@@ -39,7 +38,7 @@ import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.services.vxgw.FloodingProxyManager.{HostFpState, MaxFpRetries}
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.util.{IPAddressUtil, selfHealingTypeObservable, selfHealingEntityObservable}
+import org.midonet.cluster.util.{IPAddressUtil, selfHealingEntityObservable, selfHealingTypeObservable}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
 
@@ -119,7 +118,6 @@ class FloodingProxyManager(backend: MidonetBackend) {
             val id = fromProto(newState.host.getId)
             trackedHosts.get(id) match {
                 case null =>
-                    log.debug(s"Host $id is not in a VTEP tunnel zone")
                 case HostFpState(host, tzId, isAlive, subscription) =>
                     val currTzs =
                         newState.host.getTunnelZoneIdsList.map(fromProto)
