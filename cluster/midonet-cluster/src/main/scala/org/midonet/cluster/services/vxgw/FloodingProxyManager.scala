@@ -118,7 +118,6 @@ class FloodingProxyManager(backend: MidonetBackend) {
             val id = fromProto(newState.host.getId)
             trackedHosts.get(id) match {
                 case null =>
-                    log.debug(s"Host $id is not in a VTEP tunnel zone")
                 case HostFpState(host, tzId, isAlive, subscription) =>
                     val currTzs = newState.host.getTunnelZoneIdsList
                     if (!currTzs.contains(UUIDUtil.toProto(tzId))) {
