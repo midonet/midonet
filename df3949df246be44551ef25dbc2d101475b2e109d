@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ea5de4ed",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-30T12:54:00Z",
+      "side": 1,
+      "message": "Is this done centrally via config api?",
+      "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_aa1cbc6b",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-30T12:54:00Z",
+      "side": 1,
+      "message": "shouldn\u0027t this be set to False? (line 16)",
+      "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0a63e8b1",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-30T12:54:00Z",
+      "side": 1,
+      "message": "I guess it will be automated later on. We better provide the update script at some point to support migration",
+      "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
