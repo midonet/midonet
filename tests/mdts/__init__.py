@@ -22,7 +22,7 @@ import os
 LOG = logging.getLogger(__name__)
 
 def build_simple_topology():
-    api = service.get_container_by_hostname('api').get_midonet_api()
+    api = service.get_container_by_hostname('cluster1').get_midonet_api()
     host = service.get_container_by_hostname('midolman1')
     host_id = host.get_midonet_host_id()
     interface = host.create_vmguest()
@@ -78,7 +78,7 @@ def setup_package():
     config.read(conf_file)
 
     # Check all services (including midolman) are online
-    api_host = service.get_container_by_hostname('api')
+    api_host = service.get_container_by_hostname('cluster1')
     api_host.wait_for_status('up')
     for type, hosts in service.get_all_containers().items():
         for host in hosts:

@@ -43,12 +43,12 @@ zookeeper3:
   - zookeeper1:zookeeper1
   - zookeeper2:zookeeper2
 
-api:
+cluster1:
   extends:
-    file: $BASE/midonet-api.yml
-    service: api
-  image: sandbox/midonet-api:master
-  hostname: api
+    file: $BASE/midonet-cluster.yml
+    service: cluster
+  image: sandbox/midonet-cluster:master
+  hostname: cluster1
   labels:
       interface: mdts.services.midonet_cluster.MidonetClusterHost
       type: midonet-cluster

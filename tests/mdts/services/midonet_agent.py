@@ -36,7 +36,7 @@ class MidonetAgentHost(Service):
 
     def get_api(self):
         if not self.api:
-            self.api = service.get_container_by_hostname('api').\
+            self.api = service.get_container_by_hostname('cluster1').\
                 get_midonet_api(timeout=120)
         return self.api
 
