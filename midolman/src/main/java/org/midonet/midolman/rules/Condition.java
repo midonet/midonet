@@ -111,6 +111,10 @@ public class Condition extends BaseConfig {
     public UUID traversedDevice;
     @ZoomField(name = "traversed_device_inv")
     public boolean traversedDeviceInv;
+    @ZoomField(name = "no_vlan")
+    public boolean noVlan;
+    @ZoomField(name = "vlan")
+    public short vlan;
 
     // In production, this should always be initialized via the API, but there
     // are a bunch of tests that bypass the API and create conditions directly.
@@ -212,8 +216,19 @@ public class Condition extends BaseConfig {
         if (matchReturnFlow && pktCtx.isForwardFlow())
             return conjunctionInv;
 
+
         UUID inPortId = pktCtx.inPortId();
         UUID outPortId = pktCtx.outPortId();
+
+        if (noVlan && pktMatch.getVlanIds().size() != 0)
+            return conjunctionInv;
+        if (vlan != 0) {
+            if (pktMatch.getVlanIds().size() == 0)
+                return conjunctionInv;
+            if (pktMatch.getVlanIds().get(0) != vlan)
+                return conjunctionInv;
+        }
+
         IPAddr pmSrcIP = pktMatch.getNetworkSrcIP();
         IPAddr pmDstIP = pktMatch.getNetworkDstIP();
         if (!matchPortGroup(pktCtx.portGroups(), portGroup, invPortGroup))
@@ -344,6 +359,12 @@ public class Condition extends BaseConfig {
 
         if (matchReturnFlow)
             sb.append("return-flow ");
+
+        if (noVlan)
+            sb.append("no-vlan ");
+
+        if (vlan != 0)
+            sb.append("vlan=").append(vlan).append(" ");
 
         if (inPortIds != null && !inPortIds.isEmpty()) {
             sb.append("input-ports=");

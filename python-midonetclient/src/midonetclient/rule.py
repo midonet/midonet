@@ -78,6 +78,12 @@ class Rule(resource_base.ResourceBase):
     def is_match_return_flow(self):
         return self.dto['matchReturnFlow']
 
+    def is_no_vlan(self):
+        return self.dto['noVlan']
+
+    def get_vlan(self):
+        return self.dto['vlan']
+
     def get_chain_id(self):
         return self.dto['chainId']
 
@@ -268,6 +274,14 @@ class Rule(resource_base.ResourceBase):
 
     def jump_chain_id(self, jump_chain_id):
         self.dto['jumpChainId'] = jump_chain_id
+        return self
+
+    def no_vlan(self, no_vlan):
+        self.dto['noVlan'] = no_vlan
+        return self
+
+    def vlan(self, vlan):
+        self.dto['vlan'] = vlan
         return self
 
     def inv_dl_type(self, inv_dl_type):
