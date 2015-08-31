@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_a5330ff5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-31T04:33:03Z",
+      "side": 1,
+      "message": "Incorrect comment",
+      "revId": "338b7fec7e7436142b43378ff36c8ba50fd428c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e54c3779",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-31T04:33:03Z",
+      "side": 1,
+      "message": "Up to the maintainer of C3PO (Brandon/Tomohiko) but consider defining this in an object instead to be consistent (RouterTranslator is the only other example I found).",
+      "revId": "338b7fec7e7436142b43378ff36c8ba50fd428c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
