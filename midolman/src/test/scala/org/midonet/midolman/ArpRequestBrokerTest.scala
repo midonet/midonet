@@ -89,7 +89,7 @@ class ArpRequestBrokerTest extends Suite
                           tunnelKey = 0,
                           portMac = MY_MAC,
                           routerId = routerId,
-                          portIp = MY_IP,
+                          portAddress = MY_IP,
                           portSubnet = IPv4Subnet.fromCidr(NW_CIDR))
 
     var router: Router = _
