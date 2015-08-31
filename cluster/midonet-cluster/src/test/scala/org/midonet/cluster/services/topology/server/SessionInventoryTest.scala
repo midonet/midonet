@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.topology.server
 
 import java.util.UUID
+import java.util.concurrent.TimeoutException
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
@@ -549,14 +550,19 @@ class SessionInventoryTest extends FeatureSpec
 
             session.watchAll(classOf[Network], req)
 
-            collector.awaitOnNext(amount + 1, LONG_WAIT_TIME) shouldBe true
+            try {
+                collector.awaitOnNext(amount + 1, LONG_WAIT_TIME)
+            } catch {
+                case te: TimeoutException => // buffer overflow
+                case e: Throwable => throw e
+            }
             subs.unsubscribe()
 
             val events = collectionAsScalaIterable(collector.getOnNextEvents)
-            events.exists(rsp => isAck(rsp, req)) shouldBe true
             if (collector.isCompleted) {
                 collector.getOnErrorEvents should have size 1
             } else {
+                events.exists(rsp => isAck(rsp, req)) shouldBe true
                 events.size shouldBe amount + 1
             }
         }
