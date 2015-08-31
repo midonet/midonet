@@ -14,63 +14,71 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services.conf
+package org.midonet.cluster.services.rest_api
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{ConfigException, ConfigFactory}
+
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.test.util.ZookeeperTestSuite
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
-import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
+import org.midonet.cluster.auth.MockAuthService
+import org.midonet.cluster.services.MidonetBackendService
+import org.midonet.cluster.test.util.ZookeeperTestSuite
+import org.midonet.conf.{MidoNodeConfigurator, HostIdGenerator}
 
 @RunWith(classOf[JUnitRunner])
-class ConfApiTest extends FeatureSpecLike
-                            with Matchers
-                            with BeforeAndAfterAll
-                            with BeforeAndAfter
-                            with GivenWhenThen
-                            with ZookeeperTestSuite {
+class ConfResourceTest extends FeatureSpec
+                               with Matchers
+                               with BeforeAndAfterAll
+                               with BeforeAndAfter
+                               with GivenWhenThen with ZookeeperTestSuite {
 
-    HostIdGenerator.useTemporaryHostId()
-
-    var confMinion: ConfMinion = _
-
-    val HTTP_PORT: Int = 10000 + (Math.random() * 50000).toInt
-
+    private var api: Vladimir = _
+    private val httpPort: Int = 10000 + (Math.random() * 50000).toInt
     private val confStr =
         s"""
-          |cluster.conf_api.enabled : true
-          |cluster.conf_api.http_port : $HTTP_PORT
+           |cluster.rest_api.enabled : true
+           |cluster.rest_api.http_port : $httpPort
         """.stripMargin
-
-    override def config = ConfigFactory.parseString(confStr).withFallback(super.config)
 
     before {
         clearZookeeper()
         MidoNodeConfigurator(config).deployBundledConfig()
     }
 
+    override def config = {
+        ConfigFactory.parseString(confStr).withFallback(super.config)
+    }
+
     override def beforeAll(): Unit = {
         super.beforeAll()
-        val ctx = ClusterNode.Context(HostIdGenerator.getHostId, embed = true)
-        confMinion = new ConfMinion(ctx, new ClusterConfig(config))
-        confMinion.startAsync().awaitRunning()
-
+        
+        val context = ClusterNode.Context(HostIdGenerator.getHostId,
+                                          embed = true)
+        val backend = new MidonetBackendService(new MidonetBackendConfig(config),
+                                                zkClient, null)
+        api = new Vladimir(context, backend, zkClient,
+                           new MockAuthService(config),
+                           new ClusterConfig(config))
+        api.startAsync().awaitRunning()
     }
 
     override def afterAll(): Unit = {
         super.afterAll()
-        confMinion.stopAsync().awaitTerminated()
+        api.stopAsync().awaitTerminated()
     }
 
-    private def url(path: String) = s"http://127.0.0.1:$HTTP_PORT/$path"
+    private def url(path: String) = {
+        s"http://127.0.0.1:$httpPort/midonet-api/$path"
+    }
 
     private def get(path: String) = ConfigFactory.parseString(
         Request.Get(url(path)).execute().returnContent().asString())
@@ -80,20 +88,22 @@ class ConfApiTest extends FeatureSpecLike
             .execute().discardContent()
     }
 
-    private def delete(path: String) =
-        Request.Delete(url(path)).execute().returnResponse().getStatusLine.getStatusCode
+    private def delete(path: String) = {
+        Request.Delete(url(path)).execute().returnResponse().getStatusLine
+               .getStatusCode
+    }
 
     scenario("reads, writes and deletes templates") {
-        testWritableSource("conf/template/new_template")
+        testWritableSource("conf/templates/new_template")
     }
 
     scenario("reads, writes and deletes per node cluster configuration") {
-        testWritableSource("conf/node/" + UUID.randomUUID())
+        testWritableSource("conf/nodes/" + UUID.randomUUID())
     }
 
     scenario("reads schemas") {
         When("When a GET is done on the schema URL for a known node type")
-        val schema = get("conf/schema")
+        val schema = get("conf/schemas")
 
         schema.isEmpty should be (false)
         Then("the response is a valid schema with its schemaVersion key")
@@ -112,16 +122,16 @@ class ConfApiTest extends FeatureSpecLike
         val mappings = get("conf/template-mappings")
         mappings.getString(nodeId) should be("the_template")
 
-        var runtimeConf = get(s"conf/runtime-config/$nodeId")
+        var runtimeConf = get(s"conf/runtime/$nodeId")
         intercept[ConfigException.Missing] {
             runtimeConf.getString("the.name") should be ("seven")
         }
 
         When("New configuration content is posted to a template")
-        post("conf/template/the_template", template)
+        post("conf/templates/the_template", template)
 
         Then("the runtime configuration for a node assigned to the template should include that content")
-        runtimeConf = get(s"conf/runtime-config/$nodeId")
+        runtimeConf = get(s"conf/runtime/$nodeId")
         runtimeConf.getString("the.name") should be ("seven")
     }
 
@@ -130,13 +140,13 @@ class ConfApiTest extends FeatureSpecLike
         val vandelay = s"""art.vandelay : "architect" """
 
         When("New two templates are created for the first time")
-        val origSize = get("conf/template-list").getStringList("templates").size
+        val origSize = get("conf/templates").getStringList("templates").size
 
-        post("conf/template/seven", seven)
-        post("conf/template/vandelay", vandelay)
+        post("conf/templates/seven", seven)
+        post("conf/templates/vandelay", vandelay)
 
         Then("the list of templates should contain the new templates")
-        val templates = get("conf/template-list").getStringList("templates")
+        val templates = get("conf/templates").getStringList("templates")
         templates should contain ("seven")
         templates should contain ("vandelay")
         templates should have size (2 + origSize)
@@ -155,16 +165,15 @@ class ConfApiTest extends FeatureSpecLike
 
         Then("the returned content is parsed as valid config and contains the same keys and values")
         val wrote = get(path)
-        wrote.getDuration("foo.bar", TimeUnit.MILLISECONDS) should be (100)
-        wrote.getString("another.option") should be ("string value")
-        wrote.getInt("and.yet.another") should be (42)
+        wrote.getDuration("foo.bar", TimeUnit.MILLISECONDS) shouldBe 100
+        wrote.getString("another.option") shouldBe "string value"
+        wrote.getInt("and.yet.another") shouldBe 42
 
         When("A piece of configuration is deleted")
-        delete(path) should be (200)
+        delete(path) shouldBe 200
         And("fetched again")
         val deleted = get(path)
         Then("the result is an empty configuration")
-        deleted.isEmpty should be (true)
+        deleted.isEmpty shouldBe true
     }
-
 }
