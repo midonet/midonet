@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_77b9b8ca",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-31T17:29:12Z",
+      "side": 1,
+      "message": "Isn\u0027t it better to place configuration parameters in one place? Perhaps there\u0027s only one parameter in this class currently but still maybe this could be a variable, and the variable would be placed in the beginning of this class for better visibility.",
+      "range": {
+        "startLine": 159,
+        "startChar": 39,
+        "endLine": 159,
+        "endChar": 49
+      },
+      "revId": "08019688a1551ad66eda752d6a60a0061ab92b4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
