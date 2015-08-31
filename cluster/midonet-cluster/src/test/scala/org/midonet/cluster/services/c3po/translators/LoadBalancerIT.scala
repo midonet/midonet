@@ -35,7 +35,7 @@ import org.midonet.packets.util.AddressConversions._
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
-class LoadBalancerIT extends C3POMinionTestBase {
+class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
     /* Set up legacy Data Client for testing Replicated Map. */
     override protected val useLegacyDataClient = true
 
@@ -150,22 +150,23 @@ class LoadBalancerIT extends C3POMinionTestBase {
         insertCreateTask(4, RouterType, rtrJson, routerId)
 
         // Create a Load Balancer Pool
+        val lbId = loadBalancerId(routerId)
         val poolId = UUID.randomUUID()
         val poolJson = lbPoolJson(poolId, routerId)
         insertCreateTask(5, PoolType, poolJson, poolId)
 
         val lb = eventually(
-                storage.get(classOf[LoadBalancer], routerId).await())
-        lb.getId shouldBe toProto(routerId)
+                storage.get(classOf[LoadBalancer], lbId).await())
+        lb.getId shouldBe lbId
         lb.getAdminStateUp shouldBe true
         lb.getRouterId shouldBe toProto(routerId)
         lb.getPoolIdsList should contain (toProto(poolId))
 
         val router = storage.get(classOf[Router], routerId).await()
-        router.getLoadBalancerId shouldBe toProto(routerId)
+        router.getLoadBalancerId shouldBe lbId
 
         val pool = storage.get(classOf[Pool], poolId).await()
-        pool.getLoadBalancerId shouldBe toProto(routerId)
+        pool.getLoadBalancerId shouldBe lbId
         pool.getAdminStateUp shouldBe true
         pool.hasHealthMonitorId shouldBe false
         pool.getPoolMemberIdsList.isEmpty shouldBe true
@@ -228,7 +229,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         vip.hasSessionPersistence shouldBe true
         vip.getSessionPersistence shouldBe Vip.SessionPersistence.SOURCE_IP
         eventually {
-            val lbWithVip = storage.get(classOf[LoadBalancer], routerId).await()
+            val lbWithVip = storage.get(classOf[LoadBalancer], lbId).await()
             lbWithVip.getPoolIdsList should contain (toProto(poolId))
             val poolWithVip = storage.get(classOf[Pool], poolId).await()
             poolWithVip.getVipIdsList should contain (toProto(vipId))
@@ -306,7 +307,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
             storage.exists(classOf[Vip], vipId).await() shouldBe false
             storage.exists(classOf[Pool], poolId).await() shouldBe false
             storage.exists(classOf[PoolMember], member2Id).await() shouldBe false
-            val lbWithNoPool = storage.get(classOf[LoadBalancer], routerId)
+            val lbWithNoPool = storage.get(classOf[LoadBalancer], lbId)
                                       .await()
             lbWithNoPool.getPoolIdsList shouldBe empty
         }
@@ -324,6 +325,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         insertCreateTask(4, RouterType, rtrJson, routerId)
 
         // Create a Load Balancer Pool.
+        val lbId = loadBalancerId(routerId)
         val poolId = UUID.randomUUID()
         val poolJson = lbPoolJson(poolId, routerId)
         insertCreateTask(5, PoolType, poolJson, poolId)
@@ -334,7 +336,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         // Pool creation should create a load balancer for the pool's router
         // if it doesn't already exist.
         val lb = eventually(
-                storage.get(classOf[LoadBalancer], routerId).await())
+                storage.get(classOf[LoadBalancer], lbId).await())
 
         // Add a Pool Member with no Pool ID specified.
         val memberId = UUID.randomUUID()
@@ -427,7 +429,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         vip.hasSessionPersistence shouldBe true
         vip.getSessionPersistence shouldBe Vip.SessionPersistence.SOURCE_IP
         eventually {
-            val lbWithPool = storage.get(classOf[LoadBalancer], routerId).await()
+            val lbWithPool = storage.get(classOf[LoadBalancer], lbId).await()
             lbWithPool.getPoolIdsList should contain (toProto(poolId))
             val poolWithVip = storage.get(classOf[Pool], poolId).await()
             poolWithVip.getVipIdsList should contain (toProto(vipId))
@@ -476,6 +478,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val vipPortId = UUID.randomUUID()
         val vip2PortId = UUID.randomUUID()
         val rtrGwPortMac = "ab:cd:ef:01:02:03"
+        val lbId = loadBalancerId(tntRtr1Id)
 
         // Create a tenant router with a gateway via external network.
         createTenantNetwork(2, extNwId, external = true)
@@ -489,8 +492,8 @@ class LoadBalancerIT extends C3POMinionTestBase {
         insertCreateTask(6, PoolType, poolJson, poolId)
 
         val lb = eventually(
-                storage.get(classOf[LoadBalancer], tntRtr1Id).await())
-        lb.getId shouldBe toProto(tntRtr1Id)
+                storage.get(classOf[LoadBalancer], lbId).await())
+        lb.getId shouldBe lbId
         lb.getAdminStateUp shouldBe true
         lb.getRouterId shouldBe toProto(tntRtr1Id)
         lb.getPoolIdsList should contain only toProto(poolId)
@@ -504,7 +507,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val vip1 = eventually(storage.get(classOf[Vip], vip1Id).await())
         vip1.getPoolId shouldBe toProto(poolId)
         val pool = eventually(storage.get(classOf[Pool], poolId).await())
-        pool.getLoadBalancerId shouldBe toProto(tntRtr1Id)
+        pool.getLoadBalancerId shouldBe lbId
         pool.getVipIdsList should contain only vip1.getId
 
         // Create a legacy ReplicatedMap for the external Network ARP table.
@@ -525,7 +528,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         vip2.getAddress.getAddress shouldBe vip2Address
         vip2.getPoolId shouldBe toProto(poolId)
         val pool2 = eventually(storage.get(classOf[Pool], poolId).await())
-        pool2.getLoadBalancerId shouldBe toProto(tntRtr1Id)
+        pool2.getLoadBalancerId shouldBe lbId
         pool2.getVipIdsList should contain allOf(vip1.getId, vip2.getId)
         eventually {
             // The ARP table should pick up the vip2 's address.

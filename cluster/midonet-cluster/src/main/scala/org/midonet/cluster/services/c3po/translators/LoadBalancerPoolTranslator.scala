@@ -25,7 +25,8 @@ import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPool. */
 class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
-        extends NeutronTranslator[NeutronLoadBalancerPool] {
+        extends NeutronTranslator[NeutronLoadBalancerPool]
+        with LoadBalancerManager {
 
     override protected def translateCreate(nPool: NeutronLoadBalancerPool)
     : MidoOpList = {
@@ -37,7 +38,7 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
                 "time of the health monitor's creation.")
 
         // If no Load Balancer has been created for the Router, create one.
-        val lbId = nPool.getRouterId // LB and Router share the same ID.
+        val lbId = loadBalancerId(nPool.getRouterId)
         val midoOps = new MidoOpListBuffer
         if (!storage.exists(classOf[LoadBalancer], lbId).await()) {
             val lb = LoadBalancer.newBuilder()
@@ -70,7 +71,7 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
     private def translatePool(nPool: NeutronLoadBalancerPool): Pool = {
         Pool.newBuilder
             .setId(nPool.getId)
-            .setLoadBalancerId(nPool.getRouterId)
+            .setLoadBalancerId(loadBalancerId(nPool.getRouterId))
             .setAdminStateUp(nPool.getAdminStateUp)
             .build()
     }
