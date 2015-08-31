@@ -28,16 +28,18 @@ import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
 
-class VipTranslatorTestBase extends TranslatorTestBase {
+class VipTranslatorTestBase extends TranslatorTestBase
+                            with LoadBalancerManager {
     protected var translator: VipTranslator = _
 
     protected val vipId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")
     protected val poolId = UUIDUtil.toProtoFromProtoStr("msb: 2 lsb: 1")
     protected val subnetId = UUIDUtil.toProtoFromProtoStr("msb: 3 lsb: 1")
     protected val portId = UUIDUtil.toProtoFromProtoStr("msb: 4 lsb: 1")
-    protected val lbId = UUIDUtil.toProtoFromProtoStr("msb: 5 lsb: 1")
+    protected val routerId = UUIDUtil.toProtoFromProtoStr("msb: 5 lsb: 1")
     protected val gwPortId = UUIDUtil.toProtoFromProtoStr("msb: 6 lsb: 1")
     protected val networkId = UUIDUtil.toProtoFromProtoStr("msb: 7 lsb: 1")
+    protected val lbId = loadBalancerId(routerId)
 
     protected val vipIpAddr = "10.10.10.1"
     protected val gwPortMac = "ab:cd:ef:01:23:45"
@@ -89,7 +91,7 @@ class VipTranslatorTestBase extends TranslatorTestBase {
     }
 
     protected def neutronRouter(gwPortId: UUID) = nRouterFromTxt(s"""
-        id { $lbId }
+        id { $routerId }
         admin_state_up: true
         """ + { if (gwPortId != null) s"""
         gw_port_id { $gwPortId }
@@ -117,7 +119,8 @@ class VipTranslatorTestBase extends TranslatorTestBase {
  * Tests Neutron VIP Create translation.
  */
 @RunWith(classOf[JUnitRunner])
-class VipTranslatorCreateTest extends VipTranslatorTestBase {
+class VipTranslatorCreateTest extends VipTranslatorTestBase
+                              with LoadBalancerManager {
     before {
         initMockStorage()
         translator = new VipTranslator(storage, pathBldr)
@@ -130,7 +133,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
 
     private def bindLb(gwPortId: UUID = gwPortId) {
         bind(poolId, midoPool(poolId, lbId))
-        bind(lbId, neutronRouter(gwPortId))
+        bind(routerId, neutronRouter(gwPortId))
         bind(gwPortId, neutronRouterGwPort)
     }
 
