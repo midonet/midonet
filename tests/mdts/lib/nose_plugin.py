@@ -157,11 +157,22 @@ class Mdts(Plugin):
         for service_host in service_hosts:
             service_debug_log = service_host.get_debug_logs()
             if service_debug_log:
-                with open("%s/%s_debug_output.log" % (
+                with open("%s/%s-debug.log" % (
                     self.log_dir,
                     service_host.get_hostname()
                 ), 'w') as f:
                     f.write(service_debug_log)
+
+            service_full_logs = service_host.get_full_logs()
+            for log_file, log_stream in service_full_logs.items():
+                log_file_name = log_file.split('/')[-1]
+                with open("%s/%s-%s" % (
+                    self.log_dir,
+                    service_host.get_hostname(),
+                    log_file_name
+                ), "w") as f:
+                    f.write(log_stream)
+
 
     def _write_per_test_debug_info(self, test, result):
         test_id = test.id()
