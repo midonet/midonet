@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_f74ea8c1",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-31T18:08:56Z",
+      "side": 1,
+      "message": "This should come above \"org.midonet.midolman.state.l4lb.LBStatus\"",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 65
+      },
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_b547d44a",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
         "patchSetId": 3
@@ -121,6 +144,29 @@
         "startChar": 3,
         "endLine": 103,
         "endChar": 5
+      },
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_57c75412",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-31T18:08:56Z",
+      "side": 1,
+      "message": "This should go above org.midonet.cluster.rest_api.annotation._.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 67
       },
       "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
