@@ -30,6 +30,7 @@ import com.typesafe.scalalogging.Logger
 import org.apache.commons.dbcp2.BasicDataSource
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
+import org.slf4j.bridge.SLF4JBridgeHandler
 
 import org.midonet.cluster.auth.AuthModule
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
@@ -70,6 +71,10 @@ object ClusterNode extends App {
     private val nodeId = HostIdGenerator.getHostId
     private val nodeContext = new Context(nodeId)
     MidonetBackend.isCluster = true
+
+    // Install the SLF4J handler for the legacy loggers used in the API.
+    SLF4JBridgeHandler.removeHandlersForRootLogger()
+    SLF4JBridgeHandler.install()
 
     val configurator = if (args.length > 0) {
         val configFile = args(0)
