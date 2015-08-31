@@ -69,6 +69,30 @@
       "revId": "473df291f4c2991c3059b1547c628f81840d359f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1bddf842",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/topology/common/TopologyMappingsTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-31T14:34:19Z",
+      "side": 1,
+      "message": "Not really as info on the failing job got deleted. I have run the test quite a few times on my machine and not a single time has a test failed. Perhaps we could merge the patch like this and apply further changes if the test fails again.",
+      "parentUuid": "9ad9bd40_4eab52d6",
+      "range": {
+        "startLine": 31,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 5
+      },
+      "revId": "473df291f4c2991c3059b1547c628f81840d359f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
