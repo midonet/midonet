@@ -18,7 +18,8 @@
 
 # The first existing directory is used for JAVA_HOME if needed.
 JVM_SEARCH_DIRS="/usr/lib/jvm/java-1.8.0-openjdk-amd64 /usr/lib/jvm/java-8-openjdk-amd64 \
-                 /usr/lib/jvm/java-8-oracle /usr/lib/jvm/zulu-8-amd64
+                 /usr/lib/jvm/java-8-oracle /usr/lib/jvm/zulu-8-amd64 \
+                 /usr/lib/jvm/jre-1.8.0-openjdk \
                  /usr/lib/jvm/jre-8-oracle-x64 /usr/lib/jvm/jdk-8-oracle-x64"
 
 check_for_java8() {
