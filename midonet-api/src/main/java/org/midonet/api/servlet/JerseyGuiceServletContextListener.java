@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.rest_api.RestApiService;
 import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.ClusterNode;
-import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.services.vxgw.VxlanGatewayService;
 
 public class JerseyGuiceServletContextListener extends
@@ -67,8 +66,6 @@ public class JerseyGuiceServletContextListener extends
         ClusterNode.Context ctx = injector.getInstance(ClusterNode.Context.class);
         ClusterConfig clusterConf = injector.getInstance(ClusterConfig.class);
 
-        startConfApi();
-
         if (ctx.embed() && clusterConf.vxgw().isEnabled()) {
             log.info("initializeApplication: starting embedded Cluster node");
             injector.getInstance(VxlanGatewayService.class)
@@ -81,16 +78,6 @@ public class JerseyGuiceServletContextListener extends
                      + "cluster.vxgw.enabled config setting");
         }
 
-    }
-
-    protected void startConfApi() {
-        log.info("Launching embedded configuration service");
-        injector.getInstance(ConfMinion.class).startAsync().awaitRunning();
-    }
-
-    protected void stopConfApi() {
-        log.info("Stopping embedded configuration service");
-        injector.getInstance(ConfMinion.class).stopAsync().awaitTerminated();
     }
 
     protected void destroyApplication() {
@@ -108,8 +95,6 @@ public class JerseyGuiceServletContextListener extends
         } else {
             log.info("destroyApplication: skipping embedded Cluster node");
         }
-
-        stopConfApi();
 
         injector.getInstance(RestApiService.class)
                 .stopAsync()
