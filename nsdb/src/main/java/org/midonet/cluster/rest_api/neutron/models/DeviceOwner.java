@@ -29,7 +29,8 @@ public enum DeviceOwner {
     @ZoomEnumValue("FLOATINGIP") FLOATINGIP("network:floatingip"),
     @ZoomEnumValue("ROUTER_GATEWAY") ROUTER_GW("network:router_gateway"),
     @ZoomEnumValue("ROUTER_INTERFACE") ROUTER_INTF("network:router_interface"),
-    @ZoomEnumValue("COMPUTE") COMPUTE("compute:nova");
+    @ZoomEnumValue("COMPUTE") COMPUTE("compute:nova"),
+    @ZoomEnumValue("LOADBALANCER") LOADBALANCER("neutron:LOADBALANCER");
 
     static public final String COMPUTE_PREFIX = "compute:";
 
