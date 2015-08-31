@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_455c0326",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-31T04:47:28Z",
+      "side": 1,
+      "message": "Maybe worth to mention this, otherwise it can be understood that this should be done per node",
+      "parentUuid": "9ad9bd40_6a0b942b",
+      "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_aa1cbc6b",
         "filename": "docs/openstack-metadata-usage.md",
         "patchSetId": 3
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "this should be true.  L16 says the default value.",
       "parentUuid": "9ad9bd40_aa1cbc6b",
+      "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_65402736",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-08-31T04:47:28Z",
+      "side": 1,
+      "message": "What is the reason why default is False?",
+      "parentUuid": "9ad9bd40_4a17b051",
       "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
