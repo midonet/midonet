@@ -30,6 +30,7 @@ import com.typesafe.scalalogging.Logger
 import org.apache.commons.dbcp2.BasicDataSource
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
+import org.slf4j.bridge.SLF4JBridgeHandler
 
 import org.midonet.cluster.auth.AuthModule
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
@@ -66,6 +67,10 @@ object ClusterNode extends App {
     private val jmxReporter = JmxReporter.forRegistry(metrics).build()
 
     log info "Cluster node starting.." // TODO show build.properties
+
+    // Install the SLF4J handler for the legacy loggers used in the API.
+    SLF4JBridgeHandler.removeHandlersForRootLogger()
+    SLF4JBridgeHandler.install()
 
     private val configFile = args(0)
     log info s"Loading configuration: $configFile"
