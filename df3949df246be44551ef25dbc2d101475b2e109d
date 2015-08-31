@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6a0b942b",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-31T03:38:10Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "9ad9bd40_ea5de4ed",
+      "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_aa1cbc6b",
         "filename": "docs/openstack-metadata-usage.md",
         "patchSetId": 3
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4a17b051",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-31T03:38:10Z",
+      "side": 1,
+      "message": "this should be true.  L16 says the default value.",
+      "parentUuid": "9ad9bd40_aa1cbc6b",
+      "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0a63e8b1",
         "filename": "docs/openstack-metadata-usage.md",
         "patchSetId": 3
@@ -47,6 +83,24 @@
       "writtenOn": "2015-08-30T12:54:00Z",
       "side": 1,
       "message": "I guess it will be automated later on. We better provide the update script at some point to support migration",
+      "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6512e759",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-31T03:38:10Z",
+      "side": 1,
+      "message": "it\u0027s a good idea.",
+      "parentUuid": "9ad9bd40_0a63e8b1",
       "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
