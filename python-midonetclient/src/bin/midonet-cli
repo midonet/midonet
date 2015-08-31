@@ -1922,6 +1922,16 @@ class Condition(ObjectType):
                                            'unfragmented': 'unfragmented'},
                                getter = 'get_fragment_policy',
                                setter = 'fragment_policy'))
+        self.put_attr(BooleanAttr(name = 'no-vlan',
+                                 getter = 'is_no_vlan',
+                                 setter = 'no_vlan',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'vlan',
+                                 value_type = StringType(),
+                                 getter = 'get_vlan',
+                                 setter = 'vlan',
+                                 optional = True))
+
 
 class Rule(Condition):
     def __init__(self, obj):
