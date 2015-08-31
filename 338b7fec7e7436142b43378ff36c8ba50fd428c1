@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_d74a8426",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-31T16:53:15Z",
+      "side": 1,
+      "message": "This line should come after org.midonet.cluster.services....",
+      "revId": "338b7fec7e7436142b43378ff36c8ba50fd428c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a5330ff5",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
         "patchSetId": 1
@@ -30,6 +47,24 @@
       "writtenOn": "2015-08-31T04:33:03Z",
       "side": 1,
       "message": "Up to the maintainer of C3PO (Brandon/Tomohiko) but consider defining this in an object instead to be consistent (RouterTranslator is the only other example I found).",
+      "revId": "338b7fec7e7436142b43378ff36c8ba50fd428c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f76ce89f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-31T16:53:15Z",
+      "side": 1,
+      "message": "This method will need to be referenced from the integration tests, so I think we should move this to LoadBalancerManger object, which doesn\u0027t exist, yet.",
+      "parentUuid": "9ad9bd40_e54c3779",
       "revId": "338b7fec7e7436142b43378ff36c8ba50fd428c1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
