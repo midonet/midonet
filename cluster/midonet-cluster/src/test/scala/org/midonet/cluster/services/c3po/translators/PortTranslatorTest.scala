@@ -1226,6 +1226,39 @@ class FloatingIpPortTranslationTest extends PortTranslatorTest {
     }
 }
 
+@RunWith(classOf[JUnitRunner])
+class VipPortTranslationTest extends PortTranslatorTest {
+    before {
+        initMockStorage()
+        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+
+        bind(networkId, nNetworkBase)
+        bind(portId, null, classOf[Port])
+        bind(networkId, midoNetwork)
+    }
+
+    protected val vipPortUp = nPortFromTxt(portBaseUp + """
+        device_owner: LOADBALANCER
+        """)
+
+    "VIP port CREATE" should "not create a Network port" in {
+        val midoOps = translator.translate(neutron.Create(vipPortUp))
+        midoOps shouldBe empty
+    }
+
+    "VIP port UPDATE" should "NOT update MidoNet Port" in {
+        val midoOps = translator.translate(neutron.Update(vipPortUp))
+        midoOps shouldBe empty
+    }
+
+    "VIP port DELETE" should "NOT delete the MidoNet Port" in {
+        bind(portId, vipPortUp)
+        val midoOps = translator.translate(
+            neutron.Delete(classOf[NeutronPort], portId))
+        midoOps shouldBe empty
+    }
+}
+
 class RouterInterfacePortTranslationTest extends PortTranslatorTest {
     protected val deviceId = java.util.UUID.randomUUID
     protected val routerId = UUIDUtil.toProto(deviceId)
