@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.services.MidonetBackend;
-import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.services.vxgw.VxlanGatewayService;
 import org.midonet.config.ConfigProvider;
 
@@ -48,7 +47,6 @@ public class RestApiModule extends AbstractModule {
 
         bind(RestApiService.class).asEagerSingleton();
         bind(VxlanGatewayService.class).asEagerSingleton();
-        bind(ConfMinion.class).asEagerSingleton();
 
         log.debug("configure: exiting.");
     }

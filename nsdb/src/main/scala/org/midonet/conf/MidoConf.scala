@@ -20,7 +20,7 @@ import java.io._
 import java.net.{URL, URI}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import java.util.regex.{Matcher, Pattern}
+import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
 
 import org.slf4j.helpers.NOPLogger
