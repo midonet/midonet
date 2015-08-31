@@ -35,6 +35,7 @@ import org.midonet.cluster.auth.KeystoneAccess;
 import org.midonet.cluster.auth.KeystoneAuthCredentials;
 import org.midonet.cluster.auth.KeystoneTenant;
 import org.midonet.cluster.auth.KeystoneTenantList;
+import org.midonet.cluster.auth.keystone.v2.KeystoneConfig;
 import org.midonet.cluster.package$;
 
 /**
