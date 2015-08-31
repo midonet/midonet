@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_fac84d77",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-31T21:58:52Z",
+      "side": 1,
+      "message": "This implies that this feature is going to be optional, which means that the user can toggle once in production.  One consequence of this is that our Neutron -\u003e MidoNet translation design may be impacted.  With this flag disabled, we expect two things to be created:\n\n1. DHCP port existing on the tenant network\n2. A route on the tenant router for metadata traffic to the DHCP agent\n\nI believe neither one has any impact if the flag is enabled, so it is probably ok that we keep them until we deprecate the old metadata design.\n\nWhat is the consequence, however, of disabling this flag once the distributed metadata is in effect?  I think it\u0027s ok but we should mention this here that we do not support it.\n\nThe other alternative is that, since it\u0027s a major release, we simply go with only the distributed metadata option.",
+      "revId": "8371043904d25f2e9ed151fb3cdd47c9bab0c98c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
