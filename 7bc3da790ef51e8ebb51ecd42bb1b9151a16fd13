@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_fbd77421",
+        "filename": "tests/mdts/tests/functional_tests/test_tracing.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-08-31T14:39:07Z",
+      "side": 1,
+      "message": "Just wondering after I saw the jenkins logs. When is this \u0027midonetflowtracing\u0027 keyspace created? Is it created by default (when midolman starts) or after the virtual topology is created? If it\u0027s the latter, you should connect to it inside the test method (the virtual topology is created in the bindings decorator) and pass the cassandra object around to the other aux methods (or play with python globals).",
+      "revId": "7bc3da790ef51e8ebb51ecd42bb1b9151a16fd13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
