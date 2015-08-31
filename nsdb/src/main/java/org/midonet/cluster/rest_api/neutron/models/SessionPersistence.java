@@ -20,10 +20,11 @@ import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 
 @ZoomClass(clazz = Neutron.NeutronVIP.SessionPersistence.class)
-public class SessionPersistence {
+public class SessionPersistence extends ZoomObject {
 
     public SessionPersistence() {}
 
