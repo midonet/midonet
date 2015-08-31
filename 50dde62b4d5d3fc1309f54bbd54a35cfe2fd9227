@@ -209,6 +209,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_17adcc88",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-31T17:25:44Z",
+      "side": 1,
+      "message": "Forget this comment, I forgot about the other patch that introduces the snatcher.",
+      "parentUuid": "9ad9bd40_17e78c41",
+      "range": {
+        "startLine": 88,
+        "startChar": 12,
+        "endLine": 91,
+        "endChar": 13
+      },
+      "revId": "50dde62b4d5d3fc1309f54bbd54a35cfe2fd9227",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d771a478",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbTableMonitor.scala",
         "patchSetId": 9
