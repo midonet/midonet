@@ -16,6 +16,24 @@
       "revId": "7bc3da790ef51e8ebb51ecd42bb1b9151a16fd13",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fba5b4b5",
+        "filename": "tests/mdts/tests/functional_tests/test_tracing.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-31T14:42:33Z",
+      "side": 1,
+      "message": "it should be created by the agent on boot, so I expect it already to be there. That\u0027s why i want the logs.",
+      "parentUuid": "9ad9bd40_fbd77421",
+      "revId": "7bc3da790ef51e8ebb51ecd42bb1b9151a16fd13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
