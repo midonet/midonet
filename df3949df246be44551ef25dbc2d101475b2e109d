@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_c547334a",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-31T04:57:56Z",
+      "side": 1,
+      "message": "sure.",
+      "parentUuid": "9ad9bd40_455c0326",
+      "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_aa1cbc6b",
         "filename": "docs/openstack-metadata-usage.md",
         "patchSetId": 3
@@ -102,6 +120,24 @@
       "side": 1,
       "message": "What is the reason why default is False?",
       "parentUuid": "9ad9bd40_4a17b051",
+      "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e57357b2",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-08-31T04:57:56Z",
+      "side": 1,
+      "message": "compat with the old version.",
+      "parentUuid": "9ad9bd40_65402736",
       "revId": "df3949df246be44551ef25dbc2d101475b2e109d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
