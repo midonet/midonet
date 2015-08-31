@@ -123,6 +123,18 @@ class Service(object):
             test_logs[logfile] = test_log
         return test_logs
 
+    def get_full_logs(self):
+        logfiles = self.get_service_logs()
+        test_logs = {}
+        for logfile in logfiles:
+            test_log = "-----------------------\n"
+            test_log += "%s - %s\n" % (self.get_service_name(), self.get_name())
+            test_log += "%s\n" % logfile
+            test_log += "-----------------------\n"
+            test_log += self.exec_command('cat %s' % logfile)
+            test_logs[logfile] = test_log
+        return test_logs
+
     def start(self, wait=False):
         self.exec_command('service %s start' % self.get_service_name())
         if wait:
