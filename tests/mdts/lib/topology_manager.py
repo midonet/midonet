@@ -25,7 +25,7 @@ class TopologyManager(object):
 
     def __init__(self, filename=None, data=None, midonet_api=None):
         self._data = self._get_data(filename, data)
-        self._midonet_api_host = service.get_container_by_hostname('api')
+        self._midonet_api_host = service.get_container_by_hostname('cluster1')
 
     def _deserialize(self, filename):
         with open(filename) as f:

@@ -130,5 +130,5 @@ shift $(( OPTIND - 1 ))
 # Avoid masking the exit status of nose with the exit 0 of tee
 set -o pipefail
 
-echo "sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ $LOG_DIR ${ATTR:+\"-A $ATTR\"} $TESTS $ARGS "
+echo "sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ $LOG_DIR_OPT ${ATTR:+\"-A $ATTR\"} $TESTS $ARGS "
 sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ $LOG_DIR_OPT ${ATTR:+"-A $ATTR"} $TESTS $ARGS 

@@ -112,7 +112,7 @@ class PhysicalTopologyManager(TopologyManager):
         LOG.debug("destroy")
         LOG.debug('-' * 80)
 
-        midonet_api_host = service.get_container_by_hostname('api')
+        midonet_api_host = service.get_container_by_hostname('cluster1')
         midonet_api = midonet_api_host.get_midonet_api()
         tzs = midonet_api.get_tunnel_zones()
         mdts_tzs = filter(lambda t: t.get_name() == 'mdts-test', tzs)

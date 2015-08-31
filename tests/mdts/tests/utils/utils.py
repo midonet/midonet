@@ -45,7 +45,7 @@ def wait_on_futures(futures):
 
 
 def get_midonet_api():
-    return service.get_container_by_hostname('api').get_midonet_api()
+    return service.get_container_by_hostname('cluster1').get_midonet_api()
 
 
 #
