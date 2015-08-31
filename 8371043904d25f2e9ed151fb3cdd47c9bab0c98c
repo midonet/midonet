@@ -16,6 +16,24 @@
       "revId": "8371043904d25f2e9ed151fb3cdd47c9bab0c98c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9a990171",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-08-31T22:50:29Z",
+      "side": 1,
+      "message": "Thinking about it some more, it\u0027s probably not feasible to just remove the old way in the new release.  Maybe it\u0027s worth just mentioning what is expected if this setting this back to \u0027false\u0027.  Does the dhcp agent automatically re-create the namespaces/ports?  If not, I believe the only thing you have to do is to create them manually after starting these services and restarting midolman, and I don\u0027t think we need any script for this).",
+      "parentUuid": "9ad9bd40_fac84d77",
+      "revId": "8371043904d25f2e9ed151fb3cdd47c9bab0c98c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
