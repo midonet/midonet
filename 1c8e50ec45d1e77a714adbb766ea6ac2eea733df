@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_7766182b",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-31T18:53:48Z",
+      "side": 1,
+      "message": "You\u0027re not passing the optional \"routerIds\" param here.",
+      "range": {
+        "startLine": 294,
+        "startChar": 8,
+        "endLine": 294,
+        "endChar": 50
+      },
+      "revId": "1c8e50ec45d1e77a714adbb766ea6ac2eea733df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
