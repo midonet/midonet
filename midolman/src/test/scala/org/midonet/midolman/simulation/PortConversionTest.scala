@@ -23,9 +23,11 @@ import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 
+import com.google.common.collect.Lists
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import scala.util.Random
 
@@ -50,7 +52,9 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 adminStateUp = random.nextBoolean(),
                 portGroupIds = Set(UUID.randomUUID, UUID.randomUUID),
                 vlanId = Some(random.nextInt().toShort))
-            val device = Port(port)
+            val device = Port(port,
+                              Lists.newArrayList(port.getInboundFilterId.asJava),
+                              Lists.newArrayList(port.getOutboundFilterId.asJava))
 
             device shouldBeDeviceOf port
             device.deviceTag should not be null
@@ -70,7 +74,9 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 interfaceName = Some(random.nextString(10)),
                 adminStateUp = random.nextBoolean(),
                 portGroupIds = Set(UUID.randomUUID, UUID.randomUUID))
-            val device = Port(port)
+            val device = Port(port,
+                              Lists.newArrayList(port.getInboundFilterId.asJava),
+                              Lists.newArrayList(port.getOutboundFilterId.asJava))
 
             device shouldBeDeviceOf port
             device.deviceTag should not be null
@@ -90,7 +96,9 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 interfaceName = None,
                 adminStateUp = random.nextBoolean(),
                 portGroupIds = Set(UUID.randomUUID, UUID.randomUUID))
-            val device = Port(port)
+            val device = Port(port,
+                              Lists.newArrayList(port.getInboundFilterId.asJava),
+                              Lists.newArrayList(port.getOutboundFilterId.asJava))
 
             device shouldBeDeviceOf port
             device.deviceTag should not be null

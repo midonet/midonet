@@ -17,7 +17,7 @@ package org.midonet.midolman.topology
 
 import java.lang.{Short => JShort}
 import java.util
-import java.util.UUID
+import java.util.{ArrayList, List => JList, UUID}
 import java.util.concurrent.TimeUnit
 
 import scala.collection.{Map => ROMap}
@@ -51,8 +51,8 @@ trait RemoveFlowCallbackGenerator {
 
 case class BridgeConfig(adminStateUp: Boolean = true,
                         tunnelKey: Int = 0,
-                        inboundFilter: UUID = null,
-                        outboundFilter: UUID = null)
+                        inboundFilters: JList[UUID] = new ArrayList(0),
+                        outboundFilters: JList[UUID] = new ArrayList(0))
 
 object BridgeManager {
     val Name = "BridgeManager"
@@ -144,7 +144,7 @@ import org.midonet.midolman.topology.BridgeManager._
         val bridge = new Bridge(id, cfg.adminStateUp, cfg.tunnelKey,
             learningMgr.vlanMacTableMap,
             if (config.bridgeArpEnabled) ip4MacMap else null,
-            flowCounts, Option(cfg.inboundFilter), Option(cfg.outboundFilter),
+            flowCounts, cfg.inboundFilters, cfg.outboundFilters,
             vlanBridgePeerPortId, exteriorVxlanPortIds, flowRemovedCallback,
             macToLogicalPortId, rtrIpToMac, vlanToPort, exteriorPorts,
             List.empty) // not used in 1.x storage stack
