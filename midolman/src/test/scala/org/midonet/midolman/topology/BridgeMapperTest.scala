@@ -1687,8 +1687,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(bridge2)
 
             Then("The observer should receive a second update")
-            obs.awaitOnNext(4, timeout) shouldBe true
-            val device = obs.getOnNextEvents.get(3)
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(2)
             device shouldBeDeviceOf bridge2
 
             And("The virtual topology should not have the chain")
