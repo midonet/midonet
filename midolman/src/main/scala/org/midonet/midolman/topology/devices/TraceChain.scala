@@ -16,42 +16,19 @@
 
 package org.midonet.midolman.topology.devices
 
-import java.util.{ArrayList, Collection, HashMap, List, Map, UUID}
+import java.util.{HashMap, List, UUID}
 
-import org.midonet.midolman.rules.{Condition, Rule, TraceRule, JumpRule}
+import org.midonet.midolman.rules.{Condition, Rule}
 import org.midonet.midolman.simulation.Chain
 
-object TraceChain {
-    def addJumpRule(traceRules: Collection[TraceRule],
-                    jumpTarget: Option[Chain]): List[Rule] = {
-        val rules = new ArrayList[Rule]
-        rules.addAll(traceRules)
-        jumpTarget.foreach((c: Chain) => {
-                               rules.add(new JumpRule(new Condition(),
-                                                      c.id, c.name))
-                           })
-        rules
-    }
-
-    def buildJumpMap(jumpTarget: Option[Chain]): Map[UUID, Chain] = {
-        jumpTarget match {
-            case Some(c) =>
-                val map = new HashMap[UUID,Chain]()
-                map.put(c.id, c)
-                map
-            case None => new HashMap[UUID,Chain]()
-        }
-    }
-}
-
-class TraceChain(id: UUID, traceRules: Collection[TraceRule], jumpTarget: Option[Chain])
-        extends Chain(id, TraceChain.addJumpRule(traceRules, jumpTarget),
-                      TraceChain.buildJumpMap(jumpTarget),
+class TraceChain(id: UUID, traceRules: List[Rule])
+        extends Chain(id, traceRules,
+                      new HashMap[UUID,Chain](),
                       s"TRACE_REQUEST_CHAIN-$id") {
     def getId: UUID = id
     def hasTracesEnabled: Boolean = traceRules.size > 0
 
     override def toString =
-        s"TraceChain [id=$id, numRules=${traceRules.size} jumpsTo=${jumpTarget}]"
+        s"TraceChain [id=$id, numRules=${traceRules.size}]"
 }
 
