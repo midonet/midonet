@@ -22,6 +22,8 @@ import scala.collection.mutable
 import akka.actor.Props
 import akka.testkit.TestActorRef
 
+import com.google.common.collect.Lists
+
 import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, Unsubscribe}
 import org.midonet.midolman.util.MidolmanSpec
@@ -135,7 +137,8 @@ class TopologyPrefetcherTest extends MidolmanSpec {
             When("Devices not in the topology are received")
             topologyActor ! new SimBridge(
                 bridge, simBridge.adminStateUp, simBridge.tunnelKey, null,
-                null, null, null, null, null, null, null, null, null, null,
+                null, null, Lists.newArrayList(), Lists.newArrayList(),
+                null, null, null, null, null, null,
                 Nil, Nil)
 
             Then("The hook method is not called")

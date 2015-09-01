@@ -69,8 +69,8 @@ object Bridge {
   * @param vlanMacTableMap
   * @param ip4MacMap
   * @param flowCount
-  * @param inFilterId
-  * @param outFilterId
+  * @param infilters
+  * @param outfilters
   * @param vlanPortId this field is the id of the interior port of a peer Bridge
   *                   connected to this device. This means that this Bridge is
   *                   considered to be on VLAN X, Note that a vlan-unaware
@@ -97,8 +97,8 @@ class Bridge(val id: UUID,
              val vlanMacTableMap: ROMap[Short, MacLearningTable],
              val ip4MacMap: IpMacMap[IPv4Addr],
              val flowCount: MacFlowCount,
-             val inFilterId: Option[UUID],
-             val outFilterId: Option[UUID],
+             val infilters: JList[UUID],
+             val outfilters: JList[UUID],
              val vlanPortId: Option[UUID],
              val vxlanPortIds: Seq[UUID],
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
@@ -120,16 +120,12 @@ class Bridge(val id: UUID,
     val floodAction: Result =
         (exteriorPorts map ToPortAction).foldLeft(NoOp: Result) (ForkAction)
 
-    override def infilter: UUID =
-        if ((inFilterId ne null) && inFilterId.isDefined) inFilterId.get else null
-    override def outfilter: UUID =
-        if ((outFilterId ne null) && outFilterId.isDefined) outFilterId.get else null
     override val deviceTag = tagForBridge(id)
 
     override def toString =
         s"Bridge [id=$id adminStateUp=$adminStateUp tunnelKey=$tunnelKey " +
-        s"vlans=${vlanMacTableMap.keys} inFilterId=$inFilterId " +
-        s"outFilterId=$outFilterId vlanPortId=$vlanPortId " +
+        s"vlans=${vlanMacTableMap.keys} inFilterIds=$infilters " +
+        s"outFilterIds=$outfilters vlanPortId=$vlanPortId " +
         s"vxlanPortIds=$vxlanPortIds vlanToPorts=$vlanToPort " +
         s"exteriorPorts=$exteriorPorts]"
 
@@ -146,7 +142,7 @@ class Bridge(val id: UUID,
         context.currentDevice = id
         context.addFlowTag(deviceTag)
 
-        context.log.debug(s"Entering bridge $id with infilter: $infilter")
+        context.log.debug(s"Entering bridge $id with infilter: $infilters")
         context.log.debug("Current vlanPortId {}.", vlanPortId)
         context.log.debug("Current vlan-port map {}", vlanToPort)
 

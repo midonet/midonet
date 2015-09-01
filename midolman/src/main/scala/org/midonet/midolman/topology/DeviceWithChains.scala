@@ -16,16 +16,19 @@
 
 package org.midonet.midolman.topology
 
-import java.util.UUID
+import java.util.{List, UUID}
+import scala.collection.JavaConverters._
 import org.midonet.midolman.topology.VirtualTopologyActor.DeviceRequest
 
 trait DeviceWithChains extends TopologyPrefetcher {
 
-    protected def cfg: { def inboundFilter: UUID
-                         def outboundFilter: UUID }
+    protected def cfg: { def inboundFilters: List[UUID]
+                         def outboundFilters: List[UUID] }
 
     override def prefetchTopology(requests: DeviceRequest*) {
-        super.prefetchTopology(requests ++ List(chain(cfg.inboundFilter),
-                                                chain(cfg.outboundFilter)): _*)
+        super.prefetchTopology(
+            requests ++
+                cfg.inboundFilters.asScala.map(chain(_)) ++
+                cfg.outboundFilters.asScala.map(chain(_)): _*)
     }
 }

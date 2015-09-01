@@ -28,7 +28,7 @@ import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons.{UUID => PbUUID}
 import org.midonet.cluster.models.Topology.TraceRequest
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.rules.{Condition, TraceRule}
+import org.midonet.midolman.rules.{Condition, TraceRule, Rule}
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.devices.TraceChain
@@ -43,8 +43,7 @@ import org.midonet.util.functors._
   * After processing, an Option[UUID] will be emitted from
   * traceChainObservable with the id of chain which should be used as the
   * infilter of the device. If traces are enabled, this will be a trace chain.
-  * If there are no traces, this will be the same as the infilter chain passed
-  * in to requestTraceChain.
+  * If there are no traces, this will be None.
   *
   * In the case of trace chains, the chain will not exist in the underlying
   * store but in a map which the chain mapper has access to. When the chain
@@ -60,11 +59,9 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
     val traceChainId = UUID.randomUUID
 
     var traceRulesObs = BehaviorSubject.create[Observable[TraceRequest]]()
-    var jumpTargetObs = BehaviorSubject.create[Observable[Chain]]()
+    var retriggerObs = BehaviorSubject.create[Observable[Any]]()
 
     private var awaitingTraceChain = false
-    var origJumpTarget: Option[UUID] = None
-    var jumpTargetState: Option[JumpTargetState] = None
     var traceRequests: mutable.Map[UUID, TraceRequestState] = mutable.Map()
 
     def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]]
@@ -96,29 +93,13 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
         var rule: TraceRule = null
         var enabled = true
 
-        def getRule: Option[TraceRule] = {
+        def getRule: Option[Rule] = {
             if (enabled) Some(rule) else None
         }
         def isReady = rule != null || !enabled
     }
 
-    class JumpTargetState(id: UUID) {
-        private val mark = PublishSubject.create[Chain]
-        val observable = VirtualTopology.observable[Chain](id)
-            .observeOn(vt.vtScheduler)
-            .takeUntil(mark)
-            .doOnNext(makeAction1(chain = _))
-
-        def getId = id
-        def complete = mark.onCompleted
-
-        def isReady: Boolean = chain != null
-        def getChain: Chain = chain
-        var chain: Chain = null
-    }
-
-    def requestTraceChain(newJumpTarget: Option[UUID], traceIds: List[UUID]) = {
-        origJumpTarget = newJumpTarget
+    def requestTraceChain(traceIds: List[UUID]) = {
         val added = mutable.Buffer[TraceRequestState]()
         for (trace <- traceIds if !traceRequests.contains(trace)) {
             val state = new TraceRequestState(trace)
@@ -132,41 +113,18 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
             removed += 1
         }
 
-        val prevJumpTargetState = jumpTargetState
-        newJumpTarget match {
-            case Some(j) =>
-                jumpTargetState match {
-                    case Some(s) if s.getId == j =>
-                    case _ =>
-                        jumpTargetState = Some(new JumpTargetState(j))
-                }
-            case None =>
-                jumpTargetState = None
-        }
-
         for (state <- added) {
             traceRulesObs onNext state.observable
         }
 
-        if (prevJumpTargetState != jumpTargetState) {
-            prevJumpTargetState.foreach(_.complete)
-            jumpTargetState match {
-                case Some(s) => jumpTargetObs onNext s.observable
-                case None =>
-            }
-        }
-
-        awaitingTraceChain = added.size > 0 || removed > 0 || prevJumpTargetState != jumpTargetState
+        awaitingTraceChain = added.size > 0 || removed > 0
 
         // we need to send something to observable to retrigger
         // the chain generation in the case that no new trace requests
         // have been added, and some old trace requests have been removed
-        // or the jumpTarget has been cleared. If not, the chain would
-        // not be updated to reflect these changes
-        val jumpTargetCleared = (prevJumpTargetState != jumpTargetState &&
-                                     jumpTargetState == None)
-        if (added.size == 0 && (removed > 0 || jumpTargetCleared)) {
-            jumpTargetObs onNext Observable.just(null)
+        // If not, the chain would not be updated to reflect these changes
+        if (added.size == 0 && removed > 0) {
+            retriggerObs onNext Observable.just(null)
         }
     }
 
@@ -179,9 +137,8 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
 
     def completeTraceChain(): Unit = {
         removeFromMap()
-        jumpTargetState.foreach(_.complete)
         traceRequests.foreach(_._2.complete)
-        jumpTargetObs.onCompleted()
+        retriggerObs.onCompleted()
         traceRulesObs.onCompleted()
     }
 
@@ -190,15 +147,11 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
         !awaitingTraceChain
     }
 
-    private def isReadyToBuild(update: Any): Boolean = traceRequests.forall(_._2.isReady) && jumpTargetState.forall(_.isReady)
+    private def isReadyToBuild(update: Any): Boolean = traceRequests.forall(_._2.isReady)
 
     private def makeTraceChain(update: Any): TraceChain = {
         new TraceChain(traceChainId,
-                       traceRequests.flatMap(_._2.getRule).asJavaCollection,
-                       jumpTargetState match {
-                           case Some(s) => Some(s.getChain)
-                           case None => None
-                       })
+                       traceRequests.flatMap(_._2.getRule).toList.asJava)
     }
 
     private def publishAndReturnId(chain: TraceChain): Option[UUID] = {
@@ -214,12 +167,12 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
             Some(chain.getId)
         } else {
             removeFromMap()
-            origJumpTarget
+            None
         }
     }
 
     protected lazy val traceChainObservable =
-        Observable.merge[Any](Observable.merge(jumpTargetObs),
+        Observable.merge[Any](Observable.merge(retriggerObs),
                               Observable.merge(traceRulesObs))
             .observeOn(vt.vtScheduler)
             .filter(makeFunc1(isReadyToBuild))

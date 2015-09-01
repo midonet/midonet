@@ -62,10 +62,10 @@ object TopologyMatchers {
     abstract class PortMatcher(val port: Port) extends DeviceMatcher[TopologyPort] {
         override def shouldBeDeviceOf(p: TopologyPort) = {
             port.id shouldBe p.getId.asJava
-            port.inboundFilter shouldBe (if (p.hasInboundFilterId)
-                p.getInboundFilterId.asJava else null)
-            port.outboundFilter shouldBe (if (p.hasOutboundFilterId)
-                p.getOutboundFilterId.asJava else null)
+            if (p.hasInboundFilterId)
+                port.inboundFilters should contain (p.getInboundFilterId.asJava)
+            if (p.hasOutboundFilterId)
+                port.outboundFilters should contain (p.getOutboundFilterId.asJava)
             port.tunnelKey shouldBe p.getTunnelKey
             port.portGroups.asScala.toSet shouldBe p.getPortGroupIdsList.asScala.map(_.asJava)
                 .toSet
@@ -125,10 +125,10 @@ object TopologyMatchers {
             bridge.id shouldBe b.getId.asJava
             bridge.adminStateUp shouldBe b.getAdminStateUp
             bridge.tunnelKey shouldBe b.getTunnelKey
-            bridge.inFilterId shouldBe (if (b.hasInboundFilterId)
-                Some(b.getInboundFilterId.asJava) else None)
-            bridge.outFilterId shouldBe (if (b.hasOutboundFilterId)
-                Some(b.getOutboundFilterId.asJava) else None)
+            if (b.hasInboundFilterId)
+                bridge.infilters should contain (b.getInboundFilterId.asJava)
+            if (b.hasOutboundFilterId)
+                bridge.outfilters should contain (b.getOutboundFilterId.asJava)
             bridge.vxlanPortIds should contain theSameElementsAs
                 b.getVxlanPortIdsList.asScala.map(_.asJava)
         }
@@ -139,10 +139,10 @@ object TopologyMatchers {
         override def shouldBeDeviceOf(r: TopologyRouter): Unit = {
             router.id shouldBe r.getId.asJava
             router.cfg.adminStateUp shouldBe r.getAdminStateUp
-            router.cfg.inboundFilter shouldBe (if (r.hasInboundFilterId)
-                r.getInboundFilterId.asJava else null)
-            router.cfg.outboundFilter shouldBe (if (r.hasOutboundFilterId)
-                r.getOutboundFilterId.asJava else null)
+            if (r.hasInboundFilterId)
+                router.cfg.inboundFilters should contain (r.getInboundFilterId.asJava)
+            if (r.hasOutboundFilterId)
+                router.cfg.outboundFilters should contain (r.getOutboundFilterId.asJava)
             router.cfg.loadBalancer shouldBe (if (r.hasLoadBalancerId)
                 r.getLoadBalancerId.asJava else null)
         }
