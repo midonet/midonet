@@ -81,7 +81,8 @@ public interface L3Api {
      */
     RouterInterface addRouterInterface(
             @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface)
-            throws StateAccessException, SerializationException;
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException;
 
     /**
      * Remove an interface on the network linked to a router.

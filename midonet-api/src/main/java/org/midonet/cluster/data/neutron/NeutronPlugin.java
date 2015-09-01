@@ -294,7 +294,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Subnet updateSubnet(@Nonnull UUID id, @Nonnull Subnet subnet)
-        throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
         Network net = networkZkManager.getNetwork(subnet.networkId);
@@ -426,7 +427,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             } else if (port.isRouterInterface()) {
 
-                networkZkManager.prepareDeletePortConfig(ops, port.id);
+                l3ZkManager.prepareDeleteRouterInterface(ops, port.id);
 
             } else if (port.isRouterGateway()) {
 
@@ -559,7 +560,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     public RouterInterface addRouterInterface(
         @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface)
-        throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
