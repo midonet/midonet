@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.topology.builders
 
-import java.util.UUID
+import java.util.{ArrayList,UUID}
 
 import akka.actor.ActorRef
 
@@ -59,12 +59,18 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     }
 
     def setInFilter(filterID: UUID) = {
-        cfg = cfg.copy(inboundFilter = filterID)
+        val infilters = new ArrayList[UUID](1)
+        if (filterID != null)
+            infilters.add(filterID)
+        cfg = cfg.copy(inboundFilters = infilters)
         this
     }
 
     def setOutFilter(filterID: UUID) = {
-        cfg = cfg.copy(outboundFilter = filterID)
+        val outfilters = new ArrayList[UUID](1)
+        if (filterID != null)
+            outfilters.add(filterID)
+        cfg = cfg.copy(outboundFilters = outfilters)
         this
     }
 

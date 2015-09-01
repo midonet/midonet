@@ -48,13 +48,15 @@ object Port {
     private def jSetToJArrayList(from: java.util.Set[UUID]): JArrayList[UUID] =
         if (from ne null) new JArrayList(from) else new JArrayList(0)
 
-    def apply(proto: Topology.Port): Port = {
+    def apply(proto: Topology.Port,
+              infilters: JList[UUID],
+              outfilters: JList[UUID]): Port = {
         if (proto.hasVtepId)
-            vxLanPort(proto)
+            vxLanPort(proto, infilters, outfilters)
         else if (proto.hasNetworkId)
-            bridgePort(proto)
+            bridgePort(proto, infilters, outfilters)
         else if (proto.hasRouterId)
-            routerPort(proto)
+            routerPort(proto, infilters, outfilters)
         else
             throw new ConvertException("Unknown port type")
     }
@@ -69,10 +71,12 @@ object Port {
         }
     }
 
-    private def bridgePort(p: Topology.Port) = BridgePort(
+    private def bridgePort(p: Topology.Port,
+                           infilters: JList[UUID],
+                           outfilters: JList[UUID]) = BridgePort(
             p.getId,
-            if (p.hasInboundFilterId) p.getInboundFilterId else null,
-            if (p.hasOutboundFilterId) p.getOutboundFilterId else null,
+            infilters,
+            outfilters,
             p.getTunnelKey,
             if (p.hasPeerId) p.getPeerId else null,
             if (p.hasHostId) p.getHostId else null,
@@ -83,10 +87,12 @@ object Port {
             p.getInboundMirrorsList,
             p.getOutboundMirrorsList)
 
-    private def routerPort(p: Topology.Port) = RouterPort(
+    private def routerPort(p: Topology.Port,
+                           infilters: JList[UUID],
+                           outfilters: JList[UUID]) = RouterPort(
             p.getId,
-            if (p.hasInboundFilterId) p.getInboundFilterId else null,
-            if (p.hasOutboundFilterId) p.getOutboundFilterId else null,
+            infilters,
+            outfilters,
             p.getTunnelKey,
             if (p.hasPeerId) p.getPeerId else null,
             if (p.hasHostId) p.getHostId else null,
@@ -100,10 +106,12 @@ object Port {
             p.getInboundMirrorsList,
             p.getOutboundMirrorsList)
 
-    private def vxLanPort(p: Topology.Port) = VxLanPort(
+    private def vxLanPort(p: Topology.Port,
+                          infilters: JList[UUID],
+                          outfilters: JList[UUID]) = VxLanPort(
             p.getId,
-            if (p.hasInboundFilterId) p.getInboundFilterId else null,
-            if (p.hasOutboundFilterId) p.getOutboundFilterId else null,
+            infilters,
+            outfilters,
             p.getTunnelKey,
             if (p.hasPeerId) p.getPeerId else null,
             p.getAdminStateUp,
@@ -115,14 +123,16 @@ object Port {
 
     @Deprecated
     private def bridgePort(p: BridgePortConfig) = BridgePort(
-            p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId, p.hostId,
+            p.id, filterListFrom(p.inboundFilter), filterListFrom(p.outboundFilter),
+            p.tunnelKey, p.peerId, p.hostId,
             p.interfaceName, p.adminStateUp, jSetToJArrayList(p.portGroupIDs), false,
             if (p.vlanId ne null) p.vlanId else Bridge.UntaggedVlanId,
             p.device_id, new JArrayList[UUID](), new JArrayList[UUID]())
 
     @Deprecated
     private def routerPort(p: RouterPortConfig) = RouterPort(
-            p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId, p.hostId,
+            p.id, filterListFrom(p.inboundFilter), filterListFrom(p.outboundFilter),
+            p.tunnelKey, p.peerId, p.hostId,
             p.interfaceName, p.adminStateUp, jSetToJArrayList(p.portGroupIDs), false,
             p.device_id, new IPv4Subnet(p.nwAddr, p.nwLength),
             IPv4Addr.fromString(p.getPortAddr), p.getHwAddr, null,
@@ -130,17 +140,26 @@ object Port {
 
     @Deprecated
     private def vxLanPort(p: VxLanPortConfig) = VxLanPort(
-            p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId,
+            p.id, filterListFrom(p.inboundFilter), filterListFrom(p.outboundFilter),
+            p.tunnelKey, p.peerId,
             p.adminStateUp, jSetToJArrayList(p.portGroupIDs), new UUID(1, 39), p.device_id,
             IPv4Addr.fromString(p.mgmtIpAddr), p.mgmtPort,
             IPv4Addr.fromString(p.tunIpAddr), p.tunnelZoneId, p.vni,
             new JArrayList[UUID](), new JArrayList[UUID]())
+
+    private def filterListFrom(id: UUID): JList[UUID] = {
+        val list = new JArrayList[UUID](1)
+        if (id != null) {
+            list.add(id)
+        }
+        list
+    }
 }
 
 trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with Cloneable {
     def id: UUID
-    def inboundFilter: UUID
-    def outboundFilter: UUID
+    def inboundFilters: JList[UUID]
+    def outboundFilters: JList[UUID]
     def tunnelKey: Long
     def peerId: UUID
     def hostId: UUID
@@ -151,13 +170,12 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     def deviceId: UUID
     def vlanId: Short = Bridge.UntaggedVlanId
 
-    override def infilter = inboundFilter
-    override def outfilter = outboundFilter
+    override def infilters = inboundFilters
+    override def outfilters = outboundFilters
 
     val action = ToPortAction(id)
 
     def toggleActive(active: Boolean) = this
-    def updateInboundFilter(filter: UUID) = this
 
     val deviceTag = FlowTagger.tagForPort(id)
     val flowStateTag = FlowTagger.tagForFlowStateDevice(id)
@@ -236,7 +254,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
 
     override def toString =
         s"id=$id active=$isActive adminStateUp=$adminStateUp " +
-        s"inboundFilter=$inboundFilter outboundFilter=$outboundFilter " +
+        s"inboundFilters=$inboundFilters outboundFilters=$outboundFilters " +
         s"tunnelKey=$tunnelKey portGroups=$portGroups peerId=$peerId " +
         s"hostId=$hostId interfaceName=$interfaceName vlanId=$vlanId"
 
@@ -247,8 +265,8 @@ object BridgePort {
 }
 
 case class BridgePort(override val id: UUID,
-                      override val inboundFilter: UUID = null,
-                      override val outboundFilter: UUID = null,
+                      override val inboundFilters: JList[UUID] = new JArrayList(0),
+                      override val outboundFilters: JList[UUID] = new JArrayList(0),
                       override val tunnelKey: Long = 0,
                       override val peerId: UUID = null,
                       override val hostId: UUID = null,
@@ -263,7 +281,6 @@ case class BridgePort(override val id: UUID,
     extends Port {
 
     override def toggleActive(active: Boolean) = copy(isActive = active)
-    override def updateInboundFilter(filter: UUID) = copy(inboundFilter = filter)
     override def deviceId = networkId
 
     protected def device(implicit as: ActorSystem) = tryAsk[Bridge](networkId)
@@ -287,8 +304,8 @@ case class BridgePort(override val id: UUID,
 }
 
 case class RouterPort(override val id: UUID,
-                      override val inboundFilter: UUID = null,
-                      override val outboundFilter: UUID = null,
+                      override val inboundFilters: JList[UUID] = new JArrayList(0),
+                      override val outboundFilters: JList[UUID] = new JArrayList(0),
                       override val tunnelKey: Long = 0,
                       override val peerId: UUID = null,
                       override val hostId: UUID = null,
@@ -308,7 +325,6 @@ case class RouterPort(override val id: UUID,
     protected def device(implicit as: ActorSystem) = tryAsk[Router](routerId)
 
     override def toggleActive(active: Boolean) = copy(isActive = active)
-    override def updateInboundFilter(filter: UUID) = copy(inboundFilter = filter)
 
     override def deviceId = routerId
 
@@ -336,8 +352,8 @@ case class RouterPort(override val id: UUID,
 }
 
 case class VxLanPort(override val id: UUID,
-                     override val inboundFilter: UUID = null,
-                     override val outboundFilter: UUID = null,
+                     override val inboundFilters: JList[UUID] = new JArrayList(0),
+                     override val outboundFilters: JList[UUID] = new JArrayList(0),
                      override val tunnelKey: Long = 0,
                      override val peerId: UUID = null,
                      override val adminStateUp: Boolean = true,
@@ -363,7 +379,6 @@ case class VxLanPort(override val id: UUID,
     protected def device(implicit as: ActorSystem) = tryAsk[Bridge](networkId)
 
     override def toggleActive(active: Boolean) = this
-    override def updateInboundFilter(filter: UUID) = copy(inboundFilter = filter)
 
     override def toString =
         s"VxLanPort [${super.toString} networkId=$networkId vtepId=$vtepId]"

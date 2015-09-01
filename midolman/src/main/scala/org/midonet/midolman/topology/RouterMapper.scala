@@ -17,7 +17,7 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean}
-import java.util.UUID
+import java.util.{ArrayList, UUID}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -520,11 +520,19 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         val outboundMirrors = new java.util.ArrayList[UUID]()
         outboundMirrors.addAll(router.getOutboundMirrorsList.asScala.map(_.asJava).asJava)
 
+        val infilters = new ArrayList[UUID](0)
+        val outfilters = new ArrayList[UUID](0)
+        if (router.hasInboundFilterId) {
+            infilters.add(router.getInboundFilterId)
+        }
+        if (router.hasOutboundFilterId) {
+            outfilters.add(router.getOutboundFilterId)
+        }
+
         // Create the router configuration.
         val cfg = Config(
             if (router.hasAdminStateUp) router.getAdminStateUp else false,
-            if (router.hasInboundFilterId) router.getInboundFilterId else null,
-            if (router.hasOutboundFilterId) router.getOutboundFilterId else null,
+            infilters, outfilters,
             if (router.hasLoadBalancerId) router.getLoadBalancerId else null,
             inboundMirrors,
             outboundMirrors)
@@ -554,8 +562,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         }
 
         // Request trace chain be built if necessary
-        requestTraceChain(Option(if (router.hasInboundFilterId) router.getInboundFilterId else null),
-                          router.getTraceRequestIdsList().asScala.map(_.asJava).toList)
+        requestTraceChain(router.getTraceRequestIdsList()
+                              .asScala.map(_.asJava).toList)
 
         // Request the chains for this router.
         chainsTracker.requestRefs(
@@ -664,7 +672,12 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         assertThread()
 
         val config2 = traceChain match {
-            case Some(t) => config.copy(inboundFilter = t)
+            case Some(t) => {
+                val infilters = new ArrayList[UUID](2)
+                infilters.add(t)
+                infilters.addAll(config.inboundFilters)
+                config.copy(inboundFilters = infilters)
+            }
             case None => config
         }
 
