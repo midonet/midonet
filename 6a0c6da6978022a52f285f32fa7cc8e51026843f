@@ -1,0 +1,441 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e0c9805b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "I think the main issue here is that this mapper needs to be self-contained more like a service, rather than the mappers we wrote previously. Before, the mappers were translating between storage and requests from consumers. However, in this case, the mapper is a consumer by itselft, having to update the vxlan port map.\n\nHere, the mapper exposes an observable that isn\u0027t used anywhere except for the tests, hence it looks like it won\u0027t do anything. My suggestions are:\n\n(1)\n- this mapper should be like a service, with start/stop methods (start with the agent, stop with the agent)\n- no need to expose an observable, all consumers go to the map\n- the observable must be subscribed internally and the consumed notifications should update the map\n\nor (2)\n- this mapper exposes an observable, there is no start/stop\n- the VTPM is the consumer and subscribes to the observable upon start/unsubscribes upon stop\n- the VTPM may consume the updates and update the vxlan port map, or the mapper can do it",
+      "range": {
+        "startLine": 39,
+        "startChar": 7,
+        "endLine": 39,
+        "endChar": 22
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_60bad0e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "This can be a simple reference since start is only called once.",
+      "range": {
+        "startLine": 46,
+        "startChar": 4,
+        "endLine": 46,
+        "endChar": 70
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0077443c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "This method returns an observable, yet it is not used anywhere except than in the tests. A start method should return something like Unit or a Future signaling completion. Also some documentation would be nice.",
+      "range": {
+        "startLine": 48,
+        "startChar": 26,
+        "endLine": 48,
+        "endChar": 52
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_608f3024",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "Since this is used in the simulation, it would be more efficient to access the map directly.",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 62,
+        "endChar": 9
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_00f3c49f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "Set logger source",
+      "range": {
+        "startLine": 77,
+        "startChar": 12,
+        "endLine": 77,
+        "endChar": 27
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c012bc08",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "Make this an immutable map. Also: should it be volatile?",
+      "range": {
+        "startLine": 82,
+        "startChar": 33,
+        "endLine": 82,
+        "endChar": 40
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a0269866",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "Nit: VtepStateStorage provides implicit access to the vtep methods. You just need to import:\n\n  import VtepStateStorage._\n\nand then you can call:\n\n  vt.backend.stateStore.vtepMethod",
+      "range": {
+        "startLine": 85,
+        "startChar": 4,
+        "endLine": 86,
+        "endChar": 66
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c0b9dc7a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "can this be a Map[portId -\u003e vtepId]? It would make it simpler/faster to remove a vxlan port from this network.",
+      "range": {
+        "startLine": 101,
+        "startChar": 34,
+        "endLine": 101,
+        "endChar": 63
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_40e06c96",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "If you use clone, why not make the set immutable? On the next line you could create a new set and add it to the vtepBindings map. Then you wouldn\u0027t need to clear the old map, and add all the new elements again.",
+      "range": {
+        "startLine": 149,
+        "startChar": 40,
+        "endLine": 149,
+        "endChar": 48
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e0da60e8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "VTEP",
+      "range": {
+        "startLine": 155,
+        "startChar": 19,
+        "endLine": 155,
+        "endChar": 23
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a0fe9869",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "Nit: parentheses not needed.",
+      "range": {
+        "startLine": 159,
+        "startChar": 43,
+        "endLine": 159,
+        "endChar": 44
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e001803a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 160,
+        "startChar": 57,
+        "endLine": 160,
+        "endChar": 72
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a09f7802",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "You could remove the port from this network in networksPortMap, and then check whether that list is empty. In this way you don\u0027t have to search through all the networks/bindings.",
+      "range": {
+        "startLine": 162,
+        "startChar": 12,
+        "endLine": 162,
+        "endChar": 38
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_20fc483e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 166,
+        "startChar": 26,
+        "endLine": 166,
+        "endChar": 41
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2058c855",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "This could be simpler:\n\n   store.observable(classOf[Port], portId)\n                     .observeOn(vt.vtScheduler)\n                     .take(1)\n                     .map(makeFunc1(port \u003d\u003e (networkId, port)))",
+      "range": {
+        "startLine": 221,
+        "startChar": 12,
+        "endLine": 226,
+        "endChar": 31
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c03e3cda",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "find",
+      "range": {
+        "startLine": 300,
+        "startChar": 54,
+        "endLine": 300,
+        "endChar": 60
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e0d0a0f9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "This should be a val, otherwise every call will create a new observable, each that will \"update\"(1) the map.\n\n(1) See next comment",
+      "range": {
+        "startLine": 310,
+        "startChar": 22,
+        "endLine": 310,
+        "endChar": 25
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_40d6acf2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "In the agent, this needs a subscriber, otherwise the map will never be updated. While you subscribe in the unit tests, this observable is unused otherwise.",
+      "range": {
+        "startLine": 316,
+        "startChar": 17,
+        "endLine": 317,
+        "endChar": 57
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a035b847",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VxLanPortMapperTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T11:07:05Z",
+      "side": 1,
+      "message": "I think the unit tests should be oriented to how the mapper is used by the agent, i.e. calls to the map rather than subscription to the observable.",
+      "range": {
+        "startLine": 162,
+        "startChar": 12,
+        "endLine": 163,
+        "endChar": 49
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
