@@ -24,8 +24,8 @@ Only the following fields are updated:
 
  * id => id
  * admin_state_up => adminStateUp
-
-'name' could be copied over too, but it is unused in MidoNet.
+ * name => name
+ * tenantId => tenantId
 
 ### UPDATE
 
@@ -38,8 +38,7 @@ Update the MidoNet network.
 Only the following fields are updated:
 
  * admin_state_up => adminStateUp
-
-'name' could be updated too, but it is unused in MidoNet.
+ * name => name
 
 For an uplink network, where there is no corresponding MidoNet network, setting
 admin state down means setting 'adminStateUp' to False all the MidoNet router
