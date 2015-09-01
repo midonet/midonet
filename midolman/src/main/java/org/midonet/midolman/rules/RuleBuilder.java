@@ -94,6 +94,13 @@ public class RuleBuilder {
         return r;
     }
 
+    public Rule jumpTo(UUID toChainId, String toChainName) {
+        r = new JumpRule(chainId, toChainId, toChainName);
+        r.id = id;
+        r.condition = c;
+        return r;
+    }
+
     public RuleBuilder fromIp(IPv4Addr addr) {
         return fromSubnet(addr.subnet(32));
     }

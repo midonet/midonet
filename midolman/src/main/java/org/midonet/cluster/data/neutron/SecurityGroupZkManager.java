@@ -110,7 +110,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         throws StateAccessException, SerializationException {
         UUID jumpChainId = gc.getPropertyUuid(dir);
         ChainConfig jChain = chainZkManager.get(jumpChainId);
-        return new JumpRule(chainId, jumpChainId, jChain.name);
+        return new RuleBuilder(chainId).jumpTo(jumpChainId, jChain.name);
     }
 
     private void putPortChainRules(List<Rule> inRules, List<Rule> outRules,
@@ -341,12 +341,12 @@ public class SecurityGroupZkManager extends BaseZkManager {
 
         for (SecurityGroupRule sgr : sg.securityGroupRules) {
             if (sgr.isEgress()) {
-                Rule r = new RuleBuilder(inboundChainId)
+                Rule r = new RuleBuilder(sgr.id, inboundChainId)
                     .securityGroupRule(sgr)
                     .accept();
                 egressRules.add(r);
             } else {
-                Rule r = new RuleBuilder(outboundChainId)
+                Rule r = new RuleBuilder(sgr.id, outboundChainId)
                     .securityGroupRule(sgr)
                     .accept();
                 ingressRules.add(r);
@@ -411,7 +411,8 @@ public class SecurityGroupZkManager extends BaseZkManager {
         List<SecurityGroupRule> rules = new ArrayList<>();
         for (UUID id : ids) {
             SecurityGroupRule rule = getSecurityGroupRule(id);
-            if (sgId == null || Objects.equal(rule.securityGroupId, sgId)) {
+            if (rule != null &&
+                (sgId == null || Objects.equal(rule.securityGroupId, sgId))) {
                 rules.add(rule);
             }
         }
@@ -432,7 +433,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
                             RuleDirection.INGRESS : RuleDirection.EGRESS;
         UUID chainId = ipAddrGroupConfig.getPropertyUuid(dir);
 
-        Rule r = new RuleBuilder(chainId)
+        Rule r = new RuleBuilder(rule.id, chainId)
             .securityGroupRule(rule)
             .accept();
         ops.addAll(ruleZkManager.prepareInsertPositionOrdering(rule.id, r, 1));

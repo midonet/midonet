@@ -32,4 +32,11 @@ object UUIDUtil {
                  id1.getLeastSignificantBits ^ lsbMask)
     }
 
+    /**
+     * This method generates a new UUID object from XOR'ing variable number of
+     * UUIDs.
+     */
+    def xor(ids: UUID*): UUID = {
+        ids.reduceLeft(xor)
+    }
 }

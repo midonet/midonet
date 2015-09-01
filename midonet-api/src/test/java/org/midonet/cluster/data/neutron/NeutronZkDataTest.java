@@ -34,7 +34,6 @@ import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4Subnet;
 
 public final class NeutronZkDataTest extends NeutronPluginTest {
@@ -141,10 +140,13 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         throws SerializationException, StateAccessException {
         org.midonet.cluster.data.Router r = dataClient.routersGet(
             router.id);
+        Port bPort = dataClient.portsGet(routerPort.id);
         ForwardNatRule snatRule = (ForwardNatRule) dataClient.rulesGet(
-            L3ZkManager.localSnatRuleId(r.getOutboundFilter()));
+            L3ZkManager.downlinkSnatRuleId(r.getOutboundFilter(),
+                                           bPort.getPeerId()));
         ReverseNatRule revSnatRule = (ReverseNatRule) dataClient.rulesGet(
-            L3ZkManager.localSnatRuleId(r.getInboundFilter()));
+            L3ZkManager.downlinkSnatRuleId(r.getInboundFilter(),
+                                           bPort.getPeerId()));
 
         Port p = dataClient.portsGet(routerInterface.portId);
         Condition cond = snatRule.getCondition();
@@ -228,8 +230,11 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         // Delete the SNAT rules to emulate how it looked previously
         org.midonet.cluster.data.Router r = dataClient.routersGet(
             router.id);
-        UUID snatRuleId = L3ZkManager.localSnatRuleId(r.getOutboundFilter());
-        UUID revSnatRuleId = L3ZkManager.localSnatRuleId(r.getInboundFilter());
+        Port bPort = dataClient.portsGet(routerPort.id);
+        UUID snatRuleId = L3ZkManager.downlinkSnatRuleId(r.getOutboundFilter(),
+                                                         bPort.getPeerId());
+        UUID revSnatRuleId = L3ZkManager.downlinkSnatRuleId(
+            r.getInboundFilter(), bPort.getPeerId());
         dataClient.rulesDelete(snatRuleId);
         dataClient.rulesDelete(revSnatRuleId);
 
@@ -254,8 +259,12 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         // Delete the SNAT rules to emulate how it looked previously
         org.midonet.cluster.data.Router r = dataClient.routersGet(
             router.id);
-        UUID snatRuleId = L3ZkManager.localSnatRuleId(r.getOutboundFilter());
-        UUID revSnatRuleId = L3ZkManager.localSnatRuleId(r.getInboundFilter());
+        Port bPort = dataClient.portsGet(routerPort.id);
+
+        UUID snatRuleId = L3ZkManager.downlinkSnatRuleId(r.getOutboundFilter(),
+                                                         bPort.getPeerId());
+        UUID revSnatRuleId = L3ZkManager.downlinkSnatRuleId(
+            r.getInboundFilter(), bPort.getPeerId());
         dataClient.rulesDelete(snatRuleId);
         dataClient.rulesDelete(revSnatRuleId);
 
