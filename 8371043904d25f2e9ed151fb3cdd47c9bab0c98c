@@ -52,6 +52,42 @@
       "revId": "8371043904d25f2e9ed151fb3cdd47c9bab0c98c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_bda87fdc",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-09-01T04:34:52Z",
+      "side": 1,
+      "message": "i believe restarting dhcp agent will re-create dhcp port.",
+      "parentUuid": "9ad9bd40_9a990171",
+      "revId": "8371043904d25f2e9ed151fb3cdd47c9bab0c98c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ddc38388",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-09-01T04:34:52Z",
+      "side": 1,
+      "message": "disabling the flag (and restarting midolman) just makes the service unavailable.  until you re-enable it or launch dhcp/meta agents.",
+      "parentUuid": "9ad9bd40_fac84d77",
+      "revId": "8371043904d25f2e9ed151fb3cdd47c9bab0c98c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
