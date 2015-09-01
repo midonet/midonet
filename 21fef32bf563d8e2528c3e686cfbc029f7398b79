@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_a05858fb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-01T09:34:49Z",
+      "side": 1,
+      "message": "indent",
+      "revId": "21fef32bf563d8e2528c3e686cfbc029f7398b79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
