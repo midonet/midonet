@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.collection.JavaConversions;
+
 public class L3ZkManager extends BaseZkManager {
 
     private static final Logger LOGGER =
@@ -81,12 +83,15 @@ public class L3ZkManager extends BaseZkManager {
     }
 
     /**
-     * Deterministically generate the local SNAT rule ID from chain ID.
+     * Deterministically generate the downlink SNAT rule ID from chain ID and
+     * router port ID.
      */
-    public static UUID localSnatRuleId(UUID chainId) {
-        return UUIDUtil.xor(chainId,
-                            UUID.fromString(
-                                "3bcf2eb6-4be2-11e5-84ae-0242ac110003"));
+    public static UUID downlinkSnatRuleId(UUID chainId, UUID portId) {
+        List<UUID> ids = new ArrayList<>(3);
+        ids.add(chainId);
+        ids.add(portId);
+        ids.add(UUID.fromString("3bcf2eb6-4be2-11e5-84ae-0242ac110003"));
+        return UUIDUtil.xor(JavaConversions.asScalaBuffer(ids));
     }
 
     public Router getRouter(UUID routerId) throws StateAccessException,
@@ -198,10 +203,10 @@ public class L3ZkManager extends BaseZkManager {
                                 serializer.serialize(router)));
     }
 
-    private Rule getLocalSnatRule(UUID chainId, UUID routerPortId,
-                                  IPv4Addr routerAddr) {
+    private Rule getDownlinkSnatRule(UUID chainId, UUID routerPortId,
+                                     IPv4Addr routerAddr) {
         Rule snatRule = ruleZkManager.sourceNatRule(
-            localSnatRuleId(chainId), chainId, routerPortId,
+            downlinkSnatRuleId(chainId, routerPortId), chainId, routerPortId,
             routerPortId, routerAddr, RuleResult.Action.RETURN);
         // Exclude metadata IP
         snatRule.getCondition().nwDstIp = MetaDataService.IPv4_SUBNET;
@@ -209,10 +214,11 @@ public class L3ZkManager extends BaseZkManager {
         return snatRule;
     }
 
-    private Rule getReverseLocalSnatRule(UUID chainId, UUID routerPortId,
-                                         IPv4Addr routerAddr) {
+    private Rule getReverseDownlinkSnatRule(UUID chainId, UUID routerPortId,
+                                            IPv4Addr routerAddr) {
         return ruleZkManager.reverseSourceNatRule(
-            localSnatRuleId(chainId), chainId, routerPortId, null, routerAddr);
+            downlinkSnatRuleId(chainId, routerPortId), chainId, routerPortId,
+            null, routerAddr);
     }
 
     public void prepareCreateRouterInterface(List<Op> ops, RouterInterface rInt)
@@ -281,10 +287,10 @@ public class L3ZkManager extends BaseZkManager {
         // would still work by forcing it to come back to the router.  Such
         // cases include Floating IP and VIP.
         RouterConfig rCfg = routerZkManager.get(rInt.id);
-        Rule snatRule = getLocalSnatRule(rCfg.outboundFilter, rpId,
-                                         routerAddr);
-        Rule revSnatRule = getReverseLocalSnatRule(rCfg.inboundFilter, rpId,
-                                                   routerAddr);
+        Rule snatRule = getDownlinkSnatRule(rCfg.outboundFilter, rpId,
+                                            routerAddr);
+        Rule revSnatRule = getReverseDownlinkSnatRule(rCfg.inboundFilter, rpId,
+                                                      routerAddr);
         ruleZkManager.prepareRuleAppendToEndOfChain(ops, snatRule);
         ruleZkManager.prepareCreateRuleFirstPosition(ops, revSnatRule);
 
@@ -329,10 +335,10 @@ public class L3ZkManager extends BaseZkManager {
             // If the gateway IP address changes, the SNAT rules must change on
             // the router
             RouterConfig rCfg = routerZkManager.get(rPort.device_id);
-            Rule snatRule = getLocalSnatRule(rCfg.outboundFilter, rPort.id,
-                                             addr);
-            Rule revSnatRule = getReverseLocalSnatRule(rCfg.inboundFilter,
-                                                       rPort.id, addr);
+            Rule snatRule = getDownlinkSnatRule(rCfg.outboundFilter, rPort.id,
+                                                addr);
+            Rule revSnatRule = getReverseDownlinkSnatRule(rCfg.inboundFilter,
+                                                          rPort.id, addr);
 
             // For backward compatibility, check whether these rules exist
             if (ruleZkManager.exists(snatRule.id)) {
@@ -368,8 +374,10 @@ public class L3ZkManager extends BaseZkManager {
 
         PortConfig rPortConfig = portZkManager.get(portConfig.peerId);
         RouterConfig routerConfig = routerZkManager.get(rPortConfig.device_id);
-        UUID snatRuleId = localSnatRuleId(routerConfig.outboundFilter);
-        UUID revSnatRuleId = localSnatRuleId(routerConfig.inboundFilter);
+        UUID snatRuleId = downlinkSnatRuleId(routerConfig.outboundFilter,
+                                             rPortConfig.id);
+        UUID revSnatRuleId = downlinkSnatRuleId(routerConfig.inboundFilter,
+                                                rPortConfig.id);
 
         // For backward compatibility, check the rules' existence first
         if (ruleZkManager.exists(snatRuleId)) {

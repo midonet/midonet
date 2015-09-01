@@ -190,10 +190,9 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         // it is in process of getting created.
         List<UUID> ruleIds = new ArrayList<>(rules.size());
         for (Rule rule : rules) {
-            UUID id = rule.getCondition().id == null ? UUID.randomUUID() : rule.getCondition().id;
             rule.chainId = chainId;
-            ops.addAll(prepareRuleCreate(id, rule));
-            ruleIds.add(id);
+            ops.addAll(prepareRuleCreate(rule.id, rule));
+            ruleIds.add(rule.id);
         }
 
         // Chain does not exist yet, but it's assumed that it's initialized

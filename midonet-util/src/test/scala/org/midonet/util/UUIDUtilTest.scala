@@ -27,7 +27,7 @@ class UUIDUtilTest extends FlatSpec with Matchers {
 
     import UUIDUtil._
 
-    "Random UUIDs" should "xor back and forth correctly" in {
+    "Random UUID pairs" should "xor back and forth correctly" in {
         1 to 10 foreach { i =>
             val uuid1 = UUID.randomUUID()
             val uuid2 = UUID.randomUUID()
@@ -36,5 +36,17 @@ class UUIDUtilTest extends FlatSpec with Matchers {
             xor(uuid3, uuid1) shouldBe uuid2
             xor(uuid2, uuid3) shouldBe uuid1
         }
+    }
+
+    "Random UUID list" should "xor back and forth correctly" in {
+
+        val uuid1 = UUID.randomUUID()
+        val uuid2 = UUID.randomUUID()
+        val uuid3 = UUID.randomUUID()
+        val uuid4 = xor(uuid1, uuid2, uuid3)
+
+        xor(uuid4, uuid1, uuid2) shouldBe uuid3
+        xor(uuid4, uuid1, uuid3) shouldBe uuid2
+        xor(uuid4, uuid2, uuid3) shouldBe uuid1
     }
 }
