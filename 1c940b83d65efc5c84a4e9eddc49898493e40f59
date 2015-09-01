@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_c070fcde",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Mirror.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-09-01T10:50:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_02ff5602",
+      "range": {
+        "startLine": 46,
+        "startChar": 4,
+        "endLine": 68,
+        "endChar": 38
+      },
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e702840a",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MirrorResource.scala",
         "patchSetId": 4
@@ -59,6 +83,30 @@
       "writtenOn": "2015-08-28T11:42:17Z",
       "side": 1,
       "message": "If you allow updating the mirror, because the Mirror resource includes references that are not exposed to the client, you must override the updateFilter and make sure these references are copied to the updated object:\n\n   protected override def updateFilter(to: Mirror, from: Mirror): Ops \u003d {\n      to.update(from)\n      NoOps\n   }\n\nNote: we should simplify this such that it\u0027s not needed.",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 37
+      },
+      "revId": "1c940b83d65efc5c84a4e9eddc49898493e40f59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a06db806",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MirrorResource.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-09-01T10:50:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e702840a",
       "range": {
         "startLine": 39,
         "startChar": 0,
