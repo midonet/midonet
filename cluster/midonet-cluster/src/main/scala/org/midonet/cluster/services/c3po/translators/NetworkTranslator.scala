@@ -45,9 +45,14 @@ class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
         // be turned into uplink networks via update.
         if (isUplinkNetwork(nn)) return List()
 
-        val ops = new MidoOpListBuffer
-        ops += Update(translate(nn))
-        ops.toList
+        val mNet = storage.get(classOf[Network], nn.getId).await()
+
+        val bldr = mNet.toBuilder
+                .setTenantId(nn.getTenantId)
+                .setName(nn.getName)
+                .setAdminStateUp(nn.getAdminStateUp)
+
+        List(Update(bldr.build()))
     }
 
     override protected def translateDelete(id: UUID): MidoOpList = {
