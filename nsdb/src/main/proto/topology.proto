@@ -378,6 +378,7 @@ message Rule {
         NAT_RULE = 2;
         JUMP_RULE = 3;
         TRACE_RULE = 4;
+        L2TRANSFORM_RULE = 5;
     }
     optional Type type = 2;
     optional UUID chain_id = 3;
@@ -389,6 +390,7 @@ message Rule {
         JUMP = 4;
         REJECT = 5;
         RETURN = 6;
+        REDIRECT = 7;
     }
     optional Action action = 4;
 
@@ -420,10 +422,18 @@ message Rule {
         optional UUID trace_request_id = 1;
         optional uint64 limit = 2;
     }
+    message L2TransformRuleData {
+        optional bool pop_vlan = 1;
+        optional uint32 push_vlan = 2;
+        optional UUID target_port = 3;
+        optional bool ingress = 4;
+        optional bool fail_open = 5;
+    }
     oneof rule_data {
         JumpRuleData jump_rule_data = 100;
         NatRuleData nat_rule_data = 101;
         TraceRuleData trace_rule_data = 102;
+        L2TransformRuleData transform_rule_data = 103;
     }
 }
 

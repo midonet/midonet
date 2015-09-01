@@ -65,6 +65,7 @@
       <validValue name="JUMP">4</validValue>
       <validValue name="REJECT">5</validValue>
       <validValue name="RETURN">6</validValue>
+      <validValue name="REDIRECT">7</validValue>
     </enum>
     <enum name="DeviceType" encodingType="uint8">
       <validValue name="LOAD_BALANCER">1</validValue>

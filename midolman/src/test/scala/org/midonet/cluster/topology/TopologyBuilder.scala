@@ -32,6 +32,7 @@ import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
@@ -593,6 +594,30 @@ trait TopologyBuilder {
                 .setMatchForwardFlow(matchFwdFlow.get)
                 .setMatchReturnFlow(!matchFwdFlow.get)
         }
+        builder
+    }
+
+    def createL2TransformRuleBuilder(id: UUID = UUID.randomUUID(),
+                                     chainId: Option[UUID] = None,
+                                     targetPortId: Option[UUID] = None,
+                                     action: Option[Action] = Some(Action.REDIRECT),
+                                     ingress: Option[Boolean] = None,
+                                     failOpen: Option[Boolean] = None,
+                                     pushVLan: Option[Short] = None,
+                                     popVLan: Option[Boolean] = None)
+            : Rule.Builder = {
+        val builder = createRuleBuilder(id, chainId, action)
+            .setType(Rule.Type.L2TRANSFORM_RULE)
+
+        val data = Rule.L2TransformRuleData.newBuilder
+        targetPortId foreach {
+            (id: UUID) => data.setTargetPort(UUIDUtil.toProto(id)) }
+        ingress foreach { data.setIngress(_) }
+        failOpen foreach { data.setFailOpen(_) }
+        pushVLan foreach { data.setPushVlan(_) }
+        popVLan foreach { data.setPopVlan(_) }
+
+        builder.setTransformRuleData(data.build())
         builder
     }
 

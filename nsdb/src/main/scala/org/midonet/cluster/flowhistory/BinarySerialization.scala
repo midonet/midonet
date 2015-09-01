@@ -140,6 +140,7 @@ class BinarySerialization {
                     case SbeRuleResult.JUMP => RuleResult.JUMP
                     case SbeRuleResult.REJECT => RuleResult.REJECT
                     case SbeRuleResult.RETURN => RuleResult.RETURN
+                    case SbeRuleResult.REDIRECT => RuleResult.REDIRECT
                     case _ => RuleResult.UNKNOWN
                 }
             rules.add(new TraversedRule(uuid, result))
