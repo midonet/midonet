@@ -468,7 +468,6 @@ public class TestRules {
         expected.setDstPort(newTpDst);
         Assert.assertEquals(pktCtx.wcmatch(), expected);
         // Verify we get the same mapping if we re-process the original match.
-        new RuleResult(null);
         pktCtx.wcmatch().reset(pktCtx.origMatch());
         rule.process(pktCtx);
         Assert.assertEquals(pktCtx.wcmatch(), expected);

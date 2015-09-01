@@ -207,7 +207,8 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
             ErrorDrop
     })
 
-    def ingress(implicit context: PacketContext, as: ActorSystem): SimulationResult = {
+    def ingress(implicit context: PacketContext, as: ActorSystem,
+                ignoreAdminState: Boolean = false): SimulationResult = {
         context.log.debug(s"Ingressing port $id")
         if (context.devicesTraversed >= Simulator.MAX_DEVICES_TRAVERSED) {
             context.log.debug(s"Dropping packet that traversed too many devices "+
@@ -217,16 +218,25 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
             context.addFlowTag(deviceTag)
             context.addFlowTag(rxTag)
             context.inPortId = id
-            mirroringInbound(context, portIngress, as)
+            mirroringInbound(context,
+                             if (ignoreAdminState)
+                                 portIngressIgnoringAdminState
+                             else portIngress, as)
         }
     }
 
-    def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
+    def egress(context: PacketContext, as: ActorSystem,
+               skipFilters: Boolean = false): SimulationResult = {
         context.log.debug(s"Egressing port $id")
         context.addFlowTag(deviceTag)
         context.addFlowTag(txTag)
         context.outPortId = id
-        filterOut(context, as, continueOut)
+
+        if (skipFilters) {
+            continueOut(context, as)
+        } else {
+            filterOut(context, as, continueOut)
+        }
     }
 
     private[this] val ingressDevice: SimStep = (context, as) => {
@@ -239,6 +249,10 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
 
     private val portIngress = ContinueWith((context, as) => {
         filterIn(context, as, continueIn)
+    })
+
+    private val portIngressIgnoringAdminState = ContinueWith((context, as) => {
+        filterIn(context, as, continueIn, ignoreAdminState=true)
     })
 
     override protected val preIn: SimHook = (c, as) => {
@@ -285,7 +299,8 @@ case class BridgePort(override val id: UUID,
 
     protected def device(implicit as: ActorSystem) = tryAsk[Bridge](networkId)
 
-    override def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
+    override def egress(context: PacketContext, as: ActorSystem,
+                        skipFilters: Boolean = false): SimulationResult = {
         if (id == context.inPortId) {
             Drop
         } else {
@@ -295,7 +310,12 @@ case class BridgePort(override val id: UUID,
             context.outPortId = id
             if ((vlanId > 0) && context.wcmatch.isVlanTagged)
                 context.wcmatch.removeVlanId(vlanId)
-            filterOut(context, as, continueOut)
+
+            if (skipFilters) {
+                continueOut(context, as)
+            } else {
+                filterOut(context, as, continueOut)
+            }
         }
     }
 

@@ -38,7 +38,9 @@ public class RuleResult {
         @ZoomEnumValue(value = "REJECT")
         REJECT(true),
         @ZoomEnumValue(value = "RETURN")
-        RETURN(false);
+        RETURN(false),
+        @ZoomEnumValue(value = "REDIRECT")
+        REDIRECT(true);
 
         private final boolean decisive;
 
@@ -58,14 +60,24 @@ public class RuleResult {
 
     public final Action action;
     public final UUID jumpToChain;
+    public final UUID redirectPort;
+    public final boolean redirectIngress;
+    public final boolean redirectFailOpen;
 
     public RuleResult(Action action) {
-        this(action, null);
+        this(action, null, null, false, false);
     }
 
-    public RuleResult(Action action, UUID jumpToChain) {
+    private RuleResult(Action action,
+                       UUID jumpToChain,
+                       UUID redirectPort,
+                       boolean redirectIngress,
+                       boolean redirectFailOpen) {
         this.action = action;
         this.jumpToChain = jumpToChain;
+        this.redirectPort = redirectPort;
+        this.redirectIngress = redirectIngress;
+        this.redirectFailOpen = redirectFailOpen;
     }
 
     public boolean isDecisive() {
@@ -74,7 +86,7 @@ public class RuleResult {
 
     @Override
     public int hashCode() {
-        return Objects.hash(action, jumpToChain);
+        return Objects.hash(action, jumpToChain, redirectPort);
     }
 
     @Override
@@ -83,16 +95,33 @@ public class RuleResult {
         if (!(other instanceof RuleResult)) return false;
 
         RuleResult res = (RuleResult)other;
-        if (action != res.action) return false;
-        if (!Objects.equals(jumpToChain, res.jumpToChain)) return false;
-        return true;
+        return action != res.action
+            && Objects.equals(jumpToChain, res.jumpToChain)
+            && redirectIngress != res.redirectIngress
+            && redirectFailOpen != res.redirectFailOpen
+            && Objects.equals(redirectPort, res.redirectPort);
     }
 
     @Override
     public String toString() {
         if (action == Action.JUMP)
             return action + "(jump=" + jumpToChain + ")";
+        else if (action == Action.REDIRECT)
+            return action + "(port=" + redirectPort
+                + ", ingress=" + redirectIngress
+                + ", failOpen=" + redirectFailOpen +")";
         else
             return action.toString();
+    }
+
+    public static RuleResult jumpResult(UUID jumpToChain) {
+        return new RuleResult(Action.JUMP, jumpToChain, null, false, false);
+    }
+
+    public static RuleResult redirectResult(UUID redirectPort,
+                                            boolean redirectIngress,
+                                            boolean redirectFailOpen) {
+        return new RuleResult(Action.REDIRECT, null, redirectPort,
+                              redirectIngress, redirectFailOpen);
     }
 }

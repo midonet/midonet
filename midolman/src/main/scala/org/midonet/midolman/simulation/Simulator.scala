@@ -173,23 +173,19 @@ trait InAndOutFilters extends SimDevice {
     protected def dropIn: DropHook = (p, as, action) => Drop
     protected def dropOut: DropHook = (p, as, action) => Drop
 
-    final protected val filterIn: (PacketContext, ActorSystem, SimStep) => Result =
-        if (!adminStateUp) {
-            (context, as, continue) => {
-                reject(context, as)
-                Drop
-            }
+    final protected def filterIn(context: PacketContext, as: ActorSystem,
+                                 continue: SimStep,
+                                 ignoreAdminState: Boolean = false): Result =
+        if (!adminStateUp && !ignoreAdminState) {
+            reject(context, as)
+            Drop
         } else if (infilters.size > 0) {
-            (context, as, continue) => {
-                context.log.debug(s"Applying inbound chain $infilters")
-                doFilters(context, infilters, preIn, postIn, continue, dropIn, as)
-            }
+            context.log.debug(s"Applying inbound chain $infilters", new Exception())
+            doFilters(context, infilters, preIn, postIn, continue, dropIn, as)
         } else {
-            (context, as, continue) => {
-                preIn(context, as)
-                postIn(context, as)
-                continue(context, as)
-            }
+            preIn(context, as)
+            postIn(context, as)
+            continue(context, as)
         }
 
     final protected val filterOut: (PacketContext, ActorSystem, SimStep) => Result =
@@ -230,9 +226,12 @@ trait InAndOutFilters extends SimDevice {
             case RuleResult.Action.REJECT =>
                 reject(context, as)
                 dropHook(context, as, RuleResult.Action.REJECT)
+            case RuleResult.Action.REDIRECT =>
+                redirect(context, ruleResult)
             case a =>
                 context.log.error("Filters {} returned {} which was " +
-                                      "not ACCEPT, DROP or REJECT.", filters, a)
+                                      "not ACCEPT, DROP, REJECT or REDIRECT.",
+                                  filters, a)
                 ErrorDrop
         }
     }
@@ -250,4 +249,36 @@ trait InAndOutFilters extends SimDevice {
         }
         Chain.ACCEPT
     }
+
+    def redirect(context: PacketContext, ruleResult: RuleResult)
+                (implicit as: ActorSystem): Result = {
+        val targetPort = tryAsk[Port](ruleResult.redirectPort)
+
+        if (ruleResult.redirectIngress) {
+            return targetPort.ingress(context, as,
+                                      ignoreAdminState=true)
+        } else if (ruleResult.redirectFailOpen) {
+            // Implement FAIL_OPEN
+            // Specifically, if ingress=false, fail_open=true, and targetPort is:
+            // 1) reachable: Redirect OUT-of the targetPort
+            // 2) unreachable: Redirect IN-to the targetPort
+            // #2 implements FAIL_OPEN behavior for a Service Function with a single
+            // data-plane interface. FAIL_OPEN should not be used otherwise.
+            // #2 emulates what the service VM would do if it were
+            // reachable and it allowed the packet.
+            val targetPort = tryAsk[Port](ruleResult.redirectPort)
+            if (targetPort.isExterior &&
+                    (!targetPort.adminStateUp || !targetPort.isActive)){
+                // Add the transmit tags as if we transmitted the
+                // packet before receiving it again.
+                return targetPort.ingress(context, as,
+                                          ignoreAdminState=true)
+            }
+        }
+        if (!targetPort.adminStateUp)
+            return Drop
+
+        targetPort.egress(context, as, skipFilters=true)
+    }
 }
+
