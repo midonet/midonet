@@ -154,10 +154,10 @@ public class HealthMonitor extends ZoomObject {
      * any way.
      */
     @ZoomClass(clazz = Neutron.NeutronHealthMonitor.Pool.class)
-    public static class HealthMonitorPool {
+    public static class HealthMonitorPool extends ZoomObject {
 
         @JsonProperty("pool_id")
-        @ZoomField(name = "pool_id")
+        @ZoomField(name = "pool_id", converter = Converter.class)
         public UUID poolId;
 
         @ZoomField(name = "status")
