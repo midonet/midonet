@@ -18,7 +18,7 @@ package org.midonet.midolman.topology.builders
 
 import java.lang.{Short => JShort}
 import java.util
-import java.util.{List => JList, Map => JMap, Set => JSet, UUID}
+import java.util.{ArrayList, List => JList, Map => JMap, Set => JSet, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -87,7 +87,11 @@ class BridgeBuilderImpl(val id: UUID, val bridgeMgr: ActorRef) extends BridgeBui
     }
 
     def setInFilter(filterID: UUID) = {
-        cfg = cfg.copy(inboundFilter = filterID)
+        val infilters = new ArrayList[UUID](1)
+        if (filterID != null) {
+            infilters.add(filterID)
+        }
+        cfg = cfg.copy(inboundFilters = infilters)
         this
     }
 
@@ -105,7 +109,11 @@ class BridgeBuilderImpl(val id: UUID, val bridgeMgr: ActorRef) extends BridgeBui
     }
 
     def setOutFilter(filterID: UUID) = {
-        cfg = cfg.copy(outboundFilter = filterID)
+        val outfilters = new ArrayList[UUID](1)
+        if (filterID != null) {
+            outfilters.add(filterID)
+        }
+        cfg = cfg.copy(outboundFilters = outfilters)
         this
     }
 
