@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c00f1c87",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": "There seems to be a gap between the previous paragraph and this one. Would there be a better way of introducing what you are about to say?",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 14
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2020c8f6",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": ", a necessity to implement VxLAN Gateways.",
+      "range": {
+        "startLine": 17,
+        "startChar": 39,
+        "endLine": 18,
+        "endChar": 14
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_401b0cca",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 20,
+        "startChar": 35,
+        "endLine": 20,
+        "endChar": 39
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6079f0fb",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": "practice",
+      "range": {
+        "startLine": 21,
+        "startChar": 38,
+        "endLine": 21,
+        "endChar": 46
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_807c34ed",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": "services?",
+      "range": {
+        "startLine": 22,
+        "startChar": 49,
+        "endLine": 22,
+        "endChar": 55
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c0863cdb",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": "remove? The parenthesis is never opened.",
+      "range": {
+        "startLine": 24,
+        "startChar": 16,
+        "endLine": 24,
+        "endChar": 44
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2077e803",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": "the Apache Zookeeper coordination service.",
+      "range": {
+        "startLine": 26,
+        "startChar": 3,
+        "endLine": 26,
+        "endChar": 66
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a05a1881",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 9
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c05d5c7b",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": "relying on 3rd-party services are numerous.",
+      "range": {
+        "startLine": 36,
+        "startChar": 18,
+        "endLine": 36,
+        "endChar": 52
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e053406a",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": "Network State Database (NSDB)",
+      "range": {
+        "startLine": 51,
+        "startChar": 14,
+        "endLine": 51,
+        "endChar": 18
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_204e08c2",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": ",",
+      "range": {
+        "startLine": 57,
+        "startChar": 23,
+        "endLine": 57,
+        "endChar": 24
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_40494cb6",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-01T10:36:04Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 5
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
