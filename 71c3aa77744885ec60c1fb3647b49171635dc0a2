@@ -2,6 +2,184 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_ab3bd9e9",
+        "filename": "build.gradle",
+        "patchSetId": 11
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "You can un-indent this block.",
+      "range": {
+        "startLine": 302,
+        "startChar": 12,
+        "endLine": 306,
+        "endChar": 57
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6b18f184",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/SessionUnawareConnectionWatcher.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4b016d05",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZookeeperConnectionWatcher.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0b07651e",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendTestModule.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_eb0b2129",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketsEntryPoint.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c60c943e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_261d4067",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 11
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "If possible, please remove those extra whitespace that\u0027s been there.",
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_46188475",
+        "filename": "midonet-api/build.gradle",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2bc8a973",
         "filename": "midonet-api/build.gradle",
         "patchSetId": 11
@@ -18,6 +196,374 @@
         "startChar": 39,
         "endLine": 28,
         "endChar": 40
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_662668bc",
+        "filename": "midonet-api/src/test/java/org/midonet/api/ResourceTest.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8629ac8b",
+        "filename": "midonet-api/src/test/java/org/midonet/api/host/TestHost.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a620709c",
+        "filename": "midonet-api/src/test/java/org/midonet/api/host/TestTunnelZoneHost.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c623b4a5",
+        "filename": "midonet-api/src/test/java/org/midonet/api/l4lb/e2e/TestHealthMonitor.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_06359cda",
+        "filename": "midonet-api/src/test/java/org/midonet/api/l4lb/e2e/TestLoadBalancer.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e6951889",
+        "filename": "midonet-api/src/test/java/org/midonet/api/l4lb/e2e/TestPoolMember.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2690e094",
+        "filename": "midonet-api/src/test/java/org/midonet/api/l4lb/e2e/TestVip.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_26be2000",
+        "filename": "midonet-api/src/test/java/org/midonet/api/neutron/TestFloatingIpResource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_663748b1",
+        "filename": "midonet-api/src/test/java/org/midonet/api/neutron/TestNetworkResource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_46b96414",
+        "filename": "midonet-api/src/test/java/org/midonet/api/neutron/TestNetworkResource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "This two should come above the org.midonet.cluster.rest_api.neutron.*",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 58
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c644941d",
+        "filename": "midonet-api/src/test/java/org/midonet/api/neutron/TestPortResource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_265540c6",
+        "filename": "midonet-api/src/test/java/org/midonet/api/neutron/TestRouterResource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_665e68eb",
+        "filename": "midonet-api/src/test/java/org/midonet/api/neutron/TestSecurityGroupResource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8661acaa",
+        "filename": "midonet-api/src/test/java/org/midonet/api/neutron/TestSecurityGroupRuleResource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c65bb4f4",
+        "filename": "midonet-api/src/test/java/org/midonet/api/neutron/TestSubnetResource.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e6f8b8c6",
+        "filename": "midonet-api/src/test/resources/ValidationMessages.properties",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 12,
+        "endLine": 2,
+        "endChar": 16
       },
       "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",

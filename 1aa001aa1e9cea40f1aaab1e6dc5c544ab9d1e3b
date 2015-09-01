@@ -22,6 +22,29 @@
       "revId": "1aa001aa1e9cea40f1aaab1e6dc5c544ab9d1e3b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_46fec4af",
+        "filename": "midonet-client/src/main/java/org/midonet/client/MidonetApi.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T14:58:14Z",
+      "side": 0,
+      "message": "I\u0027m just wondering why we are removing those?",
+      "range": {
+        "startLine": 93,
+        "startChar": 4,
+        "endLine": 101,
+        "endChar": 5
+      },
+      "revId": "1aa001aa1e9cea40f1aaab1e6dc5c544ab9d1e3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
