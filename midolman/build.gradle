@@ -69,6 +69,11 @@ dependencies {
 
 cobertura {
     coverageExcludes = [
+        '.*org.midonet.cluster.client.*',
+        '.*org.midonet.cluster.data.*',
+        '.*org.midonet.cluster.Cluster.*',
+        '.*org.midonet.cluster.zookeeper.*',
+        '.*org.midonet.midolman.state.zkManagers.*',
         '.*org.midonet.midolman.io.*Test.*',
         '.*org.midonet.midolman.tools.*',
         '.*org.midonet.midolman.Midolman',
