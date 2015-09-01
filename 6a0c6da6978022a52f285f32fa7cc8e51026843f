@@ -643,6 +643,29 @@
       "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0bd685c3",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T13:32:11Z",
+      "side": 1,
+      "message": "Is this needed? The state storage doesn\u0027t seem to write this field",
+      "range": {
+        "startLine": 66,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 30
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
