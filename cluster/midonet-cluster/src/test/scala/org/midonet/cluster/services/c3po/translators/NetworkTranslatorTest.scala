@@ -37,16 +37,22 @@ class NetworkTranslatorTest extends TranslatorTestBase {
     initMockStorage()
     val translator: NetworkTranslator = new NetworkTranslator(storage, pathBldr)
 
-    val sampleNetwork = NeutronNetwork.newBuilder()
+    val sampleNeutronNetwork = NeutronNetwork.newBuilder()
                                        .setId(genId())
                                        .setTenantId(tenantId)
                                        .setName(networkName)
                                        .setAdminStateUp(adminStateUp)
                                        .build()
+    val sampleNetwork = Network.newBuilder()
+                                       .setId(sampleNeutronNetwork.getId)
+                                       .setAdminStateUp(adminStateUp)
+                                       .setName(networkName)
+                                       .setTenantId(tenantId)
+                                       .build()
 
     "Network CREATE" should "produce Mido Network CREATE" in {
         val id = UUIDUtil.fromProto(sampleNetwork.getId)
-        val midoOps = translator.translate(neutron.Create(sampleNetwork))
+        val midoOps = translator.translate(neutron.Create(sampleNeutronNetwork))
         val midoNetwork = Network.newBuilder().setId(sampleNetwork.getId)
                                               .setTenantId(tenantId)
                                               .setName(networkName)
@@ -68,16 +74,24 @@ class NetworkTranslatorTest extends TranslatorTestBase {
     // TODO Test that NetworkTranslator creates a tunnel key ID
 
     "Network UPDATE" should "produce a corresponding Mido Network UPDATE" in {
+
         val newName = "name2"
+        val newTenantId = "neutron tenant2"
+        val newAdminStateUp = !adminStateUp
+        bind(sampleNetwork.getId, sampleNetwork)
         val midoOps = translator.translate(
-            neutron.Update(sampleNetwork.toBuilder.setName(newName).build)
+            neutron.Update(sampleNeutronNetwork.toBuilder
+                               .setName(newName)
+                               .setAdminStateUp(newAdminStateUp)
+                               .setTenantId(newTenantId).build)
         )
 
+        // Test that name is updated but not tenant ID
         midoOps should contain only midonet.Update(Network.newBuilder()
                                                 .setId(sampleNetwork.getId)
                                                 .setTenantId(tenantId)
                                                 .setName(newName)
-                                                .setAdminStateUp(adminStateUp)
+                                                .setAdminStateUp(newAdminStateUp)
                                                 .build)
 
         // TODO Verify external network is updated.

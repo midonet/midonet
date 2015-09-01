@@ -144,11 +144,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
         verify(storage).multi(startsWith(
                 CreateOp(neutronNetwork),
-                CreateOp(Network.newBuilder().setId(networkId)
-                                             .setTenantId(tenantId)
-                                             .setName(networkName)
-                                             .setAdminStateUp(adminStateUp)
-                                             .build)))
+                CreateOp(midoNetwork)))
     }
 
     "Translate()" should "throw an exception when no corresponding " +
@@ -164,17 +160,19 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         setUpNetworkTranslator()
         val newNetworkName = "neutron update test"
         val updatedNetwork = neutronNetwork.toBuilder
+                                           .setAdminStateUp(!adminStateUp)
                                            .setName(newNetworkName).build
+        when(storage.get(classOf[Network], networkId))
+            .thenReturn(Future.successful(midoNetwork))
+
         storageManager.interpretAndExecTxn(
                 txn("txn1", c3poUpdate(2, updatedNetwork)))
 
         verify(storage).multi(startsWith(
                 UpdateOp(updatedNetwork),
-                UpdateOp(Network.newBuilder().setId(networkId)
-                                             .setTenantId(tenantId)
-                                             .setName(newNetworkName)
-                                             .setAdminStateUp(adminStateUp)
-                                             .build)))
+                UpdateOp(midoNetwork.toBuilder().setName(newNetworkName)
+                                                .setAdminStateUp(!adminStateUp)
+                                                .build)))
     }
 
     "NeutronNetwork Delete" should "call ZOOM.multi with DeleteOp on " +
