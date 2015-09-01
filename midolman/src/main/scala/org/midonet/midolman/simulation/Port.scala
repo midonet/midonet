@@ -220,12 +220,22 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
         }
     }
 
-    def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
+    protected def egressCommon(context: PacketContext, as: ActorSystem,
+                               next: SimStep): SimulationResult = {
         context.log.debug(s"Egressing port $id")
         context.addFlowTag(deviceTag)
         context.addFlowTag(txTag)
         context.outPortId = id
-        filterOut(context, as, continueOut)
+
+        next(context, as)
+    }
+
+    def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
+        egressCommon(context, as, filterAndContinueOut)
+    }
+
+    val egressNoFilter: SimStep = (context, as) => {
+        egressCommon(context, as, continueOut)
     }
 
     private[this] val ingressDevice: SimStep = (context, as) => {
@@ -235,6 +245,9 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
 
     protected val continueIn: SimStep = (c, as) => ingressDevice(c, as)
     protected val continueOut: SimStep = (c, as) => mirroringOutbound(c, emit, as)
+    protected val filterAndContinueOut: SimStep = (context, as) => {
+        filterOut(context, as, continueOut)
+    }
 
     private val portIngress = ContinueWith((context, as) => {
         filterIn(context, as, continueIn)
@@ -284,17 +297,14 @@ case class BridgePort(override val id: UUID,
 
     protected def device(implicit as: ActorSystem) = tryGet[Bridge](networkId)
 
-    override def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
+    override def egressCommon(context: PacketContext, as: ActorSystem,
+                              next: SimStep): SimulationResult = {
         if (id == context.inPortId) {
             Drop
         } else {
-            context.log.debug(s"Egressing port $id")
-            context.addFlowTag(deviceTag)
-            context.addFlowTag(txTag)
-            context.outPortId = id
             if ((vlanId > 0) && context.wcmatch.isVlanTagged)
                 context.wcmatch.removeVlanId(vlanId)
-            filterOut(context, as, continueOut)
+            super.egressCommon(context, as, next)
         }
     }
 

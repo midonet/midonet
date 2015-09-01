@@ -230,9 +230,12 @@ trait InAndOutFilters extends SimDevice {
             case RuleResult.Action.REJECT =>
                 reject(context, as)
                 dropHook(context, as, RuleResult.Action.REJECT)
+            case RuleResult.Action.REDIRECT =>
+                redirect(context, ruleResult)
             case a =>
                 context.log.error("Filters {} returned {} which was " +
-                                      "not ACCEPT, DROP or REJECT.", filters, a)
+                                      "not ACCEPT, DROP, REJECT or REDIRECT.",
+                                  filters, a)
                 ErrorDrop
         }
     }
@@ -250,4 +253,16 @@ trait InAndOutFilters extends SimDevice {
         }
         Chain.ACCEPT
     }
+
+    def redirect(context: PacketContext, ruleResult: RuleResult)
+                (implicit as: ActorSystem): Result = {
+        val targetPort = tryGet[Port](ruleResult.redirectPort)
+
+        if (ruleResult.redirectIngress) {
+            return targetPort.ingress(context, as)
+        } else {
+            return targetPort.egressNoFilter(context, as)
+        }
+    }
 }
+

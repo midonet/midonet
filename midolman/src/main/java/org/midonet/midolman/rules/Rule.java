@@ -57,6 +57,7 @@ public abstract class Rule extends BaseConfig {
     public Action action;
     @ZoomField(name = "chain_id", converter = UUIDUtil.Converter.class)
     public UUID chainId;
+
     @JsonIgnore
     public FlowTagger.UserTag meter;
     private Map<String, String> properties = new HashMap<>();
@@ -244,6 +245,7 @@ public abstract class Rule extends BaseConfig {
                 case LITERAL_RULE: return LiteralRule.class;
                 case TRACE_RULE: return TraceRule.class;
                 case NAT_RULE: return NatRule.class;
+                case L2TRANSFORM_RULE: return L2TransformRule.class;
                 default:
                     throw new ZoomConvert.ConvertException("Unknown rule " +
                         "type: " + proto.getType());
