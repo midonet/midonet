@@ -53,8 +53,8 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
     val routeBalancer = new RouteBalancer(rTable)
     override val deviceTag = FlowTagger.tagForRouter(id)
-    override def infilter = cfg.inboundFilter
-    override def outfilter = cfg.outboundFilter
+    override def infilters = cfg.inboundFilters
+    override def outfilters = cfg.outboundFilters
     override def adminStateUp = cfg.adminStateUp
 
     private val routeAndMirrorOut: ContinueWith = ContinueWith((context, actorSystem) => {

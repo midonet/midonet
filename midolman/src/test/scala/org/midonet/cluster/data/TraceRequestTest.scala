@@ -122,20 +122,20 @@ class TraceRequestTest extends MidolmanSpec {
         val portId = newBridgePort(bridge)
 
         val port1 = fetchDevice[SimPort](portId)
-        port1.inboundFilter shouldBe null
+        port1.inboundFilters.size shouldBe 0
 
         val trace1 = newTraceRequest(portId, TraceDeviceType.PORT,
                                      newCondition(tpSrc = Some(5000)))
 
         val port2 = fetchDevice[SimPort](portId)
-        port2.inboundFilter shouldBe null
+        port2.inboundFilters.size shouldBe 0
 
         enableTraceRequest(trace1)
         val port3 = fetchDevice[SimPort](portId)
-        port3.inboundFilter should not be (null)
+        port3.inboundFilters.size should not be (0)
 
-        val chainId = port3.inboundFilter
-        val chain = fetchDevice[SimChain](port3.inboundFilter)
+        val chainId = port3.inboundFilters.get(0)
+        val chain = fetchDevice[SimChain](chainId)
         chain.name should startWith("TRACE_REQUEST_CHAIN")
 
         val rules = chain.rules
@@ -151,7 +151,7 @@ class TraceRequestTest extends MidolmanSpec {
         disableTraceRequest(trace1)
 
         val port4 = fetchDevice[SimPort](portId)
-        port4.inboundFilter should be (null)
+        port4.inboundFilters.size shouldBe 0
 
         VirtualTopologyActor.clearTopology()
         intercept[NotFoundException] {
@@ -201,14 +201,14 @@ class TraceRequestTest extends MidolmanSpec {
         val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
                                      newCondition(tpSrc = Some(5000)),
                                      enabled=true)
-        val chain = fetchDevice[SimBridge](bridge).inFilterId
-        chain.isDefined shouldBe true
+        fetchDevice[SimBridge](bridge).infilters.size shouldBe 1
+        val chain = fetchDevice[SimBridge](bridge).infilters.get(0)
 
-        val rules = fetchDevice[SimChain](chain.get).rules
+        val rules = fetchDevice[SimChain](chain).rules
         rules.size() shouldBe 1
 
         deleteTraceRequest(trace1)
-        fetchDevice[SimBridge](bridge).inFilterId.isDefined shouldBe false
+        fetchDevice[SimBridge](bridge).infilters.size shouldBe 0
     }
 
     scenario("Disable on device delete") {
@@ -217,16 +217,16 @@ class TraceRequestTest extends MidolmanSpec {
         val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
                                      newCondition(tpSrc = Some(5000)),
                                      enabled=true)
-        val chain = fetchDevice[SimBridge](bridge).inFilterId
-        chain.isDefined shouldBe true
+        fetchDevice[SimBridge](bridge).infilters.size shouldBe 1
+        val chain = fetchDevice[SimBridge](bridge).infilters.get(0)
 
-        val rules = fetchDevice[SimChain](chain.get).rules
+        val rules = fetchDevice[SimChain](chain).rules
         rules.size() should be (1)
         deleteBridge(bridge)
 
         VirtualTopologyActor.clearTopology()
         intercept[NotFoundException] {
-            fetchDevice[SimChain](chain.get)
+            fetchDevice[SimChain](chain)
         }
     }
 }
