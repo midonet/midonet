@@ -34,6 +34,24 @@
       "revId": "8371043904d25f2e9ed151fb3cdd47c9bab0c98c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9dcadb9f",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-09-01T04:33:37Z",
+      "side": 1,
+      "message": "Discussed this in the developer channel of Slack.  There is no major consequence with toggling the flag after deployment as the alternative services are setup (q-dhcp).  Sounds reasonable to me.",
+      "parentUuid": "9ad9bd40_9a990171",
+      "revId": "8371043904d25f2e9ed151fb3cdd47c9bab0c98c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
