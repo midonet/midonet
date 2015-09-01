@@ -23,6 +23,7 @@ import javax.sql.DataSource
 import scala.collection.JavaConversions._
 
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
+import com.google.common.util.concurrent.Service
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import com.typesafe.config.ConfigFactory
@@ -188,11 +189,14 @@ object ClusterNode extends App {
         if (daemon.isRunning) {
             log.info("Shutting down..")
             jmxReporter.stop()
-            daemon.stopAsync().awaitTerminated()
+            if (daemon.state() != Service.State.FAILED) {
+                daemon.stopAsync().awaitTerminated()
+            }
         }
-        if (injector.getInstance(classOf[MidonetBackend]).isRunning)
-            injector.getInstance(classOf[MidonetBackend])
-                    .stopAsync().awaitTerminated()
+        val backend = injector.getInstance(classOf[MidonetBackend])
+        if (backend.isRunning && backend.state() != Service.State.FAILED) {
+            backend.stopAsync().awaitTerminated()
+        }
     }
 
     log info "MidoNet Cluster daemon starts.."
@@ -200,6 +204,7 @@ object ClusterNode extends App {
         jmxReporter.start()
         injector.getInstance(classOf[MidonetBackend])
                 .startAsync().awaitRunning()
+        log.info("Connection to OVSDB is ready")
         daemon.startAsync().awaitRunning()
         log info "MidoNet Cluster is up"
     } catch {

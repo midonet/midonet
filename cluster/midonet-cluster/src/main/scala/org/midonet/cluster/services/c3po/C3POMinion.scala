@@ -64,10 +64,6 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
 
     private val pathManager = new PathBuilder(backendCfg.rootKey)
     private val seqDispenser = new SequenceDispenser(curator, backendCfg)
-    private val dataMgr = C3POMinion.initDataManager(backend.store,
-                                                     seqDispenser,
-                                                     pathManager)
-
     private val LEADER_LATCH_PATH = backendCfg.rootKey + "/leader-latch"
     private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
                                               nodeContext.nodeId.toString)
@@ -95,6 +91,9 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
 
     protected override val runnable = new Runnable {
         override def run(): Unit = try {
+            val dataMgr = C3POMinion.initDataManager(backend.store,
+                                                     seqDispenser, pathManager)
+
             if (!leaderLatch.hasLeadership) {
                 log.debug("Still idle as this node is not the leader.")
                 return

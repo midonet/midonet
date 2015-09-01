@@ -26,7 +26,7 @@ import scala.collection.JavaConversions._
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.recipes.leader.{LeaderLatchListener, LeaderLatch}
+import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.{Observable, Observer, Subscription}
@@ -66,7 +66,6 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
     private val log = LoggerFactory.getLogger(vxgwLog)
 
-    private var fpManager: FloodingProxyManager = _
     private val vtepSyncers = new util.HashMap[UUID, Subscription]()
     private val knownVteps = new java.util.HashMap[UUID, Snatcher[Vtep]]
 
@@ -81,9 +80,20 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
         shutdown()
     }
 
-    private val fpLatch = new LeaderLatch(curator,
-                                      backend.config.rootKey + "/vxgw/fp-latch")
-    fpLatch.addListener(fpLatchListener)
+    private val fpLatchListener = new LeaderLatchListener {
+        override def isLeader(): Unit = {
+            fpManager = new FloodingProxyManager(backend)
+            fpManager.start()
+        }
+        override def notLeader(): Unit = {
+            val oldFpManager = fpManager
+            fpManager = null
+            oldFpManager.stop()
+        }
+    }
+
+    private var fpManager: FloodingProxyManager = _
+    private var fpLatch: LeaderLatch = _
 
     private def watchVtep = new Observer[Vtep] {
         var vtepId: UUID = null
@@ -133,15 +143,21 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
     override def doStart(): Unit = {
         log.info("Starting service")
+        fpLatch = new LeaderLatch(curator,
+                                  backend.config.rootKey + "/vxgw/fp-latch")
+        fpLatch.addListener(fpLatchListener)
         fpLatch.start()
         selfHealingTypeObservable[Topology.Vtep](backend.store)
             .onBackpressureBuffer(10000, alertOverflow)
             .observeOn(Schedulers.from(executor))
             .subscribe(new Observer[Observable[Topology.Vtep]] {
-            override def onCompleted(): Unit = {}
-            override def onError(e: Throwable): Unit = {}
-            override def onNext(v: Observable[Vtep]): Unit = {
-                v.subscribe(watchVtep)
+                var vtepId: Option[UUID] = None
+                override def onCompleted(): Unit = {}
+                override def onError(t: Throwable): Unit = {
+                    log.warn("Failure in VTEPs watcher",t)
+                }
+                override def onNext(v: Observable[Vtep]): Unit = {
+                    v.subscribe(watchVtep)
             }
         })
         notifyStarted()
@@ -169,18 +185,6 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
             executor.shutdownNow()
         }
     }
-
-    private val fpLatchListener = new LeaderLatchListener {
-            override def isLeader(): Unit = {
-                fpManager = new FloodingProxyManager(backend)
-                fpManager.start()
-            }
-            override def notLeader(): Unit = {
-                val oldFpManager = fpManager
-                fpManager = null
-                oldFpManager.stop()
-            }
-        }
 
 }
 
