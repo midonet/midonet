@@ -48,6 +48,29 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a0ddb844",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-01T12:02:32Z",
+      "side": 1,
+      "message": "this will force you to go through he lock all the time. Why not initialize an instance directly, and add a .start() method to start the subscriptions?",
+      "range": {
+        "startLine": 46,
+        "startChar": 27,
+        "endLine": 46,
+        "endChar": 70
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0077443c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -87,6 +110,75 @@
         "startChar": 8,
         "endLine": 62,
         "endChar": 9
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c0e0fcfc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-01T12:02:32Z",
+      "side": 1,
+      "message": "rather in NSDB",
+      "range": {
+        "startLine": 70,
+        "startChar": 23,
+        "endLine": 70,
+        "endChar": 44
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e0e6e015",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-01T12:02:32Z",
+      "side": 1,
+      "message": "have",
+      "range": {
+        "startLine": 71,
+        "startChar": 45,
+        "endLine": 71,
+        "endChar": 48
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_00e2e400",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-01T12:02:32Z",
+      "side": 1,
+      "message": "vteps?",
+      "range": {
+        "startLine": 74,
+        "startChar": 55,
+        "endLine": 74,
+        "endChar": 63
       },
       "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -179,6 +271,52 @@
         "startChar": 34,
         "endLine": 101,
         "endChar": 63
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_40ececf3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-01T12:02:32Z",
+      "side": 1,
+      "message": "Probably a while with the iterator will be preferred to reduce garbage",
+      "range": {
+        "startLine": 108,
+        "startChar": 8,
+        "endLine": 108,
+        "endChar": 52
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c0b71cf4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-01T12:02:32Z",
+      "side": 1,
+      "message": "declaration should be in lines above",
+      "range": {
+        "startLine": 109,
+        "startChar": 16,
+        "endLine": 109,
+        "endChar": 29
       },
       "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -317,6 +455,75 @@
         "startChar": 26,
         "endLine": 166,
         "endChar": 41
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ebaec1e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-01T12:02:32Z",
+      "side": 1,
+      "message": "you can .take(1) and get the network as you won\u0027t need the observable",
+      "range": {
+        "startLine": 182,
+        "startChar": 12,
+        "endLine": 182,
+        "endChar": 70
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4b5ded14",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-01T12:02:32Z",
+      "side": 1,
+      "message": "why do you need to watch networks?",
+      "range": {
+        "startLine": 208,
+        "startChar": 16,
+        "endLine": 208,
+        "endChar": 30
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6b9b91c9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-01T12:02:32Z",
+      "side": 1,
+      "message": "vni never changes, so you don\u0027t need to watch for its updates after loading it on the first time",
+      "range": {
+        "startLine": 216,
+        "startChar": 8,
+        "endLine": 216,
+        "endChar": 38
       },
       "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
