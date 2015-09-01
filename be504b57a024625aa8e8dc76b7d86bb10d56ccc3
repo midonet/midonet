@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_fdfcc741",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/NetworkTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-01T08:25:52Z",
+      "side": 1,
+      "message": "I think that only the admin state can be modified in update. Please see,\n\n\nhttps://github.com/midonet/midonet/blob/master/specs/2015.03/neutron_translation.md#update",
+      "range": {
+        "startLine": 51,
+        "startChar": 15,
+        "endLine": 52,
+        "endChar": 36
+      },
+      "revId": "be504b57a024625aa8e8dc76b7d86bb10d56ccc3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
