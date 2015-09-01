@@ -22,6 +22,8 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+
+import org.midonet.midolman.state.zkManagers.BaseConfig;
 import org.midonet.sdn.flows.FlowTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,10 +39,10 @@ import org.midonet.midolman.simulation.PacketContext;
     @JsonSubTypes.Type(value = ForwardNatRule.class, name = "ForwardNat"),
     @JsonSubTypes.Type(value = ReverseNatRule.class, name = "ReverseNat")
 })
-public abstract class Rule {
+public abstract class Rule extends BaseConfig {
     private final static Logger log = LoggerFactory.getLogger(Rule.class);
 
-    private Condition condition;
+    protected Condition condition;
     public Action action;
     public UUID chainId;
     @JsonIgnore
