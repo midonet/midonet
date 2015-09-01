@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ebcde187",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T12:45:48Z",
+      "side": 0,
+      "message": "Note: I left this here for a future implementation of garbage collection in the VTA, It\u0027s fine to remove it now I guess, as the old VTA and this redirector can be removed in v2.",
+      "range": {
+        "startLine": 128,
+        "startChar": 3,
+        "endLine": 128,
+        "endChar": 68
+      },
+      "revId": "1aa001aa1e9cea40f1aaab1e6dc5c544ab9d1e3b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

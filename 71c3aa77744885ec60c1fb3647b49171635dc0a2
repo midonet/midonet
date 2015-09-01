@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2bc8a973",
+        "filename": "midonet-api/build.gradle",
+        "patchSetId": 11
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T12:45:48Z",
+      "side": 1,
+      "message": "trailing space",
+      "range": {
+        "startLine": 28,
+        "startChar": 39,
+        "endLine": 28,
+        "endChar": 40
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ababd987",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-01T12:45:48Z",
+      "side": 1,
+      "message": "Is this still used somewhere?",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 35,
+        "endChar": 27
+      },
+      "revId": "71c3aa77744885ec60c1fb3647b49171635dc0a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
