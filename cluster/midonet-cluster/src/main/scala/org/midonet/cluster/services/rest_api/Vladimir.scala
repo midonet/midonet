@@ -47,6 +47,7 @@ import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage.{LegacyStateTableStorage, MidonetBackendConfig}
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.midolman.state.PathBuilder
 
 object Vladimir {
@@ -84,6 +85,10 @@ object Vladimir {
             bind(classOf[MidonetBackend]).toInstance(backend)
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
             bind(classOf[SequenceDispenser]).asEagerSingleton()
+            bind(classOf[MidoNodeConfigurator])
+                .toInstance(MidoNodeConfigurator(
+                curator.usingNamespace(config.backend.rootKey.stripPrefix("/")),
+                None))
             bind(classOf[ResourceProvider]).toInstance(resProvider)
             bind(classOf[ApplicationResource])
             bind(classOf[Validator])
