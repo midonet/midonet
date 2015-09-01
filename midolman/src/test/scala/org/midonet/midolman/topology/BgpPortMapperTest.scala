@@ -26,6 +26,8 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.observers.TestObserver
 
+import com.google.common.collect.Lists
+
 import org.midonet.cluster.data.storage.{UpdateOp, NotFoundException, CreateOp, Storage}
 import org.midonet.cluster.models.Topology.{BgpNetwork, BgpPeer, Port => TopologyPort, Router}
 import org.midonet.cluster.services.MidonetBackend
@@ -64,7 +66,9 @@ class BgpPortMapperTest extends MidolmanSpec with TopologyBuilder
     private def bgpPort(port: TopologyPort, router: Router,
                         peers: Set[BgpPeer] = Set.empty,
                         networks: Set[BgpNetwork] = Set.empty): BgpPort = {
-        BgpPort(Port(port).asInstanceOf[RouterPort],
+        BgpPort(Port(port,
+                     Lists.newArrayList(),
+                     Lists.newArrayList()).asInstanceOf[RouterPort],
                 BgpRouter(
                     as = router.getAsNumber,
                     id = IPAddressUtil.toIPv4Addr(port.getPortAddress),

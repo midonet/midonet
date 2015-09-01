@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.UUID
+import java.util.{List => JList, UUID}
 
 import akka.actor.ActorSystem
 
@@ -170,8 +170,8 @@ trait InAndOutFilters extends SimDevice {
 
     type DropHook = (PacketContext, ActorSystem, RuleResult.Action) => Result
 
-    def infilter: UUID
-    def outfilter: UUID
+    def infilters: JList[UUID]
+    def outfilters: JList[UUID]
     protected def reject(context: PacketContext, as: ActorSystem): Unit = {}
 
     protected def preIn: SimHook = NOOP_HOOK
@@ -187,10 +187,10 @@ trait InAndOutFilters extends SimDevice {
                 reject(context, as)
                 Drop
             }
-        } else if (infilter ne null) {
+        } else if (infilters.size > 0) {
             (context, as, continue) => {
-                context.log.debug(s"Applying inbound chain $infilter")
-                doFilter(context, infilter, preIn, postIn, continue, dropIn, as)
+                context.log.debug(s"Applying inbound chain $infilters")
+                doFilters(context, infilters, preIn, postIn, continue, dropIn, as)
             }
         } else {
             (context, as, continue) => {
@@ -206,10 +206,10 @@ trait InAndOutFilters extends SimDevice {
                 reject(context, as)
                 Drop
             }
-        } else if (outfilter ne null) {
+        } else if (outfilters.size > 0) {
             (context, as, continue) =>
-                context.log.debug(s"Applying outbound chain $outfilter")
-                doFilter(context, outfilter, preOut, postOut, continue, dropOut, as)
+                context.log.debug(s"Applying outbound chain $outfilters")
+                doFilters(context, outfilters, preOut, postOut, continue, dropOut, as)
         } else {
             (context, as, continue) => {
                 preOut(context, as)
@@ -218,17 +218,19 @@ trait InAndOutFilters extends SimDevice {
             }
         }
 
-    private[this] final def doFilter(context: PacketContext, filter: UUID,
-                                     preFilter: SimHook, postFilter: SimHook,
-                                     continue: SimStep, dropHook: DropHook,
-                                     as: ActorSystem): Result = {
+    private[this] final def doFilters(context: PacketContext, filters: JList[UUID],
+                                      preFilter: SimHook, postFilter: SimHook,
+                                      continue: SimStep, dropHook: DropHook,
+                                      as: ActorSystem): Result = {
         implicit val _as: ActorSystem = as
-        context.log.debug(s"Applying filter $filter")
         preFilter(context, as)
-        val r = tryAsk[Chain](filter).process(context)
+
+        val ruleResult = applyAllFilters(context, filters)
+
         postFilter(context, as)
-        context.log.debug(s"Filter returned: ${r.action}")
-        r.action match {
+        context.log.debug(s"Filters returned: $ruleResult")
+
+        ruleResult.action match {
             case RuleResult.Action.ACCEPT =>
                 continue(context, as)
             case RuleResult.Action.DROP =>
@@ -237,9 +239,25 @@ trait InAndOutFilters extends SimDevice {
                 reject(context, as)
                 dropHook(context, as, RuleResult.Action.REJECT)
             case a =>
-                context.log.error("Filter {} returned {} which was " +
-                                  "not ACCEPT, DROP or REJECT.", filter, a)
+                context.log.error("Filters {} returned {} which was " +
+                                      "not ACCEPT, DROP or REJECT.", filters, a)
                 ErrorDrop
         }
     }
+
+    def applyAllFilters(context: PacketContext, filters: JList[UUID])
+                       (implicit as: ActorSystem): RuleResult = {
+        var i = 0
+        var ruleResult: RuleResult = null
+        while (i < filters.size() &&
+                   (ruleResult == null ||
+                        ruleResult.action == RuleResult.Action.ACCEPT)) {
+            val filter = filters.get(i)
+            context.log.debug(s"Applying filter $filter")
+            ruleResult = tryAsk[Chain](filter).process(context)
+            i += 1
+        }
+        ruleResult
+    }
+
 }

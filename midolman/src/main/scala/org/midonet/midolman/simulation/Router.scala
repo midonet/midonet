@@ -46,14 +46,14 @@ object Router {
      * Provides the configuration for a [[Router]].
      */
     case class Config(adminStateUp: Boolean = true,
-                      inboundFilter: UUID = null,
-                      outboundFilter: UUID = null,
+                      inboundFilters: JList[UUID] = new util.ArrayList(0),
+                      outboundFilters: JList[UUID] = new util.ArrayList(0),
                       loadBalancer: UUID = null,
                       inboundMirrors: JList[UUID] = new util.ArrayList[UUID](),
                       outboundMirrors: JList[UUID] = new util.ArrayList[UUID]()) {
         override def toString =
-            s"adminStateUp=$adminStateUp inboundFilter=$inboundFilter " +
-            s"outboundFilter=$outboundFilter loadBalancer=$loadBalancer"
+            s"adminStateUp=$adminStateUp inboundFilters=$inboundFilters " +
+            s"outboundFilters=$outboundFilters loadBalancer=$loadBalancer"
     }
 
     /**
@@ -392,8 +392,9 @@ class Router(override val id: UUID,
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter
-                    (if (cfg.outboundFilter ne null)
-                        tryAsk[Chain](cfg.outboundFilter).process(egrPktContext).action
+                    (if (cfg.outboundFilters.size > 0)
+                         applyAllFilters(egrPktContext,
+                                         cfg.outboundFilters).action
                     else
                         RuleResult.Action.ACCEPT
                     ) match {
@@ -427,6 +428,7 @@ class Router(override val id: UUID,
 
     override def toString =
         s"Router [id=$id adminStateUp=${cfg.adminStateUp} " +
-        s"inboundFilter=${cfg.inboundFilter} outboundFilter=${cfg.outboundFilter} " +
+        s"inboundFilters=${cfg.inboundFilters} "
+        s"outboundFilters=${cfg.outboundFilters} " +
         s"loadBalancer=${cfg.loadBalancer}]"
 }

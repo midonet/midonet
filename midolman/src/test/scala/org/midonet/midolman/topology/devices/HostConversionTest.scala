@@ -49,9 +49,9 @@ class HostConversionTest extends FeatureSpec with Matchers {
 
     private def assertEquals(proto: Topology.Host, zoomObj: Host) = {
         proto.getId.asJava shouldBe zoomObj.id
-        proto.getPortIdsList.map(_.asJava) should
+        fromProtoListToScala(proto.getPortIdsList) should
             contain theSameElementsAs zoomObj.portIds
-        proto.getTunnelZoneIdsList.map(_.asJava) should
+        fromProtoListToScala(proto.getTunnelZoneIdsList) should
             contain theSameElementsAs zoomObj.tunnelZoneIds
 
         // The tunnelZones and portBindings fields of the zoomObj should be
