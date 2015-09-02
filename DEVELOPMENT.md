@@ -110,7 +110,7 @@ Most dependencies are pulled in by the gradle build scripts, however
 there are some prerequisites:
 
 * fpm (ruby gem) to build debian/rpm packages
-* java 7 jdk
+* java 8 jdk
 * rpm
 
 You will also need to install the protobufs compiler, version 2.6.1 from
