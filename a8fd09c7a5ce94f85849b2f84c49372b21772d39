@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b9a5ea05",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-02T18:11:00Z",
+      "side": 1,
+      "message": "s/Chain/Rule/",
+      "range": {
+        "startLine": 310,
+        "startChar": 35,
+        "endLine": 310,
+        "endChar": 40
+      },
+      "revId": "a8fd09c7a5ce94f85849b2f84c49372b21772d39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d9a8eedd",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslatorIT.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-02T18:11:00Z",
+      "side": 1,
+      "message": "s/Chain/Rule/",
+      "range": {
+        "startLine": 312,
+        "startChar": 35,
+        "endLine": 312,
+        "endChar": 40
+      },
+      "revId": "a8fd09c7a5ce94f85849b2f84c49372b21772d39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
