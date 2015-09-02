@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d5e8d818",
+        "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-02T13:35:26Z",
+      "side": 1,
+      "message": "It has to be here because it\u0027s necessary for the bootstrapping, but you\u0027re right that we could simply use the one in the template. I\u0027ll remove it.",
+      "parentUuid": "9ad9bd40_4ad0a7f7",
+      "range": {
+        "startLine": 33,
+        "startChar": 2,
+        "endLine": 33,
+        "endChar": 16
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_aaa69351",
         "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-26T10:22:18Z",
       "side": 1,
       "message": "Should we change this to v2 at some point?",
+      "range": {
+        "startLine": 35,
+        "startChar": 20,
+        "endLine": 35,
+        "endChar": 22
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b58c3481",
+        "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-02T13:35:26Z",
+      "side": 1,
+      "message": "yes there is a separate patch (the one deleting the api) that does that",
+      "parentUuid": "9ad9bd40_aaa69351",
       "range": {
         "startLine": 35,
         "startChar": 20,
