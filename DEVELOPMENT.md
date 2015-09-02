@@ -131,11 +131,9 @@ these commands:
 ## Testing tools
 
 *MidoNet* is tested at both an integration and a functional level by the
-MDTS (Midonet Distributed Testing System), which can be found in the
+MDTS (Midonet Distributed Testing System), which can be found in the midonet repository at
 
-http://github.com/midonet/mdts
-
-repository.
+http://github.com/midonet/midonet/tree/master/tests
 
 ## Building the project
 
