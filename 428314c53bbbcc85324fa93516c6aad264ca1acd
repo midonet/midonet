@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_608bab68",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-02T08:22:52Z",
+      "side": 1,
+      "message": "Indent",
+      "range": {
+        "startLine": 122,
+        "startChar": 20,
+        "endLine": 122,
+        "endChar": 47
+      },
+      "revId": "428314c53bbbcc85324fa93516c6aad264ca1acd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_40906795",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-02T08:22:52Z",
+      "side": 1,
+      "message": "Nit: mgmtPort",
+      "range": {
+        "startLine": 127,
+        "startChar": 27,
+        "endLine": 127,
+        "endChar": 51
+      },
+      "revId": "428314c53bbbcc85324fa93516c6aad264ca1acd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
