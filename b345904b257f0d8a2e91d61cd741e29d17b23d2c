@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_56e2ed2f",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T14:18:00Z",
+      "side": 1,
+      "message": "At this point we are not sure that the timeout was due to a buffer overflow. However, if we timed out not because of a buffer overflow, the test would fail at line 565 (the observable is completed in case of an overflow).",
+      "parentUuid": "9ad9bd40_60b9eb14",
+      "revId": "b345904b257f0d8a2e91d61cd741e29d17b23d2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_00c49f90",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/topology/server/SessionInventoryTest.scala",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2015-09-02T08:33:25Z",
       "side": 1,
       "message": "I think if you remove this line and the exception that doesn\u0027t match TimeoutException will be just thrown up?",
+      "range": {
+        "startLine": 557,
+        "startChar": 16,
+        "endLine": 557,
+        "endChar": 44
+      },
+      "revId": "b345904b257f0d8a2e91d61cd741e29d17b23d2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_565d8d14",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T14:18:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_00c49f90",
       "range": {
         "startLine": 557,
         "startChar": 16,
