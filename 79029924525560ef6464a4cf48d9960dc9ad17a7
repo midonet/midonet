@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_8c2e2bf9",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-09-02T03:55:58Z",
+      "side": 1,
+      "message": "I think the only difference in the configuration between keystone v2 and keystone v3 is the URL (http://kestyone_server/v2.0  vs http://keystone_server/v3).  The actual request/response of the API will differ, but it seems that we do not need to separate these configurations between the versions.  In OpenStack, the situation is similar and there is no separate configuration sections for these versions.  While I don\u0027t think it\u0027s a real issue, my gut feeling says the section remains \u0027keystone\u0027 and we just specify v2 or v3 in \u0027keystone server host\u0027.\n\nWe should keep the keystone configuration similar to that of OpenStack for familiarity:\n\nhttps://www-01.ibm.com/support/knowledgecenter/SS4KMC_2.5.0/com.ibm.sco.doc_2.5/t_reconfig_openstack_svcs_byoos.html",
+      "revId": "79029924525560ef6464a4cf48d9960dc9ad17a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_91d3a45e",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-09-02T03:55:58Z",
+      "side": 1,
+      "message": "tenanr -\u003e tenant",
+      "revId": "79029924525560ef6464a4cf48d9960dc9ad17a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
