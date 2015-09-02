@@ -589,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_83eef989",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:21:31Z",
+      "side": 1,
+      "message": "Should I do the same for loops in method vtepUpdated?",
+      "parentUuid": "9ad9bd40_e3aee597",
+      "range": {
+        "startLine": 108,
+        "startChar": 8,
+        "endLine": 108,
+        "endChar": 52
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c0b71cf4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -777,6 +801,29 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a3f13d6c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:21:31Z",
+      "side": 1,
+      "message": "Also use iterator here?",
+      "range": {
+        "startLine": 159,
+        "startChar": 8,
+        "endLine": 159,
+        "endChar": 81
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e001803a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -911,6 +958,29 @@
         "startChar": 26,
         "endLine": 166,
         "endChar": 41
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c3e8017f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:21:31Z",
+      "side": 1,
+      "message": "iterator?",
+      "range": {
+        "startLine": 177,
+        "startChar": 8,
+        "endLine": 177,
+        "endChar": 79
       },
       "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
