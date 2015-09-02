@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a33a1d96",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "I opted for (1).",
+      "parentUuid": "9ad9bd40_e0c9805b",
+      "range": {
+        "startLine": 39,
+        "startChar": 7,
+        "endLine": 39,
+        "endChar": 22
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_60bad0e2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_c341e10c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "The VirtualToPhysicalMapper now holds the reference to the service object.",
+      "parentUuid": "9ad9bd40_a0ddb844",
+      "range": {
+        "startLine": 46,
+        "startChar": 27,
+        "endLine": 46,
+        "endChar": 70
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0077443c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -82,6 +130,30 @@
       "writtenOn": "2015-09-01T11:07:05Z",
       "side": 1,
       "message": "This method returns an observable, yet it is not used anywhere except than in the tests. A start method should return something like Unit or a Future signaling completion. Also some documentation would be nice.",
+      "range": {
+        "startLine": 48,
+        "startChar": 26,
+        "endLine": 48,
+        "endChar": 52
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e344251d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "This method got removed.",
+      "parentUuid": "9ad9bd40_0077443c",
       "range": {
         "startLine": 48,
         "startChar": 26,
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_034bc92b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_608f3024",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 62,
+        "endChar": 9
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c0e0fcfc",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -128,6 +224,30 @@
       "writtenOn": "2015-09-01T12:02:32Z",
       "side": 1,
       "message": "rather in NSDB",
+      "range": {
+        "startLine": 70,
+        "startChar": 23,
+        "endLine": 70,
+        "endChar": 44
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_23460d22",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_c0e0fcfc",
       "range": {
         "startLine": 70,
         "startChar": 23,
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4355d1c4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e0e6e015",
+      "range": {
+        "startLine": 71,
+        "startChar": 45,
+        "endLine": 71,
+        "endChar": 48
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_00e2e400",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -174,6 +318,30 @@
       "writtenOn": "2015-09-01T12:02:32Z",
       "side": 1,
       "message": "vteps?",
+      "range": {
+        "startLine": 74,
+        "startChar": 55,
+        "endLine": 74,
+        "endChar": 63
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_635015d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_00e2e400",
       "range": {
         "startLine": 74,
         "startChar": 55,
@@ -209,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_835ef9e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_00f3c49f",
+      "range": {
+        "startLine": 77,
+        "startChar": 12,
+        "endLine": 77,
+        "endChar": 27
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c012bc08",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -220,6 +412,30 @@
       "writtenOn": "2015-09-01T11:07:05Z",
       "side": 1,
       "message": "Make this an immutable map. Also: should it be volatile?",
+      "range": {
+        "startLine": 82,
+        "startChar": 33,
+        "endLine": 82,
+        "endChar": 40
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c35801fd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "I made it immutable and volatile.",
+      "parentUuid": "9ad9bd40_c012bc08",
       "range": {
         "startLine": 82,
         "startChar": 33,
@@ -255,6 +471,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_830519c4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_a0269866",
+      "range": {
+        "startLine": 85,
+        "startChar": 4,
+        "endLine": 86,
+        "endChar": 66
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c0b9dc7a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -266,6 +506,30 @@
       "writtenOn": "2015-09-01T11:07:05Z",
       "side": 1,
       "message": "can this be a Map[portId -\u003e vtepId]? It would make it simpler/faster to remove a vxlan port from this network.",
+      "range": {
+        "startLine": 101,
+        "startChar": 34,
+        "endLine": 101,
+        "endChar": 63
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_03dbc9ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "When I delete entries in this list, I delete the entry with a given vtepId, so the key in the map would have to be that. However, in the beginning we have vtepId \u003d\u003d null. Also I use this list to determine if I have received all ports (hence vtepId needs to be null before we receive the given port).\nThe conclusion is that I don\u0027t see how a map would help.",
+      "parentUuid": "9ad9bd40_c0b9dc7a",
       "range": {
         "startLine": 101,
         "startChar": 34,
@@ -301,6 +565,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_e3aee597",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_40ececf3",
+      "range": {
+        "startLine": 108,
+        "startChar": 8,
+        "endLine": 108,
+        "endChar": 52
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c0b71cf4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -312,6 +600,30 @@
       "writtenOn": "2015-09-01T12:02:32Z",
       "side": 1,
       "message": "declaration should be in lines above",
+      "range": {
+        "startLine": 109,
+        "startChar": 16,
+        "endLine": 109,
+        "endChar": 29
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_439f915f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "It\u0027s now a while loop and so this if is inside the while block.",
+      "parentUuid": "9ad9bd40_c0b71cf4",
       "range": {
         "startLine": 109,
         "startChar": 16,
@@ -347,6 +659,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_e39c2560",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_40e06c96",
+      "range": {
+        "startLine": 149,
+        "startChar": 40,
+        "endLine": 149,
+        "endChar": 48
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e0da60e8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -358,6 +694,30 @@
       "writtenOn": "2015-09-01T11:07:05Z",
       "side": 1,
       "message": "VTEP",
+      "range": {
+        "startLine": 155,
+        "startChar": 19,
+        "endLine": 155,
+        "endChar": 23
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_03a3c99e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e0da60e8",
       "range": {
         "startLine": 155,
         "startChar": 19,
@@ -393,6 +753,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_43add187",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_a0fe9869",
+      "range": {
+        "startLine": 159,
+        "startChar": 43,
+        "endLine": 159,
+        "endChar": 44
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e001803a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -404,6 +788,30 @@
       "writtenOn": "2015-09-01T11:07:05Z",
       "side": 1,
       "message": "remove?",
+      "range": {
+        "startLine": 160,
+        "startChar": 57,
+        "endLine": 160,
+        "endChar": 72
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_239e0d55",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e001803a",
       "range": {
         "startLine": 160,
         "startChar": 57,
@@ -439,6 +847,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_033f4926",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_a09f7802",
+      "range": {
+        "startLine": 162,
+        "startChar": 12,
+        "endLine": 162,
+        "endChar": 38
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_20fc483e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -450,6 +882,30 @@
       "writtenOn": "2015-09-01T11:07:05Z",
       "side": 1,
       "message": "remove?",
+      "range": {
+        "startLine": 166,
+        "startChar": 26,
+        "endLine": 166,
+        "endChar": 41
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_23f44dce",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_20fc483e",
       "range": {
         "startLine": 166,
         "startChar": 26,
@@ -485,6 +941,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_03202948",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ebaec1e6",
+      "range": {
+        "startLine": 182,
+        "startChar": 12,
+        "endLine": 182,
+        "endChar": 70
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4b5ded14",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -496,6 +976,30 @@
       "writtenOn": "2015-09-01T12:02:32Z",
       "side": 1,
       "message": "why do you need to watch networks?",
+      "range": {
+        "startLine": 208,
+        "startChar": 16,
+        "endLine": 208,
+        "endChar": 30
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_83d35937",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "This is invoked only once per network. I can change the name of this method to networkReceived.",
+      "parentUuid": "9ad9bd40_4b5ded14",
       "range": {
         "startLine": 208,
         "startChar": 16,
@@ -531,6 +1035,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_c3dd6144",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "I just get the first notification (see take(1) above). So this will be executed only once per network.",
+      "parentUuid": "9ad9bd40_6b9b91c9",
+      "range": {
+        "startLine": 216,
+        "startChar": 8,
+        "endLine": 216,
+        "endChar": 38
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2058c855",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -542,6 +1070,30 @@
       "writtenOn": "2015-09-01T11:07:05Z",
       "side": 1,
       "message": "This could be simpler:\n\n   store.observable(classOf[Port], portId)\n                     .observeOn(vt.vtScheduler)\n                     .take(1)\n                     .map(makeFunc1(port \u003d\u003e (networkId, port)))",
+      "range": {
+        "startLine": 221,
+        "startChar": 12,
+        "endLine": 226,
+        "endChar": 31
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_03ce6983",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_2058c855",
       "range": {
         "startLine": 221,
         "startChar": 12,
@@ -577,6 +1129,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_43c87174",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_c03e3cda",
+      "range": {
+        "startLine": 300,
+        "startChar": 54,
+        "endLine": 300,
+        "endChar": 60
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e0d0a0f9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
         "patchSetId": 9
@@ -588,6 +1164,30 @@
       "writtenOn": "2015-09-01T11:07:05Z",
       "side": 1,
       "message": "This should be a val, otherwise every call will create a new observable, each that will \"update\"(1) the map.\n\n(1) See next comment",
+      "range": {
+        "startLine": 310,
+        "startChar": 22,
+        "endLine": 310,
+        "endChar": 25
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_63c3b557",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e0d0a0f9",
       "range": {
         "startLine": 310,
         "startChar": 22,
@@ -623,6 +1223,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a3a4ddb9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "The subscriber is in the VTPM now.",
+      "parentUuid": "9ad9bd40_40d6acf2",
+      "range": {
+        "startLine": 316,
+        "startChar": 17,
+        "endLine": 317,
+        "endChar": 57
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a035b847",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VxLanPortMapperTest.scala",
         "patchSetId": 9
@@ -646,6 +1270,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_40f2279b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VxLanPortMapperTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_a035b847",
+      "range": {
+        "startLine": 162,
+        "startChar": 12,
+        "endLine": 163,
+        "endChar": 49
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0bd685c3",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 9
@@ -657,6 +1305,30 @@
       "writtenOn": "2015-09-01T13:32:11Z",
       "side": 1,
       "message": "Is this needed? The state storage doesn\u0027t seem to write this field",
+      "range": {
+        "startLine": 66,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 30
+      },
+      "revId": "6a0c6da6978022a52f285f32fa7cc8e51026843f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c69c9460",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-02T13:20:01Z",
+      "side": 1,
+      "message": "With this, I can observage the config of a vtep and directly get the vtepId from the proto. Arguably I could also combine my observable with one that emits the vtep id. Whichever way is fine by me.",
+      "parentUuid": "9ad9bd40_0bd685c3",
       "range": {
         "startLine": 66,
         "startChar": 4,
