@@ -32,7 +32,7 @@ else
 fi
 
 if [ -z "$MIDO_JAR" ]; then
-   MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
+   MIDO_JAR=`ls $MIDO_HOME/midolman.jar`
 fi
 
 if [ ! -e "$MIDO_JAR" ]; then
@@ -41,7 +41,6 @@ if [ ! -e "$MIDO_JAR" ]; then
 fi
 
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
-MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 
 exec $JAVA $JAVA_LIBRARY_PATH -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
-    -cp $MIDO_JAR:$MIDO_DEP_CLASS_PATH org.midonet.midolman.management.MidolmanTrace $*
+    -cp $MIDO_JAR org.midonet.midolman.management.MidolmanTrace $*

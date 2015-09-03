@@ -175,18 +175,23 @@ buildscript {
     repositories {
         mavenCentral()
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
 
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
         classpath 'net.saliman:gradle-cobertura-plugin:2.2.8'
         classpath 'com.andrewkroh.gradle:gradle-protobuf-plugin:0.3.0'
+        classpath "com.github.nullstress:DependencyAnalysisPlugin:1.0.3"
     }
 }
 
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: "dependencyAnalysis"
 
     plugins.withType(ScalaPlugin).whenPluginAdded {
         dependencies { compile libraries.scala }
@@ -304,7 +309,9 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         compile libraries.slf4j
         compile libraries.guava
         compile libraries.findbugs
-        testCompile libraries.test_frameworks
+        // NOTE: hamcrest needs to be brought into the classpath *before*
+        //       junit, the opposite breaks compilation.
+        testCompile libraries.hamcrest_core, libraries.test_frameworks
         runtime libraries.logback
         compile fileTree(dir: '../libs', include: '*.jar')
         perfCompile 'org.openjdk.jmh:jmh-core:1.10.3'
@@ -332,6 +339,29 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     task integration(type: Test) {
         testClassesDir = sourceSets.integration.output.classesDir
         classpath = sourceSets.integration.runtimeClasspath
+    }
+
+    task manpages() {
+        File outputDir = new File("${buildDir}/man")
+        FileTree inputFiles = fileTree(dir: "src/man", include: "*.ronn")
+
+        inputs.files { inputFiles }
+        outputs.dir outputDir
+
+        doLast {
+            outputDir.mkdirs()
+            println("Building manpages")
+            inputFiles.each { File file ->
+                String filename = file.getName()
+                String outputFile = filename.replaceAll(/.ronn/, ".gz")
+                println("    manpage: $filename -> $outputFile")
+                project.exec {
+                    commandLine "bash", "-c"
+                    commandLine += "ronn --pipe --roff src/man/${filename} | gzip -c > ${buildDir}/man/${outputFile}"
+                    workingDir project.projectDir
+                }
+            }
+        }
     }
 
     check.dependsOn integration
@@ -419,8 +449,6 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
                 "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}",
                 "com.fasterxml.jackson.core:jackson-core:${versions.jackson}",
                 "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
-
-        testCompile "junit:junit:4.11"
     }
 
     repositories {
