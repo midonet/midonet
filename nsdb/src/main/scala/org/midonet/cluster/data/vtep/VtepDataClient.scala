@@ -127,42 +127,65 @@ object VtepConnection {
  */
 trait VtepData {
 
-    /** Returns the VTEP physical switch. */
+    /** Returns all physical switches. */
+    def physicalSwitches: Future[Seq[PhysicalSwitch]]
+
+    /** Gets the physical switch corresponding to the current VTEP endpoint. */
     def physicalSwitch: Future[Option[PhysicalSwitch]]
 
-    /** Returns the VTEP logical switch. */
+    /** Lists all logical switches. */
+    def logicalSwitches: Future[Seq[LogicalSwitch]]
+
+    /** Gets the logical switch with the specified name. */
     def logicalSwitch(name: String): Future[Option[LogicalSwitch]]
 
-    /** Returns the physical port for the given port identifier. */
+    /** Creates a new logical switch with the specified name and VNI. If a
+      * logical switch with the same name and VNI already exists, the method
+      * succeeds immediately. */
+    def createLogicalSwitch(name: String, vni: Int): Future[LogicalSwitch]
+
+    /** Deletes the logical switch with the specified name, along with all its
+      * bindings and MAC entries. */
+    def deleteLogicalSwitch(name: String): Future[Int]
+
+    /** Lists all physical ports. */
+    def physicalPorts: Future[Seq[PhysicalPort]]
+
+    /** Gets the physical port with the specified port identifier. */
     def physicalPort(portId: UUID): Future[Option[PhysicalPort]]
 
-    /** The Observable that emits updates in the *cast_Mac_Local tables, with
-      * MACs that are local to the VTEP and should be published to other
-      * members of a VxLAN gateway. */
+    /** Adds the bindings for the logical switch with the specified name. The
+      * bindings are specified as an [[Iterable]] of port name and VLAN pairs.
+      * The methds does not change any existing bindings for the specified
+      * physical ports. */
+    def addBindings(lsName: String, bindings: Iterable[(String, Short)])
+    : Future[Int]
+
+    /** Sets the bindings for the logical switch with the specified name. The
+      * bindings are specified as an [[Iterable]] of port name and VLAN pairs.
+      * The method overwrites any of the previous bindings for the specified
+      * physical ports, and replaces them with the given ones. The physical
+      * ports that are not included in the bindings list are left unchanged.
+      * The method returns a future with the number of physical ports that
+      * were changed. */
+    def setBindings(lsName: String, bindings: Iterable[(String, Short)])
+    : Future[Int]
+
+    /** Clears all bindings for the specified logical switch name. */
+    def clearBindings(lsName: String): Future[Int]
+
+    /** Returns an [[Observable]] that emits updates for the `Ucast_Mac_Local`
+      * and `Mcast_Mac_Local` tables, with the MACs that are local to the VTEP
+      * and should be published to other members of a VxLAN gateway. */
     def macLocalUpdates: Observable[MacLocation]
 
-    /** The Observer to use in order to push updates about MACs that are local
-      * to other VTEPs (which includes ports in MidoNet.  Entries pushed to this
-      * Observer are expected to be applied in the Mac_Remote tables on the
-      * hardware VTEPs. */
+    /** Returns an [[Observer]] that will write updates to the remote MACs in
+      * the `Ucast_Mac_Remote` or `Mcast_Mac_Remote` tables. */
     def macRemoteUpdater: Future[Observer[MacLocation]]
 
-    /** Provide a snapshot with the current contents of the Mac_Local tables
-      * in the VTEP's OVSDB. */
+    /** Provides a snapshot of the `Ucast_Mac_Local` and `Mcast_Mac_Local`
+      * tables. */
     def currentMacLocal: Future[Seq[MacLocation]]
-
-    /** Ensure that the hardware VTEP's config contains a Logical Switch with
-      * the given name and VNI. */
-    def ensureLogicalSwitch(name: String, vni: Int): Future[LogicalSwitch]
-
-    /** Remove the logical switch with the given name, as well as all bindings
-      * and entries in Mac tables. */
-    def removeLogicalSwitch(name: String): Future[Unit]
-
-    /** Ensure that the hardware VTEP's config for the given Logical Switch
-      * contains these and only these bindings. */
-    def ensureBindings(lsName: String, bindings: Iterable[(String, Short)])
-    : Future[Unit]
 
 }
 

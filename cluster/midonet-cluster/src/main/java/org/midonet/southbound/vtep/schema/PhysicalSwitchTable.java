@@ -32,10 +32,10 @@ import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 
-import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdb;
-import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdbIpSet;
-import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
-import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdbIpSet;
+import static org.midonet.southbound.vtep.OvsdbUtil.fromOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.fromOvsdbIpSet;
+import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdbIpSet;
 
 /**
  * Schema for the Ovsdb physical switch table
@@ -118,7 +118,7 @@ public final class PhysicalSwitchTable extends Table {
     /**
      * Extract the set of physical port names
      */
-    @SuppressWarnings(value = "unckecked")
+    @SuppressWarnings(value = "unchecked")
     private Set<UUID> parsePorts(Row<GenericTableSchema> row) {
         return fromOvsdb(extractSet(row, getPortsSchema()));
     }
@@ -126,6 +126,7 @@ public final class PhysicalSwitchTable extends Table {
     /**
      * Extract the set of management ips
      */
+    @SuppressWarnings(value = "unchecked")
     private Set<IPv4Addr> parseManagementIps(Row<GenericTableSchema> row) {
         return fromOvsdbIpSet(extractSet(row, getManagementIpsSchema()));
     }
@@ -133,6 +134,7 @@ public final class PhysicalSwitchTable extends Table {
     /**
      * Extract the set of tunnel ips (may be empty)
      */
+    @SuppressWarnings(value = "unchecked")
     private Set<IPv4Addr> parseTunnelIps(Row<GenericTableSchema> row) {
         return fromOvsdbIpSet(extractSet(row, getTunnelIpsSchema()));
     }
@@ -141,7 +143,7 @@ public final class PhysicalSwitchTable extends Table {
      * Extract the physical switch information from the table entry
      */
     @Override
-    @SuppressWarnings(value = "unckecked")
+    @SuppressWarnings(value = "unchecked")
     public <E extends VtepEntry>
     E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
         throws IllegalArgumentException {

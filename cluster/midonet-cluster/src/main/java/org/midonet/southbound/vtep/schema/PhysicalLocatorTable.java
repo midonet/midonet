@@ -105,7 +105,7 @@ public final class PhysicalLocatorTable extends Table {
      * Extract the physical locator information from the table entry
      */
     @Override
-    @SuppressWarnings(value = "unckecked")
+    @SuppressWarnings(value = "unchecked")
     public <E extends VtepEntry>
     E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
         throws IllegalArgumentException {
