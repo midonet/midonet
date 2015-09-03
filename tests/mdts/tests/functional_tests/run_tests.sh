@@ -50,7 +50,8 @@ EOF
 PDIR=../../../
 ATTR=""
 ARGS=""  # passed directly to nosetests runner
-LOG_DIR=""
+LOG_DIR="logs-$(date +"%y%m%d%H%M%S")"
+
 while getopts "e:ht:sSv:V:xX:r:l:" OPTION
 do
     case $OPTION in
@@ -80,7 +81,6 @@ do
             ;;
         l)
             LOG_DIR=$OPTARG/
-            LOG_DIR_OPT="--mdts-logs-dir $OPTARG/"
             ;;
         ?)
             usage
@@ -130,5 +130,9 @@ shift $(( OPTIND - 1 ))
 # Avoid masking the exit status of nose with the exit 0 of tee
 set -o pipefail
 
-echo "sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ $LOG_DIR_OPT ${ATTR:+\"-A $ATTR\"} $TESTS $ARGS "
-sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ $LOG_DIR_OPT ${ATTR:+"-A $ATTR"} $TESTS $ARGS 
+echo "sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+\"-A $ATTR\"} $TESTS $ARGS "
+sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg $@ --mdts-logs-dir $LOG_DIR ${ATTR:+"-A $ATTR"} $TESTS $ARGS
+if [ -d "$LOG_DIR" ]; then
+    cp nosetests.xml $LOG_DIR
+    cp nosetests.log $LOG_DIR
+fi
