@@ -1,0 +1,187 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ae8d1ca_a2717a79",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-03T18:30:12Z",
+      "side": 1,
+      "message": "s/wether/whether/",
+      "range": {
+        "startLine": 61,
+        "startChar": 13,
+        "endLine": 61,
+        "endChar": 19
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_02c5ce5a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-03T18:30:12Z",
+      "side": 1,
+      "message": "Why does this need to be List instead of Set?",
+      "range": {
+        "startLine": 89,
+        "startChar": 42,
+        "endLine": 89,
+        "endChar": 52
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_822b9e2f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-03T18:30:12Z",
+      "side": 1,
+      "message": "The comment should also mention that it also publishes Vtep ID when it is received for the first time. This is not purely a stateless function as the above comment otherwise implies.",
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_222c8a4a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-03T18:30:12Z",
+      "side": 1,
+      "message": "We don\u0027t really need this if clause and can do the list comparison whether or not the list is empty?",
+      "range": {
+        "startLine": 105,
+        "startChar": 16,
+        "endLine": 107,
+        "endChar": 24
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_22880a22",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-03T18:30:12Z",
+      "side": 1,
+      "message": "You an take diff of the two sets. See. https://github.com/midonet/midonet/blob/master/cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala#L146",
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_22dd6a15",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-03T18:30:12Z",
+      "side": 1,
+      "message": "Isn\u0027t more readable to just do filter \u0026 foreach? That is,\n\n\nportIds.filter(!portReceived(networkId, _)\n           .foreach { x \u003d\u003e val observable \u003d ...\n                                   portsSubject onNext observable}",
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_02730e4e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-03T18:30:12Z",
+      "side": 1,
+      "message": "Please give a more descriptive name such as vlanPortObservable.",
+      "range": {
+        "startLine": 205,
+        "startChar": 20,
+        "endLine": 205,
+        "endChar": 30
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_02d86e1c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-03T18:30:12Z",
+      "side": 1,
+      "message": "Can be moved outside the inner-most while loop.",
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_0246aebf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-03T18:30:12Z",
+      "side": 1,
+      "message": "It may not make much difference so I\u0027m just commenting here, but why don\u0027t we just call doOnEach, which may be a bit more readable?",
+      "range": {
+        "startLine": 297,
+        "startChar": 40,
+        "endLine": 297,
+        "endChar": 43
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
