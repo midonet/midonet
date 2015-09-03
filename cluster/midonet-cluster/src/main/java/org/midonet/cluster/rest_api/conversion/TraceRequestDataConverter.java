@@ -16,31 +16,11 @@
 
 package org.midonet.cluster.rest_api.conversion;
 
-import java.net.URI;
-
-import org.midonet.cluster.rest_api.models.Condition;
 import org.midonet.cluster.rest_api.models.TraceRequest;
 
 import static org.midonet.cluster.rest_api.conversion.ConditionDataConverter.makeCondition;
-import static org.midonet.cluster.rest_api.conversion.ConditionDataConverter.fillFromSimulationData;
 
 public class TraceRequestDataConverter {
-
-    public static TraceRequest fromData(org.midonet.cluster.data.TraceRequest
-                                            traceRequest, URI baseUri) {
-        TraceRequest tr = new TraceRequest();
-        tr.id = traceRequest.getId();
-        tr.name = traceRequest.getName();
-        tr.deviceType = traceRequest.getDeviceType();
-        tr.deviceId = traceRequest.getDeviceId();
-        tr.creationTimestampMs = traceRequest.getCreationTimestampMs();
-        tr.limit = traceRequest.getLimit();
-        tr.enabled = (traceRequest.getEnabledRule() != null);
-        tr.condition = new Condition();
-        fillFromSimulationData(tr.condition, traceRequest.getCondition());
-        tr.setBaseUri(baseUri);
-        return tr;
-    }
 
     public static org.midonet.cluster.data.TraceRequest toData(TraceRequest tr) {
         org.midonet.midolman.rules.Condition c = makeCondition(tr.condition);
