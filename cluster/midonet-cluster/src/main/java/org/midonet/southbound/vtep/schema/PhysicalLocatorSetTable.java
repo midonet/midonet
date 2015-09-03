@@ -28,15 +28,14 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.PhysicalLocatorSet;
-import org.midonet.cluster.data.vtep.model.VtepEntry;
 
-import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdb;
-import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.fromOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdb;
 
 /**
  * Schema for the Ovsdb physical switch table
  */
-public final class PhysicalLocatorSetTable extends Table {
+public final class PhysicalLocatorSetTable extends Table<PhysicalLocatorSet> {
     static public final String TB_NAME = "Physical_Locator_Set";
     static private final String COL_LOCATORS = "locators";
 
@@ -70,6 +69,7 @@ public final class PhysicalLocatorSetTable extends Table {
     /**
      * Extract the set of locator ids
      */
+    @SuppressWarnings("unchecked")
     private Set<java.util.UUID> parseLocators(Row<GenericTableSchema> row) {
         return fromOvsdb(extractSet(row, getLocatorsSchema()));
     }
@@ -78,32 +78,29 @@ public final class PhysicalLocatorSetTable extends Table {
      * Extract the locator set object
      */
     @Override
-    @SuppressWarnings(value = "unckecked")
-    public <E extends VtepEntry>
-    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+    public PhysicalLocatorSet parseEntry(Row<GenericTableSchema> row)
         throws IllegalArgumentException {
-        ensureOutputClass(clazz);
+        ensureOutputClass(PhysicalLocatorSet.class);
         return (row == null)? null:
-               (E)PhysicalLocatorSet.apply(parseUuid(row), parseLocators(row));
+               PhysicalLocatorSet.apply(parseUuid(row), parseLocators(row));
     }
 
     /**
      * Generate an insert command
      */
     @Override
-    public <E extends VtepEntry> Table.OvsdbInsert insert(E row)
+    public Table.OvsdbInsert insert(PhysicalLocatorSet row)
         throws IllegalArgumentException {
         Insert<GenericTableSchema> op = newInsert(row);
-        PhysicalLocatorSet set = (PhysicalLocatorSet)row;
-        op.value(getLocatorsSchema(), toOvsdb(set.locatorIds()));
+        op.value(getLocatorsSchema(), toOvsdb(row.locatorIds()));
         return new OvsdbInsert(op);
     }
 
     @Override
-    public <E extends VtepEntry> Row<GenericTableSchema> generateRow(
-        E entry) throws IllegalArgumentException {
+    public  Row<GenericTableSchema> generateRow(PhysicalLocatorSet entry)
+        throws IllegalArgumentException {
         Row<GenericTableSchema> row = super.generateRow(entry);
-        PhysicalLocatorSet data = (PhysicalLocatorSet)entry;
+        PhysicalLocatorSet data = entry;
         addToRow(row, getLocatorsSchema(), toOvsdb(data.locatorIds()));
         return row;
     }

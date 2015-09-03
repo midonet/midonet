@@ -20,8 +20,9 @@ import java.util.Random
 import java.util.concurrent.{Executors, TimeUnit}
 
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
+import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
@@ -33,18 +34,20 @@ import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema._
+import org.midonet.util.concurrent._
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
+@Ignore
 class OvsdbCachedTableTest extends FeatureSpec
                                    with Matchers
                                    with BeforeAndAfter
                                    with BeforeAndAfterAll
                                    with MidonetEventually {
-    val timeout = Duration(5000, TimeUnit.MILLISECONDS)
+    val timeout = 5 seconds
 
     val random = new Random()
-    val VtepDB = OvsdbTools.DB_HARDWARE_VTEP
+    val vtepDb = OvsdbOperations.DbHardwareVtep
     var vtep: InMemoryOvsdbVtep = _
     var client: OvsdbClient = _
     var db: DatabaseSchema = _
@@ -67,13 +70,13 @@ class OvsdbCachedTableTest extends FeatureSpec
     before {
         vtep = new InMemoryOvsdbVtep
         client = vtep.getClient
-        db = OvsdbTools.getDbSchema(client, VtepDB, exec).result(timeout)
+        db = OvsdbOperations.getDbSchema(client, vtepDb)(exec).await(timeout)
     }
 
     feature("table monitor") {
         scenario("empty table") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, t.getEntryClass, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -87,9 +90,9 @@ class OvsdbCachedTableTest extends FeatureSpec
                 PhysicalLocator(IPv4Addr.random),
                 PhysicalLocator(IPv4Addr.random)
             )
-            data.foreach(e => vtep.putEntry(t, e, e.getClass))
+            data.foreach(e => vtep.putEntry(t, e))
 
-            val ct = new OvsdbCachedTable(client, t, t.getEntryClass, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.size shouldBe data.size
@@ -98,7 +101,7 @@ class OvsdbCachedTableTest extends FeatureSpec
 
         scenario("additions on empty table") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, t.getEntryClass, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -109,7 +112,7 @@ class OvsdbCachedTableTest extends FeatureSpec
                 PhysicalLocator(IPv4Addr.random),
                 PhysicalLocator(IPv4Addr.random)
             )
-            chgs.foreach(e => vtep.putEntry(t, e, e.getClass))
+            chgs.foreach(e => vtep.putEntry(t, e))
 
             eventually {
                 ct.getAll.size shouldBe chgs.size
@@ -121,31 +124,29 @@ class OvsdbCachedTableTest extends FeatureSpec
     feature("operations") {
         scenario("explicit insertion") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
 
             val e1 = PhysicalLocator(IPv4Addr.random)
-            Await.ready(ct.insert(e1), timeout)
+            val id = ct.insert(e1).await(timeout)
 
             eventually {
                 ct.getAll.size shouldBe 1
-                ct.get(e1.uuid) shouldBe Some(e1)
-                vtep.getTable(t).get(e1.uuid) shouldBe Some(e1)
+                ct.get(id) shouldBe Some(e1)
+                vtep.getTable(t).get(id) shouldBe Some(e1)
             }
         }
         scenario("background insertion") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
 
             val e1 = PhysicalLocator(IPv4Addr.random)
-            vtep.putEntry(t, e1, e1.getClass)
+            vtep.putEntry(t, e1)
 
             eventually {
                 ct.getAll.size shouldBe 1
@@ -156,8 +157,7 @@ class OvsdbCachedTableTest extends FeatureSpec
 
         scenario("explicit update") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -182,8 +182,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         }
         scenario("background update") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -199,7 +198,7 @@ class OvsdbCachedTableTest extends FeatureSpec
                 vtep.getTable(t).get(e1.uuid) shouldBe Some(e1)
             }
 
-            vtep.putEntry(t, e2, e2.getClass)
+            vtep.putEntry(t, e2)
             eventually {
                 ct.getAll.size shouldBe 1
                 ct.get(e1.uuid) shouldBe Some(e2)
@@ -209,8 +208,7 @@ class OvsdbCachedTableTest extends FeatureSpec
 
         scenario("background removal") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -224,143 +222,12 @@ class OvsdbCachedTableTest extends FeatureSpec
                 vtep.getTable(t).get(e1.uuid) shouldBe Some(e1)
             }
 
-            vtep.removeEntry(t, e1.uuid, e1.getClass)
+            vtep.removeEntry(t, e1.uuid)
             eventually {
                 ct.getAll.isEmpty shouldBe true
                 ct.get(e1.uuid) shouldBe None
                 vtep.getTable(t).get(e1.uuid) shouldBe None
             }
-        }
-    }
-    feature("hints") {
-        scenario("unconfirmed hint") {
-            val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec, exec)
-
-            Await.result(ct.ready, timeout) shouldBe true
-            ct.getAll.isEmpty shouldBe true
-
-            val e1 = PhysicalLocator(IPv4Addr.random)
-
-            val hint = ct.insertHint(e1)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e1)
-            vtep.getTable(t).get(e1.uuid) shouldBe None
-
-            ct.removeHint(e1.uuid, hint)
-            ct.getAll.size shouldBe 0
-            ct.get(e1.uuid) shouldBe None
-            vtep.getTable(t).get(e1.uuid) shouldBe None
-        }
-        scenario("confirmed hint") {
-            val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec, exec)
-
-            Await.result(ct.ready, timeout) shouldBe true
-            ct.getAll.isEmpty shouldBe true
-
-            val e1 = PhysicalLocator(IPv4Addr.random)
-
-            val hint = ct.insertHint(e1)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e1)
-            vtep.getTable(t).get(e1.uuid) shouldBe None
-
-            vtep.putEntry(t, e1, e1.getClass)
-            eventually {
-                ct.getAll.size shouldBe 1
-                ct.get(e1.uuid) shouldBe Some(e1)
-                vtep.getTable(t).get(e1.uuid) shouldBe Some(e1)
-            }
-
-            ct.removeHint(e1.uuid, hint)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e1)
-            vtep.getTable(t).get(e1.uuid) shouldBe Some(e1)
-        }
-        scenario("overriden hint") {
-            val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec, exec)
-
-            Await.result(ct.ready, timeout) shouldBe true
-            ct.getAll.isEmpty shouldBe true
-
-            val e1 = PhysicalLocator(IPv4Addr.random)
-            val e2 = new PhysicalLocator(e1.uuid, IPv4Addr.random,
-                                         e1.encapsulation)
-
-            val hint = ct.insertHint(e1)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e1)
-            vtep.getTable(t).get(e1.uuid) shouldBe None
-
-            vtep.putEntry(t, e2, e2.getClass)
-            eventually {
-                ct.getAll.size shouldBe 1
-                ct.get(e1.uuid) shouldBe Some(e2)
-                vtep.getTable(t).get(e1.uuid) shouldBe Some(e2)
-            }
-
-            ct.removeHint(e1.uuid, hint)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e2)
-            vtep.getTable(t).get(e1.uuid) shouldBe Some(e2)
-        }
-        scenario("multiple hint") {
-            val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, classOf[PhysicalLocator],
-                                          exec, exec)
-
-            Await.result(ct.ready, timeout) shouldBe true
-            ct.getAll.isEmpty shouldBe true
-
-            val e1 = PhysicalLocator(IPv4Addr.random)
-            val e2 = new PhysicalLocator(e1.uuid, IPv4Addr.random,
-                                         e1.encapsulation)
-            val e3 = new PhysicalLocator(e1.uuid, IPv4Addr.random,
-                                         e1.encapsulation)
-
-            val hint1 = ct.insertHint(e1)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e1)
-            vtep.getTable(t).get(e1.uuid) shouldBe None
-
-            val hint2 = ct.insertHint(e2)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e2)
-            vtep.getTable(t).get(e1.uuid) shouldBe None
-
-            val hint3 = ct.insertHint(e3)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e3)
-            vtep.getTable(t).get(e1.uuid) shouldBe None
-
-            // remove midle hint
-            ct.removeHint(e1.uuid, hint2)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e3)
-            vtep.getTable(t).get(e1.uuid) shouldBe None
-
-            // remove top hint
-            ct.removeHint(e1.uuid, hint3)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e1)
-            vtep.getTable(t).get(e1.uuid) shouldBe None
-
-            // remove again
-            ct.removeHint(e1.uuid, hint3)
-            ct.getAll.size shouldBe 1
-            ct.get(e1.uuid) shouldBe Some(e1)
-            vtep.getTable(t).get(e1.uuid) shouldBe None
-
-            // remove last hint
-            ct.removeHint(e1.uuid, hint1)
-            ct.getAll.size shouldBe 0
-            ct.get(e1.uuid) shouldBe None
-            vtep.getTable(t).get(e1.uuid) shouldBe None
         }
     }
 }
