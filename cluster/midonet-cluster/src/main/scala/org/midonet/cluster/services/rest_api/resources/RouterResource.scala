@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
@@ -34,21 +33,13 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 @ApiResource(version = 1)
 @Path("routers")
 @RequestScoped
-@AllowGet(Array(APPLICATION_ROUTER_JSON,
-                APPLICATION_ROUTER_JSON_V2,
-                APPLICATION_ROUTER_JSON_V3,
+@AllowGet(Array(APPLICATION_ROUTER_JSON_V3,
                 APPLICATION_JSON))
-@AllowList(Array(APPLICATION_ROUTER_COLLECTION_JSON,
-                 APPLICATION_ROUTER_COLLECTION_JSON_V2,
-                 APPLICATION_ROUTER_COLLECTION_JSON_V3,
+@AllowList(Array(APPLICATION_ROUTER_COLLECTION_JSON_V3,
                  APPLICATION_JSON))
-@AllowCreate(Array(APPLICATION_ROUTER_JSON,
-                   APPLICATION_ROUTER_JSON_V2,
-                   APPLICATION_ROUTER_JSON_V3,
+@AllowCreate(Array(APPLICATION_ROUTER_JSON_V3,
                    APPLICATION_JSON))
-@AllowUpdate(Array(APPLICATION_ROUTER_JSON,
-                   APPLICATION_ROUTER_JSON_V2,
-                   APPLICATION_ROUTER_JSON_V3,
+@AllowUpdate(Array(APPLICATION_ROUTER_JSON_V3,
                    APPLICATION_JSON))
 @AllowDelete
 class RouterResource @Inject()(resContext: ResourceContext)

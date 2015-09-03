@@ -19,15 +19,15 @@ package org.midonet.client.resource;
 import java.net.URI;
 
 import org.midonet.client.WebResource;
-import org.midonet.client.dto.*;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.client.dto.DtoWriteVersion;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 public class WriteVersion extends ResourceBase<WriteVersion, DtoWriteVersion> {
 
 
     public WriteVersion(WebResource resource, URI uriForCreation, DtoWriteVersion wv) {
         super(resource, uriForCreation, wv,
-              VendorMediaType.APPLICATION_WRITE_VERSION_JSON);
+              MidonetMediaTypes.APPLICATION_WRITE_VERSION_JSON());
     }
 
     @Override

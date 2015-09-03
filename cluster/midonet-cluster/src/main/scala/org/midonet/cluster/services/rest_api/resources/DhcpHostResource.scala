@@ -40,8 +40,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
 
     @GET
     @Path("/{mac}")
-    @Produces(Array(APPLICATION_DHCP_HOST_JSON,
-                    APPLICATION_DHCP_HOST_JSON_V2,
+    @Produces(Array(APPLICATION_DHCP_HOST_JSON_V2,
                     APPLICATION_JSON))
     override def get(@PathParam("mac") mac: String,
                      @HeaderParam("Accept") accept: String): DhcpHost = {
@@ -58,8 +57,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
     }
 
     @GET
-    @Produces(Array(APPLICATION_DHCP_HOST_COLLECTION_JSON,
-                    APPLICATION_DHCP_HOST_COLLECTION_JSON_V2))
+    @Produces(Array(APPLICATION_DHCP_HOST_COLLECTION_JSON_V2))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[DhcpHost] = {
         getSubnet(subnetAddress).map(_.map(subnet => {
@@ -72,8 +70,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
     }
 
     @POST
-    @Consumes(Array(APPLICATION_DHCP_HOST_JSON,
-                    APPLICATION_DHCP_HOST_JSON_V2,
+    @Consumes(Array(APPLICATION_DHCP_HOST_JSON_V2,
                     APPLICATION_JSON))
     override def create(host: DhcpHost,
                         @HeaderParam("Content-Type") contentType: String)
@@ -95,8 +92,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
 
     @PUT
     @Path("/{mac}")
-    @Consumes(Array(APPLICATION_DHCP_HOST_JSON,
-                    APPLICATION_DHCP_HOST_JSON_V2,
+    @Consumes(Array(APPLICATION_DHCP_HOST_JSON_V2,
                     APPLICATION_JSON))
     override def update(@PathParam("mac") mac: String, host: DhcpHost,
                         @HeaderParam("Content-Type") contentType: String)

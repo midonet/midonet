@@ -39,7 +39,6 @@ import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
-import org.midonet.util.version.Since;
 
 @ZoomClass(clazz = Topology.Dhcp.class)
 public class DhcpSubnet extends UriResource {
@@ -91,7 +90,6 @@ public class DhcpSubnet extends UriResource {
     @ZoomField(name = "hosts")
     public List<DhcpHost> dhcpHosts;
 
-    @Since("2")
     @ZoomField(name = "enabled")
     public Boolean enabled = true;
 

@@ -20,8 +20,6 @@ import java.net.URI;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
-import org.midonet.util.version.Since;
-
 public class Neutron {
 
     public URI uri;
