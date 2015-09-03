@@ -48,24 +48,35 @@ sourceSets {
 dependencies {
     compile project(':midonet-util'), project(':netlink'), project(':nsdb')
 
-    compile libraries.scala, libraries.akka, libraries.hamcrest, libraries.jna,
-            libraries.commons_lang, libraries.commons_lang3,
-            libraries.commons_cli, libraries.commons_codec, libraries.commons_io,
-            libraries.guava, libraries.guice, libraries.metrics, libraries.rx,
-            libraries.logback, libraries.logback_logstash, libraries.zookeeper,
-            libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix,
-            libraries.jsonpath, libraries.curator_recipes,
-            libraries.scala_logging, libraries.scallop, libraries.protobuf,
-            libraries.disruptor, libraries.curator_test,
+    compile libraries.scala,
+            libraries.akka,
+            libraries.commons_lang3,
+            libraries.commons_lang,
+            libraries.commons_cli,
+            libraries.commons_codec,
+            libraries.guava,
+            libraries.guice,
+            libraries.metrics,
+            libraries.rx,
+            libraries.logback,
+            libraries.logback_logstash,
+            libraries.zookeeper,
+            libraries.curator_recipes,
+            libraries.scala_logging,
+            libraries.scallop,
+            libraries.protobuf,
+            libraries.disruptor,
+            libraries.curator_test,
             libraries.jersey_client,
+            libraries.jetty_server,
             "com.fasterxml.jackson.core:jackson-databind:2.3.0"
 
     testCompile project(path: ':nsdb', configuration: 'tests')
-
+    testCompile project(path: ':midonet-util', configuration: 'tests')
     testCompile libraries.akkatest, libraries.scalatest,
                 libraries.jsonpath_assert, libraries.cassandraunit,
                 libraries.curator_test, libraries.mockit,
-                libraries.test_frameworks
+                libraries.test_frameworks, libraries.jsonpath
 }
 
 cobertura {
@@ -122,10 +133,8 @@ artifacts {
     tests jarTest
 }
 
-task preparePkg(type: Copy, dependsOn: installApp) {
-    from("${buildDir}/install/${project.name}") {
-        include "**/*"
-        exclude "bin"
+task preparePkg(type: Copy, dependsOn: installShadowApp) {
+    from("${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
         into "usr/share/midolman"
     }
     from("${buildDir}/man/") {
@@ -181,12 +190,9 @@ task preparePkg(type: Copy, dependsOn: installApp) {
         into "usr/share/midolman"
     }
     into "${pkgDestDir}"
-
     doLast {
-        new File("${pkgDestDir}/usr/share/midolman/lib/${project.name}-${midonetVersion}.jar").
-                renameTo("${pkgDestDir}/usr/share/midolman/${project.name}-${midonetVersion}.jar")
-        new File("${pkgDestDir}/usr/share/midolman/lib").
-                renameTo("${pkgDestDir}/usr/share/midolman/dep")
+        new File("${pkgDestDir}/usr/share/midolman/${project.name}-${midonetVersion}-all.jar").
+                renameTo("${pkgDestDir}/usr/share/midolman/${project.name}.jar")
     }
 }
 
@@ -213,7 +219,7 @@ packaging {
     vendor = project.vendor
     url = project.url
     description = 'Midolman is a virtual network controller'
-    dependencies = [ 'bridge-utils', 'haproxy']
+    dependencies = [ 'bridge-utils', 'haproxy', 'midonet-tools']
     confFiles = ['/etc/midolman/midolman-env.sh',
                  '/etc/midolman/midolman-env.sh.compute.large',
                  '/etc/midolman/midolman-env.sh.gateway.large',
@@ -319,26 +325,4 @@ task testReport(type: TestReport, dependsOn: test) {
 
 test.finalizedBy(testReport)
 
-task manpages() {
-    File outputDir = new File("${buildDir}/man")
-    FileTree inputFiles = fileTree(dir: "src/man", include: "*.ronn")
-
-    inputs.files { inputFiles }
-    outputs.dir outputDir
-
-    doLast {
-        outputDir.mkdirs()
-        println("Building manpages")
-        inputFiles.each { File file ->
-            String filename = file.getName()
-            String outputFile = filename.replaceAll(/.ronn/, ".gz")
-            println("    manpage: $filename -> $outputFile")
-            project.exec {
-                commandLine "bash", "-c"
-                commandLine += "ronn --pipe --roff src/man/${filename} | gzip -c > ${buildDir}/man/${outputFile}"
-                workingDir project.projectDir
-            }
-        }
-    }
-}
 preparePkg.dependsOn manpages

@@ -17,16 +17,19 @@
 apply plugin: 'scala'
 
 dependencies {
-    testCompile libraries.scalatest, libraries.scalacheck
     compile libraries.akka, libraries.commons_cli, libraries.commons_conf,
             libraries.commons_io, libraries.commons_lang3, libraries.disruptor,
-            libraries.findbugs, libraries.guava, libraries.hamcrest_core,
-            libraries.hamcrest_lib, libraries.hamcrest_integration,
+            libraries.findbugs, libraries.guava,
             libraries.infinispan, libraries.jackson_core,
             libraries.jackson_databind, libraries.jackson_annotations,
             libraries.jsch, libraries.netty, libraries.protobuf, libraries.rx,
             libraries.scala, libraries.servlet, libraries.sun_tools,
-            libraries.scala_logging, libraries.scalatest, libraries.jna
+            libraries.scala_logging, libraries.jna
+
+    testCompile libraries.scalatest, libraries.scalacheck,
+                libraries.hamcrest_lib, libraries.hamcrest_integration,
+                libraries.hamcrest_core, libraries.scalatest
+
 }
 
 jar {
@@ -46,3 +49,17 @@ sourceSets {
         java { srcDirs = [] }
     }
 }
+
+configurations {
+    tests.extendsFrom (testCompile)
+}
+
+task jarTest (type: Jar, dependsOn: testClasses) {
+    from sourceSets.test.output
+    classifier = 'test'
+}
+
+artifacts {
+    tests jarTest
+}
+
