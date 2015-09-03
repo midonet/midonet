@@ -29,7 +29,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
 
     public Bridge(WebResource resource, URI uriForCreation, DtoBridge b) {
         super(resource, uriForCreation, b,
-              VendorMediaType.APPLICATION_BRIDGE_JSON);
+              VendorMediaType.APPLICATION_BRIDGE_JSON_V4);
     }
 
     /**
