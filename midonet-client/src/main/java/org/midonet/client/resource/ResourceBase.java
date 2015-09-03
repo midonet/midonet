@@ -16,16 +16,17 @@
 
 package org.midonet.client.resource;
 
-import org.midonet.client.WebResource;
-
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Objects;
+
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
+
+import org.midonet.client.WebResource;
 
 /**
  * Base class for resource classes

@@ -20,34 +20,23 @@ package org.midonet.cluster.services.rest_api
   * between domains. */
 object MidonetMediaTypes {
 
-    final val APPLICATION_JSON_V4 = "application/vnd.org.midonet.Application-v4+json"
     final val APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"
 
     final val APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json"
     final val APPLICATION_TENANT_JSON = "application/vnd.org.midonet.Tenant-v1+json"
     final val APPLICATION_TENANT_COLLECTION_JSON = "application/vnd.org.midonet.collection.Tenant-v1+json"
-    final val APPLICATION_ROUTER_JSON = "application/vnd.org.midonet.Router-v1+json"
-    final val APPLICATION_ROUTER_JSON_V2 = "application/vnd.org.midonet.Router-v2+json"
     final val APPLICATION_ROUTER_JSON_V3 = "application/vnd.org.midonet.Router-v3+json"
-    final val APPLICATION_ROUTER_COLLECTION_JSON = "application/vnd.org.midonet.collection.Router-v1+json"
-    final val APPLICATION_ROUTER_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.Router-v2+json"
     final val APPLICATION_ROUTER_COLLECTION_JSON_V3 = "application/vnd.org.midonet.collection.Router-v3+json"
     final val APPLICATION_BRIDGE_JSON_V4 = "application/vnd.org.midonet.Bridge-v4+json"
     final val APPLICATION_BRIDGE_COLLECTION_JSON_V4 = "application/vnd.org.midonet.collection.Bridge-v4+json"
-    final val APPLICATION_MAC_PORT_JSON = "application/vnd.org.midonet.MacPort-v1+json"
     final val APPLICATION_MAC_PORT_JSON_V2 = "application/vnd.org.midonet.MacPort-v2+json"
-    final val APPLICATION_MAC_PORT_COLLECTION_JSON = "application/vnd.org.midonet.collection.MacPort-v1+json"
     final val APPLICATION_MAC_PORT_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.MacPort-v2+json"
     final val APPLICATION_IP4_MAC_JSON = "application/vnd.org.midonet.IP4Mac-v1+json"
     final val APPLICATION_IP4_MAC_COLLECTION_JSON = "application/vnd.org.midonet.collection.IP4Mac-v1+json"
-    final val APPLICATION_HOST_JSON_V2 = "application/vnd.org.midonet.Host-v2+json"
     final val APPLICATION_HOST_JSON_V3 = "application/vnd.org.midonet.Host-v3+json"
-    final val APPLICATION_HOST_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.Host-v2+json"
     final val APPLICATION_HOST_COLLECTION_JSON_V3 = "application/vnd.org.midonet.collection.Host-v3+json"
     final val APPLICATION_INTERFACE_JSON = "application/vnd.org.midonet.Interface-v1+json"
     final val APPLICATION_INTERFACE_COLLECTION_JSON = "application/vnd.org.midonet.collection.Interface-v1+json"
-    final val APPLICATION_PORT_JSON = "application/vnd.org.midonet.Port-v1+json"
-    final val APPLICATION_PORT_COLLECTION_JSON = "application/vnd.org.midonet.collection.Port-v1+json"
     final val APPLICATION_PORT_V2_JSON = "application/vnd.org.midonet.Port-v2+json"
     final val APPLICATION_PORT_V2_COLLECTION_JSON = "application/vnd.org.midonet.collection.Port-v2+json"
     final val APPLICATION_PORT_LINK_JSON = "application/vnd.org.midonet.PortLink-v1+json"
@@ -59,8 +48,6 @@ object MidonetMediaTypes {
     final val APPLICATION_PORTGROUP_PORT_COLLECTION_JSON = "application/vnd.org.midonet.collection.PortGroupPort-v1+json"
     final val APPLICATION_CHAIN_JSON = "application/vnd.org.midonet.Chain-v1+json"
     final val APPLICATION_CHAIN_COLLECTION_JSON = "application/vnd.org.midonet.collection.Chain-v1+json"
-    final val APPLICATION_RULE_JSON = "application/vnd.org.midonet.Rule-v1+json"
-    final val APPLICATION_RULE_COLLECTION_JSON = "application/vnd.org.midonet.collection.Rule-v1+json"
     final val APPLICATION_RULE_JSON_V2 = "application/vnd.org.midonet.Rule-v2+json"
     final val APPLICATION_RULE_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.Rule-v2+json"
     final val APPLICATION_BGP_JSON = "application/vnd.org.midonet.Bgp-v1+json"
@@ -75,12 +62,8 @@ object MidonetMediaTypes {
     final val APPLICATION_MIRROR_COLLECTION_JSON = "application/vnd.org.midonet.collection.Mirror-v1+json"
 
     /* DHCP configuration types. */
-    final val APPLICATION_DHCP_SUBNET_JSON = "application/vnd.org.midonet.DhcpSubnet-v1+json"
     final val APPLICATION_DHCP_SUBNET_JSON_V2 = "application/vnd.org.midonet.DhcpSubnet-v2+json"
-    final val APPLICATION_DHCP_SUBNET_COLLECTION_JSON = "application/vnd.org.midonet.collection.DhcpSubnet-v1+json"
     final val APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.DhcpSubnet-v2+json"
-    final val APPLICATION_DHCP_HOST_JSON = "application/vnd.org.midonet.DhcpHost-v1+json"
-    final val APPLICATION_DHCP_HOST_COLLECTION_JSON = "application/vnd.org.midonet.collection.DhcpHost-v1+json"
     final val APPLICATION_DHCP_HOST_JSON_V2 = "application/vnd.org.midonet.DhcpHost-v2+json"
     final val APPLICATION_DHCP_HOST_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.DhcpHost-v2+json"
     final val APPLICATION_DHCPV6_SUBNET_JSON = "application/vnd.org.midonet.DhcpV6Subnet-v1+json"
@@ -103,7 +86,6 @@ object MidonetMediaTypes {
 
     // Upgrade Control
     final val APPLICATION_WRITE_VERSION_JSON = "application/vnd.org.midonet.WriteVersion-v1+json"
-    final val APPLICATION_SYSTEM_STATE_JSON = "application/vnd.org.midonet.SystemState-v1+json"
     final val APPLICATION_SYSTEM_STATE_JSON_V2 = "application/vnd.org.midonet.SystemState-v2+json"
     final val APPLICATION_HOST_VERSION_JSON = "application/vnd.org.midonet.HostVersion-v1+json"
 

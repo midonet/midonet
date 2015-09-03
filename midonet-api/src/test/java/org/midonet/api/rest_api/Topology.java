@@ -30,18 +30,17 @@ import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Tenant;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
-
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_LOAD_BALANCER_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_LINK_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_COLLECTION_JSON;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:
@@ -93,7 +92,7 @@ public class Topology {
         private final Map<String, String> links;
 
         public Builder(DtoWebResource resource) {
-            this(resource, VendorMediaType.APPLICATION_JSON_V5);
+            this(resource, MidonetMediaTypes.APPLICATION_JSON_V5());
         }
 
         public Builder(DtoWebResource resource, String appMediaType) {
@@ -172,7 +171,7 @@ public class Topology {
             for (Map.Entry<String, DtoRuleChain> entry : chains.entrySet()) {
                 DtoRuleChain obj = entry.getValue();
                 obj = resource.postAndVerifyCreated(app.getChains(),
-                    APPLICATION_CHAIN_JSON, obj, DtoRuleChain.class);
+                    APPLICATION_CHAIN_JSON(), obj, DtoRuleChain.class);
                 entry.setValue(obj);
             }
 
@@ -180,7 +179,8 @@ public class Topology {
             for (Map.Entry<String, DtoLoadBalancer> entry : loadBalancers.entrySet()) {
                 DtoLoadBalancer obj = entry.getValue();
                 obj = resource.postAndVerifyCreated(app.getLoadBalancers(),
-                        APPLICATION_LOAD_BALANCER_JSON, obj, DtoLoadBalancer.class);
+                        APPLICATION_LOAD_BALANCER_JSON(), obj, DtoLoadBalancer
+                            .class);
                 entry.setValue(obj);
             }
 
@@ -210,7 +210,7 @@ public class Topology {
                 }
 
                 obj = resource.postAndVerifyCreated(app.getRouters(),
-                    APPLICATION_ROUTER_JSON_V2, obj, DtoRouter.class);
+                    APPLICATION_ROUTER_JSON_V3(), obj, DtoRouter.class);
                 entry.setValue(obj);
             }
 
@@ -232,7 +232,7 @@ public class Topology {
                     obj.setOutboundFilterId(c.getId());
                 }
                 obj = resource.postAndVerifyCreated(app.getBridges(),
-                    APPLICATION_BRIDGE_JSON_V4, obj, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4(), obj, DtoBridge.class);
                 entry.setValue(obj);
             }
 
@@ -242,7 +242,7 @@ public class Topology {
                 DtoPortGroup obj = entry.getValue();
 
                 obj = resource.postAndVerifyCreated(app.getPortGroups(),
-                    APPLICATION_PORTGROUP_JSON, obj, DtoPortGroup.class);
+                    APPLICATION_PORTGROUP_JSON(), obj, DtoPortGroup.class);
                 entry.setValue(obj);
             }
 
@@ -271,7 +271,7 @@ public class Topology {
                 }
 
                 obj = resource.postAndVerifyCreated(r.getPorts(),
-                    APPLICATION_PORT_V2_JSON, entry.getValue(),
+                    APPLICATION_PORT_V2_JSON(), entry.getValue(),
                     DtoRouterPort.class);
                 entry.setValue(obj);
             }
@@ -301,7 +301,7 @@ public class Topology {
                 }
 
                 obj = resource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_V2_JSON, entry.getValue(),
+                    APPLICATION_PORT_V2_JSON(), entry.getValue(),
                     DtoBridgePort.class);
                 entry.setValue(obj);
             }
@@ -314,13 +314,13 @@ public class Topology {
                 DtoLink link = new DtoLink();
                 link.setPeerId(port2.getId());
                 resource.postAndVerifyStatus(port1.getLink(),
-                    APPLICATION_PORT_LINK_JSON, link,
+                    APPLICATION_PORT_LINK_JSON(), link,
                     Response.Status.CREATED.getStatusCode());
             }
 
             // Tenants are created behind the scene.  Get all tenants
             Tenant[] tenantList = resource.getAndVerifyOk(app.getTenants(),
-                APPLICATION_TENANT_COLLECTION_JSON, Tenant[].class);
+                APPLICATION_TENANT_COLLECTION_JSON(), Tenant[].class);
             if (tenantList != null) {
                 for (Tenant t : tenantList) {
                     tenants.put(t.id, t);

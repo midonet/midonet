@@ -50,7 +50,6 @@ import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.TunnelZone;
 import org.midonet.client.resource.TunnelZoneHost;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.MAC;
@@ -58,6 +57,8 @@ import org.midonet.packets.MAC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_JSON;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZoneHost {
@@ -134,7 +135,7 @@ public class TestTunnelZoneHost {
             // List the hosts using untyped tunnel zone media type.
             tzHosts = dtoResource.getAndVerifyOk(
                 tz.getHosts(),
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON(),
                 DtoTunnelZoneHost[].class);
             Assert.assertEquals(1, tzHosts.length);
 
@@ -151,7 +152,7 @@ public class TestTunnelZoneHost {
             h = dtoResource.getAndVerifyOk(
                 UriBuilder.fromUri(tz.getHosts())
                     .path(tzHost.getHostId().toString()).build(),
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
+                APPLICATION_TUNNEL_ZONE_HOST_JSON(),
                 DtoTunnelZoneHost.class);
             Assert.assertEquals(tzHost.getIpAddress(), h.getIpAddress());
             Assert.assertEquals(tzHost.getTunnelZoneId(), h.getTunnelZoneId());
@@ -172,8 +173,8 @@ public class TestTunnelZoneHost {
             DtoTunnelZone tz1 = topologyGre.getGreTunnelZone("tz1");
             Assert.assertNotNull(tz1);
             testCrud(tz1,
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON,
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON);
+                APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON(),
+                APPLICATION_TUNNEL_ZONE_HOST_JSON());
         }
 
         @Test
@@ -255,10 +256,8 @@ public class TestTunnelZoneHost {
         public void testBadInputCreate() {
             DtoTunnelZone tz = topology.getGreTunnelZone("tz1");
             dtoResource.postAndVerifyError(
-                tz.getHosts(),
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
-                tunnelZoneHost,
-                Response.Status.NOT_FOUND);
+                tz.getHosts(), APPLICATION_TUNNEL_ZONE_HOST_JSON(),
+                tunnelZoneHost, Response.Status.NOT_FOUND);
         }
     }
 

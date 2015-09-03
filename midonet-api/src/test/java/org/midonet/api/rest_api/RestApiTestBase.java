@@ -40,9 +40,8 @@ import org.midonet.client.dto.DtoPort;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
 
 public abstract class RestApiTestBase extends JerseyTest {
 
@@ -127,7 +126,7 @@ public abstract class RestApiTestBase extends JerseyTest {
         bridge.setTenantId("tenant1");
         bridge = dtoResource.postAndVerifyCreated(
                 topology.getApplication().getBridges(),
-                APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
+                APPLICATION_BRIDGE_JSON_V4(), bridge, DtoBridge.class);
         assertNotNull(bridge.getId());
         assertNotNull(bridge.getUri());
         return bridge;
@@ -136,17 +135,17 @@ public abstract class RestApiTestBase extends JerseyTest {
     protected DtoBridge getBridge(UUID id) {
         URI uri = UriBuilder.fromPath(app.getBridgeTemplate()).build(id);
         return dtoResource.getAndVerifyOk(
-                uri, APPLICATION_BRIDGE_JSON_V4, DtoBridge.class);
+                uri, APPLICATION_BRIDGE_JSON_V4(), DtoBridge.class);
     }
 
     protected DtoPort getPort(UUID id) {
         URI uri = UriBuilder.fromPath(app.getPortTemplate()).build(id);
         return dtoResource.getAndVerifyOk(
-                uri, APPLICATION_PORT_V2_JSON, DtoPort.class);
+                uri, APPLICATION_PORT_V2_JSON(), DtoPort.class);
     }
 
     public DtoBridgePort postBridgePort(DtoBridgePort port, DtoBridge bridge) {
         return dtoResource.postAndVerifyCreated(bridge.getPorts(),
-                APPLICATION_PORT_V2_JSON, port, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON(), port, DtoBridgePort.class);
     }
 }
