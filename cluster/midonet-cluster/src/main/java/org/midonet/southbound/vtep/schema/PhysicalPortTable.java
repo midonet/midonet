@@ -30,16 +30,15 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.PhysicalPort;
-import org.midonet.cluster.data.vtep.model.VtepEntry;
 
+import static org.midonet.southbound.vtep.OvsdbUtil.fromOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdb;
 import static scala.collection.JavaConversions.setAsJavaSet;
-import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdb;
-import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
 
 /**
  * Schema for the Ovsdb physical port table
  */
-public final class PhysicalPortTable extends Table {
+public final class PhysicalPortTable extends Table<PhysicalPort> {
     static public final String TB_NAME = "Physical_Port";
     static private final String COL_NAME = "name";
     static private final String COL_DESCRIPTION = "description";
@@ -113,13 +112,15 @@ public final class PhysicalPortTable extends Table {
     }
 
     /** Extract vlan - logical switch id mappings */
-    private Map<Integer, java.util.UUID> parseVlanBindings(
+    @SuppressWarnings(value = "unchecked")
+    private Map<Long, java.util.UUID> parseVlanBindings(
         Row<GenericTableSchema> row) {
         return fromOvsdb(extractMap(row, getVlanBindingsSchema()));
     }
 
     /** Extract vlan - stats id mappings */
-    private Map<Integer, java.util.UUID> parseVlanStats(
+    @SuppressWarnings(value = "unchecked")
+    private Map<Long, java.util.UUID> parseVlanStats(
         Row<GenericTableSchema> row) {
         return fromOvsdb(extractMap(row, getVlanStatsSchema()));
     }
@@ -127,7 +128,7 @@ public final class PhysicalPortTable extends Table {
     /**
      * Extract the port fault status
      */
-    @SuppressWarnings(value = "unckecked")
+    @SuppressWarnings(value = "unchecked")
     private Set<String> parsePortFaultStatus(Row<GenericTableSchema> row) {
         return (Set<String>)extractSet(row, getPortFaultStatusSchema());
     }
@@ -136,33 +137,31 @@ public final class PhysicalPortTable extends Table {
      * Extract the physical port information from the table entry
      */
     @Override
-    @SuppressWarnings(value = "unckecked")
-    public <E extends VtepEntry> E parseEntry(Row<GenericTableSchema> row,
-                                              Class<E> clazz)
+    @SuppressWarnings(value = "unchecked")
+    public PhysicalPort parseEntry(Row<GenericTableSchema> row)
         throws IllegalArgumentException {
-        ensureOutputClass(clazz);
+        ensureOutputClass(PhysicalPort.class);
         return (row == null)? null:
-               (E)PhysicalPort.apply(parseUuid(row), parseName(row),
-                                     parseDescription(row),
-                                     parseVlanBindings(row),
-                                     parseVlanStats(row),
-                                     parsePortFaultStatus(row));
+               PhysicalPort.apply(parseUuid(row), parseName(row),
+                                  parseDescription(row),
+                                  parseVlanBindings(row),
+                                  parseVlanStats(row),
+                                  parsePortFaultStatus(row));
     }
 
     /**
      * Insertion of physical port information
      */
     @Override
-    public <E extends VtepEntry> Table.OvsdbInsert insert(E row)
+    public Table.OvsdbInsert insert(PhysicalPort row)
         throws IllegalArgumentException {
         Insert<GenericTableSchema> op = newInsert(row);
-        PhysicalPort port = (PhysicalPort)row;
-        op.value(getNameSchema(), port.name());
-        op.value(getDescriptionSchema(), port.description());
-        op.value(getVlanBindingsSchema(), toOvsdb(port.vlanBindings()));
-        op.value(getVlanStatsSchema(), toOvsdb(port.vlanStats()));
+        op.value(getNameSchema(), row.name());
+        op.value(getDescriptionSchema(), row.description());
+        op.value(getVlanBindingsSchema(), toOvsdb(row.vlanBindings()));
+        op.value(getVlanStatsSchema(), toOvsdb(row.vlanStats()));
         op.value(getPortFaultStatusSchema(),
-                 setAsJavaSet(port.portFaultStatus()));
+                 setAsJavaSet(row.portFaultStatus()));
         return new OvsdbInsert(op);
     }
 
@@ -179,16 +178,15 @@ public final class PhysicalPortTable extends Table {
     }
 
     @Override
-    public <E extends VtepEntry> Row<GenericTableSchema> generateRow(
-        E entry) throws IllegalArgumentException {
+    public Row<GenericTableSchema> generateRow(PhysicalPort entry)
+        throws IllegalArgumentException {
         Row<GenericTableSchema> row = super.generateRow(entry);
-        PhysicalPort data = (PhysicalPort)entry;
-        addToRow(row, getNameSchema(), data.name());
-        addToRow(row, getDescriptionSchema(), data.description());
-        addToRow(row, getVlanBindingsSchema(), toOvsdb(data.vlanBindings()));
-        addToRow(row, getVlanStatsSchema(), toOvsdb(data.vlanStats()));
+        addToRow(row, getNameSchema(), entry.name());
+        addToRow(row, getDescriptionSchema(), entry.description());
+        addToRow(row, getVlanBindingsSchema(), toOvsdb(entry.vlanBindings()));
+        addToRow(row, getVlanStatsSchema(), toOvsdb(entry.vlanStats()));
         addToRow(row, getPortFaultStatusSchema(),
-                 setAsJavaSet(data.portFaultStatus()));
+                 setAsJavaSet(entry.portFaultStatus()));
         return row;
     }
 }

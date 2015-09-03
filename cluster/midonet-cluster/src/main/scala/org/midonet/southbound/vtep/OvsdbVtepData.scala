@@ -16,18 +16,20 @@
 
 package org.midonet.southbound.vtep
 
-import java.util
 import java.util.UUID
 import java.util.concurrent.Executor
 
 import scala.collection.Iterable
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
+import org.opendaylight.ovsdb.lib.operations._
 import com.typesafe.scalalogging.Logger
 import org.opendaylight.ovsdb.lib.OvsdbClient
-import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
+import org.opendaylight.ovsdb.lib.schema.{GenericTableSchema, DatabaseSchema}
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
@@ -36,10 +38,12 @@ import rx.{Observable, Observer, Subscriber}
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.data.vtep.{VtepConfigException, VtepData, VtepStateException}
 import org.midonet.packets.IPv4Addr
-import org.midonet.southbound.vtep.schema.Table.OvsdbOperation
+import org.midonet.southbound.vtep.OvsdbOperations._
+import org.midonet.southbound.vtep.schema.Table.{OvsdbUpdate, OvsdbOperation}
 import org.midonet.southbound.vtep.schema._
 import org.midonet.util.concurrent._
 import org.midonet.util.functors.{makeAction0, makeFunc1}
+import OvsdbUtil._
 
 /**
  * This class handles the data from an OVSDB-compliant VTEP.
@@ -60,36 +64,25 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
     case class ConfigException(msg: String)
         extends VtepConfigException(endPoint, msg)
 
-    private def cachedTable[T <: Table, E <: VtepEntry]
-        (table: T, clazz: Class[E]): OvsdbCachedTable[T, E] =
-        new OvsdbCachedTable[T, E](client, table, clazz, vtepExecutor, eventExecutor)
+    private def cachedTable[E <: VtepEntry](table: Table[E])
+    : OvsdbCachedTable[E] = {
+        new OvsdbCachedTable[E](client, table, vtepExecutor, eventExecutor)
+    }
 
-    private val lsTable =
-        cachedTable(new LogicalSwitchTable(dbSchema), classOf[LogicalSwitch])
-    private val psTable =
-        cachedTable(new PhysicalSwitchTable(dbSchema), classOf[PhysicalSwitch])
-    private val portTable =
-        cachedTable(new PhysicalPortTable(dbSchema), classOf[PhysicalPort])
-    private val locSetTable =
-        cachedTable(new PhysicalLocatorSetTable(dbSchema),
-                    classOf[PhysicalLocatorSet])
-    private val locTable =
-        cachedTable(new PhysicalLocatorTable(dbSchema), classOf[PhysicalLocator])
-    private val uLocalTable =
-        cachedTable(new UcastMacsLocalTable(dbSchema), classOf[UcastMac])
-    private val uRemoteTable =
-        cachedTable(new UcastMacsRemoteTable(dbSchema), classOf[UcastMac])
-    private val mLocalTable =
-        cachedTable(new McastMacsLocalTable(dbSchema), classOf[McastMac])
-    private val mRemoteTable =
-        cachedTable(new McastMacsRemoteTable(dbSchema), classOf[McastMac])
+    private val lsTable = cachedTable(new LogicalSwitchTable(dbSchema))
+    private val psTable = cachedTable(new PhysicalSwitchTable(dbSchema))
+    private val portTable = cachedTable(new PhysicalPortTable(dbSchema))
+    private val locSetTable = cachedTable(new PhysicalLocatorSetTable(dbSchema))
+    private val locTable = cachedTable(new PhysicalLocatorTable(dbSchema))
+    private val uLocalTable = cachedTable(new UcastMacsLocalTable(dbSchema))
+    private val uRemoteTable = cachedTable(new UcastMacsRemoteTable(dbSchema))
+    private val mLocalTable = cachedTable(new McastMacsLocalTable(dbSchema))
+    private val mRemoteTable = cachedTable(new McastMacsRemoteTable(dbSchema))
 
-    private val uLocalMonitor =
-        new OvsdbTableMonitor[UcastMacsLocalTable, UcastMac](
-            client, uLocalTable.table, classOf[UcastMac], eventExecutor)
-    private val mLocalMonitor =
-        new OvsdbTableMonitor[McastMacsLocalTable, McastMac](
-            client, mLocalTable.table, classOf[McastMac], eventExecutor)
+    private val uLocalMonitor = new OvsdbTableMonitor[UcastMac](
+        client, uLocalTable.table)(eventExecutor)
+    private val mLocalMonitor = new OvsdbTableMonitor[McastMac](
+        client, mLocalTable.table)(eventExecutor)
 
     private val tables = List(lsTable, psTable, portTable,
                               locSetTable, locTable,
@@ -108,41 +101,176 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
             })
         }
 
+    /** Returns all physical switches. */
+    override def physicalSwitches: Future[Seq[PhysicalSwitch]] = {
+        onReady { psTable.getAll.toSeq }
+    }
+
+    /** Gets the physical switch corresponding to the current VTEP endpoint. */
     override def physicalSwitch: Future[Option[PhysicalSwitch]] = {
         onReady {
-            psTable.getAll.values.find(_.mgmtIps.contains(endPoint.mgmtIp))
+            val entries = psTable.getAll
+            entries.find(_.mgmtIps.contains(endPoint.mgmtIp)).orElse {
+                // See MNA-800.  If we find the PhysicalSwitch entry with the
+                // right management IP that's great.  Otherwise, just take the
+                // head, as some VTEPs don't populate the management IP (e.g.,
+                // HP)
+                entries.headOption
+            }
         }
     }
 
+    /** Lists all logical switches. */
+    override def logicalSwitches: Future[Seq[LogicalSwitch]] = {
+        onReady { lsTable.getAll.toSeq }
+    }
+
+    /** Gets the logical switch with the specified name. */
     override def logicalSwitch(name: String): Future[Option[LogicalSwitch]] = {
-        onReady {
-            lsTable.getAll.values.find(_.name == name)
+        onReady { lsTable.getAll.find(_.name == name) }
+    }
+
+    /** Creates a new logical switch with the specified name and VNI. If a
+      * logical switch with the same name and VNI already exists, the method
+      * succeeds immediately. */
+    override def createLogicalSwitch(name: String, vni: Int)
+    : Future[UUID] = {
+        logicalSwitch(name) flatMap {
+            case Some(ls) if ls.tunnelKey == vni => Future.successful(ls.uuid)
+            case Some(ls) =>
+                Future.failed(new OvsdbException(
+                    client,
+                    s"A VTEP with name `$name` already exists but it has" +
+                    s"VNI ${ls.tunnelKey}"))
+            case None => lsTable.insert(LogicalSwitch(name, vni, ""))
         }
     }
 
+    /** Deletes the logical switch, along with all its bindings and MAC
+      * entries.
+      */
+    override def deleteLogicalSwitch(id: UUID): Future[Int] = {
+            val bindings = portTable.getAll
+                .filter(_.isBoundToLogicalSwitchId(id))
+                .map(_.clearBindings(id))
+            val ops = new ArrayBuffer[OvsdbOperation](bindings.size + 5)
+
+            // Clean-up the MAC tables.
+            List(
+                uLocalTable, uRemoteTable, mLocalTable, mRemoteTable
+            ).foreach { t =>
+                ops += t.table.asInstanceOf[MacsTable[_]]
+                              .deleteByLogicalSwitchId(id)
+            }
+
+            // Clear the bindings.
+            bindings foreach { port =>
+                ops += portTable.table.asInstanceOf[PhysicalPortTable]
+                                      .updateBindings(port)
+            }
+
+            // Delete the logical switch.
+            ops += lsTable.table.delete(id)
+
+            multiOp(client, dbSchema, ops)(vtepExecutor) map {
+                _.foldLeft(0)(_ + _.getCount)
+            }
+    }
+
+    /** Lists all physical ports. */
+    override def physicalPorts: Future[Seq[PhysicalPort]] = {
+        onReady { portTable.getAll.toSeq }
+    }
+
+    /** Gets the physical port with the specified port identifier. */
     override def physicalPort(portId: UUID): Future[Option[PhysicalPort]] = {
         onReady { portTable.get(portId) }
     }
 
+    /** Adds the bindings for the logical switch with the specified name. The
+      * bindings are specified as an [[Iterable]] of port name and VLAN pairs.
+      * The methds does not change any existing bindings for the specified
+      * physical ports. */
+    override def addBindings(lsId: UUID, bindings: Iterable[(String, Short)])
+    : Future[Int] = {
+        updateBindings(lsId, ps => {
+            val boundPorts = bindings.map(_._1).toSet
+            var ports = ps.ports.flatMap(portTable.get)
+                                .filter(p => boundPorts.contains(p.name))
+                                .map(p => (p.name, p)).toMap
+            for (binding <- bindings) ports.get(binding._1) match {
+                case None =>
+                    log.warn("Physical port {} not found", binding._1)
+                case Some(p) =>
+                    ports = ports updated (p.name, p.addBinding(binding._2.toInt,
+                                                                lsId))
+            }
+            ports.values.toSeq
+        })
+    }
+
+    /** Sets the bindings for the logical switch with the specified name. The
+      * bindings are specified as an [[Iterable]] of port name and VLAN pairs.
+      * The method overwrites any of the previous bindings for the specified
+      * physical ports, and replaces them with the given ones. The physical
+      * ports that are not included in the bindings list are left unchanged.
+      * The method returns a future with the number of physical ports that
+      * were changed. */
+    override def setBindings(lsId: UUID, bindings: Iterable[(String, Short)])
+    : Future[Int] = {
+        updateBindings(lsId, ps => {
+            val boundPorts = bindings.map(_._1).toSet
+            var ports = ps.ports.flatMap(portTable.get)
+                                .filter(p => boundPorts.contains(p.name))
+                                .map(p => (p.name, p.clearBindings())).toMap
+
+            for (binding <- bindings) ports.get(binding._1) match {
+                case None =>
+                    log.warn("Physical port {} not found", binding._1)
+                case Some(p) =>
+                    ports = ports updated (p.name, p.addBinding(binding._2.toInt,
+                                                                lsId))
+            }
+            ports.values.toSeq
+        })
+    }
+
+    /** Clears all bindings for the specified logical switch name. */
+    override def clearBindings(lsId: UUID): Future[Int] = {
+        updateBindings(lsId, ps => {
+            ps.ports.flatMap(portTable.get)
+                    .filter(_.isBoundToLogicalSwitchId(lsId))
+                    .map(_.clearBindings(lsId))
+                    .toSeq
+        })
+    }
+
+    /** Returns an [[Observable]] that emits updates for the `Ucast_Mac_Local`
+      * and `Mcast_Mac_Local` tables, with the MACs that are local to the VTEP
+      * and should be published to other members of a VxLAN gateway. */
     override def macLocalUpdates: Observable[MacLocation] =
         Observable.merge(uLocalMonitor.observable, mLocalMonitor.observable)
             .onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
             .observeOn(vtepScheduler)
             .concatMap(macUpdateToMacLocationsFunc)
 
+    /** Provides a snapshot of the `Ucast_Mac_Local` and `Mcast_Mac_Local`
+      * tables. */
     override def currentMacLocal: Future[Seq[MacLocation]] = {
-        vxlanTunnelIp.map { someTunnelIp =>
-            uLocalTable.getAll.values.toSeq.flatMap {
+        vxlanTunnelIp map { someTunnelIp =>
+            uLocalTable.getAll.toSeq.flatMap {
                 m => macUpdateToMacLocations(VtepEntryUpdate.addition(m),
                                              someTunnelIp)
             } ++
-            mLocalTable.getAll.values.toSeq.flatMap {
+            mLocalTable.getAll.toSeq.flatMap {
                 m => macUpdateToMacLocations(VtepEntryUpdate.addition(m),
                                              someTunnelIp)
             }
         }
     }
 
+    /** Returns an [[Observer]] that will write updates to the remote MACs in
+      * the `Ucast_Mac_Remote` or `Mcast_Mac_Remote` tables. */
     override def macRemoteUpdater: Future[Observer[MacLocation]] = {
         onReady {
             val pipe = PublishSubject.create[MacLocation]()
@@ -158,81 +286,6 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                 .onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
                 .subscribe(new MacRemoteUpdater())
             pipe
-        }
-    }
-
-    override def ensureLogicalSwitch(name: String, vni: Int)
-    : Future[LogicalSwitch] = {
-        logicalSwitch(name).flatMap {
-            case Some(ls) => Future.successful(ls)
-            case None =>
-                val ls = LogicalSwitch(name, vni, "")
-                lsTable.insert(ls).collect {case id => ls}
-        }
-    }
-
-    override def ensureBindings(lsName: String,
-                                bindings: Iterable[(String, Short)])
-    : Future[Unit] = {
-        Future.sequence(Seq(physicalSwitch, logicalSwitch(lsName))).flatMap {
-            case Seq(None, _) =>
-                throw ConfigException("Physical Switch not found")
-            case Seq(_, None) =>
-                throw ConfigException("Logical Switch not found: " + lsName)
-            case Seq(Some(ps: PhysicalSwitch), Some(ls)) =>
-                val boundPorts = bindings.map(_._1).toSet
-                var ports = ps.ports.flatMap(portTable.get)
-                    .filter(p => boundPorts.contains(p.name))
-                    .map(p => (p.name, p)).toMap
-                for (b <- bindings) ports.get(b._1) match {
-                    case None =>
-                        log.warn("Physical port {} not found", b._1)
-                    case Some(p) =>
-                        ports = ports updated
-                                (p.name, p.newBinding(b._2.toInt, ls.uuid))
-                }
-                val ops = new util.ArrayList[OvsdbOperation]()
-                val hint = UUID.randomUUID()
-                ports.values.foreach(p => {
-                    ops.add(portTable.table.updateBindings(p))
-                    portTable.insertHint(p, hint)
-                })
-                val status =
-                    OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
-                              .future
-                status.onFailure {case e: Throwable =>
-                    ports.values.foreach(
-                        p => portTable.removeHint(p.uuid, hint))
-                }
-                status.map(r => {})
-        }
-    }
-
-    override def removeLogicalSwitch(name: String): Future[Unit] = {
-        logicalSwitch(name).flatMap {
-            case None =>
-                throw ConfigException("Logical Switch not found: " + name)
-            case Some(ls) =>
-                val ops = new util.ArrayList[OvsdbOperation]()
-
-                // clean-up mac tables
-                List(uLocalTable, uRemoteTable, mLocalTable, mRemoteTable)
-                    .foreach(t => {
-                    ops.add(t.table.deleteByLogicalSwitchId(ls.uuid))
-                })
-
-                // clear bindings
-                portTable.getAll.values
-                    .filter(_.isBoundToLogicalSwitchId(ls.uuid))
-                    .map(_.clearBindings(ls.uuid))
-                    .foreach(p => ops.add(portTable.table.updateBindings(p)))
-
-                // delete the switch
-                ops.add(lsTable.table.deleteByName(ls.name))
-
-                OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
-                          .future
-                          .map(r => {})
         }
     }
 
@@ -257,14 +310,12 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
         private def applyRemoteMacAddition(macLocation: MacLocation): Unit = {
             macLocationToMacEntries(macLocation) onComplete {
                 case Success(entries) =>
-                    val ops = new util.ArrayList[OvsdbOperation]()
-                    entries.foreach({
-                        case u: UcastMac => ops.add(uRemoteTable.table.insert(u))
-                        case m: McastMac => ops.add(mRemoteTable.table.insert(m))
-                    })
-                    OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
-                        .future
-                        .onComplete {
+                    val ops = new ArrayBuffer[OvsdbOperation](entries.length)
+                    entries foreach {
+                        case u: UcastMac => ops += uRemoteTable.table.delete(u.id)
+                        case m: McastMac => ops += mRemoteTable.table.delete(m.id)
+                    }
+                    multiOp(client, dbSchema, ops)(vtepExecutor) onComplete {
                         case Failure(t) =>
                             log.warn("Failed to insert entries: {}", entries, t)
                             MacRemoteUpdater.this.request(1)
@@ -278,14 +329,12 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
 
         private def applyRemoteMacDeletion(macLocation: MacLocation): Unit = {
             macLocationToMacEntries(macLocation) onSuccess { case entries =>
-                val ops = new util.ArrayList[OvsdbOperation]()
-                entries.foreach({
-                    case u: UcastMac => ops.add(uRemoteTable.table.delete(u))
-                    case m: McastMac => ops.add(mRemoteTable.table.delete(m))
-                })
-                OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
-                    .future
-                    .onComplete {
+                val ops = new ArrayBuffer[OvsdbOperation](entries.length)
+                entries foreach {
+                    case u: UcastMac => ops += uRemoteTable.table.delete(u.id)
+                    case m: McastMac => ops += mRemoteTable.table.delete(m.id)
+                }
+                multiOp(client, dbSchema, ops)(vtepExecutor) onComplete {
                     case Failure(err) =>
                         log.warn("failed to remove entries: " + entries, err)
                         MacRemoteUpdater.this.request(1)
@@ -305,6 +354,25 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
 
     private def vxlanTunnelIp: Future[Option[IPv4Addr]] = {
         physicalSwitch map { _.flatMap(_.tunnelIp) }
+    }
+
+    private def updateBindings(lsId: UUID,
+                               updater: PhysicalSwitch => Seq[PhysicalPort])
+    : Future[Int] = {
+        physicalSwitch.flatMap {
+            case None => throw ConfigException("Physical Switch not found")
+            case Some(ps: PhysicalSwitch) =>
+                val ports = updater(ps)
+                val ops = ports.map(updateBindings)
+                multiOp(client, dbSchema, ops)(vtepExecutor) map {
+                    _.foldLeft(0)(_ + _.getCount)
+                }
+        }
+    }
+
+    private def updateBindings(port: PhysicalPort): Table.OvsdbUpdate = {
+        portTable.table.asInstanceOf[PhysicalPortTable]
+                       .updateBindings(port)
     }
 
     private def macFromUpdate(u: VtepEntryUpdate[MacEntry]): VtepMAC = u match {
@@ -369,7 +437,7 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                 else
                     Seq(McastMac(ls.uuid, ml.mac, ml.ipAddr, null))
             case Some(ls) if ml.mac.isUcast =>
-                locTable.getAll.values
+                locTable.getAll
                     .filter(_.dstIp == ml.vxlanTunnelEndpoint)
                     .map(loc => UcastMac(ls.uuid, ml.mac, ml.ipAddr, loc.uuid))
                     .toSeq match {
@@ -385,7 +453,7 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                     case entries => entries
                 }
             case Some(ls) =>
-                val locatorIds = locTable.getAll.values
+                val locatorIds = locTable.getAll
                     .filter(_.dstIp == ml.vxlanTunnelEndpoint)
                     .map(_.uuid) match {
                     case Nil =>
@@ -399,7 +467,7 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                         List(loc.uuid)
                     case ids => ids
                 }
-                locSetTable.getAll.values
+                locSetTable.getAll
                     .filter(s => locatorIds.exists(s.locatorIds.contains))
                     .map(set => McastMac(ls.uuid, ml.mac, ml.ipAddr, set.uuid))
                     .toSeq match {
