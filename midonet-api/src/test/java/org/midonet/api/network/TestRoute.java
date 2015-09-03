@@ -16,6 +16,7 @@
 package org.midonet.api.network;
 
 import java.net.URI;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -51,12 +52,7 @@ import org.midonet.cluster.rest_api.models.Route;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTE_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
 
 @RunWith(Enclosed.class)
 public class TestRoute {
@@ -82,20 +78,21 @@ public class TestRoute {
         @Before
         public void before() {
 
-            DtoApplication app = resource().path("").accept(APPLICATION_JSON_V5)
-                    .get(DtoApplication.class);
+            DtoApplication app = resource().path("")
+                                           .accept(APPLICATION_JSON_V5())
+                                           .get(DtoApplication.class);
 
             // Create a router.
             router.setName(testRouterName);
             router.setTenantId("TEST-TENANT");
             resource = resource().uri(app.getRouters());
-            response = resource.type(APPLICATION_ROUTER_JSON_V2).post(
+            response = resource.type(APPLICATION_ROUTER_JSON_V3()).post(
                     ClientResponse.class, router);
 
             log.debug("router location: {}", response.getLocation());
             testRouterUri = response.getLocation();
             router = resource().uri(testRouterUri).accept(
-                    APPLICATION_ROUTER_JSON_V2).get(DtoRouter.class);
+                    APPLICATION_ROUTER_JSON_V3()).get(DtoRouter.class);
 
             // Create a Exterior router port.
             log.debug("routerPortUri: {} ", router.getPorts());
@@ -107,7 +104,7 @@ public class TestRoute {
                     .fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
 
             response = resource().uri(router.getPorts())
-                    .type(APPLICATION_PORT_V2_JSON)
+                    .type(APPLICATION_PORT_V2_JSON())
                     .post(ClientResponse.class, port);
             assertEquals(201, response.getStatus());
             log.debug("location: {}", response.getLocation());
@@ -140,7 +137,7 @@ public class TestRoute {
             URI routerRouteUri = URI.create(testRouterUri.toString()
                                             + "/routes");
             response = resource().uri(routerRouteUri)
-                    .type(APPLICATION_ROUTE_JSON)
+                    .type(APPLICATION_ROUTE_JSON())
                     .post(ClientResponse.class, route);
 
             URI routeUri = response.getLocation();
@@ -149,7 +146,7 @@ public class TestRoute {
             assertEquals(201, response.getStatus());
 
             // Get the route
-            response = resource().uri(routeUri).accept(APPLICATION_ROUTE_JSON)
+            response = resource().uri(routeUri).accept(APPLICATION_ROUTE_JSON())
                     .get(ClientResponse.class);
             route = response.getEntity(DtoRoute.class);
             assertEquals(200, response.getStatus());
@@ -158,7 +155,7 @@ public class TestRoute {
             assertNull(route.getNextHopGateway());
 
             // Delete the route
-            response = resource().uri(routeUri).type(APPLICATION_ROUTE_JSON)
+            response = resource().uri(routeUri).type(APPLICATION_ROUTE_JSON())
                     .delete(ClientResponse.class);
             assertEquals(204, response.getStatus());
         }
@@ -188,7 +185,7 @@ public class TestRoute {
             URI routerRouteUri = URI.create(testRouterUri.toString()
                     + "/routes");
             response = resource().uri(routerRouteUri)
-                    .type(APPLICATION_ROUTE_JSON)
+                    .type(APPLICATION_ROUTE_JSON())
                     .post(ClientResponse.class, route);
 
             URI routeUri = response.getLocation();
@@ -197,7 +194,7 @@ public class TestRoute {
             assertEquals(201, response.getStatus());
 
             // Get the route
-            response = resource().uri(routeUri).accept(APPLICATION_ROUTE_JSON)
+            response = resource().uri(routeUri).accept(APPLICATION_ROUTE_JSON())
                     .get(ClientResponse.class);
             route = response.getEntity(DtoRoute.class);
             assertEquals(200, response.getStatus());
@@ -213,13 +210,13 @@ public class TestRoute {
 
             // List Routes
             response = resource().uri(routerRouteUri)
-                    .accept(APPLICATION_ROUTE_COLLECTION_JSON)
+                    .accept(APPLICATION_ROUTE_COLLECTION_JSON())
                     .get(ClientResponse.class);
             log.debug("body: {}", response.getEntity(String.class));
             assertEquals(200, response.getStatus());
 
             // Delete the route
-            response = resource().uri(routeUri).type(APPLICATION_ROUTE_JSON)
+            response = resource().uri(routeUri).type(APPLICATION_ROUTE_JSON())
                     .delete(ClientResponse.class);
             assertEquals(204, response.getStatus());
         }
@@ -307,7 +304,7 @@ public class TestRoute {
             route.setRouterId(router1.getId());
 
             dtoResource.postAndVerifyBadRequest(
-                router1.getRoutes(), APPLICATION_ROUTE_JSON, route);
+                router1.getRoutes(), APPLICATION_ROUTE_JSON(), route);
         }
     }
 
@@ -370,7 +367,7 @@ public class TestRoute {
             DtoLink link = new DtoLink();
             link.setPeerId(b1p1.getId());
             dtoResource.postAndVerifyStatus(r1p1.getLink(),
-                APPLICATION_PORT_LINK_JSON, link, Response.Status.CREATED
+                APPLICATION_PORT_LINK_JSON(), link, Response.Status.CREATED
                 .getStatusCode());
 
             DtoRoute route = new DtoRoute();
@@ -384,12 +381,12 @@ public class TestRoute {
             route.setNextHopPort(r1p1.getId());
 
             dtoResource.postAndVerifyStatus(r1.getRoutes(),
-                APPLICATION_ROUTE_JSON, route,
+                APPLICATION_ROUTE_JSON(), route,
                 Response.Status.CREATED.getStatusCode());
 
             // Unlink
             dtoResource.deleteAndVerifyStatus(r1p1.getLink(),
-                APPLICATION_PORT_LINK_JSON,
+                APPLICATION_PORT_LINK_JSON(),
                 Response.Status.NO_CONTENT.getStatusCode());
 
         }

@@ -31,7 +31,6 @@ import org.midonet.api.rest_api.TopologyBackdoor;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.resource.HostVersion;
 import org.midonet.client.resource.ResourceCollection;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.version.DataWriteVersion;
 
@@ -39,6 +38,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
 
 public class TestHostVersion extends JerseyTest {
 
@@ -52,7 +52,7 @@ public class TestHostVersion extends JerseyTest {
     public void setUp() throws InterruptedException,
                                KeeperException,
                                StateAccessException {
-        resource().accept(VendorMediaType.APPLICATION_JSON_V5)
+        resource().accept(APPLICATION_JSON_V5())
                 .get(ClientResponse.class);
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());

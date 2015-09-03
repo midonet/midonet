@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -70,13 +69,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
 
 @RunWith(Enclosed.class)
 public class TestPort {
@@ -259,7 +252,7 @@ public class TestPort {
             DtoRouter router = topology.getRouter("router1");
 
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    router.getPorts(), APPLICATION_PORT_V2_JSON, port);
+                    router.getPorts(), APPLICATION_PORT_V2_JSON(), port);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));
@@ -310,7 +303,7 @@ public class TestPort {
 
         private void verifyPortNumber(int num) {
             DtoPort[] ports = dtoResource.getAndVerifyOk(portsUri,
-                    APPLICATION_PORT_V2_COLLECTION_JSON,
+                    APPLICATION_PORT_V2_COLLECTION_JSON(),
                     DtoPort[].class);
             assertEquals(num, ports.length);
         }
@@ -324,7 +317,7 @@ public class TestPort {
             DtoBridgePort bridgePort1 = new DtoBridgePort();
             bridgePort1.setDeviceId(b.getId());
             bridgePort1 = dtoResource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_V2_JSON, bridgePort1, DtoBridgePort.class);
+                    APPLICATION_PORT_V2_JSON(), bridgePort1, DtoBridgePort.class);
             portCounter++;
             verifyPortNumber(portCounter);
 
@@ -332,19 +325,19 @@ public class TestPort {
             DtoBridgePort bridgePort2 = new DtoBridgePort();
             bridgePort2.setDeviceId(b.getId());
             bridgePort2 = dtoResource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_V2_JSON, bridgePort2, DtoBridgePort.class);
+                    APPLICATION_PORT_V2_JSON(), bridgePort2, DtoBridgePort.class);
             portCounter++;
             verifyPortNumber(portCounter);
 
             // Delete the first bridge port
             dtoResource.deleteAndVerifyNoContent(bridgePort1.getUri(),
-                    APPLICATION_PORT_V2_JSON);
+                    APPLICATION_PORT_V2_JSON());
             portCounter--;
             verifyPortNumber(portCounter);
 
             // Delete the second bridge port
             dtoResource.deleteAndVerifyNoContent(bridgePort2.getUri(),
-                    APPLICATION_PORT_V2_JSON);
+                    APPLICATION_PORT_V2_JSON());
             portCounter--;
             verifyPortNumber(portCounter);
         }
@@ -358,7 +351,7 @@ public class TestPort {
             DtoRouterPort routerPort1 = createRouterPort(null, r.getId(),
                     "10.0.0.0", 24, "10.0.0.1");
             routerPort1 = dtoResource.postAndVerifyCreated(r.getPorts(),
-                    APPLICATION_PORT_V2_JSON, routerPort1, DtoRouterPort.class);
+                    APPLICATION_PORT_V2_JSON(), routerPort1, DtoRouterPort.class);
             portCounter++;
             verifyPortNumber(portCounter);
 
@@ -366,19 +359,19 @@ public class TestPort {
             DtoRouterPort routerPort2 = createRouterPort(null, r.getId(),
                     "10.0.0.0", 24, "10.0.0.2");
             routerPort2 = dtoResource.postAndVerifyCreated(r.getPorts(),
-                    APPLICATION_PORT_V2_JSON, routerPort2, DtoRouterPort.class);
+                    APPLICATION_PORT_V2_JSON(), routerPort2, DtoRouterPort.class);
             portCounter++;
             verifyPortNumber(portCounter);
 
             // Delete the first router port.
             dtoResource.deleteAndVerifyNoContent(routerPort1.getUri(),
-                    APPLICATION_PORT_V2_JSON);
+                    APPLICATION_PORT_V2_JSON());
             portCounter--;
             verifyPortNumber(portCounter);
 
             // Delete the second router port.
             dtoResource.deleteAndVerifyNoContent(routerPort2.getUri(),
-                    APPLICATION_PORT_V2_JSON);
+                    APPLICATION_PORT_V2_JSON());
             portCounter--;
             verifyPortNumber(portCounter);
         }
@@ -393,7 +386,7 @@ public class TestPort {
             DtoBridgePort bridgePort = new DtoBridgePort();
             bridgePort.setDeviceId(b.getId());
             bridgePort = dtoResource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_V2_JSON, bridgePort, DtoBridgePort.class);
+                    APPLICATION_PORT_V2_JSON(), bridgePort, DtoBridgePort.class);
             portCounter++;
             verifyPortNumber(portCounter);
 
@@ -401,19 +394,19 @@ public class TestPort {
             DtoRouterPort routerPort = createRouterPort(null, r.getId(),
                     "10.0.0.0", 24, "10.0.0.1");
             routerPort = dtoResource.postAndVerifyCreated(r.getPorts(),
-                    APPLICATION_PORT_V2_JSON, routerPort, DtoRouterPort.class);
+                    APPLICATION_PORT_V2_JSON(), routerPort, DtoRouterPort.class);
             portCounter++;
             verifyPortNumber(portCounter);
 
             // Delete the bridge port.
             dtoResource.deleteAndVerifyNoContent(bridgePort.getUri(),
-                    APPLICATION_PORT_V2_JSON);
+                    APPLICATION_PORT_V2_JSON());
             portCounter--;
             verifyPortNumber(portCounter);
 
             // Delete the router port.
             dtoResource.deleteAndVerifyNoContent(routerPort.getUri(),
-                    APPLICATION_PORT_V2_JSON);
+                    APPLICATION_PORT_V2_JSON());
             portCounter--;
             verifyPortNumber(portCounter);
         }
@@ -429,7 +422,7 @@ public class TestPort {
             DtoBridgePort bridgePort = new DtoBridgePort();
             bridgePort.setDeviceId(b.getId());
             bridgePort = dtoResource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_V2_JSON, bridgePort, DtoBridgePort.class);
+                    APPLICATION_PORT_V2_JSON(), bridgePort, DtoBridgePort.class);
             portCounter++;
             verifyPortNumber(portCounter);
 
@@ -437,7 +430,7 @@ public class TestPort {
             DtoRouterPort routerPort1 = createRouterPort(null, r1.getId(),
                     "10.0.0.0", 24, "10.0.0.1");
             routerPort1 = dtoResource.postAndVerifyCreated(r1.getPorts(),
-                    APPLICATION_PORT_V2_JSON, routerPort1, DtoRouterPort.class);
+                    APPLICATION_PORT_V2_JSON(), routerPort1, DtoRouterPort.class);
             portCounter++;
             verifyPortNumber(portCounter);
 
@@ -445,25 +438,25 @@ public class TestPort {
             DtoRouterPort routerPort2 = createRouterPort(null, r1.getId(),
                     "10.0.0.0", 24, "10.0.0.1");
             routerPort2 = dtoResource.postAndVerifyCreated(r2.getPorts(),
-                    APPLICATION_PORT_V2_JSON, routerPort2, DtoRouterPort.class);
+                    APPLICATION_PORT_V2_JSON(), routerPort2, DtoRouterPort.class);
             portCounter++;
             verifyPortNumber(portCounter);
 
             // Delete the bridge port.
             dtoResource.deleteAndVerifyNoContent(bridgePort.getUri(),
-                    APPLICATION_PORT_V2_JSON);
+                    APPLICATION_PORT_V2_JSON());
             portCounter--;
             verifyPortNumber(portCounter);
 
             // Delete the first router port.
             dtoResource.deleteAndVerifyNoContent(routerPort1.getUri(),
-                    APPLICATION_PORT_V2_JSON);
+                    APPLICATION_PORT_V2_JSON());
             portCounter--;
             verifyPortNumber(portCounter);
 
             // Delete the second router port.
             dtoResource.deleteAndVerifyNoContent(routerPort2.getUri(),
-                    APPLICATION_PORT_V2_JSON);
+                    APPLICATION_PORT_V2_JSON());
             portCounter--;
             verifyPortNumber(portCounter);
         }
@@ -476,7 +469,7 @@ public class TestPort {
                     UUID.randomUUID().toString()));
             DtoBridgePort port = createBridgePort(null, null, null, null, null);
             dtoResource.postAndVerifyStatus(uri,
-                    APPLICATION_PORT_V2_JSON, port, 404);
+                    APPLICATION_PORT_V2_JSON(), port, 404);
         }
 
         @Test
@@ -491,7 +484,7 @@ public class TestPort {
                     24,
                     "10.0.10.1");
             dtoResource.postAndVerifyStatus(uri,
-                    APPLICATION_PORT_V2_JSON, port, 404);
+                    APPLICATION_PORT_V2_JSON(), port, 404);
         }
 
     }
@@ -556,7 +549,7 @@ public class TestPort {
             b1Lp1.setDeviceId(b.getId());
             b1Lp1.setVlanId(vlanId);
             b1Lp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_V2_JSON, b1Lp1, DtoBridgePort.class);
+                    APPLICATION_PORT_V2_JSON(), b1Lp1, DtoBridgePort.class);
 
             // This test can't be used because MockDirectory.multi doesn't handle failed ops
 
@@ -565,23 +558,23 @@ public class TestPort {
             //b1Lp2.setDeviceId(b.getId());
             //b1Lp2.setVlanId(vlanId);
             //dtoResource.postAndVerifyBadRequest(b.getPorts(),
-            //        APPLICATION_PORT_V2_JSON, b1Lp2);
+            //        APPLICATION_PORT_V2_JSON(), b1Lp2);
 
             // Delete the initial port
             dtoResource.deleteAndVerifyNoContent(b1Lp1.getUri(),
-                    APPLICATION_PORT_V2_JSON);
+                    APPLICATION_PORT_V2_JSON());
 
             // Should now be able to add a port with same VLAN
             DtoBridgePort b1Lp2 = new DtoBridgePort();
             b1Lp2.setDeviceId(b.getId());
             b1Lp2.setVlanId(vlanId);
             dtoResource.postAndVerifyCreated(b.getPorts(),
-                                             APPLICATION_PORT_V2_JSON, b1Lp2,
+                                             APPLICATION_PORT_V2_JSON(), b1Lp2,
                                              DtoBridgePort.class);
 
             // Try delete the bridge, test it deletes cleanly
             dtoResource.deleteAndVerifyNoContent(b.getUri(),
-                                                 APPLICATION_BRIDGE_JSON_V4);
+                                                 APPLICATION_BRIDGE_JSON_V4());
         }
 
         @Test
@@ -597,12 +590,12 @@ public class TestPort {
             b1Lp1.setVlanId(vlanId);
             b1Lp1.setAdminStateUp(false);
             b1Lp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
-                APPLICATION_PORT_V2_JSON, b1Lp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON(), b1Lp1, DtoBridgePort.class);
 
             //Change admin state up
             b1Lp1.setAdminStateUp(true);
             b1Lp1 = dtoResource.putAndVerifyNoContent(b1Lp1.getUri(),
-                    APPLICATION_PORT_V2_JSON, b1Lp1, DtoBridgePort.class);
+                    APPLICATION_PORT_V2_JSON(), b1Lp1, DtoBridgePort.class);
             assertTrue(b1Lp1.isAdminStateUp());
 
             //Create exterior bridge port
@@ -611,11 +604,11 @@ public class TestPort {
             b1Mp1.setInboundFilterId(c1.getId());
             b1Mp1.setOutboundFilterId(c2.getId());
             b1Mp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
-                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON(), b1Mp1, DtoBridgePort.class);
 
             // List ports
             DtoBridgePort[] ports = dtoResource.getAndVerifyOk(
-                b.getPorts(), APPLICATION_PORT_V2_COLLECTION_JSON,
+                b.getPorts(), APPLICATION_PORT_V2_COLLECTION_JSON(),
                 DtoBridgePort[].class);
             assertEquals(2, ports.length);
 
@@ -624,12 +617,12 @@ public class TestPort {
             UUID vifId = UUID.randomUUID();
             b1Mp1.setVifId(vifId);
             b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON(), b1Mp1, DtoBridgePort.class);
             assertEquals(vifId, b1Mp1.getVifId());
 
             b1Mp1.setVifId(null);
             b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON(), b1Mp1, DtoBridgePort.class);
             assertNull(b1Mp1.getVifId());
 
             // Update chains
@@ -638,14 +631,14 @@ public class TestPort {
             b1Mp1.setInboundFilterId(null);
             b1Mp1.setOutboundFilterId(null);
             b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON(), b1Mp1, DtoBridgePort.class);
             assertNull(b1Mp1.getInboundFilterId());
             assertNull(b1Mp1.getOutboundFilterId());
 
             b1Mp1.setInboundFilterId(c1.getId());
             b1Mp1.setOutboundFilterId(c2.getId());
             b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON(), b1Mp1, DtoBridgePort.class);
             assertEquals(c1.getId(), b1Mp1.getInboundFilterId());
             assertEquals(c2.getId(), b1Mp1.getOutboundFilterId());
 
@@ -653,29 +646,29 @@ public class TestPort {
             b1Mp1.setInboundFilterId(c2.getId());
             b1Mp1.setOutboundFilterId(c1.getId());
             b1Mp1 = dtoResource.putAndVerifyNoContent(b1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON, b1Mp1, DtoBridgePort.class);
+                APPLICATION_PORT_V2_JSON(), b1Mp1, DtoBridgePort.class);
             assertEquals(c2.getId(), b1Mp1.getInboundFilterId());
             assertEquals(c1.getId(), b1Mp1.getOutboundFilterId());
 
             // Delete the Interior port.
             dtoResource.deleteAndVerifyNoContent(b1Lp1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
 
             // Make sure it's no longer there
             dtoResource.getAndVerifyNotFound(b1Lp1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
 
             // Delete the mat port.
             dtoResource.deleteAndVerifyNoContent(b1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
 
             // Make sure it's no longer there
             dtoResource.getAndVerifyNotFound(b1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
 
             // List and make sure not port found
             ports = dtoResource.getAndVerifyOk(b.getPorts(),
-                APPLICATION_PORT_V2_COLLECTION_JSON,
+                APPLICATION_PORT_V2_COLLECTION_JSON(),
                 DtoBridgePort[].class);
             assertEquals(0, ports.length);
         }
@@ -742,12 +735,12 @@ public class TestPort {
                 "10.0.0.1");
             r1Lp1.setAdminStateUp(false);
             r1Lp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
-                APPLICATION_PORT_V2_JSON, r1Lp1, DtoRouterPort.class);
+                APPLICATION_PORT_V2_JSON(), r1Lp1, DtoRouterPort.class);
 
             //Change admin state up
             r1Lp1.setAdminStateUp(true);
             r1Lp1 = dtoResource.putAndVerifyNoContent(r1Lp1.getUri(),
-                    APPLICATION_PORT_V2_JSON, r1Lp1, DtoRouterPort.class);
+                    APPLICATION_PORT_V2_JSON(), r1Lp1, DtoRouterPort.class);
             assertTrue(r1Lp1.isAdminStateUp());
 
             // Create a Exterior router port
@@ -756,26 +749,26 @@ public class TestPort {
                 null, r.getId(), "10.0.0.0", 24, "10.0.0.1",
                 vifId, c1.getId(), c2.getId());
             r1Mp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
-                APPLICATION_PORT_V2_JSON, r1Mp1,
+                APPLICATION_PORT_V2_JSON(), r1Mp1,
                 DtoRouterPort.class);
             assertEquals(vifId, r1Mp1.getVifId());
 
             // List ports
             DtoRouterPort[] ports = dtoResource.getAndVerifyOk(r.getPorts(),
-                APPLICATION_PORT_V2_COLLECTION_JSON, DtoRouterPort[].class);
+                APPLICATION_PORT_V2_COLLECTION_JSON(), DtoRouterPort[].class);
             assertEquals(2, ports.length);
 
             // Update VIFs
             vifId = UUID.randomUUID();
             r1Mp1.setVifId(vifId);
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON, r1Mp1,
+                APPLICATION_PORT_V2_JSON(), r1Mp1,
                 DtoRouterPort.class);
             assertEquals(vifId, r1Mp1.getVifId());
 
             r1Mp1.setVifId(null);
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON, r1Mp1,
+                APPLICATION_PORT_V2_JSON(), r1Mp1,
                 DtoRouterPort.class);
             assertNull(r1Mp1.getVifId());
 
@@ -785,7 +778,7 @@ public class TestPort {
             r1Mp1.setInboundFilterId(null);
             r1Mp1.setOutboundFilterId(null);
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON,
+                APPLICATION_PORT_V2_JSON(),
                 r1Mp1,
                 DtoRouterPort.class);
             assertNull(r1Mp1.getInboundFilterId());
@@ -794,7 +787,7 @@ public class TestPort {
             r1Mp1.setInboundFilterId(c1.getId());
             r1Mp1.setOutboundFilterId(c2.getId());
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON, r1Mp1,
+                APPLICATION_PORT_V2_JSON(), r1Mp1,
                 DtoRouterPort.class);
             assertEquals(c1.getId(), r1Mp1.getInboundFilterId());
             assertEquals(c2.getId(), r1Mp1.getOutboundFilterId());
@@ -803,30 +796,30 @@ public class TestPort {
             r1Mp1.setInboundFilterId(c2.getId());
             r1Mp1.setOutboundFilterId(c1.getId());
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON, r1Mp1,
+                APPLICATION_PORT_V2_JSON(), r1Mp1,
                 DtoRouterPort.class);
             assertEquals(c2.getId(), r1Mp1.getInboundFilterId());
             assertEquals(c1.getId(), r1Mp1.getOutboundFilterId());
 
             // Delete the Interior port.
             dtoResource.deleteAndVerifyNoContent(r1Lp1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
 
             // Make sure it's no longer there
             dtoResource.getAndVerifyNotFound(r1Lp1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
 
             // Delete the mat port.
             dtoResource.deleteAndVerifyNoContent(r1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
 
             // Make sure it's no longer there
             dtoResource.getAndVerifyNotFound(r1Mp1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
 
             // List and make sure not port found
             ports = dtoResource.getAndVerifyOk(r.getPorts(),
-                APPLICATION_PORT_V2_COLLECTION_JSON, DtoRouterPort[].class);
+                APPLICATION_PORT_V2_COLLECTION_JSON(), DtoRouterPort[].class);
             assertEquals(0, ports.length);
         }
 
@@ -843,7 +836,7 @@ public class TestPort {
             routerPort.setAdminStateUp(false);
             routerPort = dtoResource.postAndVerifyCreated(
                     router.getPorts(),
-                    APPLICATION_PORT_V2_JSON,
+                    APPLICATION_PORT_V2_JSON(),
                     routerPort,
                     DtoRouterPort.class);
             MAC routerPortMac =
@@ -865,7 +858,7 @@ public class TestPort {
             DtoRouterPort r1Lp1 = createRouterPort(null, r.getId(), "10.0.0.0",
                     24, "10.0.0.1");
             r1Lp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
-                    APPLICATION_PORT_V2_JSON, r1Lp1, DtoRouterPort.class);
+                    APPLICATION_PORT_V2_JSON(), r1Lp1, DtoRouterPort.class);
 
             // Create a Exterior router port
             UUID vifId = UUID.randomUUID();
@@ -873,26 +866,26 @@ public class TestPort {
                     null, r.getId(), "10.0.0.0", 24, "10.0.0.1",
                     vifId, c1.getId(), c2.getId());
             r1Mp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
-                    APPLICATION_PORT_V2_JSON, r1Mp1,
+                    APPLICATION_PORT_V2_JSON(), r1Mp1,
                     DtoRouterPort.class);
             assertEquals(vifId, r1Mp1.getVifId());
 
             // List ports
             DtoRouterPort[] ports = dtoResource.getAndVerifyOk(r.getPorts(),
-                    APPLICATION_PORT_V2_COLLECTION_JSON, DtoRouterPort[].class);
+                    APPLICATION_PORT_V2_COLLECTION_JSON(), DtoRouterPort[].class);
             assertEquals(2, ports.length);
 
             // Update VIFs
             vifId = UUID.randomUUID();
             r1Mp1.setVifId(vifId);
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                    APPLICATION_PORT_V2_JSON, r1Mp1,
+                    APPLICATION_PORT_V2_JSON(), r1Mp1,
                     DtoRouterPort.class);
             assertEquals(vifId, r1Mp1.getVifId());
 
             r1Mp1.setVifId(null);
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                    APPLICATION_PORT_V2_JSON, r1Mp1,
+                    APPLICATION_PORT_V2_JSON(), r1Mp1,
                     DtoRouterPort.class);
             assertNull(r1Mp1.getVifId());
 
@@ -902,7 +895,7 @@ public class TestPort {
             r1Mp1.setInboundFilterId(null);
             r1Mp1.setOutboundFilterId(null);
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                                                      APPLICATION_PORT_V2_JSON,
+                                                      APPLICATION_PORT_V2_JSON(),
                                                       r1Mp1,
                                                       DtoRouterPort.class);
             assertNull(r1Mp1.getInboundFilterId());
@@ -911,7 +904,7 @@ public class TestPort {
             r1Mp1.setInboundFilterId(c1.getId());
             r1Mp1.setOutboundFilterId(c2.getId());
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                    APPLICATION_PORT_V2_JSON, r1Mp1,
+                    APPLICATION_PORT_V2_JSON(), r1Mp1,
                     DtoRouterPort.class);
             assertEquals(c1.getId(), r1Mp1.getInboundFilterId());
             assertEquals(c2.getId(), r1Mp1.getOutboundFilterId());
@@ -920,30 +913,30 @@ public class TestPort {
             r1Mp1.setInboundFilterId(c2.getId());
             r1Mp1.setOutboundFilterId(c1.getId());
             r1Mp1 = dtoResource.putAndVerifyNoContent(r1Mp1.getUri(),
-                    APPLICATION_PORT_V2_JSON, r1Mp1,
+                    APPLICATION_PORT_V2_JSON(), r1Mp1,
                     DtoRouterPort.class);
             assertEquals(c2.getId(), r1Mp1.getInboundFilterId());
             assertEquals(c1.getId(), r1Mp1.getOutboundFilterId());
 
             // Delete the Interior port.
             dtoResource.deleteAndVerifyNoContent(r1Lp1.getUri(),
-                                                 APPLICATION_PORT_V2_JSON);
+                                                 APPLICATION_PORT_V2_JSON());
 
             // Make sure it's no longer there
             dtoResource.getAndVerifyNotFound(r1Lp1.getUri(),
-                                             APPLICATION_PORT_V2_JSON);
+                                             APPLICATION_PORT_V2_JSON());
 
             // Delete the mat port.
             dtoResource.deleteAndVerifyNoContent(r1Mp1.getUri(),
-                                                 APPLICATION_PORT_V2_JSON);
+                                                 APPLICATION_PORT_V2_JSON());
 
             // Make sure it's no longer there
             dtoResource.getAndVerifyNotFound(r1Mp1.getUri(),
-                                             APPLICATION_PORT_V2_JSON);
+                                             APPLICATION_PORT_V2_JSON());
 
             // List and make sure not port found
             ports = dtoResource.getAndVerifyOk(r.getPorts(),
-                    APPLICATION_PORT_V2_COLLECTION_JSON, DtoRouterPort[].class);
+                    APPLICATION_PORT_V2_COLLECTION_JSON(), DtoRouterPort[].class);
             assertEquals(0, ports.length);
         }
     }
@@ -1033,7 +1026,7 @@ public class TestPort {
             link.setPeerId(r2p1.getId());
             dtoResource
                 .postAndVerifyStatus(r1p1.getLink(),
-                    APPLICATION_PORT_LINK_JSON, link,
+                    APPLICATION_PORT_LINK_JSON(), link,
                     Response.Status.CREATED.getStatusCode());
 
             // Link router1 and bridge1
@@ -1041,7 +1034,7 @@ public class TestPort {
             link.setPeerId(b1p1.getId());
             dtoResource
                 .postAndVerifyStatus(r1p2.getLink(),
-                    APPLICATION_PORT_LINK_JSON, link,
+                    APPLICATION_PORT_LINK_JSON(), link,
                     Response.Status.CREATED.getStatusCode());
 
             // Link bridge1 and router2
@@ -1049,25 +1042,25 @@ public class TestPort {
             link.setPeerId(r2p2.getId());
             dtoResource
                 .postAndVerifyStatus(b1p2.getLink(),
-                    APPLICATION_PORT_LINK_JSON, link,
+                    APPLICATION_PORT_LINK_JSON(), link,
                     Response.Status.CREATED.getStatusCode());
 
             // Get the peers
             DtoPort[] ports = dtoResource.getAndVerifyOk(
-                router1.getPeerPorts(), APPLICATION_PORT_V2_COLLECTION_JSON,
+                router1.getPeerPorts(), APPLICATION_PORT_V2_COLLECTION_JSON(),
                 DtoPort[].class);
             assertNotNull(ports);
             assertEquals(2, ports.length);
 
             // Get the peers of router2
             ports = dtoResource.getAndVerifyOk(router2.getPeerPorts(),
-                APPLICATION_PORT_V2_COLLECTION_JSON, DtoPort[].class);
+                APPLICATION_PORT_V2_COLLECTION_JSON(), DtoPort[].class);
             assertNotNull(ports);
             assertEquals(2, ports.length);
 
             // Get the peers of bridge1
             ports = dtoResource.getAndVerifyOk(bridge1.getPeerPorts(),
-                APPLICATION_PORT_V2_COLLECTION_JSON, DtoPort[].class);
+                APPLICATION_PORT_V2_COLLECTION_JSON(), DtoPort[].class);
             assertNotNull(ports);
             assertEquals(2, ports.length);
 
@@ -1075,45 +1068,45 @@ public class TestPort {
             link = new DtoLink();
             link.setPeerId(r2p1.getId());
             dtoResource.postAndVerifyBadRequest(r1p1.getLink(),
-                APPLICATION_PORT_LINK_JSON, link);
+                APPLICATION_PORT_LINK_JSON(), link);
             link = new DtoLink();
             link.setPeerId(r2p1.getId());
             dtoResource.postAndVerifyBadRequest(b1p2.getLink(),
-                APPLICATION_PORT_LINK_JSON, link);
+                APPLICATION_PORT_LINK_JSON(), link);
 
             // Unlink
             dtoResource.deleteAndVerifyStatus(r1p1.getLink(),
-                APPLICATION_PORT_LINK_JSON,
+                APPLICATION_PORT_LINK_JSON(),
                 Response.Status.NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyStatus(r1p2.getLink(),
-                APPLICATION_PORT_LINK_JSON,
+                APPLICATION_PORT_LINK_JSON(),
                 Response.Status.NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyStatus(b1p1.getLink(),
-                APPLICATION_PORT_LINK_JSON,
+                APPLICATION_PORT_LINK_JSON(),
                 Response.Status.NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyStatus(b1p2.getLink(),
-                APPLICATION_PORT_LINK_JSON,
+                APPLICATION_PORT_LINK_JSON(),
                 Response.Status.NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyStatus(r2p1.getLink(),
-                APPLICATION_PORT_LINK_JSON,
+                APPLICATION_PORT_LINK_JSON(),
                 Response.Status.NO_CONTENT.getStatusCode());
             dtoResource.deleteAndVerifyStatus(r2p2.getLink(),
-                APPLICATION_PORT_LINK_JSON,
+                APPLICATION_PORT_LINK_JSON(),
                 Response.Status.NO_CONTENT.getStatusCode());
 
             // Delete all the ports
             dtoResource.deleteAndVerifyNoContent(r1p1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
             dtoResource.deleteAndVerifyNoContent(r1p2.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
             dtoResource.deleteAndVerifyNoContent(r2p1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
             dtoResource.deleteAndVerifyNoContent(r2p2.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
             dtoResource.deleteAndVerifyNoContent(b1p1.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
             dtoResource.deleteAndVerifyNoContent(b1p2.getUri(),
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
         }
     }
 
@@ -1156,7 +1149,7 @@ public class TestPort {
             origPort.setVifId(UUID.randomUUID());
             DtoBridgePort newPort = dtoResource.putAndVerifyNoContent(
                     origPort.getUri(),
-                    APPLICATION_PORT_V2_JSON, origPort,
+                    APPLICATION_PORT_V2_JSON(), origPort,
                     DtoBridgePort.class);
 
             assertEquals(origPort.getVifId(), newPort.getVifId());
@@ -1208,7 +1201,7 @@ public class TestPort {
             // List and make sure there is no membership
             DtoPortGroupPort[] portGroupPorts = dtoResource.getAndVerifyOk(
                     pg1.getPorts(),
-                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON(),
                     DtoPortGroupPort[].class);
             assertEquals(0, portGroupPorts.length);
 
@@ -1217,31 +1210,31 @@ public class TestPort {
             portGroupPort.setPortGroupId(pg1.getId());
             portGroupPort.setPortId(port1.getId());
             portGroupPort = dtoResource.postAndVerifyCreated(pg1.getPorts(),
-                    APPLICATION_PORTGROUP_PORT_JSON,
+                    APPLICATION_PORTGROUP_PORT_JSON(),
                     portGroupPort, DtoPortGroupPort.class);
 
             // List all.  There should be one now
             portGroupPorts = dtoResource.getAndVerifyOk(
                     pg1.getPorts(),
-                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON(),
                     DtoPortGroupPort[].class);
             assertEquals(1, portGroupPorts.length);
 
             // List from port's URI
             DtoPortGroupPort[] portGroups = dtoResource.getAndVerifyOk(
                     port1.getPortGroups(),
-                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON(),
                     DtoPortGroupPort[].class);
             assertEquals(1, portGroups.length);
 
             // Delete the membership
             dtoResource.deleteAndVerifyNoContent(portGroupPort.getUri(),
-                    APPLICATION_PORTGROUP_PORT_JSON);
+                    APPLICATION_PORTGROUP_PORT_JSON());
 
             // List once again, and make sure it's not there
             portGroupPorts = dtoResource.getAndVerifyOk(
                     pg1.getPorts(),
-                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    APPLICATION_PORTGROUP_PORT_COLLECTION_JSON(),
                     DtoPortGroupPort[].class);
             assertEquals(0, portGroupPorts.length);
 
@@ -1386,7 +1379,7 @@ public class TestPort {
             DtoRouter router1 = topology.getRouter("router1");
             DtoRouterPort[] routerPorts = dtoResource.getAndVerifyOk(
                     router1.getPorts(),
-                    APPLICATION_PORT_V2_COLLECTION_JSON,
+                    APPLICATION_PORT_V2_COLLECTION_JSON(),
                     DtoRouterPort[].class);
 
             for (DtoRouterPort port : routerPorts) {
@@ -1396,7 +1389,7 @@ public class TestPort {
                     portMap.size(), is(1));
             // Update port1 to reflect the host-interface-port binding.
             DtoPort updatedPort1 = dtoResource.getAndVerifyOk(port1.getUri(),
-                    APPLICATION_PORT_V2_JSON, DtoRouterPort.class);
+                    APPLICATION_PORT_V2_JSON(), DtoRouterPort.class);
             assertThat("port1 should not be the null value",
                     portMap.get(updatedPort1.getId()), not(nullValue()));
             assertThat("router1 should contain port1",
@@ -1406,7 +1399,7 @@ public class TestPort {
             DtoHostInterfacePort hostInterfacePortFromPort1 =
                     dtoResource.getAndVerifyOk(
                             updatedPort1.getHostInterfacePort(),
-                            APPLICATION_HOST_INTERFACE_PORT_JSON,
+                            APPLICATION_HOST_INTERFACE_PORT_JSON(),
                             DtoHostInterfacePort.class);
             assertThat(
                     "router1 should contain the host-interface-port binding.",
@@ -1433,7 +1426,7 @@ public class TestPort {
             DtoBridge bridge1 = topology.getBridge("bridge1");
             DtoBridgePort[] bridgePorts = dtoResource.getAndVerifyOk(
                     bridge1.getPorts(),
-                    APPLICATION_PORT_V2_COLLECTION_JSON,
+                    APPLICATION_PORT_V2_COLLECTION_JSON(),
                     DtoBridgePort[].class);
 
             for (DtoBridgePort port : bridgePorts) {
@@ -1444,7 +1437,7 @@ public class TestPort {
             // Update port1 to reflect the host-interface-port binding.
             DtoBridgePort updatedPort2 = dtoResource.getAndVerifyOk(
                     port2.getUri(),
-                    APPLICATION_PORT_V2_JSON, DtoBridgePort.class);
+                    APPLICATION_PORT_V2_JSON(), DtoBridgePort.class);
             assertThat("bridge1 should not be the null value",
                     portMap.get(updatedPort2.getId()), is(notNullValue()));
             assertThat("bridge1 should contain port1",
@@ -1453,7 +1446,7 @@ public class TestPort {
             DtoHostInterfacePort hostInterfacePortFromPort2 =
                     dtoResource.getAndVerifyOk(
                             updatedPort2.getHostInterfacePort(),
-                            APPLICATION_HOST_INTERFACE_PORT_JSON,
+                            APPLICATION_HOST_INTERFACE_PORT_JSON(),
                             DtoHostInterfacePort.class);
             assertThat(
                     "bridge1 should contain the host-interface-port binding.",

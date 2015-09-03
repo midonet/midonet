@@ -29,7 +29,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.util.version.Since;
 import org.midonet.util.version.Until;
 
 @ZoomClass(clazz = Topology.Host.class)
@@ -43,7 +42,6 @@ public class Host extends UriResource {
 
     public List<String> addresses;
 
-    @Since("3")
     public List<Interface> hostInterfaces;
 
     public boolean alive;
