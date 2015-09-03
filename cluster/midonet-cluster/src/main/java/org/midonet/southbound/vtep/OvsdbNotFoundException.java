@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.vtep.model
+package org.midonet.southbound.vtep;
 
-import java.util.UUID
+import org.opendaylight.ovsdb.lib.OvsdbClient;
 
-/**
- * A class to represent a VTEP's table entry
- */
-abstract class VtepEntry {
-    /** All entries from vtep tables must have a uuid */
-    val uuid: UUID
+public class OvsdbNotFoundException extends OvsdbException {
 
-    /** The hash code is based on uuid */
-    override def hashCode: Int = uuid.hashCode()
+    public OvsdbNotFoundException(OvsdbClient client, String msg) {
+        super(client, msg);
+    }
+
 }

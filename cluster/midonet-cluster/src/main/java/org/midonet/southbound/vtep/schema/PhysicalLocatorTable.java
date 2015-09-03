@@ -27,14 +27,13 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
-import org.midonet.cluster.data.vtep.model.VtepEntry;
-import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.PhysicalLocator;
+import org.midonet.packets.IPv4Addr;
 
 /**
  * Schema for the Ovsdb physical locator table
  */
-public final class PhysicalLocatorTable extends Table {
+public final class PhysicalLocatorTable extends Table<PhysicalLocator> {
     static public final String TB_NAME = "Physical_Locator";
     static private final String COL_ENCAPSULATION = "encapsulation_type";
     static private final String COL_DST_IP = "dst_ip";
@@ -105,36 +104,38 @@ public final class PhysicalLocatorTable extends Table {
      * Extract the physical locator information from the table entry
      */
     @Override
-    @SuppressWarnings(value = "unckecked")
-    public <E extends VtepEntry>
-    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+    @SuppressWarnings(value = "unchecked")
+    public PhysicalLocator parseEntry(Row<GenericTableSchema> row)
         throws IllegalArgumentException {
-        ensureOutputClass(clazz);
+        ensureOutputClass(PhysicalLocator.class);
         return (row == null)? null:
-               (E)PhysicalLocator.apply(parseUuid(row), parseDstIp(row),
-                                        parseEncapsulation(row));
+               PhysicalLocator.apply(parseUuid(row), parseDstIp(row),
+                                     parseEncapsulation(row));
     }
 
     /**
      * Generate an insert command
      */
     @Override
-    public <E extends VtepEntry> Table.OvsdbInsert insert(E row)
+    public Table.OvsdbInsert insert(PhysicalLocator entry, String id)
         throws IllegalArgumentException {
-        Insert<GenericTableSchema> op = newInsert(row);
-        PhysicalLocator loc = (PhysicalLocator)row;
-        op.value(getEncapsulationSchema(), loc.encapsulation());
-        op.value(getDstIpSchema(), loc.dstIpString());
+        Insert<GenericTableSchema> op = newInsert(entry, id);
+        op.value(getEncapsulationSchema(), entry.encapsulation());
+        op.value(getDstIpSchema(), entry.dstIpString());
         return new OvsdbInsert(op);
     }
 
     @Override
-    public <E extends VtepEntry> Row<GenericTableSchema> generateRow(
-        E entry) throws IllegalArgumentException {
+    public Table.OvsdbDelete delete(PhysicalLocator entry) {
+        return deleteById(entry.uuid());
+    }
+
+    @Override
+    public Row<GenericTableSchema> generateRow(PhysicalLocator entry)
+        throws IllegalArgumentException {
         Row<GenericTableSchema> row = super.generateRow(entry);
-        PhysicalLocator data = (PhysicalLocator)entry;
-        addToRow(row, getEncapsulationSchema(), data.encapsulation());
-        addToRow(row, getDstIpSchema(), data.dstIpString());
+        addToRow(row, getEncapsulationSchema(), entry.encapsulation());
+        addToRow(row, getDstIpSchema(), entry.dstIpString());
         return row;
     }
 }

@@ -25,12 +25,11 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.UcastMac;
-import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 /**
  * Specific schema section for the unicast mac tables
  */
-public abstract class UcastMacsTable extends MacsTable {
+public abstract class UcastMacsTable extends MacsTable<UcastMac> {
     static private final String COL_LOCATOR = "locator";
 
     protected UcastMacsTable(DatabaseSchema databaseSchema, String tableName) {
@@ -69,15 +68,13 @@ public abstract class UcastMacsTable extends MacsTable {
     /**
      * Extract the entry information
      */
-    @SuppressWarnings(value = "unckecked")
-    public <E extends VtepEntry>
-    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+    public UcastMac parseEntry(Row<GenericTableSchema> row)
         throws IllegalArgumentException {
-        ensureOutputClass(clazz);
+        ensureOutputClass(UcastMac.class);
         return (row == null)? null:
-               (E)UcastMac.apply(parseUuid(row), parseLogicalSwitch(row),
-                                 parseMac(row), parseIpaddr(row),
-                                 parseLocator(row));
+               UcastMac.apply(parseUuid(row), parseLogicalSwitch(row),
+                              parseMac(row), parseIpaddr(row),
+                              parseLocator(row).toString());
     }
 
 }

@@ -18,26 +18,26 @@ package org.midonet.southbound.vtep.mock
 
 import java.lang.{Long => JavaLong}
 import java.util
-import java.util.Objects
+import java.util.{Objects, UUID}
 
-import scala.collection.JavaConversions.{iterableAsScalaIterable, mapAsJavaMap, seqAsJavaList}
+import scala.collection.JavaConversions._
 import scala.collection.concurrent.TrieMap
 
 import com.google.common.collect.Lists
 import com.google.common.util.concurrent.ListenableFuture
 import org.opendaylight.ovsdb.lib._
 import org.opendaylight.ovsdb.lib.message.{TableUpdate, TransactBuilder}
-import org.opendaylight.ovsdb.lib.notation.{Condition, Function => OvsdbFunction, Row, UUID => OvsdbUUID}
+import org.opendaylight.ovsdb.lib.notation.{Column, Condition, Function => OvsdbFunction, Row, UUID => OvsdbUUID}
 import org.opendaylight.ovsdb.lib.operations._
 import org.opendaylight.ovsdb.lib.schema.{ColumnSchema, DatabaseSchema, GenericTableSchema}
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.vtep.model._
+import org.midonet.southbound.vtep.OvsdbUtil.toOvsdb
+import org.midonet.southbound.vtep.OvsdbVtepConnection.OvsdbHandle
 import org.midonet.southbound.vtep.mock.MockOvsdbClient.{MonitorRegistration, TransactionEngine}
 import org.midonet.southbound.vtep.mock.MockOvsdbColumn.{mkColumnSchema, mkMapColumnSchema, mkSetColumnSchema}
 import org.midonet.southbound.vtep.schema._
-import org.midonet.southbound.vtep.OvsdbVtepConnection.OvsdbHandle
-import org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb
 
 /**
  * A class containing the schema definitions for an Ovsdb-based vtep.
@@ -134,29 +134,19 @@ abstract class MockOvsdbVtep {
     )
 
     /** A class containing the column schema and the target vtep entry model */
-    protected case class MockTable(schema: MockTableSchema,
-                                   clazz: Class[_ <: VtepEntry])
+    protected case class MockTable[E <: VtepEntry](schema: MockTableSchema)
 
     /** A map with the descriptions of the supported tables */
-    protected val tables = Map[String, MockTable](
-        (LogicalSwitchTable.TB_NAME,
-            MockTable(lsSchema, classOf[LogicalSwitch])),
-        (McastMacsLocalTable.TB_NAME,
-            MockTable(mLocalSchema, classOf[McastMac])),
-        (McastMacsRemoteTable.TB_NAME,
-            MockTable(mRemoteSchema, classOf[McastMac])),
-        (PhysicalLocatorSetTable.TB_NAME,
-            MockTable(locSetSchema, classOf[PhysicalLocatorSet])),
-        (PhysicalLocatorTable.TB_NAME,
-            MockTable(locSchema, classOf[PhysicalLocator])),
-        (PhysicalPortTable.TB_NAME,
-            MockTable(portSchema, classOf[PhysicalPort])),
-        (PhysicalSwitchTable.TB_NAME,
-            MockTable(psSchema, classOf[PhysicalSwitch])),
-        (UcastMacsLocalTable.TB_NAME,
-            MockTable(uLocalSchema, classOf[UcastMac])),
-        (UcastMacsRemoteTable.TB_NAME,
-            MockTable(uRemoteSchema, classOf[UcastMac]))
+    protected val tables = Map[String, MockTable[_ <: VtepEntry]] (
+        (LogicalSwitchTable.TB_NAME, MockTable[LogicalSwitch](lsSchema)),
+        (McastMacsLocalTable.TB_NAME, MockTable[McastMac](mLocalSchema)),
+        (McastMacsRemoteTable.TB_NAME, MockTable[McastMac](mRemoteSchema)),
+        (PhysicalLocatorSetTable.TB_NAME, MockTable[PhysicalLocatorSet](locSetSchema)),
+        (PhysicalLocatorTable.TB_NAME, MockTable[PhysicalLocatorSet](locSchema)),
+        (PhysicalPortTable.TB_NAME, MockTable[PhysicalPort](portSchema)),
+        (PhysicalSwitchTable.TB_NAME, MockTable[PhysicalSwitch](psSchema)),
+        (UcastMacsLocalTable.TB_NAME, MockTable[UcastMac](uLocalSchema)),
+        (UcastMacsRemoteTable.TB_NAME, MockTable[UcastMac](uRemoteSchema))
     )
 
     /** Ovsdb-compliant database schema */
@@ -206,7 +196,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
     def operationRequests = operationSubject.asObservable()
 
     // Table schemas
-    private val tableParsers = Map[String, Table](
+    private val tableParsers = Map[String, Table[_ <: VtepEntry]](
         (LogicalSwitchTable.TB_NAME, new LogicalSwitchTable(databaseSchema)),
         (McastMacsLocalTable.TB_NAME, new McastMacsLocalTable(databaseSchema)),
         (McastMacsRemoteTable.TB_NAME, new McastMacsRemoteTable(databaseSchema)),
@@ -219,33 +209,49 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
     )
 
     // Table data
-    private case class MockData(data: TrieMap[util.UUID, VtepEntry],
-                                clazz: Class[_ <: VtepEntry])
-    private val tableData: Map[String, MockData] = tables.map({
-        case (name, MockTable(_, k)) => (name, MockData(TrieMap.empty, k))})
+    private case class MockData[E <: VtepEntry](data: TrieMap[util.UUID, E])
+
+    private val tableData = Map[String, MockData[_ <: VtepEntry]] (
+        (LogicalSwitchTable.TB_NAME, MockData(TrieMap.empty[util.UUID, LogicalSwitch])),
+        (McastMacsLocalTable.TB_NAME, MockData(TrieMap.empty[util.UUID, McastMac])),
+        (McastMacsRemoteTable.TB_NAME, MockData(TrieMap.empty[util.UUID, McastMac])),
+        (PhysicalLocatorSetTable.TB_NAME, MockData(TrieMap.empty[util.UUID, PhysicalLocator])),
+        (PhysicalLocatorTable.TB_NAME, MockData(TrieMap.empty[util.UUID, PhysicalLocator])),
+        (PhysicalPortTable.TB_NAME, MockData(TrieMap.empty[util.UUID, PhysicalPort])),
+        (PhysicalSwitchTable.TB_NAME, MockData(TrieMap.empty[util.UUID, PhysicalSwitch])),
+        (UcastMacsLocalTable.TB_NAME, MockData(TrieMap.empty[util.UUID, UcastMac])),
+        (UcastMacsRemoteTable.TB_NAME, MockData(TrieMap.empty[util.UUID, UcastMac]))
+    )
+
+    if (tableData.keys.size != tables.keys.size) {
+        throw new IllegalStateException("TableData and Tables don't have the " +
+                                        "same size.  This is a bug")
+    }
 
     /** get an inmutable snapshot of a internal table data */
-    def getTable(t: Table): Map[util.UUID, _ <: VtepEntry] =
-        tableData.synchronized[Map[util.UUID, _ <: VtepEntry]] {
+    def getTable[E <: VtepEntry](t: Table[E]): Map[util.UUID, E] =
+        tableData.synchronized[Map[util.UUID, E]] {
             tableData.get(t.getName) match {
                 case None => null
-                case Some(MockData(data, _)) => data.toMap
+                case Some(MockData(data)) =>
+                    data.toMap.asInstanceOf[Map[util.UUID, E]]
             }
         }
 
     /** Insert or replace an entry in the internal table data */
-    def putEntry(t: Table, e: VtepEntry, k: Class[_ <: VtepEntry]): Unit =
+    def putEntry[E <: VtepEntry](t: Table[E], e: E): Unit =
         tableData.synchronized {
             val update = new TableUpdate[GenericTableSchema]()
             tableData.get(t.getName) match {
-                case Some(MockData(data, _)) => data.put(e.uuid, e) match {
-                    case Some(old) =>
-                        update.addRow(toOvsdb(e.uuid), t.generateRow(old),
-                                      t.generateRow(e))
-                    case None =>
-                        update.addRow(toOvsdb(e.uuid), null,
-                                      t.generateRow(e))
-                }
+                case Some(MockData(data)) =>
+                    data.put(e.uuid, e) match {
+                        case Some(old: E) =>
+                            update.addRow(toOvsdb(e.uuid), t.generateRow(old),
+                                          t.generateRow(e))
+                        case None =>
+                            update.addRow(toOvsdb(e.uuid), null,
+                                          t.generateRow(e))
+                    }
                 case _ => // do nothing
             }
             // send updates to monitors
@@ -256,12 +262,12 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
     }
 
     /** Remove an entry in the internal table data */
-    def removeEntry(t: Table, id: util.UUID, k: Class[_ <: VtepEntry]): Unit =
+    def removeEntry[E <: VtepEntry](t: Table[E], id: util.UUID): Unit =
         tableData.synchronized {
             val update = new TableUpdate[GenericTableSchema]()
             tableData.get(t.getName) match {
-                case Some(MockData(data, _)) => data.remove(id) match {
-                    case Some(old) =>
+                case Some(MockData(data)) => data.remove(id) match {
+                    case Some(old: E) =>
                         update.addRow(toOvsdb(id), t.generateRow(old), null)
                     case None => // do nothing
                 }
@@ -331,9 +337,14 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
             }
         }
 
+    private def tableParserFor[E <: VtepEntry](op: Operation[_]): Table[E] = {
+        tableParsers(op.getTable).asInstanceOf[Table[E]]
+    }
+
     /** Implement the ovsdb database operations.
       * NOTE: calls to this method must be synchronized. */
-    private def doOperation(op: Operation[_]): OperationResult = {
+    private def doOperation[E <: VtepEntry](op: Operation[_])
+    : OperationResult = {
         // Collect changes for monitor support
         val update = new TableUpdate[GenericTableSchema]()
         // Collect results for operations response
@@ -347,13 +358,18 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                 result.setCount(0)
                 result.setError("unknown table")
                 result.setDetails("unknown table " + op.getTable)
-            case Some(MockData(data, clazz)) => op match {
-                case ins: Insert[_] =>
-                    val t = tableParsers(op.getTable)
+            case Some(MockData(data)) => op match {
+                case ins: Insert[E] =>
+                    val t = tableParserFor[E](op)
+                    val uuidSchema = t.getSchema.column("_uuid",
+                                                        classOf[OvsdbUUID])
                     val row = t.generateRow(ins.getRow)
-                    val entry = t.parseEntry(row, clazz)
+                    val newId = UUID.randomUUID()
+                    row.addColumn("_uuid",
+                                  new Column(uuidSchema, toOvsdb(newId)))
+                    val entry = t.parseEntry(row)
                     if (data.contains(entry.uuid)) {
-                        val old = data(entry.uuid)
+                        val old = data(entry.uuid).asInstanceOf[E]
                         if (old != entry)
                             update.addRow(toOvsdb(entry.uuid),
                                           t.generateRow(old), row)
@@ -362,14 +378,15 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                                       null, row)
                     }
                     data.put(entry.uuid, entry)
+                    result.setUuid(Lists.newArrayList(null, entry.uuid.toString))
                     result.setCount(1)
                     result.setRows(Lists.newArrayList(row))
-                case del: Delete[_] =>
-                    val t = tableParsers(op.getTable)
+                case del: Delete[E] =>
+                    val t = tableParserFor[E](op)
                     val conditions = del.getWhere.toIterable
                     val removed = new util.ArrayList[Row[GenericTableSchema]]()
                     data.values
-                        .map(e => (e, t.generateRow(e))).toSeq
+                        .map { case e: E => (e, t.generateRow(e)) }.toSeq
                         .filter(p => conditions.forall(filterRow(p._2, _)))
                         .foreach({case (e, r) =>
                             data.remove(e.uuid)
@@ -378,16 +395,16 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                         })
                     result.setCount(removed.size())
                     result.setRows(removed)
-                case upd: Update[_] =>
-                    val t = tableParsers(op.getTable)
+                case upd: Update[E] =>
+                    val t = tableParserFor[E](op)
                     val conditions = upd.getWhere.toIterable
                     val updated = new util.ArrayList[Row[GenericTableSchema]]()
                     data.values
-                        .map(e => (e, t.generateRow(e))).toSeq
+                        .map { case e: E => (e, t.generateRow(e)) }.toSeq
                         .filter(p => conditions.forall(filterRow(p._2, _)))
                         .foreach({case (e, r) =>
                             val newRow = t.updateRow(r, upd.getRow)
-                            val newEntry = t.parseEntry(newRow, clazz)
+                            val newEntry = t.parseEntry(newRow)
                             if (e != newEntry) {
                                 data.put(e.uuid, newEntry)
                                 updated.add(newRow)
@@ -396,11 +413,11 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                     })
                     result.setCount(updated.size())
                     result.setRows(updated)
-                case sel: Select[_] =>
-                    val t = tableParsers(op.getTable)
+                case sel: Select[E] =>
+                    val t = tableParserFor[E](op)
                     val conditions = sel.getWhere.toIterable
                     val out = data.values
-                        .map(t.generateRow(_)).toSeq
+                        .map { case e: E => t.generateRow(e) }.toSeq
                         .filter(r => conditions.forall(filterRow(r, _)))
                     result.setCount(out.length)
                     result.setRows(Lists.newArrayList(seqAsJavaList(out)))

@@ -38,7 +38,7 @@ class LogicalSwitchTest extends FeatureSpec with Matchers {
         }
         scenario("non-uuid constructor") {
             val ls = LogicalSwitch(lsName, lsVni, lsDesc)
-            ls.uuid shouldNot be (null)
+            ls.uuid shouldBe null
             ls.name shouldBe lsName
             ls.tunnelKey shouldBe lsVni
             ls.description shouldBe lsDesc
@@ -47,7 +47,7 @@ class LogicalSwitchTest extends FeatureSpec with Matchers {
     feature("Logical switch tolerates null values") {
         scenario("null uuid") {
             val ls = LogicalSwitch(null, lsName, lsVni, lsDesc)
-            ls.uuid shouldNot be (null)
+            ls.uuid shouldBe null
             ls.name shouldBe lsName
             ls.tunnelKey shouldBe lsVni
             ls.description shouldBe lsDesc
@@ -78,14 +78,14 @@ class LogicalSwitchTest extends FeatureSpec with Matchers {
             ls.uuid shouldBe lsUuid
             ls.name shouldBe lsName
             ls.tunnelKey shouldBe lsVni
-            ls.description shouldBe null
+            ls.description shouldBe ""
         }
         scenario("empty description") {
             val ls = LogicalSwitch(lsUuid, lsName, lsVni, "")
             ls.uuid shouldBe lsUuid
             ls.name shouldBe lsName
             ls.tunnelKey shouldBe lsVni
-            ls.description shouldBe null
+            ls.description shouldBe ""
         }
     }
     feature("operations") {
@@ -93,12 +93,6 @@ class LogicalSwitchTest extends FeatureSpec with Matchers {
             val ls1 = LogicalSwitch(null, lsName, lsVni, lsDesc)
             val ls2 = LogicalSwitch(lsUuid, lsName, lsVni, lsDesc)
             ls1.equals(ls2) shouldBe true
-        }
-        scenario("hashcode depends on uuid") {
-            val ls1 = LogicalSwitch(null, lsName, lsVni, lsDesc)
-            val ls2 = LogicalSwitch(lsUuid, lsName, lsVni, lsDesc)
-            ls1.hashCode shouldNot be (ls2.hashCode)
-            ls2.hashCode shouldBe lsUuid.hashCode()
         }
     }
 }
