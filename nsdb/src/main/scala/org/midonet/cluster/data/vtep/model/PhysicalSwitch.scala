@@ -83,6 +83,7 @@ final class PhysicalSwitch(id: UUID, psName: String, desc: String,
 }
 
 object PhysicalSwitch {
+
     def apply(id: UUID, name: String, desc: String, p: Set[UUID],
               mgmt: Set[IPv4Addr], tunnel: Set[IPv4Addr]) =
         new PhysicalSwitch(id, name, desc, p, mgmt, tunnel)

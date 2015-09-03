@@ -26,9 +26,10 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.southbound.vtep.OvsdbOperations._
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema._
-import org.midonet.util.concurrent.CallingThreadExecutionContext
+import org.midonet.util.concurrent.{CallingThreadExecutionContext, _}
 
 object OvsdbVtepBuilder {
 
@@ -43,9 +44,9 @@ object OvsdbVtepBuilder {
 class OvsdbVtepBuilder(val vtep: InMemoryOvsdbVtep) extends AnyVal {
 
     private def schema: DatabaseSchema = {
-        OvsdbTools.getDbSchema(vtep.getClient, OvsdbTools.DB_HARDWARE_VTEP,
-                               CallingThreadExecutionContext.asInstanceOf[Executor])
-                  .result(5 seconds)
+        val executor = CallingThreadExecutionContext.asInstanceOf[Executor]
+        getDbSchema(vtep.getClient, OvsdbOperations.DbHardwareVtep)(executor)
+            .await(5 seconds)
     }
 
     def endPoint: VtepEndPoint = {
@@ -69,8 +70,8 @@ class OvsdbVtepBuilder(val vtep: InMemoryOvsdbVtep) extends AnyVal {
         val ps = PhysicalSwitch(id, vtepName, vtepDescription,
                                 ports.map(_.uuid).toSet, Set(endPoint.mgmtIp),
                                 Set(vxlanIp))
-        vtep.putEntry(psTable, ps, ps.getClass)
-        ports.foreach(p => vtep.putEntry(portTable, p, p.getClass))
+        vtep.putEntry(psTable, ps)
+        ports.foreach(p => vtep.putEntry(portTable, p))
         ps
     }
 
@@ -80,7 +81,7 @@ class OvsdbVtepBuilder(val vtep: InMemoryOvsdbVtep) extends AnyVal {
         val lsName = LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
         val lsTable = new LogicalSwitchTable(schema)
         val ls = new LogicalSwitch(id, lsName, tunnelKey, lsDescription)
-        vtep.putEntry(lsTable, ls, ls.getClass)
+        vtep.putEntry(lsTable, ls)
         ls
     }
 
@@ -90,7 +91,7 @@ class OvsdbVtepBuilder(val vtep: InMemoryOvsdbVtep) extends AnyVal {
                             locator: UUID = UUID.randomUUID): UcastMac = {
         val uLocalTable = new UcastMacsLocalTable(schema)
         val uMac = UcastMac(UUID.randomUUID, ls, mac, ip, locator)
-        vtep.putEntry(uLocalTable, uMac, uMac.getClass)
+        vtep.putEntry(uLocalTable, uMac)
         uMac
     }
 }

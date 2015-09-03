@@ -33,12 +33,12 @@ import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.cluster.data.vtep.model.VtepMAC;
 import org.midonet.packets.IPv4Addr;
 
-import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdb;
 
 /**
  * Common schema sections for the {Ucast|Mcast}Mac{Local|Remote} tables
  */
-public abstract class MacsTable extends Table {
+public abstract class MacsTable<E extends MacEntry> extends Table<E> {
     static private final String COL_MAC = "MAC";
     static private final String COL_LOGICAL_SWITCH = "logical_switch";
     static private final String COL_IPADDR = "ipaddr";
@@ -123,14 +123,13 @@ public abstract class MacsTable extends Table {
      * Generate an insert operation
      */
     @Override
-    public <E extends VtepEntry> Table.OvsdbInsert insert(E row)
+    public Table.OvsdbInsert insert(E row)
         throws IllegalArgumentException {
         Insert<GenericTableSchema> op = newInsert(row);
-        MacEntry entry = (MacEntry)row;
-        op.value(getMacSchema(), entry.macString());
-        op.value(getLogicalSwitchSchema(), toOvsdb(entry.logicalSwitchId()));
-        op.value(getIpaddrSchema(), entry.ipString());
-        op.value(getLocationIdSchema(), toOvsdb(entry.locationId()));
+        op.value(getMacSchema(), row.macString());
+        op.value(getLogicalSwitchSchema(), toOvsdb(row.logicalSwitchId()));
+        op.value(getIpaddrSchema(), row.ipString());
+        op.value(getLocationIdSchema(), toOvsdb(row.locationId()));
         return new OvsdbInsert(op);
     }
 
@@ -157,14 +156,13 @@ public abstract class MacsTable extends Table {
     }
 
     @Override
-    public <E extends VtepEntry> Row<GenericTableSchema> generateRow(
-        E entry) throws IllegalArgumentException {
+    public Row<GenericTableSchema> generateRow(E entry)
+        throws IllegalArgumentException {
         Row<GenericTableSchema> row = super.generateRow(entry);
-        MacEntry data = (MacEntry)entry;
-        addToRow(row, getMacSchema(), data.macString());
-        addToRow(row, getLogicalSwitchSchema(), toOvsdb(data.logicalSwitchId()));
-        addToRow(row, getIpaddrSchema(), data.ipString());
-        addToRow(row, getLocationIdSchema(), toOvsdb(data.locationId()));
+        addToRow(row, getMacSchema(), entry.macString());
+        addToRow(row, getLogicalSwitchSchema(), toOvsdb(entry.logicalSwitchId()));
+        addToRow(row, getIpaddrSchema(), entry.ipString());
+        addToRow(row, getLocationIdSchema(), toOvsdb(entry.locationId()));
         return row;
     }
 }
