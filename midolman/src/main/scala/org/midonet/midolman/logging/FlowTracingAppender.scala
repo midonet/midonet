@@ -49,6 +49,7 @@ class FlowTracingAppender(sessionFuture: Future[Session])
 
     @volatile
     var session: Session = null
+    var lastAppendErrored = false
 
     var schema: FlowTracingSchema = null
 
@@ -73,18 +74,26 @@ class FlowTracingAppender(sessionFuture: Future[Session])
                 val traceId = UUID.fromString(requestIds(i))
                 val flowTraceId = UUID.fromString(mdc.get(FlowTraceIdKey))
 
-                session.execute(schema.bindFlowInsertStatement(
-                            traceId, flowTraceId,
-                            mdc.get(EthSrcKey), mdc.get(EthDstKey),
-                            intOrVal(mdc.get(EtherTypeKey), 0),
-                            mdc.get(NetworkSrcKey), mdc.get(NetworkDstKey),
-                            intOrVal(mdc.get(NetworkProtoKey), 0),
-                            intOrVal(mdc.get(SrcPortKey), 0),
-                            intOrVal(mdc.get(DstPortKey), 0)))
-                session.execute(schema.bindDataInsertStatement(
-                            traceId, flowTraceId,
-                            hostId, event.getFormattedMessage))
-
+                try {
+                    session.execute(schema.bindFlowInsertStatement(
+                                        traceId, flowTraceId,
+                                        mdc.get(EthSrcKey), mdc.get(EthDstKey),
+                                        intOrVal(mdc.get(EtherTypeKey), 0),
+                                        mdc.get(NetworkSrcKey), mdc.get(NetworkDstKey),
+                                        intOrVal(mdc.get(NetworkProtoKey), 0),
+                                        intOrVal(mdc.get(SrcPortKey), 0),
+                                        intOrVal(mdc.get(DstPortKey), 0)))
+                    session.execute(schema.bindDataInsertStatement(
+                                        traceId, flowTraceId,
+                                        hostId, event.getFormattedMessage))
+                    lastAppendErrored = false
+                } catch {
+                    case e: Throwable =>
+                        if (!lastAppendErrored) {
+                            log.error("Error sending trace data to cassandra", e)
+                        }
+                        lastAppendErrored = true
+                }
                 i -= 1
             }
         }
