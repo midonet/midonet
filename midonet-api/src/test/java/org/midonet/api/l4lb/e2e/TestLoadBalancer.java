@@ -24,11 +24,14 @@ import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.cluster.rest_api.Status;
-import org.midonet.cluster.rest_api.VendorMediaType;
 
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_LOAD_BALANCER_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_LOAD_BALANCER_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_POOL_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VIP_JSON;
 
 @RunWith(Enclosed.class)
 public class TestLoadBalancer {
@@ -38,7 +41,7 @@ public class TestLoadBalancer {
         private void verifyNumberOfLoadBalancers(int num) {
             DtoLoadBalancer[] loadBalancers = dtoResource.getAndVerifyOk(
                     topLevelLoadBalancersUri,
-                    VendorMediaType.APPLICATION_LOAD_BALANCER_COLLECTION_JSON,
+                    APPLICATION_LOAD_BALANCER_COLLECTION_JSON(),
                     DtoLoadBalancer[].class);
             assertEquals(num, loadBalancers.length);
         }
@@ -63,7 +66,7 @@ public class TestLoadBalancer {
             // CONFLICT.
             dtoResource.postAndVerifyStatus(
                     topLevelLoadBalancersUri,
-                    VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                    APPLICATION_LOAD_BALANCER_JSON(),
                     loadBalancer2,
                     CONFLICT.getStatusCode());
             verifyNumberOfLoadBalancers(counter);
@@ -120,7 +123,7 @@ public class TestLoadBalancer {
             DtoRouter anotherRouter = createStockRouter();
             assignedLoadBalancer.setRouterId(anotherRouter.getId());
             dtoResource.putAndVerifyBadRequest(assignedLoadBalancer.getUri(),
-                    VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
+                    APPLICATION_LOAD_BALANCER_JSON(),
                     assignedLoadBalancer);
 
             // POST a pool though the load balancer's `/pools` URI.
@@ -128,9 +131,7 @@ public class TestLoadBalancer {
             assertEquals(poolCounter, pools.length);
             DtoPool pool = getStockPool(loadBalancer.getId());
             pool = dtoResource.postAndVerifyCreated(loadBalancer.getPools(),
-                    VendorMediaType.APPLICATION_POOL_JSON,
-                    pool,
-                    DtoPool.class);
+                    APPLICATION_POOL_JSON(), pool, DtoPool.class);
             pools = getPools(loadBalancer.getPools());
             poolCounter++;
             assertEquals(poolCounter, pools.length);
@@ -141,7 +142,7 @@ public class TestLoadBalancer {
             // We can't add the VIP through the load balancer.
             DtoVip vip = getStockVip(pool.getId());
             dtoResource.postAndVerifyStatus(loadBalancer.getVips(),
-                    VendorMediaType.APPLICATION_VIP_JSON, vip,
+                    APPLICATION_VIP_JSON(), vip,
                     Status.METHOD_NOT_ALLOWED.getStatusCode());
             vips = getVips(loadBalancer.getVips());
             assertEquals(vipCounter, vips.length);

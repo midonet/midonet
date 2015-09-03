@@ -35,8 +35,8 @@ import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsExceptio
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.ResourceUris.{macPortUriToMac, macPortUriToPort}
-import org.midonet.cluster.rest_api.VendorMediaType._
 import org.midonet.cluster.rest_api.annotation._
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
@@ -160,8 +160,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
     @POST
     @Path("{id}/mac_table")
-    @Consumes(Array(APPLICATION_MAC_PORT_JSON,
-                    APPLICATION_MAC_PORT_JSON_V2,
+    @Consumes(Array(APPLICATION_MAC_PORT_JSON_V2,
                     APPLICATION_JSON))
     def putMacTable(@PathParam("id") bridgeId: UUID, macPort: MacPort)
     : Response = {
@@ -185,8 +184,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
     @GET
     @Path("{id}/vlans/{vlan}/mac_table/{mac_port_uri}")
-    @Produces(Array(APPLICATION_MAC_PORT_JSON,
-                    APPLICATION_MAC_PORT_JSON_V2))
+    @Produces(Array(APPLICATION_MAC_PORT_JSON_V2))
     def getMacPort(@PathParam("id") id: UUID,
                    @PathParam("vlan") vlan: Short,
                    @PathParam("mac_port_uri")s: String): MacPort = {
@@ -195,8 +193,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
     @GET
     @Path("{id}/mac_table/{mac_port_uri}")
-    @Produces(Array(APPLICATION_MAC_PORT_JSON,
-                    APPLICATION_MAC_PORT_JSON_V2))
+    @Produces(Array(APPLICATION_MAC_PORT_JSON_V2))
     def getMacPort(@PathParam("id") id: UUID,
                    @PathParam("mac_port_uri")s: String): MacPort = {
         macPort(id, s)
@@ -235,28 +232,22 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
     @GET
     @Path("{id}/mac_table")
-    @Produces(Array(APPLICATION_MAC_PORT_COLLECTION_JSON,
-                    APPLICATION_MAC_PORT_COLLECTION_JSON_V2))
+    @Produces(Array(APPLICATION_MAC_PORT_COLLECTION_JSON_V2))
     def listMacTable(@PathParam("id") id: UUID,
                      @HeaderParam("Accept") mediaType: String)
     : util.List[MacPort] = {
-        val isV1 = mediaType.equals(APPLICATION_MAC_PORT_COLLECTION_JSON)
         resContext.backend.store.get(classOf[Topology.Network], id).getOrThrow
 
-        if (isV1) {
-            macPortsNoVlan(id, isV1 = true)
-        } else {
-            // Fetch entries in all vlans, if any
-            val entriesWithVlan = Try {
-                val vlansPath = pathBuilder.getBridgeVlansPath(id)
-                curator.getChildren.forPath(vlansPath).flatMap { sVlan =>
-                    macPortsInVlan(id, sVlan.toShort)
-                }
-            }.getOrElse(List.empty)
+        // Fetch entries in all vlans, if any
+        val entriesWithVlan = Try {
+            val vlansPath = pathBuilder.getBridgeVlansPath(id)
+            curator.getChildren.forPath(vlansPath).flatMap { sVlan =>
+                macPortsInVlan(id, sVlan.toShort)
+            }
+        }.getOrElse(List.empty)
 
-            // Merge with those in no vlan
-            macPortsNoVlan(id, isV1 = false) ++ entriesWithVlan
-        }
+        // Merge with those in no vlan
+        macPortsNoVlan(id, isV1 = false) ++ entriesWithVlan
     }
 
     protected override def listFilter(bridges: Seq[Bridge]): Future[Seq[Bridge]] = {
