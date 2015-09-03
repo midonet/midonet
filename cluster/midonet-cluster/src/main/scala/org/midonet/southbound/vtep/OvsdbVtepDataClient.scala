@@ -119,43 +119,93 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
 
     override def observable = stateSubject.asObservable()
 
+    /** Lists all physical switches. */
+    override def physicalSwitches: Future[Seq[PhysicalSwitch]] = {
+        onReady { _.physicalSwitches }
+    }
+
+    /** Gets the physical switch corresponding to the current VTEP endpoint. */
     override def physicalSwitch: Future[Option[PhysicalSwitch]] = {
         onReady { _.physicalSwitch }
     }
 
+    /** Lists all logical switches. */
+    override def logicalSwitches: Future[Seq[LogicalSwitch]] = {
+        onReady { _.logicalSwitches }
+    }
+
+    /** Gets the logical switch with the specified name. */
     override def logicalSwitch(name: String): Future[Option[LogicalSwitch]] = {
         onReady { _.logicalSwitch(name) }
     }
 
+    /** Creates a new logical switch with the specified name and VNI. If a
+      * logical switch with the same name and VNI already exists, the method
+      * succeeds immediately. */
+    override def createLogicalSwitch(name: String, vni: Int)
+    : Future[LogicalSwitch] = {
+        onReady { _.createLogicalSwitch(name, vni) }
+    }
+
+    /** Deletes the logical switch with the specified name, along with all its
+      * bindings and MAC entries. */
+    override def deleteLogicalSwitch(name: String): Future[Int] = {
+        onReady { _.deleteLogicalSwitch(name) }
+    }
+
+    /** Lists all physical ports. */
+    override def physicalPorts: Future[Seq[PhysicalPort]] = {
+        onReady { _.physicalPorts }
+    }
+
+    /** Gets the physical port with the specified port identifier. */
     override def physicalPort(portId: UUID): Future[Option[PhysicalPort]] = {
         onReady { _.physicalPort(portId) }
     }
 
+    /** Adds the bindings for the logical switch with the specified name. The
+      * bindings are specified as an [[Iterable]] of port name and VLAN pairs.
+      * The methds does not change any existing bindings for the specified
+      * physical ports. */
+    override def addBindings(lsName: String, bindings: Iterable[(String, Short)])
+    : Future[Int] = {
+        onReady { _.addBindings(lsName, bindings) }
+    }
+
+    /** Sets the bindings for the logical switch with the specified name. The
+      * bindings are specified as an [[Iterable]] of port name and VLAN pairs.
+      * The method overwrites any of the previous bindings for the specified
+      * physical ports, and replaces them with the given ones. The physical
+      * ports that are not included in the bindings list are left unchanged.
+      * The method returns a future with the number of physical ports that
+      * were changed. */
+    override def setBindings(lsName: String, bindings: Iterable[(String, Short)])
+    : Future[Int] = {
+        onReady { _.setBindings(lsName, bindings) }
+    }
+
+    /** Clears all bindings for the specified logical switch name. */
+    override def clearBindings(lsName: String): Future[Int] = {
+        onReady { _.clearBindings(lsName) }
+    }
+
+    /** Returns an [[Observable]] that emits updates for the `Ucast_Mac_Local`
+      * and `Mcast_Mac_Local` tables, with the MACs that are local to the VTEP
+      * and should be published to other members of a VxLAN gateway. */
     override def macLocalUpdates: Observable[MacLocation] = {
         onReady { _.macLocalUpdates }
     }
 
+    /** Provides a snapshot of the `Ucast_Mac_Local` and `Mcast_Mac_Local`
+      * tables. */
     override def currentMacLocal: Future[Seq[MacLocation]] = {
         onReady { _.currentMacLocal }
     }
 
+    /** Returns an [[Observer]] that will write updates to the remote MACs in
+      * the `Ucast_Mac_Remote` or `Mcast_Mac_Remote` tables. */
     override def macRemoteUpdater: Future[Observer[MacLocation]] = {
         onReady { _.macRemoteUpdater }
-    }
-
-    override def ensureLogicalSwitch(name: String, vni: Int)
-    : Future[LogicalSwitch] = {
-        onReady { _.ensureLogicalSwitch(name, vni) }
-    }
-
-    override def removeLogicalSwitch(name: String): Future[Unit] = {
-        onReady { _.removeLogicalSwitch(name) }
-    }
-
-    override def ensureBindings(lsName: String,
-                                bindings: Iterable[(String, Short)])
-    : Future[Unit] = {
-        onReady { _.ensureBindings(lsName, bindings) }
     }
 
     /**
