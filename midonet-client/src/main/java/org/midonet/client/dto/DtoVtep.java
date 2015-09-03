@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class DtoVtep {
+    private UUID id;
     private String managementIp;
     private int managementPort;
     private String name;
@@ -34,6 +35,14 @@ public class DtoVtep {
     private URI bindings;
     private URI ports;
     private String vtepBindingTemplate;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public String getManagementIp() {
         return managementIp;
@@ -121,7 +130,8 @@ public class DtoVtep {
         if (o == null || getClass() != o.getClass()) return false;
 
         DtoVtep dtoVtep = (DtoVtep) o;
-        return managementPort == dtoVtep.managementPort &&
+        return Objects.equals(id, dtoVtep.id) &&
+               managementPort == dtoVtep.managementPort &&
                 Objects.equals(connectionState, dtoVtep.connectionState) &&
                 Objects.equals(description, dtoVtep.description) &&
                 Objects.equals(managementIp, dtoVtep.managementIp) &&

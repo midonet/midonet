@@ -63,7 +63,7 @@ import static org.junit.Assert.assertThat;
 import static org.midonet.api.rest_api.FuncTest._injector;
 import static org.midonet.api.rest_api.FuncTest.appDesc;
 import static org.midonet.api.rest_api.FuncTest.objectMapper;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
@@ -513,7 +513,7 @@ public class TestRouter {
             bridge.setTenantId("tenant1");
             DtoBridge resBridge = dtoResource.postAndVerifyCreated(
                 topology.getApplication().getBridges(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
             assertNotNull(resBridge.getId());
             assertNotNull(resBridge.getUri());
             // Add an interior bridge port.

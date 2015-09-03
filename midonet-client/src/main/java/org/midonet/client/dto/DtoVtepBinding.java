@@ -23,6 +23,7 @@ public class DtoVtepBinding {
     private String portName;
     private short vlanId;
     private UUID networkId;
+    private UUID vtepId;
 
     private URI uri;
 
@@ -40,6 +41,14 @@ public class DtoVtepBinding {
 
     public void setVlanId(short vlanId) {
         this.vlanId = vlanId;
+    }
+
+    public UUID getVtepId() {
+        return vtepId;
+    }
+
+    public void setVtepId(UUID vtepId) {
+        this.vtepId = vtepId;
     }
 
     public UUID getNetworkId() {
@@ -66,13 +75,14 @@ public class DtoVtepBinding {
         DtoVtepBinding that = (DtoVtepBinding) o;
 
         return vlanId == that.vlanId &&
-                Objects.equals(portName, that.portName) &&
-                Objects.equals(networkId, that.networkId);
+               Objects.equals(vtepId, that.vtepId) &&
+               Objects.equals(portName, that.portName) &&
+               Objects.equals(networkId, that.networkId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(portName, vlanId, networkId);
+        return Objects.hash(vtepId, portName, vlanId, networkId);
     }
 
     @Override
@@ -80,6 +90,7 @@ public class DtoVtepBinding {
         return "DtoVtepBinding{" +
             "portName='" + portName + '\'' +
             ", vlanId=" + vlanId +
+            ", vtepId=" + vtepId +
             ", networkId=" + networkId +
             ", uri=" + uri +
             '}';

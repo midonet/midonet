@@ -70,12 +70,8 @@ public class MessageProperty {
             "{midokura.javarx.MaxValue.message}";
     public static final String MIN_VALUE =
             "{midokura.javarx.MinValue.message}";
-    public static final String NETWORK_ALREADY_BOUND =
-            "{midokura.javarx.NetworkAlreadyBoundToVtep.message}";
     public static final String NON_NULL =
             "{midokura.javarx.NonNull.message}";
-    public static final String NO_VXLAN_PORT =
-            "{midokura.javarx.NoVxlanPort.message}";
     public static final String POOL_MEMBER_WEIGHT_NEGATIVE =
             "{midokura.javarx.PoolMemberWeightNegative.message}";
     public static final String PORT_ID_IS_INVALID =
@@ -126,12 +122,8 @@ public class MessageProperty {
             "{midokura.javarx.VtepInaccessible.message}";
     public static final String VTEP_MUST_USE_SAME_TUNNEL_ZONE =
             "{midokura.javarx.VtepMustUseSameTunnelZone.message}";
-    public static final String VTEP_NOT_FOUND =
-            "{midokura.javarx.VtepNotFound.message}";
     public static final String VTEP_PORT_NOT_FOUND =
             "{midokura.javarx.VtepPortNotFound.message}";
-    public static final String VTEP_TUNNEL_IP_NOT_FOUND =
-            "{midokura.javarx.VtepTunnelIpNotFound.message}";
     public static final String VTEP_PORT_VLAN_PAIR_ALREADY_USED =
             "{midokura.javarx.VtepPortVlanPairAlreadyUsed.message}";
     public static final String VXLAN_PORT_ID_NOT_SETTABLE =

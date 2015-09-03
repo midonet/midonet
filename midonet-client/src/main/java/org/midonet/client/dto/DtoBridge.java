@@ -32,12 +32,10 @@ public class DtoBridge {
     private String tenantId;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
-    private UUID vxLanPortId; // legacy
     private List<UUID> vxLanPortIds;
     private URI inboundFilter;
     private URI outboundFilter;
-    private URI vxLanPort;
-    private List<URI> vxLanPorts;
+    private URI vxLanPorts;
     private URI uri;
     private URI ports;
     private URI peerPorts;
@@ -97,14 +95,6 @@ public class DtoBridge {
         this.outboundFilterId = outboundFilterId;
     }
 
-    public UUID getVxLanPortId() {
-        return vxLanPortId;
-    }
-
-    public void setVxLanPortId(UUID vxLanPortId) {
-        this.vxLanPortId = vxLanPortId;
-    }
-
     public List<UUID> getVxLanPortIds() {
         return this.vxLanPortIds;
     }
@@ -129,19 +119,11 @@ public class DtoBridge {
         this.outboundFilter = outboundFilter;
     }
 
-    public URI getVxLanPort() {
-        return vxLanPort;
-    }
-
-    public void setVxLanPort(URI vxLanPort) {
-        this.vxLanPort = vxLanPort;
-    }
-
-    public List<URI> getVxLanPorts() {
+    public URI getVxLanPorts() {
         return vxLanPorts;
     }
 
-    public void setVxLanPorts(List<URI> vxLanPorts) {
+    public void setVxLanPorts(URI vxLanPorts) {
         this.vxLanPorts = vxLanPorts;
     }
 
@@ -244,9 +226,7 @@ public class DtoBridge {
                 Objects.equal(inboundFilter, that.getInboundFilter()) &&
                 Objects.equal(outboundFilterId, that.getOutboundFilterId()) &&
                 Objects.equal(outboundFilter, that.getOutboundFilter()) &&
-                Objects.equal(vxLanPortId, that.getVxLanPortId()) &&
                 Objects.equal(vxLanPortIds, that.getVxLanPortIds()) &&
-                Objects.equal(vxLanPort, that.getVxLanPort()) &&
                 Objects.equal(vxLanPorts, that.getVxLanPorts()) &&
                 Objects.equal(uri, that.getUri()) &&
                 Objects.equal(ports, that.getPorts()) &&

@@ -51,7 +51,6 @@ import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.rest_api.models.MacPort;
 import org.midonet.cluster.rest_api.models.Tenant;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
@@ -64,13 +63,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.midonet.api.rest_api.FuncTest._injector;
 import static org.midonet.api.rest_api.FuncTest.appDesc;
-import static org.midonet.api.rest_api.FuncTest.appDescOverrideBaseUri;
 import static org.midonet.api.rest_api.FuncTest.objectMapper;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V2;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V3;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V4;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP4_MAC_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
@@ -79,8 +75,11 @@ import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_JSON_V2;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
-import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.BRIDGE_HAS_MAC_PORT;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.BRIDGE_HAS_VLAN;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.MAC_PORT_ON_BRIDGE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.MAC_URI_FORMAT;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VLAN_ID_MATCHES_PORT_VLAN_ID;
 
 @RunWith(Enclosed.class)
 public class TestBridge {
@@ -172,7 +171,7 @@ public class TestBridge {
 
             // Get the actual DtoBridge objects
             String actualRaw = dtoWebResource.getAndVerifyOk(app.getBridges(),
-                    APPLICATION_BRIDGE_COLLECTION_JSON, String.class);
+                    APPLICATION_BRIDGE_COLLECTION_JSON_V4, String.class);
             JavaType type = objectMapper.getTypeFactory()
                     .constructParametrizedType(List.class, List.class,
                                                DtoBridge.class);
@@ -195,7 +194,7 @@ public class TestBridge {
 
             // Get the actual DtoBridge objects
             String actualRaw = dtoWebResource.getAndVerifyOk(tenant.getBridges(),
-                    APPLICATION_BRIDGE_COLLECTION_JSON, String.class);
+                    APPLICATION_BRIDGE_COLLECTION_JSON_V4, String.class);
             JavaType type = objectMapper.getTypeFactory()
                     .constructParametrizedType(List.class, List.class,
                                                DtoBridge.class);
@@ -363,21 +362,21 @@ public class TestBridge {
             bridge.setTenantId("tenant1");
 
             DtoBridge b1 = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
 
             // Duplicate name should be allowed
             bridge = new DtoBridge();
             bridge.setName("name");
             bridge.setTenantId("tenant1");
             DtoBridge b2 = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
 
             // Deletion should work
             dtoResource.deleteAndVerifyNoContent(b1.getUri(),
-                    APPLICATION_BRIDGE_JSON);
+                    APPLICATION_BRIDGE_JSON_V4);
 
             dtoResource.deleteAndVerifyNoContent(b2.getUri(),
-                    APPLICATION_BRIDGE_JSON);
+                    APPLICATION_BRIDGE_JSON_V4);
         }
 
         @Test
@@ -393,7 +392,7 @@ public class TestBridge {
 
             bridge.setName(null);
             bridge = dtoResource.putAndVerifyNoContent(
-                bridge.getUri(), APPLICATION_BRIDGE_JSON_V3, bridge,
+                bridge.getUri(), APPLICATION_BRIDGE_JSON_V4, bridge,
                 DtoBridge.class);
             assertNull(bridge.getName());
         }
@@ -401,7 +400,7 @@ public class TestBridge {
         @Test
         public void testBridgeCreateWithNoTenant() throws Exception {
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                app.getBridges(), APPLICATION_BRIDGE_JSON_V3, new DtoBridge());
+                app.getBridges(), APPLICATION_BRIDGE_JSON_V4, new DtoBridge());
 
             assertValidationProperties(error, "tenantId");
         }
@@ -412,7 +411,7 @@ public class TestBridge {
 
             bridge.setTenantId(null);
             DtoError error = dtoResource.putAndVerifyBadRequest(
-                bridge.getUri(), APPLICATION_BRIDGE_JSON_V3, bridge);
+                bridge.getUri(), APPLICATION_BRIDGE_JSON_V4, bridge);
             assertValidationProperties(error, "tenantId");
         }
 
@@ -426,33 +425,10 @@ public class TestBridge {
             bridge.setName("");
             bridge.setTenantId("tenant1");
             DtoBridge b3 = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
 
             dtoResource.deleteAndVerifyNoContent(b3.getUri(),
-                    APPLICATION_BRIDGE_JSON);
-        }
-
-        @Test
-        public void testCreateWithNonNullVxLanPortId() throws Exception {
-            DtoBridge bridge = new DtoBridge();
-            bridge.setName("bridge1");
-            bridge.setTenantId("tenant1");
-            bridge.setVxLanPortId(UUID.randomUUID());
-
-            DtoError error = dtoResource.postAndVerifyBadRequest(
-                    app.getBridges(), APPLICATION_BRIDGE_JSON_V2, bridge);
-            assertErrorMatches(error,
-                    VXLAN_PORT_ID_NOT_SETTABLE);
-        }
-
-        @Test
-        public void testUpdateVxLanPortId() throws Exception {
-            DtoBridge bridge = postBridge("bridge1");
-            bridge.setVxLanPortId(UUID.randomUUID());
-            DtoError error = dtoResource.putAndVerifyBadRequest(
-                    bridge.getUri(), APPLICATION_BRIDGE_JSON_V2, bridge);
-            assertErrorMatches(error,
-                    VXLAN_PORT_ID_NOT_SETTABLE);
+                    APPLICATION_BRIDGE_JSON_V4);
         }
 
         @Test
@@ -465,7 +441,7 @@ public class TestBridge {
             URI bridgesUri = app.getBridges();
             assertNotNull(bridgesUri);
             DtoBridge[] bridges = dtoResource.getAndVerifyOk(bridgesUri,
-                    APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
+                    APPLICATION_BRIDGE_COLLECTION_JSON_V4, DtoBridge[].class);
             assertEquals(0, bridges.length);
 
             // Add a bridge
@@ -476,7 +452,7 @@ public class TestBridge {
             bridge.setOutboundFilterId(chain2.getId());
 
             DtoBridge resBridge = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
             assertNotNull(resBridge.getId());
             assertNotNull(resBridge.getUri());
             // TODO: Implement 'equals' for DtoBridge
@@ -490,7 +466,7 @@ public class TestBridge {
             // List the bridge
             bridges = dtoResource.getAndVerifyOk(bridgesUri,
                     getTenantQueryParams("tenant1"),
-                    APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
+                    APPLICATION_BRIDGE_COLLECTION_JSON_V4, DtoBridge[].class);
             assertEquals(1, bridges.length);
             assertEquals(resBridge.getId(), bridges[0].getId());
 
@@ -500,7 +476,7 @@ public class TestBridge {
             resBridge.setInboundFilterId(chain2.getId());
             resBridge.setOutboundFilterId(chain1.getId());
             DtoBridge updatedBridge = dtoResource.putAndVerifyNoContent(
-                    bridgeUri, APPLICATION_BRIDGE_JSON, resBridge,
+                    bridgeUri, APPLICATION_BRIDGE_JSON_V4, resBridge,
                     DtoBridge.class);
             assertNotNull(updatedBridge.getId());
             assertEquals(updatedBridge.getName(), "bridge1-modified");
@@ -514,7 +490,7 @@ public class TestBridge {
             //Update the bridge updatedBridge (name only)
             updatedBridge.setName("bridge1-modified2");
             DtoBridge updatedBridge2 = dtoResource.putAndVerifyNoContent(
-                    bridgeUri, APPLICATION_BRIDGE_JSON, updatedBridge,
+                    bridgeUri, APPLICATION_BRIDGE_JSON_V4, updatedBridge,
                     DtoBridge.class);
             assertNotNull(updatedBridge2.getId());
             assertEquals(updatedBridge2.getName(), "bridge1-modified2");
@@ -527,15 +503,15 @@ public class TestBridge {
 
             // Delete the bridge
             dtoResource.deleteAndVerifyNoContent(bridgeUri,
-                    APPLICATION_BRIDGE_JSON);
+                                                 APPLICATION_BRIDGE_JSON_V4);
 
             // Verify that it's gone
             dtoResource.getAndVerifyNotFound(bridgeUri,
-                    APPLICATION_BRIDGE_JSON);
+                                             APPLICATION_BRIDGE_JSON_V4);
 
             // List should return an empty array
             bridges = dtoResource.getAndVerifyOk(bridgesUri,
-                    APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
+                     APPLICATION_BRIDGE_COLLECTION_JSON_V4, DtoBridge[].class);
             assertEquals(0, bridges.length);
         }
 
