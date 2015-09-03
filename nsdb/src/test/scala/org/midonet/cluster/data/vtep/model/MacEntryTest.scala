@@ -28,7 +28,7 @@ import org.midonet.packets.IPv4Addr
 class MacEntryTest extends FeatureSpec with Matchers {
     val eUuid = UUID.randomUUID()
     val eLS = UUID.randomUUID()
-    val eLoc = UUID.randomUUID()
+    val eLoc = UUID.randomUUID().toString
     val eMacStr = "aa:bb:cc:dd:ee:ff"
     val eMac = VtepMAC.fromString(eMacStr)
     val eIpStr = "1.2.3.4"
@@ -45,7 +45,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             ucast.macString shouldBe eMacStr
             ucast.ip shouldBe eIp
             ucast.ipString shouldBe eIpStr
-            ucast.locationId shouldBe eLoc
+            ucast.locatorId shouldBe eLoc
             ucast.locator shouldBe eLoc
 
             val entry: MacEntry = ucast
@@ -61,7 +61,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             ucast.macString shouldBe eMacStr
             ucast.ip shouldBe eIp
             ucast.ipString shouldBe eIpStr
-            ucast.locationId shouldBe eLoc
+            ucast.locatorId shouldBe eLoc
             ucast.locator shouldBe eLoc
         }
         scenario("default constructor - mcast") {
@@ -72,7 +72,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             mcast.macString shouldBe eMultiStr
             mcast.ip shouldBe eIp
             mcast.ipString shouldBe eIpStr
-            mcast.locationId shouldBe eLoc
+            mcast.locatorId shouldBe eLoc
             mcast.locatorSet shouldBe eLoc
 
             val entry: MacEntry = mcast
@@ -88,7 +88,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             mcast.macString shouldBe eMultiStr
             mcast.ip shouldBe eIp
             mcast.ipString shouldBe eIpStr
-            mcast.locationId shouldBe eLoc
+            mcast.locatorId shouldBe eLoc
             mcast.locatorSet shouldBe eLoc
         }
     }
@@ -101,7 +101,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.macString shouldBe eMacStr
             m.ip shouldBe eIp
             m.ipString shouldBe eIpStr
-            m.locationId shouldBe eLoc
+            m.locatorId shouldBe eLoc
             m.locator shouldBe eLoc
         }
         scenario("null mac - ucast") {
@@ -112,7 +112,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.macString shouldBe null
             m.ip shouldBe eIp
             m.ipString shouldBe eIpStr
-            m.locationId shouldBe eLoc
+            m.locatorId shouldBe eLoc
             m.locator shouldBe eLoc
         }
         scenario("empty mac - ucast") {
@@ -123,7 +123,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.macString shouldBe null
             m.ip shouldBe eIp
             m.ipString shouldBe eIpStr
-            m.locationId shouldBe eLoc
+            m.locatorId shouldBe eLoc
             m.locator shouldBe eLoc
         }
         scenario("null ip - ucast") {
@@ -134,7 +134,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.macString shouldBe eMacStr
             m.ip shouldBe null
             m.ipString shouldBe null
-            m.locationId shouldBe eLoc
+            m.locatorId shouldBe eLoc
             m.locator shouldBe eLoc
         }
         scenario("empty ip - ucast") {
@@ -145,7 +145,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.macString shouldBe eMacStr
             m.ip shouldBe null
             m.ipString shouldBe null
-            m.locationId shouldBe eLoc
+            m.locatorId shouldBe eLoc
             m.locator shouldBe eLoc
         }
         scenario("null uuid - mcast") {
@@ -156,7 +156,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.macString shouldBe eMultiStr
             m.ip shouldBe eIp
             m.ipString shouldBe eIpStr
-            m.locationId shouldBe eLoc
+            m.locatorId shouldBe eLoc
             m.locatorSet shouldBe eLoc
         }
         scenario("null mac - mcast") {
@@ -167,7 +167,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.macString shouldBe null
             m.ip shouldBe eIp
             m.ipString shouldBe eIpStr
-            m.locationId shouldBe eLoc
+            m.locatorId shouldBe eLoc
             m.locatorSet shouldBe eLoc
         }
         scenario("empty mac - Mcast") {
@@ -178,7 +178,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.macString shouldBe null
             m.ip shouldBe eIp
             m.ipString shouldBe eIpStr
-            m.locationId shouldBe eLoc
+            m.locatorId shouldBe eLoc
             m.locatorSet shouldBe eLoc
         }
         scenario("null ip - mcast") {
@@ -189,7 +189,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.macString shouldBe eMultiStr
             m.ip shouldBe null
             m.ipString shouldBe null
-            m.locationId shouldBe eLoc
+            m.locatorId shouldBe eLoc
             m.locatorSet shouldBe eLoc
         }
         scenario("empty ip - mcast") {
@@ -200,7 +200,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.macString shouldBe eMultiStr
             m.ip shouldBe null
             m.ipString shouldBe null
-            m.locationId shouldBe eLoc
+            m.locatorId shouldBe eLoc
             m.locatorSet shouldBe eLoc
         }
     }
