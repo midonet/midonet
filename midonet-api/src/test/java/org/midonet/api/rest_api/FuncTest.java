@@ -55,8 +55,6 @@ public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();
 
     public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
-    public static final int ZK_TEST_PORT = (int)(Math.random() * 1000) + 63000;
-    public static final String ZK_TEST_SERVER = "127.0.0.1:" + ZK_TEST_PORT;
 
     public final static String BASE_URI_CONFIG = "rest_api-base_uri";
     public final static String CONTEXT_PATH = "/test";
@@ -98,22 +96,17 @@ public class FuncTest {
 
         public VladimirServletContextListener () {
             try {
-                testZk = new TestingServer(FuncTest.ZK_TEST_PORT);
+                // This starts a Zookeeper server on an available port that
+                // is randomly selected.
+                testZk = new TestingServer();
             } catch (Exception e) {
-                throw new IllegalStateException("Can't start Zookeeper server at " +
-                                                FuncTest.ZK_TEST_PORT);
+                throw new IllegalStateException("Can't start Zookeeper server");
             }
         }
 
         @Override
         public void contextInitialized(ServletContextEvent sce) {
             super.contextInitialized(sce);
-            try {
-                testZk.start();
-            } catch (Exception e) {
-                throw new IllegalStateException("Can't start Zookeeper server at " +
-                                                FuncTest.ZK_TEST_PORT);
-            }
         }
 
         @Override
@@ -128,7 +121,7 @@ public class FuncTest {
 
         @Override
         protected Injector getInjector() {
-            CuratorFramework curator = newClient(ZK_TEST_SERVER,
+            CuratorFramework curator = newClient(testZk.getConnectString(),
                                                  new RetryNTimes(10, 500));
 
             ClusterConfig cfg = new ClusterConfig(
