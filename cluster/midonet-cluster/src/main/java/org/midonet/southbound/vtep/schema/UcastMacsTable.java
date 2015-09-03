@@ -69,7 +69,7 @@ public abstract class UcastMacsTable extends MacsTable {
     /**
      * Extract the entry information
      */
-    @SuppressWarnings(value = "unckecked")
+    @SuppressWarnings(value = "unchecked")
     public <E extends VtepEntry>
     E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
         throws IllegalArgumentException {

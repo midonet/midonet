@@ -47,7 +47,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
     private val endpoint = VtepEndPoint("127.0.0.1", 6632)
 
     private val dbNameList =
-        util.Collections.singletonList(OvsdbTools.DB_HARDWARE_VTEP)
+        util.Collections.singletonList(OvsdbOperations.DbHardwareVtep)
     private val futureDbList =
         new MockListenableFuture[util.List[String]](dbNameList)
 
@@ -73,7 +73,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
         val client = Mockito.mock(classOf[OvsdbClient])
         val futureDb = new MockListenableFuture[DatabaseSchema](newMockDbSchema)
         Mockito.when(client.getDatabases).thenReturn(futureDbList)
-        Mockito.when(client.getSchema(OvsdbTools.DB_HARDWARE_VTEP))
+        Mockito.when(client.getSchema(OvsdbOperations.DbHardwareVtep))
             .thenReturn(futureDb)
         client
     }
@@ -167,7 +167,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
             And("The connection should have fetched the VTEP schema")
             Mockito.verify(client, Mockito.times(1)).getDatabases
             Mockito.verify(client, Mockito.times(1))
-                .getSchema(OvsdbTools.DB_HARDWARE_VTEP)
+                .getSchema(OvsdbOperations.DbHardwareVtep)
             Mockito.verifyNoMoreInteractions(client)
 
             subscription.unsubscribe()
@@ -225,7 +225,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
             And("The connection should have fetched the VTEP schema")
             Mockito.verify(client, Mockito.times(1)).getDatabases
             Mockito.verify(client, Mockito.times(1))
-                .getSchema(OvsdbTools.DB_HARDWARE_VTEP)
+                .getSchema(OvsdbOperations.DbHardwareVtep)
             Mockito.verifyNoMoreInteractions(client)
 
             subscription.unsubscribe()
@@ -272,7 +272,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
             And("The connection should have fetched the VTEP schema")
             Mockito.verify(client, Mockito.times(2)).getDatabases
             Mockito.verify(client, Mockito.times(2))
-                .getSchema(OvsdbTools.DB_HARDWARE_VTEP)
+                .getSchema(OvsdbOperations.DbHardwareVtep)
             Mockito.verifyNoMoreInteractions(client)
 
             subscription.unsubscribe()
@@ -365,7 +365,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
             And("The connection should have fetched the VTEP schema")
             Mockito.verify(client, Mockito.times(1)).getDatabases
             Mockito.verify(client, Mockito.times(1))
-                .getSchema(OvsdbTools.DB_HARDWARE_VTEP)
+                .getSchema(OvsdbOperations.DbHardwareVtep)
             Mockito.verifyNoMoreInteractions(client)
 
             subscription.unsubscribe()
