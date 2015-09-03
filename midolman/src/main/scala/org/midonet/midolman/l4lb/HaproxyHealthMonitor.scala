@@ -411,43 +411,35 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     def hookNamespaceToRouter(): Unit = {
         if (routerId == null)
             return
-        val ports = dataClient.portsFindByRouter(routerId)
-        var portId: UUID = null
 
-        // see if the port already exists, and delete it if it does. This can
-        // happen if there was already an haproxy attached to this router.
-        for (port <- ports) {
-            port match {
-                case rpc: RouterPort =>
-                    if (rpc.getPortAddr == RouterIp) {
-                        dataClient.hostsDelVrnPortMapping(hostId, rpc.getId)
-                        portId = rpc.getId
-                    }
-            }
+        def cleanUpPort(id: UUID): Unit = {
+            log.warn("deleting unused health monitor port " + id +
+                     " for pool " + config.id)
+            dataClient.portsDelete(id)
         }
 
-        if (portId == null) {
-            val routerPort = new RouterPort()
-            routerPort.setDeviceId(routerId)
-            routerPort.setHostId(hostId)
-            routerPort.setPortAddr(RouterIp)
-            routerPort.setNwAddr(NetAddr)
-            routerPort.setNwLength(NetLen)
-            routerPort.setInterfaceName(namespaceName)
-            portId = dataClient.portsCreate(routerPort)
-        }
-        routerPortId = portId
+        val virtualPortMappings =
+            dataClient.hostsGetVirtualPortMappingsByHost(hostId)
+            .filter(vpm => vpm.getLocalDeviceName == namespaceName)
+            .foreach(vpm => cleanUpPort(vpm.getVirtualPortId))
+
+        val routerPort = new RouterPort()
+        routerPort.setDeviceId(routerId)
+        routerPort.setHostId(hostId)
+        routerPort.setPortAddr(RouterIp)
+        routerPort.setNwAddr(NetAddr)
+        routerPort.setNwLength(NetLen)
+        routerPort.setInterfaceName(namespaceName)
+        routerPortId = dataClient.portsCreate(routerPort)
         addVipRoute(config.vip.ip)
 
-        dataClient.hostsAddVrnPortMapping(hostId, portId, namespaceName)
+        dataClient.hostsAddVrnPortMapping(hostId, routerPortId, namespaceName)
 
         createIpTableRules(healthMonitorName, config.vip.ip)
     }
 
     def unhookNamespaceFromRouter() = {
         if (routerPortId != null) {
-            dataClient.hostsDelVrnPortMapping(hostId, routerPortId)
-            dataClient.routesDelete(routeId)
             dataClient.portsDelete(routerPortId)
             deleteIpTableRules(healthMonitorName, config.vip.ip)
             routeId = null
