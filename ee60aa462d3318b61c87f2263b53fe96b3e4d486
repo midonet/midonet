@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ae8d1ca_bff513cd",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/FuncTest.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:31:30Z",
+      "side": 1,
+      "message": "we could remove this I guess?",
+      "range": {
+        "startLine": 107,
+        "startChar": 7,
+        "endLine": 110,
+        "endChar": 9
+      },
+      "revId": "ee60aa462d3318b61c87f2263b53fe96b3e4d486",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
