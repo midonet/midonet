@@ -40,31 +40,7 @@ import org.midonet.client.dto.DtoSystemState;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoWriteVersion;
 
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_AD_ROUTE_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BGP_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_JSON_V3;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_VERSION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTE_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_RULE_JSON_V2;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_SYSTEM_STATE_JSON_V2;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TENANT_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_WRITE_VERSION_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.*;
 
 public class Application extends ResourceBase<Application, DtoApplication> {
 
@@ -105,7 +81,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getBridges(),
                                  queryParams,
-                                 APPLICATION_BRIDGE_COLLECTION_JSON,
+                                 APPLICATION_BRIDGE_COLLECTION_JSON_V4,
                                  Bridge.class, DtoBridge.class);
     }
 
@@ -196,7 +172,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getBridgeTemplate(), ID_TOKEN, id);
         DtoBridge bridge = resource.get(uri, null, DtoBridge.class,
-                APPLICATION_BRIDGE_JSON);
+                APPLICATION_BRIDGE_JSON_V4);
         return new Bridge(resource, null, bridge);
     }
 

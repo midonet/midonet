@@ -45,7 +45,6 @@ public class Vtep extends UriResource {
         failed, error
     }
 
-    @JsonIgnore
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
