@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.management
+package org.midonet.management
 
-import java.lang.{Short => JShort, Integer => JInt, Byte => JByte}
-import org.midonet.odp.flows.FlowStats
-import org.rogach.scallop._
+import java.lang.{Byte => JByte, Integer => JInt, Short => JShort}
 import javax.management.remote.{JMXConnectorFactory, JMXServiceURL}
 import javax.management.{JMX, ObjectName}
+
+import org.rogach.scallop._
+
 import scala.util.{Failure, Success, Try}
+
+import org.midonet.odp.flows.FlowStats
 
 object MeterCommand {
     val SUCCESS = 0
