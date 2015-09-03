@@ -22,18 +22,17 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.l4lb.LBStatus;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HEALTH_MONITOR_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HEALTH_MONITOR_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HEALTH_MONITOR_JSON;
 
 @RunWith(Enclosed.class)
 public class TestHealthMonitor {
@@ -43,7 +42,7 @@ public class TestHealthMonitor {
         private void verifyNumberOfHealthMonitors(int num) {
             DtoHealthMonitor[] healthMonitors = dtoResource.getAndVerifyOk(
                     topLevelHealthMonitorsUri,
-                    APPLICATION_HEALTH_MONITOR_COLLECTION_JSON,
+                    APPLICATION_HEALTH_MONITOR_COLLECTION_JSON(),
                     DtoHealthMonitor[].class);
             assertEquals(num, healthMonitors.length);
         }
@@ -66,7 +65,7 @@ public class TestHealthMonitor {
             // POST with the same ID as the existing resource and get 409
             // CONFLICT.
             dtoResource.postAndVerifyStatus(topLevelHealthMonitorsUri,
-                    VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                    APPLICATION_HEALTH_MONITOR_JSON(),
                     healthMonitor2,
                     CONFLICT.getStatusCode());
             verifyNumberOfHealthMonitors(counter);
@@ -99,7 +98,7 @@ public class TestHealthMonitor {
             hm.setType(null);
             // `type` property of Health Monitor is mandatory.
             dtoResource.postAndVerifyBadRequest(topLevelHealthMonitorsUri,
-                    APPLICATION_HEALTH_MONITOR_JSON, hm);
+                    APPLICATION_HEALTH_MONITOR_JSON(), hm);
         }
 
         @Test
@@ -109,7 +108,7 @@ public class TestHealthMonitor {
             hm.setUri(addIdToUri(topLevelHealthMonitorsUri, hm.getId()));
             DtoError error = dtoResource.putAndVerifyError(
                     hm.getUri(),
-                    VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
+                    APPLICATION_HEALTH_MONITOR_JSON(),
                     hm, NOT_FOUND);
             assertErrorMatches(error, MessageProperty.RESOURCE_NOT_FOUND,
                                Topology.HealthMonitor.class.getSimpleName(),

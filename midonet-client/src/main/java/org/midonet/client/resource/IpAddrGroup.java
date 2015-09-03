@@ -21,15 +21,16 @@ import java.util.UUID;
 
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoIpAddrGroup;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
+
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
 
 public class IpAddrGroup extends ResourceBase<IpAddrGroup, DtoIpAddrGroup> {
 
 
     public IpAddrGroup(WebResource resource, URI uriForCreation,
                      DtoIpAddrGroup ipg) {
-        super(resource, uriForCreation, ipg,
-              VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON);
+        super(resource, uriForCreation, ipg, APPLICATION_IP_ADDR_GROUP_JSON());
     }
 
     @Override
