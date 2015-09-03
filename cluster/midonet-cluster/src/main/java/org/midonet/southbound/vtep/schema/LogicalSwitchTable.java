@@ -108,7 +108,7 @@ public final class LogicalSwitchTable extends Table {
      * Extract a complete logical switch from a table row
      */
     @Override
-    @SuppressWarnings(value = "unckecked")
+    @SuppressWarnings(value = "unchecked")
     public <E extends VtepEntry>
     E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
         throws IllegalArgumentException {

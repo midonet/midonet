@@ -331,10 +331,10 @@ class OvsdbVtepConnection(override val endPoint: VtepEndPoint,
     private lazy val onConnected: Handler = {
         case Connected(channel, client, _) =>
             log.info("Connected ({}): retrieving VTEP schema", state.get)
-            OvsdbTools.getDbSchema(client, OvsdbTools.DB_HARDWARE_VTEP,
-                                   executor, channel.closeFuture(),
-                                   new VtepNotConnectedException(endPoint))
-                      .future flatMap { schema =>
+            OvsdbOperations.getDbSchema(client, OvsdbOperations.DbHardwareVtep,
+                                        executor, channel.closeFuture(),
+                                        new VtepNotConnectedException(endPoint)
+                                        ) flatMap { schema =>
                 log.info("Connected ({}): retrieved hardware VTEP schema",
                          state.get)
                 state.get match {

@@ -16,12 +16,12 @@
 
 package org.midonet.southbound.vtep
 
-import java.util
 import java.util.UUID
 import java.util.concurrent.Executor
 
 import scala.collection.Iterable
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -40,6 +40,7 @@ import org.midonet.southbound.vtep.schema.Table.OvsdbOperation
 import org.midonet.southbound.vtep.schema._
 import org.midonet.util.concurrent._
 import org.midonet.util.functors.{makeAction0, makeFunc1}
+import org.midonet.southbound.vtep.OvsdbOperations._
 
 /**
  * This class handles the data from an OVSDB-compliant VTEP.
@@ -165,9 +166,7 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
     : Future[LogicalSwitch] = {
         logicalSwitch(name).flatMap {
             case Some(ls) => Future.successful(ls)
-            case None =>
-                val ls = LogicalSwitch(name, vni, "")
-                lsTable.insert(ls).collect {case id => ls}
+            case None => lsTable.insert(LogicalSwitch(name, vni, ""))
         }
     }
 
@@ -191,20 +190,11 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
                         ports = ports updated
                                 (p.name, p.newBinding(b._2.toInt, ls.uuid))
                 }
-                val ops = new util.ArrayList[OvsdbOperation]()
-                val hint = UUID.randomUUID()
-                ports.values.foreach(p => {
-                    ops.add(portTable.table.updateBindings(p))
-                    portTable.insertHint(p, hint)
-                })
-                val status =
-                    OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
-                              .future
-                status.onFailure {case e: Throwable =>
-                    ports.values.foreach(
-                        p => portTable.removeHint(p.uuid, hint))
+                val ops = new ArrayBuffer[OvsdbOperation]()
+                ports.values.foreach { p =>
+                    ops += portTable.table.updateBindings(p)
                 }
-                status.map(r => {})
+                multiOp(client, dbSchema, ops, vtepExecutor) map { _ => {} }
         }
     }
 
@@ -213,26 +203,26 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
             case None =>
                 throw ConfigException("Logical Switch not found: " + name)
             case Some(ls) =>
-                val ops = new util.ArrayList[OvsdbOperation]()
-
-                // clean-up mac tables
-                List(uLocalTable, uRemoteTable, mLocalTable, mRemoteTable)
-                    .foreach(t => {
-                    ops.add(t.table.deleteByLogicalSwitchId(ls.uuid))
-                })
-
-                // clear bindings
-                portTable.getAll.values
+                val bindings = portTable.getAll.values
                     .filter(_.isBoundToLogicalSwitchId(ls.uuid))
                     .map(_.clearBindings(ls.uuid))
-                    .foreach(p => ops.add(portTable.table.updateBindings(p)))
+                val ops = new ArrayBuffer[OvsdbOperation](bindings.size + 5)
 
-                // delete the switch
-                ops.add(lsTable.table.deleteByName(ls.name))
+                // Clean-up the MAC tables.
+                List(uLocalTable, uRemoteTable, mLocalTable, mRemoteTable)
+                    .foreach { t =>
+                    ops += t.table.deleteByLogicalSwitchId(ls.uuid)
+                }
 
-                OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
-                          .future
-                          .map(r => {})
+                // Clear the bindings.
+                bindings foreach { port =>
+                    ops += portTable.table.updateBindings(port)
+                }
+
+                // Delete the logical switch.
+                ops += lsTable.table.deleteByName(ls.name)
+
+                multiOp(client, dbSchema, ops, vtepExecutor).map(_ => {})
         }
     }
 
@@ -257,14 +247,12 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
         private def applyRemoteMacAddition(macLocation: MacLocation): Unit = {
             macLocationToMacEntries(macLocation) onComplete {
                 case Success(entries) =>
-                    val ops = new util.ArrayList[OvsdbOperation]()
-                    entries.foreach({
-                        case u: UcastMac => ops.add(uRemoteTable.table.insert(u))
-                        case m: McastMac => ops.add(mRemoteTable.table.insert(m))
-                    })
-                    OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
-                        .future
-                        .onComplete {
+                    val ops = new ArrayBuffer[OvsdbOperation](entries.length)
+                    entries foreach {
+                        case u: UcastMac => ops += uRemoteTable.table.delete(u)
+                        case m: McastMac => ops += mRemoteTable.table.delete(m)
+                    }
+                    multiOp(client, dbSchema, ops, vtepExecutor) onComplete {
                         case Failure(t) =>
                             log.warn("Failed to insert entries: {}", entries, t)
                             MacRemoteUpdater.this.request(1)
@@ -278,14 +266,12 @@ class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
 
         private def applyRemoteMacDeletion(macLocation: MacLocation): Unit = {
             macLocationToMacEntries(macLocation) onSuccess { case entries =>
-                val ops = new util.ArrayList[OvsdbOperation]()
-                entries.foreach({
-                    case u: UcastMac => ops.add(uRemoteTable.table.delete(u))
-                    case m: McastMac => ops.add(mRemoteTable.table.delete(m))
-                })
-                OvsdbTools.multiOp(client, dbSchema, ops, vtepExecutor)
-                    .future
-                    .onComplete {
+                val ops = new ArrayBuffer[OvsdbOperation](entries.length)
+                entries foreach {
+                    case u: UcastMac => ops += uRemoteTable.table.delete(u)
+                    case m: McastMac => ops += mRemoteTable.table.delete(m)
+                }
+                multiOp(client, dbSchema, ops, vtepExecutor) onComplete {
                     case Failure(err) =>
                         log.warn("failed to remove entries: " + entries, err)
                         MacRemoteUpdater.this.request(1)

@@ -18,7 +18,7 @@ package org.midonet.southbound.vtep
 
 import java.util.concurrent.Executor
 
-import scala.collection.JavaConversions.{asJavaIterable, iterableAsScalaIterable}
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
@@ -29,10 +29,10 @@ import rx.Observable.OnSubscribe
 import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.data.vtep.model.VtepEntry
-import org.midonet.southbound.vtep.OvsdbTools.{tableEntries, tableUpdates}
 import org.midonet.southbound.vtep.VtepEntryUpdate.addition
 import org.midonet.southbound.vtep.schema.Table
 import org.midonet.util.functors.makeFunc1
+import org.midonet.southbound.vtep.OvsdbOperations._
 
 /**
  * A class implementing the vtep table monitor for ovsdb-based vteps
@@ -47,29 +47,29 @@ class OvsdbTableMonitor[T <: Table, Entry <: VtepEntry](client: OvsdbClient,
 
     private val onUpdate = makeFunc1[TableUpdate[GenericTableSchema],
                                      Observable[VtepTableUpdate[Entry]]](u => {
-        val changes = u.getRows.keySet().map { rowId =>
+        val changes = u.getRows.keySet().asScala.map { rowId =>
             VtepEntryUpdate[Entry](table.parseEntry(u.getOld(rowId), clazz),
                                    table.parseEntry(u.getNew(rowId), clazz))
         }
-        Observable.from(changes)
+        Observable.from(changes.asJava)
     })
 
     private val onSubscribe = new OnSubscribe[VtepTableUpdate[Entry]] {
         override def call(s: Subscriber[_ >: VtepTableUpdate[Entry]]) = {
 
-            val entries = tableEntries(client, table.getDbSchema,
-                                       table.getSchema, table.getColumnSchemas,
-                                       null, executor)
-            entries.future.onComplete {
+            tableEntries(client, table.getDbSchema, table.getSchema,
+                         table.getColumnSchemas.asScala, null,
+                         executor).onComplete {
                 case Failure(exc) => s.onError(exc)
                 case Success(rows) =>
-                    rows.toIterable.foreach(r => s.onNext (
-                        addition(table.parseEntry(r, clazz)))
-                    )
+                    var initialUpdates: Seq[VtepTableUpdate[Entry]] =
+                        for (row <- rows)
+                            yield addition(table.parseEntry(row, clazz))
+                    initialUpdates = initialUpdates :+ VtepTableReady[Entry]()
                     tableUpdates(client, table.getDbSchema, table.getSchema,
-                                 table.getColumnSchemas)
+                                 table.getColumnSchemas.asScala)
                         .concatMap(onUpdate)
-                        .startWith(VtepTableReady[Entry]())
+                        .startWith(initialUpdates.asJava)
                         .subscribe(s)
             }(executionContext)
         }

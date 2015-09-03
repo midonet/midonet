@@ -32,10 +32,10 @@ import org.scalatest.{FeatureSpec, Matchers}
 import org.midonet.cluster.data.vtep.model.PhysicalLocator
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.schema._
-import org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb
+import org.midonet.southbound.vtep.OvsdbUtil.toOvsdb
 import org.midonet.util.reactivex.TestAwaitableObserver
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class MockOvsdbVtepTest extends FeatureSpec with Matchers {
 
     val timeout = Duration(5000, TimeUnit.MILLISECONDS)

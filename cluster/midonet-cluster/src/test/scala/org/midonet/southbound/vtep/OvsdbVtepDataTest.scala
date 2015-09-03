@@ -34,9 +34,10 @@ import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema._
 import org.midonet.util.MidonetEventually
+import org.midonet.util.concurrent._
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class OvsdbVtepDataTest extends FeatureSpec with Matchers
                                 with BeforeAndAfter with BeforeAndAfterAll
                                 with MidonetEventually {
@@ -74,9 +75,9 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
         vtep = new InMemoryOvsdbVtep()
         client = vtep.getClient
         endPoint = OvsdbTools.endPointFromOvsdbClient(client)
-        db = OvsdbTools.getDbSchema(client, OvsdbTools.DB_HARDWARE_VTEP,
-                                    CallingThreadExecutionContext.asInstanceOf[Executor])
-                       .result(timeout)
+        db = OvsdbOperations.getDbSchema(client, OvsdbOperations.DbHardwareVtep,
+                                         CallingThreadExecutionContext.asInstanceOf[Executor])
+                            .await(timeout)
         psTable = new PhysicalSwitchTable(db)
         portTable = new PhysicalPortTable(db)
         lsTable = new LogicalSwitchTable(db)

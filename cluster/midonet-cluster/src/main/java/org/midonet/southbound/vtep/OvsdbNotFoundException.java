@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.midonet.southbound.vtep
+package org.midonet.southbound.vtep;
 
-import java.util.UUID
+import org.opendaylight.ovsdb.lib.OvsdbClient;
 
-import scala.concurrent.Future
+public class OvsdbNotFoundException extends OvsdbException {
 
-import org.midonet.cluster.data.vtep.model.VtepEntry
-import org.midonet.southbound.vtep.schema.Table
+    public OvsdbNotFoundException(OvsdbClient client, String msg) {
+        super(client, msg);
+    }
 
-/**
- * A local mirror of a VTEP cache
- */
-trait VtepCachedTable[T <: Table, Entry <: VtepEntry] {
-    def get(id: UUID): Option[Entry]
-    def getAll: Map[UUID, Entry]
-    def select(id: UUID): Future[Option[Entry]]
-    def insert(row: Entry): Future[Entry]
-    def ready: Future[Boolean]
-    def isReady: Boolean
 }

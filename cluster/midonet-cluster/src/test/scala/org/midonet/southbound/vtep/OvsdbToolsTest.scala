@@ -37,16 +37,17 @@ import org.midonet.cluster.data.vtep.model.{LogicalSwitch, UcastMac, VtepMAC}
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema._
+import org.midonet.util.concurrent._
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 import org.midonet.util.reactivex.TestAwaitableObserver
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
     val timeout = Duration(5000, TimeUnit.MILLISECONDS)
     val shortTimeout = Duration(500, TimeUnit.MILLISECONDS)
 
     val random = new Random()
-    val vtepDb = OvsdbTools.DB_HARDWARE_VTEP
+    val vtepDb = OvsdbOperations.DbHardwareVtep
     var vtep: InMemoryOvsdbVtep = _
     var client: OvsdbClient = _
     val executor = CallingThreadExecutionContext.asInstanceOf[Executor]
@@ -77,61 +78,61 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
 
     feature("schema operations") {
         scenario("retrieve db schema") {
-            val result = OvsdbTools.getDbSchema(client, vtepDb, executor)
-            val db = result.result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             db.getName shouldBe vtepDb
         }
         scenario("obtain logical switch table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val t = new LogicalSwitchTable(db)
             t.getColumnSchemas.map(_.getName).contains("_uuid") shouldBe true
         }
         scenario("obtain mcast macs local table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val t = new McastMacsLocalTable(db)
             t.getColumnSchemas.map(_.getName).contains("_uuid") shouldBe true
         }
         scenario("obtain mcast macs remote table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val t = new McastMacsRemoteTable(db)
             t.getColumnSchemas.map(_.getName).contains("_uuid") shouldBe true
         }
         scenario("obtain physical locator set table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val t = new PhysicalLocatorSetTable(db)
             t.getColumnSchemas.map(_.getName).contains("_uuid") shouldBe true
         }
         scenario("obtain physical locator table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val t = new PhysicalLocatorTable(db)
             t.getColumnSchemas.map(_.getName).contains("_uuid") shouldBe true
         }
         scenario("obtain physical port table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val t = new PhysicalPortTable(db)
             t.getColumnSchemas.map(_.getName).contains("_uuid") shouldBe true
         }
         scenario("obtain physical switch table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val t = new PhysicalSwitchTable(db)
             t.getColumnSchemas.map(_.getName).contains("_uuid") shouldBe true
         }
         scenario("obtain ucast macs local table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val t = new UcastMacsLocalTable(db)
             t.getColumnSchemas.map(_.getName).contains("_uuid") shouldBe true
         }
         scenario("obtain ucast macs remote table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val t = new UcastMacsRemoteTable(db)
             t.getColumnSchemas.map(_.getName).contains("_uuid") shouldBe true
         }
@@ -139,7 +140,8 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
 
     feature("data monitor") {
         scenario("vtep receives monitor requests") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor).result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepMonitor = new TestAwaitableObserver[String]()
             vtep.monitorRequests.subscribe(vtepMonitor)
 
@@ -147,9 +149,9 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
             val localUcast = new UcastMacsLocalTable(db)
 
             // request updates
-            val obs1 = OvsdbTools.tableUpdates(client, db, localMcast.getSchema,
+            val obs1 = OvsdbOperations.tableUpdates(client, db, localMcast.getSchema,
                                                localMcast.getColumnSchemas)
-            val obs2 = OvsdbTools.tableUpdates(client, db, localUcast.getSchema,
+            val obs2 = OvsdbOperations.tableUpdates(client, db, localUcast.getSchema,
                                                localMcast.getColumnSchemas)
 
             // monitoring starts on subscription
@@ -164,8 +166,8 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
 
     feature("data transactions") {
         scenario("vtep receives single operation transactions") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepMonitor = new TestAwaitableObserver[Operation[_]]()
             vtep.operationRequests.subscribe(vtepMonitor)
 
@@ -175,8 +177,8 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
             val ins = t.insert(ls)
             val del = t.deleteByName("lsName")
 
-            val r1 = OvsdbTools.singleOp(client, db, ins, executor)
-            val r2 = OvsdbTools.singleOp(client, db, del, executor)
+            val r1 = OvsdbOperations.singleOp(client, db, ins, executor)
+            val r2 = OvsdbOperations.singleOp(client, db, del, executor)
 
             vtepMonitor.awaitOnNext(2, timeout) shouldBe true
             val events = vtepMonitor.getOnNextEvents.toSet
@@ -185,12 +187,12 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
                 case op: Delete[_] => "DELETE"
             }) shouldBe Set("INSERT", "DELETE")
 
-            r1.result(timeout).getError shouldBe null
-            r2.result(timeout).getError shouldBe null
+            r1.await(timeout).getError shouldBe null
+            r2.await(timeout).getError shouldBe null
         }
         scenario("vtep receives multi operation transactions") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepOperations = new TestAwaitableObserver[Operation[_]]()
             vtep.operationRequests.subscribe(vtepOperations)
 
@@ -200,8 +202,9 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
             val ins: Table.OvsdbOperation = t.insert(ls)
             val del: Table.OvsdbOperation = t.deleteByName("lsName")
 
-            val r = OvsdbTools.multiOp(client, db, Lists.newArrayList(ins, del),
-                                       executor)
+            val r = OvsdbOperations.multiOp(client, db,
+                                            Lists.newArrayList(ins, del),
+                                            executor)
 
             vtepOperations.awaitOnNext(2, timeout) shouldBe true
             val events = vtepOperations.getOnNextEvents.toSet
@@ -210,23 +213,24 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
                 case op: Delete[_] => "DELETE"
             }) shouldBe Set("INSERT", "DELETE")
 
-            val results = r.result(timeout)
+            val results = r.await(timeout)
             results should have size 2
             results.forall(_.getError == null) shouldBe true
         }
     }
     feature("insert") {
         scenario("vtep processes an insert") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepOperations = new TestAwaitableObserver[Operation[_]]()
             vtep.operationRequests.subscribe(vtepOperations)
 
             val t = new UcastMacsLocalTable(db)
             val mac = randomUcast
 
-            val op = OvsdbTools.insert(client, t, t.insert(mac), executor)
-            op.result(timeout) shouldBe mac.uuid
+            val op = OvsdbOperations.singleOp(client, t.getDbSchema,
+                                              t.insert(mac), executor)
+            op.await(timeout) shouldBe mac.uuid
 
             vtepOperations.awaitOnNext(1, timeout) shouldBe true
             val events = vtepOperations.getOnNextEvents.toSet
@@ -235,19 +239,21 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
     }
     feature("delete") {
         scenario("vtep processes a delete") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepOperations = new TestAwaitableObserver[Operation[_]]()
             vtep.operationRequests.subscribe(vtepOperations)
 
             val t = new UcastMacsLocalTable(db)
             val mac = randomUcast
 
-            val op = OvsdbTools.insert(client, t, t.insert(mac), executor)
-            op.result(timeout) shouldBe mac.uuid
+            val op = OvsdbOperations.singleOp(client, t.getDbSchema,
+                                              t.insert(mac), executor)
+            op.await(timeout) shouldBe mac.uuid
 
-            val del = OvsdbTools.delete(client, t, t.delete(mac), executor)
-            del.result(timeout) shouldBe 1
+            val del = OvsdbOperations.singleOp(client, t.getDbSchema,
+                                               t.delete(mac), executor)
+            del.await(timeout) shouldBe 1
 
             vtepOperations.awaitOnNext(2, timeout) shouldBe true
             val events = vtepOperations.getOnNextEvents.toSet
@@ -257,16 +263,17 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
 
     feature("query") {
         scenario("query on an empty table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepOperations = new TestAwaitableObserver[Operation[_]]()
             vtep.operationRequests.subscribe(vtepOperations)
 
             val t = new UcastMacsLocalTable(db)
-            val op = OvsdbTools.tableEntries(client, db, t.getSchema,
-                                             t.getColumnSchemas, null, executor)
+            val op = OvsdbOperations.tableEntries(client, db, t.getSchema,
+                                                  t.getColumnSchemas, null,
+                                                  executor)
 
-            val rows = op.result(timeout)
+            val rows = op.await(timeout)
             rows should have size 0
 
             vtepOperations.awaitOnNext(1, timeout) shouldBe true
@@ -274,21 +281,22 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
             events should have size 1
         }
         scenario("query on a table with a single row") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepOperations = new TestAwaitableObserver[Operation[_]]()
             vtep.operationRequests.subscribe(vtepOperations)
 
             val t = new UcastMacsLocalTable(db)
             val mac = randomUcast
 
-            val ins = OvsdbTools.insert(client, t, t.insert(mac), executor)
-            ins.result(timeout) shouldBe mac.uuid
+            val ins = OvsdbOperations.singleOp(client, t.getDbSchema,
+                                               t.insert(mac), executor)
+            ins.await(timeout) shouldBe mac.uuid
 
-            val op = OvsdbTools.tableEntries(client, db, t.getSchema,
+            val op = OvsdbOperations.tableEntries(client, db, t.getSchema,
                                              t.getColumnSchemas, null, executor)
 
-            val rows = op.result(timeout)
+            val rows = op.await(timeout)
             rows should have size 1
             t.parseEntry(rows.toSet.head, classOf[UcastMac]) shouldBe mac
 
@@ -297,8 +305,8 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
             events should have size 2
         }
         scenario("query on a table with multiple rows") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepOperations = new TestAwaitableObserver[Operation[_]]()
             vtep.operationRequests.subscribe(vtepOperations)
 
@@ -306,15 +314,18 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
             val mac1 = randomUcast
             val mac2 = randomUcast
 
-            val ins1 = OvsdbTools.insert(client, t, t.insert(mac1), executor)
-            val ins2 = OvsdbTools.insert(client, t, t.insert(mac2), executor)
-            ins1.result(timeout) shouldBe mac1.uuid
-            ins2.result(timeout) shouldBe mac2.uuid
+            val ins1 = OvsdbOperations.singleOp(client, t.getDbSchema,
+                                                t.insert(mac1), executor)
+            val ins2 = OvsdbOperations.singleOp(client, t.getDbSchema,
+                                                t.insert(mac2), executor)
+            ins1.await(timeout) shouldBe mac1.uuid
+            ins2.await(timeout) shouldBe mac2.uuid
 
-            val op = OvsdbTools.tableEntries(client, db, t.getSchema,
-                                             t.getColumnSchemas, null, executor)
+            val op = OvsdbOperations.tableEntries(client, db, t.getSchema,
+                                                  t.getColumnSchemas, null,
+                                                  executor)
 
-            val rows = op.result(timeout)
+            val rows = op.await(timeout)
             rows should have size 2
             rows.toSet[Row[GenericTableSchema]]
                 .map(t.parseEntry(_, classOf[UcastMac])) shouldBe
@@ -327,14 +338,14 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
     }
     feature("monitor") {
         scenario("subscription on an empty table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepMonitor = new TestAwaitableObserver[String]()
             vtep.monitorRequests.subscribe(vtepMonitor)
 
             val t = new UcastMacsLocalTable(db)
-            val stream = OvsdbTools.tableUpdates(client, db, t.getSchema,
-                                                 t.getColumnSchemas)
+            val stream = OvsdbOperations.tableUpdates(client, db, t.getSchema,
+                                                      t.getColumnSchemas)
 
             val monitor = new TestAwaitableObserver[TableUpdate[GenericTableSchema]]()
             stream.subscribe(monitor)
@@ -344,8 +355,9 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
 
             // insert
             val mac1 = randomUcast
-            val ins1 = OvsdbTools.insert(client, t, t.insert(mac1), executor)
-            ins1.result(timeout) shouldBe mac1.uuid
+            val ins1 = OvsdbOperations.singleOp(client, t.getDbSchema,
+                                                t.insert(mac1), executor)
+            ins1.await(timeout) shouldBe mac1.uuid
 
             monitor.awaitOnNext(1, timeout) shouldBe true
             val data = monitor.getOnNextEvents.toSet
@@ -357,19 +369,20 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
             t.parseEntry(update.getNew, classOf[UcastMac]) shouldBe mac1
         }
         scenario("subscription on a non-empty table") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepMonitor = new TestAwaitableObserver[String]()
             vtep.monitorRequests.subscribe(vtepMonitor)
 
             val t = new UcastMacsLocalTable(db)
             val mac1 = randomUcast
-            val ins1 = OvsdbTools.insert(client, t, t.insert(mac1), executor)
-            ins1.result(timeout) shouldBe mac1.uuid
+            val ins1 = OvsdbOperations.singleOp(client, t.getDbSchema,
+                                                t.insert(mac1), executor)
+            ins1.await(timeout) shouldBe mac1.uuid
 
 
-            val stream = OvsdbTools.tableUpdates(client, db, t.getSchema,
-                                                 t.getColumnSchemas)
+            val stream = OvsdbOperations.tableUpdates(client, db, t.getSchema,
+                                                      t.getColumnSchemas)
 
             val monitor = new TestAwaitableObserver[TableUpdate[GenericTableSchema]]()
             stream.subscribe(monitor)
@@ -381,14 +394,14 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
                 thrownBy(monitor.awaitOnNext(1, shortTimeout))
         }
         scenario("row replacement") {
-            val db = OvsdbTools.getDbSchema(client, vtepDb, executor)
-                               .result(timeout)
+            val db = OvsdbOperations.getDbSchema(client, vtepDb, executor)
+                                    .await(timeout)
             val vtepMonitor = new TestAwaitableObserver[String]()
             vtep.monitorRequests.subscribe(vtepMonitor)
 
             val t = new LogicalSwitchTable(db)
-            val stream = OvsdbTools.tableUpdates(client, db, t.getSchema,
-                                                 t.getColumnSchemas)
+            val stream = OvsdbOperations.tableUpdates(client, db, t.getSchema,
+                                                      t.getColumnSchemas)
 
             val monitor = new TestAwaitableObserver[TableUpdate[GenericTableSchema]]()
             stream.subscribe(monitor)
@@ -401,8 +414,9 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
                                     name = "lsName",
                                     vni = random.nextInt(4096),
                                     desc = "lsDesc")
-            val ins1 = OvsdbTools.insert(client, t, t.insert(ls1), executor)
-            ins1.result(timeout) shouldBe ls1.uuid
+            val ins1 = OvsdbOperations.singleOp(client, t.getDbSchema,
+                                                t.insert(ls1), executor)
+            ins1.await(timeout) shouldBe ls1.uuid
 
             monitor.awaitOnNext(1, timeout) shouldBe true
 
@@ -410,8 +424,9 @@ class OvsdbToolsTest extends FeatureSpec with Matchers with BeforeAndAfter {
                                     name = "lsName",
                                     vni = random.nextInt(4096),
                                     desc = "lsChanged")
-            val ins2 = OvsdbTools.insert(client, t, t.insert(ls2), executor)
-            ins2.result(timeout) shouldBe ls2.uuid
+            val ins2 = OvsdbOperations.singleOp(client, t.getDbSchema,
+                                                t.insert(ls2), executor)
+            ins2.await(timeout) shouldBe ls2.uuid
 
             ls1.uuid shouldBe ls2.uuid
 

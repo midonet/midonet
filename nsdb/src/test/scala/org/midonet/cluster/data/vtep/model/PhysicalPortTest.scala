@@ -29,8 +29,8 @@ class PhysicalPortTest extends FeatureSpec with Matchers {
     val uuid = UUID.randomUUID()
     val name = "pp-name"
     val desc = "pp-desc"
-    val bindings = Map[Integer, UUID](1.asInstanceOf[Integer] -> lsId)
-    val stats = Map[Integer, UUID](1.asInstanceOf[Integer] -> stId)
+    val bindings = Map[java.lang.Long, UUID](java.lang.Long.valueOf(1L) -> lsId)
+    val stats = Map[java.lang.Long, UUID](java.lang.Long.valueOf(1L) -> stId)
     val faults = Set[String]("some")
 
     feature("constructors") {

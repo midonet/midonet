@@ -30,8 +30,8 @@ import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 import org.midonet.cluster.data.vtep.model.PhysicalLocatorSet;
 import org.midonet.cluster.data.vtep.model.VtepEntry;
 
-import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdb;
-import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.fromOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdb;
 
 /**
  * Schema for the Ovsdb physical switch table
@@ -70,6 +70,7 @@ public final class PhysicalLocatorSetTable extends Table {
     /**
      * Extract the set of locator ids
      */
+    @SuppressWarnings(value = "unchecked")
     private Set<java.util.UUID> parseLocators(Row<GenericTableSchema> row) {
         return fromOvsdb(extractSet(row, getLocatorsSchema()));
     }
@@ -78,7 +79,7 @@ public final class PhysicalLocatorSetTable extends Table {
      * Extract the locator set object
      */
     @Override
-    @SuppressWarnings(value = "unckecked")
+    @SuppressWarnings(value = "unchecked")
     public <E extends VtepEntry>
     E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
         throws IllegalArgumentException {

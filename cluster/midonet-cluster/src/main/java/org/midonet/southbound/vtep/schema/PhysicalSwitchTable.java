@@ -32,10 +32,10 @@ import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 
-import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdb;
-import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdbIpSet;
-import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
-import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdbIpSet;
+import static org.midonet.southbound.vtep.OvsdbUtil.fromOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.fromOvsdbIpSet;
+import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdbIpSet;
 
 /**
  * Schema for the Ovsdb physical switch table
