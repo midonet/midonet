@@ -27,7 +27,6 @@ import javax.ws.rs.core.UriBuilder;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.packets.MAC;
-import org.midonet.util.version.Since;
 
 import static org.midonet.cluster.rest_api.ResourceUris.BRIDGES;
 import static org.midonet.cluster.rest_api.ResourceUris.MAC_TABLE;
@@ -45,7 +44,6 @@ public class MacPort extends UriResource {
     @NotNull
     public UUID portId;
 
-    @Since("2")
     public Short vlanId;
 
     @JsonIgnore

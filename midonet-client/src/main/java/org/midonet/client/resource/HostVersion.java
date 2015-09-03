@@ -21,14 +21,14 @@ import java.util.UUID;
 
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoHostVersion;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 public class HostVersion extends ResourceBase<HostVersion, DtoHostVersion> {
 
 
     public HostVersion(WebResource resource, URI uriForCreation, DtoHostVersion hv) {
         super(resource, uriForCreation, hv,
-              VendorMediaType.APPLICATION_HOST_VERSION_JSON);
+              MidonetMediaTypes.APPLICATION_HOST_VERSION_JSON());
     }
 
     @Override

@@ -49,19 +49,19 @@ import org.midonet.client.resource.BridgePort;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterfacePort;
 import org.midonet.client.resource.ResourceCollection;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_IS_NOT_IN_ANY_TUNNEL_ZONE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_COLLECTION_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_INTERFACE_PORT_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_JSON;
 
 @RunWith(Enclosed.class)
 public class TestHostInterfacePort {
@@ -134,7 +134,7 @@ public class TestHostInterfacePort {
             mapping.setIpAddress("192.168.100.2");
             dtoResource.postAndVerifyCreated(
                     tz.getHosts(),
-                    VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
+                    APPLICATION_TUNNEL_ZONE_HOST_JSON(),
                     mapping,
                     DtoTunnelZoneHost.class);
         }
@@ -150,7 +150,7 @@ public class TestHostInterfacePort {
             // List mappings.  There should be none.
             DtoHostInterfacePort[] maps = dtoResource.getAndVerifyOk(
                     host.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+                    APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON(),
                     DtoHostInterfacePort[].class);
             Assert.assertEquals(0, maps.length);
 
@@ -160,26 +160,26 @@ public class TestHostInterfacePort {
             mapping1.setInterfaceName("eth0");
             mapping1 = dtoResource.postAndVerifyCreated(
                     host.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_JSON,
+                    APPLICATION_HOST_INTERFACE_PORT_JSON(),
                     mapping1,
                     DtoHostInterfacePort.class);
 
             // List bridge mapping and verify that there is one
             maps = dtoResource.getAndVerifyOk(
                     host.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+                    APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON(),
                     DtoHostInterfacePort[].class);
             Assert.assertEquals(1, maps.length);
 
             // Remove mapping
             dtoResource.deleteAndVerifyNoContent(
                     mapping1.getUri(),
-                    APPLICATION_HOST_INTERFACE_PORT_JSON);
+                    APPLICATION_HOST_INTERFACE_PORT_JSON());
 
             // List mapping and verify that there is none
             maps = dtoResource.getAndVerifyOk(
                     host.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+                    APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON(),
                     DtoHostInterfacePort[].class);
 
             Assert.assertEquals(0, maps.length);
@@ -196,7 +196,7 @@ public class TestHostInterfacePort {
             mapping.setInterfaceName("eth0");
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     host.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_JSON,
+                    APPLICATION_HOST_INTERFACE_PORT_JSON(),
                     mapping);
             assertErrorMatchesLiteral(error,
                     getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, host1Id));
@@ -215,7 +215,7 @@ public class TestHostInterfacePort {
             // List mappings.  There should be none.
             DtoHostInterfacePort[] maps = dtoResource.getAndVerifyOk(
                 host.getPorts(),
-                APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+                APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON(),
                 DtoHostInterfacePort[].class);
             Assert.assertEquals(0, maps.length);
 
@@ -224,7 +224,7 @@ public class TestHostInterfacePort {
             mapping.setInterfaceName("eth0");
             dtoResource.postAndVerifyCreated(
                     host.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_JSON,
+                    APPLICATION_HOST_INTERFACE_PORT_JSON(),
                     mapping,
                     DtoHostInterfacePort.class);
 
@@ -233,7 +233,7 @@ public class TestHostInterfacePort {
             mapping.setInterfaceName("eth0");
             dtoResource.postAndVerifyBadRequest(
                     host.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_JSON,
+                    APPLICATION_HOST_INTERFACE_PORT_JSON(),
                     mapping);
 
         }
@@ -249,7 +249,7 @@ public class TestHostInterfacePort {
             // List mappings.  There should be none.
             DtoHostInterfacePort[] maps = dtoResource.getAndVerifyOk(
                 host.getPorts(),
-                APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+                APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON(),
                 DtoHostInterfacePort[].class);
             Assert.assertEquals(0, maps.length);
 
@@ -258,7 +258,7 @@ public class TestHostInterfacePort {
             mapping.setInterfaceName("eth0");
             dtoResource.postAndVerifyCreated(
                 host.getPorts(),
-                APPLICATION_HOST_INTERFACE_PORT_JSON,
+                APPLICATION_HOST_INTERFACE_PORT_JSON(),
                 mapping,
                 DtoHostInterfacePort.class);
 
@@ -267,7 +267,7 @@ public class TestHostInterfacePort {
             mapping.setInterfaceName("eth1");
             dtoResource.postAndVerifyBadRequest(
                 host.getPorts(),
-                APPLICATION_HOST_INTERFACE_PORT_JSON,
+                APPLICATION_HOST_INTERFACE_PORT_JSON(),
                 mapping);
 
         }
@@ -337,13 +337,13 @@ public class TestHostInterfacePort {
             port.setPortAddress("10.0.0.1");
             DtoRouterPort resPort =
                     dtoResource.postAndVerifyCreated(resRouter.getPorts(),
-                            APPLICATION_PORT_V2_JSON,
+                            APPLICATION_PORT_V2_JSON(),
                             port, DtoRouterPort.class);
 
             // Get the host DTO.
             DtoHost[] hosts = dtoResource.getAndVerifyOk(
                     topology.getApplication().getHosts(),
-                    APPLICATION_HOST_COLLECTION_JSON_V3,
+                    APPLICATION_HOST_COLLECTION_JSON_V3(),
                     DtoHost[].class);
             Assert.assertEquals(1, hosts.length);
             DtoHost resHost = hosts[0];
@@ -355,10 +355,10 @@ public class TestHostInterfacePort {
             hostBinding.setInterfaceName("eth0");
             hostBinding.setPortId(resPort.getId());
             dtoResource.postAndVerifyCreated(resHost.getPorts(),
-                 APPLICATION_HOST_INTERFACE_PORT_JSON, hostBinding,
+                 APPLICATION_HOST_INTERFACE_PORT_JSON(), hostBinding,
                  DtoHostInterfacePort.class);
             dtoResource.deleteAndVerifyNoContent(resRouter.getUri(),
-                                                 APPLICATION_ROUTER_JSON_V2);
+                                                 APPLICATION_ROUTER_JSON_V3());
         }
     }
 }

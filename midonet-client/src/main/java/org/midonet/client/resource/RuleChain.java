@@ -22,13 +22,13 @@ import java.util.UUID;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRuleChain;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 public class RuleChain extends ResourceBase<RuleChain, DtoRuleChain> {
 
     public RuleChain(WebResource resource, URI uriForCreation, DtoRuleChain c) {
         super(resource, uriForCreation, c,
-              VendorMediaType.APPLICATION_CHAIN_JSON);
+              MidonetMediaTypes.APPLICATION_CHAIN_JSON());
     }
 
     /**
@@ -110,7 +110,7 @@ public class RuleChain extends ResourceBase<RuleChain, DtoRuleChain> {
         return getChildResources(
             principalDto.getRules(),
             null,
-            VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2,
+            MidonetMediaTypes.APPLICATION_RULE_COLLECTION_JSON_V2(),
             Rule.class,
             DtoRule.class);
     }
