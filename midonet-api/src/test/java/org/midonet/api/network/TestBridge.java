@@ -65,21 +65,19 @@ import static org.midonet.api.rest_api.FuncTest._injector;
 import static org.midonet.api.rest_api.FuncTest.appDesc;
 import static org.midonet.api.rest_api.FuncTest.objectMapper;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V4;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP4_MAC_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON_V2;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_JSON_V2;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.BRIDGE_HAS_MAC_PORT;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.BRIDGE_HAS_VLAN;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MAC_PORT_ON_BRIDGE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MAC_URI_FORMAT;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VLAN_ID_MATCHES_PORT_VLAN_ID;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_COLLECTION_JSON_V4;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_IP4_MAC_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_IP4_MAC_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_MAC_PORT_COLLECTION_JSON_V2;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_MAC_PORT_JSON_V2;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
 
 @RunWith(Enclosed.class)
 public class TestBridge {
@@ -171,7 +169,7 @@ public class TestBridge {
 
             // Get the actual DtoBridge objects
             String actualRaw = dtoWebResource.getAndVerifyOk(app.getBridges(),
-                    APPLICATION_BRIDGE_COLLECTION_JSON_V4, String.class);
+                    APPLICATION_BRIDGE_COLLECTION_JSON_V4(), String.class);
             JavaType type = objectMapper.getTypeFactory()
                     .constructParametrizedType(List.class, List.class,
                                                DtoBridge.class);
@@ -194,7 +192,7 @@ public class TestBridge {
 
             // Get the actual DtoBridge objects
             String actualRaw = dtoWebResource.getAndVerifyOk(tenant.getBridges(),
-                    APPLICATION_BRIDGE_COLLECTION_JSON_V4, String.class);
+                    APPLICATION_BRIDGE_COLLECTION_JSON_V4(), String.class);
             JavaType type = objectMapper.getTypeFactory()
                     .constructParametrizedType(List.class, List.class,
                                                DtoBridge.class);
@@ -244,7 +242,7 @@ public class TestBridge {
         private DtoBridgePort addTrunkPort(DtoBridge bridge) {
             DtoBridgePort port = new DtoBridgePort();
             port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
-                    APPLICATION_PORT_V2_JSON, port, DtoBridgePort.class);
+                    APPLICATION_PORT_V2_JSON(), port, DtoBridgePort.class);
             assertNotNull(port.getId());
             return port;
         }
@@ -254,7 +252,7 @@ public class TestBridge {
             DtoBridgePort port = new DtoBridgePort();
             port.setVlanId(vlanId);
             port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
-                    APPLICATION_PORT_V2_JSON, port, DtoBridgePort.class);
+                    APPLICATION_PORT_V2_JSON(), port, DtoBridgePort.class);
             assertNotNull(port.getId());
             return port;
         }
@@ -264,8 +262,8 @@ public class TestBridge {
                 throws URISyntaxException {
             DtoMacPort macPort = new DtoMacPort(macAddr, portId);
             return dtoResource.postAndVerifyCreated(
-                    ResourceUriBuilder.getMacTable(bridge.getUri(), null),
-                    APPLICATION_MAC_PORT_JSON, macPort, DtoMacPort.class);
+                ResourceUriBuilder.getMacTable(bridge.getUri(), null),
+                APPLICATION_MAC_PORT_JSON_V2(), macPort, DtoMacPort.class);
         }
 
         private DtoMacPort addMacPort(DtoBridge bridge, Short vlanId,
@@ -274,7 +272,7 @@ public class TestBridge {
             DtoMacPort macPort = new DtoMacPort(macAddr, portId, null);
             return dtoResource.postAndVerifyCreated(
                     ResourceUriBuilder.getMacTable(bridge.getUri(), vlanId),
-                    APPLICATION_MAC_PORT_JSON_V2, macPort, DtoMacPort.class);
+                    APPLICATION_MAC_PORT_JSON_V2(), macPort, DtoMacPort.class);
         }
 
         private DtoError addInvalidMacPort(DtoBridge bridge, Short vlanId,
@@ -282,8 +280,8 @@ public class TestBridge {
                 throws URISyntaxException {
             DtoMacPort macPort = new DtoMacPort(macAddr, portId, vlanId);
             return dtoResource.postAndVerifyBadRequest(
-                    ResourceUriBuilder.getMacTable(bridge.getUri(), vlanId),
-                    APPLICATION_MAC_PORT_JSON_V2, macPort);
+                ResourceUriBuilder.getMacTable(bridge.getUri(), vlanId),
+                APPLICATION_MAC_PORT_JSON_V2(), macPort);
         }
 
         private void deleteMacPort(DtoBridge bridge, Short vlanId,
@@ -292,7 +290,7 @@ public class TestBridge {
             MacPort mp = new MacPort(app.getUri(), bridge.getId(), macAddr,
                                      portId, vlanId);
             dtoResource.deleteAndVerifyNoContent(mp.getUri(),
-                                                 APPLICATION_MAC_PORT_JSON_V2);
+                                                 APPLICATION_MAC_PORT_JSON_V2());
         }
 
         private DtoError deleteMacPortWithNotFoundError(
@@ -301,7 +299,7 @@ public class TestBridge {
             MacPort mp = new MacPort(app.getUri(), bridgeId, macAddr,
                                      portId, vlanId);
             return dtoResource.deleteAndVerifyNotFound(mp.getUri(),
-                    APPLICATION_JSON_V5);
+                                                       APPLICATION_JSON_V5());
         }
 
         private DtoMacPort getMacPort(UUID bridgeId, Short vlanId,
@@ -310,7 +308,7 @@ public class TestBridge {
             MacPort mp = new MacPort(app.getUri(), bridgeId, macAddr,
                                      portId, vlanId);
             return dtoResource.getAndVerifyOk(mp.getUri(),
-                                              APPLICATION_MAC_PORT_JSON_V2,
+                                              APPLICATION_MAC_PORT_JSON_V2(),
                                               DtoMacPort.class);
         }
 
@@ -320,7 +318,7 @@ public class TestBridge {
             MacPort mp = new MacPort(app.getUri(), bridgeId, macAddr,
                                      portId, vlanId);
             return dtoResource.getAndVerifyNotFound(mp.getUri(),
-                                                APPLICATION_MAC_PORT_JSON_V2);
+                                                    APPLICATION_MAC_PORT_JSON_V2());
         }
 
         private DtoError getMacPortWithBadRequestError(
@@ -329,25 +327,25 @@ public class TestBridge {
             MacPort mp = new MacPort(app.getUri(), bridgeId, macAddr,
                                      portId, vlanId);
             return dtoResource.getAndVerifyBadRequest(mp.getUri(),
-                                                  APPLICATION_MAC_PORT_JSON_V2);
+                                                      APPLICATION_MAC_PORT_JSON_V2());
         }
 
         private DtoMacPort[] getMacTable(DtoBridge bridge) {
             return dtoResource.getAndVerifyOk(
                     bridge.getMacTable(),
-                    APPLICATION_MAC_PORT_COLLECTION_JSON,
+                    APPLICATION_MAC_PORT_COLLECTION_JSON_V2(),
                     DtoMacPort[].class);
         }
 
         private DtoMacPort[] getMacTable(DtoBridge bridge, Short vlanId)
                 throws URISyntaxException {
-            URI macTableUri = (vlanId == null) ?
-                    bridge.getMacTable() :
-                    new URI(bridge.getVlanMacTableTemplate()
-                            .replace("{vlanId}", Short.toString(vlanId)));
+            URI macTableUri = (vlanId == null)
+                              ? bridge.getMacTable()
+                              : new URI(bridge.getVlanMacTableTemplate()
+                .replace("{vlanId}", Short.toString(vlanId)));
             return dtoResource.getAndVerifyOk(
                     macTableUri,
-                    APPLICATION_MAC_PORT_COLLECTION_JSON_V2,
+                    APPLICATION_MAC_PORT_COLLECTION_JSON_V2(),
                     DtoMacPort[].class);
         }
 
@@ -362,21 +360,21 @@ public class TestBridge {
             bridge.setTenantId("tenant1");
 
             DtoBridge b1 = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4(), bridge, DtoBridge.class);
 
             // Duplicate name should be allowed
             bridge = new DtoBridge();
             bridge.setName("name");
             bridge.setTenantId("tenant1");
             DtoBridge b2 = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4(), bridge, DtoBridge.class);
 
             // Deletion should work
             dtoResource.deleteAndVerifyNoContent(b1.getUri(),
-                    APPLICATION_BRIDGE_JSON_V4);
+                    APPLICATION_BRIDGE_JSON_V4());
 
             dtoResource.deleteAndVerifyNoContent(b2.getUri(),
-                    APPLICATION_BRIDGE_JSON_V4);
+                                                 APPLICATION_BRIDGE_JSON_V4());
         }
 
         @Test
@@ -392,7 +390,7 @@ public class TestBridge {
 
             bridge.setName(null);
             bridge = dtoResource.putAndVerifyNoContent(
-                bridge.getUri(), APPLICATION_BRIDGE_JSON_V4, bridge,
+                bridge.getUri(), APPLICATION_BRIDGE_JSON_V4(), bridge,
                 DtoBridge.class);
             assertNull(bridge.getName());
         }
@@ -400,7 +398,7 @@ public class TestBridge {
         @Test
         public void testBridgeCreateWithNoTenant() throws Exception {
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                app.getBridges(), APPLICATION_BRIDGE_JSON_V4, new DtoBridge());
+                app.getBridges(), APPLICATION_BRIDGE_JSON_V4(), new DtoBridge());
 
             assertValidationProperties(error, "tenantId");
         }
@@ -411,7 +409,7 @@ public class TestBridge {
 
             bridge.setTenantId(null);
             DtoError error = dtoResource.putAndVerifyBadRequest(
-                bridge.getUri(), APPLICATION_BRIDGE_JSON_V4, bridge);
+                bridge.getUri(), APPLICATION_BRIDGE_JSON_V4(), bridge);
             assertValidationProperties(error, "tenantId");
         }
 
@@ -425,10 +423,12 @@ public class TestBridge {
             bridge.setName("");
             bridge.setTenantId("tenant1");
             DtoBridge b3 = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
+                                                            APPLICATION_BRIDGE_JSON_V4(),
+                                                            bridge,
+                                                            DtoBridge.class);
 
             dtoResource.deleteAndVerifyNoContent(b3.getUri(),
-                    APPLICATION_BRIDGE_JSON_V4);
+                                                 APPLICATION_BRIDGE_JSON_V4());
         }
 
         @Test
@@ -441,7 +441,7 @@ public class TestBridge {
             URI bridgesUri = app.getBridges();
             assertNotNull(bridgesUri);
             DtoBridge[] bridges = dtoResource.getAndVerifyOk(bridgesUri,
-                    APPLICATION_BRIDGE_COLLECTION_JSON_V4, DtoBridge[].class);
+                    APPLICATION_BRIDGE_COLLECTION_JSON_V4(), DtoBridge[].class);
             assertEquals(0, bridges.length);
 
             // Add a bridge
@@ -452,7 +452,7 @@ public class TestBridge {
             bridge.setOutboundFilterId(chain2.getId());
 
             DtoBridge resBridge = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4(), bridge, DtoBridge.class);
             assertNotNull(resBridge.getId());
             assertNotNull(resBridge.getUri());
             // TODO: Implement 'equals' for DtoBridge
@@ -466,7 +466,7 @@ public class TestBridge {
             // List the bridge
             bridges = dtoResource.getAndVerifyOk(bridgesUri,
                     getTenantQueryParams("tenant1"),
-                    APPLICATION_BRIDGE_COLLECTION_JSON_V4, DtoBridge[].class);
+                    APPLICATION_BRIDGE_COLLECTION_JSON_V4(), DtoBridge[].class);
             assertEquals(1, bridges.length);
             assertEquals(resBridge.getId(), bridges[0].getId());
 
@@ -476,7 +476,7 @@ public class TestBridge {
             resBridge.setInboundFilterId(chain2.getId());
             resBridge.setOutboundFilterId(chain1.getId());
             DtoBridge updatedBridge = dtoResource.putAndVerifyNoContent(
-                    bridgeUri, APPLICATION_BRIDGE_JSON_V4, resBridge,
+                    bridgeUri, APPLICATION_BRIDGE_JSON_V4(), resBridge,
                     DtoBridge.class);
             assertNotNull(updatedBridge.getId());
             assertEquals(updatedBridge.getName(), "bridge1-modified");
@@ -490,7 +490,7 @@ public class TestBridge {
             //Update the bridge updatedBridge (name only)
             updatedBridge.setName("bridge1-modified2");
             DtoBridge updatedBridge2 = dtoResource.putAndVerifyNoContent(
-                    bridgeUri, APPLICATION_BRIDGE_JSON_V4, updatedBridge,
+                    bridgeUri, APPLICATION_BRIDGE_JSON_V4(), updatedBridge,
                     DtoBridge.class);
             assertNotNull(updatedBridge2.getId());
             assertEquals(updatedBridge2.getName(), "bridge1-modified2");
@@ -503,15 +503,15 @@ public class TestBridge {
 
             // Delete the bridge
             dtoResource.deleteAndVerifyNoContent(bridgeUri,
-                                                 APPLICATION_BRIDGE_JSON_V4);
+                                                 APPLICATION_BRIDGE_JSON_V4());
 
             // Verify that it's gone
             dtoResource.getAndVerifyNotFound(bridgeUri,
-                                             APPLICATION_BRIDGE_JSON_V4);
+                                             APPLICATION_BRIDGE_JSON_V4());
 
             // List should return an empty array
             bridges = dtoResource.getAndVerifyOk(bridgesUri,
-                     APPLICATION_BRIDGE_COLLECTION_JSON_V4, DtoBridge[].class);
+                     APPLICATION_BRIDGE_COLLECTION_JSON_V4(), DtoBridge[].class);
             assertEquals(0, bridges.length);
         }
 
@@ -540,7 +540,7 @@ public class TestBridge {
 
             // Delete the second entry.
             dtoResource.deleteAndVerifyNoContent(mp2.getUri(),
-                APPLICATION_MAC_PORT_JSON);
+                APPLICATION_MAC_PORT_JSON_V2());
             // List the MacPort entries.
             entries = getMacTable(bridge);
             assertThat("Expect 1 entry.",
@@ -551,19 +551,19 @@ public class TestBridge {
             // Try to create a MacPort entry with a bad MAC address
             mp2 = new DtoMacPort("02:11:NONSENSE", p2.getId());
             dtoResource.postAndVerifyBadRequest(bridge.getMacTable(),
-                APPLICATION_MAC_PORT_JSON, mp2);
+                APPLICATION_MAC_PORT_JSON_V2(), mp2);
             // Try to create a MacPort entry with a null MAC address
             mp2.setMacAddr(null);
             dtoResource.postAndVerifyBadRequest(bridge.getMacTable(),
-                APPLICATION_MAC_PORT_JSON, mp2);
+                APPLICATION_MAC_PORT_JSON_V2(), mp2);
             // Try to create a MacPort entry with a null Port ID.
             mp2 = new DtoMacPort("02:aa:bb:cc:dd:ee", null);
             dtoResource.postAndVerifyBadRequest(bridge.getMacTable(),
-                APPLICATION_MAC_PORT_JSON, mp2);
+                APPLICATION_MAC_PORT_JSON_V2(), mp2);
             // Try to create a MacPort entry with a bogus port ID.
             mp2 = new DtoMacPort("02:aa:bb:cc:dd:ee", UUID.randomUUID());
             dtoResource.postAndVerifyBadRequest(bridge.getMacTable(),
-                APPLICATION_MAC_PORT_JSON, mp2);
+                APPLICATION_MAC_PORT_JSON_V2(), mp2);
         }
 
         @Test
@@ -613,27 +613,18 @@ public class TestBridge {
                 v1MacPorts[i].setUri(v2MacPort.getUri());
             }
 
-            // Get the mappings using the V1 API.
-            DtoMacPort[] macTable = getMacTable(bridge);
-            assertEquals("Should return four entries.", macTable.length, 4);
-            assertThat("Should return the untagged entries.",
-                       macTable, arrayContainingInAnyOrder(v1MacPorts));
-
-            // Now the V2 API, all at once.
-            macTable = getMacTable(bridge, null);
+            DtoMacPort[] macTable = getMacTable(bridge, null);
             assertEquals("Should return sixteen entries.", macTable.length, 16);
 
             assertThat("Should return all entries.",
                        macTable, arrayContainingInAnyOrder(macPorts));
 
-            // V2 API, only untagged entries.
             macTable = getMacTable(bridge, UNTAGGED_VLAN_ID);
             assertEquals("Should return four entries.", macTable.length, 4);
             assertThat("Should return the untagged entries.",
                     macTable, arrayContainingInAnyOrder(
                         Arrays.copyOfRange(macPorts, 0, 4)));
 
-            // V2 API, entries for VLAN 1.
             macTable = getMacTable(bridge, (short)1);
             assertEquals("Should return four entries.", macTable.length, 4);
             assertThat("Should return the untagged entries.",
@@ -643,7 +634,7 @@ public class TestBridge {
             // Try a VLAN that doesn't exist.
             dtoResource.getAndVerifyNotFound(
                 ResourceUriBuilder.getMacTable(bridge.getUri(), (short) 4),
-                APPLICATION_MAC_PORT_COLLECTION_JSON_V2);
+                APPLICATION_MAC_PORT_COLLECTION_JSON_V2());
         }
 
         @Test
@@ -666,7 +657,7 @@ public class TestBridge {
             DtoMacPort macPort = new DtoMacPort(mac2, ip1.getId(), (short)2);
             macPort = dtoResource.postAndVerifyCreated(
                     ResourceUriBuilder.getMacTable(bridge.getUri(), (short)1),
-                    APPLICATION_MAC_PORT_JSON_V2, macPort, DtoMacPort.class);
+                    APPLICATION_MAC_PORT_JSON_V2(), macPort, DtoMacPort.class);
             assertEquals(1, macPort.getVlanId().intValue());
 
             // Try to create MAC-port mapping with bridge-port mismatch.
@@ -814,17 +805,17 @@ public class TestBridge {
             DtoIP4MacPair mp1 = new DtoIP4MacPair(
                 "10.0.0.2", "02:11:22:33:44:55");
             mp1 = dtoResource.postAndVerifyCreated(bridge.getArpTable(),
-                APPLICATION_IP4_MAC_JSON, mp1, DtoIP4MacPair.class);
+                APPLICATION_IP4_MAC_JSON(), mp1, DtoIP4MacPair.class);
 
             // Add a second Arp Entry
             DtoIP4MacPair mp2 = new DtoIP4MacPair(
                 "10.0.0.3", "02:11:22:33:44:66");
             mp2 = dtoResource.postAndVerifyCreated(bridge.getArpTable(),
-                APPLICATION_IP4_MAC_JSON, mp2, DtoIP4MacPair.class);
+                APPLICATION_IP4_MAC_JSON(), mp2, DtoIP4MacPair.class);
 
             // List the Arp entries.
             DtoIP4MacPair[] entries = dtoResource.getAndVerifyOk(
-                bridge.getArpTable(), APPLICATION_IP4_MAC_COLLECTION_JSON,
+                bridge.getArpTable(), APPLICATION_IP4_MAC_COLLECTION_JSON(),
                 DtoIP4MacPair[].class);
             assertThat("Expect 2 listed entries.",
                 entries, arrayWithSize(2));
@@ -833,10 +824,10 @@ public class TestBridge {
 
             // Delete the second entry.
             dtoResource.deleteAndVerifyNoContent(mp2.getUri(),
-                APPLICATION_IP4_MAC_JSON);
+                APPLICATION_IP4_MAC_JSON());
             // List the Arp entries.
             entries = dtoResource.getAndVerifyOk(
-                bridge.getArpTable(), APPLICATION_IP4_MAC_COLLECTION_JSON,
+                bridge.getArpTable(), APPLICATION_IP4_MAC_COLLECTION_JSON(),
                 DtoIP4MacPair[].class);
             assertThat("Expect 1 entry.",
                 entries, arrayWithSize(1));
@@ -846,25 +837,25 @@ public class TestBridge {
             // Try to create an Arp entry with a bad MAC address
             mp2 = new DtoIP4MacPair("1.2.3.4", "02:11:NONSENSE");
             dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
-                APPLICATION_IP4_MAC_JSON, mp2);
+                APPLICATION_IP4_MAC_JSON(), mp2);
             // Try to create an Arp entry with a null MAC address
             mp2.setMac(null);
             dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
-                APPLICATION_IP4_MAC_JSON, mp2);
+                APPLICATION_IP4_MAC_JSON(), mp2);
             // Try to create an Arp entry with a null IP4.
             mp2 = new DtoIP4MacPair(null, "02:aa:bb:cc:dd:ee");
             dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
-                APPLICATION_IP4_MAC_JSON, mp2);
+                APPLICATION_IP4_MAC_JSON(), mp2);
             // Try to create Arp entries with bogus IP4 addresses.
             mp2 = new DtoIP4MacPair("1.2.3", "02:aa:bb:cc:dd:ee");
             dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
-                APPLICATION_IP4_MAC_JSON, mp2);
+                APPLICATION_IP4_MAC_JSON(), mp2);
             mp2 = new DtoIP4MacPair("1000.2.3.4", "02:aa:bb:cc:dd:ee");
             dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
-                APPLICATION_IP4_MAC_JSON, mp2);
+                APPLICATION_IP4_MAC_JSON(), mp2);
             mp2 = new DtoIP4MacPair("host", "02:aa:bb:cc:dd:ee");
             dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
-                APPLICATION_IP4_MAC_JSON, mp2);
+                APPLICATION_IP4_MAC_JSON(), mp2);
         }
     }
 }

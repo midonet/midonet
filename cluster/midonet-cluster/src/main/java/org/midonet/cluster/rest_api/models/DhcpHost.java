@@ -30,7 +30,6 @@ import org.midonet.cluster.data.dhcp.ExtraDhcpOpt;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.util.version.Since;
 
 @ZoomClass(clazz = Topology.Dhcp.Host.class)
 public class DhcpHost extends UriResource {
@@ -42,7 +41,6 @@ public class DhcpHost extends UriResource {
     @ZoomField(name = "name")
     public String name;
 
-    @Since("2")
     @Nonnull
     @ZoomField(name = "extra_dhcp_opts")
     private List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();

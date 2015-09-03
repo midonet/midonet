@@ -40,12 +40,12 @@ import org.midonet.packets.IPv4Addr$;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_RULE_JSON_V2;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_IP_ADDR_GROUP_ADDR_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_IP_ADDR_GROUP_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_RULE_JSON_V2;
 
 @RunWith(Enclosed.class)
 public class TestIpAddrGroup {
@@ -72,7 +72,7 @@ public class TestIpAddrGroup {
             chain.setTenantId("tenant1-id");
 
             topology = new Topology.Builder(
-                    dtoResource, APPLICATION_JSON_V5)
+                    dtoResource, APPLICATION_JSON_V5())
                     .create("chain1", chain).build();
 
             app = topology.getApplication();
@@ -90,7 +90,7 @@ public class TestIpAddrGroup {
             // List all ip addr groups
             DtoIpAddrGroup[] groups = dtoResource.getAndVerifyOk(
                     app.getIpAddrGroups(),
-                    APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON,
+                    APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON(),
                     DtoIpAddrGroup[].class);
             assertNotNull(groups);
             assertEquals(2, groups.length);
@@ -111,7 +111,7 @@ public class TestIpAddrGroup {
             // Remove the addresses
             for (DtoIpAddrGroupAddr addr : addrs) {
                 dtoResource.deleteAndVerifyNoContent(addr.getUri(),
-                        APPLICATION_IP_ADDR_GROUP_ADDR_JSON);
+                        APPLICATION_IP_ADDR_GROUP_ADDR_JSON());
             }
 
             // Now there should be no address
@@ -128,7 +128,7 @@ public class TestIpAddrGroup {
             rule.setInvIpAddrGroupDst(true);
 
             rule = dtoResource.postAndVerifyCreated(
-                    chain.getRules(), APPLICATION_RULE_JSON_V2, rule,
+                    chain.getRules(), APPLICATION_RULE_JSON_V2(), rule,
                     DtoRule.class);
             assertEquals(chain.getId(), rule.getChainId());
             assertEquals(DtoRule.Accept, rule.getType());
@@ -140,17 +140,17 @@ public class TestIpAddrGroup {
             // Delete the groups
             for (DtoIpAddrGroup group : groups) {
                 DtoIpAddrGroup g = dtoResource.getAndVerifyOk(group.getUri(),
-                        APPLICATION_IP_ADDR_GROUP_JSON, DtoIpAddrGroup.class);
+                        APPLICATION_IP_ADDR_GROUP_JSON(), DtoIpAddrGroup.class);
                 assertNotNull(g);
                 assertEquals(group, g);
 
                 dtoResource.deleteAndVerifyNoContent(g.getUri(),
-                        APPLICATION_IP_ADDR_GROUP_JSON);
+                        APPLICATION_IP_ADDR_GROUP_JSON());
             }
 
             groups = dtoResource.getAndVerifyOk(
                     app.getIpAddrGroups(),
-                    APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON,
+                    APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON(),
                     DtoIpAddrGroup[].class);
             assertNotNull(groups);
             assertEquals(0, groups.length);
@@ -165,7 +165,8 @@ public class TestIpAddrGroup {
             DtoIpAddrGroupAddr ipAddr =
                     new DtoIpv4AddrGroupAddr(group.getId(), ipString);
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    group.getAddrs(), APPLICATION_IP_ADDR_GROUP_ADDR_JSON, ipAddr);
+                    group.getAddrs(), APPLICATION_IP_ADDR_GROUP_ADDR_JSON(),
+                    ipAddr);
 
             String expectedErrorMessage =
                 IPv4Addr$.MODULE$.illegalIPv4String(ipString).getMessage();
@@ -199,7 +200,7 @@ public class TestIpAddrGroup {
             String uriStr = ipv4Addr.getUri().toString();
             dtoResource.deleteAndVerifyNoContent(
                     new URI(uriStr.replace("10.0.0.2", "10.0.000.002")),
-                    APPLICATION_IP_ADDR_GROUP_ADDR_JSON);
+                    APPLICATION_IP_ADDR_GROUP_ADDR_JSON());
             addrs = getAddrs(group);
             assertEquals(1, addrs.length);
 
@@ -207,7 +208,7 @@ public class TestIpAddrGroup {
             dtoResource.deleteAndVerifyNoContent(
                     new URI(uriStr.replace("1:2:3:4:5:6:7:8",
                                            "1:02:3:04:5:06:7:08")),
-                    APPLICATION_IP_ADDR_GROUP_ADDR_JSON);
+                    APPLICATION_IP_ADDR_GROUP_ADDR_JSON());
             addrs = getAddrs(group);
             assertEquals(0, addrs.length);
         }
@@ -216,7 +217,7 @@ public class TestIpAddrGroup {
             DtoIpAddrGroup group = new DtoIpAddrGroup();
             group.setName(name);
             DtoIpAddrGroup result = dtoResource.postAndVerifyCreated(
-                    app.getIpAddrGroups(), APPLICATION_IP_ADDR_GROUP_JSON,
+                    app.getIpAddrGroups(), APPLICATION_IP_ADDR_GROUP_JSON(),
                     group, DtoIpAddrGroup.class);
             assertEquals(name, result.getName());
             return result;
@@ -227,7 +228,7 @@ public class TestIpAddrGroup {
                     new DtoIpv6AddrGroupAddr(group.getId(), addr) :
                     new DtoIpv4AddrGroupAddr(group.getId(), addr);
             ipAddr = dtoResource.postAndVerifyCreated(group.getAddrs(),
-                    APPLICATION_IP_ADDR_GROUP_ADDR_JSON, ipAddr,
+                    APPLICATION_IP_ADDR_GROUP_ADDR_JSON(), ipAddr,
                     DtoIpAddrGroupAddr.class);
             assertNotNull(ipAddr);
             assertEquals(group.getId(), ipAddr.getIpAddrGroupId());
@@ -237,7 +238,7 @@ public class TestIpAddrGroup {
         private DtoIpAddrGroupAddr[] getAddrs(DtoIpAddrGroup group) {
             DtoIpAddrGroupAddr[] addrs = dtoResource.getAndVerifyOk(
                     group.getAddrs(),
-                    APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON,
+                    APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON(),
                     DtoIpAddrGroupAddr[].class);
             assertNotNull(addrs);
             return addrs;

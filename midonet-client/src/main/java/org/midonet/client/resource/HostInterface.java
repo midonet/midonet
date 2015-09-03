@@ -22,19 +22,14 @@ import java.util.UUID;
 
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoInterface;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
-/**
- * Author: Tomoe Sugihara <tomoe@midokura.com>
- * Date: 9/6/12
- * Time: 12:07 AM
- */
 public class HostInterface extends ResourceBase<HostInterface, DtoInterface> {
 
     public HostInterface(WebResource resource, URI uriForCreation,
                          DtoInterface iface) {
         super(resource, uriForCreation, iface,
-              VendorMediaType.APPLICATION_INTERFACE_JSON);
+              MidonetMediaTypes.APPLICATION_INTERFACE_JSON());
     }
 
     @Override
