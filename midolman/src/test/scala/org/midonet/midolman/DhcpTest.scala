@@ -188,7 +188,7 @@ class DhcpTest extends MidolmanSpec {
         dhcpReplyForVm2.getServerIPAddress should be (routerIp3.getIntAddress)
     }
 
-    if (!awaitingImpl) {
+    ignore("Dhcp Extra Option"){
     scenario("Dhcp Extra Option") {
         val hostNameOption = (DHCPOption.Code.HOST_NAME.value.toString, "foobar")
         val extraDhcpOpts = Map(hostNameOption)
@@ -198,8 +198,9 @@ class DhcpTest extends MidolmanSpec {
         val hostNameDhcpOption = extraDhcpOptToDhcpOption(hostNameOption)
         hostNameDhcpOption should not equal None
         dhcpReply.getOptions.contains(hostNameDhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("Dhcp Extra Option With Name") {
     scenario("Dhcp Extra Option With Name") {
         val hostNameOption = ("host-name", "foobar")
         val extraDhcpOpts = Map(hostNameOption)
@@ -209,7 +210,7 @@ class DhcpTest extends MidolmanSpec {
         val hostNameDhcpOption = extraDhcpOptToDhcpOption(hostNameOption)
         hostNameDhcpOption should not equal None
         dhcpReply.getOptions.contains(hostNameDhcpOption.get) should be (true)
-    }
+    }}
 
     scenario("Dhcp Extra Option Without Dhcp Host Update") {
         val hostNameOption = (DHCPOption.Code.HOST_NAME.value.toString, "foobar")
@@ -220,6 +221,7 @@ class DhcpTest extends MidolmanSpec {
         dhcpReply.getOptions.contains(hostNameDhcpOption.get) should be (false)
     }
 
+    ignore("Invalid Dhcp Extra Option Should Be Ignored") {
     scenario("Invalid Dhcp Extra Option Should Be Ignored") {
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
 
@@ -230,8 +232,9 @@ class DhcpTest extends MidolmanSpec {
         val dhcpReplyWithInvalidOption = sendDhcpDiscoveryAndGetDhcpOffer()
         dhcpReply.getOptions should equal (
             dhcpReplyWithInvalidOption.getOptions)
-    }
+    }}
 
+    ignore("Dhcp Extra Option With Duplicated Option") {
     scenario("Dhcp Extra Option With Duplicated Option") {
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         dhcpReply.getOptions.map(_.getCode).contains(
@@ -253,8 +256,9 @@ class DhcpTest extends MidolmanSpec {
 
         newMtuOptionsNumber should equal (oldOptionsNumber)
         newMtuOption should not equal oldMtuOption
-    }
+    }}
 
+    ignore("Invalid Dhcp Extra Option Value Should Be Ignored") {
     scenario("Invalid Dhcp Extra Option Value Should Be Ignored") {
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
 
@@ -267,8 +271,9 @@ class DhcpTest extends MidolmanSpec {
         val dhcpReplyWithInvalidOption = sendDhcpDiscoveryAndGetDhcpOffer()
         dhcpReply.getOptions should equal (
             dhcpReplyWithInvalidOption.getOptions)
-    }
+    }}
 
+    ignore("Ip Required Dhcp Extra Option") {
     scenario("Ip Required Dhcp Extra Option") {
         val emptyRouterOption = (DHCPOption.Code.ROUTER.value.toString, "")
         val emptyExtraDhcpOpts = Map(emptyRouterOption)
@@ -286,8 +291,9 @@ class DhcpTest extends MidolmanSpec {
         val routerDhcpOption = extraDhcpOptToDhcpOption(routerOption)
         routerDhcpOption should not equal None
         dhcpReply.getOptions.contains(routerDhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("Boolean Required Dhcp Extra Option") {
     scenario("Boolean Required Dhcp Extra Option") {
         val ipForwardingOption = (DHCPOption.Code.IP_FOWARDING_ENABLE_DISABLE.value.toString, "1")
         val extraDhcpOpts = Map(ipForwardingOption)
@@ -298,8 +304,9 @@ class DhcpTest extends MidolmanSpec {
         ipFowardingDhcpOption should not equal None
         dhcpReply.getOptions.contains(
             ipFowardingDhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("Cidr Required Dhcp Extra Option") {
     scenario("Cidr Required Dhcp Extra Option") {
         val cidrOption = (DHCPOption.Code.STATIC_ROUTE.value.toString, "192.168.1.0/24")
         val extraDhcpOpts = Map(cidrOption)
@@ -309,8 +316,9 @@ class DhcpTest extends MidolmanSpec {
         val cidrDhcpOption = extraDhcpOptToDhcpOption(cidrOption)
         cidrDhcpOption should not equal None
         dhcpReply.getOptions.contains(cidrDhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("1248 Required Dhcp Extra Option") {
     scenario("1248 Required Dhcp Extra Option") {
         val _1248Option = (DHCPOption.Code.NETBIOS_OVER_TCP_IP_NODE_TYPE.value.toString, "4")
         val extraDhcpOpts = Map(_1248Option)
@@ -320,8 +328,9 @@ class DhcpTest extends MidolmanSpec {
         val _1248DhcpOption = extraDhcpOptToDhcpOption(_1248Option)
         _1248DhcpOption should not equal None
         dhcpReply.getOptions.contains(_1248DhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("1 to 3 Required Dhcp Extra Option") {
     scenario("1 to 3 Required Dhcp Extra Option") {
         val _1to3Option = (DHCPOption.Code.OPTION_OVERLOAD.value.toString, "3")
         val extraDhcpOpts = Map(_1to3Option)
@@ -331,8 +340,9 @@ class DhcpTest extends MidolmanSpec {
         val _1to3DhcpOption = extraDhcpOptToDhcpOption(_1to3Option)
         _1to3DhcpOption should not equal None
         dhcpReply.getOptions.contains(_1to3DhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("1 to 8 Required Dhcp Extra Option") {
     scenario("1 to 8 Required Dhcp Extra Option") {
         val _1to8Option = (DHCPOption.Code.ERROR_MESSAGE.value.toString, "8")
         val extraDhcpOpts = Map(_1to8Option)
@@ -342,8 +352,9 @@ class DhcpTest extends MidolmanSpec {
         val _1to8DhcpOption = extraDhcpOptToDhcpOption(_1to8Option)
         _1to8DhcpOption should not equal None
         dhcpReply.getOptions.contains(_1to8DhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("Client Identifier Dhcp Extra Option") {
     scenario("Client Identifier Dhcp Extra Option") {
         val clientIdentifierOption = (DHCPOption.Code.CLIENT_IDENTIFIER.value.toString,
                                       "12, midokura.com")
@@ -356,8 +367,9 @@ class DhcpTest extends MidolmanSpec {
         clientIdentifierDhcpOption should not equal None
         dhcpReply.getOptions.contains(
             clientIdentifierDhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("Byte Followd By Ip Addrs Dhcp Extra Option") {
     scenario("Byte Followd By Ip Addrs Dhcp Extra Option") {
         val byteFollowedByIpAddrsOption = (DHCPOption.Code.SLP_DIRECTORY_AGENT.value.toString,
                                            "1, 192.168.1.1")
@@ -370,8 +382,9 @@ class DhcpTest extends MidolmanSpec {
         byteFollowedByIpAddrsDhcpOption should not equal None
         dhcpReply.getOptions.contains(
             byteFollowedByIpAddrsDhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("Byte Followed By String Dhcp Extra Option") {
     scenario("Byte Followed By String Dhcp Extra Option") {
         val byteFollowedByStringOption = (DHCPOption.Code.SLP_SERVICE_SCOPE.value.toString,
                                           "1, foobar")
@@ -384,8 +397,9 @@ class DhcpTest extends MidolmanSpec {
         byteFollowedByStringDhcpOption should not equal None
         dhcpReply.getOptions.contains(
             byteFollowedByStringDhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("Rapid Commit Dhcp Extra Option") {
     scenario("Rapid Commit Dhcp Extra Option") {
         val rapidCommitOption = (DHCPOption.Code.RAPID_COMMIT.value.toString, "")
         val extraDhcpOpts = Map(rapidCommitOption)
@@ -397,8 +411,9 @@ class DhcpTest extends MidolmanSpec {
         rapdCommitDhcpOption should not equal None
         dhcpReply.getOptions.contains(
             rapdCommitDhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("Status Code Dhcp Extra Option") {
     scenario("Status Code Dhcp Extra Option") {
         val statusCodeOption = (DHCPOption.Code.RAPID_COMMIT.value.toString, "2")
         val extraDhcpOpts = Map(statusCodeOption)
@@ -409,8 +424,9 @@ class DhcpTest extends MidolmanSpec {
             extraDhcpOptToDhcpOption(statusCodeOption)
         statusCodeDhcpOption should not equal None
         dhcpReply.getOptions.contains(statusCodeDhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("Data Source Dhcp Extra Option") {
     scenario("Data Source Dhcp Extra Option") {
         val dataSourceOption = (DHCPOption.Code.DATA_SOURCE.value.toString, "24")
         val extraDhcpOpts = Map(dataSourceOption)
@@ -421,8 +437,9 @@ class DhcpTest extends MidolmanSpec {
             extraDhcpOptToDhcpOption(dataSourceOption)
         dataSourceDhcpOption should not equal None
         dhcpReply.getOptions.contains(dataSourceDhcpOption.get) should be (true)
-    }
+    }}
 
+    ignore("Classless Routes Dhcp Extra Option") {
     scenario("Classless Routes Dhcp Extra Option") {
         val classlessRoutesOption = (DHCPOption.Code.CLASSLESS_ROUTES.value.toString,
                                      "192.168.100.0/24, 10.0.0.1")
@@ -435,8 +452,8 @@ class DhcpTest extends MidolmanSpec {
         classlessRoutesDhcpOption should not equal None
         dhcpReply.getOptions.contains(
             classlessRoutesDhcpOption.get) should be (true)
-    }
-    }
+    }}
+
     scenario("Interface MTU") {
         val returnPkt = injectDhcpDiscover(bridgePort1, bridgePortNumber1, vm1Mac)
         val dhcpReply = extractDhcpReply(returnPkt)

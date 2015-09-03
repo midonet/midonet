@@ -113,8 +113,6 @@ trait MidolmanSpec extends FeatureSpecLike
                        ConfigValueFactory.fromAnyRef(true))
     }
 
-    def awaitingImpl: Boolean = System.getProperty("midonet.awaitingImpl") != null
-
     protected def getModules = {
         val conf = MidoTestConfigurator.forAgents(fillConfig())
         List (

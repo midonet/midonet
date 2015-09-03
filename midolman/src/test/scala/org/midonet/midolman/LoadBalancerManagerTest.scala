@@ -42,7 +42,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
         vta = VirtualTopologyActor.as[TestableVTA]
     }
 
-    if (!awaitingImpl) {
+    ignore("LoadBalancerManager handles loadBalancer's VIPs") {
     feature("LoadBalancerManager handles loadBalancer's VIPs") {
         scenario("Load loadBalancer with two VIPs") {
             Given("a loadBalancer with two VIPs")
@@ -174,9 +174,9 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             And("the VTA should receive a flow invalidation")
             vta.getAndClear().contains(lbFlowInvalidationMsg(lb.id)) shouldBe true
         }
+    }}
 
-    }
-
+    ignore("Loadbalancer logic requests Pool when needed") {
     feature("Loadbalancer logic requests Pool when needed") {
         scenario("Pool requested when VIP traffic flows through loadBalancer") {
             Given("a loadBalancer with a pool")
@@ -222,8 +222,8 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             And("the VTA should receive a flow invalidation for the pool")
             vtaMessages.contains(poolFlowInvalidationMsg(pool)) shouldBe true
         }
-    }
-    }
+    }}
+
     def poolReqMsg(id: UUID) =
         PoolRequest(id)
 

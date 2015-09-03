@@ -29,7 +29,6 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Entity}
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
@@ -37,10 +36,10 @@ import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{BackChannelAccessor, MessageAccumulator}
-import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
@@ -289,7 +288,6 @@ class AdminStateTest extends MidolmanSpec {
             assertExpectedIcmpProhibitPacket(interiorRouterPort, flow._2)
         }
 
-        if (!awaitingImpl) {
         scenario("a down interior router port egressing packets sends an ICMP" +
                  " prohibited error from the ingressing port") {
             Given("a down router port")
@@ -310,7 +308,6 @@ class AdminStateTest extends MidolmanSpec {
                     "ingressing port")
 
             assertExpectedIcmpProhibitPacket(exteriorRouterPort, flow._2)
-        }
         }
 
         scenario("a down interior router port ingressing packets sends an " +
@@ -334,7 +331,6 @@ class AdminStateTest extends MidolmanSpec {
             assertExpectedIcmpProhibitPacket(interiorRouterPort, flow._2)
         }
 
-        if (!awaitingImpl) {
         scenario("a down exterior router port egressing packets sends an " +
                  "ICMP prohibited error from the ingressing port") {
             Given("a down router port")
@@ -355,7 +351,6 @@ class AdminStateTest extends MidolmanSpec {
                 "ingressing port")
 
             assertExpectedIcmpProhibitPacket(interiorRouterPort, flow._2)
-        }
         }
 
         scenario("a down exterior router port ingressing packets sends an " +
