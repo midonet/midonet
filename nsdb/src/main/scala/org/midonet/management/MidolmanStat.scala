@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.management
+package org.midonet.management
 
-import java.lang.management.{MemoryPoolMXBean, GarbageCollectorMXBean}
-
-import com.codahale.metrics.JmxReporter.{JmxCounterMBean, JmxHistogramMBean, JmxMeterMBean, JmxGaugeMBean}
+import java.lang.management.{GarbageCollectorMXBean, MemoryPoolMXBean}
 import javax.management.remote.{JMXConnectorFactory, JMXServiceURL}
-import javax.management.{MBeanServerConnection, JMX, ObjectName}
+import javax.management.{JMX, MBeanServerConnection, ObjectName}
+
+import com.codahale.metrics.JmxReporter.{JmxCounterMBean, JmxGaugeMBean, JmxHistogramMBean, JmxMeterMBean}
 import org.rogach.scallop._
 
 class StatSet(columns: List[Column]) {

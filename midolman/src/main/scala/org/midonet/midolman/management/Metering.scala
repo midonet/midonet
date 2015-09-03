@@ -22,6 +22,7 @@ import javax.management._
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
+import org.midonet.management.MeteringMXBean
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.odp.flows.FlowStats
 

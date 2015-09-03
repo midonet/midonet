@@ -36,7 +36,7 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':midonet-util')
+    compile project(':midonet-util'), project(':netlink')
 
     compile libraries.cassandra,
             libraries.collections4,
@@ -57,6 +57,8 @@ dependencies {
             libraries.scala_logging,
             libraries.scallop,
             libraries.typesafeconf
+
+    testCompile project(path: ':midonet-util', configuration: 'tests')
 
     testCompile libraries.commons_conf,
                 libraries.curator_test,
