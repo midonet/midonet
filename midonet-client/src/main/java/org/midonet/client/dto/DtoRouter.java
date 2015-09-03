@@ -16,12 +16,13 @@
 
 package org.midonet.client.dto;
 
-import com.google.common.base.Objects;
-
-import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
 import java.util.List;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
+import com.google.common.base.Objects;
 
 @XmlRootElement
 public class DtoRouter {
@@ -41,6 +42,33 @@ public class DtoRouter {
     private URI routes;
     private UUID loadBalancerId;
     private URI loadBalancer;
+    private URI bgpNetworks;
+    private URI bgpPeers;
+    private Integer asNumber;
+
+    public URI getBgpPeers() {
+        return bgpPeers;
+    }
+
+    public void setBgpPeers(URI bgpNetworks) {
+        this.bgpPeers = bgpNetworks;
+    }
+
+    public URI getBgpNetworks() {
+        return bgpNetworks;
+    }
+
+    public void setBgpNetworks(URI bgpNetworks) {
+        this.bgpNetworks = bgpNetworks;
+    }
+
+    public Integer getAsNumber() {
+        return asNumber;
+    }
+
+    public void setAsNumber(Integer asNumber) {
+        this.asNumber = asNumber;
+    }
 
     public UUID getId() {
         return id;

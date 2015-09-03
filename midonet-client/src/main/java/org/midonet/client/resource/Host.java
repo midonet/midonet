@@ -25,13 +25,13 @@ import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
 import org.midonet.client.dto.DtoInterface;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 public class Host extends ResourceBase<Host, DtoHost> {
 
     public Host(WebResource resource, URI uriForCreation, DtoHost host) {
         super(resource, uriForCreation, host,
-              VendorMediaType.APPLICATION_HOST_JSON_V3);
+              MidonetMediaTypes.APPLICATION_HOST_JSON_V3());
     }
 
     @Override
@@ -62,7 +62,7 @@ public class Host extends ResourceBase<Host, DtoHost> {
     public ResourceCollection<HostInterface> getInterfaces() {
         return getChildResources(
             principalDto.getInterfaces(), null,
-            VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON,
+            MidonetMediaTypes.APPLICATION_INTERFACE_COLLECTION_JSON(),
             HostInterface.class, DtoInterface.class);
     }
 
@@ -79,7 +79,7 @@ public class Host extends ResourceBase<Host, DtoHost> {
     public ResourceCollection<HostInterfacePort> getPorts() {
         return getChildResources(
             principalDto.getPorts(), null,
-            VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+            MidonetMediaTypes.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON(),
             HostInterfacePort.class, DtoHostInterfacePort.class);
     }
 

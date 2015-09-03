@@ -31,19 +31,19 @@ import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoPoolMember;
 import org.midonet.client.dto.l4lb.LBStatus;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_INVALID;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MAX_VALUE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MIN_VALUE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.NON_NULL;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_POOL_MEMBER_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPoolMember {
@@ -165,9 +165,9 @@ public class TestPoolMember {
             deletePool(pool.getUri());
             // Strongly associated resources are deleted by cascading.
             dtoResource.getAndVerifyNotFound(member.getUri(),
-                    VendorMediaType.APPLICATION_POOL_MEMBER_JSON);
+                    MidonetMediaTypes.APPLICATION_POOL_MEMBER_JSON());
             dtoResource.getAndVerifyNotFound(member2.getUri(),
-                    VendorMediaType.APPLICATION_POOL_MEMBER_JSON);
+                    MidonetMediaTypes.APPLICATION_POOL_MEMBER_JSON());
         }
 
         @Test
@@ -175,7 +175,7 @@ public class TestPoolMember {
             DtoPoolMember member2 = getStockPoolMember(pool.getId());
             member2.setId(member.getId());
             DtoError error = dtoResource.postAndVerifyError(
-                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
+                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON(),
                     member2, CONFLICT);
             assertErrorMatches(
                     error, RESOURCE_EXISTS, "PoolMember", member.getId());
@@ -186,7 +186,7 @@ public class TestPoolMember {
             DtoPoolMember member = getStockPoolMember();
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
-                    APPLICATION_POOL_MEMBER_JSON, member);
+                    APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatchesPropMsg(error, "poolId", NON_NULL);
         }
 
@@ -194,7 +194,7 @@ public class TestPoolMember {
         public void testCreateWithBadPoolId() {
             DtoPoolMember member = getStockPoolMember(UUID.randomUUID());
             DtoError error = dtoResource.postAndVerifyError(
-                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
+                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON(),
                     member, NOT_FOUND);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool",
                                member.getPoolId());
@@ -205,7 +205,7 @@ public class TestPoolMember {
             DtoPoolMember member = getStockPoolMember(pool.getId());
             member.setWeight(-1);
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON, member);
+                    topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatchesPropMsg(
                     error, "weight", MIN_VALUE, WEIGHT_MIN_VALUE);
 
@@ -217,7 +217,7 @@ public class TestPoolMember {
             member.setWeight(-1);
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     pool.getPoolMembers(),
-                    APPLICATION_POOL_MEMBER_JSON,
+                    APPLICATION_POOL_MEMBER_JSON(),
                     member);
             assertErrorMatchesPropMsg(
                     error, "weight", MIN_VALUE, WEIGHT_MIN_VALUE);
@@ -229,7 +229,7 @@ public class TestPoolMember {
             member.setAddress("10.10.10.999");
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
-                    APPLICATION_POOL_MEMBER_JSON, member);
+                    APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatchesPropMsg(error, "address", IP_ADDR_INVALID);
         }
 
@@ -239,7 +239,7 @@ public class TestPoolMember {
             member.setProtocolPort(-1);
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
-                    APPLICATION_POOL_MEMBER_JSON, member);
+                    APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatchesPropMsg(
                     error, "protocolPort", MIN_VALUE, PROTOCOL_PORT_MIN_VALUE);
         }
@@ -250,7 +250,7 @@ public class TestPoolMember {
             member.setProtocolPort(65536);
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
-                    APPLICATION_POOL_MEMBER_JSON, member);
+                    APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatchesPropMsg(
                     error, "protocolPort", MAX_VALUE, PROTOCOL_PORT_MAX_VALUE);
         }
@@ -260,7 +260,7 @@ public class TestPoolMember {
             UUID id = UUID.randomUUID();
             DtoError error = dtoResource.getAndVerifyNotFound(
                     addIdToUri(topLevelPoolMembersUri, id),
-                    APPLICATION_POOL_MEMBER_JSON);
+                    APPLICATION_POOL_MEMBER_JSON());
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "PoolMember", id);
         }
 
@@ -269,7 +269,7 @@ public class TestPoolMember {
             member.setId(UUID.randomUUID());
             member.setUri(addIdToUri(topLevelPoolMembersUri, member.getId()));
             DtoError error = dtoResource.putAndVerifyNotFound(
-                member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
+                member.getUri(), APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
                                "PoolMember", member.getId());
         }
@@ -278,7 +278,7 @@ public class TestPoolMember {
         public void testUpdateWithBadPoolId() {
             member.setPoolId(UUID.randomUUID());
             DtoError error = dtoResource.putAndVerifyNotFound(
-                    member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
+                    member.getUri(), APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatches(
                     error, RESOURCE_NOT_FOUND, "Pool", member.getPoolId());
         }
@@ -287,7 +287,7 @@ public class TestPoolMember {
         public void testUpdateWithNegativeWeight() {
             member.setWeight(-1);
             DtoError error = dtoResource.putAndVerifyBadRequest(
-                    member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
+                    member.getUri(), APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatchesPropMsg(
                     error, "weight", MIN_VALUE, WEIGHT_MIN_VALUE);
         }
@@ -319,7 +319,7 @@ public class TestPoolMember {
             member.setWeight(0); // Should default to 1.
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     pool.getPoolMembers(),
-                    APPLICATION_POOL_MEMBER_JSON,
+                    APPLICATION_POOL_MEMBER_JSON(),
                     member);
             assertErrorMatchesPropMsg(
                     error, "weight", MIN_VALUE, WEIGHT_MIN_VALUE);
@@ -329,7 +329,7 @@ public class TestPoolMember {
         public void testUpdateWithBadIpAddress() {
             member.setAddress("10.10.10.999");
             DtoError error = dtoResource.putAndVerifyBadRequest(
-                    member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
+                    member.getUri(), APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatchesPropMsg(error, "address", IP_ADDR_INVALID);
         }
 
@@ -337,7 +337,7 @@ public class TestPoolMember {
         public void testUpdateWithNegativePort() {
             member.setProtocolPort(-1);
             DtoError error = dtoResource.putAndVerifyBadRequest(
-                    member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
+                    member.getUri(), APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatchesPropMsg(
                     error, "protocolPort", MIN_VALUE, PROTOCOL_PORT_MIN_VALUE);
         }
@@ -346,7 +346,7 @@ public class TestPoolMember {
         public void testUpdateWithPortGreaterThan65535() {
             member.setProtocolPort(65536);
             DtoError error = dtoResource.putAndVerifyBadRequest(
-                    member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
+                    member.getUri(), APPLICATION_POOL_MEMBER_JSON(), member);
             assertErrorMatchesPropMsg(
                     error, "protocolPort", MAX_VALUE, PROTOCOL_PORT_MAX_VALUE);
         }

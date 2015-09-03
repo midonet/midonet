@@ -43,7 +43,6 @@ import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.cluster.rest_api.ForbiddenHttpException;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.CoreMatchers.allOf;
@@ -61,10 +60,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_JSON_V3;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_COLLECTION_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_INTERFACE_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
 
 public class TestHost extends JerseyTest {
 
@@ -83,7 +84,7 @@ public class TestHost extends JerseyTest {
     private DtoHost retrieveHostV3(UUID hostId) {
         URI hostUri = ResourceUriBuilder.getHost(
             topology.getApplication().getUri(), hostId);
-        return dtoResource.getAndVerifyOk(hostUri, APPLICATION_HOST_JSON_V3,
+        return dtoResource.getAndVerifyOk(hostUri, APPLICATION_HOST_JSON_V3(),
                                           DtoHost.class);
     }
 
@@ -91,7 +92,7 @@ public class TestHost extends JerseyTest {
         URI hostListUri = ResourceUriBuilder.getHosts(
             topology.getApplication().getUri());
         String rawHosts = dtoResource.getAndVerifyOk(hostListUri,
-               APPLICATION_HOST_COLLECTION_JSON_V3, String.class);
+               APPLICATION_HOST_COLLECTION_JSON_V3(), String.class);
         JavaType type = FuncTest.objectMapper
             .getTypeFactory().constructParametrizedType(List.class, List.class,
                                                         DtoHost.class);
@@ -106,7 +107,7 @@ public class TestHost extends JerseyTest {
         URI hostUri = ResourceUriBuilder.getHost(
             topology.getApplication().getUri(), host.getId());
         dtoResource.putAndVerifyStatus(hostUri,
-                                       APPLICATION_HOST_JSON_V3,
+                                       APPLICATION_HOST_JSON_V3(),
                                        host,
                                        status.getStatusCode());
     }
@@ -117,14 +118,14 @@ public class TestHost extends JerseyTest {
         bridge.setTenantId("tenant1");
         bridge = dtoResource.postAndVerifyCreated(
             topology.getApplication().getBridges(),
-            APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
+            APPLICATION_BRIDGE_JSON_V4(), bridge, DtoBridge.class);
         return bridge;
     }
 
     private DtoBridgePort addPort(DtoBridge bridge) {
         DtoBridgePort port = new DtoBridgePort();
         port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
-            APPLICATION_PORT_V2_JSON, port, DtoBridgePort.class);
+            APPLICATION_PORT_V2_JSON(), port, DtoBridgePort.class);
         return port;
     }
 
@@ -132,8 +133,8 @@ public class TestHost extends JerseyTest {
     @Before
     public void before() throws KeeperException, InterruptedException {
         dtoResource = new DtoWebResource(resource());
-        resource().type(VendorMediaType.APPLICATION_JSON_V5)
-                .accept(VendorMediaType.APPLICATION_JSON_V5)
+        resource().type(APPLICATION_JSON_V5())
+                .accept(APPLICATION_JSON_V5())
                 .get(ClientResponse.class);
 
         topology = new Topology.Builder(dtoResource).build();
@@ -149,7 +150,7 @@ public class TestHost extends JerseyTest {
     public void testNoHosts() throws Exception {
         ClientResponse response = resource()
             .path("hosts/")
-            .accept(APPLICATION_HOST_COLLECTION_JSON_V3)
+            .accept(APPLICATION_HOST_COLLECTION_JSON_V3())
             .get(ClientResponse.class);
 
         assertThat("We should have a proper response",
@@ -162,7 +163,7 @@ public class TestHost extends JerseyTest {
 
         ClientResponse clientResponse = resource()
             .path("hosts/" + UUID.randomUUID().toString())
-            .accept(APPLICATION_HOST_JSON_V3).get(ClientResponse.class);
+            .accept(APPLICATION_HOST_JSON_V3()).get(ClientResponse.class);
 
         assertThat(clientResponse.getClientResponseStatus(),
                    equalTo(ClientResponse.Status.NOT_FOUND));
@@ -532,7 +533,7 @@ public class TestHost extends JerseyTest {
 
         DtoHost host = resource()
             .path("hosts/" + hostId.toString())
-            .accept(APPLICATION_HOST_JSON_V3)
+            .accept(APPLICATION_HOST_JSON_V3())
             .get(DtoHost.class);
 
         assertNotNull(host);
@@ -611,16 +612,14 @@ public class TestHost extends JerseyTest {
         int mtu = 213;
         MAC mac = MAC.fromString("16:1f:5c:19:a0:60");
         topologyBackdoor.createInterface(hostId, name, mac, mtu,
-                                         new InetAddress[]{InetAddress
-                                                               .getByAddress(
-                                                                   new byte[]{
-                                                                       10, 10,
-                                                                       10, 1})
+                                         new InetAddress[]{
+                                             InetAddress.getByAddress(
+                                                 new byte[]{10, 10, 10, 1})
                                          });
 
         DtoHost host = resource()
             .path("hosts/" + hostId.toString())
-            .accept(VendorMediaType.APPLICATION_HOST_JSON_V3)
+            .accept(APPLICATION_HOST_JSON_V3())
             .get(DtoHost.class);
 
         DtoInterface[] interfaces = host.getHostInterfaces();
@@ -635,7 +634,7 @@ public class TestHost extends JerseyTest {
 
         DtoInterface rereadInterface = resource()
             .uri(dtoHostInterface.getUri())
-            .accept(VendorMediaType.APPLICATION_INTERFACE_JSON)
+            .accept(APPLICATION_INTERFACE_JSON())
             .get(DtoInterface.class);
 
         assertNotNull(
