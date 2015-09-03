@@ -1,0 +1,267 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ae8d1ca_df6bbf83",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "nit: southbound.vtep",
+      "range": {
+        "startLine": 55,
+        "startChar": 21,
+        "endLine": 55,
+        "endChar": 26
+      },
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_bf6ef394",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "nit: warn",
+      "range": {
+        "startLine": 75,
+        "startChar": 27,
+        "endLine": 75,
+        "endChar": 31
+      },
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_ff687b89",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "nit: nonEmpty, or !isEmpty if you want to avoid the java-scala conversion",
+      "range": {
+        "startLine": 96,
+        "startChar": 58,
+        "endLine": 96,
+        "endChar": 69
+      },
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_9ff857c6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbOperations.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "Maybe leaving this as an implicit parameter would be cleaner. Unless you\u0027re calling from java at some point.",
+      "range": {
+        "startLine": 81,
+        "startChar": 55,
+        "endLine": 81,
+        "endChar": 76
+      },
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_1f2c474a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbOperations.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "nit: it\u0027s worth extracting this to a constant.",
+      "range": {
+        "startLine": 182,
+        "startChar": 20,
+        "endLine": 182,
+        "endChar": 61
+      },
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_df19ff23",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "nit: de-indent?",
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_ff16bbf0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "nit: switch, maybe reference MNA-800",
+      "range": {
+        "startLine": 121,
+        "startChar": 63,
+        "endLine": 121,
+        "endChar": 69
+      },
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_9fe69715",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/OvsdbCachedTableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "nit: better @Ignore so that we spot it in reports?\n\nAlso, why is it ignored? Do we need a JIRA issue to remember?",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 51
+      },
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_dff01fcc",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/OvsdbTableMonitorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_ffeddbf0",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/OvsdbToolsTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_1fba87e1",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/OvsdbVtepDataClientTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_3fbf43d2",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/OvsdbVtepDataTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_5fb40ff2",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/mock/MockOvsdbVtepTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T15:42:40Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
