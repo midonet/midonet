@@ -26,12 +26,14 @@ import com.typesafe.scalalogging.Logger
 
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.slf4j.LoggerFactory
+
 import rx.Observer
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.data.vtep.model.VtepEntry
-import org.midonet.southbound.vtep.schema.Table
+import org.midonet.southbound.vtep.OvsdbUtil._
 import org.midonet.southbound.vtep.OvsdbVtepData.panicAlert
+import org.midonet.southbound.vtep.schema.Table
 
 /**
  * A local mirror of a VTEP cache
@@ -49,75 +51,68 @@ class OvsdbCachedTable[T <: Table, Entry <: VtepEntry](val client: OvsdbClient,
 
     case class Data(value: Entry, owner: UUID)
 
-    private val log = Logger(LoggerFactory.getLogger(this.getClass))
-    private val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
+    private val log = Logger(LoggerFactory.getLogger(
+        s"org.midonet.southbound.vtep.table-[${table.getSchema.getName}]"))
+    private implicit val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
     private val vtepScheduler = Schedulers.from(vtepExecutor)
 
     private var map: Map[UUID, List[Data]] = Map()
     private val filled = Promise[Boolean]()
     private val monitor =
-        new OvsdbTableMonitor[T, Entry](client, table, clazz, eventExecutor)
+        new OvsdbTableMonitor[T, Entry](client, table, clazz)(eventExecutor)
 
     monitor.observable
         .onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
         .observeOn(vtepScheduler)
         .subscribe(new Observer[VtepTableUpdate[Entry]] {
             override def onCompleted(): Unit = {
-                log.debug("vtep monitor closed")
+                log.debug("VTEP monitor closed")
                 filled.tryFailure(
                     new IllegalStateException("vtep monitor closed"))
                 map = Map.empty
             }
             override def onError(e: Throwable): Unit = {
-                log.error("vtep monitor failed", e)
+                log.warn("VTEP monitor failed", e)
                 filled.tryFailure(e)
                 map = Map.empty
             }
             override def onNext(u: VtepTableUpdate[Entry]): Unit = u match {
-                case VtepTableReady() => filled.success(true)
+                case VtepTableReady() =>
+                    filled.success(true)
                 case VtepEntryUpdate(row, null) if row != null =>
+                    log.debug("VTEP table entry deleted: {}", row)
                     map = map - row.uuid
                 case VtepEntryUpdate(_, row) if row != null =>
                     // Data from VTEP is authoritative
+                    log.debug("VTEP table entry added: {}", row)
                     map = map updated (row.uuid, List(Data(row, null)))
                 case _ => // ignore
             }
     })
 
-    /** NOTE: this is not thread safe: it must be executed by the same thread
-      * monitoring the vtep table */
-    override def insert(row: Entry): Future[UUID] = {
-        val result = Promise[UUID]()
-        val hint = insertHint(row)
-        OvsdbTools.insert(client, table, table.insert(row), vtepExecutor)
-                  .future.onComplete {
-                      case Failure(exc) =>
-                          removeHint(row.uuid, hint)
-                          result.failure(exc)
-                      case Success(uuid) =>
-                          result.success(uuid)
-                  }(vtepContext)
-        result.future
-    }
-
-    def insertHint(row: Entry, hint: UUID = UUID.randomUUID()): UUID = {
-        map = map updated(row.uuid, Data(row, hint)
-                  :: map.getOrElse(row.uuid, Nil))
-        hint
-    }
-
-    def removeHint(rowId: UUID, hint: UUID): Unit =
-        map.getOrElse(rowId, Nil).filterNot(_.owner == hint) match {
-            case Nil => map = map - rowId
-            case entries => map = map updated (rowId, entries)
+    override def select(id: UUID): Future[Option[Entry]] = {
+        OvsdbOperations.singleOp(client, table.getDbSchema,
+                                 table.selectById(id)) map { result =>
+            if ((result.getRows ne null) && result.getRows.size() > 0) {
+                Some(table.parseEntry(result.getRows.get(0), clazz))
+            } else None
         }
+    }
+
+    override def insert(row: Entry): Future[UUID] = {
+        OvsdbOperations.singleOp(client, table.getDbSchema,
+                                 table.insert(row)) map {
+            _.getUuid.asJava
+        }
+    }
 
     override def get(id: UUID): Option[Entry] = map.get(id).map(_.head.value)
     override def getAll: Map[UUID, Entry] = map.mapValues(_.head.value)
 
     override def ready: Future[Boolean] = filled.future
-    override def isReady: Boolean = filled.future.value.collect[Boolean]({
+    override def isReady: Boolean = filled.future.value.collect[Boolean] {
         case Success(available) => available
         case Failure(_) => false
-    }).getOrElse(false)
+    } getOrElse false
+
 }

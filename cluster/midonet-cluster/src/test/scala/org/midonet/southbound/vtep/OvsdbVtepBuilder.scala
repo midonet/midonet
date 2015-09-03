@@ -28,6 +28,8 @@ import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema._
+import org.midonet.southbound.vtep.OvsdbOperations._
+import org.midonet.util.concurrent._
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 object OvsdbVtepBuilder {
@@ -43,9 +45,9 @@ object OvsdbVtepBuilder {
 class OvsdbVtepBuilder(val vtep: InMemoryOvsdbVtep) extends AnyVal {
 
     private def schema: DatabaseSchema = {
-        OvsdbTools.getDbSchema(vtep.getClient, OvsdbTools.DB_HARDWARE_VTEP,
-                               CallingThreadExecutionContext.asInstanceOf[Executor])
-                  .result(5 seconds)
+        val executor = CallingThreadExecutionContext.asInstanceOf[Executor]
+        getDbSchema(vtep.getClient, OvsdbOperations.DbHardwareVtep)(executor)
+            .await(5 seconds)
     }
 
     def endPoint: VtepEndPoint = {
