@@ -108,7 +108,6 @@ class HostService @Inject()(config: MidolmanConfig,
     private final val timeout = 5 seconds
     @volatile private var hostIdInternal: UUID = null
     @volatile private var hostName: String = "UNKNOWN"
-    private val epoch: Long = System.currentTimeMillis
 
     private val interfacesLatch = new CountDownLatch(1)
     @volatile private var currentInterfaces: Set[InterfaceDescription] = null
@@ -120,11 +119,11 @@ class HostService @Inject()(config: MidolmanConfig,
     private val aliveObserver = new Observer[StateKey] {
         override def onCompleted(): Unit = {
             aliveSubscription = null
-            recreateHostInV2OrShutdown()
+            recreateHostOrShutdown()
         }
         override def onError(e: Throwable): Unit = {
             aliveSubscription = null
-            recreateHostInV2OrShutdown()
+            recreateHostOrShutdown()
         }
         override def onNext(key: StateKey): Unit = key match {
             case SingleValueKey(_, _, ownerId) =>
@@ -134,7 +133,7 @@ class HostService @Inject()(config: MidolmanConfig,
                              "changed (current={} expected={}): reacquiring " +
                              "ownership", Long.box(ownerId),
                              Long.box(stateStore.ownerId))
-                    recreateHostInV2OrShutdown()
+                    recreateHostOrShutdown()
                 }
             case _ =>
                 log.error("Unexpected alive notification {} for host {}",
@@ -274,8 +273,9 @@ class HostService @Inject()(config: MidolmanConfig,
     private def create(): Boolean = {
         // Only try to acquire ownership if it has been lost.
         if (!aliveState.compareAndSet(OwnershipState.Released,
-            OwnershipState.Acquiring))
+                                      OwnershipState.Acquiring)) {
             return false
+        }
         log.debug("Creating host in backend storage with owner ID {}", hostId)
         try {
             // Get the current host if it exists.
@@ -332,7 +332,7 @@ class HostService @Inject()(config: MidolmanConfig,
         }
     }
 
-    private def recreateHostInV2OrShutdown(): Unit = {
+    private def recreateHostOrShutdown(): Unit = {
         // Only reacquire ownership if the current state is Acquired.
         if (!aliveState.compareAndSet(OwnershipState.Acquired,
             OwnershipState.Released)) return
@@ -416,11 +416,6 @@ class HostService @Inject()(config: MidolmanConfig,
                     .asJava)
             .build()
             .toString
-    }
-
-    /** Returns the current set of IP addresses for this host. */
-    private def getInterfaceAddresses: Seq[InetAddress] = {
-        currentInterfaces.toList.flatMap(_.getInetAddresses.asScala).toSeq
     }
 
 }

@@ -35,18 +35,18 @@ import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
-class DhcpConfigFromZoomTest extends MidolmanSpec
+class DhcpConfigFromNsdbTest extends MidolmanSpec
                              with MidonetEventually
                              with TopologyBuilder {
 
     private var store: Storage = _
     private var vt: VirtualTopology = _
-    private var cfg: DhcpConfigFromZoom = _
+    private var cfg: DhcpConfigFromNsdb = _
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).store
-        cfg = new DhcpConfigFromZoom(vt)
+        cfg = new DhcpConfigFromNsdb(vt)
     }
 
     private def createSubnet(address: IPv4Addr): Subnet = {

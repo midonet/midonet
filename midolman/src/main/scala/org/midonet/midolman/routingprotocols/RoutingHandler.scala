@@ -27,9 +27,7 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 import akka.actor.ActorRef
-
 import org.apache.zookeeper.KeeperException
-
 import rx.Subscription
 
 import org.midonet.cluster.Client

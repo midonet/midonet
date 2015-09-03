@@ -503,19 +503,6 @@ trait DhcpConfig {
     def dhcpHost(deviceId: UUID, subnet: Subnet, srcMac: String): Option[Host]
 }
 
-/** Implementation based on the old DataClient */
-class DhcpConfigFromDataclient(val dataClient: DataClient) extends DhcpConfig {
-
-    override def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet] = {
-        dataClient.dhcpSubnetsGetByBridge(deviceId)
-    }
-
-    override def dhcpHost(deviceId: UUID, subnet: Subnet,
-                          srcMac: String): Option[Host] = Option(
-        dataClient.dhcpHostsGet(deviceId, subnet.getSubnetAddr, srcMac)
-    )
-}
-
 class DhcpImpl(val dhcpConfig: DhcpConfig,
                val request: DHCP, val sourceMac: MAC,
                val mtu: Option[Short], val log: Logger) {

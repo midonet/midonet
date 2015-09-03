@@ -254,14 +254,6 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             deleteRule(rule)
             removeIpAddrFromIpAddrGroup(ipAddrGroup, addr)
 
-            /** In the new stack we only get notified on the chain
-              * when the rule is deleted. Once the rule is deleted, there's
-              * no relationship between the chain and the ipaddr group, so it
-              * does get notified when the ipaddr group is changed */
-            if (!useNewStorageStack) {
-                c = expectMsgType[Chain]
-                c.rules.size() should be (0)
-            }
             c = expectMsgType[Chain]
             c.rules.size() should be (0)
 
