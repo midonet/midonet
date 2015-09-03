@@ -33,7 +33,7 @@ import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Tenant;
 
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_CHAIN_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_JSON;
@@ -232,7 +232,7 @@ public class Topology {
                     obj.setOutboundFilterId(c.getId());
                 }
                 obj = resource.postAndVerifyCreated(app.getBridges(),
-                    APPLICATION_BRIDGE_JSON, obj, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4, obj, DtoBridge.class);
                 entry.setValue(obj);
             }
 

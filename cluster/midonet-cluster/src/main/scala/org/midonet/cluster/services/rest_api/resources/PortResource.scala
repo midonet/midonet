@@ -17,13 +17,13 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.Response.Status._
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.reflect.ClassTag
@@ -32,12 +32,14 @@ import scala.util.control.NonFatal
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.data.ZoomConvert.fromProto
+import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Route.NextHop
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
@@ -142,6 +144,8 @@ class BridgePortResource @Inject()(bridgeId: UUID,
                                    resContext: ResourceContext)
     extends AbstractPortResource[BridgePort](resContext) {
 
+    private val store = resContext.backend.store
+
     protected override def listIds: Ids = {
         getResource(classOf[Bridge], bridgeId) map { _.portIds.asScala }
     }
@@ -151,6 +155,42 @@ class BridgePortResource @Inject()(bridgeId: UUID,
             port.create(bridgeId)
             NoOps
         }
+    }
+
+    @GET
+    @Path("{id}/vtep_bindings/{physPort}/{vlan}")
+    def vtepBindings(@PathParam("id")id: UUID,
+                     @PathParam("physPort")physPort: String,
+                     @PathParam("vlan")vlan: Int): List[VtepBinding] = {
+        getBindings(id).filter { b =>
+            b.vlanId == vlan && physPort == b.portName
+        }
+    }
+
+    @GET
+    @Path("{id}/vtep_bindings")
+    def vtepBindings(@PathParam("id")id: UUID): List[VtepBinding] = {
+        getBindings(id)
+    }
+
+    private def getBindings(id: UUID): List[VtepBinding] = {
+        val p = store.get(classOf[Topology.Port], id).getOrThrow
+        if (!p.hasVtepId) {
+            throw new BadRequestHttpException(getMessage(PORT_NOT_VXLAN_PORT,
+                                                         id))
+        }
+        val vtep = store.get(classOf[Topology.Vtep], p.getVtepId).getOrThrow
+        val bindings = vtep.getBindingsList
+                           .filter { _.getNetworkId == p.getNetworkId }
+                           .map { fromProto(_, classOf[VtepBinding]) }
+                           .toList
+        if (bindings.isEmpty) {
+            log.warn("Network VxLAN port $id exists, but no bindings are " +
+                     "found in VTEP ${fromProto(vtep.getId()}, this is wrong" +
+                     "as the port is deleted when the last binding is removed" +
+                     ". Data inconsistency?")
+        }
+        bindings
     }
 }
 

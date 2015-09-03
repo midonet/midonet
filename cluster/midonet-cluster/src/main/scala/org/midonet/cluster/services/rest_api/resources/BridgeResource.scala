@@ -18,7 +18,6 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.{MediaType, Response}
@@ -30,7 +29,6 @@ import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException}
 
@@ -42,7 +40,6 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes.{APPLICATION_BRIDGE_COLLECTION_JSON, APPLICATION_BRIDGE_COLLECTION_JSON_V2, APPLICATION_BRIDGE_COLLECTION_JSON_V3, APPLICATION_BRIDGE_JSON, APPLICATION_BRIDGE_JSON_V2, APPLICATION_BRIDGE_JSON_V3}
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.midolman.state.MacPortMap.encodePersistentPath
 import org.midonet.midolman.state.PathBuilder
@@ -52,21 +49,13 @@ import org.midonet.packets.{IPv4Addr, MAC}
 @ApiResource(version = 1)
 @Path("bridges")
 @RequestScoped
-@AllowGet(Array(APPLICATION_BRIDGE_JSON,
-                APPLICATION_BRIDGE_JSON_V2,
-                APPLICATION_BRIDGE_JSON_V3,
+@AllowGet(Array(APPLICATION_BRIDGE_JSON_V4,
                 APPLICATION_JSON))
-@AllowList(Array(APPLICATION_BRIDGE_COLLECTION_JSON,
-                 APPLICATION_BRIDGE_COLLECTION_JSON_V2,
-                 APPLICATION_BRIDGE_COLLECTION_JSON_V3,
+@AllowList(Array(APPLICATION_BRIDGE_COLLECTION_JSON_V4,
                  APPLICATION_JSON))
-@AllowCreate(Array(APPLICATION_BRIDGE_JSON,
-                   APPLICATION_BRIDGE_JSON_V2,
-                   APPLICATION_BRIDGE_JSON_V3,
+@AllowCreate(Array(APPLICATION_BRIDGE_JSON_V4,
                    APPLICATION_JSON))
-@AllowUpdate(Array(APPLICATION_BRIDGE_JSON,
-                   APPLICATION_BRIDGE_JSON_V2,
-                   APPLICATION_BRIDGE_JSON_V3,
+@AllowUpdate(Array(APPLICATION_BRIDGE_JSON_V4,
                    APPLICATION_JSON))
 @AllowDelete
 class BridgeResource @Inject()(resContext: ResourceContext,
@@ -278,7 +267,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
     }
 
     protected override def createFilter(bridge: Bridge): Ops = {
-        if (bridge.vxLanPortId != null || bridge.vxLanPortIds != null) {
+        if (bridge.vxLanPortIds != null) {
             return Future.failed(new BadRequestHttpException(
                 getMessage(VXLAN_PORT_ID_NOT_SETTABLE)))
         }
@@ -287,13 +276,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
     }
 
     protected override def updateFilter(to: Bridge, from: Bridge): Ops = {
-        if (to.vxLanPortId != null &&
-            to.vxLanPortId != from.vxLanPortId) {
-            return Future.failed(new BadRequestHttpException(
-                getMessage(VXLAN_PORT_ID_NOT_SETTABLE)))
-        }
-        if (to.vxLanPortIds != null &&
-            to.vxLanPortIds != from.vxLanPortIds) {
+        if (to.vxLanPortIds != null && to.vxLanPortIds != from.vxLanPortIds) {
             return Future.failed(new BadRequestHttpException(
                 getMessage(VXLAN_PORT_ID_NOT_SETTABLE)))
         }

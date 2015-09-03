@@ -61,7 +61,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_JSON_V3;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
@@ -117,7 +117,7 @@ public class TestHost extends JerseyTest {
         bridge.setTenantId("tenant1");
         bridge = dtoResource.postAndVerifyCreated(
             topology.getApplication().getBridges(),
-            APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+            APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
         return bridge;
     }
 

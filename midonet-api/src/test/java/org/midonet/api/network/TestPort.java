@@ -70,7 +70,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON;
@@ -581,7 +581,7 @@ public class TestPort {
 
             // Try delete the bridge, test it deletes cleanly
             dtoResource.deleteAndVerifyNoContent(b.getUri(),
-                                                 APPLICATION_BRIDGE_JSON);
+                                                 APPLICATION_BRIDGE_JSON_V4);
         }
 
         @Test

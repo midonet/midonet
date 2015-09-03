@@ -16,7 +16,6 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,12 +26,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil.Converter;
-import org.midonet.util.version.Since;
-import org.midonet.util.version.Until;
 
-import static org.midonet.cluster.rest_api.ResourceUris.*;
+import static org.midonet.cluster.rest_api.ResourceUris.ARP_TABLE;
+import static org.midonet.cluster.rest_api.ResourceUris.BRIDGES;
+import static org.midonet.cluster.rest_api.ResourceUris.CHAINS;
+import static org.midonet.cluster.rest_api.ResourceUris.DHCP;
+import static org.midonet.cluster.rest_api.ResourceUris.DHCPV6;
+import static org.midonet.cluster.rest_api.ResourceUris.MAC_TABLE;
+import static org.midonet.cluster.rest_api.ResourceUris.PEER_PORTS;
+import static org.midonet.cluster.rest_api.ResourceUris.PORTS;
 
 @ZoomClass(clazz = Topology.Network.class)
 public class Bridge extends UriResource {
@@ -56,11 +59,7 @@ public class Bridge extends UriResource {
     @ZoomField(name = "outbound_filter_id", converter = Converter.class)
     public UUID outboundFilterId;
 
-    @Since("2")
-    public UUID vxLanPortId;
-
     @ZoomField(name = "vxlan_port_ids", converter = Converter.class)
-    @Since("3") // after adding support to multiple vtep bindings
     public List<UUID> vxLanPortIds;
 
     @JsonIgnore
@@ -104,15 +103,8 @@ public class Bridge extends UriResource {
         return relativeUri(PEER_PORTS);
     }
 
-    @Since("3")
-    public List<URI> getVxLanPorts() {
-        return absoluteUris(PORTS, vxLanPortIds);
-    }
-
-    @Since("2")
-    @Until("3")
-    public URI getVxLanPort() {
-        return absoluteUri(PORTS, vxLanPortId);
+    public URI getVxLanPorts() {
+        return relativeUri(PORTS);
     }
 
     public URI getMacTable() {
@@ -149,7 +141,6 @@ public class Bridge extends UriResource {
         if (null == id) {
             id = UUID.randomUUID();
         }
-        vxLanPortId = null;
         vxLanPortIds = null;
     }
 
@@ -157,7 +148,6 @@ public class Bridge extends UriResource {
     public void update(Bridge from) {
         this.id = from.id;
         portIds = from.portIds;
-        vxLanPortId = from.vxLanPortId;
         vxLanPortIds = from.vxLanPortIds;
         dhcpIds = from.dhcpIds;
         traceRequestIds = from.traceRequestIds;
