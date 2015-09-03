@@ -23,16 +23,19 @@ import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRuleChain;
-import org.midonet.cluster.rest_api.VendorMediaType;
 
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TENANT_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_COLLECTION_JSON_V4;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_COLLECTION_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_JSON;
 
 public class Tenant extends ResourceBase<Tenant,
     org.midonet.cluster.rest_api.models.Tenant> {
 
     public Tenant(WebResource resource, URI uriForCreation,
                   org.midonet.cluster.rest_api.models.Tenant t) {
-        super(resource, uriForCreation, t, APPLICATION_TENANT_JSON);
+        super(resource, uriForCreation, t, APPLICATION_TENANT_JSON());
     }
 
     @Override
@@ -57,7 +60,7 @@ public class Tenant extends ResourceBase<Tenant,
         return getChildResources(
             principalDto.getBridges(),
             null,
-            VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V4,
+            APPLICATION_BRIDGE_COLLECTION_JSON_V4(),
             Bridge.class, DtoBridge.class);
     }
 
@@ -65,7 +68,7 @@ public class Tenant extends ResourceBase<Tenant,
         return getChildResources(
                 principalDto.getPortGroups(),
                 null,
-                VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON,
+                APPLICATION_PORTGROUP_COLLECTION_JSON(),
                 PortGroup.class, DtoPortGroup.class);
     }
 
@@ -73,7 +76,7 @@ public class Tenant extends ResourceBase<Tenant,
         return getChildResources(
                 principalDto.getRouters(),
                 null,
-                VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
+                APPLICATION_ROUTER_COLLECTION_JSON_V3(),
                 Router.class, DtoRouter.class);
     }
 
@@ -81,7 +84,7 @@ public class Tenant extends ResourceBase<Tenant,
         return getChildResources(
                 principalDto.getChains(),
                 null,
-                VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON,
+                APPLICATION_CHAIN_COLLECTION_JSON(),
                 RuleChain.class, DtoRuleChain.class);
     }
 

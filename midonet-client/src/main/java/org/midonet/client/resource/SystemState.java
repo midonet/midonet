@@ -20,14 +20,14 @@ import java.net.URI;
 
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoSystemState;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 public class SystemState extends ResourceBase<SystemState, DtoSystemState> {
 
 
     public SystemState(WebResource resource, URI uriForCreation, DtoSystemState ss) {
         super(resource, uriForCreation, ss,
-              VendorMediaType.APPLICATION_SYSTEM_STATE_JSON_V2);
+              MidonetMediaTypes.APPLICATION_SYSTEM_STATE_JSON_V2());
     }
 
     @Override

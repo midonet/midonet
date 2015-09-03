@@ -21,90 +21,48 @@ import java.util.UUID;
 
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoPortGroup;
-import org.midonet.cluster.rest_api.VendorMediaType;
+
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_JSON;
 
 public class PortGroup extends ResourceBase<PortGroup, DtoPortGroup> {
 
 
     public PortGroup(WebResource resource, URI uriForCreation,
                      DtoPortGroup pg) {
-        super(resource, uriForCreation, pg, VendorMediaType.APPLICATION_PORTGROUP_JSON);
+        super(resource, uriForCreation, pg, APPLICATION_PORTGROUP_JSON());
     }
 
-    /**
-     * Gets URI for this port groups
-     *
-     * @return URI of this port group
-     */
     @Override
     public URI getUri() {
         return principalDto.getUri();
     }
 
-    /**
-     * Gets ID of the port Groups
-     *
-     * @return UUID of this port groups
-     */
     public UUID getId() {
         return principalDto.getId();
     }
 
-    /**
-     * Gets name of this port group
-     *
-     * @return name of this port group
-     */
     public String getName() {
         return principalDto.getName();
     }
 
-    /**
-     * Gets tenant ID string of this port group
-     *
-     * @return tenant ID string
-     */
     public String getTenantId() {
         return principalDto.getTenantId();
     }
 
-    /**
-     * Gets stateful flag
-     *
-     * @return stateful flag
-     */
     public boolean isStateful() {
         return principalDto.isStateful();
     }
 
-    /**
-     * Sets name of this portgroup for creation
-     *
-     * @param name name of the port group
-     * @return this
-     */
     public PortGroup name(String name) {
         principalDto.setName(name);
         return this;
     }
 
-    /**
-     * Sets tenantId.
-     *
-     * @param tenantId tenant ID
-     * @return this
-     */
     public PortGroup tenantId(String tenantId) {
         principalDto.setTenantId(tenantId);
         return this;
     }
 
-    /**
-     * Sets stateful flag.
-     *
-     * @param stateful
-     * @return this
-     */
     public PortGroup stateful(boolean stateful) {
         principalDto.setStateful(stateful);
         return this;

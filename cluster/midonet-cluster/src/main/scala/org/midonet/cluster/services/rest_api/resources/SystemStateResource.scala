@@ -28,13 +28,11 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes
 @ApiResource(version = 1)
 @Path("system_state")
 @RequestScoped
+/** We're probably removing this in V2, kept here as it's required by MDTS */
 class SystemStateResource {
 
-    // TODO: we're cheating here, it should use a real system state, but for
-    //       now our goal is passing MDTS so we don't really need it
     @GET
-    @Produces(Array(MidonetMediaTypes.APPLICATION_SYSTEM_STATE_JSON,
-                    MidonetMediaTypes.APPLICATION_SYSTEM_STATE_JSON_V2,
+    @Produces(Array(MidonetMediaTypes.APPLICATION_SYSTEM_STATE_JSON_V2,
                     MediaType.APPLICATION_JSON))
     def get(): SystemState = {
         val st = new SystemState()

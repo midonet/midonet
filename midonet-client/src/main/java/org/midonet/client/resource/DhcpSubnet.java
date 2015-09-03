@@ -22,14 +22,16 @@ import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoDhcpHost;
 import org.midonet.client.dto.DtoDhcpOption121;
 import org.midonet.client.dto.DtoDhcpSubnet;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
+
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_DHCP_SUBNET_JSON_V2;
 
 public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
 
     public DhcpSubnet(WebResource resource, URI uriForCreation, DtoDhcpSubnet
         principalDto) {
-        super(resource, uriForCreation, principalDto, VendorMediaType
-            .APPLICATION_DHCP_SUBNET_JSON);
+        super(resource, uriForCreation, principalDto,
+              APPLICATION_DHCP_SUBNET_JSON_V2());
     }
 
     @Override
@@ -109,7 +111,7 @@ public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
         return getChildResources(
             principalDto.getHosts(),
             null,
-            VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON,
+            MidonetMediaTypes.APPLICATION_DHCP_HOST_COLLECTION_JSON_V2(),
             DhcpHost.class,
             DtoDhcpHost.class);
     }

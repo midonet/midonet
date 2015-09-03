@@ -22,14 +22,14 @@ import javax.ws.rs._
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.{NotFoundHttpException, BadRequestHttpException}
 import org.midonet.cluster.rest_api.models.{TunnelZone, TunnelZoneHost}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
 
@@ -79,8 +79,7 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
         }
 
         getResource(classOf[TunnelZone], tunnelZoneId).map(tunnelZone => {
-            if (tunnelZone.tzHosts.asScala.find(_.hostId ==
-                                              tunnelZoneHost.hostId).nonEmpty) {
+            if (tunnelZone.tzHosts.exists(_.hostId == tunnelZoneHost.hostId)) {
                 Response.status(Status.CONFLICT).build()
             } else {
                 tunnelZoneHost.create(tunnelZone.id)

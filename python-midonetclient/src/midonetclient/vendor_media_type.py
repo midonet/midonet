@@ -27,9 +27,9 @@ APPLICATION_ROUTER_COLLECTION_JSON = \
 APPLICATION_BRIDGE_JSON = "application/vnd.org.midonet.Bridge-v4+json"
 APPLICATION_BRIDGE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Bridge-v4+json"
-APPLICATION_HOST_JSON = "application/vnd.org.midonet.Host-v2+json"
+APPLICATION_HOST_JSON = "application/vnd.org.midonet.Host-v3+json"
 APPLICATION_HOST_COLLECTION_JSON = \
-    "application/vnd.org.midonet.collection.Host-v2+json"
+    "application/vnd.org.midonet.collection.Host-v3+json"
 APPLICATION_INTERFACE_JSON = "application/vnd.org.midonet.Interface-v1+json"
 APPLICATION_INTERFACE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Interface-v1+json"
@@ -79,9 +79,9 @@ APPLICATION_VPN_COLLECTION_JSON = \
 APPLICATION_DHCP_SUBNET_JSON = "application/vnd.org.midonet.DhcpSubnet-v2+json"
 APPLICATION_DHCP_SUBNET_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.DhcpSubnet-v2+json"
-APPLICATION_DHCP_HOST_JSON = "application/vnd.org.midonet.DhcpHost-v1+json"
+APPLICATION_DHCP_HOST_JSON = "application/vnd.org.midonet.DhcpHost-v2+json"
 APPLICATION_DHCP_HOST_COLLECTION_JSON = \
-    "application/vnd.org.midonet.collection.DhcpHost-v1+json"
+    "application/vnd.org.midonet.collection.DhcpHost-v2+json"
 APPLICATION_DHCPV6_SUBNET_JSON = \
     "application/vnd.org.midonet.DhcpV6Subnet-v1+json"
 APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON = \

@@ -19,7 +19,7 @@ package org.midonet.client.resource;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoPortGroup;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 import java.net.URI;
 
@@ -41,7 +41,7 @@ public abstract class Port<T extends Port<T, U>, U extends DtoPort>
         return getChildResources(
                 principalDto.getPortGroups(),
                 null,
-                VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON,
+                MidonetMediaTypes.APPLICATION_PORTGROUP_COLLECTION_JSON(),
                 PortGroup.class, DtoPortGroup.class);
     }
 }

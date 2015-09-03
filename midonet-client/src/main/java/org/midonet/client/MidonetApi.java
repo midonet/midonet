@@ -35,7 +35,7 @@ import org.midonet.client.resource.SystemState;
 import org.midonet.client.resource.Tenant;
 import org.midonet.client.resource.TunnelZone;
 import org.midonet.client.resource.WriteVersion;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 
 /**
@@ -243,9 +243,9 @@ public class MidonetApi {
         if (application == null) {
             DtoApplication dtoApplication = resource.get("",
                      DtoApplication.class,
-                     VendorMediaType.APPLICATION_JSON_V5);
+                     MidonetMediaTypes.APPLICATION_JSON_V5());
             application = new Application(resource, dtoApplication,
-                     VendorMediaType.APPLICATION_JSON_V5);
+                     MidonetMediaTypes.APPLICATION_JSON_V5());
         }
     }
 }

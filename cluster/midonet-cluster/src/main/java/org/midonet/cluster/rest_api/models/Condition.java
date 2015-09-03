@@ -47,7 +47,6 @@ import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.Range;
-import org.midonet.util.version.Since;
 
 import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_UNDEFINED;
@@ -134,7 +133,6 @@ public class Condition extends UriResource {
     @ZoomField(name = "dl_src")
     public String dlSrc;
 
-    @Since("2")
     @ValidMacMask
     @ZoomField(name = "dl_src_mask", converter = MACMaskConverter.class)
     public String dlSrcMask;
@@ -146,7 +144,6 @@ public class Condition extends UriResource {
     @ValidMac
     public String dlDst;
 
-    @Since("2")
     @ZoomField(name = "dl_dst_mask", converter = MACMaskConverter.class)
     @ValidMacMask
     public String dlDstMask;
@@ -166,7 +163,6 @@ public class Condition extends UriResource {
     @ZoomField(name = "nw_dst_inv")
     public boolean invNwDst;
 
-    @Since("2")
     @JsonError(message = FRAG_POLICY_UNDEFINED)
     @ZoomField(name = "fragment_policy")
     public FragmentPolicy fragmentPolicy;

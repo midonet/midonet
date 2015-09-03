@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
@@ -36,8 +35,7 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 @ApiResource(version = 1)
 @Path("rules")
 @RequestScoped
-@AllowGet(Array(APPLICATION_RULE_JSON,
-                APPLICATION_RULE_JSON_V2,
+@AllowGet(Array(APPLICATION_RULE_JSON_V2,
                 APPLICATION_JSON))
 @AllowDelete
 class RuleResource @Inject()(resContext: ResourceContext)
@@ -65,11 +63,9 @@ class RuleResource @Inject()(resContext: ResourceContext)
 }
 
 @RequestScoped
-@AllowList(Array(APPLICATION_RULE_COLLECTION_JSON,
-                 APPLICATION_RULE_COLLECTION_JSON_V2,
+@AllowList(Array(APPLICATION_RULE_COLLECTION_JSON_V2,
                  APPLICATION_JSON))
-@AllowCreate(Array(APPLICATION_RULE_JSON,
-                   APPLICATION_RULE_JSON_V2,
+@AllowCreate(Array(APPLICATION_RULE_JSON_V2,
                    APPLICATION_JSON))
 class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
     extends MidonetResource[Rule](resContext) {

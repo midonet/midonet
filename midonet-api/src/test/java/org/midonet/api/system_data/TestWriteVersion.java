@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.MidonetApi;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.midonet.midolman.version.DataWriteVersion.CURRENT;
@@ -42,7 +42,7 @@ public class TestWriteVersion extends JerseyTest {
     @Before
     public void setUp() {
 
-        resource().accept(VendorMediaType.APPLICATION_JSON_V5)
+        resource().accept(MidonetMediaTypes.APPLICATION_JSON_V5())
                 .get(ClientResponse.class);
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());

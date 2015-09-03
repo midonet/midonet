@@ -85,10 +85,10 @@ message Condition {
     optional int32 dl_type = 14;
     optional bool inv_dl_type = 15;
     optional string dl_src = 16;
-    optional int64 dl_src_mask = 17 [default = -1];  // Top 16 bits ignored.
+    optional int64 dl_src_mask = 17;  // Top 16 bits ignored.
     optional bool inv_dl_src = 18;
     optional string dl_dst = 19;
-    optional int64 dl_dst_mask = 20 [default = -1];  // Top 16 bits ignored.
+    optional int64 dl_dst_mask = 20;  // Top 16 bits ignored.
     optional bool inv_dl_dst = 21;
     optional int32 nw_tos = 22;
     optional bool nw_tos_inv = 23;

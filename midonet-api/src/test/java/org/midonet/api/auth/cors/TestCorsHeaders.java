@@ -15,17 +15,19 @@
  */
 package org.midonet.api.auth.cors;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.rest_api.FuncTest;
+import java.util.List;
+import java.util.Map;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
+
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -69,7 +71,7 @@ public class TestCorsHeaders extends JerseyTest {
         assertTrue(exposeHeaders.contains("Location"));
 
         // Test GET method returns expected response headers.
-        response = resource.accept(VendorMediaType.APPLICATION_JSON_V5)
+        response = resource.accept(MidonetMediaTypes.APPLICATION_JSON_V5())
                            .header("X-Auth-Token", "999888777666")
                            .get(ClientResponse.class);
         String body = response.getEntity(String.class);

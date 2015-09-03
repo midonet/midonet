@@ -19,14 +19,14 @@ import java.net.URI;
 
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoDhcpV6Host;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 public class DhcpV6Host extends ResourceBase<DhcpV6Host, DtoDhcpV6Host> {
 
     public DhcpV6Host(WebResource resource, URI uriForCreation, DtoDhcpV6Host
         principalDto) {
         super(resource, uriForCreation, principalDto,
-              VendorMediaType.APPLICATION_DHCPV6_HOST_JSON);
+              MidonetMediaTypes.APPLICATION_DHCPV6_HOST_JSON());
     }
 
     @Override

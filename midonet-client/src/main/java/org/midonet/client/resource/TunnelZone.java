@@ -22,7 +22,7 @@ import java.util.UUID;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 public class TunnelZone extends ResourceBase<TunnelZone, DtoTunnelZone> {
 
@@ -33,7 +33,7 @@ public class TunnelZone extends ResourceBase<TunnelZone, DtoTunnelZone> {
                       DtoTunnelZone tunnelZone, String tunnelZoneHostMediaType,
                                     String tunnelZoneHostListMediaType) {
         super(resource, uriForCreation, tunnelZone,
-              VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
+              MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON());
         this.tunnelZoneHostMediaType = tunnelZoneHostMediaType;
         this.tunnelZoneHostListMediaType = tunnelZoneHostListMediaType;
 

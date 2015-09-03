@@ -35,7 +35,7 @@ import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.LBStatus;
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -44,13 +44,13 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VIP_JSON;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_POOL_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_POOL_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VIP_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VIP_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPool {
@@ -68,7 +68,7 @@ public class TestPool {
         private void verifyNumberOfPools(int num) {
             DtoPool[] pools = dtoResource.getAndVerifyOk(
                     topLevelPoolsUri,
-                    VendorMediaType.APPLICATION_POOL_COLLECTION_JSON,
+                    MidonetMediaTypes.APPLICATION_POOL_COLLECTION_JSON(),
                     DtoPool[].class);
             assertEquals(num, pools.length);
         }
@@ -78,7 +78,7 @@ public class TestPool {
             // Check health monitor backreference.
             DtoHealthMonitor hm = getHealthMonitor(healthMonitorUri);
             DtoPool[] hmPools = dtoResource.getAndVerifyOk(hm.getPools(),
-                    APPLICATION_POOL_COLLECTION_JSON,
+                    APPLICATION_POOL_COLLECTION_JSON(),
                     DtoPool[].class);
             if (expectedPool == null) {
                 assertEquals(0, hmPools.length);
@@ -172,9 +172,9 @@ public class TestPool {
             deletePool(pool.getUri());
             // Strongly associated resources are deleted by cascading.
             dtoResource.getAndVerifyNotFound(vip.getUri(),
-                    VendorMediaType.APPLICATION_VIP_JSON);
+                    MidonetMediaTypes.APPLICATION_VIP_JSON());
             dtoResource.getAndVerifyNotFound(vip2.getUri(),
-                    VendorMediaType.APPLICATION_VIP_JSON);
+                    MidonetMediaTypes.APPLICATION_VIP_JSON());
         }
 
         @Test
@@ -182,7 +182,7 @@ public class TestPool {
             DtoPool pool = getStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
             dtoResource.postAndVerifyError(topLevelPoolsUri,
-                                           APPLICATION_POOL_JSON, pool,
+                                           APPLICATION_POOL_JSON(), pool,
                                            NOT_FOUND);
         }
 
@@ -192,9 +192,8 @@ public class TestPool {
             DtoPool pool2 = getStockPool(loadBalancer.getId());
             pool2.setId(pool1.getId());
             DtoError error = dtoResource.postAndVerifyError(
-                    topLevelPoolsUri, APPLICATION_POOL_JSON, pool2, CONFLICT);
-            assertErrorMatches(error, RESOURCE_EXISTS, "Pool",
-                               pool2.getId());
+                    topLevelPoolsUri, APPLICATION_POOL_JSON(), pool2, CONFLICT);
+            assertErrorMatches(error, RESOURCE_EXISTS, "Pool", pool2.getId());
         }
 
         @Test
@@ -203,7 +202,7 @@ public class TestPool {
             pool.setLbMethod(null);
             // `lbMethod` property of Pool is mandatory.
             dtoResource.postAndVerifyBadRequest(
-                    topLevelPoolsUri, APPLICATION_POOL_JSON, pool);
+                    topLevelPoolsUri, APPLICATION_POOL_JSON(), pool);
         }
 
         @Test
@@ -211,7 +210,7 @@ public class TestPool {
             UUID id = UUID.randomUUID();
             URI uri = addIdToUri(topLevelPoolsUri, id);
             DtoError error = dtoResource.getAndVerifyNotFound(
-                    uri, APPLICATION_POOL_JSON);
+                    uri, APPLICATION_POOL_JSON());
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool", id);
         }
 
@@ -227,9 +226,8 @@ public class TestPool {
             pool.setId(UUID.randomUUID());
             pool.setUri(addIdToUri(topLevelPoolsUri, pool.getId()));
             DtoError error = dtoResource.putAndVerifyNotFound(
-                    pool.getUri(), APPLICATION_POOL_JSON, pool);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool",
-                               pool.getId());
+                    pool.getUri(), APPLICATION_POOL_JSON(), pool);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool", pool.getId());
         }
 
         @Test
@@ -237,7 +235,7 @@ public class TestPool {
             DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
             ClientResponse res = dtoResource.putAndVerifyStatus(
-                pool.getUri(), APPLICATION_POOL_JSON, pool,
+                pool.getUri(), APPLICATION_POOL_JSON(), pool,
                 NOT_FOUND.getStatusCode());
             assertErrorMatches(res.getEntity(DtoError.class),
                                RESOURCE_NOT_FOUND, "HealthMonitor",
@@ -261,8 +259,7 @@ public class TestPool {
             // fail with 400 Bad Request. `poolId` can't be null.
             DtoVip vip2 = getStockVip(null);
             dtoResource.postAndVerifyBadRequest(topLevelVipsUri,
-                    APPLICATION_VIP_JSON,
-                    vip2);
+                    APPLICATION_VIP_JSON(), vip2);
             vips = getVips(pool.getVips());
             assertEquals(1, vips.length);
             assertEquals(vip1, vips[0]);
@@ -286,7 +283,7 @@ public class TestPool {
             UUID id = UUID.randomUUID();
             URI uri = new URI(topLevelPoolsUri + "/" + id + "/vips");
             DtoError error = dtoResource.getAndVerifyNotFound(
-                    uri, APPLICATION_VIP_COLLECTION_JSON);
+                    uri, APPLICATION_VIP_COLLECTION_JSON());
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool", id);
         }
 
@@ -295,7 +292,7 @@ public class TestPool {
             UUID id = UUID.randomUUID();
             URI uri = new URI(topLevelPoolsUri + "/" + id + "/pool_members");
             DtoError error = dtoResource.getAndVerifyNotFound(
-                    uri, APPLICATION_POOL_MEMBER_COLLECTION_JSON);
+                    uri, APPLICATION_POOL_MEMBER_COLLECTION_JSON());
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool", id);
         }
 
@@ -319,7 +316,7 @@ public class TestPool {
 
             DtoPool pool3 = getStockPool(loadBalancer.getId());
             pool3  = dtoResource.postAndVerifyCreated(loadBalancer.getPools(),
-                    APPLICATION_POOL_JSON, pool3, DtoPool.class);
+                    APPLICATION_POOL_JSON(), pool3, DtoPool.class);
             poolsCounter++;
             assertEquals(loadBalancer.getId(), pool3.getLoadBalancerId());
 
@@ -329,7 +326,7 @@ public class TestPool {
             for (DtoPool originalPool : pools) {
                 DtoPool retrievedPool = dtoResource.getAndVerifyOk(
                         originalPool.getUri(),
-                        APPLICATION_POOL_JSON, DtoPool.class);
+                        APPLICATION_POOL_JSON(), DtoPool.class);
                 assertEquals(originalPool, retrievedPool);
 
             }
@@ -371,8 +368,7 @@ public class TestPool {
             // 503 Service Unavailable.
             pool.setHealthMonitorId(null);
             ClientResponse response = dtoResource.putAndVerifyStatus(
-                    pool.getUri(),
-                    APPLICATION_POOL_JSON, pool,
+                    pool.getUri(), APPLICATION_POOL_JSON(), pool,
                     SERVICE_UNAVAILABLE.getStatusCode());
             MultivaluedMap<String, String> headers = response.getHeaders();
             String expectedRetryAfterHeaderValue = ServiceUnavailableHttpException
