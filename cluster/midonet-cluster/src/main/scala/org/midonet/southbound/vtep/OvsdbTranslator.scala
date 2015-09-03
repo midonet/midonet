@@ -67,19 +67,19 @@ object OvsdbTranslator {
       * compatible with the existing Midonet code. Note that this is not
       * true for other unused ovsdb tables (such as the maps in the
       * Logical_Router table) */
-    def fromOvsdb(inMap: util.Map[_, _]): util.Map[Integer, UUID] =
-        if (inMap == null) new util.HashMap[Integer, UUID]()
+    def fromOvsdb(inMap: util.Map[_, _]): util.Map[java.lang.Long, UUID] =
+        if (inMap == null) Map.empty[java.lang.Long, UUID]
         else mapAsJavaMap(
-            mapAsScalaMap(inMap.asInstanceOf[util.Map[Integer, OvsdbUUID]])
+            mapAsScalaMap(inMap.asInstanceOf[util.Map[java.lang.Long, OvsdbUUID]])
                 .map(e => (e._1, fromOvsdb(e._2)))
                 .toMap
         )
 
     /** Convert from (Integer -> java UUID) to a map of (Long -> OvsdbUUID)
       * The input map can be a null value, resulting in an empty output map */
-    def toOvsdb(inMap: Map[Integer, util.UUID]): util.Map[Long, OvsdbUUID] =
-        if (inMap == null) new util.HashMap[Long, OvsdbUUID]()
-        else mapAsJavaMap(inMap.map(e => (e._1.toLong, toOvsdb(e._2))))
+    def toOvsdb(inMap: Map[java.lang.Long, util.UUID]): util.Map[java.lang.Long, OvsdbUUID] =
+        if (inMap == null) new util.HashMap[java.lang.Long, OvsdbUUID]()
+        else mapAsJavaMap(inMap.map(e => (e._1, toOvsdb(e._2))))
 
     /** Convert from a set of strings to a set of the ip addresses */
     def fromOvsdbIpSet(inSet: util.Set[_]): util.Set[IPv4Addr] =

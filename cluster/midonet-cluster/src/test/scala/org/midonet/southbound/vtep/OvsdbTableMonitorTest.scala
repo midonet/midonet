@@ -33,17 +33,18 @@ import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema.PhysicalLocatorTable
+import org.midonet.util.concurrent._
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 import org.midonet.util.reactivex.TestAwaitableObserver
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class OvsdbTableMonitorTest extends FeatureSpec
                                     with Matchers
                                     with BeforeAndAfter {
     val timeout = Duration(5000, TimeUnit.MILLISECONDS)
 
     val random = new Random()
-    val vtepDb = OvsdbTools.DB_HARDWARE_VTEP
+    val vtepDb = OvsdbOperations.DbHardwareVtep
     var vtep: InMemoryOvsdbVtep = _
     var client: OvsdbClient = _
     var db: DatabaseSchema = _
@@ -58,7 +59,7 @@ class OvsdbTableMonitorTest extends FeatureSpec
     before {
         vtep = new InMemoryOvsdbVtep
         client = vtep.getClient
-        db = OvsdbTools.getDbSchema(client, vtepDb, executor).result(timeout)
+        db = OvsdbOperations.getDbSchema(client, vtepDb, executor).await(timeout)
     }
 
     feature("table monitor") {

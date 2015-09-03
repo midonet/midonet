@@ -38,26 +38,26 @@ import scala.collection.JavaConversions.{asScalaSet, mapAsScalaMap}
  * @param faultStatus (undocumented feature from ovsdb)
  */
 final class PhysicalPort(id: UUID, ppName: String, desc: String,
-                         bindings: Map[Integer, UUID],
-                         stats: Map[Integer, UUID],
+                         bindings: Map[java.lang.Long, UUID],
+                         stats: Map[java.lang.Long, UUID],
                          faultStatus: Set[String]) extends VtepEntry {
     override val uuid = if (id == null) UUID.randomUUID() else id
     val name: String = if (ppName == null) "" else ppName
     val description: String = if (desc == null || desc.isEmpty) null else desc
 
-    val vlanBindings: Map[Integer, UUID] =
+    val vlanBindings: Map[java.lang.Long, UUID] =
         if (bindings == null) Map() else bindings
-    val vlanStats: Map[Integer, UUID] =
+    val vlanStats: Map[java.lang.Long, UUID] =
         if (stats == null) Map() else stats
     val portFaultStatus: Set[String] =
         if (faultStatus == null) Set() else faultStatus
 
-    def newBinding(vni: Integer, lsId: UUID) =
-        PhysicalPort(uuid, name, description, vlanBindings updated (vni, lsId),
+    def newBinding(vni: Int, lsId: UUID) =
+        PhysicalPort(uuid, name, description, vlanBindings updated (vni.toLong, lsId),
                      vlanStats, portFaultStatus)
-    def clearBinding(vni: Integer) =
-        PhysicalPort(uuid, name, description, vlanBindings - vni,
-                     vlanStats - vni, portFaultStatus)
+    def clearBinding(vni: Int) =
+        PhysicalPort(uuid, name, description, vlanBindings - vni.toLong,
+                     vlanStats - vni.toLong, portFaultStatus)
     def clearBindings(lsId: UUID) =
         PhysicalPort(uuid, name, description,
                      vlanBindings.filterNot(_._2 == lsId),
@@ -82,13 +82,13 @@ final class PhysicalPort(id: UUID, ppName: String, desc: String,
 
 object PhysicalPort {
     def apply(id: UUID, name: String, desc: String,
-              bindings: Map[Integer, UUID], stats: Map[Integer, UUID],
+              bindings: Map[java.lang.Long, UUID], stats: Map[java.lang.Long, UUID],
               faultStatus: Set[String]): PhysicalPort =
         new PhysicalPort(id, name, desc, bindings, stats, faultStatus)
 
     // Java compatibility stuff
     def apply(id: UUID, name: String, desc: String,
-              bindings: util.Map[Integer, UUID], stats: util.Map[Integer, UUID],
+              bindings: util.Map[java.lang.Long, UUID], stats: util.Map[java.lang.Long, UUID],
               faultStatus: util.Set[String]): PhysicalPort =
         new PhysicalPort(
             id, name, desc,

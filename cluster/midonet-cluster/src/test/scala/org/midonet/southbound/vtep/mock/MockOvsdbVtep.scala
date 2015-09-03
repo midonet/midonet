@@ -27,12 +27,13 @@ import com.google.common.collect.Lists
 import com.google.common.util.concurrent.ListenableFuture
 import org.opendaylight.ovsdb.lib._
 import org.opendaylight.ovsdb.lib.message.{TableUpdate, TransactBuilder}
-import org.opendaylight.ovsdb.lib.notation.{Condition, Function => OvsdbFunction, Row, UUID => OvsdbUUID}
+import org.opendaylight.ovsdb.lib.notation.{Function => OvsdbFunction, UUID => OvsdbUUID, Column, Condition, Row}
 import org.opendaylight.ovsdb.lib.operations._
 import org.opendaylight.ovsdb.lib.schema.{ColumnSchema, DatabaseSchema, GenericTableSchema}
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.vtep.model._
+import org.midonet.southbound.vtep.OvsdbTranslator
 import org.midonet.southbound.vtep.mock.MockOvsdbClient.{MonitorRegistration, TransactionEngine}
 import org.midonet.southbound.vtep.mock.MockOvsdbColumn.{mkColumnSchema, mkMapColumnSchema, mkSetColumnSchema}
 import org.midonet.southbound.vtep.schema._
@@ -350,7 +351,11 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
             case Some(MockData(data, clazz)) => op match {
                 case ins: Insert[_] =>
                     val t = tableParsers(op.getTable)
+                    val uuidSchema = t.getSchema.column("_uuid", classOf[OvsdbUUID])
                     val row = t.generateRow(ins.getRow)
+                    row.addColumn("_uuid", new Column(uuidSchema,
+                                                      OvsdbTranslator.toOvsdb(
+                                                          java.util.UUID.randomUUID)))
                     val entry = t.parseEntry(row, clazz)
                     if (data.contains(entry.uuid)) {
                         val old = data(entry.uuid)

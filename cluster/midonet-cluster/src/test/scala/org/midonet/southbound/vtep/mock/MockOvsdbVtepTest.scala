@@ -35,7 +35,7 @@ import org.midonet.southbound.vtep.schema._
 import org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb
 import org.midonet.util.reactivex.TestAwaitableObserver
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class MockOvsdbVtepTest extends FeatureSpec with Matchers {
 
     val timeout = Duration(5000, TimeUnit.MILLISECONDS)
