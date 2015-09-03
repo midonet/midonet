@@ -16,7 +16,6 @@
 
 package org.midonet.southbound.vtep.schema;
 
-import java.lang.Override;
 import java.util.List;
 
 import org.opendaylight.ovsdb.lib.notation.Row;
@@ -26,12 +25,11 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.McastMac;
-import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 /**
  * Specific schema section for the multicast mac tables
  */
-public abstract class McastMacsTable extends MacsTable {
+public abstract class McastMacsTable extends MacsTable<McastMac> {
     static private final String COL_LOCATOR_SET = "locator_set";
 
     protected McastMacsTable(DatabaseSchema databaseSchema, String tableName) {
@@ -70,14 +68,12 @@ public abstract class McastMacsTable extends MacsTable {
      * Extract the entry information
      */
     @Override
-    @SuppressWarnings(value = "unckecked")
-    public <E extends VtepEntry>
-    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+    public McastMac parseEntry(Row<GenericTableSchema> row)
         throws IllegalArgumentException {
-        ensureOutputClass(clazz);
+        ensureOutputClass(McastMac.class);
         return (row == null)? null:
-               (E)McastMac.apply(parseUuid(row), parseLogicalSwitch(row),
+               McastMac.apply(parseUuid(row), parseLogicalSwitch(row),
                                  parseMac(row), parseIpaddr(row),
-                                 parseLocatorSet(row));
+                                 parseLocatorSet(row).toString());
     }
 }

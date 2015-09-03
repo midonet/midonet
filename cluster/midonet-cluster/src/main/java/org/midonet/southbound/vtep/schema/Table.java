@@ -41,9 +41,10 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.VtepEntry;
+import org.midonet.southbound.vtep.OvsdbUtil;
 
-import static org.midonet.southbound.vtep.OvsdbTranslator.fromOvsdb;
-import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.fromOvsdb;
+import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdb;
 
 /**
  * Generic ovsdb table schema. This class (and its subclasses) aims
@@ -51,7 +52,7 @@ import static org.midonet.southbound.vtep.OvsdbTranslator.toOvsdb;
  * values inside the low-level ovsdb table implementation and expose
  * generic model representations.
  */
-public abstract class Table {
+public abstract class Table<E extends VtepEntry> {
     static private final String COL_UUID = "_uuid";
     static private final String COL_VERSION = "_version";
 
@@ -237,40 +238,60 @@ public abstract class Table {
         return new OvsdbSelect(op);
     }
 
+    public OvsdbSelect selectById(java.util.UUID id) {
+        Select<GenericTableSchema> op = new Select<>(getSchema());
+        for (ColumnSchema<GenericTableSchema, ?> col: getColumnSchemas()) {
+            op.column(col);
+        }
+        op.where(new Condition(COL_UUID, Function.EQUALS,
+                               OvsdbUtil.toOvsdb(id)));
+        return new OvsdbSelect(op);
+    }
+
     /**
      * Generate an insert operation with the given id (or generate a new id,
      * if null)
      */
-    protected Insert<GenericTableSchema> newInsert(VtepEntry entry)
+    protected Insert<GenericTableSchema> newInsert(VtepEntry entry, String id)
         throws IllegalArgumentException {
         ensureInputClass(entry.getClass());
-        java.util.UUID rowId = entry.uuid();
-        if (rowId == null)
-            rowId = java.util.UUID.randomUUID();
         Insert<GenericTableSchema> op = new Insert<>(tableSchema);
-        op.setUuidName(COL_UUID);
-        op.setUuid(rowId.toString());
-        op.value(getUuidSchema(), toOvsdb(rowId));
+        if (null != id) {
+            op.withId(id);
+        }
         return op;
     }
 
     /**
-     * Generate an insert operation corresponding to the given vtep table entry
+     * Generate an insert operation corresponding to the given VTEP table entry.
      */
-    abstract public <E extends VtepEntry> OvsdbInsert insert(E entry);
+    abstract public OvsdbInsert insert(E entry, String id);
+
+    /**
+     * Generates a delete operation corresponding to the given VTEP table entry.
+     */
+    abstract public OvsdbDelete delete(E entry);
+
+    /**
+     * Generate a delete operation for the given entry
+     */
+    final public OvsdbDelete deleteById(java.util.UUID id) {
+        Delete<GenericTableSchema> op = new Delete<>(tableSchema);
+        op.where(getUuidMatcher(id));
+        return new OvsdbDelete(op);
+    }
 
     /**
      * Generate a normalized vtep table entry from a row from this type of table
      */
-    abstract public <E extends VtepEntry>
-    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz);
+    abstract public E parseEntry(Row<GenericTableSchema> row);
 
     /**
      * Generate a row from a set of columns expressed as a map
      * (column_name -> column_value). This is a convenience method
      * for some low-level ovsdb data manipulations.
      */
-    @SuppressWarnings(value = "unckecked")
+    @SuppressWarnings(value = "unchecked")
     public Row<GenericTableSchema> generateRow(Map<String, Object> rowValues) {
         Row<GenericTableSchema> row = new Row<>(tableSchema);
         for (ColumnSchema<GenericTableSchema, ?> c: getColumnSchemas()) {
@@ -285,9 +306,8 @@ public abstract class Table {
     /**
      * Generate a row from a normalized vtep table entry
      */
-    public <E extends VtepEntry> Row<GenericTableSchema> generateRow(
-        E entry) throws IllegalArgumentException {
-        ensureInputClass(entry.getClass());
+    public Row<GenericTableSchema> generateRow(E entry)
+        throws IllegalArgumentException {
         Row<GenericTableSchema> row = new Row<>(tableSchema);
         return addToRow(row, getUuidSchema(), toOvsdb(entry.uuid()));
     }
@@ -297,7 +317,7 @@ public abstract class Table {
      * (column_name -> column_value). This is a convenience method
      * for some low-level ovsdb data manipulations.
      */
-    @SuppressWarnings(value = "unckecked")
+    @SuppressWarnings(value = "unchecked")
     public Row<GenericTableSchema> updateRow(Row<GenericTableSchema> row,
                                              Map<String, Object> rowValues) {
         Row<GenericTableSchema> newRow = new Row<>(tableSchema);
