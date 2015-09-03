@@ -1,0 +1,87 @@
+/*
+ * Copyright 2014 Midokura SARL
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply from: "${rootProject.projectDir}/fpm.gradle"
+apply from: "${rootProject.projectDir}/git.gradle"
+
+mainClassName = "org.midonet.conf.MidoConfTool"
+
+dependencies {
+    compile project(':nsdb')
+}
+
+task preparePkg(type: Copy, dependsOn: installShadowApp) {
+    from("${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
+        into "usr/share/midonet-tools"
+    }
+    from("${buildDir}/man/") {
+        include "*.*"
+        into "usr/share/man/man1"
+    }
+    from("src/bin/") {
+        into "usr/bin"
+    }
+    from("src/share/prepare-java") {
+        into "usr/share/midonet-tools"
+    }
+    into "${pkgDestDir}"
+    doLast {
+        new File("${pkgDestDir}/usr/share/midonet-tools/${project.name}-${midonetVersion}-all.jar").
+                renameTo("${pkgDestDir}/usr/share/midonet-tools/${project.name}.jar")
+    }
+}
+
+packaging {
+    version = project.debVersion
+    maintainer = project.maintainer
+    vendor = project.vendor
+    url = project.url
+    description = 'Command line tools for MidoNet, a virtual network controller'
+    fpmOpts = ['-a', 'all',
+               '--category', 'network',
+               '--url', 'http://midokura.com',
+               '--epoch', '2']
+}
+
+preparePkg.dependsOn cleanPkg
+debian.dependsOn preparePkg
+rpm.dependsOn preparePkg
+
+debian.doFirst {
+    project.packaging.version = project.debVersion
+    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts.addAll([
+        '-d', 'java8-runtime-headless | java8-runtime'])
+}
+
+rpm.doFirst {
+    project.packaging.version = project.rpmVersion
+    project.packaging.iteration = project.rpmRelease
+    project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
+    project.packaging.fpmOpts.addAll([
+        '--depends', 'java-1.8.0-openjdk-headless'])
+}
+
+debian.doLast {
+    new File("${buildDir}/install/${project.name}").deleteDir()
+}
+rpm.doLast {
+    new File("${buildDir}/install/${project.name}").deleteDir()
+}
+
+preparePkg.dependsOn manpages

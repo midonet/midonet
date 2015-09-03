@@ -32,7 +32,7 @@ else
 fi
 
 if [ -z "$MIDO_JAR" ]; then
-   MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
+   MIDO_JAR=`ls $MIDO_HOME/midolman.jar`
 fi
 
 if [ ! -e "$MIDO_JAR" ]; then
@@ -41,8 +41,7 @@ if [ ! -e "$MIDO_JAR" ]; then
 fi
 
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
-MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 
 $JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml $JAVA_LIBRARY_PATH \
     -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
-    -cp $MIDO_DEP_CLASS_PATH org.midonet.mmdpctl.MmDpctl $*
+    -cp $MIDO_JAR org.midonet.mmdpctl.MmDpctl $*
