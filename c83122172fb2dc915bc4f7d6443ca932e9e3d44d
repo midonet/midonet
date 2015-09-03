@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_3cbf51d2",
+        "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T13:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d5e8d818",
+      "range": {
+        "startLine": 33,
+        "startChar": 2,
+        "endLine": 33,
+        "endChar": 16
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_aaa69351",
         "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
         "patchSetId": 10
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_dcf02dcc",
+        "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T13:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_aaa69351",
+      "range": {
+        "startLine": 35,
+        "startChar": 20,
+        "endLine": 35,
+        "endChar": 22
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e370a5de",
         "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
         "patchSetId": 10
@@ -107,6 +155,24 @@
       "writtenOn": "2015-09-02T13:29:22Z",
       "side": 1,
       "message": "/var/log/midonet/zk ?",
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_fcede9f0",
+        "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T13:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e370a5de",
       "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -130,6 +196,24 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_1cba95e1",
+        "filename": "cluster/midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T13:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_037749d5",
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ca62f715",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterBootstrap.scala",
         "patchSetId": 10
@@ -141,6 +225,30 @@
       "writtenOn": "2015-08-26T10:22:18Z",
       "side": 1,
       "message": "No /v1 like in the template. Is that intentional?",
+      "range": {
+        "startLine": 32,
+        "startChar": 29,
+        "endLine": 32,
+        "endChar": 36
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_9ccdc589",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterBootstrap.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T13:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ca62f715",
       "range": {
         "startLine": 32,
         "startChar": 29,
@@ -176,6 +284,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_5cab3d89",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterBootstrap.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T13:54:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_2a7283e5",
+      "range": {
+        "startLine": 97,
+        "startChar": 12,
+        "endLine": 97,
+        "endChar": 39
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8a80ef8c",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
         "patchSetId": 10
@@ -187,6 +319,30 @@
       "writtenOn": "2015-08-26T10:22:18Z",
       "side": 1,
       "message": "Is this just a roundabout way of binding DataSource to a specific instance of BasicDataSource? Since we have the information needed to create it here, why add the additional level of indirection?",
+      "range": {
+        "startLine": 124,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 39
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_bc91a154",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T13:54:28Z",
+      "side": 1,
+      "message": "No, it also prevents constructing it before the binding (which is problematic when we\u0027re starting zk embedded and we don\u0027t have a zk to fetch config from yet)",
+      "parentUuid": "9ad9bd40_8a80ef8c",
       "range": {
         "startLine": 124,
         "startChar": 0,
@@ -245,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_bc78c12c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/zookeeper/ZooKeeperMinion.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T13:54:28Z",
+      "side": 1,
+      "message": "no, it just sets the state",
+      "parentUuid": "9ad9bd40_55120859",
+      "range": {
+        "startLine": 74,
+        "startChar": 16,
+        "endLine": 74,
+        "endChar": 30
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_aa021309",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/zookeeper/ZooKeeperMinion.scala",
         "patchSetId": 10
@@ -256,6 +436,30 @@
       "writtenOn": "2015-08-26T10:22:18Z",
       "side": 1,
       "message": "It\u0027s not entirely clear to me when it\u0027s appropriate to catch Throwable instead of NonFatal. Why did you choose to do so in this particular case?",
+      "range": {
+        "startLine": 78,
+        "startChar": 11,
+        "endLine": 78,
+        "endChar": 29
+      },
+      "revId": "c83122172fb2dc915bc4f7d6443ca932e9e3d44d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_dc758d33",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/zookeeper/ZooKeeperMinion.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-03T13:54:28Z",
+      "side": 1,
+      "message": "momentum",
+      "parentUuid": "9ad9bd40_aa021309",
       "range": {
         "startLine": 78,
         "startChar": 11,
