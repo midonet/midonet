@@ -16,6 +16,7 @@
 
 package org.midonet.southbound.vtep
 
+import java.lang.{Long => JLong}
 import java.util
 import java.util.{Random, UUID}
 
@@ -29,65 +30,66 @@ import org.scalatest.{FeatureSpec, Matchers}
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class OvsdbTranslatorTest extends FeatureSpec with Matchers {
+class OvsdbUtilTest extends FeatureSpec with Matchers {
     val random = new Random()
-    feature("uuid conversion") {
-        scenario("uuid translations") {
+
+    feature("UUID conversion") {
+        scenario("UUID translations") {
             val id = UUID.randomUUID()
-            val ovs = OvsdbTranslator.toOvsdb(id)
+            val ovs = OvsdbUtil.toOvsdb(id)
             ovs.toString shouldBe id.toString
-            OvsdbTranslator.fromOvsdb(ovs) shouldBe id
+            OvsdbUtil.fromOvsdb(ovs) shouldBe id
         }
-        scenario("uuid set translations") {
+        scenario("UUID set translations") {
             val idSet = Set(
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 UUID.randomUUID()
             )
-            val ovsSet = OvsdbTranslator.toOvsdb(idSet)
+            val ovsSet = OvsdbUtil.toOvsdb(idSet)
             ovsSet.map(_.toString).toSet shouldBe idSet.map(_.toString)
-            OvsdbTranslator.fromOvsdb(ovsSet) shouldBe setAsJavaSet(idSet)
+            OvsdbUtil.fromOvsdb(ovsSet) shouldBe setAsJavaSet(idSet)
 
-            val nullSet: util.Set[UUID] = null
-            OvsdbTranslator.fromOvsdb(nullSet).isEmpty shouldBe true
+            val nullSet: util.Set[OvsdbUUID] = null
+            OvsdbUtil.fromOvsdb(nullSet).isEmpty shouldBe true
         }
-        scenario("uuid map translations") {
+        scenario("UUID map translations") {
             val idMap = Map(
                 (random.nextInt(), UUID.randomUUID()),
                 (random.nextInt(), UUID.randomUUID()),
                 (random.nextInt(), UUID.randomUUID()),
                 (random.nextInt(), UUID.randomUUID())
             )
-            val ovsMap = new util.HashMap[Long, OvsdbUUID]()
+            val ovsMap = new util.HashMap[JLong, OvsdbUUID]()
             for (e <- idMap) {
-                ovsMap.put(e._1.longValue(), OvsdbTranslator.toOvsdb(e._2))
+                ovsMap.put(e._1.longValue(), OvsdbUtil.toOvsdb(e._2))
             }
-            OvsdbTranslator.fromOvsdb(ovsMap) shouldBe mapAsJavaMap(idMap)
+            OvsdbUtil.fromOvsdb(ovsMap) shouldBe mapAsJavaMap(idMap)
 
-            val nullMap: util.Map[Long, OvsdbUUID] = null
-            OvsdbTranslator.fromOvsdb(nullMap).isEmpty shouldBe true
+            val nullMap: util.Map[JLong, OvsdbUUID] = null
+            OvsdbUtil.fromOvsdb(nullMap).isEmpty shouldBe true
         }
     }
 
-    feature("ip conversion") {
-        scenario("ip set translations") {
+    feature("IP conversion") {
+        scenario("IP set translations") {
             val strSet = new util.HashSet[String]()
             strSet.add("10.0.0.1")
             strSet.add("10.0.0.2")
             strSet.add("10.0.0.3")
             strSet.add("10.0.0.4")
-            val ipSet: util.Set[IPv4Addr] = OvsdbTranslator
+            val ipSet: util.Set[IPv4Addr] = OvsdbUtil
                 .fromOvsdbIpSet(strSet)
             ipSet.toSet shouldBe strSet.toSet.map(IPv4Addr.fromString)
             ipSet.toSet[IPv4Addr].map(_.toString) shouldBe strSet.toSet
-            OvsdbTranslator.toOvsdbIpSet(ipSet.toSet) shouldBe strSet
+            OvsdbUtil.toOvsdbIpSet(ipSet.toSet) shouldBe strSet
 
             val nullSet: util.Set[String] = null
-            OvsdbTranslator.fromOvsdbIpSet(nullSet).isEmpty shouldBe true
+            OvsdbUtil.fromOvsdbIpSet(nullSet).isEmpty shouldBe true
 
             val nullIps: Set[IPv4Addr] = null
-            OvsdbTranslator.toOvsdbIpSet(nullIps).isEmpty shouldBe true
+            OvsdbUtil.toOvsdbIpSet(nullIps).isEmpty shouldBe true
         }
     }
 }

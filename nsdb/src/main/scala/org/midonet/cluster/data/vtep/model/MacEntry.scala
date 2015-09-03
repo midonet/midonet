@@ -33,7 +33,7 @@ abstract class MacEntry(id: UUID, val logicalSwitchId: UUID,
     // pseudo random id based on mac, ip, logical switch and locator
     override val uuid = if (id != null) id else new UUID(
         (Objects.hash(mac) << 32) | (Objects.hash(ip) & 0xFFFFFFFF),
-        (Objects.hash(locationId) << 32) |
+        (Objects.hash(locatorId) << 32) |
             (Objects.hash(logicalSwitchId) & 0xFFFFFFFF)
     )
 
@@ -45,7 +45,7 @@ abstract class MacEntry(id: UUID, val logicalSwitchId: UUID,
 
     /** Reference to actual locators (a single locator for unicast, and
       * a locator set for multicast) */
-    def locationId: UUID
+    def locatorId: String
 
     override def equals(o: Any): Boolean = o match {
         case that: MacEntry if isUcast != that.isUcast => false
@@ -53,7 +53,7 @@ abstract class MacEntry(id: UUID, val logicalSwitchId: UUID,
             Objects.equals(logicalSwitchId, that.logicalSwitchId) &&
             Objects.equals(mac, that.mac) &&
             Objects.equals(ip, that.ip) &&
-            Objects.equals(locationId, that.locationId)
+            Objects.equals(locatorId, that.locatorId)
         case other => false
     }
 
@@ -74,7 +74,7 @@ abstract class MacEntry(id: UUID, val logicalSwitchId: UUID,
  * A class representing a VTEP unicast mac table entry
  */
 final case class UcastMac(id: UUID, ls: UUID, macAddr: VtepMAC, ipAddr: IPv4Addr,
-                          locator: UUID)
+                          locator: String)
     extends MacEntry(id, ls, macAddr, ipAddr) {
 
     // Sanity check
@@ -82,7 +82,7 @@ final case class UcastMac(id: UUID, ls: UUID, macAddr: VtepMAC, ipAddr: IPv4Addr
         throw new IllegalArgumentException("not an unicast mac: " + mac)
 
     override def isUcast: Boolean = true
-    override def locationId: UUID = locator
+    override def locatorId: String = locator
 
     override def toString: String = "UcastMac{" +
         "uuid=" + uuid + ", " +
@@ -97,29 +97,29 @@ object UcastMac {
     // These are useful to facilitate compatibility with existing ovsdb code,
     // but they will be removed once the code has been migrated to new ovsdb.
 
-    def apply(id: UUID, ls: UUID, mac: String, ip: IPv4Addr, loc: UUID): UcastMac =
+    def apply(id: UUID, ls: UUID, mac: String, ip: IPv4Addr, loc: String): UcastMac =
         new UcastMac(id, ls,
             if (mac == null || mac.isEmpty) null else VtepMAC.fromString(mac),
             ip, loc)
-    def apply(id: UUID, ls: UUID, mac: VtepMAC, ip: String, loc: UUID): UcastMac =
+    def apply(id: UUID, ls: UUID, mac: VtepMAC, ip: String, loc: String): UcastMac =
         new UcastMac(id, ls, mac,
             if (ip == null || ip.isEmpty) null else IPv4Addr.fromString(ip),
             loc)
-    def apply(id: UUID, ls: UUID, mac: String, ip:String, loc: UUID): UcastMac =
+    def apply(id: UUID, ls: UUID, mac: String, ip:String, loc: String): UcastMac =
         apply(id, ls, mac,
             if (ip == null || ip.isEmpty) null else IPv4Addr.fromString(ip),
             loc)
 
-    def apply(ls: UUID, mac: VtepMAC, ip: IPv4Addr, loc: UUID): UcastMac =
+    def apply(ls: UUID, mac: VtepMAC, ip: IPv4Addr, loc: String): UcastMac =
         apply(null, ls, mac, ip, loc)
-    def apply(ls: UUID, mac: String, ip: IPv4Addr, loc: UUID): UcastMac =
+    def apply(ls: UUID, mac: String, ip: IPv4Addr, loc: String): UcastMac =
         apply(null, ls, mac, ip, loc)
-    def apply(ls: UUID, mac: VtepMAC, ip: String, loc: UUID): UcastMac =
+    def apply(ls: UUID, mac: VtepMAC, ip: String, loc: String): UcastMac =
         apply(null, ls, mac, ip, loc)
-    def apply(ls: UUID, mac: String, ip: String, loc: UUID): UcastMac =
+    def apply(ls: UUID, mac: String, ip: String, loc: String): UcastMac =
         apply(null, ls, mac, ip, loc)
 
-    def apply(ls: UUID, mac: VtepMAC, loc: UUID): UcastMac =
+    def apply(ls: UUID, mac: VtepMAC, loc: String): UcastMac =
         apply(null, ls, mac, null: IPv4Addr, loc)
 }
 
@@ -127,7 +127,7 @@ object UcastMac {
  * A class representing a VTEP unicast mac table entry
  */
 final case class McastMac(id: UUID, ls: UUID, macAddr: VtepMAC, ipAddr: IPv4Addr,
-                          locatorSet: UUID)
+                          locatorSet: String)
     extends MacEntry(id, ls, macAddr, ipAddr) {
 
     // Sanity check
@@ -135,7 +135,7 @@ final case class McastMac(id: UUID, ls: UUID, macAddr: VtepMAC, ipAddr: IPv4Addr
         throw new IllegalArgumentException("not a multicast mac: " + mac)
 
     override def isUcast: Boolean = false
-    override def locationId: UUID = locatorSet
+    override def locatorId: String = locatorSet
 
     override def toString: String = "McastMac{" +
         "uuid=" + uuid + ", " +
@@ -150,29 +150,29 @@ object McastMac {
     // These are useful to facilitate compatibility with existing ovsdb code,
     // but they will be removed once the code has been migrated to new ovsdb.
 
-    def apply(id: UUID, ls: UUID, mac: String, ip: IPv4Addr, loc: UUID): McastMac =
+    def apply(id: UUID, ls: UUID, mac: String, ip: IPv4Addr, loc: String): McastMac =
         new McastMac(id, ls,
             if (mac == null || mac.isEmpty) null else VtepMAC.fromString(mac),
             ip, loc)
-    def apply(id: UUID, ls: UUID, mac: VtepMAC, ip: String, loc: UUID): McastMac =
+    def apply(id: UUID, ls: UUID, mac: VtepMAC, ip: String, loc: String): McastMac =
         new McastMac(id, ls, mac,
             if (ip == null || ip.isEmpty) null else IPv4Addr.fromString(ip),
             loc)
-    def apply(id: UUID, ls: UUID, mac: String, ip:String, loc: UUID): McastMac =
+    def apply(id: UUID, ls: UUID, mac: String, ip:String, loc: String): McastMac =
         apply(id, ls, mac,
             if (ip == null || ip.isEmpty) null else IPv4Addr.fromString(ip),
             loc)
 
-    def apply(ls: UUID, mac: VtepMAC, ip: IPv4Addr, loc: UUID): McastMac =
+    def apply(ls: UUID, mac: VtepMAC, ip: IPv4Addr, loc: String): McastMac =
         apply(null, ls, mac, ip, loc)
-    def apply(ls: UUID, mac: String, ip: IPv4Addr, loc: UUID): McastMac =
+    def apply(ls: UUID, mac: String, ip: IPv4Addr, loc: String): McastMac =
         apply(null, ls, mac, ip, loc)
-    def apply(ls: UUID, mac: VtepMAC, ip: String, loc: UUID): McastMac =
+    def apply(ls: UUID, mac: VtepMAC, ip: String, loc: String): McastMac =
         apply(null, ls, mac, ip, loc)
-    def apply(ls: UUID, mac: String, ip: String, loc: UUID): McastMac =
+    def apply(ls: UUID, mac: String, ip: String, loc: String): McastMac =
         apply(null, ls, mac, ip, loc)
 
-    def apply(ls: UUID, mac: VtepMAC, loc: UUID): McastMac =
+    def apply(ls: UUID, mac: VtepMAC, loc: String): McastMac =
         apply(null, ls, mac, null: IPv4Addr, loc)
 }
 

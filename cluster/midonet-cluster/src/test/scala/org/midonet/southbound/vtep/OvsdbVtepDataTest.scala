@@ -19,9 +19,10 @@ package org.midonet.southbound.vtep
 import java.util.concurrent.{Executor, ExecutorService, Executors, TimeUnit}
 import java.util.{Random, UUID}
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future, blocking}
 
+import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
@@ -34,35 +35,36 @@ import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema._
 import org.midonet.util.MidonetEventually
-import org.midonet.util.concurrent.CallingThreadExecutionContext
+import org.midonet.util.concurrent.{CallingThreadExecutionContext, _}
 
 @RunWith(classOf[JUnitRunner])
+@Ignore
 class OvsdbVtepDataTest extends FeatureSpec with Matchers
                                 with BeforeAndAfter with BeforeAndAfterAll
                                 with MidonetEventually {
 
-    val timeout = Duration(5, TimeUnit.SECONDS)
-    val random = new Random()
+    private val timeout = 5 seconds
+    private val random = new Random()
 
-    var vtep: InMemoryOvsdbVtep = _
-    var psTable: PhysicalSwitchTable = _
-    var portTable: PhysicalPortTable = _
-    var lsTable: LogicalSwitchTable = _
-    var uRemoteTable: UcastMacsRemoteTable = _
-    var mRemoteTable: McastMacsRemoteTable = _
-    var uLocalTable: UcastMacsLocalTable = _
-    var mLocalTable: McastMacsLocalTable = _
-    var locTable: PhysicalLocatorTable = _
-    var locSetTable: PhysicalLocatorSetTable = _
-    var client: OvsdbClient = _
-    var endPoint: VtepEndPoint = _
-    var db: DatabaseSchema = _
-    var vxlanIp: IPv4Addr = _
-    var ps: PhysicalSwitch = _
+    private var vtep: InMemoryOvsdbVtep = _
+    private var psTable: PhysicalSwitchTable = _
+    private var portTable: PhysicalPortTable = _
+    private var lsTable: LogicalSwitchTable = _
+    private var uRemoteTable: UcastMacsRemoteTable = _
+    private var mRemoteTable: McastMacsRemoteTable = _
+    private var uLocalTable: UcastMacsLocalTable = _
+    private var mLocalTable: McastMacsLocalTable = _
+    private var locTable: PhysicalLocatorTable = _
+    private var locSetTable: PhysicalLocatorSetTable = _
+    private var client: OvsdbClient = _
+    private var endPoint: VtepEndPoint = _
+    private var db: DatabaseSchema = _
+    private var vxlanIp: IPv4Addr = _
+    private var ps: PhysicalSwitch = _
 
-    val otherThread = Executors.newCachedThreadPool()
-    val otherContext = ExecutionContext.fromExecutor(otherThread)
-    var vtepThread: ExecutorService = _
+    private val otherThread = Executors.newCachedThreadPool()
+    private val otherContext = ExecutionContext.fromExecutor(otherThread)
+    private var vtepThread: ExecutorService = _
 
     def newLogicalSwitch() = {
         val lsName = LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
@@ -71,12 +73,13 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
     }
 
     before {
+        val executor = CallingThreadExecutionContext.asInstanceOf[Executor]
         vtep = new InMemoryOvsdbVtep()
         client = vtep.getClient
         endPoint = OvsdbTools.endPointFromOvsdbClient(client)
-        db = OvsdbTools.getDbSchema(client, OvsdbTools.DB_HARDWARE_VTEP,
-                                    CallingThreadExecutionContext.asInstanceOf[Executor])
-                       .result(timeout)
+        db = OvsdbOperations.getDbSchema(client,
+                                         OvsdbOperations.DbHardwareVtep)(executor)
+                            .await(timeout)
         psTable = new PhysicalSwitchTable(db)
         portTable = new PhysicalPortTable(db)
         lsTable = new LogicalSwitchTable(db)
@@ -95,8 +98,8 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
         ps = PhysicalSwitch(UUID.randomUUID(), "vtep", "vtep-desc",
                             ports.map(_.uuid).toSet, Set(endPoint.mgmtIp),
                             Set(vxlanIp))
-        vtep.putEntry(psTable, ps, ps.getClass)
-        ports.foreach(p => vtep.putEntry(portTable, p, p.getClass))
+        vtep.putEntry(psTable, ps)
+        ports.foreach(p => vtep.putEntry(portTable, p))
 
         vtepThread = Executors.newSingleThreadExecutor()
     }
@@ -128,7 +131,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
 
         scenario("Get the logical switch") {
             val ls = newLogicalSwitch()
-            vtep.putEntry(lsTable, ls, ls.getClass)
+            vtep.putEntry(lsTable, ls)
             val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
                                                vtepThread)
 
@@ -146,7 +149,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
         scenario("Get an existing physical port") {
             val port = new PhysicalPort(UUID.randomUUID, "port", "",
                                         Map.empty, Map.empty, Set.empty)
-            vtep.putEntry(portTable, port, port.getClass)
+            vtep.putEntry(portTable, port)
             val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
                                                vtepThread)
 
@@ -157,7 +160,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
     feature("Mac remote updater") {
         scenario("ucast mac updates") {
             val ls = newLogicalSwitch()
-            vtep.putEntry(lsTable, ls, ls.getClass)
+            vtep.putEntry(lsTable, ls)
 
             val unknownLsName =
                 LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
@@ -166,7 +169,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
                                                vtepThread)
             val updates = PublishSubject.create[MacLocation]()
             val updater = Await.result(vtepHandle.macRemoteUpdater, timeout)
-            val subscription = updates.subscribe(updater)
+            updates.subscribe(updater)
 
             val macLocations = List(
                 MacLocation(MAC.random, ipAddr = IPv4Addr.random, ls.name,
@@ -194,7 +197,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
                 t.values.map({case e: UcastMac => e.ipAddr}).toSet shouldBe
                     macLocations.map(_.ipAddr).toSet
                 t.values.map({case e: UcastMac =>
-                    l(e.locator).asInstanceOf[PhysicalLocator].dstIp
+                    l(UUID.fromString(e.locator)).dstIp
                 }).toSet shouldBe macLocations.map(_.vxlanTunnelEndpoint).toSet
                 l.values.map({case l: PhysicalLocator => l.dstIp}).toSet shouldBe
                     macLocations.map(_.vxlanTunnelEndpoint).toSet
@@ -202,7 +205,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
         }
         scenario("mcast mac updates") {
             val ls = newLogicalSwitch()
-            vtep.putEntry(lsTable, ls, ls.getClass)
+            vtep.putEntry(lsTable, ls)
 
             val unknownLsName =
                 LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
@@ -211,7 +214,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
                                                vtepThread)
             val updates = PublishSubject.create[MacLocation]()
             val updater = Await.result(vtepHandle.macRemoteUpdater, timeout)
-            val subscription = updates.subscribe(updater)
+            updates.subscribe(updater)
 
             val macLocations = List(
                 MacLocation.unknownAt(vxlanTunnelEndpoint = IPv4Addr.random,
@@ -238,7 +241,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
                 t.values.map({case e: McastMac => e.locatorSet}).toSet shouldBe
                     ls.keySet
                 ls.values.map({case s: PhysicalLocatorSet =>
-                    l(s.locatorIds.head).asInstanceOf[PhysicalLocator].dstIp
+                    l(UUID.fromString(s.locatorIds.head)).dstIp
                 }).toSet shouldBe macLocations.map(_.vxlanTunnelEndpoint).toSet
             }
         }
