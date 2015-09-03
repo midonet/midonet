@@ -167,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_a595048a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-03T21:12:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_a2533a6b",
+      "range": {
+        "startLine": 96,
+        "startChar": 58,
+        "endLine": 96,
+        "endChar": 69
+      },
+      "revId": "4bbc4efbdeb8de472840ed801f8e1c3eb0c79f48",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_9ff857c6",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbOperations.scala",
         "patchSetId": 3
