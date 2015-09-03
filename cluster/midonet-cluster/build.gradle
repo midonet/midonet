@@ -48,6 +48,7 @@ dependencies {
             "org.opendaylight.ovsdb:library:1.1.1-Lithium-SR1",
             "org.reflections:reflections:0.9.10",
             'org.slf4j:jul-to-slf4j:1.7.12',
+            "org.jasypt:jasypt:1.7",
             libraries.metrics,
             libraries.validation,
             libraries.hibernate_validator,
@@ -61,6 +62,7 @@ dependencies {
             libraries.jackson_databind,
             libraries.jackson_jaxrs,
             libraries.commons_dbcp2,
+            libraries.commons_codec,
             libraries.curator_recipes,
             libraries.curator_framework,
             libraries.guava,
@@ -78,6 +80,7 @@ dependencies {
 
     testCompile project(path: ':nsdb', configuration: 'tests')
     testCompile project(path: ':midolman', configuration: 'tests')
+    testCompile project(path: ':midonet-util', configuration: 'tests')
     testCompile libraries.curator_test,
                 libraries.grizzly_servlet,
                 libraries.hamcrest_lib,

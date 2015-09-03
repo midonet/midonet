@@ -6,7 +6,9 @@ sudo pip install -r tests/mdts.dependencies
 # We assume all gates/nightlies put the necessary packages in $WORKSPACE
 # so we know where to find them.
 cp midolman*.deb tests/sandbox/override_v2/midolman
+cp midonet-tools*.deb tests/sandbox/override_v2/midolman
 cp midonet-cluster*.deb tests/sandbox/override_v2/cluster
+cp midonet-tools*.deb tests/sandbox/override_v2/cluster
 cp python-midonetclient*.deb tests/sandbox/override_v2/cluster
 
 # Necessary software in the host, we assume packages are already present on
