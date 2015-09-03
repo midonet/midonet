@@ -204,7 +204,9 @@ def make_request_to(sender, dest, timeout=10, src_port=None):
             dest,
             DST_PORT
         )
-        return sender.execute(cmd_line, timeout, sync=True)
+        result = sender.execute(cmd_line, timeout, sync=True)
+        LOG.debug("L4LB: request to %s. Response: %s" % (sender, result))
+        return result
 
 def assert_request_succeeds_to(sender, dest, timeout=10, src_port=None):
     result = make_request_to(sender, dest, timeout, src_port)
@@ -234,7 +236,7 @@ def num_uniques(list_results):
 # although the interfaces and bindings are specified in the topology yamls.
 
 @attr(version="v1.3.0", slow=False)
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_onehost)
 @with_setup(start_servers, stop_servers)
 def test_multi_member_loadbalancing():
     """
@@ -254,16 +256,19 @@ def test_multi_member_loadbalancing():
 
     sender = BM.get_iface_for_port('bridge-000-003', 1)
 
-
     # Make many requests to the non sticky loadbalancer IP, hits all 3 backends
+    LOG.debug("L4LB: make requests to NON_STICKY_VIP")
     non_sticky_results = make_n_requests_to(sender, num_reqs, NON_STICKY_VIP)
+    #non_sticky_results = [backend for backend in non_sticky_results if backend is not '']
     assert(num_uniques(non_sticky_results) == 3)
 
     # Make many requests to the sticky loadbalancer IP, hits exactly one backend
+    LOG.debug("L4LB: make requests to STICKY_VIP")
     sticky_results = make_n_requests_to(sender, num_reqs, STICKY_VIP)
     assert(num_uniques(sticky_results) == 1)
 
     # Disable (admin state down) the backend we are "stuck" to
+    LOG.debug("L4LB: disable one backend: %s" % sticky_results[0])
     stuck_backend = sticky_results[0]
     stuck_pool_member = VTM.find_pool_member((stuck_backend, DST_PORT))
     stuck_pool_member.disable()
@@ -274,12 +279,16 @@ def test_multi_member_loadbalancing():
     num_reqs = 21
 
     # Make many requests to the non sticky loadbalancer IP, hits the 2 remaining backends
+    LOG.debug("L4LB: make requests to NON_STICKY_VIP (one backend disabled)")
     non_sticky_results = make_n_requests_to(sender, num_reqs, NON_STICKY_VIP)
+    LOG.debug("L4LB: non_sticky results %s" % sticky_results)
     assert(num_uniques(non_sticky_results) == 2)
     assert(stuck_backend not in non_sticky_results)
 
     # Make many requests to the sticky loadbalancer IP, hits exactly one backend
+    LOG.debug("L4LB: make requests to STICKY_VIP (one backend disabled)")
     sticky_results = make_n_requests_to(sender, num_reqs, STICKY_VIP)
+    LOG.debug("L4LB: sticky results %s" % sticky_results)
     assert(num_uniques(sticky_results) == 1)
     assert(stuck_backend not in sticky_results)
 

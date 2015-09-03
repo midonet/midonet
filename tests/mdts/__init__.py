@@ -19,6 +19,7 @@ from ConfigParser import SafeConfigParser
 import os
 
 
+logging.basicConfig(filename='nosetests.log', level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
 def build_simple_topology():

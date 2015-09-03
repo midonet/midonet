@@ -27,7 +27,6 @@ import subprocess
 from mdts.tests.utils.utils import bindings, wait_on_futures
 
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.DEBUG)
 
 PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_vxlangw.yaml')
 VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_vxlangw.yaml')

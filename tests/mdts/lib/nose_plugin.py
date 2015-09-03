@@ -39,10 +39,6 @@ class Mdts(Plugin):
     name = 'mdts'
     enabled = True
 
-    def __init__(self):
-        self.stdout = []
-        self._buf = None
-
     def options(self, parser, env):
         """
         Register commandline options.
@@ -52,7 +48,7 @@ class Mdts(Plugin):
             "--mdts-logs-dir", action="store",
             dest="mdts_logs_dir",
             type="str",
-            default=env.get('NOSE_MDTS_LOGS_DIR', "logs-%s/" % timestamp),
+            default=env.get('NOSE_MDTS_LOGS_DIR', "logs/"),
             help="Directory where logs will be stored")
 
     def configure(self, options, conf):
@@ -65,21 +61,6 @@ class Mdts(Plugin):
         if os.path.exists(self.log_dir):
             shutil.rmtree(self.log_dir, ignore_errors=True)
             os.mkdir(self.log_dir)
-
-    def capture_stdout(self):
-        """ Capture std output """
-        self.stdout.append(sys.stdout)
-        self._buf = StringIO()
-        sys.stdout = self._buf
-
-    def uncapture_stdout(self):
-        """ Uncapture std output """
-        if self.stdout:
-            sys.stdout = self.stdout.pop()
-        self._buf = None
-
-    def begin(self):
-        self.capture_stdout()
 
     def beforeTest(self, test):
         """Inserts marker to the MM logs"""
@@ -105,12 +86,6 @@ class Mdts(Plugin):
 
     def formatError(self, test, err):
         self._write_per_test_debug_info(test, None)
-
-    # TODO: put this in a log file
-    def _get_captured_stdout(self):
-        output = force_unicode(self._buf)
-        return u'\n'.join([ln(u'>> begin captured stdout <<'),
-                           output, ln(u'>> end captured stdout <<')])
 
     def finalize(self, test):
         """Finally modify xunit xml file by adding only relevant
@@ -139,10 +114,6 @@ class Mdts(Plugin):
                 self._write_per_suite_debug_info()
 
             tree.write(self.xunit_file)
-
-        """ Uncapture stack of outputs """
-        while self.stdout:
-            self.uncapture_stdout()
 
     def _get_all_services(self):
         flat_services = []
