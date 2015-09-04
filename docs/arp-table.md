@@ -9,7 +9,7 @@ offers subscriptions to changes, read and write operations. The `ArpCache`
 executes all operations in the ZooKeeper reactor thread.
 
 `ArpRequestBroker` is in turn responsible of deciding when ARP requests should
-be emitted and when to actually write to the `ArpCache`. Virtal routers use
+be emitted and when to actually write to the `ArpCache`. Virtual routers use
 the `ArpRequestBroker` to read MAC addresses from the table or notify that
 they received an ARP reply.
 
@@ -22,7 +22,7 @@ becuase a remote MidoNet node added or deleted an ARP cache entry. This subscrip
 is hidden by the `ArpRequestBroker` and will simply write to a private concurrent
 queue, which will be processed in-thread.
 
-Each agent simulation thread thus gets its own copy of the ArpRequestBroker. Becase
+Each agent simulation thread thus gets its own copy of the ArpRequestBroker. Because
 this class needs to be resilient to several instances running on different MidoNet
 nodes, it makes sense that two threads on the same host can run their own independent
 copies too.
@@ -57,7 +57,7 @@ at the same port/host and will be processed by the same thread, except in extrem
 rare cases like a redundant L2 link falling over to a different port.
 
 The worst effect of this lack of coordination would be seen if a host is down and
-traffic towards it is arriving to multiple midonet agents. The amplification in the
+traffic towards it is arriving to multiple MidoNet agents. The amplification in the
 number of ARP packets emitted would equal the number of packet processing threads
 inside those agents.
 

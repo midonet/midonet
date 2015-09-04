@@ -133,9 +133,9 @@ the same DDA.
 When a DDA receives a packet notification from the Netlink API, it first
 checks that there are no packets with the same match being whose processing
 is suspended pending an asynchronous computation (fetching a device or
-waiting for an ARP reply). If there are, the packets are kept in the pended
+waiting for an ARP reply). If there are, the packets are kept in the pending
 packets queue, so that, when the in-progress packet is processed the resulting
-actions can be applied to all the packets pended with the same match.
+actions can be applied to all the pending packets with the same match.
 
 If the incoming packet doesn't have same-match counterpart, the DDA
 synchronously runs a new PacketWorkflow (PW) to process the packet.
@@ -175,7 +175,7 @@ flow, execute the packet (if applicable) and inform the Flow
 Controller, in this case indicating that the DP Flow corresponds to a new
 Wildcard Flow.
 
-The final step is to check the pended packets queue to see if any packets with
+The final step is to check the pending packets queue to see if any packets with
 the same match need to be executed too.
 
 ### Flow Controller
@@ -270,7 +270,7 @@ other ReplicatedMap. It will handle ARP replies and generate ARP requests.
 When a `Router` requires the MAC for an IP address, it queries its ARP
 cache. Successful queries are resolved on the spot by reading the local
 cache directly. Queries for missing entries will cause an ARP request to
-be emmited and suspend the simulation of the affected packet until a reply
+be emitted and suspend the simulation of the affected packet until a reply
 is received. Suspended simulations receive a `Future` that will be completed
 by the reply. This serves as an indication to packet processing threads that
 they can re-attempt to simulate the packet.
