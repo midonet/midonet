@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ae8d1ca_0beec9ec",
+        "filename": "cluster/README",
+        "patchSetId": 12
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T12:34:19Z",
+      "side": 1,
+      "message": "git repository?",
+      "range": {
+        "startLine": 9,
+        "startChar": 68,
+        "endLine": 9,
+        "endChar": 73
+      },
+      "revId": "fa33cbf87def9663d997a0fbcb200b715ab29043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_4bbff1d0",
+        "filename": "cluster/README",
+        "patchSetId": 12
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T12:34:19Z",
+      "side": 1,
+      "message": "Could you make precise that even if you override this setting the node may start an embedded ZK node (if the list of zk host contains a local IP)?",
+      "range": {
+        "startLine": 21,
+        "startChar": 27,
+        "endLine": 23,
+        "endChar": 24
+      },
+      "revId": "fa33cbf87def9663d997a0fbcb200b715ab29043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_ebc7dd62",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterBootstrap.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T12:34:19Z",
+      "side": 1,
+      "message": "why not localhost?",
+      "range": {
+        "startLine": 30,
+        "startChar": 35,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "fa33cbf87def9663d997a0fbcb200b715ab29043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_8b87390f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T12:34:19Z",
+      "side": 1,
+      "message": "print list of started/failed minions?",
+      "range": {
+        "startLine": 59,
+        "startChar": 26,
+        "endLine": 59,
+        "endChar": 40
+      },
+      "revId": "fa33cbf87def9663d997a0fbcb200b715ab29043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_ab7b1528",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T12:34:19Z",
+      "side": 1,
+      "message": "that\u0027s not worth it for now since they\u0027re is only one service.",
+      "range": {
+        "startLine": 74,
+        "startChar": 15,
+        "endLine": 74,
+        "endChar": 47
+      },
+      "revId": "fa33cbf87def9663d997a0fbcb200b715ab29043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_abd075f8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T12:34:19Z",
+      "side": 1,
+      "message": "there\u0027s one too many \"",
+      "range": {
+        "startLine": 109,
+        "startChar": 64,
+        "endLine": 109,
+        "endChar": 65
+      },
+      "revId": "fa33cbf87def9663d997a0fbcb200b715ab29043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_6bfe6d6d",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 12
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T12:34:19Z",
+      "side": 1,
+      "message": "really? Even with 100K networks, how big would the data be? a few gigs?",
+      "range": {
+        "startLine": 86,
+        "startChar": 68,
+        "endLine": 88,
+        "endChar": 15
+      },
+      "revId": "fa33cbf87def9663d997a0fbcb200b715ab29043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_ebda7d16",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 12
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T12:34:19Z",
+      "side": 1,
+      "message": "node",
+      "range": {
+        "startLine": 101,
+        "startChar": 76,
+        "endLine": 101,
+        "endChar": 79
+      },
+      "revId": "fa33cbf87def9663d997a0fbcb200b715ab29043",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
