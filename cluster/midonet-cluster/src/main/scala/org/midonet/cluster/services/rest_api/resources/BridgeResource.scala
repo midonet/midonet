@@ -33,6 +33,8 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException}
 
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
+import org.midonet.cluster.data.ZoomConvert.toProto
+import org.midonet.cluster.data.storage.{CreateNodeOp, CreateOp}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.ResourceUris.{macPortUriToMac, macPortUriToPort}
 import org.midonet.cluster.rest_api.VendorMediaType._
@@ -57,6 +59,7 @@ import org.midonet.packets.{IPv4Addr, MAC}
                    APPLICATION_JSON))
 @AllowUpdate(Array(APPLICATION_BRIDGE_JSON_V4,
                    APPLICATION_JSON))
+@AllowGet(Array(APPLICATION_JSON))
 @AllowDelete
 class BridgeResource @Inject()(resContext: ResourceContext,
                                pathBuilder: PathBuilder,
@@ -81,6 +84,32 @@ class BridgeResource @Inject()(resContext: ResourceContext,
     @Path("{id}/dhcpV6")
     def dhcpsv6(@PathParam("id") id: UUID): DhcpV6SubnetResource = {
         new DhcpV6SubnetResource(id, resContext)
+    }
+
+    @POST
+    @Consumes(Array( APPLICATION_BRIDGE_JSON_V4,
+                    APPLICATION_JSON))
+    def create(bridge: Bridge): Response = {
+        if (bridge.vxLanPortIds != null) {
+            throw new BadRequestHttpException(
+                getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
+        }
+
+        throwIfViolationsOn(bridge)
+
+        bridge.create()
+
+        val pathOps = Seq (
+            pathBuilder.getBridgeIP4MacMapPath(bridge.id),
+            pathBuilder.getBridgeMacPortsPath(bridge.id),
+            pathBuilder.getBridgeVlansPath(bridge.id)) map { path =>
+                CreateNodeOp(path, null)
+            }
+        val bridgeOp = CreateOp(toProto(bridge, classOf[Topology.Network]))
+        resContext.backend.store.multi(pathOps :+ bridgeOp)
+        bridge.setBaseUri(resContext.uriInfo.getBaseUri)
+
+        OkCreated(bridge.getUri)
     }
 
     @GET
