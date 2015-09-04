@@ -105,4 +105,4 @@ midonet/tests/mdts/tests/functional_tests$ ./run_tests.sh
 
 Refer to documentation in [`run_tests.sh`][run_tests] for further information.
 
-[run_tests]: tests/mdts/tests/functional_tests/run_tests.sh
+[run_tests]: mdts/tests/functional_tests/run_tests.sh
