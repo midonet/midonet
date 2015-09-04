@@ -162,6 +162,29 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_b03e2028",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-04T08:47:38Z",
+      "side": 1,
+      "message": "Check that the tunnel IP is set (list may be empty)",
+      "range": {
+        "startLine": 269,
+        "startChar": 30,
+        "endLine": 269,
+        "endChar": 76
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_0246aebf",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 11
@@ -178,6 +201,29 @@
         "startChar": 40,
         "endLine": 297,
         "endChar": 43
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_d0c64c49",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-04T08:47:38Z",
+      "side": 1,
+      "message": "I think you need to use your subscriber here. Otherwise, this subscriber will throw an exception for onError, which I believe may crash the agent. I think it\u0027s fine to replace the map with an observer, which can handle onCompleted/onError and log appropriately.",
+      "range": {
+        "startLine": 299,
+        "startChar": 45,
+        "endLine": 300,
+        "endChar": 34
       },
       "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
