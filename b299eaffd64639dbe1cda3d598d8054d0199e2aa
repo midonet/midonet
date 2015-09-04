@@ -49,6 +49,54 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_b0af002b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "I like the name :-)",
+      "parentUuid": "9ad9bd40_79b602de",
+      "range": {
+        "startLine": 66,
+        "startChar": 24,
+        "endLine": 66,
+        "endChar": 40
+      },
+      "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_d0ac8c38",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_b0946045",
+      "range": {
+        "startLine": 66,
+        "startChar": 24,
+        "endLine": 66,
+        "endChar": 40
+      },
+      "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d9eaaeab",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 10
@@ -60,6 +108,30 @@
       "writtenOn": "2015-09-03T18:48:05Z",
       "side": 1,
       "message": "Why is this needed? The network is loaded only once on demand from the networks used in a vtep\u0027s bindings, and there shouldn\u0027t be a need to watch or publish them",
+      "range": {
+        "startLine": 80,
+        "startChar": 4,
+        "endLine": 80,
+        "endChar": 78
+      },
+      "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_b02460c7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "That\u0027s the way I use to not block method vtepUpdated. Otherwise, you would have to block to get the networks bound, isn\u0027it? It\u0027s the same for the portsSubject actually.",
+      "parentUuid": "9ad9bd40_d9eaaeab",
       "range": {
         "startLine": 80,
         "startChar": 4,
@@ -95,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_f0a98825",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Opted for hasBindingUpdates",
+      "parentUuid": "9ad9bd40_f9d052f9",
+      "range": {
+        "startLine": 101,
+        "startChar": 16,
+        "endLine": 101,
+        "endChar": 30
+      },
+      "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_19f336a0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 10
@@ -106,6 +202,30 @@
       "writtenOn": "2015-09-03T18:48:05Z",
       "side": 1,
       "message": "in this particular case, I think implicits make this more readable",
+      "range": {
+        "startLine": 131,
+        "startChar": 51,
+        "endLine": 131,
+        "endChar": 59
+      },
+      "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_1055141d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_19f336a0",
       "range": {
         "startLine": 131,
         "startChar": 51,
@@ -141,6 +261,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_3063f01b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_99074681",
+      "range": {
+        "startLine": 215,
+        "startChar": 12,
+        "endLine": 216,
+        "endChar": 47
+      },
+      "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_39db9a1c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 10
@@ -164,6 +308,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_d021ecb5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "That\u0027s the way I make everything non-blocking.",
+      "parentUuid": "9ad9bd40_39db9a1c",
+      "range": {
+        "startLine": 251,
+        "startChar": 4,
+        "endLine": 254,
+        "endChar": 50
+      },
+      "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_19cc1661",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 10
@@ -175,6 +343,24 @@
       "writtenOn": "2015-09-03T18:48:05Z",
       "side": 1,
       "message": "some debug logs would be fitting I think",
+      "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_50687cf5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_19cc1661",
       "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
