@@ -35,7 +35,11 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException}
 
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
+import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.data.ZoomConvert.toProto
+import org.midonet.cluster.data.storage.{CreateOp, CreateNodeOp}
 import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.rest_api.ResourceUris.{macPortUriToMac, macPortUriToPort}
 import org.midonet.cluster.rest_api.VendorMediaType._
 import org.midonet.cluster.rest_api.annotation._
@@ -52,10 +56,6 @@ import org.midonet.packets.{IPv4Addr, MAC}
 @ApiResource(version = 1)
 @Path("bridges")
 @RequestScoped
-@AllowGet(Array(APPLICATION_BRIDGE_JSON,
-                APPLICATION_BRIDGE_JSON_V2,
-                APPLICATION_BRIDGE_JSON_V3,
-                APPLICATION_JSON))
 @AllowList(Array(APPLICATION_BRIDGE_COLLECTION_JSON,
                  APPLICATION_BRIDGE_COLLECTION_JSON_V2,
                  APPLICATION_BRIDGE_COLLECTION_JSON_V3,
@@ -68,6 +68,10 @@ import org.midonet.packets.{IPv4Addr, MAC}
                    APPLICATION_BRIDGE_JSON_V2,
                    APPLICATION_BRIDGE_JSON_V3,
                    APPLICATION_JSON))
+@AllowGet(Array(APPLICATION_BRIDGE_JSON,
+                APPLICATION_BRIDGE_JSON_V2,
+                APPLICATION_BRIDGE_JSON_V3,
+                APPLICATION_JSON))
 @AllowDelete
 class BridgeResource @Inject()(resContext: ResourceContext,
                                pathBuilder: PathBuilder,
@@ -92,6 +96,34 @@ class BridgeResource @Inject()(resContext: ResourceContext,
     @Path("{id}/dhcpV6")
     def dhcpsv6(@PathParam("id") id: UUID): DhcpV6SubnetResource = {
         new DhcpV6SubnetResource(id, resContext)
+    }
+
+    @POST
+    @Consumes(Array(APPLICATION_BRIDGE_JSON,
+                    APPLICATION_BRIDGE_JSON_V2,
+                    APPLICATION_BRIDGE_JSON_V3,
+                    APPLICATION_JSON))
+    def create(bridge: Bridge): Response = {
+        if (bridge.vxLanPortId != null || bridge.vxLanPortIds != null) {
+            throw new BadRequestHttpException(
+                getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
+        }
+
+        throwIfViolationsOn(bridge)
+
+        bridge.create()
+
+        val pathOps = Seq (
+            pathBuilder.getBridgeIP4MacMapPath(bridge.id),
+            pathBuilder.getBridgeMacPortsPath(bridge.id),
+            pathBuilder.getBridgeVlansPath(bridge.id)) map { path =>
+                CreateNodeOp(path, null)
+            }
+        val bridgeOp = CreateOp(toProto(bridge, classOf[Topology.Network]))
+        resContext.backend.store.multi(pathOps :+ bridgeOp)
+        bridge.setBaseUri(resContext.uriInfo.getBaseUri)
+
+        OkCreated(bridge.getUri)
     }
 
     @GET
@@ -275,15 +307,6 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             .getQueryParameters.getFirst("tenant_id")
         Future.successful(if (tenantId eq null) bridges
                           else bridges filter { _.tenantId == tenantId })
-    }
-
-    protected override def createFilter(bridge: Bridge): Ops = {
-        if (bridge.vxLanPortId != null || bridge.vxLanPortIds != null) {
-            return Future.failed(new BadRequestHttpException(
-                getMessage(VXLAN_PORT_ID_NOT_SETTABLE)))
-        }
-        bridge.create()
-        NoOps
     }
 
     protected override def updateFilter(to: Bridge, from: Bridge): Ops = {
