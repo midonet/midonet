@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_f06b4883",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_a2717a79",
+      "range": {
+        "startLine": 61,
+        "startChar": 13,
+        "endLine": 61,
+        "endChar": 19
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_02c5ce5a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2015-09-03T18:30:12Z",
       "side": 1,
       "message": "Why does this need to be List instead of Set?",
+      "range": {
+        "startLine": 89,
+        "startChar": 42,
+        "endLine": 89,
+        "endChar": 52
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_700f38e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Changed it to a set",
+      "parentUuid": "3ae8d1ca_02c5ce5a",
       "range": {
         "startLine": 89,
         "startChar": 42,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_9014c4f6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_822b9e2f",
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_222c8a4a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 11
@@ -76,6 +142,30 @@
       "writtenOn": "2015-09-03T18:30:12Z",
       "side": 1,
       "message": "We don\u0027t really need this if clause and can do the list comparison whether or not the list is empty?",
+      "range": {
+        "startLine": 105,
+        "startChar": 16,
+        "endLine": 107,
+        "endChar": 24
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_7083b8cc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "(listA - listB).size would be more costly (if that\u0027s what you\u0027re suggesting).",
+      "parentUuid": "3ae8d1ca_222c8a4a",
       "range": {
         "startLine": 105,
         "startChar": 16,
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_d0500c61",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_22880a22",
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_22dd6a15",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 11
@@ -116,6 +224,24 @@
       "writtenOn": "2015-09-03T18:30:12Z",
       "side": 1,
       "message": "Isn\u0027t more readable to just do filter \u0026 foreach? That is,\n\n\nportIds.filter(!portReceived(networkId, _)\n           .foreach { x \u003d\u003e val observable \u003d ...\n                                   portsSubject onNext observable}",
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_104b54b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Galo was suggesting to use iterators to reduce garbage.",
+      "parentUuid": "3ae8d1ca_22dd6a15",
       "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -145,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_30c77014",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_02730e4e",
+      "range": {
+        "startLine": 205,
+        "startChar": 20,
+        "endLine": 205,
+        "endChar": 30
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_02d86e1c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 11
@@ -162,6 +312,24 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_70d1f8cc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_02d86e1c",
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_b03e2028",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 11
@@ -173,6 +341,30 @@
       "writtenOn": "2015-09-04T08:47:38Z",
       "side": 1,
       "message": "Check that the tunnel IP is set (list may be empty)",
+      "range": {
+        "startLine": 269,
+        "startChar": 30,
+        "endLine": 269,
+        "endChar": 76
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_10e2749f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_b03e2028",
       "range": {
         "startLine": 269,
         "startChar": 30,
@@ -208,6 +400,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_10f9944d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_0246aebf",
+      "range": {
+        "startLine": 297,
+        "startChar": 40,
+        "endLine": 297,
+        "endChar": 43
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_d0c64c49",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 11
@@ -219,6 +435,30 @@
       "writtenOn": "2015-09-04T08:47:38Z",
       "side": 1,
       "message": "I think you need to use your subscriber here. Otherwise, this subscriber will throw an exception for onError, which I believe may crash the agent. I think it\u0027s fine to replace the map with an observer, which can handle onCompleted/onError and log appropriately.",
+      "range": {
+        "startLine": 299,
+        "startChar": 45,
+        "endLine": 300,
+        "endChar": 34
+      },
+      "revId": "a7d4e4a784de292d1a367b49cfb111a787533a4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_3095b0e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-04T09:36:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_d0c64c49",
       "range": {
         "startLine": 299,
         "startChar": 45,
