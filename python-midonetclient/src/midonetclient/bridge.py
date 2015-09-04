@@ -63,6 +63,20 @@ class Bridge(resource_base.ResourceBase,
         self.dto['outboundFilterId'] = id_
         return self
 
+    def get_inbound_mirrors(self, query=None):
+        return self.dto['inboundMirrors']
+
+    def inbound_mirrors(self, inMirrors):
+        self.dto['inboundMirrors'] = inMirrors
+        return self
+
+    def get_outbound_mirrors(self, query=None):
+        return self.dto['outboundMirrors']
+
+    def outbound_mirrors(self, outMirrors):
+        self.dto['outboundMirrors'] = outMirrors
+        return self
+
     def get_ports(self, query=None):
         if query is None:
             query = {}

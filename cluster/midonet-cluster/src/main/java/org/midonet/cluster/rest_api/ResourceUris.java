@@ -43,6 +43,7 @@ public final class ResourceUris {
     public static final String LINK = "link";
     public static final String LOAD_BALANCERS = "load_balancers";
     public static final String MAC_TABLE = "mac_table";
+    public static final String MIRRORS = "mirrors";
     public static final String PEER_PORTS = "peer_ports";
     public static final String POOLS = "pools";
     public static final String POOL_MEMBERS = "pool_members";
