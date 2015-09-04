@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ae8d1ca_cbab01d5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterBootstrap.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-04T10:34:54Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 109,
+        "startChar": 7,
+        "endLine": 115,
+        "endChar": 28
+      },
+      "revId": "f9720dd3c75147bf870d71d38edb8f0bb73a2a66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
