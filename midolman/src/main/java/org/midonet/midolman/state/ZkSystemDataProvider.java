@@ -43,7 +43,7 @@ public class ZkSystemDataProvider implements SystemDataProvider {
     private PathBuilder paths;
     private final Comparator<String> comparator;
     private AtomicReference<String> cachedWriteVersion
-        = new AtomicReference<String>(null);
+        = new AtomicReference<>(null);
 
     private Runnable writeVersionWatcher = new WriteVersionWatcher();
 

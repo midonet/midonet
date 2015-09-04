@@ -35,11 +35,11 @@ import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.topology.VirtualTopology._
 import org.midonet.packets.{IPv4Addr, MAC}
 
-/** This class enables access to DHCP resources via the new storage stack.
+/** This class enables access to DHCP resources.
   *
   * TODO: integrate with the VTA so that Subnets are cached.
   */
-class DhcpConfigFromZoom(vt: VirtualTopology)
+class DhcpConfigFromNsdb(vt: VirtualTopology)
                         (implicit val as: ActorSystem, val ec: ExecutionContext)
     extends DhcpConfig {
 

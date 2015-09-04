@@ -48,8 +48,6 @@ class TraceRequestMapperTest extends MidolmanSpec {
     private var store: Storage = _
     private var chainMap: mutable.Map[UUID,Subject[SimChain,SimChain]] = _
 
-    override def useNewStorageStack = true
-
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).store
