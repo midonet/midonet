@@ -37,7 +37,7 @@ import org.midonet.midolman.state.l4lb.LBStatus
 import LBStatus.{INACTIVE => MemberInactive}
 import LBStatus.{ACTIVE => MemberActive}
 import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
-import org.midonet.util.{UUIDUtil, AfUnix}
+import org.midonet.util.AfUnix
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.HashSet
@@ -278,11 +278,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         }
     }
 
-    def getRouterPortId(id: UUID): UUID = {
-        UUIDUtil.xor(id, UUID.fromString(
-            "ffcf2e4a-5ea9-3de2-abba-98eacef403ab"))
-    }
-
     def deleteIpTableRules(nsName: String, ip: String) = {
         modifyIpTableRules(nsName, ip, "delete")
     }
@@ -416,28 +411,35 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     def hookNamespaceToRouter(): Unit = {
         if (routerId == null)
             return
+        val ports = dataClient.portsFindByRouter(routerId)
+        var portId: UUID = null
 
-        routerPortId = getRouterPortId(config.id)
-
-        // Delete the port if it already exists. If it doesn't exist,
-        // this will be a no-op
-        if (dataClient.portsGet(routerPortId) != null) {
-            dataClient.portsDelete(routerPortId)
+        // see if the port already exists, and delete it if it does. This can
+        // happen if there was already an haproxy attached to this router.
+        for (port <- ports) {
+            port match {
+                case rpc: RouterPort =>
+                    if (rpc.getPortAddr == RouterIp) {
+                        dataClient.hostsDelVrnPortMapping(hostId, rpc.getId)
+                        portId = rpc.getId
+                    }
+            }
         }
 
-        val routerPort = new RouterPort()
-        routerPort.setId(routerPortId)
-        routerPort.setDeviceId(routerId)
-        routerPort.setHostId(hostId)
-        routerPort.setPortAddr(RouterIp)
-        routerPort.setNwAddr(NetAddr)
-        routerPort.setNwLength(NetLen)
-        routerPort.setInterfaceName(namespaceName)
-        dataClient.portsCreate(routerPort)
-
+        if (portId == null) {
+            val routerPort = new RouterPort()
+            routerPort.setDeviceId(routerId)
+            routerPort.setHostId(hostId)
+            routerPort.setPortAddr(RouterIp)
+            routerPort.setNwAddr(NetAddr)
+            routerPort.setNwLength(NetLen)
+            routerPort.setInterfaceName(namespaceName)
+            portId = dataClient.portsCreate(routerPort)
+        }
+        routerPortId = portId
         addVipRoute(config.vip.ip)
 
-        dataClient.hostsAddVrnPortMapping(hostId, routerPortId, namespaceName)
+        dataClient.hostsAddVrnPortMapping(hostId, portId, namespaceName)
 
         createIpTableRules(healthMonitorName, config.vip.ip)
     }
