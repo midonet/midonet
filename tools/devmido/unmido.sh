@@ -37,7 +37,7 @@ set -o xtrace
 SCREEN_NAME=mido
 
 # Clean up the remainder of the screen processes
-stop_process midonet-api
+stop_process midonet-cluster
 stop_process midolman
 
 # Remove the screen session
