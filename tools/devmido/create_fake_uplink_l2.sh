@@ -76,7 +76,7 @@ echo "Host: ${HOST_ID}"
 TZ_NAME='DEFAULT'
 TZ_ID=$(midonet-cli -e list tunnel-zone name $TZ_NAME | awk '{ print $2 }')
 if [[ -z "$TZ_ID" ]]; then
-    TZ_ID=$(midonet-cli -e create tunnel-zone name default_tz type gre)
+    TZ_ID=$(midonet-cli -e create tunnel-zone name $TZ_NAME type gre)
 fi
 echo "Tunnel Zone: ${TZ_ID}"
 
