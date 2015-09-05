@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.models.Commons.{Condition, Int32Range, RuleDirection}
+import org.midonet.cluster.models.Commons.{Protocol, Condition, Int32Range, RuleDirection}
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.util.IPSubnetUtil
@@ -39,8 +39,25 @@ object SecurityGroupRuleManager extends ChainManager {
             condBldr.setNwProto(sgRule.getProtocol.getNumber)
         if (sgRule.hasEthertype)
             condBldr.setDlType(sgRule.getEthertype.getNumber)
-        if (sgRule.hasPortRangeMin || sgRule.hasPortRangeMax)
-            condBldr.setTpDst(createRange(sgRule))
+
+        if (sgRule.hasPortRangeMin || sgRule.hasPortRangeMax) {
+            if (isIcmp(sgRule)) {
+                // For ICMP, portRangeMin is the ICMP type, and portRangeMax is
+                // the ICMP code.  They are translated as:
+                //     type: Range<portRangeMin, portRangeMin>
+                //     code: Range<portRangeMax, portRangeMax>
+                if (sgRule.hasPortRangeMin) {
+                    condBldr.setTpSrc(createRange(sgRule.getPortRangeMin,
+                                                  sgRule.getPortRangeMin))
+                }
+                if (sgRule.hasPortRangeMax) {
+                    condBldr.setTpDst(createRange(sgRule.getPortRangeMax,
+                                                  sgRule.getPortRangeMax))
+                }
+            } else {
+                condBldr.setTpDst(createRangeFromRule(sgRule))
+            }
+        }
 
         if (sgRule.getDirection == RuleDirection.INGRESS) {
             bldr.setChainId(outChainId(sgRule.getSecurityGroupId))
@@ -60,10 +77,16 @@ object SecurityGroupRuleManager extends ChainManager {
         bldr.setCondition(condBldr).build()
     }
 
-    private def createRange(sgRule: SecurityGroupRule): Int32Range = {
+    private def isIcmp(sgRule: SecurityGroupRule): Boolean =
+        sgRule.hasProtocol && sgRule.getProtocol == Protocol.ICMP
+
+    private def createRange(start: Int, end: Int): Int32Range =
+        Int32Range.newBuilder.setStart(start).setEnd(end).build()
+
+    private def createRangeFromRule(sgRule: SecurityGroupRule): Int32Range = {
         val builder = Int32Range.newBuilder
         if (sgRule.hasPortRangeMin) builder.setStart(sgRule.getPortRangeMin)
         if (sgRule.hasPortRangeMax) builder.setEnd(sgRule.getPortRangeMax)
-        builder.build()
+        builder.build
     }
 }

@@ -453,9 +453,15 @@ of the chain in the appropriate direction.  The following fields are set:
 
 If port_range_min or port_range_max is set:
 
- * range(port_range_min, port_range_max) => tpDst
-   For ICMP, port_range_min is the ICMP type and port_range_max is the ICMP
-   code.
+ * For ICMP, port_range_min is the ICMP type and port_range_max is the ICMP
+   code.  For both, set the start and the end of the range:
+
+   * range(port_range_min, port_range_min) => tpSrc (ICMP type)
+   * range(port_range_max, port_range_max) => tpDst (ICMP code)
+
+ * For non-ICMP, only the destination port range needs to be set:
+
+   * range(port_range_min, port_range_max) => tpDst
 
 If the direction is 'egress', set the following fields:
 
