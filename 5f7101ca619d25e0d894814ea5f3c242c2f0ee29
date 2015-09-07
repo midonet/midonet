@@ -197,6 +197,47 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_049f9760",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-07T07:39:32Z",
+      "side": 1,
+      "message": "Agreed to sort this out later.",
+      "parentUuid": "9ad9bd40_b5b51433",
+      "range": {
+        "startLine": 69,
+        "startChar": 18,
+        "endLine": 69,
+        "endChar": 34
+      },
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_4488bf22",
+        "filename": "midonet-api/src/main/resources/ValidationMessages.properties",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-07T07:39:32Z",
+      "side": 1,
+      "message": "This file is no longer in midonet-api",
+      "revId": "5f7101ca619d25e0d894814ea5f3c242c2f0ee29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d581b84e",
         "filename": "midonet-api/src/test/java/org/midonet/api/l4lb/e2e/TestPool.java",
         "patchSetId": 3
