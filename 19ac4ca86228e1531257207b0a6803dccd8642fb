@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_fd8f9a73",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/flowhistory/FlowRecordEncoding.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-07T16:54:15Z",
+      "side": 1,
+      "message": "An extra comment, and I don\u0027t think we need to address here, but this generates an empty device list 50% of the time, and I wonder if that\u0027s  an excessive bias on empty records...",
+      "range": {
+        "startLine": 228,
+        "startChar": 20,
+        "endLine": 228,
+        "endChar": 36
+      },
+      "revId": "19ac4ca86228e1531257207b0a6803dccd8642fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
