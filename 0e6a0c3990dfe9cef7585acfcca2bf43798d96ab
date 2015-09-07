@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_dd473e1c",
+        "filename": "misc/perf/profiles.d/gateway-2threads/midolman/midolman.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-07T17:09:41Z",
+      "side": 1,
+      "message": "these can be removed I think, but I was planning to clean those up later as they are needed by a config class in zk",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 17
+      },
+      "revId": "0e6a0c3990dfe9cef7585acfcca2bf43798d96ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
