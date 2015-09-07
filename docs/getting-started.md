@@ -19,7 +19,12 @@ instructions in the project README.
 
 Because we shall be installing locally built packages, we need to install
 run time dependencies for midolman and midonet-api manually. We assume
-build dependencies are already installed and packages have been built.
+build dependencies are already installed and packages have been built. If
+not then refer to the Build dependencies and Building the Project guide 
+documentation in [ DEVELOPMENT.md ][development] before continuing.
+
+[development]: DEVELOPMENT.md
+ 
 
     $ sudo apt-get install tomcat7 zookeeper haproxy quagga bridge-utils zookeeperd
     $ sudo /etc/init.d/zookeeper start
