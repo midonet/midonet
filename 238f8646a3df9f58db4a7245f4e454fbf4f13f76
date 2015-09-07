@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_50bb1ac4",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/southbound/vtep/schema/Table.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-07T13:47:57Z",
+      "side": 1,
+      "message": "Yes. At the beginning I wasn\u0027t exactly sure whether this the entry ID can be specified for some rows, and that was the reason to leave it here. Now I changed this to support the use of `uuid-name` during the same transaction (the `uuid-name`",
+      "parentUuid": "1ae5cdf2_bbf44788",
+      "range": {
+        "startLine": 260,
+        "startChar": 0,
+        "endLine": 263,
+        "endChar": 9
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_4b9a9115",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
         "patchSetId": 5
