@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1d1a866e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/flowhistory/FlowRecordEncoding.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-07T16:27:23Z",
+      "side": 1,
+      "message": "In scala, \"0 until -1\" returns an empty list, so you can actually just pass count even when it\u0027s less than 0.",
+      "range": {
+        "startLine": 233,
+        "startChar": 12,
+        "endLine": 233,
+        "endChar": 36
+      },
+      "revId": "2965ca01ae504263df7857c4418b63b5464138be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
