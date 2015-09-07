@@ -250,6 +250,6 @@ public class BackendHostServiceTest extends HostServiceTest {
     }
 
     public String getAlivePath(UUID hostId) {
-        return basePath + "/zoom/1/state/Host/" + hostId + "/alive";
+        return basePath + "/zoom/0/state/Host/" + hostId + "/alive";
     }
 }

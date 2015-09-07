@@ -145,7 +145,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
     feature("Test Zookeeper") {
         scenario("Test get path") {
             val zoom = storage.asInstanceOf[ZookeeperObjectMapper]
-            zoom.getClassPath(classOf[PojoBridge]) shouldBe s"$ZK_ROOT/1/PojoBridge"
+            zoom.getClassPath(classOf[PojoBridge]) shouldBe s"$ZK_ROOT/0/models/PojoBridge"
         }
     }
 }

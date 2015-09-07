@@ -113,6 +113,8 @@ import org.midonet.util.reactivex._
  * off. In addition, upon initialization a ZOOM sets a watcher to the version
  * number node and it'd be notified if another ZOOM instances bumps the version
  * number to switch to the new version.
+ *
+ * Fixed to a static version number until this is implemented.
  */
 class ZookeeperObjectMapper(protected override val rootPath: String,
                             protected override val curator: CuratorFramework,
@@ -126,13 +128,12 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
      * ZOOM actually just bumps the version number by 1, keeps the old data, and
      * starts persisting data in under the new version path.
      */
+
     protected override val version = new AtomicLong(InitialZoomDataSetVersion)
 
-    private val versionNodePath = s"$rootPath/$VersionNode"
-
     private[storage] def basePath(ver: Long = version.get) = s"$rootPath/$ver"
-
-    private def locksPath(version: Long) = s"$rootPath/$version/zoomlocks/lock"
+    private[storage] def locksPath() = basePath() + s"/zoomlocks/lock"
+    private[storage] def modelPath() = basePath() + s"/models"
 
     private val executor = Executors.newSingleThreadExecutor()
     private implicit val executionContext =
@@ -201,7 +202,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         private val (lockPath: String, zxid: Long) = try {
             val path = curator.create().creatingParentsIfNeeded()
                               .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-                              .forPath(locksPath(version))
+                              .forPath(locksPath())
             val stat = new Stat()
             curator.getData.storingStatIn(stat).forPath(path)
             (path, stat.getCzxid)
@@ -400,49 +401,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     }
 
     override def build(): Unit = {
-        initVersionNumber()
         ensureClassNodes()
         super.build()
-    }
-
-    private def getVersionNumberFromZkAndWatch: Long = {
-        val watcher = new Watcher() {
-            override def process(event: WatchedEvent) {
-                event.getType match {
-                    case NodeDataChanged => setVersionNumberAndWatch()
-                    case _ =>  // Do nothing.
-                }
-            }
-        }
-        JLong.parseLong(new String(
-                curator.getData.usingWatcher(watcher).forPath(versionNodePath)))
-    }
-
-    private def setVersionNumberAndWatch(): Unit = {
-        version.set(getVersionNumberFromZkAndWatch)
-    }
-
-    private def initVersionNumber(): Unit = {
-        try {
-            ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
-                           versionNodePath, false)
-            curator.create.forPath(versionNodePath, version.toString.getBytes)
-            getVersionNumberFromZkAndWatch
-        } catch {
-            case nee: NodeExistsException =>
-                metrics.count(nee)
-                try {
-                    setVersionNumberAndWatch()
-                } catch {
-                    case ex: Exception =>
-                        throw new InternalObjectMapperException(
-                                "Failure in initializing version number.", ex)
-                }
-            case ex: Exception =>
-                throw new InternalObjectMapperException(
-                        "Failure in initializing version number.", ex)
-        }
-        log.info(s"Initialized the version number to $version.")
     }
 
     /**
@@ -707,7 +667,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
     @inline
     private[storage] def getClassPath(clazz: Class[_]): String = {
-        basePath() + "/" + clazz.getSimpleName
+        modelPath() + "/" + clazz.getSimpleName
     }
 
     @inline
@@ -720,8 +680,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 }
 
 object ZookeeperObjectMapper {
-    private val VersionNode = "dataset_version"
-    private val InitialZoomDataSetVersion = 1
+    private val InitialZoomDataSetVersion = 0
 
     private[storage] final class MessageClassInfo(clazz: Class[_])
         extends ClassInfo(clazz) {
