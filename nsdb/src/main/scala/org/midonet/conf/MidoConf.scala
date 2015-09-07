@@ -124,7 +124,7 @@ object MidoNodeConfigurator {
             """
             |zookeeper {
             |    zookeeper_hosts = "127.0.0.1:2181"
-            |    root_key : "/midonet/v1"
+            |    root_key : "/midonet/v2"
             |    midolman_root_key = ${zookeeper.root_key}
             |    bootstrap_timeout = 30s
             |}
