@@ -31,6 +31,7 @@ import org.scalatest.time.{Second, Span}
 
 import org.midonet.cluster.ClusterRouterManager.ArpCacheImpl
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ArpRequestBroker._
@@ -205,7 +206,7 @@ class ArpRequestBrokerTest extends Suite
     private def expectEmitArp() {
         import PacketBuilder._
         arps should not be 'empty
-        val pkt = arps.poll()
+        val pkt = arps.poll().asInstanceOf[GeneratedLogicalPacket]
         pkt.egressPort should === (port.id)
         val arpReq: Ethernet = { eth addr MY_MAC -> eth_bcast } <<
             { arp.req mac MY_MAC -> eth_zero ip MY_IP --> THEIR_IP}

@@ -26,6 +26,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp}
 import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -83,7 +84,8 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
             simRes should be (NoOp)
             generatedPackets should have size 1
 
-            val GeneratedPacket(egressPort, genEth) = generatedPackets.poll()
+            val GeneratedLogicalPacket(egressPort, genEth) =
+                generatedPackets.poll()
 
             egressPort should be (port2)
             genEth should be (ARP.makeArpReply(mac1, mac2,
