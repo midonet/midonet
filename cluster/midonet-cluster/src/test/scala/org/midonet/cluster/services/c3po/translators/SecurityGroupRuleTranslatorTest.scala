@@ -181,4 +181,25 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         mRule.getCondition.getTpDst.hasEnd shouldBe true
         mRule.getCondition.getTpDst.getEnd shouldBe 10
     }
+
+    "ICMP code and type" should "convert to src/dst port ranges" in {
+        val ruleText = sgRuleBase() + s"""
+            direction: INGRESS
+            protocol: ICMP
+            port_range_min: 3
+            port_range_max: 1
+        """.stripMargin
+        val nRule = nSecurityGroupRuleFromTxt(ruleText)
+
+        val mRule = SecurityGroupRuleManager.translate(nRule)
+        mRule.getId shouldBe sgrId
+        mRule.getCondition.getTpSrc.hasStart shouldBe true
+        mRule.getCondition.getTpSrc.getStart shouldBe 3
+        mRule.getCondition.getTpSrc.hasEnd shouldBe true
+        mRule.getCondition.getTpSrc.getEnd shouldBe 3
+        mRule.getCondition.getTpDst.hasStart shouldBe true
+        mRule.getCondition.getTpDst.getStart shouldBe 1
+        mRule.getCondition.getTpDst.hasEnd shouldBe true
+        mRule.getCondition.getTpDst.getEnd shouldBe 1
+    }
 }
