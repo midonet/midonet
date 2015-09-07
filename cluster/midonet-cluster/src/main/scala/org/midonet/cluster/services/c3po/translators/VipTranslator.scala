@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.data.storage.UpdateValidator
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, NeutronSubnet, NeutronNetwork, NeutronVIP}
+import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology.{Pool, Vip}
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -64,9 +64,10 @@ class VipTranslator(protected val storage: ReadOnlyStorage,
         // If the VIP's DHCP is not on external, no need to add an ARP entry.
         if (!network.getExternal) return List(Create(mVip.build()))
 
-        val pool = storage.get(classOf[Pool], mVip.getPoolId).await()
+        val pool = storage.get(classOf[NeutronLoadBalancerPool],
+                               mVip.getPoolId).await()
         val router = storage.get(classOf[NeutronRouter],
-                                 pool.getLoadBalancerId).await()
+                                 pool.getRouterId).await()
         if (router.hasGwPortId) {
             val gwPort = storage.get(classOf[NeutronPort],
                                      router.getGwPortId).await()

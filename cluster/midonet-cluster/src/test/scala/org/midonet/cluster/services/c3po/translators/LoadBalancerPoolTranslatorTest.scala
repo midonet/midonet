@@ -27,14 +27,15 @@ import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
 
-class LoadBalancerPoolTranslatorTestBase extends TranslatorTestBase {
+class LoadBalancerPoolTranslatorTestBase extends TranslatorTestBase
+                                         with LoadBalancerManager {
     protected var translator: LoadBalancerPoolTranslator = _
 
     protected val poolId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")
     protected val routerId = UUIDUtil.toProtoFromProtoStr("msb: 2 lsb: 1")
     protected val healthMonitorId =
         UUIDUtil.toProtoFromProtoStr("msb: 3 lsb: 1")
-    protected val lbId = routerId
+    protected val lbId = loadBalancerId(routerId)
 
     protected def neutronPoolProtoStr(adminStateUp: Boolean = true,
                                       healthMonitorId: UUID = null) = {
@@ -52,7 +53,7 @@ class LoadBalancerPoolTranslatorTestBase extends TranslatorTestBase {
                 adminStateUp, healthMonitorId))
 
     protected val lb = mLoadBalancerFromTxt(s"""
-        id { $routerId }
+        id { $lbId }
         admin_state_up: true
         router_id { $routerId }
         """)
@@ -65,7 +66,7 @@ class LoadBalancerPoolTranslatorTestBase extends TranslatorTestBase {
         bldr ++= s"""
             id { $poolId }
             admin_state_up: $adminStateUp
-            load_balancer_id { $routerId }
+            load_balancer_id { $lbId }
             """
         if (healthMonitorId != null)
             bldr ++= s"health_monitor_id { $healthMonitorId }\n"
