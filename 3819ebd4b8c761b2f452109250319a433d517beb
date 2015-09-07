@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_4437dfb0",
+        "filename": "docs/getting-started.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002884
+      },
+      "writtenOn": "2015-09-07T04:04:12Z",
+      "side": 1,
+      "message": "A broken link? Shouldn\u0027t it be:\n[development]: ../DEVELOPMENT.md\n?",
+      "revId": "3819ebd4b8c761b2f452109250319a433d517beb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
