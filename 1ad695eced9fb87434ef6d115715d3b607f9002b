@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_c73e9129",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-07T13:13:16Z",
+      "side": 1,
+      "message": "override keyword isn\u0027t needed i think",
+      "range": {
+        "startLine": 101,
+        "startChar": 13,
+        "endLine": 101,
+        "endChar": 21
+      },
+      "revId": "1ad695eced9fb87434ef6d115715d3b607f9002b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_870c8996",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-07T13:13:16Z",
+      "side": 1,
+      "message": "may be replaceable with an implicit function in UUIDUtil",
+      "revId": "1ad695eced9fb87434ef6d115715d3b607f9002b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
