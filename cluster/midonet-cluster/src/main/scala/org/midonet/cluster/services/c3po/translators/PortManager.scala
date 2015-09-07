@@ -128,6 +128,8 @@ object PortManager {
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_INTERFACE
     def isRouterGatewayPort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_GATEWAY
+    def isVipPort(nPort: NeutronPortOrBuilder) =
+        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.LOADBALANCER
 
     /** ID of Router Interface port peer. */
     def routerInterfacePortPeerId(portId: UUID): UUID =
