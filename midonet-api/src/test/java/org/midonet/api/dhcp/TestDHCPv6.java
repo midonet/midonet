@@ -34,7 +34,7 @@ import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCPV6_HOST_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCPV6_HOST_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON;
@@ -60,11 +60,11 @@ public class TestDHCPv6 extends JerseyTest {
         bridge.setName("br1234");
         bridge.setTenantId("DhcpTenant");
         response = resource().uri(app.getBridges())
-                .type(APPLICATION_BRIDGE_JSON)
+                .type(APPLICATION_BRIDGE_JSON_V4)
                 .post(ClientResponse.class, bridge);
         assertEquals("The bridge was created.", 201, response.getStatus());
         bridge = resource().uri(response.getLocation())
-                .accept(APPLICATION_BRIDGE_JSON).get(DtoBridge.class);
+                .accept(APPLICATION_BRIDGE_JSON_V4).get(DtoBridge.class);
     }
 
     @Test

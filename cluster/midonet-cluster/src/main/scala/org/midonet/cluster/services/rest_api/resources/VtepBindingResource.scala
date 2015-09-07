@@ -16,7 +16,6 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.net.URLEncoder
 import java.util
 import java.util.{List => JList, UUID}
 import javax.ws.rs._
@@ -26,6 +25,7 @@ import javax.ws.rs.core.Response
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.reflect.ClassTag
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -83,6 +83,21 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext)
         } getOrThrow
     }
 
+    /* This class should be generalized into MidonetResource.getOrThrow, so that
+     * we can selectively map a ZOOM's not found to a 404 or a 400 based on the
+     * use case.  Leaving this for its own patch.
+     */
+    private def loadOrBadRequest[T](id: UUID)(implicit ct: ClassTag[T]): T = {
+        try {
+            store.get(ct.runtimeClass, id).getOrThrow.asInstanceOf[T]
+        } catch {
+            case t: NotFoundHttpException =>
+                throw new BadRequestHttpException(
+                    getMessage(RESOURCE_NOT_FOUND,
+                               ct.runtimeClass.getSimpleName, id))
+        }
+    }
+
     @POST
     @Consumes(Array(APPLICATION_VTEP_BINDING_JSON,
                     APPLICATION_JSON))
@@ -92,83 +107,65 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext)
 
         throwIfViolationsOn(binding)
 
-        // Validate the port name.
-        if (URLEncoder.encode(binding.portName, "UTF-8") != binding.portName) {
-            throw new BadRequestHttpException(
-                s"Port name ${binding.portName} contains invalid URI characters")
-        }
-
-        val network = try {
-            store.get(classOf[Topology.Network], binding.networkId).getOrThrow
-        } catch {
-            case t: NotFoundException =>
-                throw new NotFoundHttpException(
-                    getMessage(RESOURCE_NOT_FOUND, "Bridge", binding.networkId))
-        }
-
-        // Validate the physical port exists.
-        val vtep = store.get(classOf[Topology.Vtep], vtepId).getOrThrow
-
+        val vtep = loadOrBadRequest[Topology.Vtep](binding.vtepId)
+        val network = loadOrBadRequest[Topology.Network](binding.networkId)
         val mgmtIp = IPAddressUtil.toIPv4Addr(vtep.getManagementIp)
         val mgmtPort  = vtep.getManagementPort
         val client = OvsdbVtepDataClient(mgmtIp, mgmtPort)
 
-        try {
-            val result = client.connect() flatMap { _ =>
-                client.physicalSwitch
-            } flatMap {
-                case Some(physicalSwitch) =>
-                    val futures = for (portId <- physicalSwitch.ports) yield
-                    client.physicalPort(portId)
-                    Future.sequence(futures)
-                case None =>
-                    throw new ServiceUnavailableHttpException(
-                        s"Cannot add binding to VTEP $mgmtIp:" +
-                        s"${vtep.getManagementPort} because the physical " +
-                        "switch is not configured")
-            } map { ports =>
-
-                if (!ports.flatten.exists(_.name == binding.portName)) {
-                    throw new ServiceUnavailableHttpException(
-                        s"Cannot add binding to VTEP $mgmtIp:" +
-                        s"$mgmtPort because the physical " +
-                        s"port ${binding.portName} does not exist")
-                }
-
-                ensureBindingDoesntExist(vtep, binding)
-
-                binding.vtepId = fromProto(vtep.getId)
-                val protoBdg = binding.toProto(classOf[Topology.Vtep.Binding])
-                                      .toBuilder
-                                      .setVlanId(binding.vlanId)
-                                      .setPortName(binding.portName)
-                                      .setNetworkId(toProto(binding.networkId))
-                                      .build()
-
-                val newVtep = vtep.toBuilder.addBindings(protoBdg).build()
-
-                // The vxLan port id is deterministically generated from the
-                // vxlan and network ids.
-                findVxPortForVtep(network, vtepId) match {
-                    case Some(p) =>
-                        store.update(newVtep)
-                    case None =>
-                        val p = makeAVxlanPort(vtep, network)
-                        val n = network.toBuilder.addVxlanPortIds(p.getId).build()
-                        store.multi(
-                            Seq(CreateOp(p), UpdateOp(n), UpdateOp(newVtep))
-                        )
-                }
-
-                binding.setBaseUri(resContext.uriInfo.getBaseUri)
-                OkCreated(binding.getUri)
+        val result = client.connect() flatMap { _ =>
+            client.physicalSwitch
+        } flatMap {
+            case Some(physicalSwitch) =>
+                Future.sequence (
+                    physicalSwitch.ports map client.physicalPort
+                )
+            case None =>
+                throw new ServiceUnavailableHttpException(
+                    s"Cannot add binding to VTEP $mgmtIp:" +
+                    s"${vtep.getManagementPort} because the physical " +
+                    "switch is not configured")
+        } map { ports =>
+            if (!ports.flatten.exists(_.name == binding.portName)) {
+                throw new ServiceUnavailableHttpException(
+                    s"Cannot add binding to VTEP $mgmtIp:" +
+                    s"$mgmtPort because the physical " +
+                    s"port ${binding.portName} does not exist")
             }
 
-            result.getOrThrow
+            ensureBindingDoesntExist(vtep, binding)
 
-        } finally {
-            client.close()
+            binding.vtepId = fromProto(vtep.getId)
+            val protoBdg = binding.toProto(classOf[Topology.Vtep.Binding])
+                                  .toBuilder
+                                  .setVlanId(binding.vlanId)
+                                  .setPortName(binding.portName)
+                                  .setNetworkId(toProto(binding.networkId))
+                                  .build()
+
+            val newVtep = vtep.toBuilder.addBindings(protoBdg).build()
+
+            // The vxLan port id is deterministically generated from the
+            // vxlan and network ids.
+            findVxPortForVtep(network, vtepId) match {
+                case Some(p) =>
+                    store.update(newVtep)
+                case None =>
+                    val p = makeAVxlanPort(vtep, network)
+                    val n = network.toBuilder.addVxlanPortIds(p.getId).build()
+                    store.multi(
+                        Seq(CreateOp(p), UpdateOp(n), UpdateOp(newVtep))
+                    )
+            }
+
+            binding.setBaseUri(resContext.uriInfo.getBaseUri)
+            OkCreated(binding.getUri)
+        } recover {
+            case t: Throwable =>
+                client.close()
+                throw t
         }
+        result.getOrThrow
     }
 
     /** Makes a new VxLAN port for the given vtep and network, that resides

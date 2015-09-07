@@ -57,7 +57,7 @@ public class Tenant extends ResourceBase<Tenant,
         return getChildResources(
             principalDto.getBridges(),
             null,
-            VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
+            VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V4,
             Bridge.class, DtoBridge.class);
     }
 

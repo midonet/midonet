@@ -35,6 +35,7 @@ import com.google.inject.Inject
 import com.google.protobuf.Message
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
+import org.slf4j.LoggerFactory.getLogger
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
@@ -51,6 +52,7 @@ import org.midonet.util.reactivex._
 
 object MidonetResource {
 
+    private final val log = getLogger("org.midonet.cluster.rest_api")
     private final val StorageAttempts = 3
 
     type Ids = Future[Seq[Any]]
@@ -93,7 +95,8 @@ object MidonetResource {
             case e: ObjectExistsException =>
                 throw new ConflictHttpException(e.getMessage)
             case e: TimeoutException =>
-                throw new ServiceUnavailableHttpException("Request timed-out")
+                log.warn("Timeout: ", e)
+                throw new ServiceUnavailableHttpException("Timeout")
         }
     }
 
