@@ -160,11 +160,11 @@ def start_server(backend_num):
 
     backend_ip, backend_port = backend_ip_port(backend_num)
     backend_if = get_backend_if(backend_num)
-    f = backend_if.execute("sh -c \"while true; do "
-                           "sh -c 'echo %s | nc -l %s %s'; "
-                           "done\"" % (
-                               backend_ip, backend_ip, backend_port))
+    f = backend_if.execute("ncat -l %s %s -k -e '/bin/echo %s'" % (
+        backend_ip, backend_port, backend_ip
+    ))
     output_stream, exec_id = f.result()
+    backend_if.compute_host.ensure_command_running(exec_id)
 
     SERVERS.setdefault(backend_num, backend_if)
 
@@ -172,19 +172,9 @@ def stop_server(backend_num):
     global SERVERS
     backend_if = SERVERS[backend_num]
     pid = backend_if.execute(
-        "sh -c \"netstat -ntlp | "
-        "grep LISTEN | "
-        "xargs -n 1 | "
-        "cut -d/ -f1 | tail -n1\"",
+        'sh -c "netstat -ntlp | grep ncat | awk \'{print $7}\' | cut -d/ -f1"',
         sync=True)
-    # Kill the parent process (the sh process that started the server)
-    ps_format = "%p %r %c"
-    ppid = backend_if.execute(
-        "sh -c \"ps -x -o '%s' | "
-        "grep %s | xargs | cut -d' ' -f2 | sort -u \"" % (ps_format,
-                                                          pid),
-        sync=True)
-    backend_if.execute("kill -9 -- -%s" % ppid, sync=True)
+    backend_if.execute("kill -9 %s" % pid)
     del SERVERS[backend_num]
 
 def start_servers():
@@ -199,12 +189,14 @@ def stop_servers():
     SERVERS = dict()
 
 def make_request_to(sender, dest, timeout=10, src_port=None):
-        cmd_line = 'nc %s %s %d' % (
+        cmd_line = 'ncat --recv-only %s %s %d' % (
             '-p %d' % src_port if src_port is not None else '',
             dest,
             DST_PORT
         )
-        return sender.execute(cmd_line, timeout, sync=True)
+        result = sender.execute(cmd_line, timeout, sync=True)
+        LOG.debug("L4LB: request to %s. Response: %s" % (sender, result))
+        return result
 
 def assert_request_succeeds_to(sender, dest, timeout=10, src_port=None):
     result = make_request_to(sender, dest, timeout, src_port)
@@ -254,16 +246,18 @@ def test_multi_member_loadbalancing():
 
     sender = BM.get_iface_for_port('bridge-000-003', 1)
 
-
     # Make many requests to the non sticky loadbalancer IP, hits all 3 backends
+    LOG.debug("L4LB: make requests to NON_STICKY_VIP")
     non_sticky_results = make_n_requests_to(sender, num_reqs, NON_STICKY_VIP)
     assert(num_uniques(non_sticky_results) == 3)
 
     # Make many requests to the sticky loadbalancer IP, hits exactly one backend
+    LOG.debug("L4LB: make requests to STICKY_VIP")
     sticky_results = make_n_requests_to(sender, num_reqs, STICKY_VIP)
     assert(num_uniques(sticky_results) == 1)
 
     # Disable (admin state down) the backend we are "stuck" to
+    LOG.debug("L4LB: disable one backend: %s" % sticky_results[0])
     stuck_backend = sticky_results[0]
     stuck_pool_member = VTM.find_pool_member((stuck_backend, DST_PORT))
     stuck_pool_member.disable()
@@ -274,12 +268,16 @@ def test_multi_member_loadbalancing():
     num_reqs = 21
 
     # Make many requests to the non sticky loadbalancer IP, hits the 2 remaining backends
+    LOG.debug("L4LB: make requests to NON_STICKY_VIP (one backend disabled)")
     non_sticky_results = make_n_requests_to(sender, num_reqs, NON_STICKY_VIP)
+    LOG.debug("L4LB: non_sticky results %s" % sticky_results)
     assert(num_uniques(non_sticky_results) == 2)
     assert(stuck_backend not in non_sticky_results)
 
     # Make many requests to the sticky loadbalancer IP, hits exactly one backend
+    LOG.debug("L4LB: make requests to STICKY_VIP (one backend disabled)")
     sticky_results = make_n_requests_to(sender, num_reqs, STICKY_VIP)
+    LOG.debug("L4LB: sticky results %s" % sticky_results)
     assert(num_uniques(sticky_results) == 1)
     assert(stuck_backend not in sticky_results)
 
