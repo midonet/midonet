@@ -227,7 +227,7 @@ object FlowRecord {
         val results = Arrays.asList(ACCEPT, CONTINUE, DROP, JUMP, REJECT, RETURN)
         val count = r.nextInt() % 20
         if (count < 0) {
-            null
+            Collections.emptyList[TraversedRule]()
         } else {
             val rules = new ArrayList[TraversedRule]
             for (i <- 0 until count) {
@@ -241,7 +241,7 @@ object FlowRecord {
     private def randomUUIDS(r: Random): List[UUID] = {
         val count = r.nextInt() % 20
         if (count < 0) {
-            null
+            Collections.emptyList[UUID]()
         } else {
             val uuids = new ArrayList[UUID]
             for (i <- 0 until count) {
@@ -254,7 +254,7 @@ object FlowRecord {
     private def randomDevices(r: Random): List[TraversedDevice] = {
         val count = r.nextInt() % 20
         if (count < 0) {
-            null
+            Collections.emptyList[TraversedDevice]()
         } else {
             import DeviceType._
             val types = Arrays.asList(LOAD_BALANCER, POOL, PORT_GROUP,
