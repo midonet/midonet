@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_07f2399a",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-09-07T14:43:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_04beb7ff",
+      "revId": "1dc10ec8bc7362870580dffac5037a6eb6058411",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_24bbb30f",
         "filename": "tools/devmido/midorc",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2015-09-07T04:03:39Z",
       "side": 1,
       "message": "i thought the use of 8181 was meant transient.",
+      "revId": "1dc10ec8bc7362870580dffac5037a6eb6058411",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e7f46d89",
+        "filename": "tools/devmido/midorc",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-09-07T14:43:00Z",
+      "side": 1,
+      "message": "it turns out that it is not transient, and 8181 is used in other places for the REST API port.",
+      "parentUuid": "1ae5cdf2_24bbb30f",
       "revId": "1dc10ec8bc7362870580dffac5037a6eb6058411",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
