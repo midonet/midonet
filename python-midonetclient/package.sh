@@ -6,7 +6,7 @@
 # Usage: ./package.sh rpm [VERSION] [RPM_REVISION]
 # Usage: ./package.sh clean
 #
-# Build ependencies:
+# Build dependencies:
 #   In short, do the following on Ubuntu based distribution to install
 #   build dependencies.
 #
