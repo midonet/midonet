@@ -21,6 +21,11 @@ install run time dependencies for midolman and midonet-cluster manually.
 We assume build dependencies are already installed and packages have
 been built.
 
+If not then refer to the Build dependencies and Building the Project guide
+documentation in [ DEVELOPMENT.md ][development] before continuing.
+
+[development]: ../DEVELOPMENT.md
+
     $ sudo apt-get install zookeeper haproxy quagga bridge-utils zookeeperd
     $ sudo /etc/init.d/zookeeper start
     $ sudo /etc/init.d/tomcat7 start
@@ -33,7 +38,7 @@ Let's also install the dependencies for python-midonetclient:
 
 python-midonetclient comes from its own code repository:
 
-    $ sudo dpkg -i python-midonetclient_1.8.0~rc0_all.deb
+    $ sudo dpkg -i python-midonetclient_5.0.0_all.deb
 
 And now, midolman and midonet-cluster:
 
