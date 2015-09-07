@@ -17,6 +17,7 @@ package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
@@ -28,6 +29,7 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.PoolLBMethod;
 import org.midonet.midolman.state.l4lb.PoolProtocol;
@@ -40,7 +42,7 @@ public class Pool extends UriResource {
 
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp = true;
-    
+
     @ZoomField(name = "health_monitor_id", converter = UUIDUtil.Converter.class)
     public UUID healthMonitorId;
 
@@ -65,6 +67,10 @@ public class Pool extends UriResource {
     @JsonIgnore
     @ZoomField(name = "vip_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> vipIds;
+
+    @JsonIgnore
+    @ZoomField(name = "mapping_status")
+    public PoolHealthMonitorMappingStatus mappingStatus;
 
     @Override
     public URI getUri() {
@@ -95,6 +101,11 @@ public class Pool extends UriResource {
         }
         protocol = PoolProtocol.TCP;
         status = LBStatus.ACTIVE;
+        if (this.healthMonitorId != null) {
+            mappingStatus = PoolHealthMonitorMappingStatus.PENDING_CREATE;
+        } else {
+            mappingStatus = PoolHealthMonitorMappingStatus.ACTIVE;
+        }
     }
 
     @JsonIgnore
@@ -108,6 +119,11 @@ public class Pool extends UriResource {
         id = from.id;
         poolMemberIds = from.poolMemberIds;
         vipIds = from.vipIds;
+        if (!Objects.equals(this.healthMonitorId, from.healthMonitorId)) {
+            mappingStatus = PoolHealthMonitorMappingStatus.PENDING_CREATE;
+        } else {
+            mappingStatus = PoolHealthMonitorMappingStatus.ACTIVE;
+        }
         // Disallow changing status from the API, but don't fail
         status = from.status;
     }
