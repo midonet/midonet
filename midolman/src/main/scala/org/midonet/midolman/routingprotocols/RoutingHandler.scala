@@ -112,8 +112,6 @@ object RoutingHandler {
       *  Last 2 LS bytes are available for assigning BGP pairs. */
     val BGP_IP_INT_PREFIX = 172 * (1<<24) + 23 * (1<<16)
 
-    val NO_UUID = new UUID(0, 0)
-
     // BgpdProcess will notify via these messages
     case object FETCH_BGPD_STATUS
     case object SYNC_PEER_ROUTES
@@ -355,16 +353,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             Future.successful(true)
     }
 
-    private val eventHandlerV1: PartialFunction[Any, Future[_]] = eventHandlerBase orElse {
-        case port: RouterPort =>
-            portUpdated(port)
-
-        case Update(newConf, peers) =>
-            configurationUpdated(newConf.copy(id = rport.portAddress), peers)
-
-    }
-
-    private val eventHandlerV2: PartialFunction[Any, Future[_]] = eventHandlerBase orElse {
+    private val eventHandler: PartialFunction[Any, Future[_]] = eventHandlerBase orElse {
         case BgpPort(port, router, neighborIds) =>
             log.info("BGP port and configuration changed {} {}", port, router)
             portUpdated(port).flatMap[Any] { _ =>
@@ -388,11 +377,6 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             log.error("Unexpected completion of the BGP observable: stopping " +
                       "bgpd")
             stopBgpd()
-    }
-
-    private def eventHandler = {
-        if (config.zookeeper.useNewStack) eventHandlerV2
-        else eventHandlerV1
     }
 
     override def receive = super.receive orElse {
@@ -441,11 +425,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         peerRoutes.put(route, null)
         routingStorage.addRoute(route).map { _ =>
-            // TODO: The comparison with NO_UUID is kept for compatibility with
-            // v1 TODO: unit tests.
-            if (route.getId ne NO_UUID) {
-                peerRoutes.put(route, route)
-            }
+            peerRoutes.put(route, route)
             route
         }(singleThreadExecutionContext)
     }

@@ -19,7 +19,7 @@ package org.midonet.midolman.routingprotocols
 import java.util
 import java.util.UUID
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
 
 import akka.actor._
 import akka.testkit.TestActorRef
@@ -32,13 +32,13 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Route
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.midolman.state.StateAccessException
 import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.routingprotocols.RoutingManagerActor.{RoutingStorageForV1, RoutingStorage}
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.simulation.RouterPort
+import org.midonet.midolman.topology.devices.BgpPort
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
@@ -53,8 +53,7 @@ class RoutingHandlerTest extends FeatureSpecLike
                                     with MockitoSugar {
     var rport: RouterPort = _
     var bgpd: MockBgpdProcess = _
-    var dataClient: DataClient = _
-    var routingStorage: RoutingStorage = _
+    var routingStorage: MockRoutingStorage = _
     def vty = bgpd.vty
     var routingHandler: ActorRef = _
     var invalidations = List[BackChannelMessage]()
@@ -84,27 +83,18 @@ class RoutingHandlerTest extends FeatureSpecLike
                 portMac = MAC.random())
 
         bgpd = new MockBgpdProcess
-        dataClient = mock[DataClient]
-        routingStorage = new RoutingStorageForV1(dataClient)
+
+        routingStorage = spy(new MockRoutingStorage())
         invalidations = Nil
 
-        // In the config we OVERRIDE the new stack to false, because this
-        // test is still not written for v2.  It's not worth disabling it
-        // because the code under test has stuff that's not specific to the v1
-        // stack.  Issue created to track and fix this: MNA-798
-        val forceV1Config = new MidolmanConfig(config.conf) {
-            override val zookeeper = new MidonetBackendConfig(config.conf) {
-                override def useNewStack = false
-            }
-        }
         routingHandler = TestActorRef(new TestableRoutingHandler(rport,
                                                     invalidations ::= _,
                                                     routingStorage,
-                                                    forceV1Config,
+                                                    config,
                                                     bgpd))
         routingHandler ! rport
         bgpd.state should be (bgpd.NOT_STARTED)
-        routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
+        routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
         bgpd.state should be (bgpd.RUNNING)
         bgpd.starts should be (1)
         reset(bgpd.vty)
@@ -117,21 +107,21 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     feature ("manages the bgpd lifecycle") {
         scenario("starts and stops bgpd") {
-            routingHandler ! RoutingHandler.Update(baseConfig.copy(neighbors = Map.empty), Set.empty)
+            routingHandler ! BgpPort(rport, baseConfig.copy(neighbors = Map.empty), Set.empty)
             bgpd.state should be (bgpd.NOT_STARTED)
 
-            routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
+            routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
             bgpd.state should be (bgpd.RUNNING)
         }
 
         scenario("change in the router port address") {
             val p = rport.copy(isActive = true,
                                portAddress = IPv4Addr.fromString("192.168.80.2"))
-            routingHandler ! p
+            routingHandler ! BgpPort(p, baseConfig, Set(peer1Id))
             bgpd.state should be (bgpd.RUNNING)
             bgpd.starts should be (2)
 
-            routingHandler ! p
+            routingHandler ! BgpPort(p, baseConfig, Set(peer1Id))
             bgpd.state should be (bgpd.RUNNING)
             bgpd.starts should be (2)
         }
@@ -201,23 +191,20 @@ class RoutingHandlerTest extends FeatureSpecLike
             routingHandler ! RoutingHandler.AddPeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw), 100)
 
-            verify(dataClient).routesCreateEphemeral(argThat(matchRoute(dst, gw)))
+            verify(routingStorage).addRoute(argThat(matchRoute(dst, gw)))
         }
 
         scenario("peer stops announcing a route") {
             val dst = "10.10.10.0/24"
             val gw = "192.168.80.254"
-            val routeId = UUID.randomUUID()
-
-            when(dataClient.routesCreateEphemeral(anyObject())).thenReturn(routeId)
 
             routingHandler ! RoutingHandler.AddPeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw), 100)
             routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw))
 
-            verify(dataClient).routesCreateEphemeral(argThat(matchRoute(dst, gw)))
-            verify(dataClient).routesDelete(routeId)
+            verify(routingStorage).addRoute(argThat(matchRoute(dst, gw)))
+            verify(routingStorage).removeRoute(argThat(matchRoute(dst, gw)))
         }
 
         scenario("routes are synced after a glitch") {
@@ -226,11 +213,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             val dst3 = "10.10.30.0/24"
             val gw = "192.168.80.254"
 
-            val emptyList: util.List[Route] = new util.ArrayList()
-            when(dataClient.routesFindByRouter(anyObject())).thenReturn(emptyList)
-            when(dataClient.routesCreateEphemeral(anyObject())).thenReturn(RoutingHandler.NO_UUID)
-            when(dataClient.routesCreateEphemeral(anyObject())).thenReturn(RoutingHandler.NO_UUID)
-            when(dataClient.routesCreateEphemeral(anyObject())).thenReturn(RoutingHandler.NO_UUID)
+            routingStorage.break()
 
             routingHandler ! RoutingHandler.AddPeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst1), IPv4Addr.fromString(gw), 100)
@@ -241,16 +224,18 @@ class RoutingHandlerTest extends FeatureSpecLike
             routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst3), IPv4Addr.fromString(gw))
 
-            verify(dataClient).routesCreateEphemeral(argThat(matchRoute(dst1, gw)))
-            verify(dataClient).routesCreateEphemeral(argThat(matchRoute(dst2, gw)))
-            verify(dataClient).routesCreateEphemeral(argThat(matchRoute(dst3, gw)))
+            verify(routingStorage).addRoute(argThat(matchRoute(dst1, gw)))
+            verify(routingStorage).addRoute(argThat(matchRoute(dst2, gw)))
+            verify(routingStorage).addRoute(argThat(matchRoute(dst3, gw)))
 
-            reset(dataClient)
+            routingStorage.unbreak()
+            reset(routingStorage)
+
             routingHandler ! RoutingHandler.SYNC_PEER_ROUTES
 
-            verify(dataClient, times(2)).routesCreateEphemeral(anyObject())
-            verify(dataClient).routesCreateEphemeral(argThat(matchRoute(dst1, gw)))
-            verify(dataClient).routesCreateEphemeral(argThat(matchRoute(dst2, gw)))
+            verify(routingStorage, times(2)).addRoute(anyObject())
+            verify(routingStorage).addRoute(argThat(matchRoute(dst1, gw)))
+            verify(routingStorage).addRoute(argThat(matchRoute(dst2, gw)))
         }
     }
 
@@ -260,8 +245,8 @@ class RoutingHandlerTest extends FeatureSpecLike
                     Map(peer1 -> Neighbor(peer1, 100),
                         peer2 -> Neighbor(peer2, 200)))
 
-            routingHandler ! RoutingHandler.Update(update, Set(peer1Id, peer2Id))
-            routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
+            routingHandler ! BgpPort(rport, update, Set(peer1Id, peer2Id))
+            routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
             verify(bgpd.vty).addPeer(MY_AS, peer2, 200,
                                      config.bgpKeepAlive,
                                      config.bgpHoldTime,
@@ -274,9 +259,9 @@ class RoutingHandlerTest extends FeatureSpecLike
             val net2 = Network(IPv4Subnet.fromCidr("10.99.20.0/24"))
             val net3 = Network(IPv4Subnet.fromCidr("10.99.30.0/24"))
 
-            routingHandler ! RoutingHandler.Update(
+            routingHandler ! BgpPort(rport,
                 baseConfig.copy(networks = Set(net1, net2, net3)), Set(peer1Id))
-            routingHandler ! RoutingHandler.Update(
+            routingHandler ! BgpPort(rport,
                 baseConfig.copy(networks = Set(net1)), Set(peer1Id))
 
             verify(bgpd.vty, times(3)).addNetwork(anyInt(), anyObject())
@@ -293,8 +278,47 @@ class RoutingHandlerTest extends FeatureSpecLike
             val update = new BgpRouter(MY_AS, rport.portAddress,
                 Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
 
-            routingHandler ! RoutingHandler.Update(update, Set(peer1Id))
+            routingHandler ! BgpPort(rport, update, Set(peer1Id))
             verify(bgpd.vty).addPeer(MY_AS, peer1, 100, 29, 30, 31)
+        }
+    }
+}
+
+class MockRoutingStorage extends RoutingStorage {
+    var broken = false
+
+    def break(): Unit = { broken = true }
+    def unbreak(): Unit = { broken = false }
+
+    def setStatus(bgpId: UUID, status: String): Future[UUID] = {
+        if (broken) {
+            Promise.failed(new StateAccessException("whatever")).future
+        } else {
+            Promise.successful(bgpId).future
+        }
+    }
+
+    def addRoute(route: Route): Future[Route] = {
+        if (broken) {
+            Promise.failed(new StateAccessException("whatever")).future
+        } else {
+            Promise.successful(route).future
+        }
+    }
+
+    def removeRoute(route: Route): Future[Route] = {
+        if (broken) {
+            Promise.failed(new StateAccessException("whatever")).future
+        } else {
+            Promise.successful(route).future
+        }
+    }
+
+    def learnedRoutes(routerId: UUID, portId: UUID): Future[Set[Route]] = {
+        if (broken) {
+            Promise.failed(new StateAccessException("whatever")).future
+        } else {
+            Promise.successful(Set[Route]()).future
         }
     }
 }
