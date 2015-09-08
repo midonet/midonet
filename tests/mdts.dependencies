@@ -4,3 +4,4 @@ nose
 pyhamcrest
 docker-py
 virtualenv
+cassandra-driver
