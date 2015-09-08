@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5374ff9b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T09:14:00Z",
+      "side": 1,
+      "message": "We shouldn\u0027t delete the MAC entries by ID, since here it is random (these instances are created below at lines 436, 438). Rather, we should use:\n\n  MacsTable.delete(macEntry)\n\nwhich deletes by MAC, logical switch and address.",
+      "range": {
+        "startLine": 315,
+        "startChar": 51,
+        "endLine": 315,
+        "endChar": 82
+      },
+      "revId": "b8f13f87e9d4e2e81aa413ed9c5aa9974df1e4fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
