@@ -18,9 +18,9 @@ package org.midonet.cluster.data.vtep.model
 
 import org.midonet.packets.IPv4Addr
 
-/**
- * VTEP end point connection information
- */
+/** VxLAN end point management interface.  This represents the management
+  * port and IP at which a VTEP's configuration database can be manipulated.
+  */
 case class VtepEndPoint(mgmtIp: IPv4Addr, mgmtPort: Int) {
     private val str: String = s"$mgmtIp:$mgmtPort"
     val mgmtIpString = if (mgmtIp == null) null else mgmtIp.toString

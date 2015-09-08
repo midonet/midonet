@@ -46,18 +46,14 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
 
     private def createVtep(): VtepDataClient = {
         state onNext Disconnected
-        Mockito.when(connection.getHandle)
-               .thenReturn(Some(vtep.getHandle))
+        Mockito.when(connection.getHandle).thenReturn(Some(vtep.getHandle))
         Mockito.when(connection.connect())
                .thenReturn(Future.successful(Connected))
         Mockito.when(connection.disconnect())
                .thenReturn(Future.successful(Disconnected))
-        Mockito.when(connection.observable)
-               .thenReturn(state)
-        new OvsdbVtepDataClient(vtep.endPoint, retryInterval = 0 seconds,
-                                maxRetries = 0) {
-            override def newConnection() = connection
-        }
+        Mockito.when(connection.observable).thenReturn(state)
+
+        OvsdbVtepDataClient(connection)
     }
 
     before {

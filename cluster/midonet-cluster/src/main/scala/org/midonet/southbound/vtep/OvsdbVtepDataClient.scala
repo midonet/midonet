@@ -17,72 +17,52 @@
 package org.midonet.southbound.vtep
 
 import java.util.UUID
-import java.util.concurrent.Executors
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.atomic.AtomicReference
 
-import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{ExecutionContext, Future}
 
-import com.google.common.annotations.VisibleForTesting
-import org.slf4j.LoggerFactory
+import org.slf4j.LoggerFactory.getLogger
 import rx.subjects.BehaviorSubject
 import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState._
 import org.midonet.cluster.data.vtep.model._
-import org.midonet.cluster.data.vtep.{VtepStateException, VtepData, VtepDataClient}
-import org.midonet.packets.IPv4Addr
+import org.midonet.cluster.data.vtep.{VtepData, VtepDataClient, VtepStateException}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 import org.midonet.util.reactivex._
 
 object OvsdbVtepDataClient {
-
-    /**
-     * Creates a new VTEP data client with the specified management IP address
-     * and port, default connection service and without connection retry.
-     */
-    def apply(mgmtIp: IPv4Addr, mgmtPort: Int): OvsdbVtepDataClient = {
-        new OvsdbVtepDataClient(VtepEndPoint(mgmtIp, mgmtPort), 0 seconds, 0)
+    /** Creates a new VTEP data client with the specified management IP address
+      * and port, retry policy and default connection service.
+      */
+    def apply(cnxn: OvsdbVtepConnection): OvsdbVtepDataClient = {
+        new OvsdbVtepDataClient(cnxn)
     }
-
-    /**
-     * Creates a new VTEP data client with the specified management IP address
-     * and port, retry policy and default connection service.
-     */
-    def apply(mgmtIp: IPv4Addr, mgmtPort: Int, retryInterval: Duration,
-              maxRetries: Long): OvsdbVtepDataClient = {
-        new OvsdbVtepDataClient(VtepEndPoint(mgmtIp, mgmtPort), retryInterval,
-                                maxRetries)
-    }
-
 }
 
 /**
  * This class handles the connection to an ovsdb-compliant vtep
  */
-class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
-                          val retryInterval: Duration, val maxRetries: Long)
+class OvsdbVtepDataClient(cnxn: OvsdbVtepConnection)
     extends VtepDataClient {
 
-    private val log =
-        LoggerFactory.getLogger(s"org.midonet.vtep.vtep-$endPoint")
+    private val log = getLogger(s"org.midonet.vtep.vtep-$endPoint")
 
-    private val vtepThread = Executors.newSingleThreadExecutor(
+    private val vtepThread = newSingleThreadExecutor(
         new NamedThreadFactory(s"vtep-$endPoint"))
     private val vtepContext = ExecutionContext.fromExecutor(vtepThread)
-    private val eventThread = Executors.newSingleThreadExecutor(
+    private val eventThread = newSingleThreadExecutor(
         new NamedThreadFactory(s"vtep-$endPoint-event"))
-
-    private val connection: OvsdbVtepConnection = newConnection()
 
     private val data = new AtomicReference[VtepData](null)
     private val stateSubject = BehaviorSubject.create[State]
 
     private val onStateChange = makeAction1[State] { state =>
         if (Ready == state) {
-            val handle = connection.getHandle.get
-            data.set(new OvsdbVtepData(endPoint, handle.client, handle.db,
+            val handle = cnxn.getHandle.get
+            data.set(new OvsdbVtepData(handle.client, handle.db,
                                        vtepThread, eventThread))
         } else {
             data.set(null)
@@ -98,24 +78,25 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
         stateSubject.onCompleted()
     }
 
-    connection.observable.subscribe(onStateChange, onStateError,
-                                    onStateCompletion)
+    cnxn.observable.subscribe(onStateChange, onStateError, onStateCompletion)
 
-    override def connect() = connection.connect()
+    override def endPoint: VtepEndPoint = cnxn.endPoint
 
-    override def disconnect() = connection.disconnect()
+    override def connect() = cnxn.connect()
+
+    override def disconnect() = cnxn.disconnect()
 
     override def close()(implicit ex: ExecutionContext): Future[State] = {
-        connection.close() map { state =>
+        cnxn.close() map { state =>
             vtepThread.shutdown()
             eventThread.shutdown()
             state
         }
     }
 
-    override def getState = connection.getState
+    override def getState = cnxn.getState
 
-    override def getHandle = connection.getHandle
+    override def getHandle = cnxn.getHandle
 
     override def observable = stateSubject.asObservable()
 
@@ -206,14 +187,6 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
       * the `Ucast_Mac_Remote` or `Mcast_Mac_Remote` tables. */
     override def macRemoteUpdater: Future[Observer[MacLocation]] = {
         onReady { _.macRemoteUpdater }
-    }
-
-    /**
-     * Creates a new OVSDB connection.
-     */
-    @VisibleForTesting
-    protected def newConnection(): OvsdbVtepConnection = {
-        new OvsdbVtepConnection(endPoint, vtepThread, retryInterval, maxRetries)
     }
 
     /**
