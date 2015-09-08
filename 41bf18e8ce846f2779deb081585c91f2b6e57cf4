@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_3cc111e5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8f79b8fe",
+      "range": {
+        "startLine": 68,
+        "startChar": 56,
+        "endLine": 68,
+        "endChar": 57
+      },
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0f8928ca",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
         "patchSetId": 12
@@ -36,6 +60,30 @@
       "writtenOn": "2015-09-03T11:23:43Z",
       "side": 1,
       "message": "10000?",
+      "range": {
+        "startLine": 77,
+        "startChar": 64,
+        "endLine": 77,
+        "endChar": 68
+      },
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_1cbc556c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_0f8928ca",
       "range": {
         "startLine": 77,
         "startChar": 64,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_1c63751b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/package.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_2f77cc3c",
+      "range": {
+        "startLine": 26,
+        "startChar": 19,
+        "endLine": 26,
+        "endChar": 35
+      },
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6f71d443",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbTableMonitor.scala",
         "patchSetId": 12
@@ -82,6 +154,24 @@
       "writtenOn": "2015-09-03T11:23:43Z",
       "side": 1,
       "message": "This actually seem to have become out-of-order now.",
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_5c6dfd03",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbTableMonitor.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "Alex is working on these classes so I\u0027ll keep off them for now to avoid conflicts.",
+      "parentUuid": "9ad9bd40_6f71d443",
       "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_7c72b9e6",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/OvsdbTranslatorTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "9ad9bd40_4fadf087",
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_afe03ccd",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/OvsdbVtepBuilder.scala",
         "patchSetId": 12
@@ -116,6 +224,30 @@
       "writtenOn": "2015-09-03T11:23:43Z",
       "side": 1,
       "message": "These are completely duplicates of the above imports.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 42
+      },
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_fc7de9b2",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/OvsdbVtepBuilder.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_afe03ccd",
       "range": {
         "startLine": 31,
         "startChar": 0,
@@ -167,6 +299,30 @@
         "startChar": 78,
         "endLine": 31,
         "endChar": 80
+      },
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_7c40f956",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/MapObservableOnSubscribe.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_6fd634f3",
+      "range": {
+        "startLine": 31,
+        "startChar": 68,
+        "endLine": 31,
+        "endChar": 69
       },
       "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -237,6 +393,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_5cd17dcc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "it\u0027s preferable since it needs to participate in the same startup sequences as the rest of services",
+      "parentUuid": "9ad9bd40_ef0fa486",
+      "range": {
+        "startLine": 205,
+        "startChar": 30,
+        "endLine": 205,
+        "endChar": 53
+      },
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8f1298b2",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 12
@@ -248,6 +428,30 @@
       "writtenOn": "2015-09-03T11:23:43Z",
       "side": 1,
       "message": "Should be true now?",
+      "range": {
+        "startLine": 207,
+        "startChar": 20,
+        "endLine": 207,
+        "endChar": 25
+      },
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_3cccb135",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "handling this in a separate branch",
+      "parentUuid": "9ad9bd40_8f1298b2",
       "range": {
         "startLine": 207,
         "startChar": 20,
@@ -283,6 +487,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_9c24e5c7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "Oh I missed the other one",
+      "parentUuid": "9ad9bd40_2f218cfc",
+      "range": {
+        "startLine": 91,
+        "startChar": 33,
+        "endLine": 91,
+        "endChar": 56
+      },
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4f2090f7",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
         "patchSetId": 12
@@ -294,6 +522,30 @@
       "writtenOn": "2015-09-03T11:23:43Z",
       "side": 1,
       "message": "Is this change for debugging purpose?",
+      "range": {
+        "startLine": 219,
+        "startChar": 20,
+        "endLine": 220,
+        "endChar": 30
+      },
+      "revId": "41bf18e8ce846f2779deb081585c91f2b6e57cf4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_fc2b2992",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-08T11:06:05Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "9ad9bd40_4f2090f7",
       "range": {
         "startLine": 219,
         "startChar": 20,
