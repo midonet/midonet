@@ -48,6 +48,9 @@ import org.midonet.cluster.rest_api.models.VtepBinding;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.state.VtepConnectionState;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
@@ -158,7 +161,7 @@ public class TestVtep extends RestApiTestBase {
     @Ignore("TODO FIXME - pending implementation in v2")
     public void testCreateWithNullIPAddr() {
         DtoError error = postVtepWithError(null, mockVtep1.mgmtPort(),
-                                           Status.BAD_REQUEST);
+                                           BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "managementIp", NON_NULL);
     }
 
@@ -172,12 +175,11 @@ public class TestVtep extends RestApiTestBase {
         DtoError error = dtoResource.postAndVerifyError(app.getVteps(),
                                                         APPLICATION_VTEP_JSON,
                                                         vtep,
-                                                        Status.BAD_REQUEST);
+                                                        BAD_REQUEST);
         assertErrorMatches(error, TUNNEL_ZONE_ID_IS_INVALID);
     }
 
     @Test
-    @Ignore("TODO FIXME - pending implementation in v2")
     public void testCreateWithNullTunnelZone() {
         DtoVtep vtep = new DtoVtep();
         vtep.setManagementIp(mockVtep1.mgmtIp());
@@ -185,16 +187,13 @@ public class TestVtep extends RestApiTestBase {
         vtep.setTunnelZoneId(null);
         DtoError error = dtoResource.postAndVerifyError(app.getVteps(),
                                                         APPLICATION_VTEP_JSON,
-                                                        vtep,
-                                                        Status.BAD_REQUEST);
+                                                        vtep, BAD_REQUEST);
         assertErrorMatches(error, TUNNEL_ZONE_ID_IS_INVALID);
     }
 
     @Test
-    @Ignore("TODO FIXME - pending implementation in v2")
     public void testCreateWithIllFormedIPAddr() {
-        DtoError error = postVtepWithError("10.0.0.300", mockVtep1.mgmtPort(),
-                                           Status.BAD_REQUEST);
+        DtoError error = postVtepWithError("10.0.0.300", 6632, BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "managementIp", IP_ADDR_INVALID);
     }
 
@@ -204,12 +203,12 @@ public class TestVtep extends RestApiTestBase {
         String ipAddr = mockVtep1.mgmtIp();
         postVtep();
         DtoError error = postVtepWithError(ipAddr, mockVtep1.mgmtPort() + 1,
-                                           Status.CONFLICT);
+                                           CONFLICT);
         assertErrorMatches(error, MessageProperty.VTEP_EXISTS, ipAddr);
     }
 
     @Test
-    @Ignore("TODO FIXME - pending implementation in v2")
+    @Ignore
     public void testCreateWithInaccessibleIpAddr() {
         DtoVtep vtep = postVtep("10.0.0.1", 10001);
         assertEquals(VtepConnectionState.ERROR.toString(),
@@ -236,7 +235,7 @@ public class TestVtep extends RestApiTestBase {
             .createHost(host.getId(), host.getName(), host.getAddresses());
 
         // Try add the VTEP with the same IP address.
-        postVtepWithError(ip, mockVtep1.mgmtPort(), Status.CONFLICT);
+        postVtepWithError(ip, mockVtep1.mgmtPort(), CONFLICT);
     }
 
     @Test
@@ -249,23 +248,18 @@ public class TestVtep extends RestApiTestBase {
     }
 
     @Test
-    @Ignore("TODO FIXME - pending implementation in v2")
     public void testGetWithInvalidIP() {
-        DtoError error = getVtepWithError("10.0.0.300", Status.BAD_REQUEST);
-        assertErrorMatches(error, MessageProperty.IP_ADDR_INVALID_WITH_PARAM,
-                           "10.0.0.300");
+        DtoError error = getVtepWithError("10.0.0.300", NOT_FOUND);
+        assertErrorMatches(error, RESOURCE_NOT_FOUND, "10.0.0.300");
     }
 
     @Test
-    @Ignore("TODO FIXME - pending implementation in v2")
     public void testGetWithUnrecognizedIP() {
-        postVtep();
-        DtoError error = getVtepWithError("10.0.0.1", Status.NOT_FOUND);
-        assertErrorMatches(error, RESOURCE_NOT_FOUND, "VTEP", "10.0.0.1");
+        DtoError error = getVtepWithError("10.0.0.1", NOT_FOUND);
+        assertErrorMatches(error, RESOURCE_NOT_FOUND, "Vtep", "10.0.0.1");
     }
 
     @Test
-    @Ignore("TODO FIXME - pending implementation in v2")
     public void testListVtepsWithNoVteps() {
         DtoVtep[] vteps = listVteps();
         assertEquals(0, vteps.length);
@@ -464,7 +458,7 @@ public class TestVtep extends RestApiTestBase {
                 vtep.getBindings(), mockVtep1.mgmtIp(), "300.0.0.1");
         DtoVtepBinding binding = makeBinding("eth0", 1, UUID.randomUUID());
         DtoError error = dtoResource.postAndVerifyError(bindingsUri,
-                APPLICATION_VTEP_BINDING_JSON, binding, Status.BAD_REQUEST);
+                APPLICATION_VTEP_BINDING_JSON, binding, BAD_REQUEST);
         assertErrorMatches(error, IP_ADDR_INVALID_WITH_PARAM, "300.0.0.1");
     }
 
@@ -478,7 +472,7 @@ public class TestVtep extends RestApiTestBase {
         DtoVtepBinding binding = makeBinding("eth0", 1, bridge.getId());
         DtoError error = dtoResource.postAndVerifyError(
             bindingsUri, APPLICATION_VTEP_BINDING_JSON,
-            binding, Status.BAD_REQUEST);
+            binding, BAD_REQUEST);
         assertErrorMatches(error, RESOURCE_NOT_FOUND, "VTEP", "10.10.10.10");
     }
 
@@ -489,7 +483,7 @@ public class TestVtep extends RestApiTestBase {
         DtoError error = postBindingWithError(vtep,
                                               makeBinding("eth0", -1,
                                                           UUID.randomUUID()),
-                                              Status.BAD_REQUEST);
+                                              BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "vlanId", MIN_VALUE, 0);
     }
 
@@ -499,7 +493,7 @@ public class TestVtep extends RestApiTestBase {
         DtoVtep vtep = postVtep();
         DtoError error = postBindingWithError(vtep,
                 makeBinding("eth0", 4096, UUID.randomUUID()),
-                Status.BAD_REQUEST);
+                BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "vlanId", MAX_VALUE, 4095);
     }
 
@@ -509,7 +503,7 @@ public class TestVtep extends RestApiTestBase {
         DtoVtep vtep = postVtep();
         DtoError error = postBindingWithError(vtep,
                                               makeBinding("eth0", 1, null),
-                                              Status.BAD_REQUEST);
+                                              BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "networkId", NON_NULL);
     }
 
@@ -519,7 +513,7 @@ public class TestVtep extends RestApiTestBase {
         DtoVtep vtep = postVtep();
         UUID networkId = UUID.randomUUID();
         DtoError error = postBindingWithError(vtep,
-                makeBinding("eth0", 1, networkId), Status.BAD_REQUEST);
+                makeBinding("eth0", 1, networkId), BAD_REQUEST);
         // TODO: Enabling this will require changes in ZOOM so it reports
         //       class and id
         // assertErrorMatches(error, RESOURCE_NOT_FOUND, "Network", networkId);
@@ -532,7 +526,7 @@ public class TestVtep extends RestApiTestBase {
         DtoError error = postBindingWithError(vtep,
                                               makeBinding(null, 1,
                                                           UUID.randomUUID()),
-                                              Status.BAD_REQUEST);
+                                              BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "portName", NON_NULL);
     }
 
@@ -542,7 +536,7 @@ public class TestVtep extends RestApiTestBase {
         DtoBridge bridge = postBridge("network1");
         DtoVtep vtep = postVtep();
         DtoVtepBinding binding = makeBinding("blah", 1, bridge.getId());
-        DtoError err = postBindingWithError(vtep, binding, Status.NOT_FOUND);
+        DtoError err = postBindingWithError(vtep, binding, NOT_FOUND);
         assertErrorMatches(err, VTEP_PORT_NOT_FOUND, mockVtep1.mgmtIp(),
                            mockVtep1.mgmtPort(), "blah");
     }
@@ -560,7 +554,7 @@ public class TestVtep extends RestApiTestBase {
         DtoError err = postBindingWithError(vtep,
                                             makeBinding(mockVtep1.portNames()[0],
                                                         3, bridge2.getId()),
-                                            Status.CONFLICT);
+                                            CONFLICT);
         assertErrorMatches(err, VTEP_PORT_VLAN_PAIR_ALREADY_USED,
                            mockVtep1.mgmtIp(), mockVtep1.mgmtPort(),
                            mockVtep1.portNames()[0], 3, bridge.getId());
