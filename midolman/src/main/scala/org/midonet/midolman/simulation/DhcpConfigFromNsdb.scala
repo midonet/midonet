@@ -26,7 +26,7 @@ import akka.actor.ActorSystem
 
 import com.google.common.annotations.VisibleForTesting
 
-import org.midonet.cluster.data.dhcp.{Host, Opt121, Subnet}
+import org.midonet.cluster.data.dhcp.{ExtraDhcpOpt, Host, Opt121, Subnet}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -72,8 +72,9 @@ class DhcpConfigFromNsdb(vt: VirtualTopology)
             h.setMAC(MAC.fromString(protoHost.getMac))
         if (protoHost.hasName)
             h.setName(protoHost.getName)
-        // h.setExtraDhcpOpts() unused yet?
-        h
+        h.setExtraDhcpOpts(protoHost.getExtraDhcpOptsList map { opt =>
+            new ExtraDhcpOpt(opt.getName, opt.getValue)
+        })
     }
 
     /** Converts a DHCP Proto object into a legacy cluster Subnet, as used by

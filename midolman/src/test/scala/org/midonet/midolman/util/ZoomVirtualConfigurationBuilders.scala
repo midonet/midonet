@@ -332,7 +332,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
     }
 
     override def newPortGroup(name: String, stateful: Boolean = false): UUID = {
-        var id = UUID.randomUUID
+        val id = UUID.randomUUID
         store.create(createPortGroup(id, Some(name), stateful=Some(stateful)))
         id
     }
@@ -469,7 +469,23 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
 
     override def setDhcpHostOptions(bridge: UUID,
                                     subnet: IPv4Subnet, host: MAC,
-                                    options: Map[String, String]): Unit = ???
+                                    options: Map[String, String]): Unit = {
+        val dhcpId = subnet2Id.get(subnet).get
+        val dhcp = Await.result(store.get(classOf[Dhcp], dhcpId), awaitTimeout)
+        val hostIdx = dhcp.getHostsList.asScala.indexWhere(_.getMac == host.toString)
+        if (hostIdx < -1)
+            throw new IllegalArgumentException(s"No such host $host")
+
+        val extraOpts = options map { case (name, value) =>
+            Dhcp.Host.ExtraDhcpOpt.newBuilder()
+                .setName(name)
+                .setValue(value)
+                .build()
+        }
+        val dhcpHost = dhcp.getHosts(hostIdx).toBuilder
+            .addAllExtraDhcpOpts(extraOpts.asJava).build()
+        store.update(dhcp.toBuilder.setHosts(hostIdx, dhcpHost).build())
+    }
 
     override def linkPorts(port: UUID, peerPort: UUID): Unit = {
         val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
@@ -744,12 +760,12 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
     }
 
     override def enableTraceRequest(tr: UUID): Unit = {
-        var obj = Await.result(store.get(classOf[TraceRequest], tr), awaitTimeout)
+        val obj = Await.result(store.get(classOf[TraceRequest], tr), awaitTimeout)
         store.update(obj.toBuilder.setEnabled(true).build)
     }
 
     override def disableTraceRequest(tr: UUID): Unit = {
-        var obj = Await.result(store.get(classOf[TraceRequest], tr), awaitTimeout)
+        val obj = Await.result(store.get(classOf[TraceRequest], tr), awaitTimeout)
         store.update(obj.toBuilder.setEnabled(false).build)
     }
 
