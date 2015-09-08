@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "1ae5cdf2_3348535b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-08T09:30:49Z",
+      "side": 1,
+      "message": "I would add a notice in the comment saying that get and getAll do not necessary reflect the previous changes made via insert/delete (due to the delay in receiving notifications)\n\n(maybe \u0027getCached\u0027 and \u0027getAllCached\u0027 would be better names?)",
+      "range": {
+        "startLine": 90,
+        "startChar": 4,
+        "endLine": 90,
+        "endChar": 64
+      },
+      "revId": "b8f13f87e9d4e2e81aa413ed9c5aa9974df1e4fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_93a5a706",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-08T09:30:49Z",
+      "side": 1,
+      "message": "logicalSwitch uses the cache, so there is a risk of race condition. Using the table.select (together with the single-writer-thread) would prevent creating duplicate logical switchs",
+      "range": {
+        "startLine": 138,
+        "startChar": 8,
+        "endLine": 138,
+        "endChar": 27
+      },
+      "revId": "b8f13f87e9d4e2e81aa413ed9c5aa9974df1e4fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_5374ff9b",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
         "patchSetId": 9
