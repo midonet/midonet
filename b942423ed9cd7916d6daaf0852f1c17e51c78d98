@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_8ea57e06",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-08T12:56:52Z",
+      "side": 1,
+      "message": "fpManager could be a member of this class, right?",
+      "revId": "b942423ed9cd7916d6daaf0852f1c17e51c78d98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
