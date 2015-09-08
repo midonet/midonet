@@ -18,7 +18,7 @@ package org.midonet.southbound.vtep
 
 import java.net.ConnectException
 import java.util
-import java.util.concurrent.{Executor, ExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{Executor, ScheduledThreadPoolExecutor, TimeUnit}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,9 +33,9 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
-import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState._
-import org.midonet.cluster.data.vtep.model.VtepEndPoint
+import VtepConnection.ConnectionState._
 import org.midonet.cluster.data.vtep.{VtepNotConnectedException, VtepStateException}
+import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent._
 import org.midonet.util.reactivex.TestAwaitableObserver
 
@@ -44,7 +44,8 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
                               with BeforeAndAfter with GivenWhenThen {
 
     private val timeout = 5 seconds
-    private val endpoint = VtepEndPoint("127.0.0.1", 6632)
+    private val mgmtIp = IPv4Addr.fromString("127.0.0.1")
+    private val mgmtPort = 6632
 
     private val dbNameList =
         util.Collections.singletonList(OvsdbOperations.DbHardwareVtep)
@@ -81,12 +82,11 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
     def awaitState(vtep: OvsdbVtepConnection, st: State, t: Duration): State =
         vtep.awaitState(Set(st), t)
 
-    class TestableConnection(override val endPoint: VtepEndPoint,
-                             vtepExecutor: ExecutorService,
-                             retryInterval: Duration, maxRetries: Long,
+    class TestableConnection(mgmtIp: IPv4Addr, mgmtPort: Int,
+                             retryInterval: Duration, maxRetries: Int,
                              channel: Channel = null,
                              client: OvsdbClient = null)
-        extends OvsdbVtepConnection(endPoint, vtepExecutor, retryInterval,
+        extends OvsdbVtepConnection(mgmtIp, mgmtPort, retryInterval,
                                     maxRetries) {
         def break(future: ChannelFuture): Unit = {
             newCloseListener(channel, client).operationComplete(future)
@@ -122,8 +122,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
     feature("VTEP connection") {
         scenario("Check the initial state") {
             Given("A VTEP connection")
-            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
-                                              1)
+            val vtep = new TestableConnection(mgmtIp, mgmtPort, 0 seconds, 1)
 
             Then("The VTEP should be disconnecyed")
             vtep.getState shouldBe Disconnected
@@ -139,7 +138,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
             val client = newMockClient
 
             And("A VTEP connection")
-            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+            val vtep = new TestableConnection(mgmtIp, mgmtPort, 0 seconds,
                                               1, channel, client)
 
             And("A VTEP connection observer")
@@ -180,7 +179,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
             val client = newMockClient
 
             And("A VTEP connection")
-            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+            val vtep = new TestableConnection(mgmtIp, mgmtPort, 0 seconds,
                                               1, channel, client)
 
             And("A VTEP connection observer")
@@ -237,7 +236,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
             val client = newMockClient
 
             And("A VTEP connection")
-            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+            val vtep = new TestableConnection(mgmtIp, mgmtPort, 0 seconds,
                                               1, channel, client)
 
             And("A VTEP connection observer")
@@ -285,7 +284,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
             val client = newMockClient
 
             And("A VTEP connection")
-            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+            val vtep = new TestableConnection(mgmtIp, mgmtPort, 0 seconds,
                                               0, channel, client) {
                 protected override def openChannel(): Future[Channel] = {
                     Future.failed(new ConnectException())
@@ -320,7 +319,7 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
             val client = newMockClient
 
             And("A VTEP connection")
-            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+            val vtep = new TestableConnection(mgmtIp, mgmtPort, 0 seconds,
                                               1, channel, client)
 
             And("A VTEP connection observer")
@@ -377,12 +376,12 @@ class OvsdbVtepConnectionTest extends FeatureSpec with Matchers
             val client = newMockClient
 
             And("A VTEP connection")
-            val vtep = new TestableConnection(endpoint, vtepExecutor, 0 seconds,
+            val vtep = new TestableConnection(mgmtIp, mgmtPort, 0 seconds,
                                               1, channel, client)
 
             And("A VTEP connection observer")
             val observer = new VtepObserver
-            val subscription = vtep.observable.subscribe(observer)
+            vtep.observable.subscribe(observer)
 
             When("The connection is closed")
             vtep.close().await(timeout) shouldBe Disposed

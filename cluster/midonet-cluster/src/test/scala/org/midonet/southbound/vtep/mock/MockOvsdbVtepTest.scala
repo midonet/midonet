@@ -16,13 +16,12 @@
 
 package org.midonet.southbound.vtep.mock
 
-import java.util.Collections
+import java.util.{UUID, Collections}
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
 
-import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.opendaylight.ovsdb.lib.message.{MonitorRequest, TableUpdates}
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
@@ -30,14 +29,13 @@ import org.opendaylight.ovsdb.lib.{MonitorCallBack, OvsdbClient}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 
-import org.midonet.cluster.data.vtep.model.{VtepEntry, PhysicalLocator}
+import org.midonet.cluster.data.vtep.model.{PhysicalLocator, VtepEntry}
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.OvsdbUtil.toOvsdb
 import org.midonet.southbound.vtep.schema._
 import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-@Ignore
 class MockOvsdbVtepTest extends FeatureSpec with Matchers {
 
     val timeout = Duration(5000, TimeUnit.MILLISECONDS)
@@ -74,7 +72,7 @@ class MockOvsdbVtepTest extends FeatureSpec with Matchers {
     feature("vtep interface") {
         scenario("returns a usable handle") {
             val vtep = new InMemoryOvsdbVtep
-            val client = vtep.getClient
+            val client = vtep.getHandle.get.client
 
             client.isActive shouldBe true
             client.getDatabases.get().toSet shouldBe
@@ -100,11 +98,10 @@ class MockOvsdbVtepTest extends FeatureSpec with Matchers {
                 UcastMacsRemoteTable.TB_NAME
             )
         }
-        scenario("data tables are accessible and empty on start") {
+        scenario("data tables are accessible") {
             val vtep = new InMemoryOvsdbVtep
             val db = vtep.getDbSchema(MockOvsdbVtep.DB_HARDWARE_VTEP)
-            val tables = getTableMap(db)
-            tables.values.forall(vtep.getTable(_).isEmpty) shouldBe true
+            getTableMap(db).values.forall(vtep.getTable(_) != null) shouldBe true
         }
         scenario("data insertion and removal") {
             val vtep = new InMemoryOvsdbVtep
@@ -112,7 +109,7 @@ class MockOvsdbVtepTest extends FeatureSpec with Matchers {
             val t = new PhysicalLocatorTable(db)
             vtep.getTable(t).isEmpty shouldBe true
 
-            val entry = PhysicalLocator(IPv4Addr.random)
+            val entry = PhysicalLocator(UUID.randomUUID(), IPv4Addr.random)
             vtep.putEntry(t, entry)
             vtep.getTable(t).isEmpty shouldBe false
             vtep.getTable(t).get(entry.uuid) shouldBe Some(entry)
@@ -124,12 +121,12 @@ class MockOvsdbVtepTest extends FeatureSpec with Matchers {
     feature("table monitoring") {
         scenario("inserted data") {
             val vtep = new InMemoryOvsdbVtep
-            val client = vtep.getClient
+            val client = vtep.getHandle.get.client
             val db = vtep.getDbSchema(MockOvsdbVtep.DB_HARDWARE_VTEP)
             val t = new PhysicalLocatorTable(db)
             val monitor = new TestMonitor(client, t)
 
-            val entry = PhysicalLocator(IPv4Addr.random)
+            val entry = PhysicalLocator(UUID.randomUUID(), IPv4Addr.random)
             vtep.putEntry(t, entry)
 
             monitor.awaitOnNext(1, timeout) shouldBe true
@@ -145,16 +142,15 @@ class MockOvsdbVtepTest extends FeatureSpec with Matchers {
         }
         scenario("updated data") {
             val vtep = new InMemoryOvsdbVtep
-            val client = vtep.getClient
+            val client = vtep.getHandle.get.client
             val db = vtep.getDbSchema(MockOvsdbVtep.DB_HARDWARE_VTEP)
             val t = new PhysicalLocatorTable(db)
             val monitor = new TestMonitor(client, t)
 
-            val entry = PhysicalLocator(IPv4Addr.random)
+            val entry = PhysicalLocator(UUID.randomUUID(), IPv4Addr.random)
             vtep.putEntry(t, entry)
 
-            val updated = PhysicalLocator(entry.uuid, IPv4Addr.random,
-                                          entry.encapsulation)
+            val updated = PhysicalLocator(entry.uuid, IPv4Addr.random)
             vtep.putEntry(t, updated)
 
             monitor.awaitOnNext(2, timeout) shouldBe true
@@ -171,12 +167,12 @@ class MockOvsdbVtepTest extends FeatureSpec with Matchers {
         }
         scenario("removed data") {
             val vtep = new InMemoryOvsdbVtep
-            val client = vtep.getClient
+            val client = vtep.getHandle.get.client
             val db = vtep.getDbSchema(MockOvsdbVtep.DB_HARDWARE_VTEP)
             val t = new PhysicalLocatorTable(db)
             val monitor = new TestMonitor(client, t)
 
-            val entry = PhysicalLocator(IPv4Addr.random)
+            val entry = PhysicalLocator(UUID.randomUUID(), IPv4Addr.random)
             vtep.putEntry(t, entry)
             vtep.removeEntry(t, entry.uuid)
 

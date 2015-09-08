@@ -16,12 +16,12 @@
 
 package org.midonet.southbound.vtep
 
+import java.util.UUID
 import java.util.concurrent.{Executor, TimeUnit}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration.Duration
 
-import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
@@ -31,13 +31,14 @@ import rx.Observer
 
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtep.OvsdbVtepBuilder._
+import org.midonet.southbound.vtep.VtepEntryUpdate.{addition, removal}
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema.PhysicalLocatorTable
 import org.midonet.util.concurrent.{CallingThreadExecutionContext, _}
 import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-@Ignore
 class OvsdbTableMonitorTest extends FeatureSpec
                                     with Matchers
                                     with BeforeAndAfter {
@@ -58,7 +59,7 @@ class OvsdbTableMonitorTest extends FeatureSpec
 
     before {
         vtep = new InMemoryOvsdbVtep
-        client = vtep.getClient
+        client = vtep.getHandle.get.client
         db = OvsdbOperations.getDbSchema(client, vtepDb).await(timeout)
     }
 
@@ -79,12 +80,7 @@ class OvsdbTableMonitorTest extends FeatureSpec
             val mon = new OvsdbTableMonitor(client, t)
             val obs = new TestAwaitableObserver[VtepTableUpdate[VtepEntry]]
 
-            val data = Set(
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random))
-            )
+            val data = randPhysLocatorAdditions(4)
             data.foreach(u => vtep.putEntry(t, u.newValue))
 
             mon.observable.subscribe(obs)
@@ -104,12 +100,7 @@ class OvsdbTableMonitorTest extends FeatureSpec
             obs.awaitOnNext(1, timeout)
             obs.getOnNextEvents.toSet shouldBe Set(VtepTableReady[VtepEntry]())
 
-            val chgs = Set(
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random))
-            )
+            val chgs = randPhysLocatorAdditions(4)
             chgs.foreach(u => vtep.putEntry(t, u.newValue))
 
             mon.observable.subscribe(obs)
@@ -124,12 +115,7 @@ class OvsdbTableMonitorTest extends FeatureSpec
             val mon = new OvsdbTableMonitor(client, t)
             val obs = new TestAwaitableObserver[VtepTableUpdate[VtepEntry]]
 
-            val data = Set(
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random))
-            )
+            val data = randPhysLocatorAdditions(4)
             data.foreach(u => vtep.putEntry(t, u.newValue))
 
             mon.observable.subscribe(obs)
@@ -138,12 +124,7 @@ class OvsdbTableMonitorTest extends FeatureSpec
             obs.getOnNextEvents.toSet shouldBe
                 (data ++ Set(VtepTableReady[VtepEntry]()))
 
-            val chgs = Set(
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.addition(PhysicalLocator(IPv4Addr.random))
-            )
+            val chgs = randPhysLocatorAdditions(4)
             chgs.foreach(u => vtep.putEntry(t, u.newValue))
 
             mon.observable.subscribe(obs)
@@ -163,13 +144,10 @@ class OvsdbTableMonitorTest extends FeatureSpec
             obs.awaitOnNext(1, timeout)
             obs.getOnNextEvents.toSet shouldBe Set(VtepTableReady[VtepEntry]())
 
-            val chgs = Set(
-                VtepEntryUpdate.removal(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.removal(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.removal(PhysicalLocator(IPv4Addr.random)),
-                VtepEntryUpdate.removal(PhysicalLocator(IPv4Addr.random))
-            )
-            chgs.foreach(u => vtep.removeEntry(t, u.oldValue.uuid))
+            val chgs = randPhysLocatorRemovals(4)
+            chgs.foreach { u =>
+                             vtep.removeEntry(t, u.oldValue.uuid)
+            }
 
             mon.observable.subscribe(obs)
 
@@ -184,7 +162,7 @@ class OvsdbTableMonitorTest extends FeatureSpec
             val t = new PhysicalLocatorTable(db)
             val mon = new OvsdbTableMonitor(client, t)
             val obs = new TestAwaitableObserver[VtepTableUpdate[VtepEntry]]
-            val e1 = PhysicalLocator(IPv4Addr.random)
+            val e1 = PhysicalLocator(UUID.randomUUID(), IPv4Addr.random)
 
             mon.observable.subscribe(obs)
             obs.awaitOnNext(1, timeout)
@@ -194,24 +172,23 @@ class OvsdbTableMonitorTest extends FeatureSpec
             obs.awaitOnNext(2, timeout)
             obs.getOnNextEvents.toSet shouldBe Set(
                 VtepTableReady[VtepEntry](),
-                VtepEntryUpdate.addition(e1)
+                addition(e1)
             )
 
             vtep.removeEntry(t, e1.uuid)
             obs.awaitOnNext(3, timeout)
             obs.getOnNextEvents.toSet shouldBe Set(
                 VtepTableReady[VtepEntry](),
-                VtepEntryUpdate.addition(e1),
-                VtepEntryUpdate.removal(e1)
+                addition(e1),
+                removal(e1)
             )
         }
         scenario("update") {
             val t = new PhysicalLocatorTable(db)
             val mon = new OvsdbTableMonitor(client, t)
             val obs = new TestAwaitableObserver[VtepTableUpdate[VtepEntry]]
-            val e1 = PhysicalLocator(IPv4Addr.random)
-            val e2 =
-                new PhysicalLocator(e1.uuid, IPv4Addr.random, e1.encapsulation)
+            val e1 = PhysicalLocator(UUID.randomUUID(), IPv4Addr.random)
+            val e2 = new PhysicalLocator(e1.uuid, IPv4Addr.random)
 
             mon.observable.subscribe(obs)
             obs.awaitOnNext(1, timeout)
@@ -221,14 +198,14 @@ class OvsdbTableMonitorTest extends FeatureSpec
             obs.awaitOnNext(2, timeout)
             obs.getOnNextEvents.toSet shouldBe Set(
                 VtepTableReady[VtepEntry](),
-                VtepEntryUpdate.addition(e1)
+                addition(e1)
             )
 
             vtep.putEntry(t, e2)
             obs.awaitOnNext(3, timeout)
             obs.getOnNextEvents.toSet shouldBe Set(
                 VtepTableReady[VtepEntry](),
-                VtepEntryUpdate.addition(e1),
+                addition(e1),
                 VtepEntryUpdate(e1, e2)
             )
         }

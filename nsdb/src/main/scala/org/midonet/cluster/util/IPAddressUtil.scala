@@ -86,6 +86,9 @@ object IPAddressUtil {
     def toInetAddress(addr: Commons.IPAddress): InetAddress =
         InetAddress.getByName(addr.getAddress)
 
+    def toInetAddress(addr: IPAddr): InetAddress =
+        InetAddress.getByName(addr.getAddress)
+
     final def toIpAdresses(addresses: Array[InetAddress])
     : java.lang.Iterable[Commons.IPAddress] = addresses.map(toProto).toList
 

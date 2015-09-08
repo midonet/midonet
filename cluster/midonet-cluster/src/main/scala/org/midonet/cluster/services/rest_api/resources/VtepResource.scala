@@ -20,6 +20,7 @@ import java.util.UUID
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
@@ -39,7 +40,7 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.packets.IPv4Addr
-import org.midonet.southbound.vtep.OvsdbVtepDataClient
+import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
 import org.midonet.util.reactivex._
 
 @ApiResource(version = 1)
@@ -52,12 +53,13 @@ import org.midonet.util.reactivex._
 @AllowCreate(Array(APPLICATION_VTEP_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class VtepResource @Inject()(resContext: ResourceContext)
+class VtepResource @Inject()(resContext: ResourceContext,
+                             cnxnProvider: OvsdbVtepConnectionProvider)
     extends MidonetResource[Vtep](resContext) {
 
     @Path("{id}/bindings")
     def bindings(@PathParam("id") vtepId: UUID): VtepBindingResource = {
-        new VtepBindingResource(vtepId, resContext)
+        new VtepBindingResource(vtepId, resContext, cnxnProvider)
     }
 
     protected override def getFilter(vtep: Vtep): Future[Vtep] = {
@@ -74,34 +76,36 @@ class VtepResource @Inject()(resContext: ResourceContext)
 
         // Validate the tunnel zone.
         if (vtep.tunnelZoneId eq null) {
-            throw new BadRequestHttpException(
-                getMessage(TUNNEL_ZONE_ID_IS_INVALID))
+            val msg = getMessage(TUNNEL_ZONE_ID_IS_INVALID)
+            throw new BadRequestHttpException(msg)
         }
 
         getResource(classOf[TunnelZone], vtep.tunnelZoneId) recover {
             // Validate the tunnel zone exists.
             case e: NotFoundException =>
-                throw new BadRequestHttpException(
-                    getMessage(TUNNEL_ZONE_ID_IS_INVALID))
+                val msg = getMessage(TUNNEL_ZONE_ID_IS_INVALID)
+                throw new BadRequestHttpException(msg)
         } flatMap { tunnelZone =>
             // Validate this is a VTEP tunnel-zone
             if (tunnelZone.`type` != TunnelZoneType.vtep) {
-                throw new BadRequestHttpException(
-                    getMessage(TUNNEL_ZONE_NOT_VTEP))
+                val msg = getMessage(TUNNEL_ZONE_NOT_VTEP)
+                throw new BadRequestHttpException(msg)
             }
 
             listResources(classOf[Vtep])
         } map { vteps =>
             // Validate there is no conflict with existing VTEPs.
             for (v <- vteps if v.managementIp == vtep.managementIp) {
-                throw new ConflictHttpException(
-                    getMessage(VTEP_EXISTS, vtep.managementIp))
+                val msg = getMessage(VTEP_EXISTS, vtep.managementIp)
+                throw new ConflictHttpException(msg)
             }
         } getOrThrow
 
         // Verify there is no conflict between hosts and the VTEP IPs.
-        val client = OvsdbVtepDataClient(IPv4Addr(vtep.managementIp),
-                                         vtep.managementPort)
+        val mgmtIp = IPv4Addr.fromString(vtep.managementIp)
+        val cnxn = cnxnProvider.get(mgmtIp, vtep.managementPort)
+        val client = OvsdbVtepDataClient(cnxn)
+
         try {
             val vtepIps = client.connect() flatMap { _ =>
                 client.physicalSwitch
@@ -118,13 +122,16 @@ class VtepResource @Inject()(resContext: ResourceContext)
             } getOrThrow
 
             val hostIps = listResources(classOf[Host]) map {
-                _.flatMap(_.addresses.asScala.map(IPv4Addr.fromString)).toSet
+                _.flatMap { x =>
+                    println("XXXXXXXXXXXXXXXXXX " + x.addresses)
+                    x.addresses.map(IPv4Addr.fromString)
+                }.toSet
             } getOrThrow
 
             val commonIps = vtepIps.intersect(hostIps)
             if (commonIps.nonEmpty) {
-                throw new ConflictHttpException(getMessage(VTEP_HOST_IP_CONFLICT,
-                                                           commonIps.head))
+                val msg = getMessage(VTEP_HOST_IP_CONFLICT, commonIps.head)
+                throw new ConflictHttpException(msg)
             }
         } finally {
             client.close()

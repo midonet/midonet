@@ -23,7 +23,6 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
 import com.google.common.collect.Lists
-import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.message.TableUpdate
@@ -61,9 +60,14 @@ class OvsdbOperationsTest extends FeatureSpec with Matchers with BeforeAndAfter 
         override def onNext(v: T) = {}
     }
 
+    var mgmtIp: IPv4Addr = _
+    var mgmtPort: Int = _
+
     before {
-        vtep = new InMemoryOvsdbVtep
-        client = vtep.getClient
+        mgmtIp = IPv4Addr.random
+        mgmtPort = 6632
+        vtep = new InMemoryOvsdbVtep(mgmtIp, mgmtPort)
+        client = vtep.getHandle.get.client
     }
 
     def randomUcast = UcastMac(ls = UUID.randomUUID(),
@@ -74,8 +78,8 @@ class OvsdbOperationsTest extends FeatureSpec with Matchers with BeforeAndAfter 
     feature("basic operations") {
         scenario("retrieve endpoint") {
             val ep = OvsdbTools.endPointFromOvsdbClient(client)
-            ep.mgmtIpString shouldBe "127.0.0.1"
-            ep.mgmtPort shouldBe 6632
+            ep.mgmtIp shouldBe mgmtIp
+            ep.mgmtPort shouldBe mgmtPort
         }
     }
 

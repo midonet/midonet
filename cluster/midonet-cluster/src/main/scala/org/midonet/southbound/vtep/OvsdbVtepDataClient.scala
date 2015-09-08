@@ -17,110 +17,76 @@
 package org.midonet.southbound.vtep
 
 import java.util.UUID
-import java.util.concurrent.Executors
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.atomic.AtomicReference
 
-import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{ExecutionContext, Future}
 
-import com.google.common.annotations.VisibleForTesting
-import com.typesafe.scalalogging.Logger
-
-import org.slf4j.LoggerFactory
-
-import rx.subjects.BehaviorSubject
 import rx.{Observable, Observer}
 
-import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState._
+import org.midonet.cluster.data.vtep.VtepStateException
 import org.midonet.cluster.data.vtep.model._
-import org.midonet.cluster.data.vtep.{VtepData, VtepDataClient, VtepStateException}
-import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtep.VtepConnection.ConnectionState._
 import org.midonet.util.concurrent.NamedThreadFactory
-import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
+import org.midonet.util.functors.{makeAction1, makeFunc1}
 import org.midonet.util.reactivex._
 
 object OvsdbVtepDataClient {
-
-    /**
-     * Creates a new VTEP data client with the specified management IP address
-     * and port, default connection service and without connection retry.
-     */
-    def apply(mgmtIp: IPv4Addr, mgmtPort: Int): OvsdbVtepDataClient = {
-        new OvsdbVtepDataClient(VtepEndPoint(mgmtIp, mgmtPort), 0 seconds, 0)
+    /** Creates a new VTEP data client with the specified management IP address
+      * and port, retry policy and default connection service.
+      */
+    def apply(cnxn: VtepConnection): OvsdbVtepDataClient = {
+        new OvsdbVtepDataClient(cnxn)
     }
-
-    /**
-     * Creates a new VTEP data client with the specified management IP address
-     * and port, retry policy and default connection service.
-     */
-    def apply(mgmtIp: IPv4Addr, mgmtPort: Int, retryInterval: Duration,
-              maxRetries: Long): OvsdbVtepDataClient = {
-        new OvsdbVtepDataClient(VtepEndPoint(mgmtIp, mgmtPort), retryInterval,
-                                maxRetries)
-    }
-
 }
 
-/**
- * This class handles the connection to an ovsdb-compliant vtep
- */
-class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
-                          val retryInterval: Duration, val maxRetries: Long)
-    extends VtepDataClient {
+/** A client class for the connection to a VTEP-enabled switch. A client
+  * instance allows multiple users to share the same connection to a VTEP,
+  * while monitoring the connection for possible failure and including a
+  * recovery mechanism.
+  */
+class OvsdbVtepDataClient(cnxn: VtepConnection)
+    extends VtepData with VtepConnection {
 
-    private val log =
-        Logger(LoggerFactory.getLogger(s"org.midonet.vtep.vtep-$endPoint"))
-
-    private val vtepThread = Executors.newSingleThreadExecutor(
+    private val vtepThread = newSingleThreadExecutor(
         new NamedThreadFactory(s"vtep-$endPoint"))
     private val vtepContext = ExecutionContext.fromExecutor(vtepThread)
-    private val eventThread = Executors.newSingleThreadExecutor(
+    private val eventThread = newSingleThreadExecutor(
         new NamedThreadFactory(s"vtep-$endPoint-event"))
 
-    private val connection: OvsdbVtepConnection = newConnection()
-
     private val data = new AtomicReference[VtepData](null)
-    private val stateSubject = BehaviorSubject.create[State]
 
     private val onStateChange = makeAction1[State] { state =>
         if (Ready == state) {
-            val handle = connection.getHandle.get
-            data.set(new OvsdbVtepData(endPoint, handle.client, handle.db,
+            val handle = cnxn.getHandle.get
+            data.set(new OvsdbVtepData(handle.client, handle.db,
                                        vtepThread, eventThread))
         } else {
             data.set(null)
         }
-        stateSubject onNext state
-    }
-    private val onStateError = makeAction1[Throwable] { e: Throwable =>
-        log.error("VTEP state tracking lost", e)
-        stateSubject onError e
-    }
-    private val onStateCompletion = makeAction0 {
-        log.error("VTEP state tracking lost")
-        stateSubject.onCompleted()
     }
 
-    connection.observable.subscribe(onStateChange, onStateError,
-                                    onStateCompletion)
+    cnxn.observable.subscribe(onStateChange)
 
-    override def connect() = connection.connect()
+    override def endPoint: VtepEndPoint = cnxn.endPoint
 
-    override def disconnect() = connection.disconnect()
+    override def connect() = cnxn.connect()
+
+    override def disconnect() = cnxn.disconnect()
 
     override def close()(implicit ex: ExecutionContext): Future[State] = {
-        connection.close() map { state =>
+        cnxn.close() map { state =>
             vtepThread.shutdown()
             eventThread.shutdown()
             state
         }
     }
 
-    override def getState = connection.getState
+    override def getState = cnxn.getState
 
-    override def getHandle = connection.getHandle
+    override def getHandle = cnxn.getHandle
 
-    override def observable = stateSubject.asObservable()
+    override def observable = cnxn.observable
 
     /** Lists all physical switches. */
     override def physicalSwitches: Future[Seq[PhysicalSwitch]] = {
@@ -224,14 +190,6 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
     }
 
     /**
-     * Creates a new OVSDB connection.
-     */
-    @VisibleForTesting
-    protected def newConnection(): OvsdbVtepConnection = {
-        new OvsdbVtepConnection(endPoint, vtepThread, retryInterval, maxRetries)
-    }
-
-    /**
      * Calls the specified function when the VTEP connection is [[Ready]] with
      * an [[OvsdbVtepData]] instance as argument. The method wait for the VTEP
      * connection state be decisive, and succeeds only if the VTEP becomes
@@ -240,15 +198,16 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
      * Otherwise, the future fails.
      */
     private def onReady[T](f: (VtepData) => Future[T]): Future[T] = {
-        stateSubject.filter(makeFunc1(_.isDecisive))
-                    .map[VtepData](makeFunc1 { state =>
-            if (state.isFailed) {
-                throw new VtepStateException(
-                    endPoint,
-                    s"VTEP connection state $state cannot handle a data request")
-            }
-            data.get
-        }).asFuture.flatMap(f)(vtepContext)
+        cnxn.observable
+            .filter{ makeFunc1 { _.isDecisive } }
+            .map[VtepData](makeFunc1 { state =>
+                if (state.isFailed) {
+                    throw new VtepStateException(
+                        endPoint,
+                        s"Connection is: $state and cannot handle data request")
+                }
+                data.get
+            }).asFuture.flatMap(f)(vtepContext)
     }
 
     /**
@@ -261,16 +220,17 @@ class OvsdbVtepDataClient(val endPoint: VtepEndPoint,
      */
     private def onReady[T](f: (VtepData) => Observable[T]): Observable[T] = {
         val observables =
-            stateSubject.filter(makeFunc1(_.isDecisive))
-                        .map[Observable[T]](makeFunc1 { state =>
-                if (state.isFailed) {
-                    throw new VtepStateException(
-                        endPoint,
-                        "Update stream failed because the VTEP connection " +
-                        s"state $state cannot handle more data requests")
-                }
-                f(data.get)
-            })
+            cnxn.observable
+                .filter(makeFunc1(_.isDecisive))
+                .map[Observable[T]](makeFunc1 { state =>
+                    if (state.isFailed) {
+                        throw new VtepStateException(
+                            endPoint,
+                            "Update stream failed because the VTEP connection " +
+                            s"state $state cannot handle more data requests")
+                    }
+                    f(data.get)
+                })
         Observable.switchOnNext(observables)
     }
 
