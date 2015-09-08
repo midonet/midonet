@@ -18,21 +18,20 @@ package org.midonet.southbound.vtep
 
 import java.util.UUID
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 
 import org.junit.runner.RunWith
-import org.mockito.Mockito
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import rx.subjects.BehaviorSubject
 
-import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState._
+import org.midonet.cluster.data.vtep.VtepStateException
 import org.midonet.cluster.data.vtep.model.MacLocation
-import org.midonet.cluster.data.vtep.{VtepDataClient, VtepStateException}
 import org.midonet.southbound.vtep.OvsdbVtepBuilder._
+import org.midonet.southbound.vtep.VtepConnection.ConnectionState._
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
-import org.midonet.util.concurrent._
+import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -41,33 +40,20 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
 
     private val timeout = 5 seconds
     private var vtep: InMemoryOvsdbVtep = _
-    private var connection: OvsdbVtepConnection = _
-    private val state = BehaviorSubject.create(Disconnected)
+    private var connection: VtepConnection = _
 
-    private def createVtep(): VtepDataClient = {
-        state onNext Disconnected
-        Mockito.when(connection.getHandle)
-               .thenReturn(Some(vtep.getHandle))
-        Mockito.when(connection.connect())
-               .thenReturn(Future.successful(Connected))
-        Mockito.when(connection.disconnect())
-               .thenReturn(Future.successful(Disconnected))
-        Mockito.when(connection.observable)
-               .thenReturn(state)
-        new OvsdbVtepDataClient(vtep.endPoint, retryInterval = 0 seconds,
-                                maxRetries = 0) {
-            override def newConnection() = connection
-        }
+    private def createVtep(): OvsdbVtepDataClient = {
+        OvsdbVtepDataClient(connection)
     }
 
     before {
         vtep = new InMemoryOvsdbVtep
-        connection = Mockito.mock(classOf[OvsdbVtepConnection])
+        connection = vtep
     }
 
     feature("Client futures returns fails if VTEP is disconnected") {
         scenario("Physical switch") {
-            Given("A VTEP client")
+            Given("A disconnected VTEP client")
             val client = createVtep()
 
             Then("Requesting the physical switch should fail")
@@ -80,7 +66,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             Given("A logical switch")
             val ls = vtep.createLogicalSwitch()
 
-            And("A VTEP client")
+            And("A disconnected VTEP client")
             val client = createVtep()
 
             Then("Requesting the logical switch should fail")
@@ -90,7 +76,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
         }
 
         scenario("Current local MAC") {
-            Given("A VTEP client")
+            Given("A disconnected VTEP client")
             val client = createVtep()
 
             Then("Requesting the current local MAC table should fail")
@@ -101,11 +87,11 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
 
         scenario("Local MAC updates") {
             Given("A VTEP with a physical swicth, logical switch and MAC")
-            val ps = vtep.createPhysicalSwitch()
+            vtep.createPhysicalSwitch()
             val ls = vtep.createLogicalSwitch()
-            val mac = vtep.createLocalUcastMac(ls.uuid)
+            vtep.createLocalUcastMac(ls.uuid)
 
-            And("A VTEP client")
+            And("A disconnected VTEP client")
             val client = createVtep()
 
             When("An observer subscribes to local MAC updates")
@@ -121,7 +107,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
         }
 
         scenario("Remote MAC updater") {
-            Given("A VTEP client")
+            Given("A VTEP disconnected client")
             val client = createVtep()
 
             Then("Requesting the remote MAC updater should fail")
@@ -131,7 +117,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
         }
 
         scenario("Create logical switch") {
-            Given("A VTEP client")
+            Given("A VTEP disconnected client")
             val client = createVtep()
 
             Then("Creating a logical switch should fail")
@@ -144,7 +130,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             Given("A VTEP with a logical switch")
             val ls = vtep.createLogicalSwitch()
 
-            And("A VTEP client")
+            And("A VTEP disconnected client")
             val client = createVtep()
 
             Then("Removing the logical switch should fail")
@@ -158,7 +144,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             vtep.createPhysicalSwitch()
             val ls = vtep.createLogicalSwitch()
 
-            And("A VTEP client")
+            And("A VTEP disconnected client")
             val client = createVtep()
 
             When("Setting the bindings should fail")
@@ -175,14 +161,14 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             val client = createVtep()
 
             When("The client is connecting")
-            state onNext Connecting
+            vtep.goConnecting()
 
             And("Requesting the physical switch")
             val future = client.physicalSwitch
             future.isCompleted shouldBe false
 
             And("The client is ready")
-            state onNext Ready
+            vtep.goReady()
 
             Then("Requesting the VXLAN tunnel IP should succeed")
             Await.result(future, timeout) should not be null
@@ -196,14 +182,14 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             val client = createVtep()
 
             When("The client is connecting")
-            state onNext Connecting
+            vtep.goConnecting()
 
             And("Requesting the logical switch")
             val future = client.logicalSwitch(ls.name)
             future.isCompleted shouldBe false
 
             And("The client is ready")
-            state onNext Ready
+            vtep.goReady()
 
             Then("Requesting the VXLAN tunnel IP should succeed")
             Await.result(future, timeout) should not be null
@@ -214,14 +200,14 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             val client = createVtep()
 
             When("The client is connecting")
-            state onNext Connecting
+            vtep.goConnecting()
 
             And("Requesting the current local MAC table")
             val future = client.currentMacLocal
             future.isCompleted shouldBe false
 
             And("The client is ready")
-            state onNext Ready
+            vtep.goReady()
 
             Then("Requesting the current local MAC table should succeed")
             Await.result(future, timeout) should not be null
@@ -229,7 +215,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
 
         scenario("Local MAC updates") {
             Given("A VTEP with a physical swicth, logical switch and MAC")
-            val ps = vtep.createPhysicalSwitch()
+            vtep.createPhysicalSwitch()
             val ls = vtep.createLogicalSwitch()
             val mac = vtep.createLocalUcastMac(ls.uuid)
 
@@ -237,7 +223,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             val client = createVtep()
 
             When("The client is connecting")
-            state onNext Connecting
+            vtep.goConnecting()
 
             And("An observer subscribes to local MAC updates")
             val observer = new TestAwaitableObserver[MacLocation]
@@ -245,7 +231,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             observer.getOnNextEvents should have size 0
 
             And("The client is ready")
-            state onNext Ready
+            vtep.goReady()
 
             Then("The observer should receive the MAC location")
             observer.awaitOnNext(1, timeout) shouldBe true
@@ -259,14 +245,14 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             val client = createVtep()
 
             When("The client is connecting")
-            state onNext Connecting
+            vtep.goConnecting()
 
             And("Requesting the remote MAC updater")
             val future = client.macRemoteUpdater
             future.isCompleted shouldBe false
 
             And("The client is ready")
-            state onNext Ready
+            vtep.goReady()
 
             Then("Requesting the remote MAC updater should succeed")
             Await.result(future, timeout) should not be null
@@ -277,14 +263,14 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             val client = createVtep()
 
             When("The client is connecting")
-            state onNext Connecting
+            vtep.goConnecting()
 
             And("Creating a logical switch")
             val future = client.createLogicalSwitch("ls-name", 100)
             future.isCompleted shouldBe false
 
             And("The client is ready")
-            state onNext Ready
+            vtep.goReady()
 
             Then("Creating a logical switch should succeed")
             Await.result(future, timeout) should not be null
@@ -299,14 +285,14 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             val client = createVtep()
 
             When("The client is connecting")
-            state onNext Connecting
+            vtep.goConnecting()
 
             And("Removing the logical switch")
             val future = client.deleteLogicalSwitch(lsId)
             future.isCompleted shouldBe false
 
             And("The client is ready")
-            state onNext Ready
+            vtep.goReady()
 
             Then("Removing a logical switch should succeed")
             Await.result(future, timeout) shouldBe 1
@@ -321,14 +307,14 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             val client = createVtep()
 
             When("The client is connecting")
-            state onNext Connecting
+            vtep.goConnecting()
 
             And("Setting the bindings")
             val future = client.setBindings(ls.uuid, Iterable.empty)
             future.isCompleted shouldBe false
 
             And("The client is ready")
-            state onNext Ready
+            vtep.goReady()
 
             Then("Creating bindings should succeed")
             Await.result(future, timeout) shouldBe 0
@@ -337,11 +323,9 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
 
     feature("Client futures fail if the VTEP connection is broken") {
         scenario("Physical switch") {
-            Given("A VTEP client")
+            Given("A broken VTEP client")
             val client = createVtep()
-
-            When("The client is broken")
-            state onNext Broken
+            vtep.goBroken()
 
             Then("Requesting the physical should fail")
             intercept[VtepStateException] {
@@ -353,11 +337,9 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             Given("A logical switch")
             val ls = vtep.createLogicalSwitch()
 
-            And("A VTEP client")
+            And("A broken VTEP client")
             val client = createVtep()
-
-            When("The client is broken")
-            state onNext Broken
+            vtep.goBroken()
 
             Then("Requesting the physical should fail")
             intercept[VtepStateException] {
@@ -366,11 +348,9 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
         }
 
         scenario("Current local MAC") {
-            Given("A VTEP client")
+            Given("A broken VTEP client")
             val client = createVtep()
-
-            When("The client is broken")
-            state onNext Broken
+            vtep.goBroken()
 
             Then("Requesting the current local MAC table should fail")
             intercept[VtepStateException] {
@@ -379,16 +359,15 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
         }
 
         scenario("Local MAC updates") {
+
             Given("A VTEP with a physical swicth, logical switch and MAC")
-            val ps = vtep.createPhysicalSwitch()
+            vtep.createPhysicalSwitch()
             val ls = vtep.createLogicalSwitch()
             val mac = vtep.createLocalUcastMac(ls.uuid)
 
             And("A VTEP client")
             val client = createVtep()
-
-            When("The client is ready")
-            state onNext Ready
+            client.connect()
 
             And("An observer subscribes to local MAC updates")
             val observer = new TestAwaitableObserver[MacLocation]
@@ -400,8 +379,8 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
                 mac.mac, mac.ip, ls.name,
                 Await.result(client.physicalSwitch, timeout).get.tunnelIp.get)
 
-            When("The client is broken")
-            state onNext Broken
+            When("The connection breaks")
+            vtep.goBroken()
 
             Then("The observer should receive an error")
             observer.awaitCompletion(timeout)
@@ -409,11 +388,9 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
         }
 
         scenario("Remote MAC updater") {
-            Given("A VTEP client")
+            Given("A VTEP broken client")
             val client = createVtep()
-
-            When("The client is broken")
-            state onNext Broken
+            vtep.goBroken()
 
             Then("Requesting the remote MAC updater should fail")
             intercept[VtepStateException] {
@@ -424,9 +401,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
         scenario("Create logical switch") {
             Given("A VTEP client")
             val client = createVtep()
-
-            When("The client is broken")
-            state onNext Broken
+            vtep.goBroken()
 
             Then("Creating a logical switch should fail")
             intercept[VtepStateException] {
@@ -438,11 +413,9 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             Given("A VTEP with a logical switch")
             val ls = vtep.createLogicalSwitch()
 
-            And("A VTEP client")
+            And("A broken VTEP client")
             val client = createVtep()
-
-            When("The client is broken")
-            state onNext Broken
+            vtep.goBroken()
 
             Then("Removing a logical switch should fail")
             intercept[VtepStateException] {
@@ -455,11 +428,9 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             vtep.createPhysicalSwitch()
             val ls = vtep.createLogicalSwitch()
 
-            And("A VTEP client")
+            And("A broken VTEP client")
             val client = createVtep()
-
-            When("The client is broken")
-            state onNext Broken
+            vtep.goBroken()
 
             Then("Setting bindings should fail")
             intercept[VtepStateException] {

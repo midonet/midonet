@@ -75,8 +75,8 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
     before {
         val executor = CallingThreadExecutionContext.asInstanceOf[Executor]
         vtep = new InMemoryOvsdbVtep()
-        client = vtep.getClient
-        endPoint = OvsdbTools.endPointFromOvsdbClient(client)
+        client = vtep.getHandle.get.client
+        endPoint = vtep.endPoint
         db = OvsdbOperations.getDbSchema(client,
                                          OvsdbOperations.DbHardwareVtep)(executor)
                             .await(timeout)
@@ -122,8 +122,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
 
     feature("Physical and logical switches") {
         scenario("Get the physical switch") {
-            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
-                                               vtepThread)
+            val vtepHandle = new OvsdbVtepData(client, db, vtepThread, vtepThread)
             timed(timeout) {
                 Await.result(vtepHandle.physicalSwitch, timeout)
             } shouldBe Some(ps)
@@ -132,15 +131,13 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
         scenario("Get the logical switch") {
             val ls = newLogicalSwitch()
             vtep.putEntry(lsTable, ls)
-            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
-                                               vtepThread)
+            val vtepHandle = new OvsdbVtepData(client, db, vtepThread, vtepThread)
 
             Await.result(vtepHandle.logicalSwitch(ls.name), timeout) shouldBe Some(ls)
         }
 
         scenario("Get non-existing physical port") {
-            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
-                                               vtepThread)
+            val vtepHandle = new OvsdbVtepData(client, db, vtepThread, vtepThread)
 
             Await.result(vtepHandle.physicalPort(UUID.randomUUID),
                          timeout) shouldBe None
@@ -150,8 +147,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
             val port = new PhysicalPort(UUID.randomUUID, "port", "",
                                         Map.empty, Map.empty, Set.empty)
             vtep.putEntry(portTable, port)
-            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
-                                               vtepThread)
+            val vtepHandle = new OvsdbVtepData(client, db, vtepThread, vtepThread)
 
             Await.result(vtepHandle.physicalPort(port.uuid),
                          timeout) shouldBe Some(port)
@@ -165,8 +161,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
             val unknownLsName =
                 LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
 
-            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
-                                               vtepThread)
+            val vtepHandle = new OvsdbVtepData(client, db, vtepThread, vtepThread)
             val updates = PublishSubject.create[MacLocation]()
             val updater = Await.result(vtepHandle.macRemoteUpdater, timeout)
             updates.subscribe(updater)
@@ -210,8 +205,7 @@ class OvsdbVtepDataTest extends FeatureSpec with Matchers
             val unknownLsName =
                 LogicalSwitch.networkIdToLogicalSwitchName(UUID.randomUUID())
 
-            val vtepHandle = new OvsdbVtepData(endPoint, client, db, vtepThread,
-                                               vtepThread)
+            val vtepHandle = new OvsdbVtepData(client, db, vtepThread, vtepThread)
             val updates = PublishSubject.create[MacLocation]()
             val updater = Await.result(vtepHandle.macRemoteUpdater, timeout)
             updates.subscribe(updater)

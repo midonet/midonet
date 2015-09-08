@@ -40,6 +40,7 @@ import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
 import org.midonet.midolman.cluster.zookeeper.{DirectoryProvider, ZkConnectionProvider}
 import org.midonet.midolman.state.{Directory, ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
+import org.midonet.southbound.vtep.OvsdbVtepConnectionProvider
 import org.midonet.util.eventloop.Reactor
 
 /** Base exception for all MidoNet Cluster errors. */
@@ -170,6 +171,8 @@ object ClusterNode extends App {
                 .asEagerSingleton()
             bind(classOf[ZkConnectionAwareWatcher])
                 .to(classOf[ZookeeperConnectionWatcher])
+                .asEagerSingleton()
+            bind(classOf[OvsdbVtepConnectionProvider])
                 .asEagerSingleton()
 
             install(new SerializationModule)
