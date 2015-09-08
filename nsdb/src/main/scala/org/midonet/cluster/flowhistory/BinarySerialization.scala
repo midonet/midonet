@@ -201,7 +201,12 @@ class BinarySerialization {
             IP_DECODE_ARRAY(i) = getLong(i)
             i += 1
         }
-        new UUID(IP_DECODE_ARRAY(0), IP_DECODE_ARRAY(1))
+        if (IP_DECODE_ARRAY(0) != 0 ||
+                IP_DECODE_ARRAY(1) != 0) {
+            new UUID(IP_DECODE_ARRAY(0), IP_DECODE_ARRAY(1))
+        } else {
+            null
+        }
     }
 
     private def decodeActions(): JList[Actions.FlowAction] = {
