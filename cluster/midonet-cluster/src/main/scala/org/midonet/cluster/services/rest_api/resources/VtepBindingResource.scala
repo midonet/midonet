@@ -39,10 +39,11 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkCreated, OkNoContentResponse, ResourceContext}
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
-import org.midonet.southbound.vtep.OvsdbVtepDataClient
+import org.midonet.southbound.vtep.{OvsdbVtepDataClient, OvsdbVtepConnectionProvider}
 
 @RequestScoped
-class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext)
+class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
+                                    cnxnProvider: OvsdbVtepConnectionProvider)
     extends MidonetResource[VtepBinding](resContext) {
 
     private val store = resContext.backend.store
@@ -111,7 +112,8 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext)
         val network = loadOrBadRequest[Topology.Network](binding.networkId)
         val mgmtIp = IPAddressUtil.toIPv4Addr(vtep.getManagementIp)
         val mgmtPort  = vtep.getManagementPort
-        val client = OvsdbVtepDataClient(mgmtIp, mgmtPort)
+        val cnxn = cnxnProvider.get(mgmtIp, mgmtPort)
+        val client = OvsdbVtepDataClient(cnxn)
 
         val result = client.connect() flatMap { _ =>
             client.physicalSwitch

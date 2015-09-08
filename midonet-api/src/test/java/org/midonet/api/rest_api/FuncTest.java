@@ -47,6 +47,8 @@ import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.services.rest_api.Vladimir;
 import org.midonet.conf.HostIdGenerator;
+import org.midonet.southbound.vtep.MockOvsdbVtepConnectionProvider;
+import org.midonet.southbound.vtep.OvsdbVtepConnectionProvider;
 
 import static org.apache.curator.framework.CuratorFrameworkFactory.newClient;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -148,8 +150,10 @@ public class FuncTest {
                 new AbstractModule() {
                     @Override
                     protected void configure() {
+                        bind(OvsdbVtepConnectionProvider.class)
+                            .to(MockOvsdbVtepConnectionProvider.class);
                         bind(TopologyBackdoor.class)
-                        .to(ZoomTopologyBackdoor.class);
+                            .to(ZoomTopologyBackdoor.class);
                     }
                 }
             );

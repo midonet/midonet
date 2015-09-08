@@ -39,8 +39,8 @@ import org.midonet.util.functors.makeFunc1
  * A class implementing the VTEP table monitor for an OVSDB-based VTEP.
  */
 class OvsdbTableMonitor[E <: VtepEntry](client: OvsdbClient,
-                                            table: Table[E])
-                                           (implicit executor: Executor)
+                                        table: Table[E])
+                                       (implicit executor: Executor)
     extends VtepTableMonitor[E] {
 
     private implicit val executionContext =

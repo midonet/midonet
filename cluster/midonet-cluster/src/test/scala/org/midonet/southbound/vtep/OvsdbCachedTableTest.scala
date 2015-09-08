@@ -16,13 +16,12 @@
 
 package org.midonet.southbound.vtep
 
-import java.util.Random
 import java.util.concurrent.{Executors, TimeUnit}
+import java.util.{Random, UUID}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
@@ -32,18 +31,18 @@ import rx.Observer
 
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtep.OvsdbVtepBuilder._
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema._
-import org.midonet.util.concurrent._
 import org.midonet.util.MidonetEventually
+import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
-@Ignore
 class OvsdbCachedTableTest extends FeatureSpec
-                                   with Matchers
-                                   with BeforeAndAfter
-                                   with BeforeAndAfterAll
-                                   with MidonetEventually {
+                           with Matchers
+                           with BeforeAndAfter
+                           with BeforeAndAfterAll
+                           with MidonetEventually {
     val timeout = 5 seconds
 
     val random = new Random()
@@ -69,7 +68,7 @@ class OvsdbCachedTableTest extends FeatureSpec
 
     before {
         vtep = new InMemoryOvsdbVtep
-        client = vtep.getClient
+        client = vtep.getHandle.get.client
         db = OvsdbOperations.getDbSchema(client, vtepDb)(exec).await(timeout)
     }
 
@@ -84,12 +83,7 @@ class OvsdbCachedTableTest extends FeatureSpec
 
         scenario("pre-seeded table") {
             val t = new PhysicalLocatorTable(db)
-            val data = Set(
-                PhysicalLocator(IPv4Addr.random),
-                PhysicalLocator(IPv4Addr.random),
-                PhysicalLocator(IPv4Addr.random),
-                PhysicalLocator(IPv4Addr.random)
-            )
+            val data = randPhysLocators(4)
             data.foreach(e => vtep.putEntry(t, e))
 
             val ct = new OvsdbCachedTable(client, t, exec, exec)
@@ -106,12 +100,7 @@ class OvsdbCachedTableTest extends FeatureSpec
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
 
-            val chgs = Set(
-                PhysicalLocator(IPv4Addr.random),
-                PhysicalLocator(IPv4Addr.random),
-                PhysicalLocator(IPv4Addr.random),
-                PhysicalLocator(IPv4Addr.random)
-            )
+            val chgs = randPhysLocators(4)
             chgs.foreach(e => vtep.putEntry(t, e))
 
             eventually {
@@ -145,7 +134,7 @@ class OvsdbCachedTableTest extends FeatureSpec
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
 
-            val e1 = PhysicalLocator(IPv4Addr.random)
+            val e1 = PhysicalLocator(UUID.randomUUID, IPv4Addr.random)
             vtep.putEntry(t, e1)
 
             eventually {
@@ -155,6 +144,7 @@ class OvsdbCachedTableTest extends FeatureSpec
             }
         }
 
+        ignore("explicit update - not supported, possibly removing case") {
         scenario("explicit update") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, exec, exec)
@@ -162,9 +152,8 @@ class OvsdbCachedTableTest extends FeatureSpec
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
 
-            val e1 = PhysicalLocator(IPv4Addr.random)
-            val e2 = new PhysicalLocator(e1.uuid, IPv4Addr.random,
-                                         e1.encapsulation)
+            val e1 = PhysicalLocator(UUID.randomUUID, IPv4Addr.random)
+            val e2 = new PhysicalLocator(e1.uuid, IPv4Addr.random)
 
             Await.ready(ct.insert(e1), timeout)
             eventually {
@@ -179,7 +168,9 @@ class OvsdbCachedTableTest extends FeatureSpec
                 ct.get(e1.uuid) shouldBe Some(e2)
                 vtep.getTable(t).get(e1.uuid) shouldBe Some(e2)
             }
-        }
+        }}
+
+        ignore("background update - not supported, possibly removing case") {
         scenario("background update") {
             val t = new PhysicalLocatorTable(db)
             val ct = new OvsdbCachedTable(client, t, exec, exec)
@@ -187,9 +178,8 @@ class OvsdbCachedTableTest extends FeatureSpec
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
 
-            val e1 = PhysicalLocator(IPv4Addr.random)
-            val e2 = new PhysicalLocator(e1.uuid, IPv4Addr.random,
-                                         e1.encapsulation)
+            val e1 = PhysicalLocator(UUID.randomUUID(), IPv4Addr.random)
+            val e2 = new PhysicalLocator(e1.uuid, IPv4Addr.random)
 
             Await.ready(ct.insert(e1), timeout)
             eventually {
@@ -204,7 +194,8 @@ class OvsdbCachedTableTest extends FeatureSpec
                 ct.get(e1.uuid) shouldBe Some(e2)
                 vtep.getTable(t).get(e1.uuid) shouldBe Some(e2)
             }
-        }
+        }}
+
 
         scenario("background removal") {
             val t = new PhysicalLocatorTable(db)
@@ -215,17 +206,17 @@ class OvsdbCachedTableTest extends FeatureSpec
 
             val e1 = PhysicalLocator(IPv4Addr.random)
 
-            Await.ready(ct.insert(e1), timeout)
+            val id = ct.insert(e1).await(timeout)
             eventually {
                 ct.getAll.size shouldBe 1
-                ct.get(e1.uuid) shouldBe Some(e1)
-                vtep.getTable(t).get(e1.uuid) shouldBe Some(e1)
+                ct.get(id).get.dstIp shouldBe e1.dstIp
+                vtep.getTable(t).get(id).get.dstIp shouldBe e1.dstIp
             }
 
-            vtep.removeEntry(t, e1.uuid)
+            vtep.removeEntry(t, id)
             eventually {
                 ct.getAll.isEmpty shouldBe true
-                ct.get(e1.uuid) shouldBe None
+                ct.get(id) shouldBe None
                 vtep.getTable(t).get(e1.uuid) shouldBe None
             }
         }

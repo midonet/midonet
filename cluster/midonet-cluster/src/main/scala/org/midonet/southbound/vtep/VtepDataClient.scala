@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.vtep
+package org.midonet.southbound.vtep
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -24,71 +24,61 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import rx.{Observable, Observer}
 
-import org.midonet.cluster.data.vtep.VtepConnection.ConnectionState.State
 import org.midonet.cluster.data.vtep.model._
+import org.midonet.southbound.vtep.VtepConnection.ConnectionState.State
 import org.midonet.util.functors.makeFunc1
 
-/**
- * A client class for the connection to a VTEP-enabled switch. A client
- * instance allows multiple users to share the same connection to a VTEP,
- * while monitoring the connection for possible failure and including a
- * recovery mechanism.
- */
-trait VtepDataClient extends VtepConnection with VtepData
-
-/**
- * Handle connections to a VTEP
- */
+/** This trait defines the interface required to create and interact
+  *  with an OVSDB connection, from the point of view of the
+  *  VtepDataClient.  The class implementing this trait should only need
+  *  to worry about managing the connection to the VTEP and exposing the
+  *  state updates by interacting with the client provided by the
+  *  (external) OVSDB plugin library.
+  *
+  *  The OVSDB plugin exposes a [[OvsdbVtepConnection.OvsdbHandle]] to the
+  *  connection that is exposed also by this interface.
+  *
+  *  Data operations are *not* relevant here.
+  */
 trait VtepConnection {
 
-    /**
-     * The management end-point for the VTEP connection.
-     */
+    /** The management end-point for the VTEP connection. */
     def endPoint: VtepEndPoint
 
-    /**
-     * Connect to the VTEP using a specific user. If the VTEP is already
-     * connected or connecting, it does nothing.
-     */
+    /** Connect to the VTEP using a specific user. If the VTEP is already
+      * connected or connecting, it does nothing.
+      */
     def connect(): Future[State]
 
-    /**
-     * Disconnects from the VTEP. If the VTEP is already disconnecting
-     * or disconnected, it does nothing.
-     */
+    /** Disconnects from the VTEP. If the VTEP is already disconnecting
+      * or disconnected, it does nothing.
+      */
     def disconnect(): Future[State]
 
-    /**
-     * Releases all resources used by the VTEP connection.
-     */
+    /** Releases all resources used by the VTEP connection.
+      */
     def close()(implicit ex: ExecutionContext): Future[State]
 
-    /**
-     * Get a observable to get the current state and monitor connection changes
-     */
+    /** Get a observable to get the current state and monitor connection
+      * changes.
+      */
     def observable: Observable[State]
 
-    /**
-     * Get the current connection state
-     */
+    /** Get the current connection state. */
     def getState: State
 
-    /**
-     * Get the connection handle
-     */
-    def getHandle: Option[VtepConnection.VtepHandle]
+    /** Get the connection handle. */
+    def getHandle: Option[OvsdbVtepConnection.OvsdbHandle]
 
-    /**
-     * Wait for a specific state.
-     */
-    def awaitState(expected: State, timeout: Duration): State = {
+    /** Wait for a specific state. */
+    final def awaitState(expected: State, timeout:
+    Duration):
+    State = {
         awaitState(Set(expected), timeout)
     }
 
-    /**
-     * Wait for a state in a specific set.
-     */
-    def awaitState(expected: Set[State], timeout: Duration): State = {
+    /** Wait for a state in a specific set. */
+    final def awaitState(expected: Set[State], timeout: Duration): State = {
         observable.first(makeFunc1(expected.contains))
                   .toBlocking
                   .toFuture
@@ -118,13 +108,15 @@ object VtepConnection {
         final val Failed = new State(true, true)
         final val Disposed = new State(true, true)
     }
-    /** A connection handle to be used to perform operations on the vtep */
-    abstract class VtepHandle
 }
 
-/**
- * Access data from a VTEP
- */
+/** This trait models the data manipulation options that are required by
+  *  the VxLAN Gateway feature when interacting with a VTEP's OVSDB
+  *  instance.  Connection details are separated to the
+  *  [[VtepConnection]] trait.  Implementing classes are free to decide
+  *  how to manage and establish a connection, as long as they implement
+  *  these high level operations.
+  */
 trait VtepData {
 
     /** Returns all physical switches. */

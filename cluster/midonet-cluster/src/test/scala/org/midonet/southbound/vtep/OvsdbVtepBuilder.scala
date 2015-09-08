@@ -17,6 +17,7 @@
 package org.midonet.southbound.vtep
 
 import java.util.UUID
+import java.util.UUID._
 import java.util.concurrent.Executor
 
 import scala.concurrent.duration._
@@ -27,6 +28,7 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.OvsdbOperations._
+import org.midonet.southbound.vtep.VtepEntryUpdate._
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.southbound.vtep.schema._
 import org.midonet.util.concurrent.{CallingThreadExecutionContext, _}
@@ -39,19 +41,37 @@ object OvsdbVtepBuilder {
         new OvsdbVtepBuilder(vtep)
     }
 
+    def randPhysLocatorAdditions(n: Int)
+    : Set[VtepEntryUpdate[PhysicalLocator]] = {
+        (1 to n).map { _ =>
+            addition(PhysicalLocator(randomUUID(), IPv4Addr.random))
+         }.toSet
+    }
+
+    def randPhysLocatorRemovals(n: Int)
+    : Set[VtepEntryUpdate[PhysicalLocator]] = {
+        (1 to n).map { _ =>
+            removal(PhysicalLocator(randomUUID, IPv4Addr.random))
+        }.toSet
+    }
+
+    def randPhysLocators(n: Int) = {
+        (1 to n).map { _ =>
+            PhysicalLocator(randomUUID, IPv4Addr.random)
+        }.toSet
+    }
+
 }
 
 class OvsdbVtepBuilder(val vtep: InMemoryOvsdbVtep) extends AnyVal {
 
     private def schema: DatabaseSchema = {
         val executor = CallingThreadExecutionContext.asInstanceOf[Executor]
-        getDbSchema(vtep.getClient, OvsdbOperations.DbHardwareVtep)(executor)
-            .await(5 seconds)
+        getDbSchema(vtep.getHandle.get.client,
+                    OvsdbOperations.DbHardwareVtep)(executor).await(5 seconds)
     }
 
-    def endPoint: VtepEndPoint = {
-        OvsdbTools.endPointFromOvsdbClient(vtep.getClient)
-    }
+    def endPoint: VtepEndPoint = vtep.endPoint
 
     def createPhysicalPort(id: UUID = UUID.randomUUID(),
                            portName: String = "",
