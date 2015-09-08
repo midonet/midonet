@@ -128,7 +128,7 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
             .flowMatchIcmpId(fmatch.getIcmpIdentifier)
 
         encodeUUID(hostId, FLOW_SUMMARY.hostId)
-        encodeUUID(pktContext.inPortId, FLOW_SUMMARY.inPort)
+        encodeUUID(pktContext.inputPort, FLOW_SUMMARY.inPort)
     }
 
     private def encodeIcmpData(pktContext: PacketContext): Unit = {
