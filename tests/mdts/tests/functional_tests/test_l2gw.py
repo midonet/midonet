@@ -32,7 +32,6 @@ import re
 import subprocess
 
 FORMAT = '%(asctime)-15s %(module)s#%(funcName)s(%(lineno)d) %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
 PTM = PhysicalTopologyManager('../topologies/mmm_physical_l2gw.yaml')

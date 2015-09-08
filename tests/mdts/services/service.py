@@ -188,9 +188,6 @@ class Service(object):
             return result, exec_id
 
         result = result.rstrip()
-        LOG.debug('[%s] result = %s',
-                  self.get_name(),
-                  result)
         # FIXME: different return result depending on params might be confusing
         # Awful pattern
         # Result is a string with the command output
