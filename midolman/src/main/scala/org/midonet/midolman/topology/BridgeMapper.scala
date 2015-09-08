@@ -16,7 +16,7 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean, Long => JLong}
-import java.util.UUID
+import java.util.{ArrayList, UUID}
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
 import javax.annotation.Nullable
@@ -475,8 +475,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         }
 
         // Request trace chain be built if necessary
-        requestTraceChain(Option(if (bridge.hasInboundFilterId) bridge.getInboundFilterId else null),
-                          bridge.getTraceRequestIdsList.asScala.map(_.asJava).toList)
+        requestTraceChain(bridge.getTraceRequestIdsList
+                              .asScala.map(_.asJava).toList)
 
         // Request the chains for this bridge.
         chainsTracker.requestRefs(
@@ -756,12 +756,14 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             oldExteriorPorts = exteriorPorts.toSet
         }
 
-        val inFilter = traceChain match {
-            case s: Some[UUID] => s
-            case None =>
-                if (bridge.hasInboundFilterId) {
-                    Some(bridge.getInboundFilterId.asJava)
-                } else None
+        val inFilters = new ArrayList[UUID]()
+        val outFilters = new ArrayList[UUID]()
+        traceChain.foreach(inFilters.add(_))
+        if (bridge.hasInboundFilterId) {
+            inFilters.add(bridge.getInboundFilterId.asJava)
+        }
+        if (bridge.hasOutboundFilterId) {
+            outFilters.add(bridge.getOutboundFilterId.asJava)
         }
 
         val inboundMirrors = new java.util.ArrayList[UUID]()
@@ -777,9 +779,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             macLearningTables.readOnlySnapshot(),
             ipv4MacMap,
             flowCount,
-            inFilter,
-            if (bridge.hasOutboundFilterId) Some(bridge.getOutboundFilterId)
-            else None,
+            inFilters,
+            outFilters,
             vlanPeerBridgePortId,
             bridge.getVxlanPortIdsList.asScala.map(_.asJava),
             flowCallbackGenerator,

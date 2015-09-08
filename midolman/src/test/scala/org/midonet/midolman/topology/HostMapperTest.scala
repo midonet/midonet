@@ -526,9 +526,9 @@ class HostMapperTest extends MidolmanSpec
     private def assertEquals(simHost: SimHost, protoHost: Host,
                              tunnelZones: Set[TunnelZone]) = {
         protoHost.getId.asJava shouldBe simHost.id
-        protoHost.getPortIdsList.map(_.asJava) should
+        fromProtoListToScala(protoHost.getPortIdsList) should
             contain theSameElementsAs simHost.portBindings.keys
-        protoHost.getTunnelZoneIdsList.map(_.asJava) should
+        fromProtoListToScala(protoHost.getTunnelZoneIdsList) should
             contain theSameElementsAs simHost.tunnelZoneIds
         var membershipSize = 0
         for (tz <- tunnelZones) {

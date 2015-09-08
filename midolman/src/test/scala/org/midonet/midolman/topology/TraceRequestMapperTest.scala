@@ -78,17 +78,11 @@ class TraceRequestMapperTest extends MidolmanSpec {
             val chainObj = Observable.create(
                 new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
 
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                 case _ => fail("should have been trace rule")
-            }
-
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain
-                case _ => fail("Should have been a jump rule")
             }
 
             mapper.completeTraceChain()
@@ -157,29 +151,24 @@ class TraceRequestMapperTest extends MidolmanSpec {
 
             portSubscriber.getOnNextEvents.size shouldBe 1
             var port = portSubscriber.getOnNextEvents.get(0)
-            port.inboundFilter shouldBe chain
+            port.inboundFilters should contain (chain)
 
             vt.store.update(tr.toBuilder.setEnabled(true).build)
             portSubscriber.getOnNextEvents.size shouldBe 2
             port = portSubscriber.getOnNextEvents.get(1)
-            port.inboundFilter should not be chain
-            var chainObj = chainMap.get(port.inboundFilter)
+
+            var chainObj = chainMap.get(port.inboundFilters.get(0))
                 .get.toBlocking.first
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
             }
+            port.inboundFilters.get(1) shouldBe chain
 
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain
-                case _ => fail("Should have been a jump rule")
-            }
-
-            val traceChainId = port.inboundFilter
+            val traceChainId = port.inboundFilters.get(0)
             // update to inbound filter is updated in trace chain
             val topPort = Await.result(vt.store.get(classOf[Port], portId),
                                        5 seconds)
@@ -187,26 +176,22 @@ class TraceRequestMapperTest extends MidolmanSpec {
 
             portSubscriber.getOnNextEvents.size shouldBe 5
             port = portSubscriber.getOnNextEvents.get(4)
-            port.inboundFilter shouldBe traceChainId
-            chainObj = chainMap.get(port.inboundFilter)
+            port.inboundFilters.get(0) shouldBe traceChainId
+            chainObj = chainMap.get(port.inboundFilters.get(0))
                 .get.toBlocking.first
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
             }
+            port.inboundFilters.get(1) shouldBe chain2
 
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain2
-                case _ => fail("Should have been a jump rule")
-            }
             vt.store.update(tr.toBuilder.setEnabled(false).build())
             portSubscriber.getOnNextEvents.size shouldBe 6
             port = portSubscriber.getOnNextEvents.get(5)
-            port.inboundFilter shouldBe chain2
+            port.inboundFilters.get(0) shouldBe chain2
         }
 
         scenario("with bridge") {
@@ -228,56 +213,47 @@ class TraceRequestMapperTest extends MidolmanSpec {
 
             bridgeSubscriber.getOnNextEvents.size shouldBe 1
             var bridge = bridgeSubscriber.getOnNextEvents.get(0)
-            bridge.inFilterId shouldBe Some(chain)
+            bridge.infilters.get(0) shouldBe chain
 
             vt.store.update(tr.toBuilder.setEnabled(true).build)
             bridgeSubscriber.getOnNextEvents.size shouldBe 2
             bridge = bridgeSubscriber.getOnNextEvents.get(1)
-            bridge.inFilterId should not be Some(chain)
-            var chainObj = chainMap.get(bridge.inFilterId.get)
+            bridge.infilters.get(0) should not be (chain)
+            var chainObj = chainMap.get(bridge.infilters.get(0))
                 .get.toBlocking.first
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
             }
+            bridge.infilters.get(1) shouldBe chain
 
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain
-                case _ => fail("Should have been a jump rule")
-            }
-
-            val traceChainId = bridge.inFilterId
+            val traceChainId = bridge.infilters.get(0)
             // update to inbound filter is updated in trace chain
             val topBridge = Await.result(vt.store.get(classOf[Network], bridgeId),
                                        5 seconds)
             vt.store.update(topBridge.toBuilder.setInboundFilterId(chain2).build())
 
-            bridgeSubscriber.getOnNextEvents.size shouldBe 5
-            bridge = bridgeSubscriber.getOnNextEvents.get(4)
-            bridge.inFilterId shouldBe traceChainId
-            chainObj = chainMap.get(bridge.inFilterId.get)
+            bridgeSubscriber.getOnNextEvents.size shouldBe 4
+            bridge = bridgeSubscriber.getOnNextEvents.get(3)
+            bridge.infilters.get(0) shouldBe traceChainId
+            chainObj = chainMap.get(bridge.infilters.get(0))
                 .get.toBlocking.first
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
             }
+            bridge.infilters.get(1) shouldBe chain2
 
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain2
-                case _ => fail("Should have been a jump rule")
-            }
             vt.store.update(tr.toBuilder.setEnabled(false).build())
-            bridgeSubscriber.getOnNextEvents.size shouldBe 6
-            bridge = bridgeSubscriber.getOnNextEvents.get(5)
-            bridge.inFilterId shouldBe Some(chain2)
+            bridgeSubscriber.getOnNextEvents.size shouldBe 5
+            bridge = bridgeSubscriber.getOnNextEvents.get(4)
+            bridge.infilters.get(0) shouldBe chain2
         }
 
         scenario("with router") {
@@ -299,55 +275,46 @@ class TraceRequestMapperTest extends MidolmanSpec {
 
             routerSubscriber.getOnNextEvents.size shouldBe 1
             var router = routerSubscriber.getOnNextEvents.get(0)
-            router.cfg.inboundFilter shouldBe chain
+            router.cfg.inboundFilters.get(0) shouldBe chain
 
             vt.store.update(tr.toBuilder.setEnabled(true).build)
             routerSubscriber.getOnNextEvents.size shouldBe 2
             router = routerSubscriber.getOnNextEvents.get(1)
-            router.cfg.inboundFilter should not be chain
-            var chainObj = chainMap.get(router.cfg.inboundFilter)
+            router.cfg.inboundFilters.get(0) should not be chain
+            var chainObj = chainMap.get(router.cfg.inboundFilters.get(0))
                 .get.toBlocking.first
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
             }
+            router.cfg.inboundFilters.get(1) shouldBe chain
 
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain
-                case _ => fail("Should have been a jump rule")
-            }
-
-            val traceChainId = router.cfg.inboundFilter
+            val traceChainId = router.cfg.inboundFilters.get(0)
             // update to inbound filter is updated in trace chain
             val topRouter = Await.result(vt.store.get(classOf[Router], routerId),
                                          5 seconds)
             vt.store.update(topRouter.toBuilder.setInboundFilterId(chain2).build())
-            routerSubscriber.getOnNextEvents.size shouldBe 5
-            router = routerSubscriber.getOnNextEvents.get(4)
-            router.cfg.inboundFilter shouldBe traceChainId
-            chainObj = chainMap.get(router.cfg.inboundFilter)
+            routerSubscriber.getOnNextEvents.size shouldBe 4
+            router = routerSubscriber.getOnNextEvents.get(3)
+            router.cfg.inboundFilters.get(0) shouldBe traceChainId
+            chainObj = chainMap.get(router.cfg.inboundFilters.get(0))
                 .get.toBlocking.first
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
             }
+            router.cfg.inboundFilters.get(1) shouldBe chain2
 
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain2
-                case _ => fail("Should have been a jump rule")
-            }
             vt.store.update(tr.toBuilder.setEnabled(false).build())
-            routerSubscriber.getOnNextEvents.size shouldBe 6
-            router = routerSubscriber.getOnNextEvents.get(5)
-            router.cfg.inboundFilter shouldBe chain2
+            routerSubscriber.getOnNextEvents.size shouldBe 5
+            router = routerSubscriber.getOnNextEvents.get(4)
+            router.cfg.inboundFilters.get(0) shouldBe chain2
         }
     }
 
@@ -371,18 +338,12 @@ class TraceRequestMapperTest extends MidolmanSpec {
             val chainId = subscriber.getOnNextEvents.get(0).get
             val chainObj = chainMap.get(chainId).get.toBlocking.first
 
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
-            }
-
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain
-                case _ => fail("Should have been a jump rule")
             }
         }
 
@@ -405,29 +366,24 @@ class TraceRequestMapperTest extends MidolmanSpec {
             mapper.requestForBridge()
 
             subscriber.getOnNextEvents.size shouldBe 1
-            subscriber.getOnNextEvents.get(0) shouldBe Some(chain)
+            subscriber.getOnNextEvents.get(0) shouldBe None
             chainMap.size shouldBe 0
 
             vt.store.update(tr.toBuilder.setEnabled(true).build())
             subscriber.getOnNextEvents.size shouldBe 2
             val chainObj = chainMap.get(subscriber.getOnNextEvents.get(1).get)
                 .get.toBlocking.first
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
             }
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain
-                case _ => fail("Should have been a jump rule")
-            }
 
             vt.store.update(tr.toBuilder.setEnabled(false).build())
             subscriber.getOnNextEvents.size shouldBe 3
-            subscriber.getOnNextEvents.get(2) shouldBe Some(chain)
+            subscriber.getOnNextEvents.get(2) shouldBe None
             chainMap.size shouldBe 0
         }
 
@@ -463,45 +419,35 @@ class TraceRequestMapperTest extends MidolmanSpec {
             // add an infilter chain to bridge
             val chain = newInboundChainOnBridge("chain0", bridge)
             mapper.requestForBridge()
-            subscriber.getOnNextEvents.size shouldBe 2
-            chainObj = chainMap.get(subscriber.getOnNextEvents.get(1).get)
+            subscriber.getOnNextEvents.size shouldBe 1
+            chainObj = chainMap.get(subscriber.getOnNextEvents.get(0).get)
                 .get.toBlocking.first
 
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
-            }
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain
-                case _ => fail("Should have been a jump rule")
             }
 
             // disable the trace request
             vt.store.update(tr.toBuilder.setEnabled(false).build())
-            subscriber.getOnNextEvents.size shouldBe 3
-            subscriber.getOnNextEvents.get(2) shouldBe Some(chain)
+            subscriber.getOnNextEvents.size shouldBe 2
+            subscriber.getOnNextEvents.get(1) shouldBe None
             chainMap.size shouldBe 0
 
             // reenable the trace request
             vt.store.update(tr.toBuilder.setEnabled(true).build())
-            subscriber.getOnNextEvents.size shouldBe 4
-            chainObj = chainMap.get(subscriber.getOnNextEvents.get(3).get)
+            subscriber.getOnNextEvents.size shouldBe 3
+            chainObj = chainMap.get(subscriber.getOnNextEvents.get(2).get)
                 .get.toBlocking.first
-            chainObj.rules.size shouldBe 2
+            chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
                 case r: TraceRule =>
                     r.getRequestId shouldBe traceId
                     r.getCondition.nwProto shouldBe 123
                 case _ => fail("should have been trace rule")
-            }
-            chainObj.rules.get(1) match {
-                case r: JumpRule =>
-                    r.jumpToChainID shouldBe chain
-                case _ => fail("Should have been a jump rule")
             }
 
             // remove the infilter from the bridge
@@ -509,8 +455,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                      5 seconds)
             store.update(brObj.toBuilder.clearInboundFilterId.build())
             mapper.requestForBridge()
-            subscriber.getOnNextEvents.size shouldBe 6
-            chainObj = chainMap.get(subscriber.getOnNextEvents.get(5).get)
+            subscriber.getOnNextEvents.size shouldBe 3
+            chainObj = chainMap.get(subscriber.getOnNextEvents.get(2).get)
                 .get.toBlocking.first
             chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
@@ -556,7 +502,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
             subscriber.getOnNextEvents.size shouldBe 1
             var chainObj = chainMap.get(subscriber.getOnNextEvents.get(0).get)
                 .get.toBlocking.first
-            chainObj.rules.size shouldBe 4
+            chainObj.rules.size shouldBe 3
 
             var expected = mutable.Set(tr0.getId.asJava, tr1.getId.asJava, tr2.getId.asJava)
             for (rule <- chainObj.rules.asScala) {
@@ -565,7 +511,6 @@ class TraceRequestMapperTest extends MidolmanSpec {
                         expected should contain (r.getRequestId)
                         expected -= r.getRequestId
                     }
-                    case j: JumpRule => j.jumpToChainID shouldBe chain
                     case _ => fail("Unexpected")
                 }
             }
@@ -576,7 +521,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
             subscriber.getOnNextEvents.size shouldBe 2
             chainObj = chainMap.get(subscriber.getOnNextEvents.get(1).get)
                 .get.toBlocking.first
-            chainObj.rules.size shouldBe 3
+            chainObj.rules.size shouldBe 2
 
             expected = mutable.Set(tr0.getId.asJava, tr2.getId.asJava)
             for (rule <- chainObj.rules.asScala) {
@@ -585,7 +530,6 @@ class TraceRequestMapperTest extends MidolmanSpec {
                         expected should contain (r.getRequestId)
                         expected -= r.getRequestId
                     }
-                    case j: JumpRule => j.jumpToChainID shouldBe chain
                     case _ => fail("Unexpected")
                 }
             }
@@ -606,31 +550,19 @@ class TraceRequestTestMapper[D <: VirtualDevice](deviceId: UUID,
     def requestForBridge(): Unit = {
         val bridge = Await.result(vt.store.get(classOf[Network], deviceId),
                                   5 seconds)
-        requestTraceChain(if (bridge.hasInboundFilterId) {
-                              Some(bridge.getInboundFilterId)
-                          } else {
-                              None
-                          }, bridge.getTraceRequestIdsList.asScala.toList.map(_.asJava))
+        requestTraceChain(bridge.getTraceRequestIdsList.asScala.toList.map(_.asJava))
     }
 
     def requestForPort(): Unit = {
         val port = Await.result(vt.store.get(classOf[Port], deviceId),
                                 5 seconds)
-        requestTraceChain(if (port.hasInboundFilterId) {
-                              Some(port.getInboundFilterId)
-                          } else {
-                              None
-                          }, port.getTraceRequestIdsList.asScala.toList.map(_.asJava))
+        requestTraceChain(port.getTraceRequestIdsList.asScala.toList.map(_.asJava))
     }
 
     def requestForRouter(): Unit = {
         val router = Await.result(vt.store.get(classOf[Router], deviceId),
                                   5 seconds)
-        requestTraceChain(if (router.hasInboundFilterId) {
-                              Some(router.getInboundFilterId)
-                          } else {
-                              None
-                          }, router.getTraceRequestIdsList.asScala.toList.map(_.asJava))
+        requestTraceChain(router.getTraceRequestIdsList.asScala.toList.map(_.asJava))
     }
 
     def subscribe(observer: Observer[Option[UUID]]): Unit =

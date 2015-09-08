@@ -123,8 +123,7 @@ class VtpmRedirectorTest extends TestKit(ActorSystem("VtpmRedirectorTest"))
 
     private def addTunnelToHost(host: TopologyHost, tzId: UUID)
     : TopologyHost = {
-        val portIds = host.getPortIdsList.toSet.map(
-            (id: Commons.UUID) => id.asJava)
+        val portIds = host.getPortIdsList.toSet
         val updatedHost = createHost(host.getId, portIds, Set(tzId))
         store.update(updatedHost)
         updatedHost

@@ -20,6 +20,8 @@ import java.nio.ByteBuffer
 import java.util.{UUID => JUUID, ArrayList}
 import javax.annotation.Nonnull
 
+import scala.collection.JavaConverters._
+
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{UUID => PUUID}
@@ -66,6 +68,10 @@ object UUIDUtil {
                 res.add(it.next())
         }
         res
+    }
+
+    implicit def fromProtoListToScala(from: java.util.List[Commons.UUID]): List[JUUID] = {
+        fromProtoList(from).asScala.toList
     }
 
     implicit class RichJavaUuid(val uuid: JUUID) extends AnyVal {

@@ -38,7 +38,7 @@ import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpExcept
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkCreated, OkNoContentResponse, ResourceContext}
 import org.midonet.cluster.util.IPAddressUtil
-import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.southbound.vtep.OvsdbVtepDataClient
 
 @RequestScoped
