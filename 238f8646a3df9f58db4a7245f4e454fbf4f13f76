@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_f3918b53",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_4b9a9115",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 46
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_eb927df5",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
         "patchSetId": 5
@@ -83,6 +107,30 @@
       "writtenOn": "2015-09-04T18:04:13Z",
       "side": 1,
       "message": "Also here, the \u0027List\u0027 in the value existed only to keep several \u0027hints\u0027. If the \u0027hint\u0027 operations are removed, they serve no other purpose and the definition could be changed into:\n\nprivate var map: Map[UUID, Entry] \u003d Map()\n\nor, even better:\n\nprivate val map: ConcurrentHashMap[UUID, Entry] \u003d ...",
+      "range": {
+        "startLine": 59,
+        "startChar": 21,
+        "endLine": 59,
+        "endChar": 42
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d3948f46",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_eb927df5",
       "range": {
         "startLine": 59,
         "startChar": 21,
@@ -118,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_b3b0e3f5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_2bbc656c",
+      "range": {
+        "startLine": 72,
+        "startChar": 16,
+        "endLine": 72,
+        "endChar": 31
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_4bc1b1e3",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
         "patchSetId": 5
@@ -129,6 +201,30 @@
       "writtenOn": "2015-09-04T18:04:13Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 77,
+        "startChar": 16,
+        "endLine": 77,
+        "endChar": 31
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_93abe788",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_4bc1b1e3",
       "range": {
         "startLine": 77,
         "startChar": 16,
@@ -164,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_73a65bc3",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_8bbbb971",
+      "range": {
+        "startLine": 84,
+        "startChar": 20,
+        "endLine": 84,
+        "endChar": 40
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_0ba7a950",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
         "patchSetId": 5
@@ -175,6 +295,30 @@
       "writtenOn": "2015-09-04T18:04:13Z",
       "side": 1,
       "message": "if changed into ConcurrentHashMap, then change to\nmap.put(row.uuid, row)",
+      "range": {
+        "startLine": 88,
+        "startChar": 20,
+        "endLine": 88,
+        "endChar": 71
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_53a15fa8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_0ba7a950",
       "range": {
         "startLine": 88,
         "startChar": 20,
@@ -210,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_33c5b35b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_fb45efb3",
+      "range": {
+        "startLine": 109,
+        "startChar": 48,
+        "endLine": 109,
+        "endChar": 77
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_3b1757a5",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
         "patchSetId": 5
@@ -221,6 +389,30 @@
       "writtenOn": "2015-09-04T18:04:13Z",
       "side": 1,
       "message": "change into\n\nmap.asScala.toMap (to make it immutable)",
+      "range": {
+        "startLine": 110,
+        "startChar": 44,
+        "endLine": 110,
+        "endChar": 71
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_13c8b773",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_3b1757a5",
       "range": {
         "startLine": 110,
         "startChar": 44,
@@ -256,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_139fd760",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "The change here was suggested to allow a dynamic physical switch IP. Should we allow both options supported by a configuration key?",
+      "parentUuid": "1ae5cdf2_3e658545",
+      "range": {
+        "startLine": 120,
+        "startChar": 12,
+        "endLine": 124,
+        "endChar": 28
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_3e1d8574",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
         "patchSetId": 5
@@ -267,6 +483,30 @@
       "writtenOn": "2015-09-04T18:04:13Z",
       "side": 1,
       "message": "there is a potential race condition here:\nif two logical switchs with the same name and vni are created fast enough, there is a chance of the second request arriving before the table has been updated... then will go through the \u0027case None\u0027 and end up creating a duplicated physical switch (or an exception if they uuid is set to the same value, which I think is not allowed...)",
+      "range": {
+        "startLine": 144,
+        "startChar": 7,
+        "endLine": 144,
+        "endChar": 37
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f378ab2d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "I agree, however this would always be the case with multiple writers, isn\u0027t it? We can control this by having a single service instance writing to the vtep at a given time, is that right? Or is there a different solution?",
+      "parentUuid": "1ae5cdf2_3e1d8574",
       "range": {
         "startLine": 144,
         "startChar": 7,
@@ -302,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_73949b37",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_011a2e6e",
+      "range": {
+        "startLine": 160,
+        "startChar": 16,
+        "endLine": 160,
+        "endChar": 37
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_413c3694",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/OvsdbCachedTableTest.scala",
         "patchSetId": 5
@@ -325,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_33aa1371",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/southbound/vtep/OvsdbCachedTableTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "If it\u0027s fine, we shall do this in a different patch.",
+      "parentUuid": "1ae5cdf2_413c3694",
+      "range": {
+        "startLine": 124,
+        "startChar": 5,
+        "endLine": 124,
+        "endChar": 24
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_a1c33a89",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalPort.scala",
         "patchSetId": 5
@@ -336,6 +624,30 @@
       "writtenOn": "2015-09-04T18:04:13Z",
       "side": 1,
       "message": "This should be just \u0027id\u0027 if we don\u0027t want to force non-null uuids...",
+      "range": {
+        "startLine": 45,
+        "startChar": 24,
+        "endLine": 45,
+        "endChar": 65
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b39e2355",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalPort.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Is this the case for all VtepEntry classes? I see that for these entries, the emulator does not complain when inserting them.\n\nIf you agree, I will clean these in a different patch.",
+      "parentUuid": "1ae5cdf2_a1c33a89",
       "range": {
         "startLine": 45,
         "startChar": 24,
