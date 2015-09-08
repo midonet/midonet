@@ -554,9 +554,9 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.delete_vtep(mgmt_ip)
 
-    def get_tracerequests(self):
+    def get_tracerequests(self, query):
         self._ensure_application()
-        return self.app.get_tracerequests()
+        return self.app.get_tracerequests(query)
 
     def add_tracerequest(self):
         self._ensure_application()

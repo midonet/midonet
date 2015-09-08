@@ -2537,6 +2537,14 @@ class VtepBinding(ObjectType):
 class TraceRequest(Condition):
     def __init__(self, obj):
         super(TraceRequest, self).__init__(obj)
+        # Add id again because condition clears it
+        self.put_attr(SingleAttr(name = 'id',
+                                 value_type = UUID(),
+                                 getter = 'get_id',
+                                 show = False,
+                                 writeable = False,
+                                 optional = True))
+
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
                                  setter = 'set_name',
@@ -2674,6 +2682,7 @@ class Midonet(ObjectType):
         self.put_attr(Collection(name = 'tracerequest',
                                  element_type = TraceRequest,
                                  list_method = 'get_tracerequests',
+                                 list_with_tenant = True,
                                  getter = 'get_tracerequest',
                                  factory_method = 'add_tracerequest'))
 

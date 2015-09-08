@@ -548,10 +548,10 @@ class Application(resource_base.ResourceBase):
         return self._delete_resource_by_ip_addr(self.get_vtep_template(),
                                                 mgmt_ip)
 
-    def get_tracerequests(self):
+    def get_tracerequests(self, query):
         headers = {'Accept':
                   vendor_media_type.APPLICATION_TRACE_REQUEST_COLLECTION_JSON}
-        return self.get_children(self.dto['traceRequests'], {}, headers,
+        return self.get_children(self.dto['traceRequests'], query, headers,
                                  tracerequest.TraceRequest)
 
     def add_tracerequest(self):
