@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_93992771",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-08T10:49:16Z",
+      "side": 1,
+      "message": "Is this necessary?",
+      "range": {
+        "startLine": 156,
+        "startChar": 74,
+        "endLine": 156,
+        "endChar": 81
+      },
+      "revId": "6ef2213c703ae08a4162e171e3029c2d93f29b2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
