@@ -30,7 +30,9 @@ dependencies {
     compile(project(':midonet-util')) {
         exclude group: 'com.sun', module: 'tools'
     }
+
     testCompile project(':midonet-client'), libraries.jsonpath_assert
+    testCompile project(path: ':cluster:midonet-cluster', configuration: 'tests')
 
     compile libraries.persistence, libraries.jsr311, libraries.jsr250,
             libraries.jackson_jaxrs, libraries.guice,

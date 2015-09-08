@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -281,8 +281,13 @@ public class DtoApplication {
         this.vteps = vteps;
     }
 
+    @Deprecated // in favour of the id based one, but still used in some tests.
     public URI getVtep(String mgmtIpAddr) {
         return UriBuilder.fromPath(getVtepTemplate()).build(mgmtIpAddr);
+    }
+
+    public URI getVtep(UUID id) {
+        return UriBuilder.fromPath(getVtepTemplate()).build(id);
     }
 
     public String getAdRouteTemplate() {

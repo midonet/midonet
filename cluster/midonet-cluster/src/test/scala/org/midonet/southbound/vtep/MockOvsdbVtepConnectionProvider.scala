@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.vtep.model
+package org.midonet.southbound.vtep
+
+import scala.concurrent.duration.{Duration, _}
 
 import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 
-/** VxLAN end point management interface.  This represents the management
-  * port and IP at which a VTEP's configuration database can be manipulated.
-  */
-case class VtepEndPoint(mgmtIp: IPv4Addr, mgmtPort: Int) {
-    private val str: String = s"$mgmtIp:$mgmtPort"
-    override def toString = str
+class MockOvsdbVtepConnectionProvider extends OvsdbVtepConnectionProvider{
+
+    override def get(mgmtIp: IPv4Addr, mgmtPort: Int,
+                     retryInterval: Duration = 0 second,
+                     maxRetries: Int = 0) : VtepConnection = {
+        new InMemoryOvsdbVtep(mgmtIp, mgmtPort)
+    }
+
 }

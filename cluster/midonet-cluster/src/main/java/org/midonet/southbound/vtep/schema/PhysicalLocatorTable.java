@@ -19,8 +19,6 @@ package org.midonet.southbound.vtep.schema;
 import java.util.List;
 import java.util.Map;
 
-import org.opendaylight.ovsdb.lib.notation.Condition;
-import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
 import org.opendaylight.ovsdb.lib.operations.Insert;
 import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
@@ -80,18 +78,6 @@ public final class PhysicalLocatorTable extends Table<PhysicalLocator> {
         return tableSchema.column(COL_BFD_STATUS, Map.class);
     }
 
-    /** Generate a matcher condition for the destination ip */
-    static public Condition getDstIpMatcher(IPv4Addr value) {
-        return new Condition(COL_DST_IP, Function.EQUALS, value.toString());
-    }
-
-    /**
-     * Extract the encapsulation type, returning null if not set or empty
-     */
-    private String parseEncapsulation(Row<GenericTableSchema> row) {
-        return extractString(row, getEncapsulationSchema());
-    }
-
     /**
      * Extract the destination ip address
      */
@@ -109,8 +95,7 @@ public final class PhysicalLocatorTable extends Table<PhysicalLocator> {
         throws IllegalArgumentException {
         ensureOutputClass(PhysicalLocator.class);
         return (row == null)? null:
-               PhysicalLocator.apply(parseUuid(row), parseDstIp(row),
-                                     parseEncapsulation(row));
+               PhysicalLocator.apply(parseUuid(row), parseDstIp(row));
     }
 
     /**
