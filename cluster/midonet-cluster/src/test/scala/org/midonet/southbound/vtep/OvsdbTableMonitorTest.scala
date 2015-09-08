@@ -210,8 +210,7 @@ class OvsdbTableMonitorTest extends FeatureSpec
             val mon = new OvsdbTableMonitor(client, t)
             val obs = new TestAwaitableObserver[VtepTableUpdate[VtepEntry]]
             val e1 = PhysicalLocator(IPv4Addr.random)
-            val e2 =
-                new PhysicalLocator(e1.uuid, IPv4Addr.random, e1.encapsulation)
+            val e2 = new PhysicalLocator(e1.uuid, IPv4Addr.random, e1.encapsulation)
 
             mon.observable.subscribe(obs)
             obs.awaitOnNext(1, timeout)

@@ -48,16 +48,20 @@ import OvsdbUtil._
 /**
  * This class handles the data from an OVSDB-compliant VTEP.
  */
-class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
-                    val dbSchema: DatabaseSchema, val vtepExecutor: Executor,
-                    val eventExecutor: Executor)
+class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
+                    val vtepExecutor: Executor, val eventExecutor: Executor)
     extends VtepData {
+
     import OvsdbVtepData._
+
+    private val endPoint = OvsdbTools.endPointFromOvsdbClient(client)
+    // required so that it doesn't mess with the appender config
+    private val sEndPoint = endPoint.toString.replaceAll("\\.", "_")
 
     private val MaxBackpressureBuffer = 100000
 
     private val log =
-        Logger(LoggerFactory.getLogger(s"org.midonet.vtep.vtep-$endPoint-data"))
+        Logger(LoggerFactory.getLogger(s"org.midonet.vtep.vtep-$sEndPoint"))
     private implicit val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
     private val vtepScheduler = Schedulers.from(vtepExecutor)
 

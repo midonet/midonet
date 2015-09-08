@@ -78,17 +78,13 @@ trait VtepConnection {
      */
     def getHandle: Option[VtepConnection.VtepHandle]
 
-    /**
-     * Wait for a specific state.
-     */
-    def awaitState(expected: State, timeout: Duration): State = {
+    /** Wait for a specific state. */
+    final def awaitState(expected: State, timeout: Duration): State = {
         awaitState(Set(expected), timeout)
     }
 
-    /**
-     * Wait for a state in a specific set.
-     */
-    def awaitState(expected: Set[State], timeout: Duration): State = {
+    /** Wait for a state in a specific set. */
+    final def awaitState(expected: Set[State], timeout: Duration): State = {
         observable.first(makeFunc1(expected.contains))
                   .toBlocking
                   .toFuture
