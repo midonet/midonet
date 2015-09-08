@@ -22,6 +22,30 @@
       "revId": "6ef2213c703ae08a4162e171e3029c2d93f29b2e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_69310ca2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FirewallTranslator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-09-08T16:56:59Z",
+      "side": 1,
+      "message": "Without it, the result of flatmap is Buffer[MidoOp] instead of MidoOpList, and scala complains.",
+      "parentUuid": "1ae5cdf2_93992771",
+      "range": {
+        "startLine": 156,
+        "startChar": 74,
+        "endLine": 156,
+        "endChar": 81
+      },
+      "revId": "6ef2213c703ae08a4162e171e3029c2d93f29b2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
