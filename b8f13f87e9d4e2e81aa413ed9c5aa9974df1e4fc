@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_33c1332f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Agree, if it\u0027s fine will address this in a subsequent patch to minimize the changes in this one.",
+      "parentUuid": "1ae5cdf2_93a5a706",
+      "range": {
+        "startLine": 138,
+        "startChar": 8,
+        "endLine": 138,
+        "endChar": 27
+      },
+      "revId": "b8f13f87e9d4e2e81aa413ed9c5aa9974df1e4fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_5374ff9b",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
         "patchSetId": 9
