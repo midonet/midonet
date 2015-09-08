@@ -66,37 +66,7 @@ object RoutingManagerActor extends Referenceable {
         def learnedRoutes(routerId: UUID, portId: UUID): Future[Set[Route]]
     }
 
-    private[routingprotocols] class RoutingStorageForV1(dataClient: DataClient)
-        extends RoutingStorage {
-        override def setStatus(bgpId: UUID, status: String): Future[UUID] = {
-            Future.fromTry(Try {
-                dataClient.bgpSetStatus(bgpId, status)
-                bgpId
-            })
-        }
-        override def addRoute(route: Route): Future[Route] = {
-            Future.fromTry(Try {
-                route.setId(dataClient.routesCreateEphemeral(route))
-                route
-            })
-        }
-        override def removeRoute(route: Route): Future[Route] = {
-            Future.fromTry(Try {
-                dataClient.routesDelete(route.getId)
-                route
-            })
-        }
-        override def learnedRoutes(routerId: UUID, portId: UUID)
-        : Future[Set[Route]] = {
-            Future.fromTry(Try {
-                dataClient.routesFindByRouter(routerId).asScala.filter { route =>
-                    route.isLearned && route.getNextHopPort == portId
-                }.toSet
-            })
-        }
-    }
-
-    private[routingprotocols] class RoutingStorageForV2(storage: StateStorage)
+    private[routingprotocols] class RoutingStorageImpl(storage: StateStorage)
         extends RoutingStorage {
         override def setStatus(bgpId: UUID, status: String): Future[UUID] = {
             storage.addValue(classOf[BgpPeer], bgpId, BgpKey, status)
@@ -167,86 +137,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     @Inject
     var upcallConnManager: UpcallDatapathConnectionManager = null
 
-    // Actor handler for the V1 stack.
-    private val receiveV1: Actor.Receive = {
-        case LocalPortActive(portID, true) =>
-            log.debug(s"port $portID became active")
-            if (!activePorts.contains(portID)) {
-                activePorts += portID -> null
-                // Request the port configuration
-                VirtualTopologyActor ! PortRequest(portID)
-            }
-            portHandlers.get(portID) match {
-                case None =>
-                case Some(routingHandler) => routingHandler ! PortActive(true)
-            }
-
-        case LocalPortActive(portID, false) =>
-            log.debug(s"port $portID became inactive")
-            if (!activePorts.contains(portID)) {
-                log.error("we should have had information about port {}",
-                          portID)
-            } else {
-                activePorts.remove(portID)
-
-                // Only exterior ports can have a routing handler
-                val result = portHandlers.get(portID)
-                result match {
-                    case None =>
-                        // FIXME(guillermo)
-                        // * This stops the actor but does not remove it from
-                        //   the portHandlers map. It will not be restarted
-                        //   when the port becomes active again
-                        // * The zk managers do not allow unsubscription or
-                        //   multiple subscribers, thus stopping the actor
-                        //   is not an option, the actor must be told about
-                        //   the port status so it can stop BGPd while the
-                        //   port is inactive and start it up again when
-                        //   the port is up again.
-                        //   (See: ClusterManager:L040)
-                    case Some(routingHandler) =>
-                        routingHandler ! PortActive(false)
-                }
-            }
-
-        case port: RouterPort if !port.isInterior =>
-            // Only exterior virtual router ports support BGP.
-            // Create a handler if there isn't one and the port is active
-            if (activePorts.contains(port.id))
-                log.debug("RoutingManager - port is active: " + port.id)
-
-            if (portHandlers.get(port.id).isEmpty)
-                log.debug(s"no RoutingHandler is registered with port: ${port.id}")
-
-            if (activePorts.contains(port.id)
-                && portHandlers.get(port.id).isEmpty) {
-                bgpPortIdx += 1
-
-                // need to store index locally, as the props below closes over
-                // it, possibly causing multiple bgp handlers to start with the
-                // same index number
-                val portIndexForHandler = bgpPortIdx
-                portHandlers.put(
-                    port.id,
-                    context.actorOf(
-                        Props(RoutingHandler(port, portIndexForHandler,
-                                             flowInvalidator, dpState,
-                                             upcallConnManager, client,
-                                             routingStorage, config,
-                                             zkConnWatcher, zebraLoop)).
-                            withDispatcher("actors.pinned-dispatcher"),
-                        name = port.id.toString)
-                )
-                log.debug(s"RoutingHandler creation requested for port ${port.id}")
-            }
-
-        case port: Port => // do nothing
-
-        case _ => log.error("Unknown message.")
-    }
-
-    // Actor handler for the V2 stack.
-    private val receiveV2: Actor.Receive = {
+    override def receive = {
         case LocalPortActive(portId, true) =>
             log.debug("Port {} became active", portId)
             if (!activePorts.contains(portId)) {
@@ -316,16 +207,9 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
 
     override def preStart() {
         super.preStart()
-        routingStorage =
-            if (config.zookeeper.useNewStack)
-                new RoutingStorageForV2(backend.stateStore)
-            else
-                new RoutingStorageForV1(dataClient)
-        VirtualToPhysicalMapper.localPortActiveObservable.subscribe(this)
-    }
+        routingStorage = new RoutingStorageImpl(backend.stateStore)
 
-    override def receive = {
-        if (config.zookeeper.useNewStack) receiveV2 else receiveV1
+        VirtualToPhysicalMapper.localPortActiveObservable.subscribe(this)
     }
 
     /** Stops the routing handler for the specified port identifier. Upon
