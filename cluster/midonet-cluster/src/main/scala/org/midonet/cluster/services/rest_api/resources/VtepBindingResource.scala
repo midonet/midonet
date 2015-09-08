@@ -34,15 +34,17 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.models.{Vtep, VtepBinding}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException, ServiceUnavailableHttpException}
+import org.midonet.cluster.rest_api.{ConflictHttpException, BadRequestHttpException, NotFoundHttpException, ServiceUnavailableHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkCreated, OkNoContentResponse, ResourceContext}
 import org.midonet.cluster.util.IPAddressUtil
+import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
-import org.midonet.southbound.vtep.OvsdbVtepDataClient
+import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
 
 @RequestScoped
-class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext)
+class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
+                                    cnxnProvider: OvsdbVtepConnectionProvider)
     extends MidonetResource[VtepBinding](resContext) {
 
     private val store = resContext.backend.store
@@ -109,17 +111,16 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext)
 
         val vtep = loadOrBadRequest[Topology.Vtep](binding.vtepId)
         val network = loadOrBadRequest[Topology.Network](binding.networkId)
-        val mgmtIp = IPAddressUtil.toIPv4Addr(vtep.getManagementIp)
+        val mgmtIp = toIPv4Addr(vtep.getManagementIp)
         val mgmtPort  = vtep.getManagementPort
-        val client = OvsdbVtepDataClient(mgmtIp, mgmtPort)
+        val cnxn = cnxnProvider.get(mgmtIp, mgmtPort)
+        val client = OvsdbVtepDataClient(cnxn)
 
         val result = client.connect() flatMap { _ =>
             client.physicalSwitch
         } flatMap {
             case Some(physicalSwitch) =>
-                Future.sequence (
-                    physicalSwitch.ports map client.physicalPort
-                )
+                Future.sequence(physicalSwitch.ports map client.physicalPort)
             case None =>
                 throw new ServiceUnavailableHttpException(
                     s"Cannot add binding to VTEP $mgmtIp:" +
@@ -127,10 +128,9 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext)
                     "switch is not configured")
         } map { ports =>
             if (!ports.flatten.exists(_.name == binding.portName)) {
-                throw new ServiceUnavailableHttpException(
-                    s"Cannot add binding to VTEP $mgmtIp:" +
-                    s"$mgmtPort because the physical " +
-                    s"port ${binding.portName} does not exist")
+                val msg = getMessage(VTEP_PORT_NOT_FOUND, mgmtIp,
+                                     Int.box(mgmtPort), binding.portName)
+                throw new NotFoundHttpException(msg)
             }
 
             ensureBindingDoesntExist(vtep, binding)
@@ -153,8 +153,8 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext)
                 case None =>
                     val p = makeAVxlanPort(vtep, network)
                     val n = network.toBuilder.addVxlanPortIds(p.getId).build()
-                    store.multi(
-                        Seq(CreateOp(p), UpdateOp(n), UpdateOp(newVtep))
+                    store.multi (
+                        Seq(UpdateOp(newVtep), UpdateOp(n), CreateOp(p))
                     )
             }
 
@@ -185,20 +185,24 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext)
                 .build()
     }
 
+    /** Check that there isn't any other network using the same port-vlan
+      * pair in a binding to this VTEP.
+      */
     private def ensureBindingDoesntExist(vtep: Topology.Vtep, bdg: VtepBinding)
     : Unit = {
-        val binding = vtep.getBindingsList.find { proto =>
-            fromProto(proto.getNetworkId) == bdg.networkId &&
+        val conflict = vtep.getBindingsList.find { proto =>
+            fromProto(proto.getNetworkId) != bdg.networkId &&
             proto.getVlanId.toShort == bdg.vlanId &&
             proto.getPortName == bdg.portName
         }
 
-        if (binding.nonEmpty) {
-            throw new BadRequestHttpException(
+        if (conflict.nonEmpty) {
+            throw new ConflictHttpException(
                 getMessage(VTEP_PORT_VLAN_PAIR_ALREADY_USED,
-                           IPAddressUtil.toIPv4Addr(vtep.getManagementIp),
+                           toIPv4Addr(vtep.getManagementIp),
                            Int.box(vtep.getManagementPort), bdg.portName,
-                           Short.box(bdg.vlanId), bdg.networkId))
+                           Short.box(bdg.vlanId),
+                           fromProto(conflict.get.getNetworkId)))
         }
     }
 

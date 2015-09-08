@@ -24,11 +24,8 @@ import org.midonet.cluster.util.UUIDUtil;
 
 public class VxLanPort extends Port {
 
-    public String mgmtIpAddr;
-
-    public int mgmtPort;
-
-    public int vni;
+    @ZoomField(name = "vtep_id", converter = UUIDUtil.Converter.class)
+    public UUID vtepId;
 
     @JsonIgnore
     @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
@@ -46,6 +43,14 @@ public class VxLanPort extends Port {
     @Override
     public void setDeviceId(UUID deviceId) {
         networkId = deviceId;
+    }
+
+    @JsonIgnore
+    @Override
+    public void update(Port from) {
+        super.update(from);
+        VxLanPort port = (VxLanPort)from;
+        networkId = port.networkId;
     }
 
 }

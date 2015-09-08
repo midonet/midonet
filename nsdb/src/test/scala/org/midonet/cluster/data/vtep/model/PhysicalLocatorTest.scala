@@ -27,55 +27,44 @@ import org.midonet.packets.IPv4Addr
 @RunWith(classOf[JUnitRunner])
 class PhysicalLocatorTest extends FeatureSpec with Matchers {
     val plUuid = UUID.randomUUID()
-    val plEnc = "encapsulation"
     val plIpStr = "1.2.3.4"
     val plIp = IPv4Addr.fromString(plIpStr)
 
     feature("constructors") {
         scenario("default constructor") {
-            val pl = PhysicalLocator(plUuid, plIp, plEnc)
+            val pl = PhysicalLocator(plUuid, plIp)
             pl.uuid shouldBe plUuid
             pl.dstIp shouldBe plIp
-            pl.encapsulation shouldBe plEnc
+            pl.encapsulation shouldBe "vxlan_over_ipv4"
         }
         scenario("non-uuid constructor") {
-            val pl = PhysicalLocator(plIp, plEnc)
-            pl.uuid shouldNot be (null)
+            val pl = PhysicalLocator(plIp)
+            pl.uuid shouldBe null
             pl.dstIp shouldBe plIp
-            pl.encapsulation shouldBe plEnc
         }
     }
     feature("physical locator tolerates null values") {
         scenario("null uuid") {
-            val pl = PhysicalLocator(null, plIp, plEnc)
-            pl.uuid shouldNot be (null)
+            val pl = PhysicalLocator(null, plIp)
+            pl.uuid shouldBe null
             pl.dstIp shouldBe plIp
-            pl.encapsulation shouldBe plEnc
         }
         scenario("null ip") {
-            val pl = new PhysicalLocator(plUuid, null, plEnc)
+            val pl = new PhysicalLocator(plUuid, null)
             pl.uuid shouldBe plUuid
             pl.dstIp shouldBe null
-            pl.encapsulation shouldBe plEnc
-        }
-        scenario("empty ip") {
-            val pl = PhysicalLocator(plUuid, "", plEnc)
-            pl.uuid shouldBe plUuid
-            pl.dstIp shouldBe null
-            pl.encapsulation shouldBe plEnc
         }
     }
     feature("operations") {
         scenario("equality does not depend on uuid") {
-            val pl1 = PhysicalLocator(plUuid, plIp, plEnc)
-            val pl2 = PhysicalLocator(null, plIp, plEnc)
+            val pl1 = PhysicalLocator(plUuid, plIp)
+            val pl2 = PhysicalLocator(null, plIp)
             pl1.equals(pl2) shouldBe true
         }
         scenario("hashcode depends on uuid") {
-            val pl1 = PhysicalLocator(null, plIp, plEnc)
-            val pl2 = PhysicalLocator(plUuid, plIp, plEnc)
+            val pl1 = PhysicalLocator(UUID.randomUUID(), plIp)
+            val pl2 = PhysicalLocator(UUID.randomUUID(), plIp)
             pl1.hashCode shouldNot be (pl2.hashCode)
-            pl2.hashCode shouldBe plUuid.hashCode()
         }
     }
 }

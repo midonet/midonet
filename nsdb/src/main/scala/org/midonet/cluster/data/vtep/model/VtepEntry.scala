@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.data.vtep.model
 
-import java.util.UUID
+import java.util.{Objects, UUID}
 
 /**
  * A class to represent a VTEP's table entry
@@ -26,5 +26,5 @@ abstract class VtepEntry {
     val uuid: UUID
 
     /** The hash code is based on uuid */
-    override def hashCode: Int = uuid.hashCode()
+    override def hashCode: Int = if (uuid == null) 0 else uuid.hashCode()
 }
