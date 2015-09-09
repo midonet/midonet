@@ -50,7 +50,6 @@ import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
-import org.midonet.util.FixedArrayOutputStream
 import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])

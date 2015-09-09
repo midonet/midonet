@@ -33,7 +33,6 @@ import org.midonet.netlink._
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp._
 import org.midonet.packets.FlowStateEthernet
-import org.midonet.util.FixedArrayOutputStream
 
 trait StatePacketExecutor {
     val log: Logger
@@ -42,7 +41,6 @@ trait StatePacketExecutor {
      * TODO: Use MTU
      */
     private val stateBuf = new Array[Byte](FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
-    private val stream = new FixedArrayOutputStream(stateBuf)
     private val udpShell: FlowStateEthernet = new FlowStateEthernet(stateBuf)
     private val statePacket = new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
 
