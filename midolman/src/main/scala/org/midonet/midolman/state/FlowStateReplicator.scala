@@ -21,22 +21,24 @@ import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JItera
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor.ActorSystem
+
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe, _}
-import org.midonet.midolman.flows.FlowTagIndexer
+import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
+import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.simulation.{PacketContext, Port, PortGroup}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.topology.{VirtualTopologyActor => VTA}
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.packets.{Data, Ethernet}
+import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
@@ -409,8 +411,8 @@ class FlowStateReplicator(
     override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
     @throws(classOf[NotYetException])
-    override def getPort(id: UUID) = VTA.tryAsk[Port](id)
+    override def getPort(id: UUID) = VirtualTopology.tryGet[Port](id)
 
     @throws(classOf[NotYetException])
-    override def getPortGroup(id: UUID) = VTA.tryAsk[PortGroup](id)
+    override def getPortGroup(id: UUID) = VirtualTopology.tryGet[PortGroup](id)
 }

@@ -16,8 +16,7 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Short => JShort}
-import java.util
-import java.util.{ArrayList, List => JList, UUID}
+import java.util.{ArrayList => JArrayList, List => JList, UUID}
 import java.util.concurrent.TimeUnit
 
 import scala.collection.{Map => ROMap}
@@ -51,8 +50,8 @@ trait RemoveFlowCallbackGenerator {
 
 case class BridgeConfig(adminStateUp: Boolean = true,
                         tunnelKey: Int = 0,
-                        inboundFilters: JList[UUID] = new ArrayList(0),
-                        outboundFilters: JList[UUID] = new ArrayList(0))
+                        inboundFilters: JList[UUID] = new JArrayList(0),
+                        outboundFilters: JList[UUID] = new JArrayList(0))
 
 object BridgeManager {
     val Name = "BridgeManager"

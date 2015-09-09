@@ -24,14 +24,14 @@ import scala.util.{Failure, Success}
 import akka.actor.{Actor, ActorRef}
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.FlowStateStorage
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe}
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTopologyActor => VTA}
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTopology}
 import org.midonet.util.concurrent._
 
 object HostRequestProxy {
@@ -75,8 +75,9 @@ class HostRequestProxy(val hostId: UUID,
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
-    import context.{dispatcher, system}
     import org.midonet.midolman.HostRequestProxy._
+
+    import context.{dispatcher, system}
 
     case object ReSync
 
@@ -117,7 +118,7 @@ class HostRequestProxy(val hostId: UUID,
         val bindings = host.portBindings.map {
             case (id, iface) =>
                 try {
-                    val port = VTA.tryAsk[Port](id)
+                    val port = VirtualTopology.tryGet[Port](id)
                     if (iface ne null)
                         Some(PortBinding(id, port.tunnelKey, iface))
                     else

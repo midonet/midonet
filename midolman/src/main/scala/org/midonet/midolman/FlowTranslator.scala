@@ -27,10 +27,10 @@ import scala.concurrent.ExecutionContextExecutor
 import akka.actor.ActorSystem
 import akka.util.Timeout
 
-import org.midonet.midolman.simulation.{VxLanPort, Bridge, PacketContext}
+import org.midonet.midolman.simulation.{VxLanPort, PacketContext}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
+import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.midolman.simulation.Port
 import org.midonet.odp.flows.FlowActions.{output, setKey}
 import org.midonet.odp.flows._
@@ -168,7 +168,7 @@ trait FlowTranslator {
     private def expandPortAction(port: UUID, context: PacketContext): Unit =
         dpState.getDpPortNumberForVport(port) match {
             case null => // Translate to a remote port or a vtep peer.
-                tryAsk[Port](port) match {
+                tryGet[Port](port) match {
                     case p: VxLanPort => // Always exterior
                         outputActionsToVtep(p.vtepVni, p.vtepTunnelIp,
                                             p.vtepTunnelZoneId, context)
