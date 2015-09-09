@@ -392,12 +392,8 @@ class Router(override val id: UUID,
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter
-                    (if (cfg.outboundFilters.size > 0)
-                         applyAllFilters(egrPktContext,
-                                         cfg.outboundFilters).action
-                    else
-                        RuleResult.Action.ACCEPT
-                    ) match {
+                    applyAllFilters(egrPktContext,
+                                    cfg.outboundFilters).action match {
                         case RuleResult.Action.ACCEPT =>
                             _applyPostActions(eth, egrPktContext)
                             context.addGeneratedPacket(rt.nextHopPort, eth)

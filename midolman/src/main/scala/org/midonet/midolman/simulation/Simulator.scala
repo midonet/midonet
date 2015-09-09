@@ -20,9 +20,9 @@ import java.util.{List => JList, UUID}
 
 import akka.actor.ActorSystem
 
-import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimStep, SimulationResult => Result, _}
 import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
@@ -62,7 +62,6 @@ object Simulator {
     private def reUpStashes(): Unit = {
         Fork.reUp()
         PooledMatches.reUp()
-        RuleResults.reUp()
         Continuations.reUp()
     }
 
@@ -82,13 +81,6 @@ object Simulator {
     val PooledMatches = new InstanceStash1[FlowMatch, FlowMatch](
             () => new FlowMatch(),
             (fm, template) => fm.reset(template))
-
-    val RuleResults = new InstanceStash2[RuleResult, RuleResult.Action, UUID](
-        () => new RuleResult(RuleResult.Action.ACCEPT, null),
-        (rs, a, j) => {
-            rs.action = a
-            rs.jumpToChain = j
-        })
 }
 
 trait ForwardingDevice extends SimDevice {
@@ -248,16 +240,14 @@ trait InAndOutFilters extends SimDevice {
     def applyAllFilters(context: PacketContext, filters: JList[UUID])
                        (implicit as: ActorSystem): RuleResult = {
         var i = 0
-        var ruleResult: RuleResult = null
-        while (i < filters.size() &&
-                   (ruleResult == null ||
-                        ruleResult.action == RuleResult.Action.ACCEPT)) {
+        while (i < filters.size()) {
             val filter = filters.get(i)
             context.log.debug(s"Applying filter $filter")
-            ruleResult = tryAsk[Chain](filter).process(context)
+            val ruleResult = tryAsk[Chain](filter).process(context)
+            if (ruleResult.action ne Action.ACCEPT)
+                return ruleResult
             i += 1
         }
-        ruleResult
+        Chain.ACCEPT
     }
-
 }

@@ -71,14 +71,14 @@ public class TraceRule extends Rule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res) {
+    protected boolean apply(PacketContext pktCtx) {
         if (!pktCtx.tracingEnabled(requestId) && hits < limit) {
             if (pktCtx.enableTracing(requestId)) {
                 hits++;
             }
             throw TraceRequiredException.instance();
         }
-        // else do nothing, tracing has already been enabled for the packet
+        return true;
     }
 
     @Override
