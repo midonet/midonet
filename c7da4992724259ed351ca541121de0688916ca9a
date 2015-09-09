@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_782e1ca7",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Chain.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T08:52:31Z",
+      "side": 1,
+      "message": "No. I must have pulled those fields in with a merge after I generated this.",
+      "parentUuid": "9ad9bd40_b82a64e5",
+      "range": {
+        "startLine": 105,
+        "startChar": 12,
+        "endLine": 108,
+        "endChar": 36
+      },
+      "revId": "c7da4992724259ed351ca541121de0688916ca9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d87d68e9",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-27T10:41:29Z",
       "side": 1,
       "message": "white space",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 4
+      },
+      "revId": "c7da4992724259ed351ca541121de0688916ca9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d81c887a",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T08:52:31Z",
+      "side": 1,
+      "message": "Looks red to me.",
+      "parentUuid": "9ad9bd40_d87d68e9",
       "range": {
         "startLine": 44,
         "startChar": 0,
@@ -76,6 +124,30 @@
       "writtenOn": "2015-08-27T10:41:29Z",
       "side": 1,
       "message": "o? why not create?",
+      "range": {
+        "startLine": 151,
+        "startChar": 24,
+        "endLine": 151,
+        "endChar": 25
+      },
+      "revId": "c7da4992724259ed351ca541121de0688916ca9a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d3038b0b",
+        "filename": "midonet-api/src/main/java/org/midonet/api/network/rest_api/RouteResource.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T08:52:31Z",
+      "side": 1,
+      "message": "IDEA bug. Sometimes I open up a new window (e.g. the class navigation window) and start typing, but my typing is still interpreted as editing the file.",
+      "parentUuid": "9ad9bd40_784d3cc4",
       "range": {
         "startLine": 151,
         "startChar": 24,
