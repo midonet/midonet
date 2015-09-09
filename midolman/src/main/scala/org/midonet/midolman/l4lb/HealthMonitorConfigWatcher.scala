@@ -25,7 +25,7 @@ import akka.actor.{ActorRef, Props}
 
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.simulation.{Vip => SimVip, LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember}
+import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, Vip => SimVip}
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.topology.PoolHealthMonitorMapper.PoolHealthMonitorMapKey
 import org.midonet.midolman.topology.TopologyActor
@@ -102,13 +102,15 @@ object HealthMonitorConfigWatcher {
     // Notifies the watcher that it is now the haproxy node, and can send
     // updates regarding config changes.
     case object BecomeHaproxyNode
+
+    // Notifies the watcher that it is no longer the haproxy node
+    case object UnbecomeHaproxyNode
 }
 
 class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                                  val manager: ActorRef)
         extends Referenceable with TopologyActor with ActorLogWithoutPath {
 
-    import context._
     import HealthMonitor._
     import HealthMonitorConfigWatcher._
 
@@ -226,6 +228,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
             }
 
         case BecomeHaproxyNode =>
+            log.debug("{} has become the HM leader", self.path.name)
             currentLeader = true
             this.poolIdtoConfigMap foreach(kv =>
                 manager ! ConfigAdded(kv._1, kv._2,
