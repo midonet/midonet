@@ -71,7 +71,6 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
         feedMacTable(simBridge, mac1, port1)
     }
 
-    ignore("The bridge is not flooded") {
     feature("The bridge is not flooded") {
         scenario ("The bridge generates an ARP reply") {
 
@@ -101,9 +100,8 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
             pktCtx.virtualFlowActions should have size 1
             pktCtx.virtualFlowActions.get(0) should be (ToPortAction(port1))
         }
-    }}
+    }
 
-    ignore("The bridge is flooded") {
     feature ("The bridge is flooded") {
         scenario ("When a MAC hasn't been learned") {
             val ethPkt = Packets.udp(mac2, mac3, ip2, ip3, 10, 12, "Test".getBytes)
@@ -121,6 +119,6 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
             outputActions.map(_.outPort) should contain (port1)
             outputActions.map(_.outPort) should contain (port3)
         }
-    }}
+    }
 
 }

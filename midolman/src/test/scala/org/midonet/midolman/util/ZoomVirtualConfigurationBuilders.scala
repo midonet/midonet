@@ -32,6 +32,8 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget, TraceRuleData}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.state.LegacyStorage
+
 import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.IPAddressUtil._
@@ -45,7 +47,8 @@ import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
 import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, IPv4Subnet, MAC}
 
-class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
+class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
+                                                 legacyStorage: LegacyStorage)
         extends VirtualConfigurationBuilders
         with TopologyBuilder {
     val tunnelKeys = new AtomicLong(0)
@@ -300,7 +303,11 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
                          .build())
     }
 
-    override def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit = ???
+    override def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit = {
+        val map = legacyStorage.bridgeIp4MacMap(bridge)
+        map.putPersistent(ip, mac)
+    }
+
     override def deleteBridge(bridge: UUID): Unit = {
         store.delete(classOf[Network], bridge)
     }

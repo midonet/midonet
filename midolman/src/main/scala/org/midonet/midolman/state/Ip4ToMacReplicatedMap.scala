@@ -25,6 +25,10 @@ import scala.collection.JavaConversions._
 class Ip4ToMacReplicatedMap(dir: Directory)
     extends ReplicatedMap[IPv4Addr, MAC](dir)
 {
+    def putPersistent(key: IPv4Addr, value: MAC): Unit = {
+        Ip4ToMacReplicatedMap.addPersistentEntry(dir, key, value)
+    }
+
     protected def encodeKey(key: IPv4Addr): String = key.toString
     protected def decodeKey(str: String): IPv4Addr = IPv4Addr.fromString(str)
     protected def encodeValue(value: MAC): String = value.toString
