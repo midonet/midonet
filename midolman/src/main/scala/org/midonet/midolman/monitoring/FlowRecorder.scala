@@ -123,7 +123,7 @@ object FlowRecordBuilder {
     def buildRecord(hostId: UUID,
                     pktContext: PacketContext,
                     simRes: MMSimRes): FlowRecord = {
-        FlowRecord(hostId, pktContext.inPortId,
+        FlowRecord(hostId, pktContext.inputPort,
                    buildFlowRecordMatch(pktContext.origMatch),
                    pktContext.cookie, buildDevices(pktContext.flowTags),
                    buildRules(pktContext), buildSimResult(simRes),
