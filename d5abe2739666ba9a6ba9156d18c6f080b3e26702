@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d09e4056",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T07:39:00Z",
+      "side": 1,
+      "message": "When you don\u0027t care about the result of a map. Or a for comprehension, e.g.:\n\n        for (lsOpt \u003c- ovsdb.logicalSwitch(lsName); ls \u003c- lsOpt) {\n            ovsdb.deleteLogicalSwitch(ls.uuid).onFailure {\n                case t: Throwable \u003d\u003e\n                    whenVtepConnected(removeLogicalSwitchWithRetry(id))\n            }\n        }\n\nNote also the use of onFailure instead of recover, for the same reason.",
+      "range": {
+        "startLine": 319,
+        "startChar": 36,
+        "endLine": 319,
+        "endChar": 39
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f0cdfc87",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T07:39:00Z",
+      "side": 1,
+      "message": "?",
+      "range": {
+        "startLine": 324,
+        "startChar": 28,
+        "endLine": 324,
+        "endChar": 30
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d0b560ce",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T07:39:00Z",
+      "side": 1,
+      "message": "This doesn\u0027t sound right. Do you mean at most one Snatcher per entity per node?",
+      "range": {
+        "startLine": 49,
+        "startChar": 3,
+        "endLine": 50,
+        "endChar": 25
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_70dd6c14",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T07:39:00Z",
+      "side": 1,
+      "message": "assert(stateStore.getKeyType(ct.runtimeClass, stateKey) \u003d\u003d KeyType.SingleFirstWriteWins)",
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f0d09cf9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T07:39:00Z",
+      "side": 1,
+      "message": "Why not this?\n\n  if (isOwner) {\n      isOwner \u003d false\n      sub.unsubscribe()\n      onLost()\n  }",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 9
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_90e2f8d3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T07:39:00Z",
+      "side": 1,
+      "message": "Does this just eat the error? Should we log it or something?",
+      "range": {
+        "startLine": 82,
+        "startChar": 25,
+        "endLine": 82,
+        "endChar": 37
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_50d8701d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T07:39:00Z",
+      "side": 1,
+      "message": "Does stateStore.addValue throw an exception if it\u0027s beaten, or does it publish an error to the Observable[StateResult] it returns? My admittedly cursory reading of the code suggests the latter, in which case this won\u0027t work.",
+      "range": {
+        "startLine": 101,
+        "startChar": 14,
+        "endLine": 106,
+        "endChar": 13
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_90091898",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T07:39:00Z",
+      "side": 1,
+      "message": "This is a bit confusing because \"wh00t\" generally indicates success.",
+      "range": {
+        "startLine": 107,
+        "startChar": 13,
+        "endLine": 107,
+        "endChar": 18
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
