@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_d3d64ac5",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-09T13:15:26Z",
+      "side": 1,
+      "message": "true. can that be a separate patch?",
+      "parentUuid": "1ae5cdf2_b30c5e96",
+      "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_931762a3",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 2
@@ -30,6 +48,30 @@
       "writtenOn": "2015-09-09T11:19:02Z",
       "side": 1,
       "message": "wouldn\u0027t onMatch be clearer?",
+      "range": {
+        "startLine": 182,
+        "startChar": 25,
+        "endLine": 182,
+        "endChar": 34
+      },
+      "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b3d1becf",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-09T13:15:26Z",
+      "side": 1,
+      "message": "hum.. i don\u0027t think so. this is called based on whether we successfully applied the rule or not. that would seem to indicate it\u0027s called if the condition matched.",
+      "parentUuid": "1ae5cdf2_931762a3",
       "range": {
         "startLine": 182,
         "startChar": 25,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_534b1ab0",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-09T13:15:26Z",
+      "side": 1,
+      "message": "i believe that with v2 we won\u0027t need the jackson deserializer, so we don\u0027t have to worry about anything but zoom calling the default ctor. this way we can just initialize the RuleResult in afterProto()",
+      "parentUuid": "1ae5cdf2_33492ed1",
+      "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_133c322f",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 2
@@ -70,6 +130,24 @@
       "writtenOn": "2015-09-09T11:19:02Z",
       "side": 1,
       "message": "What does the returned boolean mean? Add a comment.",
+      "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_73c73613",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-09T13:15:26Z",
+      "side": 1,
+      "message": "well, it means the rule either applied (i.e., it reversed a nat) or not. i can call it tryApply or something, but usually a boolean return value is an indicator of success.",
+      "parentUuid": "1ae5cdf2_133c322f",
       "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
