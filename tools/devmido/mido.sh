@@ -63,7 +63,7 @@ fi
 
 # Configure Logging
 TIMESTAMP_FORMAT=${TIMESTAMP_FORMAT:-"%F-%H%M%S"}
-if [[ -n "$LOGFILE" || -n "$SCREEN_LOGDIR" ]]; then
+if [[ -n "$LOGFILE" || -n "$LOGDIR" ]]; then
     CURRENT_LOG_TIME=${CURRENT_LOG_TIME:-$(date "+$TIMESTAMP_FORMAT")}
 fi
 
@@ -95,8 +95,8 @@ if [[ "$CONFIGURE_LOGGING" = "True" ]]; then
 fi
 
 # Set up logging of screen windows
-if [[ -n "$SCREEN_LOGDIR" ]]; then
-    mkdir -p $SCREEN_LOGDIR
+if [[ -n "$LOGDIR" ]]; then
+    mkdir -p $LOGDIR
 fi
 
 

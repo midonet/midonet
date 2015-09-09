@@ -32,8 +32,8 @@ function warn {
     set +o xtrace
     local msg="[WARNING] ${BASH_SOURCE[2]}:$1 $2"
     echo $msg 1>&2;
-    if [[ -n ${SCREEN_LOGDIR} ]]; then
-        echo $msg >> "${SCREEN_LOGDIR}/error.log"
+    if [[ -n ${LOGDIR} ]]; then
+        echo $msg >> "${LOGDIR}/error.log"
     fi
     $xtrace
     return $exitcode
@@ -60,8 +60,8 @@ function err {
     set +o xtrace
     local msg="[ERROR] ${BASH_SOURCE[2]}:$1 $2"
     echo $msg 1>&2;
-    if [[ -n ${SCREEN_LOGDIR} ]]; then
-        echo $msg >> "${SCREEN_LOGDIR}/error.log"
+    if [[ -n ${LOGDIR} ]]; then
+        echo $msg >> "${LOGDIR}/error.log"
     fi
     $xtrace
     return $exitcode
@@ -184,7 +184,7 @@ function create_screen {
 
 
 # Helper to launch a process in a named screen
-# Uses globals ``CURRENT_LOG_TIME``, ``SCREEN_LOGDIR``,
+# Uses globals ``CURRENT_LOG_TIME``, ``LOGDIR``,
 # ``SERVICE_DIR``
 # screen_process name "command-line"
 # Run a command in a shell in a screen window
@@ -200,10 +200,10 @@ function screen_process {
 
     screen -S ${SCREEN_NAME} -X screen -t $name
 
-    if [[ -n ${SCREEN_LOGDIR} ]]; then
-        screen -S ${SCREEN_NAME} -p $name -X logfile ${SCREEN_LOGDIR}/screen-${name}.log.${CURRENT_LOG_TIME}
+    if [[ -n ${LOGDIR} ]]; then
+        screen -S ${SCREEN_NAME} -p $name -X logfile ${LOGDIR}/${name}.log.${CURRENT_LOG_TIME}
         screen -S ${SCREEN_NAME} -p $name -X log on
-        ln -sf ${SCREEN_LOGDIR}/screen-${name}.log.${CURRENT_LOG_TIME} ${SCREEN_LOGDIR}/screen-${name}.log
+        ln -sf ${LOGDIR}/${name}.log.${CURRENT_LOG_TIME} ${LOGDIR}/${name}.log
     fi
 
     # sleep to allow bash to be ready to be send the command - we are
@@ -230,10 +230,10 @@ function _run_process {
     exec 3>&-
     exec 6>&-
 
-    local real_logfile="${SCREEN_LOGDIR}/${service}.log.${CURRENT_LOG_TIME}"
-    if [[ -n ${SCREEN_LOGDIR} ]]; then
+    local real_logfile="${LOGDIR}/${service}.log.${CURRENT_LOG_TIME}"
+    if [[ -n ${LOGDIR} ]]; then
         exec 1>&"$real_logfile" 2>&1
-        ln -sf "$real_logfile" ${SCREEN_LOGDIR}/${service}.log
+        ln -sf "$real_logfile" ${LOGDIR}/${service}.log
 
         # Hack to get stdout from the Python interpreter for the logs.
         export PYTHONUNBUFFERED=1
@@ -285,8 +285,8 @@ function screen_rc {
         echo "screen -t $1 bash" >> $SCREENRC
         echo "stuff \"$2$NL\"" >> $SCREENRC
 
-        if [[ -n ${SCREEN_LOGDIR} ]]; then
-            echo "logfile ${SCREEN_LOGDIR}/screen-${1}.log.${CURRENT_LOG_TIME}" >>$SCREENRC
+        if [[ -n ${LOGDIR} ]]; then
+            echo "logfile ${LOGDIR}/${1}.log.${CURRENT_LOG_TIME}" >>$SCREENRC
             echo "log on" >>$SCREENRC
         fi
     fi
