@@ -45,6 +45,8 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
                                with MockitoSugar
                                with MidonetEventually {
 
+    /*
+
     import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, SockReadFailure}
 
     case object MonitorActorUp
@@ -241,4 +243,6 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
         override def killHaproxyIfRunning(name: String, confFileLoc: String,
                                           pidFileLoc: String) = {}
     }
+
+    */
 }
