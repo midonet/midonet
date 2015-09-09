@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_0906c820",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronMediaType.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T21:57:41Z",
+      "side": 1,
+      "message": "unrelated to this patch: can we remove some of the old versions?",
+      "revId": "725551cb4d237a2fcebf42e4a15770e373c14502",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
