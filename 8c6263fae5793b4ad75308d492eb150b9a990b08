@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b30c5e96",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-09T11:19:02Z",
+      "side": 1,
+      "message": "We should have an overload on the RuleResult constructor, instead of passing in null all the time for the jumpChainId.",
+      "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_931762a3",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-09T11:19:02Z",
+      "side": 1,
+      "message": "wouldn\u0027t onMatch be clearer?",
+      "range": {
+        "startLine": 182,
+        "startChar": 25,
+        "endLine": 182,
+        "endChar": 34
+      },
+      "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_33492ed1",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-09T11:19:02Z",
+      "side": 1,
+      "message": "how does v2 affect this?",
+      "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_133c322f",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-09T11:19:02Z",
+      "side": 1,
+      "message": "What does the returned boolean mean? Add a comment.",
+      "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
