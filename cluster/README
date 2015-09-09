@@ -8,7 +8,7 @@ devices.
 
 Simply execute the following command from the root directory of the clone:
 
-    ./gradlew cluster:midonet-cluster:run -Pconf=`pwd`/cluster/midonet-cluster/conf/cluster.conf
+    ./gradlew cluster:midonet-cluster:run -Pconf=`pwd`/cluster/midonet-cluster/conf/midonet-cluster.conf
 
 The Cluster will try to write on /etc/midonet_host_id.properties.  If
 this path is not writable you can either make it so, or override adding:
