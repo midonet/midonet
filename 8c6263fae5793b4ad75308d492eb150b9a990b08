@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_b66d2c07",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-09T15:14:31Z",
+      "side": 1,
+      "message": "sure.",
+      "parentUuid": "1ae5cdf2_d3d64ac5",
+      "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_931762a3",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 2
@@ -72,6 +90,30 @@
       "side": 1,
       "message": "hum.. i don\u0027t think so. this is called based on whether we successfully applied the rule or not. that would seem to indicate it\u0027s called if the condition matched.",
       "parentUuid": "1ae5cdf2_931762a3",
+      "range": {
+        "startLine": 182,
+        "startChar": 25,
+        "endLine": 182,
+        "endChar": 34
+      },
+      "revId": "8c6263fae5793b4ad75308d492eb150b9a990b08",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_966830f7",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-09T15:14:31Z",
+      "side": 1,
+      "message": "true, looking at the code again, onMatch wouldn\u0027t make sense.",
+      "parentUuid": "1ae5cdf2_b3d1becf",
       "range": {
         "startLine": 182,
         "startChar": 25,
