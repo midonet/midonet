@@ -226,45 +226,33 @@ object FlowRecord {
         import RuleResult._
         val results = Arrays.asList(ACCEPT, CONTINUE, DROP, JUMP, REJECT, RETURN)
         val count = r.nextInt() % 20
-        if (count < 0) {
-            null
-        } else {
-            val rules = new ArrayList[TraversedRule]
-            for (i <- 0 until count) {
-                rules.add(TraversedRule(UUID.randomUUID,
-                                        results.get(r.nextInt(results.size))))
-            }
-            rules
+        val rules = new ArrayList[TraversedRule]
+        for (i <- 0 until count) {
+            rules.add(TraversedRule(UUID.randomUUID,
+                                    results.get(r.nextInt(results.size))))
         }
+        rules
     }
 
     private def randomUUIDS(r: Random): List[UUID] = {
         val count = r.nextInt() % 20
-        if (count < 0) {
-            null
-        } else {
-            val uuids = new ArrayList[UUID]
-            for (i <- 0 until count) {
-                uuids.add(UUID.randomUUID)
-            }
-            uuids
+        val uuids = new ArrayList[UUID]
+        for (i <- 0 until count) {
+            uuids.add(UUID.randomUUID)
         }
+        uuids
     }
 
     private def randomDevices(r: Random): List[TraversedDevice] = {
         val count = r.nextInt() % 20
-        if (count < 0) {
-            null
-        } else {
-            import DeviceType._
-            val types = Arrays.asList(LOAD_BALANCER, POOL, PORT_GROUP,
-                                      BRIDGE, ROUTER, PORT, CHAIN, UNKNOWN)
-            val devices = new ArrayList[TraversedDevice]
-            for (i <- 0 until count) {
-                devices.add(TraversedDevice(UUID.randomUUID,
-                                            types.get(r.nextInt(types.size))))
-            }
-            devices
+        import DeviceType._
+        val types = Arrays.asList(LOAD_BALANCER, POOL, PORT_GROUP,
+                                  BRIDGE, ROUTER, PORT, CHAIN, UNKNOWN)
+        val devices = new ArrayList[TraversedDevice]
+        for (i <- 0 until count) {
+            devices.add(TraversedDevice(UUID.randomUUID,
+                                        types.get(r.nextInt(types.size))))
         }
+        devices
     }
 }
