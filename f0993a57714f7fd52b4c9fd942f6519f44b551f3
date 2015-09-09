@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_36c4bc3f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-09T16:20:01Z",
+      "side": 1,
+      "message": "Not sure to understand the question... The facility is implemented on top of ZK+curator, but it is meant to provide a generic service discovery mechanism, that any service can use.",
+      "parentUuid": "9ad9bd40_c22044b3",
+      "range": {
+        "startLine": 54,
+        "startChar": 6,
+        "endLine": 54,
+        "endChar": 22
+      },
+      "revId": "f0993a57714f7fd52b4c9fd942f6519f44b551f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6211385d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-17T10:12:38Z",
       "side": 1,
       "message": "containing information about the service? What kind of information is contained?",
+      "range": {
+        "startLine": 62,
+        "startChar": 34,
+        "endLine": 62,
+        "endChar": 60
+      },
+      "revId": "f0993a57714f7fd52b4c9fd942f6519f44b551f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_36dbdc1c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-09T16:20:01Z",
+      "side": 1,
+      "message": "e.g. the host and port where the service is provided, and any other information the service client may require to use the service (e.g. the path in a websocket based api). I\u0027ve updated the java doc to explain it a bit better.",
+      "parentUuid": "9ad9bd40_6211385d",
       "range": {
         "startLine": 62,
         "startChar": 34,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_56d8681d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-09T16:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_82163c54",
+      "range": {
+        "startLine": 64,
+        "startChar": 36,
+        "endLine": 64,
+        "endChar": 46
+      },
+      "revId": "f0993a57714f7fd52b4c9fd942f6519f44b551f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e204681a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 11
@@ -82,6 +154,30 @@
       "writtenOn": "2015-08-17T10:12:38Z",
       "side": 1,
       "message": "indent?",
+      "range": {
+        "startLine": 95,
+        "startChar": 16,
+        "endLine": 100,
+        "endChar": 24
+      },
+      "revId": "f0993a57714f7fd52b4c9fd942f6519f44b551f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_961750a3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-09T16:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_e204681a",
       "range": {
         "startLine": 95,
         "startChar": 16,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_569068ec",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-09T16:20:01Z",
+      "side": 1,
+      "message": "Nop; \u0027stopping\u0027 means that the client stops receiving updates, and it cannot be \u0027re-started\u0027. So if you stop on subscribe, no one else could subscribe to the same observable.",
+      "parentUuid": "9ad9bd40_02022c0b",
+      "range": {
+        "startLine": 130,
+        "startChar": 4,
+        "endLine": 131,
+        "endChar": 20
+      },
+      "revId": "f0993a57714f7fd52b4c9fd942f6519f44b551f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_452a7e7f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 11
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_61e9201a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-09T16:20:01Z",
+      "side": 1,
+      "message": "No, if you want to reuse the same observable for future subscribers...\n\nI agree that the explicit start/stop is an annoying characteristic of the service discovery mechanism...",
+      "parentUuid": "9ad9bd40_452a7e7f",
+      "range": {
+        "startLine": 165,
+        "startChar": 4,
+        "endLine": 165,
+        "endChar": 24
+      },
+      "revId": "f0993a57714f7fd52b4c9fd942f6519f44b551f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_855ba62d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 11
@@ -151,6 +295,30 @@
       "writtenOn": "2015-08-17T10:12:38Z",
       "side": 1,
       "message": "Register this instance as a provider of the specified service name?",
+      "range": {
+        "startLine": 197,
+        "startChar": 8,
+        "endLine": 197,
+        "endChar": 68
+      },
+      "revId": "f0993a57714f7fd52b4c9fd942f6519f44b551f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_810aacd0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-09T16:20:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_855ba62d",
       "range": {
         "startLine": 197,
         "startChar": 8,
