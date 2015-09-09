@@ -23,20 +23,23 @@ import java.nio.channels.IllegalSelectorException
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
-import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.cluster.data.Route
+import org.midonet.cluster.models.Commons.LBStatus
+import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus
+import org.midonet.cluster.models.Topology.{Host, PoolMember, Pool, Port}
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.state.RoutingTableStorage
+import org.midonet.cluster.util.{IPSubnetUtil, IPAddressUtil, UUIDUtil}
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor._
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.CheckHealth
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
+import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.layer3.Route.NextHop.PORT
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.state.l4lb.LBStatus
-import LBStatus.{INACTIVE => MemberInactive}
-import LBStatus.{ACTIVE => MemberActive}
+import org.midonet.midolman.layer3.Route
 import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet}
 import org.midonet.util.AfUnix
+import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.process.ProcessHelper
 
 import scala.collection.JavaConversions._
@@ -54,9 +57,9 @@ import scala.concurrent.duration._
  */
 object HaproxyHealthMonitor {
     def props(config: PoolConfig, manager: ActorRef, routerId: UUID,
-              dataClient: DataClient, hostId: UUID):
+              backend: MidonetBackend, hostId: UUID):
         Props = Props(new HaproxyHealthMonitor(config, manager, routerId,
-                                               dataClient, hostId))
+                                               backend, hostId))
 
     sealed trait HHMMessage
     // This is a way of alerting the manager that setup has failed
@@ -74,10 +77,9 @@ object HaproxyHealthMonitor {
     case class RouterAdded(newRouterId: UUID)
 
     // Constants for linking namespace to router port
-    val NameSpaceIp = "169.254.17.45"
-    val RouterIp = "169.254.17.44"
-    val NetLen = 30
-    val NetAddr = "169.254.17.43"
+    val NameSpaceIp = IPv4Addr.fromString("169.254.17.45")
+    val RouterIp = IPv4Addr.fromString("169.254.17.44")
+    val NetSubnet = IPv4Subnet.fromCidr("169.254.17.43/30")
     val NameSpaceMAC = "0C:0C:0C:0C:0C:0C"
 
     // Constants used in parsing haproxy output
@@ -94,7 +96,7 @@ object HaproxyHealthMonitor {
 class HaproxyHealthMonitor(var config: PoolConfig,
                            val manager: ActorRef,
                            var routerId: UUID,
-                           val dataClient: DataClient,
+                           val backend: MidonetBackend,
                            val hostId: UUID)
     extends Actor with ActorLogWithoutPath with Stash {
     implicit def system: ActorSystem = context.system
@@ -150,7 +152,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 // routes on the router.
                 if (config.vip != conf.vip) {
                     if (routeId != null) {
-                        dataClient.routesDelete(routeId)
+                        backend.store.delete(classOf[Route], routeId)
                         deleteIpTableRules(healthMonitorName, config.vip.ip)
                     }
                     if (routerId != null && routerPortId != null) {
@@ -176,10 +178,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 val newUpNodes = upNodes diff currentUpNodes
                 val newDownNodes = downNodes diff currentDownNodes
 
-                newUpNodes foreach (id =>
-                    dataClient.poolMemberUpdateStatus(id, MemberActive))
-                newDownNodes foreach (id =>
-                    dataClient.poolMemberUpdateStatus(id, MemberInactive))
+                setMembersStatus(newUpNodes, LBStatus.ACTIVE)
+                setMembersStatus(newDownNodes, LBStatus.INACTIVE)
 
                 currentUpNodes = upNodes
                 currentDownNodes = downNodes
@@ -201,6 +201,14 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             routerId = null
             unhookNamespaceFromRouter()
             setPoolMapStatus(PoolHealthMonitorMappingStatus.INACTIVE)
+    }
+
+    private def setMembersStatus(memberIds: Set[UUID], status: LBStatus) = {
+        val members = backend.store.getAll(classOf[PoolMember],
+                                           memberIds.toSeq).await()
+        members.foreach { m =>
+            backend.store.update(m.toBuilder.setStatus(status).build())
+        }
     }
 
     /*
@@ -395,69 +403,59 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     }
 
     def addVipRoute(ip: String) = {
-        val route = new Route()
-        route.setRouterId(routerId)
-        route.setNextHop(PORT)
-        route.setNextHopPort(routerPortId)
-        route.setSrcNetworkAddr("0.0.0.0")
-        route.setSrcNetworkLength(0)
-        route.setDstNetworkAddr(ip)
-        route.setDstNetworkLength(32)
-        route.setNextHopGateway(NameSpaceIp)
-        route.setWeight(100)
-        routeId = dataClient.routesCreateEphemeral(route)
+        val srcIp = IPv4Addr.fromString("0.0.0.0")
+        val destIp = IPv4Addr.fromString(ip)
+        // Treat this as a learned route
+        val route = new Route(srcIp.toInt, 0, destIp.toInt, 32, NextHop.PORT,
+                              routerPortId, NameSpaceIp.toInt, 100, "",
+                              routerId, true)
+        backend.stateStore.addValue(classOf[Port], route.nextHopPort,
+                                    RoutesKey,
+                                    RoutingTableStorage.serializeForPort(route))
     }
 
     def hookNamespaceToRouter(): Unit = {
         if (routerId == null)
             return
-        val ports = dataClient.portsFindByRouter(routerId)
-        var portId: UUID = null
 
-        // see if the port already exists, and delete it if it does. This can
-        // happen if there was already an haproxy attached to this router.
-        for (port <- ports) {
-            port match {
-                case rpc: RouterPort =>
-                    if (rpc.getPortAddr == RouterIp) {
-                        dataClient.hostsDelVrnPortMapping(hostId, rpc.getId)
-                        portId = rpc.getId
-                    }
-            }
+        val host = backend.store.get(classOf[Host],
+                                     UUIDUtil.toProto(hostId)).await()
+        val ports = backend.store.getAll(classOf[Port],
+                                         host.getPortIdsList).await()
+        ports.filter(_.getInterfaceName == namespaceName).foreach { p =>
+            log.warn("deleting unused health monitor port " + p.getId +
+                     " for pool " + config.id)
+            backend.store.delete(classOf[Port], p.getId)
         }
 
-        if (portId == null) {
-            val routerPort = new RouterPort()
-            routerPort.setDeviceId(routerId)
-            routerPort.setHostId(hostId)
-            routerPort.setPortAddr(RouterIp)
-            routerPort.setNwAddr(NetAddr)
-            routerPort.setNwLength(NetLen)
-            routerPort.setInterfaceName(namespaceName)
-            portId = dataClient.portsCreate(routerPort)
-        }
-        routerPortId = portId
+        val hmPort = Port.newBuilder()
+            .setId(UUIDUtil.randomUuidProto)
+            .setRouterId(UUIDUtil.toProto(routerId))
+            .setPortAddress(IPAddressUtil.toProto(RouterIp))
+            .setPortSubnet(IPSubnetUtil.toProto(NetSubnet))
+            .setHostId(UUIDUtil.toProto(hostId))
+            .setInterfaceName(namespaceName).build
+        backend.store.create(hmPort)
+        routerPortId = UUIDUtil.fromProto(hmPort.getId)
         addVipRoute(config.vip.ip)
-
-        dataClient.hostsAddVrnPortMapping(hostId, portId, namespaceName)
 
         createIpTableRules(healthMonitorName, config.vip.ip)
     }
 
     def unhookNamespaceFromRouter() = {
         if (routerPortId != null) {
-            dataClient.hostsDelVrnPortMapping(hostId, routerPortId)
-            dataClient.routesDelete(routeId)
-            dataClient.portsDelete(routerPortId)
+            backend.store.delete(classOf[Route], routeId)
+            backend.store.delete(classOf[Port], routerPortId)
+
             deleteIpTableRules(healthMonitorName, config.vip.ip)
             routeId = null
             routerPortId = null
         }
     }
 
-    //wrapping this call so we can mock it in the unit tests
-    def setPoolMapStatus(status: PoolHealthMonitorMappingStatus) {
-        dataClient.poolSetMapStatus(config.id, status)
+    private def setPoolMapStatus(status: PoolHealthMonitorMappingStatus) = {
+        val pool = backend.store.get(classOf[Pool], config.id).await()
+        backend.store.update(pool.toBuilder.setMappingStatus(status).build())
     }
 }
 

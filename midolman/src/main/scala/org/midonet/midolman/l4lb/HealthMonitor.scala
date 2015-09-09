@@ -19,22 +19,28 @@ package org.midonet.midolman.l4lb
 import java.io._
 import java.util.UUID
 
+import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
+import org.midonet.cluster.data.storage.{StorageException, ObjectExistsException, NotFoundException, Storage}
+import org.midonet.cluster.models.Topology.Pool
+import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.{UnbecomeHaproxyNode, BecomeHaproxyNode}
+
 import scala.collection.JavaConversions._
 
 import akka.actor.{Actor, ActorRef}
 import com.google.inject.Inject
 import org.slf4j.{Logger, LoggerFactory}
 
-import org.midonet.cluster.DataClient
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure, SockReadFailure}
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
-import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.state.{StatePathExistsException, NoStatePathException, StateAccessException, PoolHealthMonitorMappingStatus}
-import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader
+import org.midonet.util.concurrent.toFutureOps
 
 object HealthMonitor extends Referenceable {
     override val Name = "HealthMonitor"
@@ -180,7 +186,9 @@ object HealthMonitor extends Referenceable {
  */
 class HealthMonitor extends Actor with ActorLogWithoutPath {
     @Inject private val config: MidolmanConfig = null
-    @Inject var client: DataClient = null
+    @Inject private var backend: MidonetBackend = null
+    @Inject private var curator: CuratorFramework = null
+    @Inject private var backendCfg: MidonetBackendConfig = null
 
     private var fileLocation: String = null
     private val namespaceSuffix: String = "_hm"
@@ -189,22 +197,36 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
 
     private var watcher: ActorRef = null
 
+    private def setPoolMappingStatus(poolId: UUID,
+                                     status: PoolHealthMonitorMappingStatus) = {
+        val pool = backend.store.get(classOf[Pool], poolId).await()
+        backend.store.update(pool.toBuilder.setMappingStatus(status).build())
+    }
+
+    private def inactivatePoolMap(poolId: UUID) =
+        setPoolMappingStatus(poolId, PoolHealthMonitorMappingStatus.INACTIVE)
+
+    private val hmLatchListener = new LeaderLatchListener {
+        val watcher = context.actorOf(HealthMonitorConfigWatcher.props(
+                fileLocation, namespaceSuffix, self))
+
+        override def isLeader() = watcher ! BecomeHaproxyNode
+        override def notLeader() = watcher ! UnbecomeHaproxyNode
+    }
+
+    private val hmLatch = new LeaderLatch(curator,
+                                          backendCfg.rootKey + "/lb/hm-latch")
     override def preStart(): Unit = {
 
-        fileLocation =  config.healthMonitor.haproxyFileLoc
+        fileLocation = config.healthMonitor.haproxyFileLoc
 
         if (config.healthMonitor.namespaceCleanup) {
             cleanupNamespaces()
         }
         log.info("Starting Health Monitor")
         hostId = HostIdGenerator.getIdFromPropertiesFile()
-
-        watcher = context.actorOf(HealthMonitorConfigWatcher.props(
-                fileLocation, namespaceSuffix, self))
-
-        client.registerAsHealthMonitorNode(new ExecuteOnBecomingLeader {
-            def call() = { watcher ! BecomeHaproxyNode}
-        })
+        hmLatch.addListener(hmLatchListener)
+        hmLatch.start()
     }
 
     def receive = {
@@ -228,9 +250,8 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case _ =>
                     log.info("received unconfigurable update for non-existing" +
                              "pool {}", poolId.toString)
-                    interceptZkError {
-                        client.poolSetMapStatus(poolId,
-                            PoolHealthMonitorMappingStatus.INACTIVE)
+                    interceptStorageError {
+                        inactivatePoolMap(poolId)
                     }
             }
 
@@ -242,10 +263,8 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case None if !config.isConfigurable || routerId == null =>
                     log.info("received unconfigurable add for pool {}",
                         poolId.toString)
-                    interceptZkError {
-                        client.poolSetMapStatus(poolId,
-                            PoolHealthMonitorMappingStatus.INACTIVE)
-                        // Wait until this is configurable start this.
+                    interceptStorageError {
+                        inactivatePoolMap(poolId)
                     }
 
                 case None =>
@@ -264,9 +283,8 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case None =>
                     log.info("received delete for non-existent pool {}",
                              poolId.toString)
-                    interceptZkError {
-                        client.poolSetMapStatus(poolId,
-                                PoolHealthMonitorMappingStatus.INACTIVE)
+                    interceptStorageError {
+                        inactivatePoolMap(poolId)
                     }
             }
 
@@ -288,9 +306,8 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case _ =>
                     log.info("router changed for unconfigurable and non-" +
                              "existent pool {}", poolId.toString)
-                    interceptZkError {
-                        client.poolSetMapStatus(poolId,
-                                PoolHealthMonitorMappingStatus.INACTIVE)
+                    interceptStorageError {
+                        inactivatePoolMap(poolId)
                     }
             }
 
@@ -303,7 +320,7 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
     def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
                                  routerId: UUID) = {
         context.actorOf(HaproxyHealthMonitor.props(config, self, routerId,
-            client, hostId).withDispatcher("actors.pinned-dispatcher"),
+            backend, hostId).withDispatcher("actors.pinned-dispatcher"),
                  config.id.toString)
     }
 
@@ -348,15 +365,16 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
             }
     }
 
-    private def interceptZkError[T](f: => T): Unit =
+    def interceptStorageError[T](f: => T): Unit =
         try {
             f
         } catch {
-            case e: NoStatePathException =>
-                log.warn("Missing ZK path", e)
-            case e: StatePathExistsException =>
-                log.warn("Tried to overwrite existing ZK path", e)
-            case e: StateAccessException =>
-                log.error("Unexpected ZK error", e)
+            case e: NotFoundException =>
+                log.warn("Missing data", e)
+            case e: ObjectExistsException =>
+                log.warn("Tried to overwrite existing data", e)
+            case e: StorageException =>
+                log.error("Unexpected storage error", e)
         }
 }
+
