@@ -25,7 +25,7 @@ import org.scalatest.{FeatureSpec, Matchers}
 @RunWith(classOf[JUnitRunner])
 class PhysicalLocatorSetTest extends FeatureSpec with Matchers {
     val uuid = UUID.randomUUID()
-    val locs = Set(UUID.randomUUID(), UUID.randomUUID())
+    val locs = Set(UUID.randomUUID().toString, UUID.randomUUID().toString)
 
     feature("constructors") {
         scenario("default constructor") {

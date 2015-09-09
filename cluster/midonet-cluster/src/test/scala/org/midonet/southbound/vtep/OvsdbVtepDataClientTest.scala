@@ -16,6 +16,8 @@
 
 package org.midonet.southbound.vtep
 
+import java.util.UUID
+
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
@@ -128,13 +130,13 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             }
         }
 
-        scenario("Ensure logical switch") {
+        scenario("Create logical switch") {
             Given("A VTEP client")
             val client = createVtep()
 
             Then("Creating a logical switch should fail")
             intercept[VtepStateException] {
-                Await.result(client.ensureLogicalSwitch("ls-name", 100), timeout)
+                Await.result(client.createLogicalSwitch("ls-name", 100), timeout)
             }
         }
 
@@ -147,11 +149,11 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
 
             Then("Removing the logical switch should fail")
             intercept[VtepStateException] {
-                Await.result(client.removeLogicalSwitch(ls.name), timeout)
+                Await.result(client.deleteLogicalSwitch(ls.uuid), timeout)
             }
         }
 
-        scenario("Ensure bindings") {
+        scenario("Set bindings") {
             Given("A VTEP with a physical and logical switch")
             vtep.createPhysicalSwitch()
             val ls = vtep.createLogicalSwitch()
@@ -159,9 +161,9 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             And("A VTEP client")
             val client = createVtep()
 
-            When("Creating the bindings should fail")
+            When("Setting the bindings should fail")
             intercept[VtepStateException] {
-                Await.result(client.ensureBindings(ls.name, Iterable.empty),
+                Await.result(client.setBindings(ls.uuid, Iterable.empty),
                              timeout)
             }
         }
@@ -270,7 +272,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             Await.result(future, timeout) should not be null
         }
 
-        scenario("Ensure logical switch") {
+        scenario("Create logical switch") {
             Given("A VTEP client")
             val client = createVtep()
 
@@ -278,7 +280,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             state onNext Connecting
 
             And("Creating a logical switch")
-            val future = client.ensureLogicalSwitch("ls-name", 100)
+            val future = client.createLogicalSwitch("ls-name", 100)
             future.isCompleted shouldBe false
 
             And("The client is ready")
@@ -290,7 +292,8 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
 
         scenario("Remove logical switch") {
             Given("A VTEP with a logical switch")
-            val ls = vtep.createLogicalSwitch()
+            val lsId = UUID.randomUUID()
+            vtep.createLogicalSwitch(lsId)
 
             And("A VTEP client")
             val client = createVtep()
@@ -298,18 +301,18 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             When("The client is connecting")
             state onNext Connecting
 
-            And("Removing a logical switch")
-            val future = client.removeLogicalSwitch(ls.name)
+            And("Removing the logical switch")
+            val future = client.deleteLogicalSwitch(lsId)
             future.isCompleted shouldBe false
 
             And("The client is ready")
             state onNext Ready
 
             Then("Removing a logical switch should succeed")
-            Await.result(future, timeout) shouldBe { }
+            Await.result(future, timeout) shouldBe 1
         }
 
-        scenario("Ensure bindings") {
+        scenario("Set bindings") {
             Given("A VTEP with a physical and logical switch")
             vtep.createPhysicalSwitch()
             val ls = vtep.createLogicalSwitch()
@@ -320,15 +323,15 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             When("The client is connecting")
             state onNext Connecting
 
-            And("Creating bindings")
-            val future = client.ensureBindings(ls.name, Iterable.empty)
+            And("Setting the bindings")
+            val future = client.setBindings(ls.uuid, Iterable.empty)
             future.isCompleted shouldBe false
 
             And("The client is ready")
             state onNext Ready
 
             Then("Creating bindings should succeed")
-            Await.result(future, timeout) shouldBe {}
+            Await.result(future, timeout) shouldBe 0
         }
     }
 
@@ -418,7 +421,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             }
         }
 
-        scenario("Ensure logical switch") {
+        scenario("Create logical switch") {
             Given("A VTEP client")
             val client = createVtep()
 
@@ -427,7 +430,7 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
 
             Then("Creating a logical switch should fail")
             intercept[VtepStateException] {
-                Await.result(client.ensureLogicalSwitch("ls-name", 100), timeout)
+                Await.result(client.createLogicalSwitch("ls-name", 100), timeout)
             }
         }
 
@@ -443,11 +446,11 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
 
             Then("Removing a logical switch should fail")
             intercept[VtepStateException] {
-                Await.result(client.removeLogicalSwitch(ls.name), timeout)
+                Await.result(client.deleteLogicalSwitch(ls.uuid), timeout)
             }
         }
 
-        scenario("Ensure bindings") {
+        scenario("Set bindings") {
             Given("A VTEP with a physical and logical switch")
             vtep.createPhysicalSwitch()
             val ls = vtep.createLogicalSwitch()
@@ -458,9 +461,9 @@ class OvsdbVtepDataClientTest extends FeatureSpec with BeforeAndAfter
             When("The client is broken")
             state onNext Broken
 
-            Then("Creating bindings should fail")
+            Then("Setting bindings should fail")
             intercept[VtepStateException] {
-                Await.result(client.ensureBindings(ls.name, Iterable.empty),
+                Await.result(client.setBindings(ls.uuid, Iterable.empty),
                              timeout)
             }
         }

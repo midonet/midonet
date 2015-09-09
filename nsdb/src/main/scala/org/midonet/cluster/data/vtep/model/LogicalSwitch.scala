@@ -33,9 +33,9 @@ import java.util.{Objects, UUID}
 final class LogicalSwitch(id: UUID, lsName: String,
                           val tunnelKey: Integer, lsDesc: String)
     extends VtepEntry {
-    override val uuid = if (id == null) UUID.randomUUID() else id
+    override val uuid = id
     val name = if (lsName == null) "" else lsName
-    val description = if (lsDesc == null || lsDesc.isEmpty) null else lsDesc
+    val description = if (lsDesc == null) "" else lsDesc
 
     /** Corresponding MidoNet NetworkId, assuming the logical switch has
       * a MidoNet-compliant name (mn-<network-id>).
