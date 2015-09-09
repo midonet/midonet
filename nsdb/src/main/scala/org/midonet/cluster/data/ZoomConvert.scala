@@ -52,6 +52,7 @@ object ZoomConvert {
 
     private type ProtoBuilder = Builder[_ <: Builder[_ <: AnyRef]]
 
+    private case class ConverterKey(clazz: Class[_], converter: Class[_])
     private case class FieldInfo(field: Field, zoomField: ZoomField)
     private case class ClassInfo(clazz: Class[_], zoomClass: ZoomClass,
                                  zoomOneOf: ZoomOneOf,
@@ -62,10 +63,10 @@ object ZoomConvert {
     converters += classOf[DefaultConverter] -> new DefaultConverter
     converters += classOf[ObjectConverter] -> new ObjectConverter
 
-    private val arrayConverters = new TrieMap[Class[_], ArrayConverter]
-    private val listConverters = new TrieMap[Class[_], ListConverter]
-    private val setConverters = new TrieMap[Class[_], SetConverter]
-    private val jSetConverters = new TrieMap[Class[_], JavaSetConverter]
+    private val arrayConverters = new TrieMap[ConverterKey, ArrayConverter]
+    private val listConverters = new TrieMap[ConverterKey, ListConverter]
+    private val setConverters = new TrieMap[ConverterKey, SetConverter]
+    private val jSetConverters = new TrieMap[ConverterKey, JavaSetConverter]
 
     private val factories = new TrieMap[Class[_ <: Factory[_,_]], Factory[_,_]]
 
@@ -498,36 +499,40 @@ object ZoomConvert {
     @inline
     private def getArrayConverter(elClass: Class[_], zoomField: ZoomField)
     : ArrayConverter = {
+        val elConverter = getScalarConverter(elClass, zoomField)
         arrayConverters.getOrElseUpdate(
-            elClass,
-            new ArrayConverter(getScalarConverter(elClass, zoomField)))
+            ConverterKey(elClass, elConverter.getClass),
+            new ArrayConverter(elConverter))
     }
 
     /** Gets a converter instance for a [[List]] field. */
     @inline
     private def getListConverter(elClass: Class[_], zoomField: ZoomField)
     : ListConverter = {
+        val elConverter = getScalarConverter(elClass, zoomField)
         listConverters.getOrElseUpdate(
-            elClass,
-            new ListConverter(getScalarConverter(elClass, zoomField)))
+            ConverterKey(elClass, elConverter.getClass),
+            new ListConverter(elConverter))
     }
 
     /** Gets a converter instance for a [[Set]] field. */
     @inline
     private def getSetConverter(elClass: Class[_], zoomField: ZoomField)
     : SetConverter = {
+        val elConverter = getScalarConverter(elClass, zoomField)
         setConverters.getOrElseUpdate(
-            elClass,
-            new SetConverter(getScalarConverter(elClass, zoomField)))
+            ConverterKey(elClass, elConverter.getClass),
+            new SetConverter(elConverter))
     }
 
     /** Gets a converter instance for a [[JSet]] field. */
     @inline
     private def getJavaSetConverter(elClass: Class[_], zoomField: ZoomField)
     : JavaSetConverter = {
+        val elConverter = getScalarConverter(elClass, zoomField)
         jSetConverters.getOrElseUpdate(
-            elClass,
-            new JavaSetConverter(getScalarConverter(elClass, zoomField)))
+            ConverterKey(elClass, elConverter.getClass),
+            new JavaSetConverter(elConverter))
     }
 
     /** Gets a converter instance for a [[Map]] field. */

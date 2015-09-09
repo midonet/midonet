@@ -73,6 +73,9 @@ message TestMessage {
     repeated FakeDevice device_list = 302;
 
     optional Enum enum_field = 400;
+
+    repeated IPAddress address_list = 501;
+    repeated IPSubnet subnet_list = 502;
 }
 
 message TestFlatMessage {
