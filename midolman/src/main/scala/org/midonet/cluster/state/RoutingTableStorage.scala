@@ -40,7 +40,7 @@ object RoutingTableStorage {
         new RoutingTableStorage(store)
     }
 
-    @inline private def serializeForPort(route: Route): String = {
+    @inline def serializeForPort(route: Route): String = {
         val buffer = ByteBuffer.allocate(34)
         buffer.putInt(route.dstNetworkAddr)
         buffer.put(route.dstNetworkLength.toByte)
