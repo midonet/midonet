@@ -100,6 +100,9 @@ object HealthMonitorConfigWatcher {
     // Notifies the watcher that it is now the haproxy node, and can send
     // updates regarding config changes.
     case object BecomeHaproxyNode
+
+    // Notifies the watcher that it is no longer the haproxy node
+    case object UnbecomeHaproxyNode
 }
 
 class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
@@ -220,10 +223,15 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
             }
 
         case BecomeHaproxyNode =>
+            log.debug("{} has become the HM leader", self.path.name)
             currentLeader = true
             this.poolIdtoConfigMap foreach(kv =>
                 manager ! ConfigAdded(kv._1, kv._2,
                     getRouterId(kv._2.loadBalancerId)))
+
+        case UnbecomeHaproxyNode =>
+            log.debug("{} is no longer the HM leader", self.path.name)
+            currentLeader = false
 
         case m => log.warn(s"unknown message received - $m")
     }
