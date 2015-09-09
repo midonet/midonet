@@ -71,7 +71,7 @@ public abstract class Rule extends BaseConfig {
         this.condition = condition;
         this.action = action;
         this.chainId = chainId;
-        result = new RuleResult(action, null);
+        result = new RuleResult(action);
     }
 
     public void afterFromProto(Message proto) {
@@ -124,7 +124,7 @@ public abstract class Rule extends BaseConfig {
                 break;
         }
 
-        result = new RuleResult(action, null);
+        result = new RuleResult(action);
     }
 
     // WARNING!
@@ -181,7 +181,7 @@ public abstract class Rule extends BaseConfig {
 
     protected RuleResult onSuccess() {
         if (result == null) //TODO: Remove this after v2
-            result = new RuleResult(action, null);
+            result = new RuleResult(action);
         return result;
     }
 

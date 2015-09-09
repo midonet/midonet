@@ -195,7 +195,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     protected def applyServicesInbound()(implicit context: PacketContext)
     : RuleResult = {
         if (cfg.loadBalancer == null)
-            new RuleResult(RuleResult.Action.CONTINUE, null)
+            new RuleResult(RuleResult.Action.CONTINUE)
         else
             tryAsk[LoadBalancer](cfg.loadBalancer).processInbound(context)
     }
@@ -373,7 +373,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     protected def applyServicesOutbound()(implicit context: PacketContext)
     : RuleResult =
         if (cfg.loadBalancer == null) {
-            new RuleResult(RuleResult.Action.CONTINUE, null)
+            new RuleResult(RuleResult.Action.CONTINUE)
         } else {
             tryAsk[LoadBalancer](cfg.loadBalancer).processOutbound(context)
         }

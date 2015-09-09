@@ -277,7 +277,7 @@ class ChainTest extends Suite
         if (c ne null)
             c.process(pktCtx)
         else
-            new RuleResult(RuleResult.Action.ACCEPT, null)
+            new RuleResult(RuleResult.Action.ACCEPT)
     }
 
     private def makeChain(rules: List[Rule],

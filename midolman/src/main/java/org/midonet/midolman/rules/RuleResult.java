@@ -59,6 +59,10 @@ public class RuleResult {
     public final Action action;
     public final UUID jumpToChain;
 
+    public RuleResult(Action action) {
+        this(action, null);
+    }
+
     public RuleResult(Action action, UUID jumpToChain) {
         this.action = action;
         this.jumpToChain = jumpToChain;

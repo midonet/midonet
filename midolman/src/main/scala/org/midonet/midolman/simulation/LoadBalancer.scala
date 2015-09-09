@@ -26,9 +26,9 @@ import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.sdn.flows.FlowTagger
 
 object LoadBalancer {
-    val simpleAcceptRuleResult = new RuleResult(RuleResult.Action.ACCEPT, null)
-    val simpleContinueRuleResult = new RuleResult(RuleResult.Action.CONTINUE, null)
-    val simpleDropRuleResult = new RuleResult(RuleResult.Action.DROP, null)
+    val simpleAcceptRuleResult = new RuleResult(RuleResult.Action.ACCEPT)
+    val simpleContinueRuleResult = new RuleResult(RuleResult.Action.CONTINUE)
+    val simpleDropRuleResult = new RuleResult(RuleResult.Action.DROP)
 }
 
 class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,

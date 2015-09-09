@@ -201,7 +201,7 @@ class FlowRecorderTest extends MidolmanSpec {
         }
         for (i <- 1.until(10)) {
             ctx.recordTraversedRule(UUID.randomUUID,
-                                    new RuleResult(RuleResult.Action.DROP, null))
+                                    new RuleResult(RuleResult.Action.DROP))
         }
         for (i <- 1.until(3)) {
             ctx.outPorts.add(UUID.randomUUID)

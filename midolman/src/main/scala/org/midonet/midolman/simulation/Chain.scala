@@ -34,9 +34,9 @@ object Chain {
         override def initialValue = new ArrayList[UUID]()
     }
 
-    val ACCEPT = new RuleResult(Action.ACCEPT, null)
-    val DROP = new RuleResult(Action.DROP, null)
-    val CONTINUE = new RuleResult(Action.CONTINUE, null)
+    val ACCEPT = new RuleResult(Action.ACCEPT)
+    val DROP = new RuleResult(Action.DROP)
+    val CONTINUE = new RuleResult(Action.CONTINUE)
 }
 
 case class Chain(id: UUID,
