@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_27ef35b2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_4b9a9115",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 46
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_eb927df5",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
         "patchSetId": 5
@@ -128,6 +152,30 @@
         "id": 1002751
       },
       "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_eb927df5",
+      "range": {
+        "startLine": 59,
+        "startChar": 21,
+        "endLine": 59,
+        "endChar": 42
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_472b61eb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "3ae8d1ca_eb927df5",
@@ -190,6 +238,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_e722ad00",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_2bbc656c",
+      "range": {
+        "startLine": 72,
+        "startChar": 16,
+        "endLine": 72,
+        "endChar": 31
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_4bc1b1e3",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
         "patchSetId": 5
@@ -222,6 +294,30 @@
         "id": 1002751
       },
       "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_4bc1b1e3",
+      "range": {
+        "startLine": 77,
+        "startChar": 16,
+        "endLine": 77,
+        "endChar": 31
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_072079f6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "3ae8d1ca_4bc1b1e3",
@@ -284,6 +380,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_4779a1fb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_8bbbb971",
+      "range": {
+        "startLine": 84,
+        "startChar": 20,
+        "endLine": 84,
+        "endChar": 40
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_0ba7a950",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
         "patchSetId": 5
@@ -316,6 +436,30 @@
         "id": 1002751
       },
       "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_0ba7a950",
+      "range": {
+        "startLine": 88,
+        "startChar": 20,
+        "endLine": 88,
+        "endChar": 71
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_677e9de6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "3ae8d1ca_0ba7a950",
@@ -378,6 +522,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_8783a9cb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_fb45efb3",
+      "range": {
+        "startLine": 109,
+        "startChar": 48,
+        "endLine": 109,
+        "endChar": 77
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_3b1757a5",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
         "patchSetId": 5
@@ -410,6 +578,30 @@
         "id": 1002751
       },
       "writtenOn": "2015-09-08T10:58:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_3b1757a5",
+      "range": {
+        "startLine": 110,
+        "startChar": 44,
+        "endLine": 110,
+        "endChar": 71
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a788a5e8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
       "side": 1,
       "message": "Done",
       "parentUuid": "1ae5cdf2_3b1757a5",
@@ -472,6 +664,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_a75fc571",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
+      "side": 1,
+      "message": "Covering both cases now.",
+      "parentUuid": "1ae5cdf2_3e658545",
+      "range": {
+        "startLine": 120,
+        "startChar": 12,
+        "endLine": 124,
+        "endChar": 28
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_3e1d8574",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
         "patchSetId": 5
@@ -519,6 +735,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_c753f16a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
+      "side": 1,
+      "message": "As discussed f2f, the problem is created by the interface since it forces the code to go fetch the logical switch that has that name, and then get the ID. Here we depend on the notification having arrived.\n\nThis is unnecessary, the insert already returns the ID, so changing this interface to use id instead of the name solves the problem.",
+      "parentUuid": "1ae5cdf2_3e1d8574",
+      "range": {
+        "startLine": 144,
+        "startChar": 7,
+        "endLine": 144,
+        "endChar": 37
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_011a2e6e",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
         "patchSetId": 5
@@ -553,6 +793,30 @@
       "writtenOn": "2015-09-08T10:58:18Z",
       "side": 1,
       "message": "Done",
+      "parentUuid": "1ae5cdf2_011a2e6e",
+      "range": {
+        "startLine": 160,
+        "startChar": 16,
+        "endLine": 160,
+        "endChar": 37
+      },
+      "revId": "238f8646a3df9f58db4a7245f4e454fbf4f13f76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_67ccdd36",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-09T08:10:55Z",
+      "side": 1,
+      "message": "Same solution as above by dead dog, no rabies.",
       "parentUuid": "1ae5cdf2_011a2e6e",
       "range": {
         "startLine": 160,
