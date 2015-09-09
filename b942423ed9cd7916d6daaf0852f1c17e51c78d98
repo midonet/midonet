@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1ae5cdf2_5069508a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T05:14:44Z",
+      "side": 1,
+      "message": "These three lines need another level of indentation.",
+      "range": {
+        "startLine": 148,
+        "startChar": 0,
+        "endLine": 150,
+        "endChar": 10
+      },
+      "revId": "b942423ed9cd7916d6daaf0852f1c17e51c78d98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_8ea57e06",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
         "patchSetId": 5
@@ -13,6 +36,29 @@
       "writtenOn": "2015-09-08T12:56:52Z",
       "side": 1,
       "message": "fpManager could be a member of this class, right?",
+      "revId": "b942423ed9cd7916d6daaf0852f1c17e51c78d98",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f0409c37",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-09T05:14:44Z",
+      "side": 1,
+      "message": "This whole class definition, except the first line, is indented an extra level.",
+      "range": {
+        "startLine": 178,
+        "startChar": 0,
+        "endLine": 187,
+        "endChar": 9
+      },
       "revId": "b942423ed9cd7916d6daaf0852f1c17e51c78d98",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
