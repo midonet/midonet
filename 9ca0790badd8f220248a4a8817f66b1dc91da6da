@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_002024af",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-09-09T10:38:04Z",
+      "side": 1,
+      "message": "I think you should remove \u0027the\u0027",
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c00f1c87",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 2
@@ -117,6 +134,47 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_53731a4d",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-09-09T10:38:04Z",
+      "side": 1,
+      "message": "systems",
+      "parentUuid": "9ad9bd40_807c34ed",
+      "range": {
+        "startLine": 22,
+        "startChar": 49,
+        "endLine": 22,
+        "endChar": 55
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_738f3624",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-09-09T10:38:04Z",
+      "side": 1,
+      "message": "in case",
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c0863cdb",
         "filename": "blogs/cluster_services.md",
         "patchSetId": 2
@@ -151,6 +209,30 @@
       "writtenOn": "2015-09-01T10:36:04Z",
       "side": 1,
       "message": "the Apache Zookeeper coordination service.",
+      "range": {
+        "startLine": 26,
+        "startChar": 3,
+        "endLine": 26,
+        "endChar": 66
+      },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b399be70",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-09-09T10:38:04Z",
+      "side": 1,
+      "message": "such \u003d\u003e i.e.",
+      "parentUuid": "9ad9bd40_2077e803",
       "range": {
         "startLine": 26,
         "startChar": 3,
@@ -226,6 +308,23 @@
         "endLine": 51,
         "endChar": 18
       },
+      "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_73b656de",
+        "filename": "blogs/cluster_services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-09-09T10:38:04Z",
+      "side": 1,
+      "message": "infrastructure",
       "revId": "9ca0790badd8f220248a4a8817f66b1dc91da6da",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
