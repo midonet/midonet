@@ -27,7 +27,7 @@ import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.simulation.{BridgePort, Port}
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopology
 
 object MtuIncreaser  {
     val BOUND_INTERFACE_MTU = 65000L
@@ -45,7 +45,7 @@ trait MtuIncreaser {
     def increaseMtu(portId: UUID)
                    (implicit actorSystem: ActorSystem): Unit =
         try {
-            val port = VirtualTopologyActor.tryAsk[Port](portId)
+            val port = VirtualTopology.tryGet[Port](portId)
             if (port.isInstanceOf[BridgePort]) {
                 val itfName = port.interfaceName
                 s"ip link set mtu $BOUND_INTERFACE_MTU dev $itfName".! match {

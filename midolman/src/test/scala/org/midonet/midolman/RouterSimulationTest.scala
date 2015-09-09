@@ -16,7 +16,7 @@
 
 package org.midonet.midolman
 
-import java.util.{LinkedList, UUID}
+import java.util.{LinkedList => JLinkedList, UUID}
 
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.slf4j.helpers.NOPLogger
@@ -56,7 +56,7 @@ class RouterSimulationTest extends MidolmanSpec {
     val uplinkPortAddr = "180.0.1.2"
     val uplinkMacAddr = MAC.fromString("02:0a:08:06:04:02")
 
-    val generatedPackets = new LinkedList[GeneratedPacket]()
+    val generatedPackets = new JLinkedList[GeneratedPacket]()
 
     override def beforeTest(): Unit = {
         router = newRouter("router")
@@ -118,7 +118,7 @@ class RouterSimulationTest extends MidolmanSpec {
             .setNetworkDst(IPv4Addr.fromString(routeDst))
 
         val rb = new RouteBalancer(simRouter.rTable)
-        (0 until gateways.length) map { _ =>
+        gateways.indices map { _ =>
            rb.lookup(fmatch, Logger(NOPLogger.NOP_LOGGER)).getNextHopGateway
         } should contain theSameElementsAs gateways
     }

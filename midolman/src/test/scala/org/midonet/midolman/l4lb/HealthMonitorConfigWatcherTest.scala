@@ -17,49 +17,50 @@ package org.midonet.midolman.l4lb
 
 import java.util.{Random, UUID}
 
-import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
+import scala.collection.mutable.{HashMap => MMap}
 import scala.concurrent.duration._
 
-import akka.actor.{ActorRef, ActorSystem}
-import akka.testkit.{ImplicitSender, TestKit}
-import com.typesafe.config.ConfigFactory
+import akka.actor.{Props, ActorRef, ActorSystem}
+import akka.testkit.TestKit
+
 import org.junit.runner.RunWith
-import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.state.l4lb.{VipSessionPersistence, LBStatus, HealthMonitorType}
-import org.midonet.midolman.l4lb.HealthMonitor.{ConfigUpdated, ConfigDeleted, ConfigAdded}
+import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
-import org.midonet.midolman.simulation.{Vip => SimVip, LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, CustomMatchers}
-import org.midonet.midolman.topology.devices.{HealthMonitor => SimHealthMonitor, PoolHealthMonitorMap, PoolHealthMonitor}
+import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, Vip => SimVip}
+import org.midonet.midolman.state.l4lb.{HealthMonitorType, LBStatus, VipSessionPersistence}
+import org.midonet.midolman.topology.devices.{HealthMonitor => SimHealthMonitor, PoolHealthMonitor, PoolHealthMonitorMap}
+import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
 
 
 @RunWith(classOf[JUnitRunner])
-class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
-        with FeatureSpecLike
-        with CustomMatchers
-        with BeforeAndAfter
-        with GivenWhenThen
-        with ImplicitSender
-        with Matchers {
+class HealthMonitorConfigWatcherTest
+    extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
+    with MidolmanSpec {
 
     val random = new Random()
     var watcher: ActorRef = null
-    val actorSystem = ActorSystem.create("HaproxyTestActors",
-            ConfigFactory.load().getConfig("midolman"))
 
     val uuidOne = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val uuidTwo = UUID.fromString("00000000-0000-0000-0000-000000000002")
     val uuidThree = UUID.fromString("00000000-0000-0000-0000-000000000003")
 
-    before {
-        watcher = actorSystem.actorOf(HealthMonitorConfigWatcher.props(
-            "/doesnt/matter", "/dont/care", testActor))
+    class TestableHealthMonitorConfigWatcher
+        extends HealthMonitorConfigWatcher("/doesnt/matter", "/dont/care", testActor) {
+        override def preStart(): Unit = {
+            // Override preStart to not subscribe to the VT for pool health
+            // monitor mappings, which will introduce additional notifications.
+        }
     }
 
-    after {
+    protected override def beforeTest(): Unit = {
+        watcher = actorSystem.actorOf(Props(new TestableHealthMonitorConfigWatcher()))
+    }
+
+    protected override def afterTest(): Unit = {
         actorSystem.stop(watcher)
     }
 

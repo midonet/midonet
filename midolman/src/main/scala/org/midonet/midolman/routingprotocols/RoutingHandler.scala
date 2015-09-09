@@ -40,9 +40,8 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.routingprotocols.RoutingWorkflow.RoutingInfo
 import org.midonet.midolman.simulation.RouterPort
 import org.midonet.midolman.state.{StateAccessException, ZkConnectionAwareWatcher}
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices.{BgpPort, BgpPortDeleted, BgpRouterDeleted}
-import org.midonet.midolman.topology.{VirtualTopology, VirtualTopologyActor}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
@@ -179,19 +178,9 @@ object RoutingHandler {
                 log.info(s"Starting, port ${rport.id}")
                 super.preStart()
 
-                if (config.zookeeper.useNewStack) {
-                    // Subscribe to the BGP port mapper for BGP updates.
-                    bgpSubscription = VirtualTopology.observable[BgpPort](rport.id)
-                                                     .subscribe(this)
-                } else {
-                    // Watch the BGP session information for this port.
-                    // In the future we may also watch for session configurations of
-                    // other routing protocols.
-                    client.subscribeBgp(rport.id, modelTranslator)
-
-                    // Subscribe to the VTA for updates to the Port configuration.
-                    VirtualTopologyActor ! PortRequest(rport.id, update = true)
-                }
+                // Subscribe to the BGP port mapper for BGP updates.
+                bgpSubscription = VirtualTopology.observable[BgpPort](rport.id)
+                                                 .subscribe(this)
 
                 system.scheduler.schedule(2 seconds, 5 seconds,
                                           self, FETCH_BGPD_STATUS)(context.dispatcher)

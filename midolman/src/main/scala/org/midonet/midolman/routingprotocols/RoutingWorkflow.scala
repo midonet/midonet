@@ -23,7 +23,7 @@ import akka.actor.ActorSystem
 
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, SimulationResult, ErrorDrop}
 import org.midonet.midolman.simulation.{RouterPort, PacketContext}
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp.flows.FlowActions.{output, userspace}
@@ -53,7 +53,7 @@ trait RoutingWorkflow {
         if (info eq null)
             return ErrorDrop
 
-        val port = VirtualTopologyActor.tryAsk[RouterPort](info.portId)
+        val port = VirtualTopology.tryGet[RouterPort](info.portId)
         if (context.wcmatch.getEtherType == ARP.ETHERTYPE ||
             matchBgp(context, info, port)) {
 

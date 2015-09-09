@@ -33,7 +33,7 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.state.ArpCache
-import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
@@ -265,7 +265,7 @@ class Router(override val id: UUID,
     }
 
     private def getPeerMac(rtrPort: RouterPort): MAC =
-        tryAsk[Port](rtrPort.peerId) match {
+        tryGet[Port](rtrPort.peerId) match {
            case rtPort: RouterPort => rtPort.portMac
            case _ => null
         }
@@ -419,7 +419,7 @@ class Router(override val id: UUID,
         if (rt.nextHopPort == null)
             return false
 
-        _sendIPPacket(tryAsk[RouterPort](rt.nextHopPort), rt)
+        _sendIPPacket(tryGet[RouterPort](rt.nextHopPort), rt)
     }
 
     override def toString =

@@ -26,8 +26,7 @@ import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp._
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
-import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
-import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.packets._
@@ -91,7 +90,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 context.log.debug(s"Dropping unsupported EtherType ${context.wcmatch.getEtherType}")
                 Drop
             } else {
-                tryAsk[RouterPort](context.inPortId) match {
+                tryGet[RouterPort](context.inPortId) match {
                     case inPort if !cfg.adminStateUp =>
                         context.log.debug("Router {} state is down, DROP", id)
                         sendAnswer(inPort.id,
@@ -111,7 +110,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             if (context.wcmatch.getIpFragmentType == IPFragmentType.First) {
                 sendAnswer(context.inPortId,
                     icmpErrors.unreachableFragNeededIcmp(
-                        tryAsk[RouterPort](context.inPortId), context))
+                        tryGet[RouterPort](context.inPortId), context))
                 ErrorDrop
             } else {
                 Drop
@@ -151,7 +150,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
     @throws[NotYetException]
     private def preRouting()(implicit context: PacketContext): SimulationResult = {
-        val inPort = tryAsk[RouterPort](context.inPortId)
+        val inPort = tryGet[RouterPort](context.inPortId)
 
         val hwDst = context.wcmatch.getEthDst
         if (Ethernet.isBroadcast(hwDst)) {
@@ -177,7 +176,8 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             case res if res.action == RuleResult.Action.CONTINUE =>
                 // Continue to inFilter / ingress chain
                 filterIn(context, system, continueIn)
-            case res if res.action == Drop => // Skip the inFilter / ingress chain
+            case res if res.action == RuleResult.Action.DROP =>
+                // Skip the inFilter / ingress chain
                 dropIn(context, system, res.action)
             case _ =>
                 continueIn(context, system)
@@ -197,7 +197,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         if (cfg.loadBalancer == null)
             new RuleResult(RuleResult.Action.CONTINUE)
         else
-            tryAsk[LoadBalancer](cfg.loadBalancer).processInbound(context)
+            tryGet[LoadBalancer](cfg.loadBalancer).processInbound(context)
     }
 
 
@@ -205,7 +205,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         implicit val c: PacketContext = context
         val fmatch = context.wcmatch
         val dstIP = context.wcmatch.getNetworkDstIP
-        val inPort = tryAsk[RouterPort](context.inPortId)
+        val inPort = tryGet[RouterPort](context.inPortId)
 
         def applyTimeToLive(): SimulationResult = {
             if (fmatch.isUsed(Field.NetworkTTL)) {
@@ -269,7 +269,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
                 case Route.NextHop.PORT =>
                     applyTimeToLive() match {
-                        case NoOp => tryAsk[Port](rt.nextHopPort).action
+                        case NoOp => tryGet[Port](rt.nextHopPort).action
                         case simRes => simRes
                     }
                 case _ =>
@@ -288,7 +288,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
         action match {
             case ToPortAction(outPortId) =>
-                val outPort = tryAsk[RouterPort](outPortId)
+                val outPort = tryGet[RouterPort](outPortId)
                 postRouting(outPort, rt, context)
             case _ => action
         }
@@ -327,7 +327,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     override protected def reject(context: PacketContext, as: ActorSystem): Unit = {
         sendAnswer(context.inPortId,
             icmpErrors.unreachableProhibitedIcmp(
-                tryAsk[RouterPort](context.inPortId), context))(context)
+                tryGet[RouterPort](context.inPortId), context))(context)
     }
 
     private val continueOut: SimStep = (context, as) => {
@@ -335,22 +335,22 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         val rt = context.routeTo
         context.routeTo = null
 
-        getNextHopMac(tryAsk[RouterPort](context.outPortId), rt,
+        getNextHopMac(tryGet[RouterPort](context.outPortId), rt,
             context.wcmatch.getNetworkDstIP.asInstanceOf[IP], context) match {
             case null if rt.nextHopGateway == 0 || rt.nextHopGateway == -1 =>
                 context.log.debug("icmp host unreachable, host mac unknown")
                 sendAnswer(context.inPortId,
                     icmpErrors.unreachableHostIcmp(
-                        tryAsk[RouterPort](context.inPortId), context))
+                        tryGet[RouterPort](context.inPortId), context))
                 ErrorDrop
             case null =>
                 context.log.debug("icmp net unreachable, gw mac unknown")
                 sendAnswer(context.inPortId,
                     icmpErrors.unreachableNetIcmp(
-                        tryAsk[RouterPort](context.inPortId), context))
+                        tryGet[RouterPort](context.inPortId), context))
                 ErrorDrop
             case nextHopMac =>
-                val outPort = tryAsk[RouterPort](rt.nextHopPort)
+                val outPort = tryGet[RouterPort](rt.nextHopPort)
                 context.log.debug("routing packet to {}", nextHopMac)
                 context.wcmatch.setEthSrc(outPort.portMac)
                 context.wcmatch.setEthDst(nextHopMac)
@@ -375,7 +375,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         if (cfg.loadBalancer == null) {
             new RuleResult(RuleResult.Action.CONTINUE)
         } else {
-            tryAsk[LoadBalancer](cfg.loadBalancer).processOutbound(context)
+            tryGet[LoadBalancer](cfg.loadBalancer).processOutbound(context)
         }
 
     // Auxiliary, IP version specific abstract methods.

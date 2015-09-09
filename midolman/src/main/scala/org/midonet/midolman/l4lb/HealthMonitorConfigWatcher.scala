@@ -21,14 +21,16 @@ import scala.collection.immutable.{Map => IMap, Set => ISet}
 import scala.collection.mutable
 import scala.collection.mutable.{HashSet => MSet, Map => MMap}
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{ActorRef, Props}
+
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.{Vip => SimVip, LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember}
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.{LoadBalancerRequest, PoolHealthMonitorMapRequest}
+import org.midonet.midolman.topology.PoolHealthMonitorMapper.PoolHealthMonitorMapKey
+import org.midonet.midolman.topology.TopologyActor
 import org.midonet.midolman.topology.devices.{PoolHealthMonitor, PoolHealthMonitorMap}
+import org.midonet.util.concurrent.ReactiveActor.{OnError, OnCompleted}
 
 /**
  * This actor is responsible for providing the configuration data to
@@ -104,7 +106,8 @@ object HealthMonitorConfigWatcher {
 
 class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                                  val manager: ActorRef)
-        extends Referenceable with Actor with ActorLogWithoutPath {
+        extends Referenceable with TopologyActor with ActorLogWithoutPath {
+
     import context._
     import HealthMonitor._
     import HealthMonitorConfigWatcher._
@@ -116,8 +119,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     override val Name = "HealthMonitorConfigWatcher"
 
     override def preStart(): Unit = {
-        VirtualTopologyActor.getRef() ! PoolHealthMonitorMapRequest(
-                                            update = true)
+        subscribe[PoolHealthMonitorMap](PoolHealthMonitorMapKey)
     }
 
     private  def handleDeletedMapping(poolId: UUID) {
@@ -146,11 +148,15 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                 mappings: IMap[UUID, PoolHealthMonitor]) {
 
         val convertedMap = convertDataMapToConfigMap(mappings, fileLocs, suffix)
-        convertedMap.values filter (conf =>
-            !lbIdToRouterIdMap.contains(conf.loadBalancerId)) foreach { conf =>
-                VirtualTopologyActor.getRef() ! LoadBalancerRequest(
-                        conf.loadBalancerId, update = true)
-            }
+        val loadBalancerIds = convertedMap.values.map(_.loadBalancerId).toSet
+        for (loadBalancerId <- loadBalancerIds
+             if !lbIdToRouterIdMap.contains(loadBalancerId)) {
+            subscribe[SimLoadBalancer](loadBalancerId)
+        }
+        for (loadBalancerId <- lbIdToRouterIdMap.keySet
+             if !loadBalancerIds.contains(loadBalancerId)) {
+            unsubscribe[SimLoadBalancer](loadBalancerId)
+        }
 
         val oldPoolSet = this.poolIdtoConfigMap.keySet
         val newPoolSet = convertedMap.keySet
@@ -225,6 +231,10 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                 manager ! ConfigAdded(kv._1, kv._2,
                     getRouterId(kv._2.loadBalancerId)))
 
-        case m => log.warn(s"unknown message received - $m")
+        case OnCompleted => // ignore
+
+        case OnError(e) => log.warn("Device error", e)
+
+        case m => log.warn(s"Unknown message received: $m")
     }
 }
