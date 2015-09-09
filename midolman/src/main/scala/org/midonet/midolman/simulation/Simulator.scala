@@ -20,10 +20,9 @@ import java.util.{List => JList, UUID}
 
 import akka.actor.ActorSystem
 
-import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimStep, SimulationResult => Result, _}
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
+import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
 import org.midonet.util.concurrent.{InstanceStash1, InstanceStash2}
@@ -54,9 +53,9 @@ object Simulator {
         context.log.debug("Simulating a packet")
         reUpStashes()
         if (context.ingressed)
-            tryAsk[Port](context.inputPort).ingress(context, as)
+            tryGet[Port](context.inputPort).ingress(context, as)
         else
-            tryAsk[Port](context.egressPort).egress(context, as)
+            tryGet[Port](context.egressPort).egress(context, as)
     }
 
     private def reUpStashes(): Unit = {
@@ -158,7 +157,7 @@ trait SimDevice {
                                                 branch(context, first),
                                                 branch(context, second))
         case ToPortAction(port) => continue(context,
-                                       tryAsk[Port](port).egress(context, as))
+                                            tryGet[Port](port).egress(context, as))
         case ContinueWith(step) => continue(context, step(context, as))
         case res => res
     }
@@ -254,7 +253,7 @@ trait InAndOutFilters extends SimDevice {
                         ruleResult.action == RuleResult.Action.ACCEPT)) {
             val filter = filters.get(i)
             context.log.debug(s"Applying filter $filter")
-            ruleResult = tryAsk[Chain](filter).process(context)
+            ruleResult = tryGet[Chain](filter).process(context)
             i += 1
         }
         ruleResult

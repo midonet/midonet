@@ -17,10 +17,8 @@ package org.midonet.midolman.routingprotocols
 
 import java.util.UUID
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 import akka.actor._
 
@@ -41,11 +39,9 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
-import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices._
-import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopology, VirtualTopologyActor}
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
 import org.midonet.util.concurrent.ReactiveActor
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}

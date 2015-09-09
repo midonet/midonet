@@ -41,6 +41,7 @@ import org.midonet.util.concurrent._
  * management cluster and is responsible for all pieces of state that describe
  * virtual network devices.
  */
+@Deprecated
 object VirtualTopologyActor extends Referenceable {
     val deviceRequestTimeout = 30 seconds
 

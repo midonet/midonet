@@ -29,8 +29,7 @@ import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimStep,
                                             SimulationResult => Result}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
-import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
-import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort,
@@ -158,17 +157,6 @@ class Bridge(val id: UUID,
         }
     }
 
-    val normalProcess = ContinueWith((context, actorSystem) => {
-        if (areChainsApplicable()(context)) {
-            // Call ingress (pre-bridging) chain. InputPort is already set.
-            context.outPortId = null
-            filterIn(context, actorSystem, continueIn)
-        } else {
-            context.log.debug("Ignoring pre/post chains on vlan tagged traffic")
-            continueIn(context, actorSystem)
-        }
-    })
-
     private val continueIn: SimStep = (context, as) => {
         // Learn the entry
         implicit val c: PacketContext = context
@@ -189,6 +177,17 @@ class Bridge(val id: UUID,
         else
             action
     }
+
+    val normalProcess = ContinueWith((context, actorSystem) => {
+        if (areChainsApplicable()(context)) {
+            // Call ingress (pre-bridging) chain. InputPort is already set.
+            context.outPortId = null
+            filterIn(context, actorSystem, continueIn)
+        } else {
+            context.log.debug("Ignoring pre/post chains on vlan tagged traffic")
+            continueIn(context, actorSystem)
+        }
+    })
 
     override val dropIn: DropHook = (context, as, result) => {
         updateFlowCount(context.wcmatch.getEthSrc, context)
@@ -289,7 +288,7 @@ class Bridge(val id: UUID,
                 "InPort is interior, vlan tagged {}: PUSH & fwd to trunk {}",
                 inPortVlan, toPort)
             context.wcmatch.addVlanId(inPortVlan)
-            return tryAsk[Port](toPort).action
+            return tryGet[Port](toPort).action
         }
 
         val vlanInFrame: Option[JShort] = context.ethernet.getVlanIDs match {
@@ -300,14 +299,14 @@ class Bridge(val id: UUID,
         vlanToPort.getVlan(toPort) match {
             case null => // the outbound port has no vlan assigned
                 context.log.debug("OutPort has no vlan assigned: forward")
-                tryAsk[Port](toPort).action
-            case vlanId if vlanInFrame == None =>
+                tryGet[Port](toPort).action
+            case vlanId if vlanInFrame.isEmpty =>
                 context.log.debug("OutPort has vlan {}, frame had none: DROP", vlanId)
                 Drop
             case vlanId if vlanInFrame.get == vlanId =>
                 context.log.debug("OutPort tagged with vlan {}, POP & forward", vlanId)
                 context.wcmatch.removeVlanId(vlanId)
-                tryAsk[Port](toPort).action
+                tryGet[Port](toPort).action
             case vlanId =>
                 context.log.debug("OutPort vlan {} doesn't match frame vlan {}: DROP",
                           vlanId, vlanInFrame.get)
@@ -344,10 +343,10 @@ class Bridge(val id: UUID,
             case Some(vPId) if !context.inPortId.equals(vPId) =>
                 // This VUB is connected to a VAB: send there too
                 context.log.debug("Add vlan-aware bridge flood")
-                Fork(floodAction, tryAsk[Port](vPId).action)
+                Fork(floodAction, tryGet[Port](vPId).action)
             case None if !vlanToPort.isEmpty => // A vlan-aware bridge
                 context.log.debug("Vlan-aware flood")
-                multicastVlanAware(tryAsk[BridgePort](context.inPortId))
+                multicastVlanAware(tryGet[BridgePort](context.inPortId))
             case _ => // A normal bridge
                 context.log.debug("Flooding")
                 floodAction
@@ -374,7 +373,7 @@ class Bridge(val id: UUID,
                     context.log.debug(
                         "Frame from trunk on vlan {}, send to trunks, POP, to port {}",
                         vlanId, vlanPort)
-                    Fork(floodAction, tryAsk[Port](vlanPort).action)
+                    Fork(floodAction, tryGet[Port](vlanPort).action)
             }
         case p: BridgePort if p.isInterior =>
             vlanToPort.getVlan(context.inPortId) match {
