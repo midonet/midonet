@@ -16,21 +16,25 @@
 
 package org.midonet.cluster.data.vtep.model
 
-import java.util
 import java.util.{Objects, UUID}
-
-import scala.collection.JavaConversions.asScalaSet
 
 /**
  * Represents a VTEP's physical locator set. The set of locators may be empty,
  * but not null.
+ *
+ * Note that several switches don't really support multiple locator entries,
+ * so we'll use only one.  The public constructors for this object don't
+ * take sets for this reason.
+ *
  * @param id is UUID of this locator set in OVSDB
  * @param locators is the (immutable) set of the ids of locators in this set
  */
-final class PhysicalLocatorSet(id: UUID, locators: Set[String])
+final class PhysicalLocatorSet(id: UUID, locators: Option[String])
     extends VtepEntry {
     override val uuid = if (id == null) UUID.randomUUID() else id
-    val locatorIds: Set[String] = if (locators == null) Set() else locators
+
+    val locatorIds: Set[String] = if (locators == null) Set()
+                                  else locators.toSet
 
     override def toString: String = "PhysicalLocatorSet{" +
         "uuid=" + uuid + ", " +
@@ -45,16 +49,11 @@ final class PhysicalLocatorSet(id: UUID, locators: Set[String])
 }
 
 object PhysicalLocatorSet {
-    def apply(id: UUID, locators: Set[String]): PhysicalLocatorSet =
-        new PhysicalLocatorSet(id, locators)
-    def apply(locator: String): PhysicalLocatorSet =
-        new PhysicalLocatorSet(null, Set(locator))
-    def apply(locators: Set[String]): PhysicalLocatorSet =
-        new PhysicalLocatorSet(null, locators)
+    def apply(id: UUID, locator: String): PhysicalLocatorSet =
+        new PhysicalLocatorSet(id, Option(locator))
 
-    // Java compatibility
-    def apply(id: UUID, locators: util.Set[String]): PhysicalLocatorSet =
-        new PhysicalLocatorSet(id, asScalaSet(locators).toSet)
+    def apply(locator: String): PhysicalLocatorSet =
+        new PhysicalLocatorSet(null, Option(locator))
 }
 
 

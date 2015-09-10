@@ -24,10 +24,12 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 import com.typesafe.scalalogging.Logger
 import org.opendaylight.ovsdb.lib.OvsdbClient
+import org.opendaylight.ovsdb.lib.operations.OperationResult
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
@@ -48,7 +50,7 @@ import org.midonet.util.functors.makeFunc1
  * This class handles the data from an OVSDB-compliant VTEP.
  */
 class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
-                    val vtepExecutor: Executor, val eventExecutor: Executor)
+                    val vtepExecutor: Executor)
     extends VtepData {
 
     private val endPoint = OvsdbTools.endPointFromOvsdbClient(client)
@@ -67,7 +69,7 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
 
     private def cachedTable[E <: VtepEntry](table: Table[E])
     : OvsdbCachedTable[E] = {
-        new OvsdbCachedTable[E](client, table, vtepExecutor, eventExecutor)
+        new OvsdbCachedTable[E](client, table, vtepExecutor)
     }
 
     private val lsTable = cachedTable(new LogicalSwitchTable(dbSchema))
@@ -81,9 +83,9 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
     private val mRemoteTable = cachedTable(new McastMacsRemoteTable(dbSchema))
 
     private val uLocalMonitor = new OvsdbTableMonitor[UcastMac](
-        client, uLocalTable.table)(eventExecutor)
+        client, uLocalTable.table)(vtepExecutor)
     private val mLocalMonitor = new OvsdbTableMonitor[McastMac](
-        client, mLocalTable.table)(eventExecutor)
+        client, mLocalTable.table)(vtepExecutor)
 
     private val tables = List(lsTable, psTable, portTable,
                               locSetTable, locTable,
@@ -255,16 +257,20 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
             .observeOn(vtepScheduler)
             .concatMap(macUpdateToMacLocationsFunc)
 
-    /** Returns an [[Observer]] that will write updates to the local MACs in the
-      * `Ucast_Mac_Local` or `Mcast_Mac_Local` tables. */
-    override def macLocalUpdater: Future[Observer[MacLocation]] = {
-        macUpdater(new MacUpdater(uLocalTable, mLocalTable))
-    }
+
+    private val macRemoteUpdaterBuffer = PublishSubject.create[MacLocation]
+    macRemoteUpdaterBuffer
+         // buffer bc. the observeOn has a buffer of 128
+        .onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
+        .observeOn(vtepScheduler)
+         // buffer again, because observeOn swallows the request()
+        .onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
+        .subscribe(new MacUpdater(uRemoteTable, mRemoteTable))
 
     /** Returns an [[Observer]] that will write updates to the remote MACs in
       * the `Ucast_Mac_Remote` or `Mcast_Mac_Remote` tables. */
     override def macRemoteUpdater: Future[Observer[MacLocation]] = {
-        macUpdater(new MacUpdater(uRemoteTable, mRemoteTable))
+        onReady { macRemoteUpdaterBuffer }
     }
 
     /** Provides a snapshot of the `Ucast_Mac_Local` and `Mcast_Mac_Local`
@@ -300,93 +306,94 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
         }
 
         private def applyMac(ml: MacLocation): Unit = {
-            logicalSwitch(ml.logicalSwitchName) map {
+            logicalSwitch(ml.logicalSwitchName) flatMap {
                 case None =>
-                    log.warn("Unknown logical switch in MAC location: {}",
+                    log.warn("Unknown Logical Switch in MacLocation: {}",
                              ml.logicalSwitchName)
-                    Seq.empty
-
+                    Future.successful(new OperationResult())
                 case Some(ls) if ml.vxlanTunnelEndpoint == null =>
                     // Delete a unicast or multicast MAC entry.
-                    if (ml.mac.isUcast) {
-                        Seq(ucastTable.table.delete(
-                            UcastMac(ls.uuid, ml.mac, ml.ipAddr, null)))
-                    } else {
-                        Seq(mcastTable.table.delete(
-                            McastMac(ls.uuid, ml.mac, ml.ipAddr, null)))
-                    }
+                    deleteMacEntry(ls, ml, ucastTable, mcastTable)
                 case Some(ls) if ml.mac.isUcast =>
-                // Add a unicast MAC entry: if one or more locators already
-                // exist for the tunnel IP address, use those locators to
-                // create an INSERT operation. Otherwise, INSERT a new
-                // locator operation with a named identifier, and INSERT
-                // the MAC with the same locator named identifier.
-                locTable.getAll
-                    .filter(_.dstIp == ml.vxlanTunnelEndpoint)
-                    .map(locator => UcastMac(ls.uuid, ml.mac,
-                                             ml.ipAddr,
-                                             locator.uuid.toString))
-                    .map(ucastTable.table.insert(_, null))
-                    .toSeq match {
-                    case Nil =>
-                        val locator = PhysicalLocator(
-                            ml.vxlanTunnelEndpoint)
-                        val mac = UcastMac(ls.uuid, ml.mac, ml.ipAddr,
-                                           "locator_id")
-                        val locOp = locTable.table
-                            .insert(locator, "locator_id")
-                        val macOp = ucastTable.table.insert(mac, null)
-                        Seq(locOp, macOp)
-                    case entries => entries
-                }
+                    // Add a unicast MAC entry: if one or more locators already
+                    // exist for the tunnel IP address, use those locators to
+                    // create an INSERT operation. Otherwise, INSERT a new
+                    // locator operation with a named identifier, and INSERT
+                    // the MAC with the same locator named identifier.
+                    addUcastMacEntry(ls, ml, ucastTable)
                 case Some(ls) =>
-                var ops = Seq.empty[OvsdbOperation]
-                val locatorIds = locTable.getAll
-                    .filter(_.dstIp == ml.vxlanTunnelEndpoint)
-                    .map(_.uuid.toString)
-                    .toSet
-                if (locatorIds.isEmpty) {
-                    val locator = PhysicalLocator(
-                        ml.vxlanTunnelEndpoint)
-                    val locatorSet = PhysicalLocatorSet("locator_id")
-                    val mac = McastMac(ls.uuid, ml.mac, ml.ipAddr,
-                                       "locator_set_id")
-                    ops = ops :+
-                          locTable.table.insert(locator, "locator_id")
-                    ops = ops :+ locSetTable.table
-                        .insert(locatorSet, "locator_set_id")
-                    ops = ops :+ mcastTable.table.insert(mac, null)
-                } else {
-                    locSetTable.getAll
-                        .filter(set => locatorIds
-                        .exists(set.locatorIds.contains))
-                        .map(set => McastMac(ls.uuid, ml.mac, ml.ipAddr,
-                                             set.uuid.toString))
-                        .map(mcastTable.table.insert(_, null))
-                        .toSeq match {
-                        case Nil =>
-                            val locatorSet = PhysicalLocatorSet(
-                                locatorIds)
-                            val mac = McastMac(ls.uuid, ml.mac,
-                                               ml.ipAddr,
-                                               "locator_set_id")
-                            ops = ops :+ locSetTable.table
-                                .insert(locatorSet, "locator_set_id")
-                            ops = ops :+
-                                  mcastTable.table.insert(mac, null)
-                        case entries =>
-                            ops = ops ++: entries
-                    }
-                }
-                ops
-            } flatMap {
-                OvsdbOperations.multiOp(client, dbSchema, _)
+                    addMcastMacEntry(ls, ml, mcastTable)
             } onComplete {
-                case Success(s) =>
-                    log.debug("SUCCESS {}", s)
-                case Failure(e) =>
-                    log.warn("FAIL: {}", e)
+                case Success(_) =>
+                    log.debug(s"Published $ml to VTEP")
+                    request(1)
+                case Failure(NonFatal(t)) =>
+                    log.warn(s"Failed publishing $ml to VTEP", t)
+                    request(1)
             }
+        }
+    }
+
+    private def getOrCreateLocator(ip: IPv4Addr): Future[UUID] = {
+        locTable.getAll.find(_.dstIp == ip) match {
+            case None =>
+                val op = locTable.table.insert(PhysicalLocator(ip), null)
+                OvsdbOperations.singleOp(client, dbSchema, op).map { res =>
+                    OvsdbUtil.fromOvsdb(res.getUuid)
+                }
+            case Some(l) =>
+                Future.successful(l.uuid)
+        }
+    }
+
+    private def getOrCreateLocatorSetWith(locatorId: UUID): Future[UUID] = {
+        // Locator sets are expected to have just 1 entry, so we can assume
+        // that they are 1-1 with the locator ID.  Otherwise that contains
+        // below would not be correct.
+        locSetTable.getAll.find { locSet =>
+            locSet.locatorIds.contains(locatorId.toString)
+        } match {
+            case Some(ls) => Future.successful(ls.uuid)
+            case None =>
+                val locatorSet = PhysicalLocatorSet(locatorId.toString)
+                val op = locSetTable.table.insert(locatorSet, null)
+                OvsdbOperations.singleOp(client, dbSchema, op).map { res =>
+                    OvsdbUtil.fromOvsdb(res.getUuid)
+                }
+        }
+    }
+
+    private def deleteMacEntry(ls: LogicalSwitch, ml: MacLocation,
+                               ucastTable: OvsdbCachedTable[UcastMac],
+                               mcastTable: OvsdbCachedTable[McastMac])
+    : Future[OperationResult] =  {
+        val op = if (ml.mac.isUcast) {
+            ucastTable.table.delete(UcastMac(ls.uuid, ml.mac, ml.ipAddr, null))
+        } else {
+            mcastTable.table.delete(McastMac(ls.uuid, ml.mac, ml.ipAddr, null))
+        }
+        OvsdbOperations.singleOp(client, dbSchema, op)
+    }
+
+    private def addMcastMacEntry(ls: LogicalSwitch, ml: MacLocation,
+                                 mcastTable: OvsdbCachedTable[McastMac])
+    : Future[OperationResult] = {
+        getOrCreateLocator(ml.vxlanTunnelEndpoint) flatMap { lId =>
+            getOrCreateLocatorSetWith(lId)
+        } flatMap { locatorSetId =>
+            val mac = McastMac(ls.uuid, ml.mac, ml.ipAddr, locatorSetId.toString)
+            val op = mcastTable.table.insert(mac, null)
+            OvsdbOperations.singleOp(client, dbSchema, op)
+        }
+    }
+
+    private def addUcastMacEntry(ls: LogicalSwitch, ml: MacLocation,
+                                 ucastTable: OvsdbCachedTable[UcastMac])
+    : Future[OperationResult] = {
+        getOrCreateLocator(ml.vxlanTunnelEndpoint) flatMap { locator =>
+            val ucm = UcastMac(ls.uuid, ml.mac, ml.ipAddr, locator.toString)
+            val op = ucastTable.table.insert(ucm, null)
+            OvsdbOperations.singleOp(client, dbSchema, op)
         }
     }
 
@@ -483,26 +490,6 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
                 m => macUpdateToMacLocations(VtepEntryUpdate.addition(m),
                                              someTunnelIp)
             }
-        }
-    }
-
-    /** Returns an observer for the given MAC updater. */
-    private def macUpdater(updater: MacUpdater)
-    : Future[Observer[MacLocation]] = {
-        onReady {
-            val pipe = PublishSubject.create[MacLocation]()
-            // We use the backpressure buffer to prevent overlapping mac
-            // updates, which can lead to order alterations if some initial
-            // update fails but the following ones succeed...
-            // TODO: we may add a buffer operator with a closingSelector
-            // to increase the efficiency, though it may add complexity
-            // to error processing (e.g. if the accumulated update is too
-            // big, we may run into trouble with ovsdb request max sizes...
-            pipe.onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
-                .observeOn(vtepScheduler)
-                .onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
-                .subscribe(updater)
-            pipe
         }
     }
 }

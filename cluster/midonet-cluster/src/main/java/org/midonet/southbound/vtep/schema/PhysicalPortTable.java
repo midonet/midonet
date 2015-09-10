@@ -106,14 +106,12 @@ public final class PhysicalPortTable extends Table<PhysicalPort> {
     }
 
     /** Extract vlan - logical switch id mappings */
-    @SuppressWarnings(value = "unchecked")
     private Map<Long, java.util.UUID> parseVlanBindings(
         Row<GenericTableSchema> row) {
         return fromOvsdb(extractMap(row, getVlanBindingsSchema()));
     }
 
     /** Extract vlan - stats id mappings */
-    @SuppressWarnings(value = "unchecked")
     private Map<Long, java.util.UUID> parseVlanStats(
         Row<GenericTableSchema> row) {
         return fromOvsdb(extractMap(row, getVlanStatsSchema()));
@@ -122,16 +120,14 @@ public final class PhysicalPortTable extends Table<PhysicalPort> {
     /**
      * Extract the port fault status
      */
-    @SuppressWarnings(value = "unchecked")
     private Set<String> parsePortFaultStatus(Row<GenericTableSchema> row) {
-        return (Set<String>)extractSet(row, getPortFaultStatusSchema());
+        return extractSet(row, getPortFaultStatusSchema());
     }
 
     /**
      * Extract the physical port information from the table entry
      */
     @Override
-    @SuppressWarnings(value = "unchecked")
     public PhysicalPort parseEntry(Row<GenericTableSchema> row)
         throws IllegalArgumentException {
         ensureOutputClass(PhysicalPort.class);
