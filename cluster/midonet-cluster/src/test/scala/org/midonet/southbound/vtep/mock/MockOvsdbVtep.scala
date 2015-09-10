@@ -69,8 +69,10 @@ object MockOvsdbVtep {
  * rollback if some operations in a transaction cannot be successfully
  * completed.
  */
-class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
-                        mgmtPort: Int = 6632) extends VtepConnection {
+class InMemoryOvsdbVtep(val mgmtIp: IPv4Addr = IPv4Addr.random,
+                        val mgmtPort: Int = 6632,
+                        val tunnelIp: IPv4Addr = IPv4Addr.random)
+    extends VtepConnection {
 
     protected type MockColumnSchema = ColumnSchema[GenericTableSchema, _]
     protected type MockTableSchema = Map[String, MockColumnSchema]
@@ -235,7 +237,7 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
         .data.asInstanceOf[TrieMap[UUID, PhysicalSwitch]]
         .put(myPhysSwitchId,
              new PhysicalSwitch(myPhysSwitchId, "testy-test", "testy-desc",
-                                physPortIds.toSet, Set(mgmtIp), Set(mgmtIp))
+                                physPortIds.toSet, Set(mgmtIp), Set(tunnelIp))
         )
 
     /** publish the monitored tables */
