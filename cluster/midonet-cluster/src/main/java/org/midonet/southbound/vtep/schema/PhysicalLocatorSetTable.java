@@ -69,7 +69,6 @@ public final class PhysicalLocatorSetTable extends Table<PhysicalLocatorSet> {
     /**
      * Extract the set of locator ids
      */
-    @SuppressWarnings("unchecked")
     private Set<String> parseLocators(Row<GenericTableSchema> row) {
         return extractSet(row, getLocatorsSchema());
     }
@@ -80,9 +79,15 @@ public final class PhysicalLocatorSetTable extends Table<PhysicalLocatorSet> {
     @Override
     public PhysicalLocatorSet parseEntry(Row<GenericTableSchema> row)
         throws IllegalArgumentException {
-        ensureOutputClass(PhysicalLocatorSet.class);
-        return (row == null)? null:
-               PhysicalLocatorSet.apply(parseUuid(row), parseLocators(row));
+        if (row == null) {
+            return null;
+        }
+        Set<String> locators = parseLocators(row);
+        String locator = null;
+        if (!locators.isEmpty()) {
+            locator = locators.iterator().next();
+        }
+        return PhysicalLocatorSet.apply(parseUuid(row), locator);
     }
 
     /**

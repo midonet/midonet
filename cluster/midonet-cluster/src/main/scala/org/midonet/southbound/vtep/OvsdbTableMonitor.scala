@@ -16,7 +16,7 @@
 
 package org.midonet.southbound.vtep
 
-import java.util.concurrent.Executor
+import java.util.concurrent.{Executors, Executor}
 import java.util.{Map => JMap}
 
 import scala.collection.JavaConverters._

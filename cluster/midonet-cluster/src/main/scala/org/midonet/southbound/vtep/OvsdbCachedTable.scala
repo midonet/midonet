@@ -41,22 +41,21 @@ import org.midonet.southbound.vtep.schema.Table
  */
 class OvsdbCachedTable[E <: VtepEntry](val client: OvsdbClient,
                                        val table: Table[E],
-                                       val vtepExecutor: Executor,
-                                       val eventExecutor: Executor) {
+                                       val executor: Executor) {
 
 
     private val log = Logger(LoggerFactory.getLogger(
         s"org.midonet.southbound.vtep.table-[${table.getSchema.getName}]"))
-    private implicit val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
-    private val vtepScheduler = Schedulers.from(vtepExecutor)
+    private val scheduler = Schedulers.from(executor)
     private val filled = Promise[Boolean]()
-    private val monitor = new OvsdbTableMonitor[E](client, table)(eventExecutor)
+    private val monitor = new OvsdbTableMonitor[E](client, table)(executor)
+    implicit private val ec = ExecutionContext.fromExecutor(executor)
 
     protected[vtep] val entryMap = new ConcurrentHashMap[UUID, E]()
 
     monitor.observable
         .onBackpressureBuffer(MaxBackpressureBuffer, panicAlert(log))
-        .observeOn(vtepScheduler)
+        .observeOn(scheduler)
         .subscribe(new Observer[VtepTableUpdate[E]] {
             override def onCompleted(): Unit = {
                 log.debug("VTEP monitor closed")
