@@ -52,9 +52,8 @@ dependencies {
 
     runtime libraries.aspectj
 
-    testCompile libraries.hamcrest_integration, libraries.grizzly_servlet,
-                libraries.jersey_grizzly, libraries.jersey_test_grizzly,
-                libraries.jersey_test_core, libraries.curator_test,
+    testCompile libraries.hamcrest_integration,
+                libraries.curator_test,
                 libraries.commons_io
 }
 
