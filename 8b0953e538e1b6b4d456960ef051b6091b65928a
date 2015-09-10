@@ -306,6 +306,29 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_904f5892",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-10T03:42:00Z",
+      "side": 1,
+      "message": "Can replace with new NamedThreadFactory(\"vtep-sync\"). Slightly different (thread will be named \"vtep-sync-1\"), but close enough.",
+      "range": {
+        "startLine": 56,
+        "startChar": 61,
+        "endLine": 62,
+        "endChar": 5
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_c773e4af",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
         "patchSetId": 17
