@@ -23,8 +23,8 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
-import org.midonet.cluster.services.c3po.C3POStorageManager.{OpType, Operation}
-import org.midonet.cluster.services.c3po.midonet
+import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
+import org.midonet.cluster.services.c3po.{OpType, midonet}
 import org.midonet.midolman.state.PathBuilder
 
 /**

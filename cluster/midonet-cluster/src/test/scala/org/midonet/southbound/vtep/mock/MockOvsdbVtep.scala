@@ -39,8 +39,8 @@ import org.midonet.cluster.data.vtep.model._
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.OvsdbUtil.toOvsdb
 import org.midonet.southbound.vtep.OvsdbVtepConnection.OvsdbHandle
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState.State
+import org.midonet.southbound.vtep.ConnectionState
+import org.midonet.southbound.vtep.ConnectionState.State
 import org.midonet.southbound.vtep.mock.MockOvsdbClient.{MonitorRegistration, TransactionEngine}
 import org.midonet.southbound.vtep.mock.MockOvsdbColumn.{mkColumnSchema, mkMapColumnSchema, mkSetColumnSchema}
 import org.midonet.southbound.vtep.schema._
@@ -252,9 +252,9 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
     def getTable[E <: VtepEntry](t: Table[E]): Map[util.UUID, E] =
         tableData.synchronized[Map[util.UUID, E]] {
             tableData.get(t.getName) match {
-                case None => null
                 case Some(MockData(data)) =>
                     data.toMap.asInstanceOf[Map[util.UUID, E]]
+                case _ => null
             }
         }
 
@@ -289,7 +289,7 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
                 case Some(MockData(data)) => data.remove(id) match {
                     case Some(old: E) =>
                         update.addRow(toOvsdb(id), t.generateRow(old), null)
-                    case None => // do nothing
+                    case _ => // do nothing
                 }
                 case _ => // do nothing
             }
@@ -310,7 +310,7 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
             monitorSubject.onNext(table)
             tableMonitors.get(table) match {
                 case Some(list) => tableMonitors.put(table, cb :: list)
-                case None => // ignore request on non-existing table
+                case _ => // ignore request on non-existing table
             }
         }
     }
@@ -368,10 +368,6 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
         result.setDetails(null)
 
         tableData.get(op.getTable) match {
-            case None =>
-                result.setCount(0)
-                result.setError("unknown table")
-                result.setDetails("unknown table " + op.getTable)
             case Some(MockData(data)) => op match {
                 case ins: Insert[_] =>
                     val t = tableParserFor[E](op)
@@ -439,6 +435,10 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
                     result.setCount(out.length)
                     result.setRows(Lists.newArrayList(seqAsJavaList(out)))
             }
+            case _ =>
+                result.setCount(0)
+                result.setError("unknown table")
+                result.setDetails("unknown table " + op.getTable)
         }
 
         // send updates to monitors

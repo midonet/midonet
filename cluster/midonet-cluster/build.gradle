@@ -79,24 +79,21 @@ dependencies {
     testCompile project(path: ':nsdb', configuration: 'tests')
     testCompile project(path: ':midolman', configuration: 'tests')
     testCompile libraries.curator_test,
+                libraries.grizzly_servlet,
                 libraries.hamcrest_lib,
                 libraries.httpclient,
+                libraries.jersey_grizzly,
+                libraries.jersey_test_core,
+                libraries.jersey_test_grizzly,
                 libraries.mockit,
                 libraries.scalatest,
                 libraries.sqlite
 }
 
-configurations {
-    tests.extendsFrom (testCompile)
-}
-
-task jarTest (type: Jar, dependsOn: testClasses) {
-    from sourceSets.test.output
-    classifier = 'test'
-}
-
-artifacts {
-    tests jarTest
+cobertura {
+    coverageExcludes = [
+            '.*org.midonet.client.*',
+    ]
 }
 
 /////////////////////

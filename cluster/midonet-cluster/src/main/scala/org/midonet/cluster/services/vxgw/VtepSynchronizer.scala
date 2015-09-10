@@ -45,9 +45,8 @@ import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state._
 import org.midonet.packets.IPv4Addr
-import org.midonet.southbound.vtep.OvsdbVtepDataClient
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState._
+import org.midonet.southbound.vtep.ConnectionState._
+import org.midonet.southbound.vtep.{ConnectionState, OvsdbVtepDataClient}
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors._

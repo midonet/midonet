@@ -41,7 +41,7 @@ import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.midolman.state.MapNotification
 import org.midonet.packets.MAC
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState
+import org.midonet.southbound.vtep.ConnectionState
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])

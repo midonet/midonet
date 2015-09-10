@@ -20,8 +20,8 @@ import com.google.protobuf.Message
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.services.c3po.C3POStorageManager.OpType.OpType
-import org.midonet.cluster.services.c3po.C3POStorageManager.{OpType, Operation}
+import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
+import org.midonet.cluster.services.c3po.OpType.OpType
 
 package object midonet {
 
