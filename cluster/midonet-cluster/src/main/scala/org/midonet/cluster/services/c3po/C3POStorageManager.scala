@@ -38,22 +38,6 @@ object C3POStorageManager {
      * sufficient. */
     private val TIMEOUT = Duration.create(10, TimeUnit.SECONDS)
 
-    /** Defines types of operations on a single entity. */
-    object OpType extends Enumeration {
-        type OpType = Value
-
-        val Create = Value(1)
-        val Delete = Value(2)
-        val Update = Value(3)
-        val CreateNode = Value(4)
-        val DeleteNode = Value(5)
-        val UpdateNode = Value(6)
-
-        private val ops = Array(Create, Delete, Update,
-                                CreateNode, DeleteNode, UpdateNode)
-        def valueOf(i: Int) = ops(i - 1)
-    }
-
     /** A generic operation on a model */
     trait Operation {
         def opType: OpType.OpType
@@ -66,6 +50,23 @@ object C3POStorageManager {
                                  s"${if (msg == null) "" else ": " + msg}",
                                  cause)
 }
+
+/** Defines types of operations on a single entity. */
+object OpType extends Enumeration {
+    type OpType = Value
+
+    val Create = Value(1)
+    val Delete = Value(2)
+    val Update = Value(3)
+    val CreateNode = Value(4)
+    val DeleteNode = Value(5)
+    val UpdateNode = Value(6)
+
+    private val ops = Array(Create, Delete, Update,
+                            CreateNode, DeleteNode, UpdateNode)
+    def valueOf(i: Int) = ops(i - 1)
+}
+
 
 /** C3PO that translates an operation on an external model into corresponding
   * storage operations on internal Mido models. */

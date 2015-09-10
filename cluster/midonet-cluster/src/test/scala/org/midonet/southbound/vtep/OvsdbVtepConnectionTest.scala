@@ -33,9 +33,9 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 
-import VtepConnection.ConnectionState._
 import org.midonet.cluster.data.vtep.{VtepNotConnectedException, VtepStateException}
 import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtep.ConnectionState._
 import org.midonet.util.concurrent._
 import org.midonet.util.reactivex.TestAwaitableObserver
 

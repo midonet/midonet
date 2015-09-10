@@ -25,7 +25,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.vtep.model._
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState.State
 import org.midonet.util.functors.makeFunc1
 
 /** This trait defines the interface required to create and interact
@@ -48,37 +47,35 @@ trait VtepConnection {
     /** Connect to the VTEP using a specific user. If the VTEP is already
       * connected or connecting, it does nothing.
       */
-    def connect(): Future[State]
+    def connect(): Future[ConnectionState.State]
 
     /** Disconnects from the VTEP. If the VTEP is already disconnecting
       * or disconnected, it does nothing.
       */
-    def disconnect(): Future[State]
+    def disconnect(): Future[ConnectionState.State]
 
     /** Releases all resources used by the VTEP connection.
       */
-    def close()(implicit ex: ExecutionContext): Future[State]
+    def close()(implicit ex: ExecutionContext): Future[ConnectionState.State]
 
     /** Get a observable to get the current state and monitor connection
       * changes.
       */
-    def observable: Observable[State]
+    def observable: Observable[ConnectionState.State]
 
     /** Get the current connection state. */
-    def getState: State
+    def getState: ConnectionState.State
 
     /** Get the connection handle. */
     def getHandle: Option[OvsdbVtepConnection.OvsdbHandle]
 
     /** Wait for a specific state. */
-    final def awaitState(expected: State, timeout:
-    Duration):
-    State = {
-        awaitState(Set(expected), timeout)
-    }
+    final def awaitState(expected: ConnectionState.State, timeout: Duration)
+    : ConnectionState.State = { awaitState(Set(expected), timeout) }
 
     /** Wait for a state in a specific set. */
-    final def awaitState(expected: Set[State], timeout: Duration): State = {
+    final def awaitState(expected: Set[ConnectionState.State],
+                         timeout: Duration): ConnectionState.State = {
         observable.first(makeFunc1(expected.contains))
                   .toBlocking
                   .toFuture
@@ -87,27 +84,25 @@ trait VtepConnection {
 
 }
 
-object VtepConnection {
-    /** An enumeration indicating the state of the VTEP connection. Each state
-      * value has two boolean indicating whether a data VTEP operation should
-      * be allowed to continue when the connection is in the specified state.
-      * When `isDecisive` is true, the current connection state allows a
-      * data operation to complete, either successfully or not. Otherwise, when
-      * `isDecisive` is false any data operation should be postponed until
-      * the VTEP connection reaches a decisive state. The `isFailed` field
-      * indicates whether a data operation should always fail for the current
-      * state. */
-    object ConnectionState extends Enumeration {
-        class State(val isDecisive: Boolean, val isFailed: Boolean) extends Val
-        final val Disconnected = new State(true, true)
-        final val Connected = new State(false, false)
-        final val Ready = new State(true, false)
-        final val Disconnecting = new State(false, true)
-        final val Broken = new State(true, true)
-        final val Connecting = new State(false, false)
-        final val Failed = new State(true, true)
-        final val Disposed = new State(true, true)
-    }
+/** An enumeration indicating the state of the VTEP connection. Each state
+  * value has two boolean indicating whether a data VTEP operation should
+  * be allowed to continue when the connection is in the specified state.
+  * When `isDecisive` is true, the current connection state allows a
+  * data operation to complete, either successfully or not. Otherwise, when
+  * `isDecisive` is false any data operation should be postponed until
+  * the VTEP connection reaches a decisive state. The `isFailed` field
+  * indicates whether a data operation should always fail for the current
+  * state. */
+object ConnectionState extends Enumeration {
+    class State(val isDecisive: Boolean, val isFailed: Boolean) extends Val
+    final val Disconnected = new State(true, true)
+    final val Connected = new State(false, false)
+    final val Ready = new State(true, false)
+    final val Disconnecting = new State(false, true)
+    final val Broken = new State(true, true)
+    final val Connecting = new State(false, false)
+    final val Failed = new State(true, true)
+    final val Disposed = new State(true, true)
 }
 
 /** This trait models the data manipulation options that are required by
