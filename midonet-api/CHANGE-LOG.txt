@@ -1,2 +1,0 @@
- * 2013/08/05 Renamed the change log file to CHANGE-LOG.txt
- * 2013/07/23 Added a change log file.

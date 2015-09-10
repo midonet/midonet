@@ -24,12 +24,10 @@ import scala.concurrent.duration._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
-import rx.subjects.BehaviorSubject
 
 import org.midonet.cluster.data.vtep.VtepStateException
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.southbound.vtep.OvsdbVtepBuilder._
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState._
 import org.midonet.southbound.vtep.mock.InMemoryOvsdbVtep
 import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.reactivex.TestAwaitableObserver

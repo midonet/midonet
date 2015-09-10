@@ -26,7 +26,7 @@ import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.vtep.VtepStateException
 import org.midonet.cluster.data.vtep.model._
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState._
+import org.midonet.southbound.vtep.ConnectionState._
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.{makeAction1, makeFunc1}
 import org.midonet.util.reactivex._
