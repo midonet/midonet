@@ -146,7 +146,7 @@ a single L2 segment accross VxLAN tunnels.
 ### VTEP
 
 The API to register Hardware VTEPs in MidoNet is implemented at
-`org.midonet.api.network.rest_api.VtepResource`, offering REST verbs to
+`org.midonet.cluster.rest_api.network.rest_api.VtepResource`, offering REST verbs to
 for creation, deletion and retrieval of a Hardware VTEP.  Most of the
 heavy lifting is delegated to the VtepClusterClient that will be
 explained further in this document.
@@ -159,7 +159,7 @@ corresponding OVSDB instance.
 
 Creation and deletion verbs related to bindings from a network to a
 port/vlan pair in VTEP are implemented in the
-`org.midonet.api.network.rest_api.VtepBindingResource` class.  Again,
+`org.midonet.cluster.rest_api.network.rest_api.VtepBindingResource` class.  Again,
 most of the work is delegated on the VtepClusterClient.
 
 Creating a binding will involve ensuring that the Bridge has a VxLanPort
