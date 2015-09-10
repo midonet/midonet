@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_16417b39",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyCalculator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_07e4ec0b",
+      "range": {
+        "startLine": 37,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 19
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_27f1e8cd",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
         "patchSetId": 17
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_16689bb9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_27f1e8cd",
+      "range": {
+        "startLine": 59,
+        "startChar": 51,
+        "endLine": 59,
+        "endChar": 52
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_47eef4ed",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
         "patchSetId": 17
@@ -59,6 +107,30 @@
       "writtenOn": "2015-09-10T09:15:38Z",
       "side": 1,
       "message": "start?",
+      "range": {
+        "startLine": 60,
+        "startChar": 66,
+        "endLine": 60,
+        "endChar": 72
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_566223d9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_47eef4ed",
       "range": {
         "startLine": 60,
         "startChar": 66,
@@ -164,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_56b9432d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "this is easy to say :D\n\nthere seem to be two guavas in scope, and intellij picks up the oldest so direct is not even seen, i was going to look into that but in another patch as more areas of the code are affected",
+      "parentUuid": "1ae5cdf2_c7b924eb",
+      "range": {
+        "startLine": 77,
+        "startChar": 41,
+        "endLine": 77,
+        "endChar": 59
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_07cb0c73",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
         "patchSetId": 17
@@ -175,6 +271,30 @@
       "writtenOn": "2015-09-10T09:15:38Z",
       "side": 1,
       "message": "Add a colon here.",
+      "range": {
+        "startLine": 101,
+        "startChar": 48,
+        "endLine": 101,
+        "endChar": 49
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b687e760",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_07cb0c73",
       "range": {
         "startLine": 101,
         "startChar": 48,
@@ -210,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_1696db94",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_e7cd4088",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 105,
+        "endChar": 34
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_67a130a9",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
         "patchSetId": 17
@@ -221,6 +365,30 @@
       "writtenOn": "2015-09-10T09:15:38Z",
       "side": 1,
       "message": "Why not just convert tzId to Protobuf UUID instead of converting the whole list to Java UUID?\n\n  if (!newState.host.getTunnelZoneIdsList.contains(toProto(tzId))",
+      "range": {
+        "startLine": 124,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 50
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_768d5f7b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_67a130a9",
       "range": {
         "startLine": 124,
         "startChar": 0,
@@ -280,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_b6ee0721",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "more garbage! but done",
+      "parentUuid": "1ae5cdf2_a7ab3888",
+      "range": {
+        "startLine": 186,
+        "startChar": 32,
+        "endLine": 186,
+        "endChar": 37
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_c7b044f7",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
         "patchSetId": 17
@@ -291,6 +483,30 @@
       "writtenOn": "2015-09-10T09:15:38Z",
       "side": 1,
       "message": "Why is sub a CompositeSubscription, when it only ever holds one Subscription?",
+      "range": {
+        "startLine": 198,
+        "startChar": 8,
+        "endLine": 198,
+        "endChar": 43
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_96374bb0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "so taht we can put the trackedHosts entry with a subscription that will get filled in afterwards",
+      "parentUuid": "1ae5cdf2_c7b044f7",
       "range": {
         "startLine": 198,
         "startChar": 8,
@@ -349,6 +565,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_f646cf22",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "it doesn\u0027t take it, the recursiveness happens inside a future, so the last statement is not really a call to itself",
+      "parentUuid": "1ae5cdf2_479c346a",
+      "range": {
+        "startLine": 239,
+        "startChar": 16,
+        "endLine": 239,
+        "endChar": 32
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_4748b45b",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
         "patchSetId": 17
@@ -360,6 +600,30 @@
       "writtenOn": "2015-09-10T00:13:35Z",
       "side": 1,
       "message": "Probably we should use NonFatal here.",
+      "range": {
+        "startLine": 250,
+        "startChar": 25,
+        "endLine": 250,
+        "endChar": 34
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3648372d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_4748b45b",
       "range": {
         "startLine": 250,
         "startChar": 25,
@@ -395,6 +659,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_7652bfde",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_67885023",
+      "range": {
+        "startLine": 252,
+        "startChar": 51,
+        "endLine": 252,
+        "endChar": 72
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_279f2861",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
         "patchSetId": 17
@@ -406,6 +694,30 @@
       "writtenOn": "2015-09-10T09:15:38Z",
       "side": 1,
       "message": "Nonfatal here, too, maybe?",
+      "range": {
+        "startLine": 254,
+        "startChar": 22,
+        "endLine": 254,
+        "endChar": 23
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f65defea",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-10T13:20:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_279f2861",
       "range": {
         "startLine": 254,
         "startChar": 22,
