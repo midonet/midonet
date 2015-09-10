@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1ae5cdf2_6765bd44",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 11
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "s/one/one of/",
+      "range": {
+        "startLine": 12,
+        "startChar": 41,
+        "endLine": 12,
+        "endChar": 44
+      },
+      "revId": "f0993a57714f7fd52b4c9fd942f6519f44b551f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c22044b3",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 11
