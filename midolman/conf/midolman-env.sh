@@ -28,15 +28,6 @@ WATCHDOG_TIMEOUT=10
 # Amount of memory to allocate for the JVM heap.
 MAX_HEAP_SIZE="2048M"
 
-# Amount of memory, out of the total size defined by MAX_HEAP_SIZE, to
-# allocate to the eden generation within
-HEAP_NEWSIZE="1536M"
-
-if [ "x$MAX_HEAP_SIZE" = "x" ] ||  [ "x$HEAP_NEWSIZE" = "x" ]; then
-    echo "please set or unset MAX_HEAP_SIZE and HEAP_NEWSIZE in pairs (see midolman-env.sh)"
-    exit 1
-fi
-
 # Here we create the arguments that will get passed to the jvm when
 # starting midolman.
 
@@ -58,7 +49,6 @@ JVM_OPTS="$JVM_OPTS -XX:ThreadPriorityPolicy=42"
 # out.
 JVM_OPTS="$JVM_OPTS -Xms${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
-JVM_OPTS="$JVM_OPTS -Xmn${HEAP_NEWSIZE}"
 JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=/var/log/midolman/"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError"
 JVM_OPTS="$JVM_OPTS -XX:OnOutOfMemoryError=\"kill;-3;%p\""
@@ -67,13 +57,11 @@ JVM_OPTS="$JVM_OPTS -XX:OnOutOfMemoryError=\"kill;-3;%p\""
 JVM_OPTS="$JVM_OPTS -XX:-UseBiasedLocking"
 
 # GC tuning options
-JVM_OPTS="$JVM_OPTS -XX:+UseParNewGC"
-JVM_OPTS="$JVM_OPTS -XX:+UseConcMarkSweepGC"
-JVM_OPTS="$JVM_OPTS -XX:+CMSParallelRemarkEnabled"
+JVM_OPTS="$JVM_OPTS -XX:+UseG1GC"
+JVM_OPTS="$JVM_OPTS -XX:MaxGCPauseMillis=500"
+JVM_OPTS="$JVM_OPTS -XX:InitiatingHeapOccupancyPercent=70"
 JVM_OPTS="$JVM_OPTS -XX:SurvivorRatio=8"
-JVM_OPTS="$JVM_OPTS -XX:MaxTenuringThreshold=6"
-JVM_OPTS="$JVM_OPTS -XX:CMSInitiatingOccupancyFraction=75"
-JVM_OPTS="$JVM_OPTS -XX:+UseCMSInitiatingOccupancyOnly"
+JVM_OPTS="$JVM_OPTS -XX:MaxTenuringThreshold=8"
 JVM_OPTS="$JVM_OPTS -XX:+UseTLAB"
 JVM_OPTS="$JVM_OPTS -XX:+ResizeTLAB"
 JVM_OPTS="$JVM_OPTS -XX:TLABSize=2m"
