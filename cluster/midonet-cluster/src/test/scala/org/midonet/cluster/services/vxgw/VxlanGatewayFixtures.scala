@@ -40,8 +40,8 @@ import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, MockDirectory}
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.OvsdbVtepDataClient
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState.Disconnected
+import org.midonet.southbound.vtep.ConnectionState
+import org.midonet.southbound.vtep.ConnectionState.Disconnected
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.util.concurrent._
 import org.midonet.util.reactivex.TestAwaitableObserver
@@ -195,9 +195,9 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
                                                           (vxPortId)).build())
             val lsId = UUID.randomUUID()
             Mockito.when(vtepFix.ovsdb.createLogicalSwitch(lsName, nw.getVni))
-                .thenReturn(successful(lsId))
+                   .thenReturn(successful(lsId))
             Mockito.when(vtepFix.ovsdb.setBindings(Eq(lsId), anyObject()))
-                .thenReturn(successful(10))
+                   .thenReturn(successful(10))
         }
 
         def lsName = bridgeIdToLogicalSwitchName(nwId)
