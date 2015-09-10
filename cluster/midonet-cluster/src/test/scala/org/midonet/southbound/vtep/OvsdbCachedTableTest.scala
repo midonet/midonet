@@ -75,7 +75,7 @@ class OvsdbCachedTableTest extends FeatureSpec
     feature("table monitor") {
         scenario("empty table") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -86,7 +86,7 @@ class OvsdbCachedTableTest extends FeatureSpec
             val data = randPhysLocators(4)
             data.foreach(e => vtep.putEntry(t, e))
 
-            val ct = new OvsdbCachedTable(client, t, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.size shouldBe data.size
@@ -95,7 +95,7 @@ class OvsdbCachedTableTest extends FeatureSpec
 
         scenario("additions on empty table") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -113,7 +113,7 @@ class OvsdbCachedTableTest extends FeatureSpec
     feature("operations") {
         scenario("explicit insertion") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -129,7 +129,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         }
         scenario("background insertion") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -147,7 +147,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         ignore("explicit update - not supported, possibly removing case") {
         scenario("explicit update") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -173,7 +173,7 @@ class OvsdbCachedTableTest extends FeatureSpec
         ignore("background update - not supported, possibly removing case") {
         scenario("background update") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true
@@ -199,7 +199,7 @@ class OvsdbCachedTableTest extends FeatureSpec
 
         scenario("background removal") {
             val t = new PhysicalLocatorTable(db)
-            val ct = new OvsdbCachedTable(client, t, exec, exec)
+            val ct = new OvsdbCachedTable(client, t, exec)
 
             Await.result(ct.ready, timeout) shouldBe true
             ct.getAll.isEmpty shouldBe true

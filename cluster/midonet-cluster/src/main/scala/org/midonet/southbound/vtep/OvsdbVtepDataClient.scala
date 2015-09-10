@@ -59,8 +59,7 @@ class OvsdbVtepDataClient(cnxn: VtepConnection)
     private val onStateChange = makeAction1[State] { state =>
         if (Ready == state) {
             val handle = cnxn.getHandle.get
-            data.set(new OvsdbVtepData(handle.client, handle.db,
-                                       vtepThread, eventThread))
+            data.set(new OvsdbVtepData(handle.client, handle.db, vtepThread))
         } else {
             data.set(null)
         }
@@ -163,12 +162,6 @@ class OvsdbVtepDataClient(cnxn: VtepConnection)
       * and should be published to other members of a VxLAN gateway. */
     override def macLocalUpdates: Observable[MacLocation] = {
         onReady { _.macLocalUpdates }
-    }
-
-    /** Returns an [[Observer]] that will write updates to the remote MACs in
-      * the `Ucast_Mac_Local` or `Mcast_Mac_Local` tables. */
-    override def macLocalUpdater: Future[Observer[MacLocation]] = {
-        onReady { _.macLocalUpdater }
     }
 
     /** Returns an [[Observer]] that will write updates to the remote MACs in
