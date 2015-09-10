@@ -54,9 +54,8 @@ import rx.{Observable, Subscription}
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
 import org.midonet.cluster.data.vtep.{VtepNotConnectedException, VtepStateException}
 import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtep.ConnectionState.State
 import org.midonet.southbound.vtep.OvsdbVtepConnection._
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState.State
 import org.midonet.util.functors.{makeAction1, makeFunc1}
 
 object OvsdbVtepConnection {
@@ -68,7 +67,7 @@ object OvsdbVtepConnection {
 
     // Connection states
     abstract class ConnectionStatus(val state: State) {
-        override def toString = state.toString()
+        override def toString = state.toString
     }
 
     // - Disconnected: The state when:
