@@ -1,13 +1,12 @@
 ## Summary
 
-What follow is a step-by-step guide to getting a midolman & midonet-api
+What follow is a step-by-step guide to getting a midolman & midonet-cluster
 up and running on a development environment with no OpenStack dependencies.
 
 It will cover the following steps, assuming a debian/ubuntu system:
 
  * Install dependencies.
- * Install midolman, midonet-api and python-midonetclient.
- * Set up midonet-api to work with no auth.
+ * Install midolman, midonet-cluster and python-midonetclient.
  * Use midonet-cli to create a trivial virtual network topology.
  * Hook two network namespaces to ports in the virtual network.
  * Pass network traffic through the virtal network.
@@ -17,11 +16,12 @@ instructions in the project README.
 
 ## Install dependencies
 
-Because we shall be installing locally built packages, we need to install
-run time dependencies for midolman and midonet-api manually. We assume
-build dependencies are already installed and packages have been built.
+Because we shall be installing locally built packages, we need to
+install run time dependencies for midolman and midonet-cluster manually.
+We assume build dependencies are already installed and packages have
+been built.
 
-    $ sudo apt-get install tomcat7 zookeeper haproxy quagga bridge-utils zookeeperd
+    $ sudo apt-get install zookeeper haproxy quagga bridge-utils zookeeperd
     $ sudo /etc/init.d/zookeeper start
     $ sudo /etc/init.d/tomcat7 start
 
@@ -35,24 +35,24 @@ python-midonetclient comes from its own code repository:
 
     $ sudo dpkg -i python-midonetclient_1.8.0~rc0_all.deb
 
-And now, midolman and midonet-api:
+And now, midolman and midonet-cluster:
 
-    $ sudo dpkg -i midolman/build/packages/*.deb midonet-api/build/packages/*.deb
+    $ sudo dpkg -i midolman/build/packages/*.deb cluster/midonet-cluster/build/packages/*.deb
 
-## Disabling auth in midonet-api
+## Auth in midonet-cluster
 
-This environment won't have keystone, and we don't need any authentication. The
-midonet source tree includes a web.xml file that disables authentication:
+This environment won't have keystone, and we don't need any
+authentication.  This is the default in midonet-cluster, so you don't
+need to do anything.  To enable keystone authentication, refer to the
+MidoNet documentation at <http://docs.midonet.org>
 
-    $ sudo cp midonet-api/src/main/webapp/WEB-INF/web.xml.dev /usr/share/midonet-api/WEB-INF/web.xml
-    $ sudo cp midonet-api/conf/midonet-api.xml /etc/tomcat7/Catalina/localhost/
-    $ sudo /etc/init.d/tomcat7 restart
+    $ sudo service midonet-cluster restart
 
 Now we can set up midonet-cli and check that the API responds:
 
     $ cat <<EOF >> ~/.midonetrc
     > [cli]
-    > api_url = http://127.0.0.1:8080/midonet-api
+    > api_url = http://127.0.0.1:8181/midonet-api
     > username = none
     > password = pass
     > tenant = midonet
