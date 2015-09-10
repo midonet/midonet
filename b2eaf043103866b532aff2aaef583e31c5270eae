@@ -1,0 +1,245 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f95de0ea",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "I think we should avoid the use of \"PayLoad\". It\u0027s a Curator term, seems to me to be a bit confusing.",
+      "range": {
+        "startLine": 46,
+        "startChar": 47,
+        "endLine": 46,
+        "endChar": 54
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d95824fd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "Please add an example showing how the client of the library can use the service.",
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_596254d9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "This should be put into a utility factory method.",
+      "range": {
+        "startLine": 69,
+        "startChar": 31,
+        "endLine": 73,
+        "endChar": 20
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_999bfcc8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "s/the current server/a service provider (instance)/",
+      "range": {
+        "startLine": 97,
+        "startChar": 60,
+        "endLine": 98,
+        "endChar": 14
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b96358b0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "This, too, seems that it should be a factory method defined with MidonetServiceProvider.",
+      "range": {
+        "startLine": 102,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 9
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d6fe336b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "Please insert an empty line after the top-level closing parenthesis.",
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_163fbb26",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "Can you fix the indentation somehow so that it\u0027s easier to understand those are constructor arguments?",
+      "range": {
+        "startLine": 206,
+        "startChar": 74,
+        "endLine": 207,
+        "endChar": 73
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_761d5fbd",
+        "filename": "nsdb/src/test/java/org/midonet/cluster/services/discovery/TestJavaServiceDetails.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "Is it by the spec that this class\u0027s hasCode() returns that of the \"description\"?",
+      "range": {
+        "startLine": 25,
+        "startChar": 3,
+        "endLine": 25,
+        "endChar": 55
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f6496f8c",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "We should put this into a utility factory method. A side comment: I\u0027m wondering if we really need to randomise the string length...",
+      "range": {
+        "startLine": 59,
+        "startChar": 16,
+        "endLine": 59,
+        "endChar": 81
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9663cb19",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "I don\u0027t think this (and the above) tests the registration function. It just tests that register() \u0026 unregister() don\u0027t throw any exceptions, and we still don\u0027t know if the service has properly been registered.  This test should be superseded by the tests below.\n\nAlso, we need scenarios where the client attempts to discover a service but 1.) no corresponding service provider has been created, and 2.) a provider has been created, but it\u0027s not been registered.",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 73,
+        "endChar": 9
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3674b7ce",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T15:42:50Z",
+      "side": 1,
+      "message": "What is this really testing here? Does it really matter if info \u003d\u003d info1 or not?",
+      "range": {
+        "startLine": 136,
+        "startChar": 12,
+        "endLine": 152,
+        "endChar": 13
+      },
+      "revId": "b2eaf043103866b532aff2aaef583e31c5270eae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
