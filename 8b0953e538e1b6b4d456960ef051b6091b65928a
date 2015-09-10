@@ -1,0 +1,835 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_8752bc11",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "s/out of/from/",
+      "range": {
+        "startLine": 61,
+        "startChar": 67,
+        "endLine": 61,
+        "endChar": 73
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_c75cc428",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "\"render\" or \"make\"",
+      "range": {
+        "startLine": 63,
+        "startChar": 20,
+        "endLine": 63,
+        "endChar": 25
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a76ed8c7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "You can just use foreach here.",
+      "range": {
+        "startLine": 186,
+        "startChar": 32,
+        "endLine": 186,
+        "endChar": 37
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_4748b45b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Probably we should use NonFatal here.",
+      "range": {
+        "startLine": 250,
+        "startChar": 25,
+        "endLine": 250,
+        "endChar": 34
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5c31670a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/MidoMacRemoteConsumer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "In what situation a null update will ever be sent?",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9c3befea",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/MidoMacRemoteConsumer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "This could be checked together at line 43",
+      "range": {
+        "startLine": 45,
+        "startChar": 28,
+        "endLine": 45,
+        "endChar": 48
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_7c1d4373",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Can this be a single line?",
+      "range": {
+        "startLine": 69,
+        "startChar": 4,
+        "endLine": 70,
+        "endChar": 41
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9c120f61",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Can you give this a more descriptive name?",
+      "range": {
+        "startLine": 72,
+        "startChar": 22,
+        "endLine": 72,
+        "endChar": 23
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1c06ff20",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Perhaps you should create a JIRA issue for this.",
+      "range": {
+        "startLine": 82,
+        "startChar": 20,
+        "endLine": 86,
+        "endChar": 46
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3c03bb10",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Can this be placed on a single line?",
+      "range": {
+        "startLine": 102,
+        "startChar": 4,
+        "endLine": 103,
+        "endChar": 49
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_67ff7002",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Why we don\u0027t need to handle the case where nwState is null?",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_87047c16",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "This can be computed inside buildArpUpdateHander before makeAction1.",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a709782e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "warn?",
+      "range": {
+        "startLine": 127,
+        "startChar": 20,
+        "endLine": 127,
+        "endChar": 24
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_07106c4d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "\"Failed to get TZ IP for\" port $portId?",
+      "range": {
+        "startLine": 175,
+        "startChar": 27,
+        "endLine": 175,
+        "endChar": 40
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_c773e4af",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Why \"Card\"? Can this be just \"State\"?",
+      "range": {
+        "startLine": 69,
+        "startChar": 17,
+        "endLine": 69,
+        "endChar": 21
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e76700e9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Still needed?",
+      "range": {
+        "startLine": 89,
+        "startChar": 23,
+        "endLine": 89,
+        "endChar": 35
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_612680bc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Should we call the factory method in the package file?",
+      "range": {
+        "startLine": 98,
+        "startChar": 32,
+        "endLine": 98,
+        "endChar": 72
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_81d54c45",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Please replace with \u0027_\u0027 if the parameter is not being used.",
+      "range": {
+        "startLine": 137,
+        "startChar": 72,
+        "endLine": 137,
+        "endChar": 74
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_81870c61",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "The indentation is wrong.",
+      "range": {
+        "startLine": 147,
+        "startChar": 12,
+        "endLine": 164,
+        "endChar": 13
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_679bf0c9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "fpIp may be null, is that OK?",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_67821054",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "I\u0027m just doing random speculation here, but can the tunnel zone ID change for the VTEP during its life cycle? If so, will that be handled properly?",
+      "range": {
+        "startLine": 259,
+        "startChar": 53,
+        "endLine": 259,
+        "endChar": 77
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_87871c61",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Do we really need to use foldLeft here? Can we do just the following?\n\n\nnsdbVtep.getBindingsList\n        .map({ binding \u003d\u003e fromProto(binding.getNetworkId) })\n        .toSet",
+      "range": {
+        "startLine": 281,
+        "startChar": 28,
+        "endLine": 284,
+        "endChar": 29
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_c1b914eb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "This is not being used.",
+      "range": {
+        "startLine": 287,
+        "startChar": 12,
+        "endLine": 287,
+        "endChar": 20
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9c204f9d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Can we just do like the following?\n\n\nnwIds.toSet.diff(boundNetworks.keys.toSet)\n           .foreach { nwId \u003d\u003e\n               watchNetwork(nwID)\n               whenVtepConnected { feedFloodingProxyTo(nwId) }\n           }",
+      "range": {
+        "startLine": 288,
+        "startChar": 8,
+        "endLine": 294,
+        "endChar": 9
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3c481b5b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Perhaps we should make this to take a single network ID and call this when scanning boundNetworks.keySet() in line 297. It would require some minor change in the other place it\u0027s called, but I think that would simplify some.",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a77c1874",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "If \"loadVxlanPortFor\" needs to be called only for the first time, the call below should go into inside the {} block above.",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_87ee3c21",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Insert \"retries\" before \"left\".",
+      "range": {
+        "startLine": 366,
+        "startChar": 31,
+        "endLine": 366,
+        "endChar": 35
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_27900895",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Isn\u0027t it more like IllegalStateException as no vxlan ports in the network has the watched VTEP ID?",
+      "range": {
+        "startLine": 388,
+        "startChar": 34,
+        "endLine": 388,
+        "endChar": 58
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a7f33809",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 409,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Not necessary.",
+      "range": {
+        "startLine": 409,
+        "startChar": 26,
+        "endLine": 409,
+        "endChar": 27
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e7dc6077",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "There can be a race here?",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_07da2c78",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Not necessary.",
+      "range": {
+        "startLine": 434,
+        "startChar": 26,
+        "endLine": 434,
+        "endChar": 27
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_27e72842",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Please rename to something like \"vxlanPort\".",
+      "range": {
+        "startLine": 502,
+        "startChar": 43,
+        "endLine": 502,
+        "endChar": 48
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_672690bc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Please sort.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 41
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e739c0d9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Whitespace after the comma.",
+      "range": {
+        "startLine": 69,
+        "startChar": 56,
+        "endLine": 69,
+        "endChar": 57
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_07378ce4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "No need to call stopVtepSync here?",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_273488dd",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "maxVtepBuffer?",
+      "range": {
+        "startLine": 102,
+        "startChar": 34,
+        "endLine": 102,
+        "endChar": 39
+      },
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_fc7313e5",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/WritableFloodingProxyHeraldTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Not used.",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3c7e5baf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/MapObservableOnSubscribe.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "4-character indentation?",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_dc5d774a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-10T00:13:35Z",
+      "side": 1,
+      "message": "Not being used?",
+      "revId": "8b0953e538e1b6b4d456960ef051b6091b65928a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
