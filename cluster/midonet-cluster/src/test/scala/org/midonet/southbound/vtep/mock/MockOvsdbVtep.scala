@@ -21,7 +21,9 @@ import java.util
 import java.util.{Objects, UUID}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
+import scala.concurrent.{ExecutionContext, Future}
 
 import com.google.common.collect.Lists
 import com.google.common.util.concurrent.ListenableFuture
@@ -30,24 +32,55 @@ import org.opendaylight.ovsdb.lib.message.{TableUpdate, TransactBuilder}
 import org.opendaylight.ovsdb.lib.notation.{Column, Condition, Function => OvsdbFunction, Row, UUID => OvsdbUUID}
 import org.opendaylight.ovsdb.lib.operations._
 import org.opendaylight.ovsdb.lib.schema.{ColumnSchema, DatabaseSchema, GenericTableSchema}
-import rx.subjects.PublishSubject
+import rx.Observable
+import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.data.vtep.model._
+import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.OvsdbUtil.toOvsdb
-import org.midonet.southbound.vtep.OvsdbVtepConnection.OvsdbHandle
+import org.midonet.southbound.vtep.OvsdbVtepConnection._
+import org.midonet.southbound.vtep.VtepConnection.ConnectionState
+import org.midonet.southbound.vtep.VtepConnection.ConnectionState.State
 import org.midonet.southbound.vtep.mock.MockOvsdbClient.{MonitorRegistration, TransactionEngine}
 import org.midonet.southbound.vtep.mock.MockOvsdbColumn.{mkColumnSchema, mkMapColumnSchema, mkSetColumnSchema}
 import org.midonet.southbound.vtep.schema._
+import org.midonet.southbound.vtep.{OvsdbTools, VtepConnection}
+
+object MockOvsdbVtep {
+    /** The only supported ovsdb database in the mock vtep */
+    val DB_HARDWARE_VTEP = "hardware_vtep"
+
+    /** Some real port names we've seen in VTEPs.  All InMemoryOvsdbVtep
+      * instances will have them, for your convenience.
+      */
+    val physPortNames: util.List[String] =
+        List("eth0", "swp1_2", "Te 0/2", "Ten-GigabitEthernet1/0/5:3/0").asJava
+}
 
 /**
- * A class containing the schema definitions for an Ovsdb-based vtep.
- * This is intended to be used as a superclass for specific mock
- * implementations.
+ * A simple in-memory vtep database implementation for use in testing.
+ *
+ * NOTE: This implementation does NOT support column selection in queries:
+ * all defined columns are always returned in the results. Likewise, monitoring
+ * requests do not honor column specification: any update to the entry is
+ * reported.
+ *
+ * Also, transaction support is very limited. In particular, there is no
+ * rollback if some operations in a transaction cannot be successfully
+ * completed.
  */
-abstract class MockOvsdbVtep {
+class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
+                        mgmtPort: Int = 6632) extends VtepConnection {
 
     protected type MockColumnSchema = ColumnSchema[GenericTableSchema, _]
     protected type MockTableSchema = Map[String, MockColumnSchema]
+
+    // A subject to publish the names of tables requested for monitoring
+    private val monitorSubject = PublishSubject.create[String]()
+
+    // A Subject to publish the operations requested on the vtep. Note that
+    // transaction information is not reported.
+    private val operationSubject = PublishSubject.create[Operation[_]]()
 
     private val lsSchema = Map[String, MockColumnSchema](
         ("_uuid", mkColumnSchema("_uuid", classOf[OvsdbUUID])),
@@ -142,7 +175,7 @@ abstract class MockOvsdbVtep {
         (McastMacsLocalTable.TB_NAME, MockTable[McastMac](mLocalSchema)),
         (McastMacsRemoteTable.TB_NAME, MockTable[McastMac](mRemoteSchema)),
         (PhysicalLocatorSetTable.TB_NAME, MockTable[PhysicalLocatorSet](locSetSchema)),
-        (PhysicalLocatorTable.TB_NAME, MockTable[PhysicalLocatorSet](locSchema)),
+        (PhysicalLocatorTable.TB_NAME, MockTable[PhysicalLocator](locSchema)),
         (PhysicalPortTable.TB_NAME, MockTable[PhysicalPort](portSchema)),
         (PhysicalSwitchTable.TB_NAME, MockTable[PhysicalSwitch](psSchema)),
         (UcastMacsLocalTable.TB_NAME, MockTable[UcastMac](uLocalSchema)),
@@ -153,47 +186,6 @@ abstract class MockOvsdbVtep {
     protected val databaseSchema = MockOvsdbDatabase.get(
         MockOvsdbVtep.DB_HARDWARE_VTEP,
         tables.map(e => (e._1, new MockOvsdbTable(e._1, e._2.schema))))
-
-    /** Retrieve a supported database schema */
-    def getDbSchema(name: String): DatabaseSchema =
-        if (name != MockOvsdbVtep.DB_HARDWARE_VTEP) null else databaseSchema
-
-    /** Gets the client. */
-    def getClient: OvsdbClient
-
-    /** Get the handle. */
-    def getHandle: OvsdbHandle
-}
-
-object MockOvsdbVtep {
-    /** The only supported ovsdb database in the mock vtep */
-    val DB_HARDWARE_VTEP = "hardware_vtep"
-}
-
-/**
- * A simple in-memory vtep database implementation for use in testing.
- * NOTE: This implementation does NOT support column selection in queries:
- * all defined columns are always returned in the results. Likewise, monitoring
- * requests do not honor column specification: any update to the entry is
- * reported.
- * Also, transaction support is very limited. In particular, there is no
- * rollback if some operations in a transaction cannot be successfully
- * completed.
- */
-class InMemoryOvsdbVtep extends MockOvsdbVtep {
-
-    // A subject to publish the names of tables requested for monitoring
-    private val monitorSubject = PublishSubject.create[String]()
-
-    // A Subject to publish the operations requested on the vtep. Note that
-    // transaction information is not reported.
-    private val operationSubject = PublishSubject.create[Operation[_]]()
-
-    /** publish the monitored tables */
-    def monitorRequests = monitorSubject.asObservable()
-
-    /** publish the requested operations */
-    def operationRequests = operationSubject.asObservable()
 
     // Table schemas
     private val tableParsers = Map[String, Table[_ <: VtepEntry]](
@@ -210,12 +202,11 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
 
     // Table data
     private case class MockData[E <: VtepEntry](data: TrieMap[util.UUID, E])
-
     private val tableData = Map[String, MockData[_ <: VtepEntry]] (
         (LogicalSwitchTable.TB_NAME, MockData(TrieMap.empty[util.UUID, LogicalSwitch])),
         (McastMacsLocalTable.TB_NAME, MockData(TrieMap.empty[util.UUID, McastMac])),
         (McastMacsRemoteTable.TB_NAME, MockData(TrieMap.empty[util.UUID, McastMac])),
-        (PhysicalLocatorSetTable.TB_NAME, MockData(TrieMap.empty[util.UUID, PhysicalLocator])),
+        (PhysicalLocatorSetTable.TB_NAME, MockData(TrieMap.empty[util.UUID, PhysicalLocatorSet])),
         (PhysicalLocatorTable.TB_NAME, MockData(TrieMap.empty[util.UUID, PhysicalLocator])),
         (PhysicalPortTable.TB_NAME, MockData(TrieMap.empty[util.UUID, PhysicalPort])),
         (PhysicalSwitchTable.TB_NAME, MockData(TrieMap.empty[util.UUID, PhysicalSwitch])),
@@ -227,6 +218,35 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
         throw new IllegalStateException("TableData and Tables don't have the " +
                                         "same size.  This is a bug")
     }
+
+    // Prime the VTEP with some configuration as the real one
+
+    private val physPortIds = MockOvsdbVtep.physPortNames map { name =>
+        val port = new PhysicalPort(UUID.randomUUID(), name, s"$name-desc",
+                                    Map.empty, Map.empty, Set.empty)
+        tableData.get(PhysicalPortTable.TB_NAME).get
+                 .data.asInstanceOf[TrieMap[UUID, PhysicalPort]]
+                 .put(port.uuid, port)
+        port.uuid
+    }
+
+    private val myPhysSwitchId = UUID.randomUUID()
+    tableData.get(PhysicalSwitchTable.TB_NAME).get
+        .data.asInstanceOf[TrieMap[UUID, PhysicalSwitch]]
+        .put(myPhysSwitchId,
+             new PhysicalSwitch(myPhysSwitchId, "testy-test", "testy-desc",
+                                physPortIds.toSet, Set(mgmtIp), Set(mgmtIp))
+        )
+
+    /** publish the monitored tables */
+    def monitorRequests = monitorSubject.asObservable()
+
+    /** publish the requested operations */
+    def operationRequests = operationSubject.asObservable()
+
+    /** Retrieve a supported database schema */
+    def getDbSchema(name: String): DatabaseSchema =
+        if (name != MockOvsdbVtep.DB_HARDWARE_VTEP) null else databaseSchema
 
     /** get an inmutable snapshot of a internal table data */
     def getTable[E <: VtepEntry](t: Table[E]): Map[util.UUID, E] =
@@ -309,12 +329,6 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
             }
     }
 
-    override val getClient =
-        new MockOvsdbClient(databaseSchema, monitorRegistration,
-                            transactionEngine)
-
-    override val getHandle = OvsdbHandle(getClient, databaseSchema)
-
     /** Evaluate if a row satisfies a given condition. Note that not all
       * possible condition definitions are implmemented (only those required
       * for Midonet vtep support) */
@@ -359,7 +373,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                 result.setError("unknown table")
                 result.setDetails("unknown table " + op.getTable)
             case Some(MockData(data)) => op match {
-                case ins: Insert[E] =>
+                case ins: Insert[_] =>
                     val t = tableParserFor[E](op)
                     val uuidSchema = t.getSchema.column("_uuid",
                                                         classOf[OvsdbUUID])
@@ -381,7 +395,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                     result.setUuid(Lists.newArrayList(null, entry.uuid.toString))
                     result.setCount(1)
                     result.setRows(Lists.newArrayList(row))
-                case del: Delete[E] =>
+                case del: Delete[_] =>
                     val t = tableParserFor[E](op)
                     val conditions = del.getWhere.toIterable
                     val removed = new util.ArrayList[Row[GenericTableSchema]]()
@@ -395,7 +409,7 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                         })
                     result.setCount(removed.size())
                     result.setRows(removed)
-                case upd: Update[E] =>
+                case upd: Update[_] =>
                     val t = tableParserFor[E](op)
                     val conditions = upd.getWhere.toIterable
                     val updated = new util.ArrayList[Row[GenericTableSchema]]()
@@ -413,12 +427,15 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
                     })
                     result.setCount(updated.size())
                     result.setRows(updated)
-                case sel: Select[E] =>
+                case sel: Select[_] =>
                     val t = tableParserFor[E](op)
-                    val conditions = sel.getWhere.toIterable
+                    val conditions = sel.getWhere
                     val out = data.values
-                        .map { case e: E => t.generateRow(e) }.toSeq
-                        .filter(r => conditions.forall(filterRow(r, _)))
+                                  .map { case e: E => t.generateRow(e) }
+                                  .toSeq
+                                  .filter { r =>
+                                      conditions.forall(filterRow(r, _))
+                                  }
                     result.setCount(out.length)
                     result.setRows(Lists.newArrayList(seqAsJavaList(out)))
             }
@@ -432,5 +449,42 @@ class InMemoryOvsdbVtep extends MockOvsdbVtep {
         }
 
         result
+    }
+
+    private val client = new MockOvsdbClient(databaseSchema, monitorRegistration,
+                                             transactionEngine, mgmtIp,
+                                             mgmtPort)
+
+    private val stateSubject =
+        BehaviorSubject.create[State](ConnectionState.Disconnected)
+
+    override def endPoint: VtepEndPoint = OvsdbTools.endPointFromOvsdbClient(client)
+    override def getHandle = Some(OvsdbHandle(client, databaseSchema))
+    override def getState: State = stateSubject.toBlocking.first()
+    override def close()(implicit ex: ExecutionContext): Future[State] = {
+        stateSubject.onNext(ConnectionState.Disconnected)
+        Future.successful(ConnectionState.Disconnected)
+    }
+    override def connect(): Future[State] = {
+        stateSubject.onNext(ConnectionState.Connected)
+        stateSubject.onNext(ConnectionState.Ready)
+        Future.successful(ConnectionState.Ready)
+    }
+    override def disconnect(): Future[State] = {
+        stateSubject.onNext(ConnectionState.Disconnected)
+        Future.successful(ConnectionState.Disconnected)
+    }
+    override def observable: Observable[State] = stateSubject
+
+    def goBroken(): Unit = {
+        stateSubject.onNext(ConnectionState.Broken)
+    }
+    
+    def goConnecting(): Unit = {
+        stateSubject.onNext(ConnectionState.Connecting)
+    }
+
+    def goReady(): Unit = {
+        stateSubject.onNext(ConnectionState.Ready)
     }
 }

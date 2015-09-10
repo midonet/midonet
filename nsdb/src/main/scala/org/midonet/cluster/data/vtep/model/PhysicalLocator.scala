@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.data.vtep.model
 
-import java.util.{UUID, Objects}
+import java.util.{Objects, UUID}
 
 import org.midonet.packets.IPv4Addr
 
@@ -25,15 +25,16 @@ import org.midonet.packets.IPv4Addr
  * dstIp from being null. The dstIpString value is provided for convenience,
  * to facilitate integration with the low-level ovsdb library using strings
  * to represent IPs.
- * @param id is UUID of this locator in OVSDB
- * @param encapsulation is the encapsulation type
+ *
+ * @param uuid is UUID of this locator in OVSDB
  * @param dstIp is the destination ip
  */
-final class PhysicalLocator(id: UUID, val dstIp: IPv4Addr,
-                            val encapsulation: String) extends VtepEntry {
+final class PhysicalLocator(override val uuid: UUID,
+                            val dstIp: IPv4Addr) extends VtepEntry {
 
-    override val uuid = if (id == null) UUID.randomUUID() else id
+    val encapsulation: String = "vxlan_over_ipv4"
     val dstIpString: String = if (dstIp == null) null else dstIp.toString
+
     private val str: String = "PhysicalLocator{" +
                                   "uuid=" + uuid + ", " +
                                   "dstIp=" + dstIp + ", " +
@@ -49,20 +50,8 @@ final class PhysicalLocator(id: UUID, val dstIp: IPv4Addr,
 }
 
 object PhysicalLocator {
-    val DEFAULT_ENCAPSULATION: String = "vxlan_over_ipv4"
-
-    def apply(id: UUID, dst: IPv4Addr, enc: String)
-        : PhysicalLocator = new PhysicalLocator(id, dst, enc)
-
-    def apply(id: UUID, dst: String, enc: String)
-        : PhysicalLocator = apply(id,
-        if (dst == null || dst.isEmpty) null else IPv4Addr.fromString(dst), enc)
-
-    def apply(dst: String, enc: String = DEFAULT_ENCAPSULATION)
-        : PhysicalLocator = apply(null, dst, enc)
-    def apply(dst: IPv4Addr, enc: String)
-        : PhysicalLocator = apply(null, dst, enc)
-    def apply(dst: IPv4Addr)
-        : PhysicalLocator = apply(null, dst, DEFAULT_ENCAPSULATION)
+    def apply(id: UUID, dst: IPv4Addr)
+    : PhysicalLocator = new PhysicalLocator(id, dst)
+    def apply(dst: IPv4Addr): PhysicalLocator = apply(null, dst)
 }
 

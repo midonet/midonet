@@ -27,17 +27,15 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import com.typesafe.scalalogging.Logger
-
 import org.opendaylight.ovsdb.lib.OvsdbClient
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema
 import org.slf4j.LoggerFactory
-
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber}
 
 import org.midonet.cluster.data.vtep.model._
-import org.midonet.cluster.data.vtep.{VtepConfigException, VtepData, VtepStateException}
+import org.midonet.cluster.data.vtep.{VtepConfigException, VtepStateException}
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.OvsdbOperations._
 import org.midonet.southbound.vtep.OvsdbUtil.panicAlert
@@ -49,13 +47,18 @@ import org.midonet.util.functors.makeFunc1
 /**
  * This class handles the data from an OVSDB-compliant VTEP.
  */
-class OvsdbVtepData(val endPoint: VtepEndPoint, val client: OvsdbClient,
-                    val dbSchema: DatabaseSchema, val vtepExecutor: Executor,
-                    val eventExecutor: Executor)
+class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
+                    val vtepExecutor: Executor, val eventExecutor: Executor)
     extends VtepData {
 
+    private val endPoint = OvsdbTools.endPointFromOvsdbClient(client)
+    // required so that it doesn't mess with the appender config
+    private val sEndPoint = endPoint.toString.replaceAll("\\.", "_")
+
+    private val MaxBackpressureBuffer = 100000
+
     private val log =
-        Logger(LoggerFactory.getLogger(s"org.midonet.vtep.vtep-$endPoint-data"))
+        Logger(LoggerFactory.getLogger(s"org.midonet.vtep.vtep-$sEndPoint"))
     private implicit val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
     private val vtepScheduler = Schedulers.from(vtepExecutor)
 
