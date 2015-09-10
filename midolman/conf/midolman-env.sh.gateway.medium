@@ -29,7 +29,7 @@ WATCHDOG_TIMEOUT=10
 JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk"
 
 # Amount of memory to allocate for the JVM heap.
-MAX_HEAP_SIZE="7168M"
+MAX_HEAP_SIZE="8192M"
 
 # Here we create the arguments that will get passed to the jvm when
 # starting midolman.
