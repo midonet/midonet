@@ -206,7 +206,7 @@ Miscellaneous options:
 This is an example configuration file:
 
   `[cli]`<br>
-  `api_url`=<http://localhost:8080/midonet-api><br>
+  `api_url`=<http://localhost:8181/midonet-api><br>
   `username`=admin<br>
   `password`=admin_pass<br>
   `project_id`=midonet_provider<br>
