@@ -195,28 +195,28 @@ public abstract class Table<E extends VtepEntry> {
     /**
      * Extract sets, protecting against null values
      */
-    protected Set extractSet(
+    protected Set<String> extractSet(
         Row<GenericTableSchema> row,
         ColumnSchema<GenericTableSchema, Set> col) {
-        if (row == null) {
-            return new HashSet();
-        } else {
-            Set set = row.getColumn(col).getData();
-            return (set == null)? new HashSet(): set;
+        Set<String> set = new HashSet<>();
+        if (row != null) {
+            for (Object o : row.getColumn(col).getData()) {
+                set.add(o.toString());
+            }
         }
+        return set;
     }
 
     /**
      * Extract maps, protecting against null values
      */
-    protected Map extractMap(
-        Row<GenericTableSchema> row,
-        ColumnSchema<GenericTableSchema, Map> col) {
+    protected Map extractMap(Row<GenericTableSchema> row,
+                             ColumnSchema<GenericTableSchema, Map> col) {
         if (row == null) {
             return new HashMap();
         } else {
             Map map = row.getColumn(col).getData();
-            return (map == null)? new HashMap(): map;
+            return (map == null) ? new HashMap() : map;
         }
     }
 

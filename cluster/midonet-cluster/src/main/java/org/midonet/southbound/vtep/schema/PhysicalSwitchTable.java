@@ -16,12 +16,11 @@
 
 package org.midonet.southbound.vtep.schema;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.opendaylight.ovsdb.lib.notation.Condition;
-import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
 import org.opendaylight.ovsdb.lib.operations.Insert;
 import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
@@ -31,7 +30,6 @@ import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 import org.midonet.packets.IPv4Addr;
 
-import static org.midonet.southbound.vtep.OvsdbUtil.fromOvsdb;
 import static org.midonet.southbound.vtep.OvsdbUtil.fromOvsdbIpSet;
 import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdb;
 import static org.midonet.southbound.vtep.OvsdbUtil.toOvsdbIpSet;
@@ -93,13 +91,6 @@ public final class PhysicalSwitchTable extends Table<PhysicalSwitch> {
         return tableSchema.column(COL_TUNNEL_IPS, Set.class);
     }
 
-    /** Generate a matcher condition for the management ips
-     * (for use with select) */
-    static public Condition getManagementIpsMatcher(IPv4Addr value) {
-        return new Condition(COL_MANAGEMENT_IPS, Function.INCLUDES,
-                             value.toString());
-    }
-
     /**
      * Extract the physical switch name, returning null if not set or empty
      */
@@ -117,15 +108,17 @@ public final class PhysicalSwitchTable extends Table<PhysicalSwitch> {
     /**
      * Extract the set of physical port names
      */
-    @SuppressWarnings(value = "unchecked")
     private Set<UUID> parsePorts(Row<GenericTableSchema> row) {
-        return fromOvsdb(extractSet(row, getPortsSchema()));
+        Set<UUID> set = new HashSet<>();
+        for (String s : extractSet(row, getPortsSchema())) {
+            set.add(UUID.fromString(s));
+        }
+        return set;
     }
 
     /**
      * Extract the set of management ips
      */
-    @SuppressWarnings(value = "unchecked")
     private Set<IPv4Addr> parseManagementIps(Row<GenericTableSchema> row) {
         return fromOvsdbIpSet(extractSet(row, getManagementIpsSchema()));
     }
@@ -133,7 +126,6 @@ public final class PhysicalSwitchTable extends Table<PhysicalSwitch> {
     /**
      * Extract the set of tunnel ips (may be empty)
      */
-    @SuppressWarnings(value = "unchecked")
     private Set<IPv4Addr> parseTunnelIps(Row<GenericTableSchema> row) {
         return fromOvsdbIpSet(extractSet(row, getTunnelIpsSchema()));
     }

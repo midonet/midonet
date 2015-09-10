@@ -25,25 +25,25 @@ import org.scalatest.{FeatureSpec, Matchers}
 @RunWith(classOf[JUnitRunner])
 class PhysicalLocatorSetTest extends FeatureSpec with Matchers {
     val uuid = UUID.randomUUID()
-    val locs = Set(UUID.randomUUID().toString, UUID.randomUUID().toString)
+    val loc = UUID.randomUUID().toString
 
     feature("constructors") {
         scenario("default constructor") {
-            val s = PhysicalLocatorSet(uuid, locs)
+            val s = PhysicalLocatorSet(uuid, loc)
             s.uuid shouldBe uuid
-            s.locatorIds shouldBe locs
+            s.locatorIds should contain only loc
         }
         scenario("non-uuid constructor") {
-            val s = PhysicalLocatorSet(locs)
+            val s = PhysicalLocatorSet(loc)
             s.uuid shouldNot be (null)
-            s.locatorIds shouldBe locs
+            s.locatorIds should contain only loc
         }
     }
     feature("physical locator set tolerates null values") {
         scenario("null uuid") {
-            val s = PhysicalLocatorSet(null, locs)
+            val s = PhysicalLocatorSet(null, loc)
             s.uuid shouldNot be (null)
-            s.locatorIds shouldBe locs
+            s.locatorIds should contain only loc
         }
         scenario("null locator set") {
             val s = new PhysicalLocatorSet(uuid, null)
@@ -53,15 +53,15 @@ class PhysicalLocatorSetTest extends FeatureSpec with Matchers {
     }
     feature("operations") {
         scenario("equality does depend on uuid") {
-            val s1 = PhysicalLocatorSet(uuid, locs)
-            val s2 = PhysicalLocatorSet(uuid, locs)
-            val s3 = PhysicalLocatorSet(null, locs)
+            val s1 = PhysicalLocatorSet(uuid, loc)
+            val s2 = PhysicalLocatorSet(uuid, loc)
+            val s3 = PhysicalLocatorSet(null, loc)
             s1.equals(s2) shouldBe true
             s1.equals(s3) shouldBe false
         }
         scenario("hashcode depends on uuid") {
-            val s1 = PhysicalLocatorSet(null, locs)
-            val s2 = PhysicalLocatorSet(uuid, locs)
+            val s1 = PhysicalLocatorSet(null, loc)
+            val s2 = PhysicalLocatorSet(uuid, loc)
             s1.hashCode shouldNot be (s2.hashCode)
             s2.hashCode shouldBe uuid.hashCode()
         }

@@ -52,6 +52,7 @@ final class PhysicalLocator(override val uuid: UUID,
 object PhysicalLocator {
     def apply(id: UUID, dst: IPv4Addr)
     : PhysicalLocator = new PhysicalLocator(id, dst)
+
     def apply(dst: IPv4Addr): PhysicalLocator = apply(null, dst)
 }
 
