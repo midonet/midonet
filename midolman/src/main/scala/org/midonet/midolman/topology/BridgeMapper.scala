@@ -144,7 +144,7 @@ object BridgeMapper {
                       mac, vlanIdObj, portId)
             try {
                 if (map.removeIfOwnerAndValue(mac, portId) == null)
-                    log.error("No mapping from MAC {}, VLAN {} to port {} " +
+                    log.debug("No mapping from MAC {}, VLAN {} to port {} " +
                               "owned by this node.", mac, vlanIdObj, portId)
             } catch {
                 case NonFatal(t) =>
