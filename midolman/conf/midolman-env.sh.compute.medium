@@ -26,7 +26,7 @@ QUAGGA_DIR=/var/run/quagga
 WATCHDOG_TIMEOUT=10
 
 # Amount of memory to allocate for the JVM heap.
-MAX_HEAP_SIZE="5120M"
+MAX_HEAP_SIZE="2048M"
 
 # Amount of memory, out of the total size defined by MAX_HEAP_SIZE, to
 # allocate to the eden generation within
