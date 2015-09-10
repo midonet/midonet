@@ -275,8 +275,9 @@ class Coordinator(context: PacketContext)
      */
     def applyExteriorPortFilter(portId: UUID): Boolean = {
         val port = tryAsk[Port](portId)
-        context.addFlowTag(port.deviceTag)
-
+        if (port.id != context.inPortId) {
+            context.addFlowTag(port.deviceTag)
+        }
         if (port.isExterior && port.adminStateUp &&
             port.isActive && port.id != context.inPortId) {
 
