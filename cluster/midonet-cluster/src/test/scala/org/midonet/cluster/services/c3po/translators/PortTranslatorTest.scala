@@ -33,8 +33,8 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Topology.{Chain, Dhcp, Port, Route, Rule}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{OpType, Operation}
-import org.midonet.cluster.services.c3po.{midonet, neutron}
+import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
+import org.midonet.cluster.services.c3po.{OpType, midonet, neutron}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.SequenceType.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}

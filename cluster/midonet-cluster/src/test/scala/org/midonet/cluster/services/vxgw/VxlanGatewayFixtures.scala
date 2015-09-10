@@ -40,8 +40,8 @@ import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, MockDirectory}
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.OvsdbVtepDataClient
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState.Disconnected
+import org.midonet.southbound.vtep.ConnectionState
+import org.midonet.southbound.vtep.ConnectionState.Disconnected
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.util.concurrent._
 import org.midonet.util.reactivex.TestAwaitableObserver

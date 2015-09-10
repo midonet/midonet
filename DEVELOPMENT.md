@@ -90,10 +90,6 @@ Contains basic utilities used by the other modules, and is described
 
 Contains the *MidoNet* edge controller code, as described [here](docs/midolman.md).
 
-### midonet-api
-
-Contains the unit tests of the *MidoNet* REST API.
-
 ### netlink
 
 Code for speaking the netlink protocol over a netlink socket, generally
