@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_c0abc587",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-11T18:29:46Z",
+      "side": 1,
+      "message": "This was being used at some point, I removed and forgot to change the map.",
+      "parentUuid": "1ae5cdf2_d09e4056",
+      "range": {
+        "startLine": 319,
+        "startChar": 36,
+        "endLine": 319,
+        "endChar": 39
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_f0cdfc87",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2015-09-09T07:39:00Z",
       "side": 1,
       "message": "?",
+      "range": {
+        "startLine": 324,
+        "startChar": 28,
+        "endLine": 324,
+        "endChar": 30
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_20a0e98f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-11T18:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_f0cdfc87",
       "range": {
         "startLine": 324,
         "startChar": 28,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_e0ec41ca",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-11T18:29:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_d0b560ce",
+      "range": {
+        "startLine": 49,
+        "startChar": 3,
+        "endLine": 50,
+        "endChar": 25
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_70dd6c14",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
         "patchSetId": 10
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_00d12dfb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-11T18:29:46Z",
+      "side": 1,
+      "message": "getKeyType is not visible",
+      "parentUuid": "1ae5cdf2_70dd6c14",
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_f0d09cf9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
         "patchSetId": 10
@@ -99,6 +189,30 @@
       "writtenOn": "2015-09-09T07:39:00Z",
       "side": 1,
       "message": "Why not this?\n\n  if (isOwner) {\n      isOwner \u003d false\n      sub.unsubscribe()\n      onLost()\n  }",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 9
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_60d8311e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-11T18:29:46Z",
+      "side": 1,
+      "message": "true, this is leftovers, cleaning",
+      "parentUuid": "1ae5cdf2_f0d09cf9",
       "range": {
         "startLine": 75,
         "startChar": 0,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_a0095997",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-11T18:29:46Z",
+      "side": 1,
+      "message": "yes, adding a log",
+      "parentUuid": "1ae5cdf2_90e2f8d3",
+      "range": {
+        "startLine": 82,
+        "startChar": 25,
+        "endLine": 82,
+        "endChar": 37
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_50d8701d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
         "patchSetId": 10
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_203c692f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-11T18:29:46Z",
+      "side": 1,
+      "message": "Looking into BlockingObservable.blockForSingle (which is where this should end up), onError on the source will result in the exception rethrown. But wrapped in a RuntimeException. So I\u0027m going to catch NonFatal and just log all cases for now.",
+      "parentUuid": "1ae5cdf2_50d8701d",
+      "range": {
+        "startLine": 101,
+        "startChar": 14,
+        "endLine": 106,
+        "endChar": 13
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_90091898",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
         "patchSetId": 10
@@ -168,6 +330,30 @@
       "writtenOn": "2015-09-09T07:39:00Z",
       "side": 1,
       "message": "This is a bit confusing because \"wh00t\" generally indicates success.",
+      "range": {
+        "startLine": 107,
+        "startChar": 13,
+        "endLine": 107,
+        "endChar": 18
+      },
+      "revId": "d5abe2739666ba9a6ba9156d18c6f080b3e26702",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a01799a2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-11T18:29:46Z",
+      "side": 1,
+      "message": ":(",
+      "parentUuid": "1ae5cdf2_90091898",
       "range": {
         "startLine": 107,
         "startChar": 13,
