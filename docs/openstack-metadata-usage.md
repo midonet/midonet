@@ -27,6 +27,36 @@ incoming metadata requests.
 Please make sure that these addresses and ports are not used for
 other purposes on the hypervisor.
 
+### How to configure
+
+#### MidoNet
+
+To use MidoNet Metadata Proxy, you need to enable it via mn-conf.
+These are deployment-global settings.  They will take effect next
+time each midolman is (re-)started.
+
+|mn-conf key                               |appropriate value    |
+|:-----------------------------------------|:--------------------|
+|agent.openstack.metadata.nova_metadata_url|http://${nova_metadata_host}:${nova_metadata_port} to specify the address on which Nova Metadata Api is available.  The port number is typically 8775.|
+|agent.openstack.metadata.shared_secret    |A secret string shared with Nova Metadata Api.  The corresponding configuration on Nova side is neutron.metadata_proxy_shared_secret.|
+|agent.openstack.metadata.enabled          |true                 |
+
+#### Nova Metadata Api
+
+Nova Metadata Api configuration is same as the case of
+Neutron Metadata Proxy.  It should accept HTTP requests from
+every hosts on which midolman serves Metadata-using VMs.
+
+|section|key                         |value                  |
+|:------|:---------------------------|:----------------------|
+|neutron|service_metadata_proxy      |True                   |
+|neutron|metadata_proxy_shared_secret|A secret string shared with MidoNet Metadata Proxy.  The corresponding configuration on MidoNet side is agent.openstack.metadata.shared_secret.|
+
+See OpenStack Admin Guide for details:
+
+* http://docs.openstack.org/admin-guide-cloud/compute-networking-nova.html#metadata-service
+* http://docs.openstack.org/admin-guide-cloud/networking_config-identity.html#configure-metadata
+
 ### Migration from Neutron metadata proxy
 
 This section describes a procedure to migrate existing deployments
