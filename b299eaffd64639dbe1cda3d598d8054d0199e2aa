@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_208629ba",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-11T18:56:33Z",
+      "side": 1,
+      "message": "But in that case you\u0027re overcomplicating what can be done very easily with a Future, no? You need the subject, dealing with the subscription of the source to the networkSubject, then subscribing to the subject..",
+      "parentUuid": "3ae8d1ca_b02460c7",
+      "range": {
+        "startLine": 80,
+        "startChar": 4,
+        "endLine": 80,
+        "endChar": 78
+      },
+      "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f9d052f9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
         "patchSetId": 10
@@ -320,6 +344,30 @@
       "side": 1,
       "message": "That\u0027s the way I make everything non-blocking.",
       "parentUuid": "9ad9bd40_39db9a1c",
+      "range": {
+        "startLine": 251,
+        "startChar": 4,
+        "endLine": 254,
+        "endChar": 50
+      },
+      "revId": "b299eaffd64639dbe1cda3d598d8054d0199e2aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_609031ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-11T18:56:33Z",
+      "side": 1,
+      "message": "Same as above, you seem to be taking a long detour to do something that Futures would allow easily.",
+      "parentUuid": "3ae8d1ca_d021ecb5",
       "range": {
         "startLine": 251,
         "startChar": 4,
