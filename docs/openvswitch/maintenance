@@ -7,7 +7,7 @@ Midolman network controller lives on top of a programmable switch we refer to as
 low-level functions of this datapath module to route packets and control traffic
 in and out of virtual ports it manages. This tightly coupled architecture
 requires a certain level of maintenance. This document gives pointers to
-places that can break and needs monitoring.
+places that can break and need monitoring.
 
 ### Southbound netlink facing interface
 
