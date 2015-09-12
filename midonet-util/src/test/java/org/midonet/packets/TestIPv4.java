@@ -101,6 +101,28 @@ public class TestIPv4 {
         }
 
         @Test
+        public void testCksumPaddedPacket() throws MalformedPacketException {
+            byte[] ipv4Bytes = {
+                (byte) 0x45, (byte) 0x00, (byte) 0x00, (byte) 0x1e, (byte) 0x26,
+                (byte) 0xd9, (byte) 0x40, (byte) 0x00, (byte) 0x3f, (byte) 0x01,
+                (byte) 0xb9, (byte) 0xde, (byte) 0xac, (byte) 0x10, (byte) 0x02,
+                (byte) 0x04, (byte) 0xac, (byte) 0x10, (byte) 0x01, (byte) 0x03,
+                (byte) 0x08, (byte) 0x00, (byte) 0x90, (byte) 0x5f, (byte) 0x67,
+                (byte) 0x9e, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x01,
+                (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00
+            };
+            IPv4 p = new IPv4();
+            p.deserialize(ByteBuffer.wrap(ipv4Bytes));
+            Assert.assertEquals(30, p.totalLength);
+            int cksum = p.checksum;
+            p.clearChecksum();
+            p.deserialize(ByteBuffer.wrap(p.serialize()));
+            Assert.assertEquals(cksum, p.checksum);
+        }
+
+        @Test
         public void testCksumRandomArrays() {
             Random rand = new Random(12345);
             for (int i = 0; i < 10; i++) {
@@ -168,7 +190,7 @@ public class TestIPv4 {
             ipPkt = new IPv4();
             bb = ByteBuffer.wrap(longBuffer);
             ipPkt.deserialize(bb);
-            Assert.assertEquals(longBuffer.length, ipPkt.totalLength);
+            Assert.assertArrayEquals(ipBytes, ipPkt.serialize());
 
             // Now deserialize/serialize an incomplete packet
             byte[] truncatedIpBytes = Arrays.copyOf(ipBytes, ipBytes.length - 20);
@@ -333,7 +355,7 @@ public class TestIPv4 {
             ipPkt = new IPv4();
             bb = ByteBuffer.wrap(longBuffer, 0, longBuffer.length);
             ipPkt.deserialize(bb);
-            Assert.assertEquals(longBuffer.length, ipPkt.totalLength);
+            Assert.assertArrayEquals(data, ipPkt.serialize());
 
             // Now try deserializaing/serializing a truncated packet.
             byte[] truncatedData = Arrays.copyOf(data, data.length - 30);
@@ -429,8 +451,8 @@ public class TestIPv4 {
                     testHeader.length + 2);
             totalLenTooSmall[3] = (byte) 0x15;
             IPv4 totalLenTooSmallIPv4 = copyIPv4(templateIPv4);
-            totalLenTooSmallIPv4.setTotalLength(testHeader.length + 2);
-            totalLenTooSmallIPv4.setPayload(createData(totalLenTooSmall, 20, 22));
+            totalLenTooSmallIPv4.setTotalLength(testHeader.length + 1);
+            totalLenTooSmallIPv4.setPayload(createData(totalLenTooSmall, 20, 21));
 
             // For empty payload with options
             byte[] headerOnlyWithOptions = Arrays.copyOf(testHeaderWithOptions,
