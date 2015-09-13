@@ -1,0 +1,429 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_85be2afe",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyCalculator.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "Not used?",
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_05cbfaa5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "Better to rename something like updateTrackedHosts.",
+      "range": {
+        "startLine": 168,
+        "startChar": 16,
+        "endLine": 168,
+        "endChar": 34
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_45c42292",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "s/pId/hId/",
+      "range": {
+        "startLine": 171,
+        "startChar": 36,
+        "endLine": 171,
+        "endChar": 39
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_25d0f64f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "Please rename something like \"removedHostId\"",
+      "range": {
+        "startLine": 181,
+        "startChar": 27,
+        "endLine": 181,
+        "endChar": 29
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e5d52e44",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "s/nwSt/fpSt/",
+      "range": {
+        "startLine": 183,
+        "startChar": 16,
+        "endLine": 183,
+        "endChar": 20
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a5bb260d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "Please insert \"retries\".",
+      "range": {
+        "startLine": 251,
+        "startChar": 51,
+        "endLine": 251,
+        "endChar": 67
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a5e4063c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "s/n/notification/",
+      "range": {
+        "startLine": 105,
+        "startChar": 22,
+        "endLine": 105,
+        "endChar": 23
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_c5d03256",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "Do we need to check if oldMac in a known mac (that is, in the mac table) just as we do below?",
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3f264317",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "Need to the update the wording reflecting the class name change.",
+      "range": {
+        "startLine": 63,
+        "startChar": 10,
+        "endLine": 63,
+        "endChar": 14
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_bfc7b311",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "Isn\u0027t this name confusing? It\u0027s just a value and not even a parameter-less fun but is named as if it\u0027s an action / function. On the other hand, whenFloodingProxyChanges is an action, so that\u0027s OK.",
+      "range": {
+        "startLine": 142,
+        "startChar": 16,
+        "endLine": 142,
+        "endChar": 42
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_bf633319",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "This part is really confusing. Can we do without exposing vtepMacRemoteConsumer, (which is, by the way, just an observer while macRemoteConsumer is actually a VtepMacRemoteConsumer)? You can construct a VtepMacRemoteConsumer upon construction of VtepSynchronizer and \"start/connect\" it upon connection to OVSDB passing the OvsDB connection as an arg. That way we can avoid introducing the default dummy Observable for VtepMacRemoteConsumer in VtepSynchronizer.",
+      "range": {
+        "startLine": 236,
+        "startChar": 16,
+        "endLine": 237,
+        "endChar": 61
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a58de67d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "syncNsdb\"With\"Ovsdb ?",
+      "range": {
+        "startLine": 274,
+        "startChar": 16,
+        "endLine": 274,
+        "endChar": 33
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_25f9d6e9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "s/IllegalArgumentException/IllegalStateException/",
+      "range": {
+        "startLine": 348,
+        "startChar": 32,
+        "endLine": 348,
+        "endChar": 56
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e5ee0e22",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "s/NetworkCard/NetworkInfo/",
+      "range": {
+        "startLine": 363,
+        "startChar": 12,
+        "endLine": 363,
+        "endChar": 23
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_85e70a40",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "nwInfo.vxPort will always be null because watchNetwork is passing loadVxlanPortFor a newly created instance.",
+      "range": {
+        "startLine": 370,
+        "startChar": 8,
+        "endLine": 372,
+        "endChar": 9
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_65dafe79",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "If you set vxPort here and something fails in the later stage, say, for a OVSDB connection error, retrying \"watchNetwork\" will have no effect.",
+      "range": {
+        "startLine": 379,
+        "startChar": 24,
+        "endLine": 379,
+        "endChar": 58
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_45dd0270",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "s/card/info/",
+      "range": {
+        "startLine": 448,
+        "startChar": 17,
+        "endLine": 448,
+        "endChar": 21
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_ffe77be2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "The warning message says that this will stop the synchronization process but it doesn\u0027t call stopVtepSync(). Is it expected?",
+      "range": {
+        "startLine": 90,
+        "startChar": 12,
+        "endLine": 91,
+        "endChar": 73
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1fed07c4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-13T19:51:02Z",
+      "side": 1,
+      "message": "Just commenting that this is ugly and we should provide a proper factory method.",
+      "range": {
+        "startLine": 149,
+        "startChar": 12,
+        "endLine": 151,
+        "endChar": 13
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
