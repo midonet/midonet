@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f387b45f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-14T15:07:05Z",
+      "side": 1,
+      "message": "the comment style inconsistency is atrocious!",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5396a895",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-14T15:07:05Z",
+      "side": 1,
+      "message": "wrong ident?",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d3d39836",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-14T15:07:05Z",
+      "side": 1,
+      "message": "extra the",
+      "range": {
+        "startLine": 155,
+        "startChar": 20,
+        "endLine": 155,
+        "endChar": 23
+      },
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d3d0f855",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-14T15:07:05Z",
+      "side": 1,
+      "message": "extra this",
+      "range": {
+        "startLine": 365,
+        "startChar": 24,
+        "endLine": 365,
+        "endChar": 28
+      },
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
