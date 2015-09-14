@@ -59,6 +59,120 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_f38df432",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-14T15:48:18Z",
+      "side": 1,
+      "message": "this should run on the vtscheduler",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_93dbd01a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-14T15:48:18Z",
+      "side": 1,
+      "message": "this doesn\u0027t need to be its own method. In fact, you already have a method for extractTunnelIp. Have that warn if there\u0027s no tunnel ip, and return an Option[IPAddr].",
+      "range": {
+        "startLine": 163,
+        "startChar": 25,
+        "endLine": 163,
+        "endChar": 51
+      },
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_33ed9cc4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-14T15:48:18Z",
+      "side": 1,
+      "message": "are we guaranteed to have 1 tunnel address?",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f37ed4e3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-14T15:48:18Z",
+      "side": 1,
+      "message": "unsafe access to a thread unsafe hashmap.",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d3dd5816",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-14T15:48:18Z",
+      "side": 1,
+      "message": "removed is unused.",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5395c83e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-14T15:48:18Z",
+      "side": 1,
+      "message": "would be better to convert to java uuid as early as possible, to avoid holding on to PB junk long enough for it to be tenured.",
+      "range": {
+        "startLine": 332,
+        "startChar": 38,
+        "endLine": 332,
+        "endChar": 50
+      },
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_d3d0f855",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
         "patchSetId": 14
@@ -75,6 +189,29 @@
         "startChar": 24,
         "endLine": 365,
         "endChar": 28
+      },
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_53cea884",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-14T15:48:18Z",
+      "side": 1,
+      "message": "does vtep state get deleted when the vtep itself is? If not, the subscription will hang around forever when the vtep is deleted.",
+      "range": {
+        "startLine": 380,
+        "startChar": 16,
+        "endLine": 380,
+        "endChar": 35
       },
       "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
