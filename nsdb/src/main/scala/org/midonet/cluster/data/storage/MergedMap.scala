@@ -17,12 +17,14 @@
 package org.midonet.cluster.data.storage
 
 import java.util.concurrent.Executors
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import javax.annotation.Nonnull
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 
+import com.lmax.disruptor.util.DaemonThreadFactory
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import rx.Observable.OnSubscribe
@@ -71,7 +73,7 @@ trait MergedMapBus[K, V] {
 
 object MergedMap {
     case class MapUpdate[K, V >: Null <: AnyRef](key: K, oldValue: V, newValue: V)
-    private[storage] val executor = Executors.newSingleThreadExecutor()
+    private[storage] val executor = newSingleThreadExecutor(DaemonThreadFactory)
 }
 
 /**
