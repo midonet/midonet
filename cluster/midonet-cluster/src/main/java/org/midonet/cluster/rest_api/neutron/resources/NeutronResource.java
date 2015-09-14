@@ -93,9 +93,7 @@ public class NeutronResource {
     }
 
     @GET
-    @Produces({NeutronMediaType.NEUTRON_JSON_V1,
-               NeutronMediaType.NEUTRON_JSON_V2,
-               NeutronMediaType.NEUTRON_JSON_V3})
+    @Produces(NeutronMediaType.NEUTRON_JSON_V3)
     public Neutron get() {
 
         Neutron neutron = new Neutron();

@@ -16,8 +16,6 @@
 package org.midonet.cluster.rest_api.neutron;
 
 public final class NeutronMediaType {
-    public static final String NEUTRON_JSON_V1 = "application/vnd.org.midonet.neutron.Neutron-v1+json";
-    public static final String NEUTRON_JSON_V2 = "application/vnd.org.midonet.neutron.Neutron-v2+json";
     public static final String NEUTRON_JSON_V3 = "application/vnd.org.midonet.neutron.Neutron-v3+json";
     public static final String NETWORK_JSON_V1 = "application/vnd.org.midonet.neutron.Network-v1+json";
     public static final String NETWORKS_JSON_V1 = "application/vnd.org.midonet.neutron.Networks-v1+json";
