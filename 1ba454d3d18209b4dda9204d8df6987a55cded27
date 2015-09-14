@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f9a6b3c0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-09-14T23:18:19Z",
+      "side": 1,
+      "message": "When can this happen?",
+      "range": {
+        "startLine": 232,
+        "startChar": 13,
+        "endLine": 232,
+        "endChar": 32
+      },
+      "revId": "1ba454d3d18209b4dda9204d8df6987a55cded27",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
