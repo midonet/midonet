@@ -20,10 +20,12 @@ import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
 /** A simple ThreadFactory that names threads. */
-class NamedThreadFactory(name: String) extends ThreadFactory {
+class NamedThreadFactory(name: String, isDaemon: Boolean) extends ThreadFactory {
     private val threadNo = new AtomicInteger(0)
     override def newThread(r: Runnable): Thread = {
         val n = threadNo.incrementAndGet()
-        new Thread(r, name + "-" + n)
+        val t = new Thread(r, name + "-" + n)
+        t.setDaemon(isDaemon)
+        t
     }
 }

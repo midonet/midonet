@@ -17,6 +17,7 @@
 package org.midonet.southbound.vtep
 
 import java.net.{ConnectException, InetAddress, SocketException, UnknownHostException}
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent._
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
@@ -28,6 +29,7 @@ import scala.util.control.NonFatal
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
+import com.lmax.disruptor.util.DaemonThreadFactory
 import com.typesafe.scalalogging.Logger
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
@@ -134,7 +136,7 @@ class OvsdbVtepConnection(mgmtIp: IPv4Addr, mgmtPort: Int,
     private val log = Logger(getLogger(s"org.midonet.southbound.vtep-$loggerName"))
 
     // We must have 1 thread per VTEP
-    private val executor = Executors.newSingleThreadExecutor()
+    private val executor = newSingleThreadExecutor(DaemonThreadFactory.INSTANCE)
     private val scheduler = from(executor)
     private implicit val executionContext = fromExecutor(executor)
 
