@@ -36,7 +36,7 @@ import org.midonet.cluster.models.Topology.{Chain, Dhcp, Port, Route, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
 import org.midonet.cluster.services.c3po.{OpType, midonet, neutron}
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.SequenceType.OverlayTunnelKey
+import org.midonet.cluster.util.SequenceDispenser.{OverlayTunnelKey, SequenceType}
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
 import org.midonet.cluster.util._
 import org.midonet.midolman.state.MacPortMap
@@ -109,11 +109,11 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
     protected val seqDispenser = new SequenceDispenser(null, backendCfg) {
         private val mockCounter = new AtomicInteger(0)
         def reset(): Unit = mockCounter.set(0)
-        override def next(which: SequenceType.Value): Future[Int] = {
+        override def next(which: SequenceType): Future[Int] = {
             Future.successful(mockCounter.incrementAndGet())
         }
 
-        override def current(which: SequenceType.Value): Future[Int] = {
+        override def current(which: SequenceType): Future[Int] = {
             Future.successful(mockCounter.get())
         }
     }
