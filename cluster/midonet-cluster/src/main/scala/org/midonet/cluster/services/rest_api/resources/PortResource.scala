@@ -43,7 +43,7 @@ import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErro
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
-import org.midonet.cluster.util.SequenceType
+import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 
 class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                                               (implicit tag: ClassTag[P])
@@ -68,7 +68,7 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
     }
 
     protected def ensureTunnelKey(port: P): Future[P] = {
-        resContext.seqDispenser.next(SequenceType.OverlayTunnelKey) map { key =>
+        resContext.seqDispenser.next(OverlayTunnelKey) map { key =>
             port.tunnelKey = key
             port
         } recover { case NonFatal(t) =>
