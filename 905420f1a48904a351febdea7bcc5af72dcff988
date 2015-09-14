@@ -91,6 +91,29 @@
       "revId": "905420f1a48904a351febdea7bcc5af72dcff988",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e5652e46",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VxLanPortMappingServiceTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T07:55:55Z",
+      "side": 1,
+      "message": "this port doesn\u0027t have the network id, so the fact that tests are passing suggests that there is a bug",
+      "range": {
+        "startLine": 124,
+        "startChar": 8,
+        "endLine": 126,
+        "endChar": 26
+      },
+      "revId": "905420f1a48904a351febdea7bcc5af72dcff988",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
