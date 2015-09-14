@@ -221,7 +221,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
     def update(obj: Obj, validator: UpdateValidator[Obj]): Unit = {
 
         val clazz = obj.getClass
-        assert(isRegistered(clazz))
+        assert(isRegistered(clazz), s"Class is not registered: " + clazz)
 
         val thisId = getObjectId(obj)
         val snapshot = get(clazz, thisId).getOrElse(
