@@ -16,20 +16,19 @@
 
 package org.midonet.cluster.util
 
-import scala.util.Failure
+import scala.concurrent.duration._
 
 import com.typesafe.config.ConfigFactory
-import org.apache.curator.RetryPolicy
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.RetryNTimes
 import org.apache.zookeeper.KeeperException
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{GivenWhenThen, Matchers, FeatureSpecLike}
+import org.scalatest.{FeatureSpecLike, GivenWhenThen, Matchers}
+
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.SequenceType.OverlayTunnelKey
+import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.util.concurrent.toFutureOps
-import scala.concurrent.duration._
 
 @RunWith(classOf[JUnitRunner])
 class SequenceDispenserTest extends FeatureSpecLike
@@ -40,8 +39,7 @@ class SequenceDispenserTest extends FeatureSpecLike
     private val timeout = 3.seconds
 
     val illCurator = CuratorFrameworkFactory.newClient("localhost:2888",
-                                                       1000,
-                                                       1000,
+                                                       1000, 1000,
                                                        new RetryNTimes(2, 500))
     illCurator.start() // will fail, but we need it started so it takes reqs.
 
@@ -57,10 +55,10 @@ class SequenceDispenserTest extends FeatureSpecLike
     feature("The sequencer sequences in the happy case") {
         scenario("The ZK connection is up and running") {
             val sequencer = new SequenceDispenser(curator, conf)
-            SequenceType.values.foreach { t =>
-                sequencer.current(t).await(timeout) shouldBe 0
-                sequencer.next(t).await(timeout) shouldBe 1
-                sequencer.next(t).await(timeout) shouldBe 2
+            SequenceDispenser.Sequences foreach { t =>
+                sequencer.current(t).await(timeout) shouldBe t.seed
+                sequencer.next(t).await(timeout) shouldBe t.seed + 1
+                sequencer.next(t).await(timeout) shouldBe t.seed +2
 
                 // Make sure we're storing things in the right place
                 curator.checkExists().forPath(ZK_ROOT + "/" + t)
