@@ -99,6 +99,9 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
                         throw new BadRequestHttpException(ex, ex.getMessage)
                     case ex: IllegalStateException =>
                         throw new ConflictHttpException(ex, ex.getMessage)
+                    case ex =>
+                        throw new InternalServerErrorHttpException(
+                            ex, ex.getMessage)
                 }
         }
     }
