@@ -34,11 +34,11 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.models.{Vtep, VtepBinding}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{ConflictHttpException, BadRequestHttpException, NotFoundHttpException, ServiceUnavailableHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException, ServiceUnavailableHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkCreated, OkNoContentResponse, ResourceContext}
-import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
+import org.midonet.cluster.util.SequenceDispenser.VxgwVni
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
 
@@ -48,6 +48,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
     extends MidonetResource[VtepBinding](resContext) {
 
     private val store = resContext.backend.store
+    private val seqDispenser = resContext.seqDispenser
 
     @GET
     @Path("{portName}/{vlanId}")
@@ -151,8 +152,17 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                 case Some(p) =>
                     store.update(newVtep)
                 case None =>
+                    val vni = if (!network.hasVni) {
+                        seqDispenser.next(VxgwVni).getOrThrow
+                    } else {
+                        network.getVni
+                    }
+
                     val p = makeAVxlanPort(vtep, network)
-                    val n = network.toBuilder.addVxlanPortIds(p.getId).build()
+                    val n = network.toBuilder
+                                   .setVni(vni)
+                                   .addVxlanPortIds(p.getId)
+                                   .build()
                     store.multi (
                         Seq(UpdateOp(newVtep), UpdateOp(n), CreateOp(p))
                     )

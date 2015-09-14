@@ -29,6 +29,10 @@ public class VtepConstants {
      */
     private static final String LOGICAL_SWITCH_PREFIX = "mn-";
 
+
+    /** VNIs are generated from this initial value. */
+    public static final int INITIAL_VNI = 10000;
+
     /**
      * Logical switches formed to bind a VTEP port and a Midonet bridge have a
      * name formed as a function of the bridge uuid. This function extracts the
