@@ -21,6 +21,9 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
 
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -37,14 +40,18 @@ import org.midonet.client.dto.DtoVtep;
 import org.midonet.client.dto.DtoVtepBinding;
 import org.midonet.client.dto.DtoVtepPort;
 import org.midonet.client.dto.DtoVxLanPort;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Vtep;
 import org.midonet.cluster.rest_api.models.VtepBinding;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.cluster.services.MidonetBackend;
+import org.midonet.cluster.util.SequenceDispenser;
 import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4Addr;
 
 import static java.util.UUID.randomUUID;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -54,6 +61,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.midonet.api.network.TestPort.createBridgePort;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
@@ -71,6 +79,7 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.TUNNEL_ZON
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_HAS_BINDINGS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
+import static org.midonet.cluster.util.SequenceDispenser.*;
 import static org.midonet.southbound.vtep.mock.MockOvsdbVtep.physPortNames;
 
 public class TestVtep extends RestApiTestBase {
@@ -762,6 +771,18 @@ public class TestVtep extends RestApiTestBase {
 
         // Should create a VXLAN port on the specified bridge.
         DtoBridge newBridge = getBridge(bridgeId);
+
+        MidonetBackend b = FuncTest._injector.getInstance(MidonetBackend.class);
+
+        int vni = 0;
+        try {
+            vni = Await.result(b.store().get(Topology.Network.class, bridgeId),
+                               Duration.create(1, SECONDS)).getVni();
+        } catch (Exception e) {
+            fail("Exception retrieving bridge: " + bridgeId);
+        }
+
+        assertTrue(vni >= VxgwVni$.MODULE$.seed());
 
         if (firstBinding) {
             assertEquals(newBridge.getVxLanPortIds().size(),

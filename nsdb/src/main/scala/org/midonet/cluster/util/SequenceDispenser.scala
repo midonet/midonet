@@ -22,13 +22,21 @@ import scala.concurrent.Future
 import com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.recipes.shared.{VersionedValue, SharedCount}
+import org.apache.curator.framework.recipes.shared.{SharedCount, VersionedValue}
 
 import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.util.SequenceDispenser.{VxgwVni, SequenceType}
 
-object SequenceType extends Enumeration {
-    val OverlayTunnelKey = Value("OVERLAY_TUNNEL_KEY")
-    val VxgwVni = Value("VXGW_TUNNEL_KEY")
+object SequenceDispenser {
+    abstract class SequenceType(val tag: String, val seed: Int)
+
+    case object OverlayTunnelKey extends SequenceType("OVERLAY_TUNNEL_KEY", 1)
+    case object VxgwVni extends SequenceType("VXGW_TUNNEL_KEY", 10000)
+
+    val Sequences = Seq (
+        OverlayTunnelKey,
+        VxgwVni
+    )
 }
 
 /** This class provides a catalogue of several types of counters used in
@@ -46,7 +54,7 @@ object SequenceType extends Enumeration {
 class SequenceDispenser @Inject()(curator: CuratorFramework,
                                   backendCfg: MidonetBackendConfig){
 
-    class SequenceException(t: SequenceType.Value)
+    class SequenceException(t: SequenceType)
         extends Exception("Can't write counter for type " + t)
 
     private implicit val ec = fromExecutor(sameThreadExecutor())
@@ -55,12 +63,12 @@ class SequenceDispenser @Inject()(curator: CuratorFramework,
 
     private val root = backendCfg.rootKey + "/sequences"
 
-    private def pathFor(which: SequenceType.Value) =
+    private def pathFor(which: SequenceType) =
         s"$root/${which.toString.toLowerCase}"
 
     /** Retrieve the current value at the counter.  */
-    def current(which: SequenceType.Value): Future[Int] = Future {
-        val counter = new SharedCount(curator, pathFor(which), 0)
+    def current(which: SequenceType): Future[Int] = Future {
+        val counter = new SharedCount(curator, pathFor(which), which.seed)
         counter.start()
         val count = counter.getCount
         counter.close()
@@ -69,8 +77,8 @@ class SequenceDispenser @Inject()(curator: CuratorFramework,
 
     /** Reserve and retrieve the next value on the counter, retrying for a
       * limited number of times if contention is found on the counter.  */
-    def next(which: SequenceType.Value): Future[Int] = Future {
-        val counter = new SharedCount(curator, pathFor(which), 0)
+    def next(which: SequenceType): Future[Int] = Future {
+        val counter = new SharedCount(curator, pathFor(which), which.seed)
         counter.start()
         var retries = 10
         var cur: VersionedValue[Integer] = null
