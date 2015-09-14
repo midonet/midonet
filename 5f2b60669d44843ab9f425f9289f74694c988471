@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_4e20bf49",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "will I get a spanking?",
+      "parentUuid": "1ae5cdf2_f387b45f",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_5396a895",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
         "patchSetId": 14
@@ -30,6 +48,24 @@
       "writtenOn": "2015-09-14T15:07:05Z",
       "side": 1,
       "message": "wrong ident?",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_6e1d7b0f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_5396a895",
       "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_8e1ac715",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_d3d39836",
+      "range": {
+        "startLine": 155,
+        "startChar": 20,
+        "endLine": 155,
+        "endChar": 23
+      },
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_f38df432",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
         "patchSetId": 14
@@ -70,6 +130,24 @@
       "writtenOn": "2015-09-14T15:48:18Z",
       "side": 1,
       "message": "this should run on the vtscheduler",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_0edeb73f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "The implicit executor is on L86\n\n    private implicit val ec: ExecutionContext \u003d fromExecutor(vt.vtExecutor)\n\nWhich is the underlying executor for vt.Scheduler",
+      "parentUuid": "1ae5cdf2_f38df432",
       "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -99,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_4ee7df12",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "I simplified code inside that method, before it required more stuff so I moved it out for readability.  Fixing.",
+      "parentUuid": "1ae5cdf2_93dbd01a",
+      "range": {
+        "startLine": 163,
+        "startChar": 25,
+        "endLine": 163,
+        "endChar": 51
+      },
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_33ed9cc4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
         "patchSetId": 14
@@ -110,6 +212,24 @@
       "writtenOn": "2015-09-14T15:48:18Z",
       "side": 1,
       "message": "are we guaranteed to have 1 tunnel address?",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_6ee49b0d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "L162 guarantees that we have \u003e 0 tunnel IPs.\n\nWe are not guaranteed to have a single tunnel IP because this info is not controlled by MidoNet, it\u0027s a parameter configured in the VTEP\u0027s OVSDB, so all we can do is warn against it.  We specify in the documentation that we expect the VTEP to be configured with only 1 tunnel IP.",
+      "parentUuid": "1ae5cdf2_33ed9cc4",
       "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -133,6 +253,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_9306701f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "All writes should be on the vt scheduler so they should be safe, but I had pending to review reads, which I forgot. Thanks for spotting this one. Changing to CHM.",
+      "parentUuid": "1ae5cdf2_f37ed4e3",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_d3dd5816",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
         "patchSetId": 14
@@ -150,6 +288,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_d318f886",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "Leftovers, removing.",
+      "parentUuid": "1ae5cdf2_d3dd5816",
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_5395c83e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
         "patchSetId": 14
@@ -161,6 +317,30 @@
       "writtenOn": "2015-09-14T15:48:18Z",
       "side": 1,
       "message": "would be better to convert to java uuid as early as possible, to avoid holding on to PB junk long enough for it to be tenured.",
+      "range": {
+        "startLine": 332,
+        "startChar": 38,
+        "endLine": 332,
+        "endChar": 50
+      },
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_aeeea3ea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "I was following the opposite reasoning, as the UUID is already there, delay building the UUID until we do need it.  In particular, one case that we don\u0027t really need the java uuid is when we\u0027re doing some of the initial lookups from a VTEP proto.\n\nThat said on a second thoought this smells of premature, and not so important, optimization.  Removing.",
+      "parentUuid": "1ae5cdf2_5395c83e",
       "range": {
         "startLine": 332,
         "startChar": 38,
@@ -196,6 +376,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_0eb5d7ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_d3d0f855",
+      "range": {
+        "startLine": 365,
+        "startChar": 24,
+        "endLine": 365,
+        "endChar": 28
+      },
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_53cea884",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
         "patchSetId": 14
@@ -207,6 +411,30 @@
       "writtenOn": "2015-09-14T15:48:18Z",
       "side": 1,
       "message": "does vtep state get deleted when the vtep itself is? If not, the subscription will hang around forever when the vtep is deleted.",
+      "range": {
+        "startLine": 380,
+        "startChar": 16,
+        "endLine": 380,
+        "endChar": 35
+      },
+      "revId": "5f2b60669d44843ab9f425f9289f74694c988471",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_2eba93de",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-14T17:39:32Z",
+      "side": 1,
+      "message": "Yep, a model deletion also removes its associated state keys. Adding this to the comment.",
+      "parentUuid": "1ae5cdf2_53cea884",
       "range": {
         "startLine": 380,
         "startChar": 16,
