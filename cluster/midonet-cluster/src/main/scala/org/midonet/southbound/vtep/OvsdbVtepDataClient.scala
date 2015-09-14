@@ -49,10 +49,10 @@ class OvsdbVtepDataClient(cnxn: VtepConnection)
     extends VtepData with VtepConnection {
 
     private val vtepThread = newSingleThreadExecutor(
-        new NamedThreadFactory(s"vtep-$endPoint"))
+        new NamedThreadFactory(s"vtep-$endPoint", isDaemon = true))
     private val vtepContext = ExecutionContext.fromExecutor(vtepThread)
     private val eventThread = newSingleThreadExecutor(
-        new NamedThreadFactory(s"vtep-$endPoint-event"))
+        new NamedThreadFactory(s"vtep-$endPoint-event", isDaemon = true))
 
     private val data = new AtomicReference[VtepData](null)
 

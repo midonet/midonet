@@ -156,11 +156,11 @@ object SessionInventory {
 
     /* Thread pool to handle session expirations */
     val sessionTimer = newSingleThreadScheduledExecutor(
-        new NamedThreadFactory("topology-session-timer"))
+        new NamedThreadFactory("topology-session-timer", isDaemon = true))
 
     /* Thread to handle data updates from zoom */
     val dataExecutor = newSingleThreadExecutor(
-        new NamedThreadFactory("topology-session-data"))
+        new NamedThreadFactory("topology-session-data", isDaemon = true))
 
     /* Grace time for executors shutdown, in milliseconds */
     val EXECUTOR_GRACE_PERIOD: Long = 5000
@@ -369,7 +369,7 @@ class SessionInventory(private val store: Storage,
         import org.midonet.cluster.services.topology.server.SessionInventory._
 
         private val senderExecutor = newSingleThreadExecutor(
-            new NamedThreadFactory("topology-session-sender"))
+            new NamedThreadFactory("topology-session-sender", isDaemon = true))
         private val scheduler = Schedulers.from(dataExecutor)
 
         private val funnel = new Aggregator[ObservableId, Response.Builder]()

@@ -119,6 +119,7 @@ public class MidolmanModule extends PrivateModule {
                     @Override
                     public Thread newThread(@Nonnull Runnable r) {
                         Thread thread = new Thread(r, "devices-service");
+                        thread.setDaemon(true);
                         vtThread.set(thread.getId());
                         return thread;
                     }
@@ -139,8 +140,10 @@ public class MidolmanModule extends PrivateModule {
                 new ThreadFactory() {
                     @Override
                     public Thread newThread(@Nonnull Runnable r) {
-                        return new Thread(r, "devices-io-" +
-                                             ioThreadIndex.getAndIncrement());
+                        Thread t = new Thread(r, "devices-io-" +
+                                                ioThreadIndex.getAndIncrement());
+                        t.setDaemon(true);
+                        return t;
                     }
                 }));
 
