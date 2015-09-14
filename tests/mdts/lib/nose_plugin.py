@@ -20,6 +20,7 @@ import sys
 from StringIO import StringIO
 from mdts.services import service
 import shutil
+import subprocess
 import time
 from nose.util import ln
 from nose.pyversion import exc_to_unicode
@@ -143,6 +144,17 @@ class Mdts(Plugin):
                     log_file_name
                 ), "w") as f:
                     f.write(log_stream)
+
+            with open("%s/%s-docker.log" % (
+                    self.log_dir,
+                    service_host.get_hostname()
+            ), 'w') as f:
+                docker_name = service_host.get_name()
+                p = subprocess.Popen(
+                    ["docker", "logs", service_host.get_name()],
+                    stdout=subprocess.PIPE)
+                output, err = p.communicate()
+                f.write(output)
 
 
     def _write_per_test_debug_info(self, test, result):
