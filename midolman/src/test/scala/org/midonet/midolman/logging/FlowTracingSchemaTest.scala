@@ -48,11 +48,7 @@ class FlowTracingSchemaTest extends FeatureSpec
 
     var cass: CassandraClient = _
 
-    var insertStatement: PreparedStatement = _
-    var dataInsertStatement: PreparedStatement = _
-    var countStatement: PreparedStatement = _
-    var getFlowsStatement: PreparedStatement = _
-    var getDataStatement: PreparedStatement = _
+    var schema: FlowTracingSchema = _
 
     val traceId1 = UUID.randomUUID
     val traceId2 = UUID.randomUUID
@@ -82,16 +78,7 @@ class FlowTracingSchemaTest extends FeatureSpec
         val sessionF = cass.connect()
         Await.result(sessionF, 10 seconds)
 
-        insertStatement = cass.session.prepare(
-            FlowTracingSchema.flowInsertCQL)
-        dataInsertStatement = cass.session.prepare(
-            FlowTracingSchema.dataInsertCQL)
-        countStatement = cass.session.prepare(
-            FlowTracingSchema.countFlowTracesCQL)
-        getFlowsStatement = cass.session.prepare(
-            FlowTracingSchema.getFlowTracesCQL)
-        getDataStatement = cass.session.prepare(
-            FlowTracingSchema.getTraceDataCQL)
+        schema = new FlowTracingSchema(cass.session)
     }
 
     feature("Writing flow traces to cassandra") {
@@ -99,34 +86,31 @@ class FlowTracingSchemaTest extends FeatureSpec
             insertFlows
 
             val res1 = cass.session.execute(
-                FlowTracingSchema.bindFlowCountStatement(
-                    countStatement, traceId1, new Date(),
-                    Integer.MAX_VALUE))
+                schema.bindFlowCountStatement(traceId1))
             val rows = res1.all
             rows.size should be (1)
             rows.get(0).getLong("count") should be (3)
 
             // offset by timestamp
             val res2 = cass.session.execute(
-                FlowTracingSchema.bindFlowCountStatement(
-                    countStatement, traceId1, new Date(UUIDs.unixTimestamp(flowTraceId3)),
-                    Integer.MAX_VALUE))
+                schema.bindFlowCountStatement(
+                    traceId1,
+                    maxTime=Some(new Date(UUIDs.unixTimestamp(flowTraceId3)))))
             val rows2 = res2.all
             rows2.size should be (1)
             rows2.get(0).getLong("count") should be (2)
 
             // limiting reads
             val res3 = cass.session.execute(
-                FlowTracingSchema.bindFlowCountStatement(
-                    countStatement, traceId1, new Date(), 1))
+                schema.bindFlowCountStatement(traceId1))
             val rows3 = res3.all
             rows3.size should be (1)
-            rows3.get(0).getLong("count") should be (1)
+            rows3.get(0).getLong("count") should be (3)
 
             val res4 = cass.session.execute(
-                FlowTracingSchema.bindFlowCountStatement(
-                    countStatement, traceId2, new Date(UUIDs.unixTimestamp(flowTraceId1)),
-                    Integer.MAX_VALUE))
+                schema.bindFlowCountStatement(
+                    traceId2,
+                    maxTime=Some(new Date(UUIDs.unixTimestamp(flowTraceId1)))))
             val rows4 = res4.all
             rows4.size should be (1)
             rows4.get(0).getLong("count") should be (0)
@@ -136,9 +120,7 @@ class FlowTracingSchemaTest extends FeatureSpec
             insertFlows
 
             val res1 = cass.session.execute(
-                FlowTracingSchema.bindGetFlowsStatement(getFlowsStatement,
-                                                        traceId1, new Date(),
-                                                        Integer.MAX_VALUE))
+                schema.bindGetFlowsStatement(traceId1))
             val rows1 = res1.all
             rows1.size should be (3)
             val flowTraceIds = rows1.asScala.map(
@@ -148,9 +130,9 @@ class FlowTracingSchemaTest extends FeatureSpec
             flowTraceIds should contain (flowTraceId4)
 
             val res2 = cass.session.execute(
-                FlowTracingSchema.bindGetFlowsStatement(
-                    getFlowsStatement,traceId1,
-                    new Date(UUIDs.unixTimestamp(flowTraceId2)), 1))
+                schema.bindGetFlowsStatement(traceId1,
+                    maxTime=Some(new Date(UUIDs.unixTimestamp(flowTraceId2))),
+                    limit=Some(1)))
             val rows2 = res2.all
             rows2.size should be (1)
             rows2.get(0).getUUID("flowTraceId") should be (flowTraceId1)
@@ -166,14 +148,14 @@ class FlowTracingSchemaTest extends FeatureSpec
 
             while (countId1 > 0 || countId2 > 0) {
                 cass.session.execute(
-                    FlowTracingSchema.bindDataInsertStatement(
-                        dataInsertStatement, traceId1, flowTraceId3,
+                    schema.bindDataInsertStatement(
+                        traceId1, flowTraceId3,
                         UUID.randomUUID, "data:"+countId1))
                 countId1 -= 1
                 if (countId2 > 0) {
                     cass.session.execute(
-                        FlowTracingSchema.bindDataInsertStatement(
-                            dataInsertStatement, traceId2, flowTraceId2,
+                        schema.bindDataInsertStatement(
+                            traceId2, flowTraceId2,
                             UUID.randomUUID, "data:"+countId2))
                     countId2 -= 1
                 }
@@ -186,52 +168,84 @@ class FlowTracingSchemaTest extends FeatureSpec
             }
 
             val res1 = cass.session.execute(
-                FlowTracingSchema.bindGetDataStatement(
-                    getDataStatement, traceId1, flowTraceId3,
-                    new Date(), Integer.MAX_VALUE))
+                schema.bindGetDataStatement(traceId1, flowTraceId3))
             res1.all.size should be (100)
 
             val res2 = cass.session.execute(
-                FlowTracingSchema.bindGetDataStatement(
-                    getDataStatement, traceId1, flowTraceId3,
-                    new Date(filterTime), Integer.MAX_VALUE))
+                schema.bindGetDataStatement(
+                    traceId1, flowTraceId3,
+                    maxTime=Some(new Date(filterTime))))
             res2.all.size should be (10)
 
             val res3 = cass.session.execute(
-                FlowTracingSchema.bindGetDataStatement(
-                    getDataStatement, traceId2, flowTraceId2,
-                    new Date(filterTime), Integer.MAX_VALUE))
+                schema.bindGetDataStatement(
+                    traceId2, flowTraceId2,
+                    maxTime=Some(new Date(filterTime))))
             res3.all.size should be (10)
 
             val res4 = cass.session.execute(
-                FlowTracingSchema.bindGetDataStatement(
-                    getDataStatement, traceId1, flowTraceId3,
-                    new Date(filterTime), 3))
+                schema.bindGetDataStatement(
+                    traceId1, flowTraceId3,
+                    maxTime=Some(new Date(filterTime)),
+                    limit=Some(3)))
             res4.all.size should be (3)
 
             val res5 = cass.session.execute(
-                FlowTracingSchema.bindGetDataStatement(
-                    getDataStatement, traceId1, flowTraceId1,
-                    new Date(), Integer.MAX_VALUE))
+                schema.bindGetDataStatement(
+                    traceId1, flowTraceId1))
             res5.all.size should be (0)
+        }
+
+        scenario("Listing from oldest first") {
+            val startTime = System.currentTimeMillis()
+            cass.session.execute(
+                schema.bindDataInsertStatement(
+                    traceId1, flowTraceId1,
+                    UUID.randomUUID, "data1"))
+
+            Thread.sleep(1000)
+            val secondTime = System.currentTimeMillis()
+            cass.session.execute(
+                schema.bindDataInsertStatement(
+                    traceId1, flowTraceId1,
+                    UUID.randomUUID, "data2"))
+
+            val res1 = cass.session.execute(
+                schema.bindGetDataStatement(
+                    traceId1, flowTraceId1,
+                    minTime=Some(new Date(startTime)),
+                    limit=Some(1), ascending=true))
+            var rows1 = res1.all
+            rows1.size should be (1)
+            rows1.get(0).getString("data") should be ("data1")
+
+
+            val res2 = cass.session.execute(
+                schema.bindGetDataStatement(
+                    traceId1, flowTraceId1,
+                    minTime=Some(new Date(secondTime)),
+                    limit=Some(1), ascending=true))
+            var rows2 = res2.all
+            rows2.size should be (1)
+            rows2.get(0).getString("data") should be ("data2")
         }
     }
 
     private def insertFlows: Unit = {
-        cass.session.execute(FlowTracingSchema.bindFlowInsertStatement(
-                                 insertStatement, traceId1, flowTraceId1,
+        cass.session.execute(schema.bindFlowInsertStatement(
+                                 traceId1, flowTraceId1,
                                  MAC.random.toString, MAC.random.toString,
                                  0, null, null, 0, 0, 0))
-        cass.session.execute(FlowTracingSchema.bindFlowInsertStatement(
-                                 insertStatement, traceId2, flowTraceId2,
+        cass.session.execute(schema.bindFlowInsertStatement(
+                                 traceId2, flowTraceId2,
                                  MAC.random.toString, MAC.random.toString,
                                  0, null, null, 0, 0, 0))
-        cass.session.execute(FlowTracingSchema.bindFlowInsertStatement(
-                                 insertStatement, traceId1, flowTraceId3,
+        cass.session.execute(schema.bindFlowInsertStatement(
+                                 traceId1, flowTraceId3,
                                  MAC.random.toString, MAC.random.toString,
                                  0, null, null, 0, 0, 0))
-        cass.session.execute(FlowTracingSchema.bindFlowInsertStatement(
-                                 insertStatement, traceId1, flowTraceId4,
+        cass.session.execute(schema.bindFlowInsertStatement(
+                                 traceId1, flowTraceId4,
                                  MAC.random.toString, MAC.random.toString,
                                  0, null, null, 0, 0, 0))
     }
