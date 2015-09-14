@@ -39,8 +39,7 @@ class MidonetClusterHost(Service):
         return 'midonet-cluster'
 
     def get_service_logs(self):
-        return ['/var/log/midonet-cluster/midonet-cluster.log',
-                '/var/log/midonet-cluster/upstart-stderr.log']
+        return ['/var/log/midonet-cluster/midonet-cluster.log']
 
     def get_midonet_api(self, timeout=120):
         # FIXME: Make sure the API is able to get topology information from ZK
