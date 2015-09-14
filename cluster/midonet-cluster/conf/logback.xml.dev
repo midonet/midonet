@@ -72,8 +72,10 @@
     <!-- <logger name="org.midonet.vxgw.vxgw-manager-$NETWORK_ID" level="DEBUG"/> -->
 
     <!-- Some tweaks to the OVSDB plugin to reduce verbosity -->
-    <logger name="org.opendaylight.ovsdb.plugin" level="WARN"/>
-    <logger name="org.opendaylight.controller.sal.utils.ServiceHelper" level="OFF"/>
+    <logger name="org.opendaylight" level="WARN"/>
+    <logger name="org.apache.zookeeper" level="INFO"/>
+    <logger name="org.apache.cassandra" level="INFO"/>
+    <logger name="org.eclipse.jetty" level="INFO"/>
 
     <!-- OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
     <root level="DEBUG">
