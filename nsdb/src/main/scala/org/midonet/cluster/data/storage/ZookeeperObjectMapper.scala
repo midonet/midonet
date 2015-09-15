@@ -18,14 +18,15 @@ package org.midonet.cluster.data.storage
 import java.io.StringWriter
 import java.lang.{Long => JLong}
 import java.util.ConcurrentModificationException
-import java.util.concurrent.Executors
+import java.util.concurrent.Executors._
 import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.ExecutionContext._
+import scala.concurrent.{Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.{Message, TextFormat}
+import com.lmax.disruptor.util.DaemonThreadFactory
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
@@ -41,7 +43,6 @@ import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException._
 import org.apache.zookeeper.OpResult.ErrorResult
-import org.apache.zookeeper.Watcher.Event.EventType.NodeDataChanged
 import org.apache.zookeeper._
 import org.apache.zookeeper.data.Stat
 import org.slf4j.LoggerFactory
@@ -115,9 +116,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     private[storage] val locksPath = basePath + s"/zoomlocks/lock"
     private[storage] val modelPath = basePath + s"/models"
 
-    private val executor = Executors.newSingleThreadExecutor()
-    private implicit val executionContext =
-        ExecutionContext.fromExecutorService(executor)
+    private val executor = newSingleThreadExecutor(DaemonThreadFactory.INSTANCE)
+    private implicit val executionContext = fromExecutorService(executor)
 
     private val simpleNameToClass = new mutable.HashMap[String, Class[_]]()
     private val nodeObservables = new TrieMap[Key, NodeObservable]

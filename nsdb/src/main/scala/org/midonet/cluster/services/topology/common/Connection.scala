@@ -17,11 +17,13 @@
 package org.midonet.cluster.services.topology.common
 
 import java.util.concurrent.Executors
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.atomic.{AtomicReference, AtomicBoolean}
 
 import scala.concurrent.{ExecutionContext, Promise, Future}
 
 import com.google.protobuf.Message
+import com.lmax.disruptor.util.DaemonThreadFactory
 import io.netty.channel.{ChannelFuture, ChannelHandlerContext}
 import io.netty.util.concurrent.GenericFutureListener
 import org.slf4j.LoggerFactory
@@ -199,7 +201,8 @@ class MessageSender(val ctx: ChannelHandlerContext,
 
 object MessageSender extends MessageSenderFactory {
     // Use a single thread for all writes (for any context)
-    private lazy val writeExecutor = Executors.newSingleThreadExecutor()
+    private lazy val writeExecutor =
+        newSingleThreadExecutor(DaemonThreadFactory.INSTANCE)
     private lazy val writeExecutionContext =
         ExecutionContext.fromExecutorService(writeExecutor)
     def getWriteExecutionContext: ExecutionContext = writeExecutionContext

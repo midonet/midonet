@@ -18,13 +18,15 @@ package org.midonet.cluster.services.vxgw
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.{ConcurrentHashMap, Executors}
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors._
 
 import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
+import com.lmax.disruptor.util.DaemonThreadFactory
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.subjects.PublishSubject
@@ -38,7 +40,7 @@ import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.services.vxgw.FloodingProxyManager.{HostFpState, MaxFpRetries}
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.util.{IPAddressUtil, selfHealingTypeObservable, selfHealingEntityObservable}
+import org.midonet.cluster.util.{IPAddressUtil, selfHealingEntityObservable, selfHealingTypeObservable}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
 
@@ -72,7 +74,7 @@ class FloodingProxyManager(backend: MidonetBackend) {
     private val allHosts = PublishSubject.create[HostFpState]()
 
     // We will process all notifications on this thread
-    private val executor = Executors.newSingleThreadExecutor()
+    private val executor = newSingleThreadExecutor(DaemonThreadFactory.INSTANCE)
     private val rxScheduler = Schedulers.from(executor)
     private implicit val ec = ExecutionContext.fromExecutor(executor)
 

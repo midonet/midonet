@@ -19,6 +19,7 @@ package org.midonet.cluster.services.rest_api.resources
 import java.lang.annotation.Annotation
 import java.net.URI
 import java.util.concurrent.Executors
+import java.util.concurrent.Executors.newCachedThreadPool
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
 import javax.validation.{ConstraintViolation, Validator}
 import javax.ws.rs._
@@ -33,6 +34,7 @@ import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.protobuf.Message
+import com.lmax.disruptor.util.DaemonThreadFactory
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
@@ -176,7 +178,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
                               (implicit tag: ClassTag[T]) {
 
     protected implicit val executionContext =
-        ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
+        ExecutionContext.fromExecutor(
+            newCachedThreadPool(DaemonThreadFactory.INSTANCE))
     protected final implicit val log =
         Logger(LoggerFactory.getLogger(getClass))
 

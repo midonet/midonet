@@ -15,11 +15,13 @@
  */
 package org.midonet.cluster.services
 
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.Executors.newScheduledThreadPool
+import java.util.concurrent.TimeUnit
 
 import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
+import com.lmax.disruptor.util.DaemonThreadFactory
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
@@ -30,7 +32,8 @@ abstract class ScheduledMinion(nodeContext: Context,
 
     private val log = LoggerFactory.getLogger(this.getClass)
 
-    protected val pool = Executors.newScheduledThreadPool(config.numThreads)
+    protected val pool = newScheduledThreadPool(config.numThreads,
+                                                DaemonThreadFactory.INSTANCE)
     protected val runnable: Runnable
 
     override def doStart(): Unit = try {
