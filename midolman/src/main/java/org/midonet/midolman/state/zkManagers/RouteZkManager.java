@@ -16,38 +16,30 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.common.base.Function;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.layer3.Route;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
-
-import javax.annotation.Nullable;
 
 /**
  * Class to manage the routing ZooKeeper data.
@@ -221,58 +213,15 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         return ops;
     }
 
-    public UUID preparePersistPortRouteCreate (
-            List<Op> ops, UUID routerId, IPv4Subnet src,  IPv4Subnet dst,
-            PortDirectory.RouterPortConfig cfg, IPv4Addr gwIp)
-            throws SerializationException, StateAccessException {
-        return preparePersistPortRouteCreate(ops, routerId, src, dst, cfg, gwIp,
-            Route.DEFAULT_WEIGHT);
-    }
-
     public UUID preparePersistPortRouteCreate(
             List<Op> ops, UUID routerId, IPv4Subnet src,  IPv4Subnet dst,
             PortDirectory.RouterPortConfig cfg, IPv4Addr gwIp, int weight)
             throws SerializationException, StateAccessException {
         UUID id = UUID.randomUUID();
-        Route rt = Route.nextHopPortRoute(src, dst, cfg.id, gwIp, weight, routerId);
+        Route rt = Route.nextHopPortRoute(src, dst, cfg.id, gwIp, weight,
+                                          routerId);
         ops.addAll(prepareRouteCreate(id, rt, true, cfg));
         return id;
-    }
-
-    public UUID preparePersistDefaultRouteCreate(List<Op> ops, UUID routerId,
-                                                 PortDirectory.RouterPortConfig cfg)
-            throws SerializationException, StateAccessException {
-        return preparePersistDefaultRouteCreate(ops, routerId, cfg,
-            Route.DEFAULT_WEIGHT);
-    }
-
-    public UUID preparePersistDefaultRouteCreate(List<Op> ops, UUID routerId,
-                                                 PortDirectory.RouterPortConfig cfg, int weight)
-            throws SerializationException, StateAccessException {
-        UUID id = UUID.randomUUID();
-        Route rt = Route.defaultRoute(cfg.id, weight, routerId);
-        ops.addAll(prepareRouteCreate(id, rt, true, cfg));
-        return id;
-    }
-
-    public void preparePersistPortRouteCreate(
-            List<Op> ops, UUID id, IPv4Subnet src, IPv4Subnet dest,
-            UUID nextHopPortId, IPv4Addr nextHopAddr, UUID routerId,
-            PortDirectory.RouterPortConfig rpCfg)
-            throws SerializationException, StateAccessException {
-        preparePersistPortRouteCreate(ops, id, src, dest, nextHopPortId,
-                nextHopAddr, Route.DEFAULT_WEIGHT, routerId, rpCfg);
-    }
-
-    public void preparePersistPortRouteCreate(
-            List<Op> ops, UUID id, IPv4Subnet src, IPv4Subnet dest,
-            UUID nextHopPortId, IPv4Addr nextHopAddr, int weight,
-            UUID routerId, PortDirectory.RouterPortConfig rpCfg)
-            throws SerializationException, StateAccessException {
-
-        Route r = Route.nextHopPortRoute(src, dest, nextHopPortId, nextHopAddr,
-                weight, routerId);
-        ops.addAll(prepareRouteCreate(id,r, true, rpCfg));
     }
 
     private String getExistingPath(Route rt)
@@ -387,16 +336,6 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         return ops;
     }
 
-    public List<Op> prepareLocalRoutesCreate(UUID portId,
-            PortDirectory.RouterPortConfig config) throws StateAccessException,
-            SerializationException {
-        UUID routeId = UUID.randomUUID();
-        Route route = new Route(0, 0, config.portAddr, 32, Route.NextHop.LOCAL,
-                                portId, Route.NO_GATEWAY, 0, null, config.device_id,
-                                false);
-        return prepareRouteCreate(routeId, route, true, config);
-    }
-
     /**
      * Constructs a list of operations to perform in a route deletion.
      *
@@ -420,70 +359,6 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
             }
         }
         return ops;
-    }
-
-    public void prepareRoutesDelete(List<Op> ops, UUID routerId,
-                                    final IPv4Subnet dstSub)
-        throws SerializationException, StateAccessException {
-        prepareRoutesDelete(ops, routerId, dstSub, -1);
-    }
-
-    public void prepareRoutesDelete(List<Op> ops, UUID routerId,
-                                    final IPv4Subnet dstSub,
-                                    final int gateway)
-            throws SerializationException, StateAccessException {
-
-        prepareRoutesDelete(ops, routerId,
-                new Function<Route, Boolean>() {
-                    @Override
-                    public Boolean apply(@Nullable Route route) {
-                        if (gateway == -1 && dstSub == null) {
-                            return false;
-                        }
-                        if (gateway == -1) {
-                            return route.hasDstSubnet(dstSub);
-                        } else if (dstSub == null) {
-                            return route.nextHopGateway == gateway;
-                        } else {
-                            return route.hasDstSubnet(dstSub) &&
-                                (route.nextHopGateway == gateway);
-                        }
-                    }
-                });
-    }
-
-    /**
-     * Remove the routes on a given router that matches the destination IP
-     * provided.
-     *
-     * @param ops List to add new Ops to
-     * @param routerId ID of the router
-     * @param ipAddr Destination IP address of routes to delete
-     */
-    public void prepareRoutesDelete(List<Op> ops, UUID routerId,
-                                    final String ipAddr)
-        throws SerializationException, StateAccessException {
-
-        prepareRoutesDelete(ops, routerId,
-                            new Function<Route, Boolean>() {
-                                @Override
-                                public Boolean apply(@Nullable Route route) {
-                                    return route.getDstNetworkAddr().equals(
-                                        ipAddr);
-                                }
-                            });
-    }
-
-    public void prepareRoutesDelete(List<Op> ops, UUID routerId,
-                                    Function<Route, Boolean> matcher)
-            throws StateAccessException, SerializationException {
-        List<UUID> routeIds = list(routerId);
-        for (UUID routeId : routeIds) {
-            Route route = get(routeId);
-            if (matcher.apply(route)) {
-                ops.addAll(prepareRouteDelete(routeId));
-            }
-        }
     }
 
     /**
@@ -528,22 +403,6 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         return create(route, true);
     }
 
-    public void asyncGet(UUID id, final DirectoryCallback<Route> routeDirectoryCallback){
-        zk.asyncGet(paths.getRoutePath(id),
-                    DirectoryCallbackFactory.transform(
-                        routeDirectoryCallback, byteToRouteSerializer), null);
-    }
-
-    public void asyncMultiRoutesGet(Set<UUID> ids,
-                                    final DirectoryCallback<Set<Route>> routesCallback){
-        Set<String> pathIds = new HashSet<String>();
-        for(UUID id: ids){
-            pathIds.add(paths.getRoutePath(id));
-        }
-        zk.asyncMultiPathGet(pathIds, DirectoryCallbackFactory.transform(
-            routesCallback, byteArrayToRoutesSetMapper));
-    }
-
     /**
      * Gets a list of ZooKeeper router nodes belonging under the router
      * directory with the given ID.
@@ -581,13 +440,6 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
     public List<UUID> listPortRoutes(UUID portId, Runnable watcher)
             throws StateAccessException {
         return getUuidList(paths.getPortRoutesPath(portId), watcher);
-    }
-
-    public void listPortRoutesAsync(UUID portId,
-                                    final DirectoryCallback<Set<UUID>> listPortRoutesCallback,
-                                    Directory.TypedWatcher watcher){
-
-        getUUIDSetAsync(paths.getPortRoutesPath(portId), listPortRoutesCallback, watcher);
     }
 
     /**

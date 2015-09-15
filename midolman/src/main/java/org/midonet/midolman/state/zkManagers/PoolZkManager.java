@@ -16,24 +16,15 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.cluster.rest_api.neutron.models.Pool;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
@@ -42,16 +33,11 @@ import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.PoolLBMethod;
 import org.midonet.midolman.state.l4lb.PoolProtocol;
 
-import static java.util.Arrays.asList;
-
 /**
  * Class to manage the pool ZooKeeper data.
  */
 public class PoolZkManager
         extends AbstractZkManager<UUID, PoolZkManager.PoolConfig> {
-
-    private final static Logger log = LoggerFactory
-            .getLogger(PoolZkManager.class);
 
     public static class PoolConfig extends BaseConfig {
 
@@ -156,26 +142,6 @@ public class PoolZkManager
         return PoolConfig.class;
     }
 
-    public List<Op> prepareCreate(UUID id, PoolConfig config)
-            throws SerializationException {
-        return asList(
-                simpleCreateOp(id, config),
-                zk.getPersistentCreateOp(paths.getPoolMembersPath(id), null),
-                zk.getPersistentCreateOp(paths.getPoolVipsPath(id), null));
-    }
-
-    public List<Op> prepareUpdate(UUID id, PoolConfig config)
-            throws SerializationException {
-        return asList(simpleUpdateOp(id, config));
-    }
-
-    public List<Op> prepareDelete(UUID id) {
-        return asList(
-                Op.delete(paths.getPoolVipsPath(id), -1),
-                Op.delete(paths.getPoolMembersPath(id), -1),
-                Op.delete(paths.getPoolPath(id), -1));
-    }
-
     public List<UUID> getMemberIds(UUID id) throws StateAccessException {
         return getUuidList(paths.getPoolMembersPath(id));
     }
@@ -188,31 +154,4 @@ public class PoolZkManager
         return getUuidList(paths.getPoolsPath());
     }
 
-    public List<Op> prepareAddVip(UUID id, UUID vipId) {
-        return asList(Op.create(
-                paths.getPoolVipPath(id, vipId), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-    }
-
-    public List<Op> prepareRemoveVip(UUID id, UUID vipId) {
-        return asList(Op.delete(paths.getPoolVipPath(id, vipId), -1));
-    }
-
-    public List<Op> prepareAddMember(UUID id, UUID memberId) {
-        return asList(Op.create(
-                paths.getPoolMemberPath(id, memberId), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-    }
-
-    public List<Op> prepareRemoveMember(UUID id, UUID memberId) {
-        return asList(Op.delete(paths.getPoolMemberPath(id, memberId), -1));
-    }
-
-    public void getPoolMemberIdListAsync(UUID poolId,
-                                  final DirectoryCallback<Set<UUID>>
-                                          poolMemberContentsCallback,
-                                  Directory.TypedWatcher watcher) {
-        getUUIDSetAsync(paths.getPoolMembersPath(poolId),
-                        poolMemberContentsCallback, watcher);
-    }
 }

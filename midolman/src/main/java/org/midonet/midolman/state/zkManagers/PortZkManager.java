@@ -16,7 +16,6 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -24,37 +23,25 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
 import com.google.common.base.Function;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import rx.Observable;
-import rx.Observable.OnSubscribe;
-import rx.Subscriber;
-import rx.functions.Func1;
 
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.VlanPathExistsException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Subnet;
 
 /**
@@ -133,8 +120,8 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             }
 
             ops.add(Op.create(
-                    paths.getPortGroupPortPath(portGroupId, id), null,
-                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                paths.getPortGroupPortPath(portGroupId, id), null,
+                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         }
     }
 
@@ -144,182 +131,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             ops.add(Op.delete(
                     paths.getPortGroupPortPath(portGroupId, id), -1));
         }
-    }
-
-    private List<Op> prepareCreate(UUID id,
-            PortDirectory.RouterPortConfig config) throws StateAccessException,
-            SerializationException {
-        List<Op> ops = new ArrayList<Op>();
-
-        // On create, make a tunnel key id. This won't end up being used if
-        // the port becomes interior.
-        int tunnelKeyId = tunnelZkManager.createTunnelKeyId();
-        config.tunnelKey = tunnelKeyId;
-
-        ops.add(simpleCreateOp(id, config));
-        ops.add(Op.create(paths.getRouterPortPath(config.device_id, id),
-                null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(paths.getPortRoutesPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        ops.add(Op.create(paths.getPortBgpPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-
-        // Update TunnelKey to reference the port.
-        TunnelZkManager.TunnelKey tunnelKey =
-            new TunnelZkManager.TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKeyId,
-            tunnelKey));
-
-        ops.addAll(filterZkManager.prepareCreate(id));
-
-        ops.addAll(routeZkManager.prepareLocalRoutesCreate(id, config));
-
-        // If port groups are specified, need to update the membership.
-        if (config.portGroupIDs != null) {
-            addToPortGroupsOps(ops, id, config.portGroupIDs);
-        }
-        return ops;
-    }
-
-    private List<Op> prepareBridgePortCreate(UUID id,
-            PortDirectory.BridgePortConfig config) throws StateAccessException,
-            SerializationException {
-
-        List<Op> ops = new ArrayList<Op>();
-
-        ops.add(Op.create(paths.getPortPath(id),
-                serializer.serialize(config),
-                Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT));
-
-        ops.addAll(filterZkManager.prepareCreate(id));
-
-        // If port groups are specified, need to update the membership.
-        if (config.portGroupIDs != null) {
-            addToPortGroupsOps(ops, id, config.portGroupIDs);
-        }
-
-        return ops;
-    }
-
-    private List<Op> prepareCreate(UUID id,
-            PortDirectory.VxLanPortConfig config)
-            throws StateAccessException, SerializationException {
-
-        List<Op> ops = new ArrayList<>();
-        ops.add(zk.getPersistentCreateOp(paths.getPortPath(id),
-                                         serializer.serialize(config)));
-        ops.add(zk.getPersistentCreateOp(paths.getVxLanPortIdPath(id), null));
-
-        ops.addAll(filterZkManager.prepareCreate(id));
-
-        // TODO: do we put it here? Or in exterior?
-        ops.add(Op.create(paths.getBridgePortPath(config.device_id, id),
-                          null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-        return ops;
-    }
-
-    private List<Op> prepareCreate(UUID id,
-            PortDirectory.BridgePortConfig config)
-            throws StateAccessException, SerializationException {
-
-        // On create, make a tunnel key id. This won't end up being used if
-        // the port becomes interior.
-        int tunnelKeyId = tunnelZkManager.createTunnelKeyId();
-        config.tunnelKey = tunnelKeyId;
-
-        // Add common bridge port create operations
-        List<Op> ops = prepareBridgePortCreate(id, config);
-
-        // Update TunnelKey to reference the port.
-        TunnelZkManager.TunnelKey tunnelKey =
-            new TunnelZkManager.TunnelKey(id);
-        ops.addAll(tunnelZkManager.prepareTunnelUpdate(tunnelKeyId,
-            tunnelKey));
-
-        //All unplugged ports go into the bridges/<bridge>/ports/ folder.
-        ops.add(Op.create(paths.getBridgePortPath(config.device_id, id),
-            null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-
-
-        // Add VLAN specific MAC learning table if this is a VLAN tagged port.
-        // vlanId will be null for a port that will be become an
-        //   exterior port.
-        Short portVlanId = config.getVlanId();
-        if(portVlanId != null){
-            ops.add(Op.create(paths.getBridgeVlanPath(config.device_id,
-                    config.getVlanId()), null,
-                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-            ops.add(Op.create(paths.getBridgeMacPortsPath(config.device_id,
-                    config.getVlanId()), null,
-
-                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        }
-
-        return ops;
-    }
-
-    public List<Op> prepareCreate(UUID id, PortConfig config)
-            throws StateAccessException, SerializationException {
-
-        List<Op> ops = new ArrayList<>();
-        if (config.inboundFilter != null) {
-            ops.addAll(chainZkManager.prepareChainBackRefCreate(
-                    config.inboundFilter, ResourceType.PORT, id));
-        }
-        if (config.outboundFilter != null) {
-            ops.addAll(chainZkManager.prepareChainBackRefCreate(
-                    config.outboundFilter, ResourceType.PORT, id));
-        }
-        if (config instanceof PortDirectory.RouterPortConfig) {
-            ops.addAll(prepareCreate(id,
-                    (PortDirectory.RouterPortConfig) config));
-        } else if (config instanceof PortDirectory.BridgePortConfig) {
-            ops.addAll(prepareCreate(id,
-                    (PortDirectory.BridgePortConfig) config));
-        } else if (config instanceof PortDirectory.VxLanPortConfig) {
-            ops.addAll(prepareCreate(id,
-                    (PortDirectory.VxLanPortConfig) config));
-        } else {
-            throw new IllegalArgumentException("Unknown port type found " +
-                                 ((config != null) ? config.getClass() : null));
-        }
-
-        String activePath = paths.getPortActivePath(id);
-        ops.add(zk.getPersistentCreateOp(activePath, new byte[0]));
-
-        return ops;
-    }
-
-    public UUID create(PortConfig port) throws StateAccessException,
-            SerializationException {
-        if (port.id == null) {
-            port.id = UUID.randomUUID();
-        }
-        try {
-            zk.multi(prepareCreate(port.id, port));
-        } catch (StatePathExistsException e) {
-            // Give clearer error in case where bridge interior port
-            // was created with already-existing VLAN
-            if(e.getCause() instanceof KeeperException.NodeExistsException &&
-                    port instanceof PortDirectory.BridgePortConfig) {
-                KeeperException.NodeExistsException e2 =
-                        (KeeperException.NodeExistsException)e.getCause();
-                PortDirectory.BridgePortConfig port2 =
-                        (PortDirectory.BridgePortConfig) port;
-
-                if(e.getMessage().contains(paths.getBridgeVlanPath(
-                        port2.device_id, port2.vlanId))){
-                    throw new VlanPathExistsException("VLAN ID " +
-                            port2.vlanId +
-                            " already exists on a port on this bridge.", e);
-                }
-            }
-            throw e;
-        }
-        return port.id;
     }
 
     /**
@@ -382,16 +193,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         }
     }
 
-    /**
-     * Call this method if the ports you are about to link do not exists.
-     */
-    public void prepareLink(List<Op> ops, UUID id, UUID peerId,
-                            PortConfig port, PortConfig peerPort)
-            throws SerializationException, StateAccessException {
-
-        prepareLink(ops, id, peerId, port, peerPort, false, false);
-    }
-
     public void prepareLink(List<Op> ops, UUID id, UUID peerId)
             throws StateAccessException, SerializationException {
 
@@ -409,15 +210,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             throw new IllegalArgumentException(
                     "Port 'id' is not an unplugged port: " + id);
         }
-    }
-
-    public void prepareCreateAndLink(List<Op> ops, PortConfig port,
-                                     PortConfig peerPort)
-            throws SerializationException, StateAccessException {
-
-        ops.addAll(prepareCreate(port.id, port));
-        ops.addAll(prepareCreate(peerPort.id, peerPort));
-        prepareLink(ops, port.id, peerPort.id, port, peerPort);
     }
 
     public List<Op> prepareUnlink(UUID id) throws StateAccessException,
@@ -491,12 +283,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         }
     }
 
-    public List<PortDirectory.RouterPortConfig> getRouterPorts(UUID routerId,
-                                                               IPv4Subnet sub)
-            throws SerializationException, StateAccessException {
-        return getRouterPorts(routerId, Arrays.asList(sub));
-    }
-
     public List<PortDirectory.RouterPortConfig> getRouterPorts(
             UUID routerId, List<IPv4Subnet> subs)
             throws SerializationException, StateAccessException {
@@ -516,46 +302,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             }
         }
         return cfgs;
-    }
-
-    /**
-     * Call this method to get the port with the provided subnet that's
-     */
-    public PortDirectory.RouterPortConfig getRouterPort(UUID routerId,
-                                                        UUID deviceId,
-                                                        IPv4Subnet sub)
-            throws SerializationException, StateAccessException {
-        List<PortDirectory.RouterPortConfig> cfgs = getRouterPorts(routerId,
-                sub);
-        for (PortDirectory.RouterPortConfig cfg : cfgs) {
-
-            if (!cfg.isInterior()) continue;
-
-            PortConfig peer = get(cfg.peerId);
-            if (Objects.equals(peer.device_id, deviceId)) {
-                return cfg;
-            }
-        }
-        return null;
-    }
-
-    public void prepareDeleteRouterPorts(List<Op> ops, UUID routerId,
-                                         IPv4Subnet sub, boolean deletePeer)
-            throws StateAccessException, SerializationException {
-
-        List<PortDirectory.RouterPortConfig> cfgs = getRouterPorts(routerId,
-                sub);
-        prepareDelete(ops, cfgs, deletePeer);
-    }
-
-    public void prepareDeleteRouterPorts(List<Op> ops, UUID routerId,
-                                         List<IPv4Subnet> subs,
-                                         boolean deletePeer)
-            throws StateAccessException, SerializationException {
-
-        List<PortDirectory.RouterPortConfig> cfgs = getRouterPorts(routerId,
-                subs);
-        prepareDelete(ops, cfgs, deletePeer);
     }
 
     public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)
@@ -580,52 +326,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
                 Collections.singletonList(Op.setData(paths.getPortPath(id),
                         serializer.serialize(config), -1)) :
                 Collections.<Op>emptyList();
-    }
-
-    public void prepareUpdatePortAdminState(List<Op> ops, UUID portId,
-                                            boolean adminStateUp)
-            throws SerializationException, StateAccessException {
-
-        PortConfig p = get(portId);
-        if (p.adminStateUp != adminStateUp) {
-            p.adminStateUp = adminStateUp;
-            ops.addAll(prepareUpdate(portId, p));
-
-            // Need to also set the peer port
-            if (p.peerId != null) {
-                PortConfig peerConfig = get(p.peerId);
-                peerConfig.adminStateUp = adminStateUp;
-                ops.addAll(prepareUpdate(p.peerId, peerConfig));
-            }
-        }
-    }
-
-    /**
-     * Update the router port with the new IP address.  Updating address also
-     * removes the previous local route and adds a new one for the new
-     * address.  This method throws an exception if the ID passed in is not a
-     * router port.
-     *
-     * @param ops List to which Ops are added
-     * @param portId  ID of the port to update
-     * @param addr  The new address to assign to the port
-     */
-    public void prepareUpdatePortAddress(List<Op> ops, UUID portId, int addr)
-        throws SerializationException, StateAccessException {
-
-        PortDirectory.RouterPortConfig port =
-            (PortDirectory.RouterPortConfig) get(portId);
-
-        // Delete the routes containing the old port address
-        routeZkManager.prepareRoutesDelete(ops, port.device_id,
-                                           port.getPortAddr());
-
-        port.portAddr = addr;
-        ops.add(Op.setData(paths.getPortPath(portId),
-                           serializer.serialize(port), -1));
-
-        // Insert a new route
-        ops.addAll(routeZkManager.prepareLocalRoutesCreate(port.id, port));
     }
 
     public List<Op> prepareUpdate(UUID id, PortConfig config)
@@ -749,7 +449,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         }
         if (config.outboundFilter != null) {
             ops.addAll(chainZkManager.prepareChainBackRefDelete(
-                    config.outboundFilter, ResourceType.PORT, id));
+                config.outboundFilter, ResourceType.PORT, id));
         }
 
         if (config instanceof PortDirectory.RouterPortConfig) {
@@ -861,38 +561,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return getUuidList(path, watcher);
     }
 
-    public PortDirectory.RouterPortConfig findFirstRouterPortByPeer(
-            UUID routerId, final UUID peerRouterId)
-            throws SerializationException, StateAccessException {
-
-        if (peerRouterId == null) {
-            throw new IllegalArgumentException("peerRouterId is null");
-        }
-
-        return findFirstRouterPortMatch(routerId,
-                new Function<PortDirectory.RouterPortConfig, Boolean>() {
-
-            @Override
-            public Boolean apply(
-                            @Nullable PortDirectory.RouterPortConfig rpCfg) {
-                if (rpCfg.peerId == null) {
-                    return false;
-                }
-
-                // Get the peer port
-                PortConfig c;
-                try {
-                    c = get(rpCfg.peerId);
-                } catch (Exception e) {
-                    throw new IllegalStateException("Could not retrieve port " +
-                            rpCfg.peerId);
-                }
-
-                return Objects.equals(peerRouterId, c.device_id);
-            }
-        });
-    }
-
     public PortDirectory.RouterPortConfig findFirstRouterPortMatch(
             UUID routerId,
             Function<PortDirectory.RouterPortConfig, Boolean> matcher)
@@ -907,94 +575,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
          }
 
         return null;
-    }
-
-    public PortDirectory.RouterPortConfig findGatewayRouterPortFromBridge(
-            UUID bridgeId, final IPAddr gatewayIp)
-            throws SerializationException, StateAccessException {
-
-        if (bridgeId == null) {
-            throw new IllegalArgumentException("bridgeId is null");
-        }
-
-        if (gatewayIp == null) {
-            throw new IllegalArgumentException("gatewayIp is null");
-        }
-
-        return findFirstRouterPortMatchFromBridge(bridgeId,
-                new Function<PortConfig, Boolean>() {
-
-                    @Override
-                    public Boolean apply(PortConfig pCfg) {
-                        return (pCfg instanceof PortDirectory.RouterPortConfig)
-                            && ((PortDirectory.RouterPortConfig) pCfg)
-                            .portAddressEquals(gatewayIp);
-                    }
-                }
-        );
-    }
-
-    public Observable<Void> setActivePort(UUID portId, UUID owner,
-            boolean active) throws StateAccessException {
-        final String parentPath = paths.getPortActivePath(portId);
-        final String path = parentPath + "/" + owner.toString();
-
-        // NOTE(guillermo): creating this path here ensures backwards
-        // compatibility for ports that were created without an 'active' subnode.
-        if (active) {
-            return Observable.create(new OnSubscribe<Boolean>() {
-                    public void call(final Subscriber<? super Boolean> sub) {
-                        zk.asyncExists(parentPath,
-                                       DirectoryCallbackFactory.wrap(sub));
-                    }
-                })
-                .flatMap(new Func1<Boolean, Observable<String>>() {
-                        @Override
-                        public Observable<String> call(final Boolean exists) {
-                            if (!exists) {
-                                return Observable.create(new OnSubscribe<String>() {
-                                        @Override
-                                        public void call(final Subscriber<? super String> sub) {
-                                            zk.asyncAdd(parentPath, new byte[0],
-                                                        CreateMode.PERSISTENT,
-                                                        DirectoryCallbackFactory.wrap(sub));
-                                        }
-                                    });
-                            } else {
-                                return Observable.just(parentPath);
-                            }
-                        }
-                    })
-                .flatMap(new Func1<String, Observable<String>>() {
-                        @Override
-                        public Observable<String> call(final String v) {
-                            return Observable.create(new OnSubscribe<String>() {
-                                    public void call(final Subscriber<? super String> sub) {
-                                        zk.ensureEphemeralAsync(path, new byte[0],
-                                                                DirectoryCallbackFactory.wrap(sub));
-                                    }
-                                });
-                        }
-                    })
-                .map(new Func1<String, Void>() {
-                        @Override
-                        public Void call(final String v) {
-                            return null;
-                        }
-                    });
-        } else {
-            return Observable.create(new OnSubscribe<Void>() {
-                    public void call(final Subscriber<? super Void> sub) {
-                        zk.asyncDelete(path, DirectoryCallbackFactory.wrap(sub));
-                    }
-                });
-        }
-    }
-
-    public boolean isActivePort(UUID portId, Runnable watcher) throws StateAccessException {
-        String path = paths.getPortActivePath(portId);
-        log.debug("checking port liveness");
-        return zk.exists(path, watcher) && (zk.getChildren(path, watcher).size() > 0);
     }
 
     public boolean isActivePort(UUID portId) throws StateAccessException {
@@ -1064,12 +644,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     public List<UUID> getBridgePortIDs(UUID bridgeId)
             throws StateAccessException {
         return getBridgePortIDs(bridgeId, null);
-    }
-
-    public PortConfig getPeerPort(UUID portId)
-            throws SerializationException, StateAccessException {
-        PortConfig port = get(portId);
-        return port.peerId == null ? null : get(port.peerId);
     }
 
     public void getVxLanPortIdsAsync(DirectoryCallback<Set<UUID>> callback,

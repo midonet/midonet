@@ -17,25 +17,20 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.util.functors.Functor;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import org.midonet.cluster.data.BGP;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.cluster.data.BGP;
 
 public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
 
@@ -124,39 +119,8 @@ public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
         return id;
     }
 
-    public void getBGPAsync(final UUID bgpId, DirectoryCallback <BGP> bgpDirectoryCallback,
-                            final Directory.TypedWatcher watcher) {
-
-        String bgpPath = paths.getBgpPath(bgpId);
-        zk.asyncGet(bgpPath,
-            DirectoryCallbackFactory.transform(
-                bgpDirectoryCallback,
-                new Functor<byte[], BGP>() {
-                    @Override
-                    public BGP apply(byte[] arg0) {
-                        try {
-                            return new BGP(
-                                bgpId,
-                                serializer.deserialize(arg0, BGP.Data.class));
-                        } catch (SerializationException e) {
-                            log.warn("Could not deserialize BGP data");
-                            return null;
-                        }
-                    }
-                }),
-            watcher);
-    }
-
     public boolean exists(UUID id) throws StateAccessException {
         return zk.exists(paths.getBgpPath(id));
-    }
-
-    public void getBgpListAsync(UUID portId,
-                                final DirectoryCallback<Set<UUID>>
-                                        bgpContentsCallback,
-                                Directory.TypedWatcher watcher) {
-        getUUIDSetAsync(paths.getPortBgpPath(portId),
-                        bgpContentsCallback, watcher);
     }
 
     public List<UUID> list(UUID portId) throws StateAccessException {

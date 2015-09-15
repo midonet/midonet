@@ -175,27 +175,10 @@ public class LoadBalancerZkManager extends
         return getUuidSet(paths.getLoadBalancerVipsPath(id));
     }
 
-    public List<Op> prepareRemovePool(UUID id, UUID poolId) {
-        return asList(Op.delete(paths.getLoadBalancerPoolPath(id, poolId), -1));
-    }
-
-    public List<Op> prepareRemoveVip(UUID id, UUID vipId) {
-        return asList(Op.delete(paths.getLoadBalancerVipPath(id, vipId), -1));
-    }
-
     public List<Op> prepareSetRouterId(UUID id, UUID routerId)
             throws SerializationException, StateAccessException {
         LoadBalancerConfig config = get(id);
         config.routerId = routerId;
         return asList(simpleUpdateOp(id, config));
     }
-
-    public void getVipIdListAsync(UUID loadBalancerId,
-                                  final DirectoryCallback<Set<UUID>>
-                                          vipContentsCallback,
-                                  Directory.TypedWatcher watcher) {
-        getUUIDSetAsync(paths.getLoadBalancerVipsPath(loadBalancerId),
-                        vipContentsCallback, watcher);
-    }
-
 }

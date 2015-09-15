@@ -16,8 +16,6 @@
 
 package org.midonet.midolman.layer3;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 public class TestReplicatedRoutingTable {

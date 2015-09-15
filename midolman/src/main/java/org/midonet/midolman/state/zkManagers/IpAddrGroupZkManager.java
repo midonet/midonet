@@ -30,16 +30,10 @@ import org.slf4j.LoggerFactory;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.packets.IPAddr$;
-import org.midonet.util.functors.Functors;
 
 /**
  * Class to manage the router ZooKeeper data.
@@ -118,11 +112,11 @@ public class IpAddrGroupZkManager extends
 
         // Directory for member addresses.
         ops.add(Op.create(paths.getIpAddrGroupAddrsPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                          Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         // Keep track of rules that reference this group.
         ops.add(Op.create(paths.getIpAddrGroupRulesPath(id), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                          Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         log.debug("IpAddrGroupZkManager.prepareCreate: exiting");
         return ops;
@@ -240,81 +234,8 @@ public class IpAddrGroupZkManager extends
         return zk.exists(paths.getIpAddrGroupAddrPath(groupId, addr));
     }
 
-    public boolean isOnlyMember(UUID groupId, String addr, UUID portId)
-            throws StateAccessException {
-
-        if (!zk.exists(paths.getIpAddrGroupAddrPath(groupId, addr)))
-            return false;
-
-        Set<String> ports = zk.getChildren(
-                paths.getIpAddrGroupAddrPortsPath(groupId, addr));
-        return ports.size() == 1 && ports.contains(portId.toString());
-    }
-
-    public void addAddr(UUID groupId, String addr)
-            throws StateAccessException, SerializationException {
-        addr = IPAddr$.MODULE$.canonicalize(addr);
-        try {
-            zk.addPersistent(paths.getIpAddrGroupAddrPath(groupId, addr), null);
-        } catch (StatePathExistsException ex) {
-            // This group already has this address. Do nothing.
-        }
-    }
-
     public Set<String> getAddrs(UUID id) throws StateAccessException {
         return zk.getChildren(paths.getIpAddrGroupAddrsPath(id));
     }
 
-    public void getAddrsAsync(UUID ipAddrGroupId,
-                              DirectoryCallback<Set<String>> addrsCallback,
-                              Directory.TypedWatcher watcher) {
-        zk.asyncGetChildren(
-                paths.getIpAddrGroupAddrsPath(ipAddrGroupId),
-                DirectoryCallbackFactory.transform(
-                        addrsCallback, Functors.<Set<String>>identity()),
-                watcher);
-    }
-
-    public void removeAddr(UUID groupId, String addr)
-            throws StateAccessException, SerializationException {
-        addr = IPAddr$.MODULE$.canonicalize(addr);
-        try {
-            zk.delete(paths.getIpAddrGroupAddrPath(groupId, addr));
-        } catch (NoStatePathException ex) {
-            // Either the group doesn't exist, or the address doesn't.
-            // Either way, the desired postcondition is met.
-        }
-    }
-
-    public void prepareAddAdr(List<Op> ops, UUID groupId, String addr,
-                              UUID portId, boolean isRebuild)
-            throws StateAccessException, SerializationException {
-        addr = IPAddr$.MODULE$.canonicalize(addr);
-        if (!isMember(groupId, addr) ||
-                (isRebuild && isOnlyMember(groupId, addr, portId))) {
-            ops.add(zk.getPersistentCreateOp(
-                    paths.getIpAddrGroupAddrPath(groupId, addr), null));
-            ops.add(zk.getPersistentCreateOp(
-                    paths.getIpAddrGroupAddrPortsPath(groupId, addr), null));
-        }
-        ops.add(zk.getPersistentCreateOp(
-                paths.getIpAddrGroupAddrPortPath(groupId, addr, portId), null));
-    }
-
-    public void prepareRemoveAddr(List<Op> ops, UUID groupId, String addr,
-                                  UUID portId)
-            throws StateAccessException, SerializationException {
-        addr = IPAddr$.MODULE$.canonicalize(addr);
-
-        ops.add(zk.getDeleteOp(
-                paths.getIpAddrGroupAddrPortPath(groupId, addr, portId)));
-
-        if (isOnlyMember(groupId, addr, portId)) {
-            // This is the last port, so we can delete the addr entry
-            ops.add(zk.getDeleteOp(
-                    paths.getIpAddrGroupAddrPortsPath(groupId, addr)));
-            ops.add(zk.getDeleteOp(
-                    paths.getIpAddrGroupAddrPath(groupId, addr)));
-        }
-    }
 }

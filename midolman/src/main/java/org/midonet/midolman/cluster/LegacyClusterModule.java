@@ -28,21 +28,7 @@ import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
 import org.midonet.cluster.BridgeBuilderStateFeeder;
-import org.midonet.cluster.Client;
-import org.midonet.cluster.ClusterBgpManager;
-import org.midonet.cluster.ClusterBridgeManager;
-import org.midonet.cluster.ClusterChainManager;
-import org.midonet.cluster.ClusterHealthMonitorManager;
-import org.midonet.cluster.ClusterHostManager;
-import org.midonet.cluster.ClusterIPAddrGroupManager;
-import org.midonet.cluster.ClusterLoadBalancerManager;
-import org.midonet.cluster.ClusterPoolHealthMonitorMapManager;
-import org.midonet.cluster.ClusterPoolManager;
-import org.midonet.cluster.ClusterPortGroupManager;
-import org.midonet.cluster.ClusterPortsManager;
-import org.midonet.cluster.ClusterRouterManager;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.LocalClientImpl;
 import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.state.LegacyStorage;
@@ -118,17 +104,7 @@ public class LegacyClusterModule extends PrivateModule {
                                  .asEagerSingleton();
         expose(LegacyStorage.class);
 
-        // TODO: Move these out of LocalDataClientImpl so that they can be
-        // installed in DataClusterClientModule instead.
-        bind(ClusterRouterManager.class).in(Singleton.class);
-
-        bind(ClusterBridgeManager.class).in(Singleton.class);
-
-        bind(ClusterPortsManager.class).in(Singleton.class);
-
         bind(BridgeBuilderStateFeeder.class).in(Singleton.class);
-
-        bind(ClusterHostManager.class).in(Singleton.class);
 
         bind(PortConfigCache.class).toProvider(PortConfigCacheProvider.class)
                                    .in(Singleton.class);
@@ -136,28 +112,8 @@ public class LegacyClusterModule extends PrivateModule {
         bind(PortGroupCache.class).toProvider(PortGroupCacheProvider.class)
                                   .in(Singleton.class);
 
-        bind(ClusterPortGroupManager.class).in(Singleton.class);
-
         binder().requireExplicitBindings();
 
-        bind(ClusterBgpManager.class).in(Singleton.class);
-
-        bind(ClusterChainManager.class).in(Singleton.class);
-
-        bind(ClusterIPAddrGroupManager.class).in(Singleton.class);
-
-        bind(ClusterLoadBalancerManager.class).in(Singleton.class);
-
-        bind(ClusterPoolManager.class).in(Singleton.class);
-
-        bind(ClusterPoolHealthMonitorMapManager.class).in(Singleton.class);
-
-        bind(ClusterHealthMonitorManager.class).in(Singleton.class);
-
-        bind(Client.class)
-            .to(LocalClientImpl.class)
-            .asEagerSingleton();
-        expose(Client.class);
 
     }
 

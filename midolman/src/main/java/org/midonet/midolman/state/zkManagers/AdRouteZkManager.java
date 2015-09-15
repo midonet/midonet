@@ -111,14 +111,6 @@ public class AdRouteZkManager
         return id;
     }
 
-    public void getAdRouteListAsync(UUID bgpId,
-                                    final DirectoryCallback<Set<UUID>>
-                                        adRouteContentsCallback,
-                                Directory.TypedWatcher watcher) {
-        getUUIDSetAsync(paths.getBgpAdRoutesPath(bgpId),
-                        adRouteContentsCallback, watcher);
-    }
-
     public List<UUID> list(UUID bgpId, Runnable watcher)
             throws StateAccessException {
         return getUuidList(paths.getBgpAdRoutesPath(bgpId), watcher);

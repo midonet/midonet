@@ -16,9 +16,8 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean, Long => JLong}
-import java.util.{ArrayList, UUID}
 import java.util.concurrent.TimeUnit.MILLISECONDS
-
+import java.util.{ArrayList, UUID}
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
@@ -29,9 +28,7 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 import akka.actor.ActorSystem
-
 import com.typesafe.scalalogging.Logger
-
 import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
@@ -51,6 +48,18 @@ import org.midonet.util.concurrent.TimedExpirationMap
 import org.midonet.util.functors._
 
 object BridgeMapper {
+
+    /* The MacFlowCount is called from the Coordinators' actors and dispatches
+     * to the BridgeManager's actor to get/modify the flow counts.  */
+    trait MacFlowCount {
+        def increment(mac: MAC, vlanId: Short, port: UUID): Unit
+        def decrement(mac: MAC, vlanId: Short, port: UUID): Unit
+    }
+
+    trait RemoveFlowCallbackGenerator {
+        def getCallback(mac: MAC,vlanId: Short, port: UUID): Callback0
+    }
+
 
     /**
      * Stores the state for a bridge port, including its peer port state, if the

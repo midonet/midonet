@@ -15,34 +15,29 @@
  */
 package org.midonet.midolman.l4lb
 
-import akka.actor._
-
 import java.io._
 import java.nio.ByteBuffer
 import java.nio.channels.IllegalSelectorException
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+import scala.collection.mutable.{HashSet, Set}
+import scala.concurrent.duration._
+
+import akka.actor._
+
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.Route
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor._
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.CheckHealth
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
-import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{CheckHealth, ConfigUpdate, _}
 import org.midonet.midolman.layer3.Route.NextHop.PORT
+import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.state.l4lb.LBStatus
-import LBStatus.{INACTIVE => MemberInactive}
-import LBStatus.{ACTIVE => MemberActive}
+import org.midonet.midolman.state.l4lb.LBStatus.{ACTIVE => MemberActive, INACTIVE => MemberInactive}
 import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
 import org.midonet.util.AfUnix
 import org.midonet.util.process.ProcessHelper
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable.HashSet
-import scala.collection.mutable.Set
-import scala.concurrent.duration._
 
 
 /**
@@ -54,9 +49,9 @@ import scala.concurrent.duration._
  */
 object HaproxyHealthMonitor {
     def props(config: PoolConfig, manager: ActorRef, routerId: UUID,
-              dataClient: DataClient, hostId: UUID):
+              hostId: UUID):
         Props = Props(new HaproxyHealthMonitor(config, manager, routerId,
-                                               dataClient, hostId))
+                                               hostId))
 
     sealed trait HHMMessage
     // This is a way of alerting the manager that setup has failed
@@ -94,7 +89,6 @@ object HaproxyHealthMonitor {
 class HaproxyHealthMonitor(var config: PoolConfig,
                            val manager: ActorRef,
                            var routerId: UUID,
-                           val dataClient: DataClient,
                            val hostId: UUID)
     extends Actor with ActorLogWithoutPath with Stash {
     implicit def system: ActorSystem = context.system
@@ -150,7 +144,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 // routes on the router.
                 if (config.vip != conf.vip) {
                     if (routeId != null) {
-                        dataClient.routesDelete(routeId)
+                        // TODO MNA-777 dataClient.routesDelete(routeId)
                         deleteIpTableRules(healthMonitorName, config.vip.ip)
                     }
                     if (routerId != null && routerPortId != null) {
@@ -176,10 +170,13 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 val newUpNodes = upNodes diff currentUpNodes
                 val newDownNodes = downNodes diff currentDownNodes
 
+                /*
+                TODO MNA-777 will provide an implementation on the new stack
                 newUpNodes foreach (id =>
                     dataClient.poolMemberUpdateStatus(id, MemberActive))
                 newDownNodes foreach (id =>
                     dataClient.poolMemberUpdateStatus(id, MemberInactive))
+                */
 
                 currentUpNodes = upNodes
                 currentDownNodes = downNodes
@@ -405,13 +402,15 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         route.setDstNetworkLength(32)
         route.setNextHopGateway(NameSpaceIp)
         route.setWeight(100)
-        routeId = dataClient.routesCreateEphemeral(route)
+        // TODO: MNA-777
+        // routeId = dataClient.routesCreateEphemeral(route)
     }
 
     def hookNamespaceToRouter(): Unit = {
         if (routerId == null)
             return
-        val ports = dataClient.portsFindByRouter(routerId)
+        // TODO: MNA-777
+        val ports = Seq.empty[RouterPort] // dataClient.portsFindByRouter(routerId)
         var portId: UUID = null
 
         // see if the port already exists, and delete it if it does. This can
@@ -420,7 +419,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             port match {
                 case rpc: RouterPort =>
                     if (rpc.getPortAddr == RouterIp) {
-                        dataClient.hostsDelVrnPortMapping(hostId, rpc.getId)
+                        // MNA-832
+                        // dataClient.hostsDelVrnPortMapping(hostId, rpc.getId)
                         portId = rpc.getId
                     }
             }
@@ -434,21 +434,24 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             routerPort.setNwAddr(NetAddr)
             routerPort.setNwLength(NetLen)
             routerPort.setInterfaceName(namespaceName)
-            portId = dataClient.portsCreate(routerPort)
+            // MNA-777
+            // portId = dataClient.portsCreate(routerPort)
         }
         routerPortId = portId
         addVipRoute(config.vip.ip)
 
-        dataClient.hostsAddVrnPortMapping(hostId, portId, namespaceName)
+        // TODO: MNA-777
+        // dataClient.hostsAddVrnPortMapping(hostId, portId, namespaceName)
 
         createIpTableRules(healthMonitorName, config.vip.ip)
     }
 
     def unhookNamespaceFromRouter() = {
         if (routerPortId != null) {
+            /* TODO MNA-777
             dataClient.hostsDelVrnPortMapping(hostId, routerPortId)
             dataClient.routesDelete(routeId)
-            dataClient.portsDelete(routerPortId)
+            dataClient.portsDelete(routerPortId) */
             deleteIpTableRules(healthMonitorName, config.vip.ip)
             routeId = null
             routerPortId = null
@@ -457,7 +460,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
     //wrapping this call so we can mock it in the unit tests
     def setPoolMapStatus(status: PoolHealthMonitorMappingStatus) {
-        dataClient.poolSetMapStatus(config.id, status)
+        // MNA-777
+        // dataClient.poolSetMapStatus(config.id, status)
     }
 }
 

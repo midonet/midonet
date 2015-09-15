@@ -16,24 +16,24 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import akka.pattern.AskTimeoutException
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect._
 
 import akka.actor._
+import akka.pattern.AskTimeoutException
 import com.google.inject.Inject
-import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 import org.midonet.cluster.Client
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
-import org.midonet.midolman.{BackChannelMessage, SimulationBackChannel, NotYetException, Referenceable}
 import org.midonet.midolman.simulation._
+import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
+import org.midonet.midolman.{BackChannelMessage, NotYetException, Referenceable, SimulationBackChannel}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent._
 
 /**
@@ -68,8 +68,7 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = portManagerName(id)
 
         protected[VirtualTopologyActor]
-        override def managerFactory(client: Client, config: MidolmanConfig) =
-            () => new PortManager(id, client)
+        override def managerFactory(client: Client, config: MidolmanConfig) = ???
     }
 
     case class BridgeRequest(id: UUID, update: Boolean = false)
@@ -79,8 +78,7 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = bridgeManagerName(id)
 
         protected[VirtualTopologyActor]
-        override def managerFactory(client: Client, config: MidolmanConfig) =
-            () => new BridgeManager(id, client, config)
+        override def managerFactory(client: Client, config: MidolmanConfig) = ???
     }
 
     case class RouterRequest(id: UUID, update: Boolean = false)
@@ -90,8 +88,7 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = routerManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
-            () => new RouterManager(id, client, config)
+        def managerFactory(client: Client, config: MidolmanConfig) = ???
     }
 
     case class ChainRequest(id: UUID, update: Boolean = false)
@@ -101,8 +98,7 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = chainManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
-            () => new ChainManager(id, client)
+        def managerFactory(client: Client, config: MidolmanConfig) = ???
     }
 
     case class IPAddrGroupRequest(id: UUID, update: Boolean = false)
@@ -112,8 +108,7 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = iPAddrGroupManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
-            () => new IPAddrGroupManager(id, client)
+        def managerFactory(client: Client, config: MidolmanConfig) = ???
     }
 
     case class LoadBalancerRequest(id: UUID, update: Boolean = false)
@@ -123,8 +118,7 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = loadBalancerManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
-            () => new LoadBalancerManager(id, client)
+        def managerFactory(client: Client, config: MidolmanConfig) = ???
     }
 
     case class PoolRequest(id: UUID, update: Boolean = false)
@@ -134,8 +128,7 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = poolManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
-            () => new PoolManager(id, client)
+        def managerFactory(client: Client, config: MidolmanConfig) = ???
     }
 
     case class PortGroupRequest(id: UUID, update: Boolean = false)
@@ -145,8 +138,7 @@ object VirtualTopologyActor extends Referenceable {
         override val managerName = portGroupManagerName(id)
 
         protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
-            () => new PortGroupManager(id, client)
+        def managerFactory(client: Client, config: MidolmanConfig) = ???
     }
 
     case class PoolHealthMonitorMapRequest(update: Boolean=false)
@@ -258,7 +250,6 @@ object VirtualTopologyActor extends Referenceable {
 
 class VirtualTopologyActor extends VirtualTopologyRedirector {
     import VirtualTopologyActor._
-    import context.system
 
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.

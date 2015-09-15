@@ -1,3 +1,5 @@
+package org.midonet.midolman.topology
+
 /*
  * Copyright 2014 Midokura SARL
  *
@@ -14,21 +16,20 @@
  * limitations under the License.
  */
 
-import java.util.UUID
 import java.lang.{Short => JShort}
-import collection.mutable
+import java.util.UUID
+
+import scala.collection.mutable
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
-import akka.event.Logging
 import com.typesafe.scalalogging.Logger
 import org.scalatest.{FunSuite, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.client.MacLearningTable
 import org.midonet.cluster.data.Bridge
-import org.midonet.midolman.topology.MacLearningManager
-import org.midonet.midolman.topology.BridgeManager.MacPortMapping
+import org.midonet.midolman.topology.{MacLearningManager, MacPortMapping}
 import org.midonet.packets.MAC
 import org.midonet.util.functors.Callback3
 

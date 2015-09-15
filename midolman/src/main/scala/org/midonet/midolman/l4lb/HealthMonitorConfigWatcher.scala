@@ -22,9 +22,10 @@ import scala.collection.mutable
 import scala.collection.mutable.{HashSet => MSet, Map => MMap}
 
 import akka.actor.{Actor, ActorRef, Props}
+
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.simulation.{Vip => SimVip, LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember}
+import org.midonet.midolman.simulation.{LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, Vip => SimVip}
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{LoadBalancerRequest, PoolHealthMonitorMapRequest}
@@ -106,6 +107,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                                  val manager: ActorRef)
         extends Referenceable with Actor with ActorLogWithoutPath {
     import context._
+
     import HealthMonitor._
     import HealthMonitorConfigWatcher._
 
