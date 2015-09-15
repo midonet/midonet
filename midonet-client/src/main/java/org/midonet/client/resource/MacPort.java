@@ -16,18 +16,18 @@
 
 package org.midonet.client.resource;
 
-import org.midonet.client.WebResource;
-import org.midonet.client.dto.DtoMacPort;
-import org.midonet.cluster.rest_api.VendorMediaType;
-
 import java.net.URI;
 import java.util.UUID;
+
+import org.midonet.client.WebResource;
+import org.midonet.client.dto.DtoMacPort;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 public class MacPort extends ResourceBase<MacPort, DtoMacPort> {
 
     public MacPort(WebResource resource, URI uriForCreation, DtoMacPort mp) {
         super(resource, uriForCreation, mp,
-                VendorMediaType.APPLICATION_MAC_PORT_JSON_V2);
+                MidonetMediaTypes.APPLICATION_MAC_PORT_JSON_V2());
     }
 
     @Override

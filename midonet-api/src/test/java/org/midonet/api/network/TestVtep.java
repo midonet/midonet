@@ -37,7 +37,6 @@ import org.midonet.client.dto.DtoVtep;
 import org.midonet.client.dto.DtoVtepBinding;
 import org.midonet.client.dto.DtoVtepPort;
 import org.midonet.client.dto.DtoVxLanPort;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Vtep;
 import org.midonet.cluster.rest_api.models.VtepBinding;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
@@ -55,13 +54,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.midonet.api.network.TestPort.createBridgePort;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_BINDING_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_BINDING_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_PORT_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_INVALID;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MAX_VALUE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MIN_VALUE;
@@ -71,6 +63,14 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.TUNNEL_ZON
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_HAS_BINDINGS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_BINDING_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_BINDING_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_PORT_COLLECTION_JSON;
 import static org.midonet.southbound.vtep.mock.MockOvsdbVtep.physPortNames;
 
 public class TestVtep extends RestApiTestBase {
@@ -112,7 +112,7 @@ public class TestVtep extends RestApiTestBase {
         tz.setName("tz");
         tz.setType("vtep");
         tz = dtoResource.postAndVerifyCreated(tunnelZonesUri,
-                  VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tz,
+                  APPLICATION_TUNNEL_ZONE_JSON(), tz,
                   DtoTunnelZone.class);
         assertNotNull(tz.getId());
         goodTunnelZone = tz.getId();
@@ -143,8 +143,9 @@ public class TestVtep extends RestApiTestBase {
         vtep.setManagementPort(6632);
         vtep.setTunnelZoneId(badTunnelZone);
         DtoError error = dtoResource.postAndVerifyError(app.getVteps(),
-                                                        APPLICATION_VTEP_JSON,
-                                                        vtep, BAD_REQUEST);
+                                                        APPLICATION_VTEP_JSON(),
+                                                        vtep,
+                                                        Status.BAD_REQUEST);
         assertErrorMatches(error, TUNNEL_ZONE_ID_IS_INVALID);
     }
 
@@ -155,8 +156,9 @@ public class TestVtep extends RestApiTestBase {
         vtep.setManagementPort(mockVtep1.mgmtPort());
         vtep.setTunnelZoneId(null);
         DtoError error = dtoResource.postAndVerifyError(app.getVteps(),
-                                                        APPLICATION_VTEP_JSON,
-                                                        vtep, BAD_REQUEST);
+                                                        APPLICATION_VTEP_JSON(),
+                                                        vtep,
+                                                        Status.BAD_REQUEST);
         assertErrorMatches(error, TUNNEL_ZONE_ID_IS_INVALID);
     }
 
@@ -244,7 +246,7 @@ public class TestVtep extends RestApiTestBase {
 
         // Cannot delete the VTEP because it has bindings.
         DtoError error = dtoResource.deleteAndVerifyBadRequest(
-                vtep.getUri(), APPLICATION_VTEP_JSON);
+                vtep.getUri(), APPLICATION_VTEP_JSON());
         assertErrorMatches(error, VTEP_HAS_BINDINGS, vtep.getManagementIp());
 
         // Delete the binding.
@@ -252,7 +254,7 @@ public class TestVtep extends RestApiTestBase {
 
         // Can delete the VTEP now.
         dtoResource.deleteAndVerifyNoContent(vtep.getUri(),
-                                             APPLICATION_VTEP_JSON);
+                                             APPLICATION_VTEP_JSON());
     }
 
     @Test
@@ -262,7 +264,7 @@ public class TestVtep extends RestApiTestBase {
         vtep.managementIp = "1.2.3.4";
         vtep.setBaseUri(app.getUri());
         DtoError error = dtoResource.deleteAndVerifyNotFound(vtep.getUri(),
-                                                             APPLICATION_VTEP_JSON);
+            APPLICATION_VTEP_JSON());
         assertErrorMatches(error, RESOURCE_NOT_FOUND, "Vtep", vtep.id);
     }
 
@@ -356,9 +358,10 @@ public class TestVtep extends RestApiTestBase {
         assertEquals(1, bindings.length);
         assertThat(bindings, arrayContainingInAnyOrder(bdg2));
         dtoResource.getAndVerifyNotFound(vxlanPort1.getUri(),
-                                         APPLICATION_PORT_JSON);
+                                         APPLICATION_PORT_V2_JSON());
         dtoResource.getAndVerifyOk(vxlanPort2.getUri(),
-                                   APPLICATION_PORT_JSON, DtoVxLanPort.class);
+                                   APPLICATION_PORT_V2_JSON(),
+                                   DtoVxLanPort.class);
         br1 = getBridge(br1.getId());
         assertTrue(br1.getVxLanPortIds().isEmpty());
 
@@ -367,7 +370,7 @@ public class TestVtep extends RestApiTestBase {
 
         deleteBinding(bdg2.getUri());
         dtoResource.getAndVerifyNotFound(vxlanPort2.getUri(),
-                                         APPLICATION_PORT_JSON);
+                                         APPLICATION_PORT_V2_JSON());
 
         br2 = getBridge(br2.getId());
         assertTrue(br2.getVxLanPortIds().isEmpty());
@@ -394,7 +397,7 @@ public class TestVtep extends RestApiTestBase {
             vtep, br.getId(), physPortNames().get(1), 1);
         deleteBinding(binding.getUri());
         dtoResource.deleteAndVerifyNoContent(binding.getUri(),
-                                             APPLICATION_VTEP_BINDING_JSON);
+                                            APPLICATION_VTEP_BINDING_JSON());
     }
 
     @Test
@@ -512,7 +515,7 @@ public class TestVtep extends RestApiTestBase {
         v.setBaseUri(app.getUri());
         v.managementIp = "10.10.10.10";
         DtoError error = dtoResource.getAndVerifyNotFound(v.getBindings(),
-                                                          APPLICATION_VTEP_BINDING_COLLECTION_JSON);
+                APPLICATION_VTEP_BINDING_COLLECTION_JSON());
         assertErrorMatches(error, RESOURCE_NOT_FOUND, "Vtep", v.id);
     }
 
@@ -524,8 +527,8 @@ public class TestVtep extends RestApiTestBase {
         vb.vlanId = (short)1;
         vb.setBaseUri(app.getUri());
         URI bindingUri = vb.getUri();
-        DtoError error = dtoResource.getAndVerifyNotFound(
-            bindingUri, APPLICATION_VTEP_BINDING_JSON);
+        DtoError error = dtoResource.getAndVerifyNotFound(bindingUri,
+                                              APPLICATION_VTEP_BINDING_JSON());
         assertErrorMatches(error, RESOURCE_NOT_FOUND, "Vtep", vb.vtepId);
     }
 
@@ -536,8 +539,7 @@ public class TestVtep extends RestApiTestBase {
     public void testListVtepPorts() {
         DtoVtep vtep = postVtep();
         DtoVtepPort[] ports = dtoResource.getAndVerifyOk(vtep.getPorts(),
-                                                         APPLICATION_VTEP_PORT_COLLECTION_JSON,
-                                                         DtoVtepPort[].class);
+                 APPLICATION_VTEP_PORT_COLLECTION_JSON(), DtoVtepPort[].class);
 
         DtoVtepPort[] expectedPorts =
             new DtoVtepPort[mockVtep1.portNames().length];
@@ -600,7 +602,7 @@ public class TestVtep extends RestApiTestBase {
                                       0, bridge.getId()));
 
         DtoBridgePort[] bridgePorts = dtoResource.getAndVerifyOk(
-            bridge.getPorts(), APPLICATION_PORT_V2_COLLECTION_JSON,
+            bridge.getPorts(), APPLICATION_PORT_V2_COLLECTION_JSON(),
             DtoBridgePort[].class);
         assertThat(bridgePorts, arrayContainingInAnyOrder(bridgePort));
     }
@@ -637,24 +639,25 @@ public class TestVtep extends RestApiTestBase {
 
     private DtoVtep postVtep(DtoVtep vtep) {
         return dtoResource.postAndVerifyCreated(
-            app.getVteps(), APPLICATION_VTEP_JSON, vtep, DtoVtep.class);
+            app.getVteps(), APPLICATION_VTEP_JSON(), vtep, DtoVtep.class);
     }
 
     private DtoError postVtepWithError(
             String mgmtIpAddr, int mgmtPort, Status status) {
         DtoVtep vtep = makeVtep(mgmtIpAddr, mgmtPort, goodTunnelZone);
-        return dtoResource.postAndVerifyError(
-            app.getVteps(), APPLICATION_VTEP_JSON, vtep, status);
+        return dtoResource.postAndVerifyError(app.getVteps(),
+                                              APPLICATION_VTEP_JSON(),
+                                              vtep, status);
     }
 
     private DtoVtep getVtep(UUID id) {
         return dtoResource.getAndVerifyOk(
-            app.getVtep(id), APPLICATION_VTEP_JSON, DtoVtep.class);
+            app.getVtep(id), APPLICATION_VTEP_JSON(), DtoVtep.class);
     }
 
     private DtoVtep[] listVteps() {
         return dtoResource.getAndVerifyOk(app.getVteps(),
-                                          APPLICATION_VTEP_COLLECTION_JSON,
+                                          APPLICATION_VTEP_COLLECTION_JSON(),
                                           DtoVtep[].class);
     }
 
@@ -670,26 +673,26 @@ public class TestVtep extends RestApiTestBase {
 
     private DtoVtepBinding postBinding(DtoVtep vtep, DtoVtepBinding binding) {
         return dtoResource.postAndVerifyCreated(
-            vtep.getBindings(), APPLICATION_VTEP_BINDING_JSON,
+            vtep.getBindings(), APPLICATION_VTEP_BINDING_JSON(),
             binding, DtoVtepBinding.class);
     }
 
     private DtoError postBindingWithError(
             DtoVtep vtep, DtoVtepBinding binding, Status status) {
         return dtoResource.postAndVerifyError(vtep.getBindings(),
-                                              APPLICATION_VTEP_BINDING_JSON,
+                                              APPLICATION_VTEP_BINDING_JSON(),
                                               binding, status);
     }
 
     private DtoVtepBinding[] listBindings(DtoVtep vtep) {
         return dtoResource.getAndVerifyOk(vtep.getBindings(),
-                APPLICATION_VTEP_BINDING_COLLECTION_JSON,
+                APPLICATION_VTEP_BINDING_COLLECTION_JSON(),
                 DtoVtepBinding[].class);
     }
 
     private void deleteBinding(URI uri) {
         dtoResource.deleteAndVerifyNoContent(uri,
-                                             APPLICATION_VTEP_BINDING_JSON);
+                                             APPLICATION_VTEP_BINDING_JSON());
     }
 
     private DtoVxLanPort getVxLanPort(UUID id) {
@@ -723,13 +726,13 @@ public class TestVtep extends RestApiTestBase {
         bindings = listBindings(vtep);
         assertThat(bindings, arrayContainingInAnyOrder(binding2));
         dtoResource.getAndVerifyOk(vxlanPort.getUri(),
-                                   APPLICATION_PORT_JSON, DtoVxLanPort.class);
+                                   APPLICATION_PORT_V2_JSON(), DtoVxLanPort.class);
 
         vxlanPort = getVxLanPort(vxlanPort.getId()); // should exist
 
         deleteBinding(binding2.getUri());
         dtoResource.getAndVerifyNotFound(vxlanPort.getUri(),
-                                         APPLICATION_PORT_JSON);
+                                         APPLICATION_PORT_V2_JSON());
 
         bindings = listBindings(vtep);
         assertEquals(0, bindings.length);

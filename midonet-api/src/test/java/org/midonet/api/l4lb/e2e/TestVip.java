@@ -35,10 +35,9 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VIP_JSON;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
 
 @RunWith(Enclosed.class)
 public class TestVip {
@@ -73,13 +72,13 @@ public class TestVip {
 
         private void postVipAndVerifyBadRequestError(DtoVip vip, Object... args) {
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    topLevelVipsUri, APPLICATION_VIP_JSON, vip);
+                    topLevelVipsUri, APPLICATION_VIP_JSON(), vip);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, args);
         }
 
         private void putVipAndVerifyNotFoundError(DtoVip vip, Object... args) {
             DtoError error = dtoResource.putAndVerifyError(vip.getUri(),
-                    APPLICATION_VIP_JSON, vip, NOT_FOUND);
+                    APPLICATION_VIP_JSON(), vip, NOT_FOUND);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, args);
         }
 
@@ -90,7 +89,7 @@ public class TestVip {
                 DtoLoadBalancer loadBalancer = getLoadBalancer(loadBalancerUri);
                 DtoVip[] lbVips = dtoResource.getAndVerifyOk(
                         loadBalancer.getVips(),
-                        APPLICATION_VIP_COLLECTION_JSON,
+                        APPLICATION_VIP_COLLECTION_JSON(),
                         DtoVip[].class);
                 if (expectedVip == null) {
                     assertEquals(0, lbVips.length);
@@ -105,7 +104,7 @@ public class TestVip {
                 DtoPool pool = getPool(poolUri);
                 DtoVip[] poolVips = dtoResource.getAndVerifyOk(
                         pool.getVips(),
-                        APPLICATION_VIP_COLLECTION_JSON,
+                        APPLICATION_VIP_COLLECTION_JSON(),
                         DtoVip[].class);
                 if (expectedVip == null) {
                     assertEquals(0, poolVips.length);
@@ -121,7 +120,7 @@ public class TestVip {
             for (DtoVip originalVip: poolVips) {
                 DtoVip retrievedVip = dtoResource.getAndVerifyOk(
                         originalVip.getUri(),
-                        APPLICATION_VIP_JSON, DtoVip.class);
+                        APPLICATION_VIP_JSON(), DtoVip.class);
                 assertEquals(originalVip, retrievedVip);
             }
         }
@@ -151,7 +150,7 @@ public class TestVip {
             // POST with the same ID as the existing resource and get 409
             // CONFLICT.
             DtoError error = dtoResource.postAndVerifyError(
-                    topLevelVipsUri, APPLICATION_VIP_JSON, vip3, CONFLICT);
+                    topLevelVipsUri, APPLICATION_VIP_JSON(), vip3, CONFLICT);
             assertErrorMatches(error, RESOURCE_EXISTS, "Vip", vip3.getId());
             verifyNumberOfVips(vipCounter);
 
@@ -245,7 +244,7 @@ public class TestVip {
         public void testCreateWithNullPoolId() {
             DtoVip vip = getStockVip(null);
             DtoError error = dtoResource.postAndVerifyError(
-                    topLevelVipsUri, APPLICATION_VIP_JSON,
+                    topLevelVipsUri, APPLICATION_VIP_JSON(),
                     vip, BAD_REQUEST);
             assertEquals(error.getViolations().size(), 1);
             Map<String, String> map = error.getViolations().get(0);
@@ -258,7 +257,7 @@ public class TestVip {
             createStockLoadBalancer();
             DtoVip vip = getStockVip(UUID.randomUUID());
             dtoResource.postAndVerifyBadRequest(topLevelVipsUri,
-                                                APPLICATION_VIP_JSON, vip);
+                                                APPLICATION_VIP_JSON(), vip);
             // TODO: this requires deeper fixes in ZOOM so that it reports
             // the class and id that were missing
             // assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool",
@@ -277,7 +276,7 @@ public class TestVip {
         public void testUpdateWithBadPoolId() {
             vip.setPoolId(UUID.randomUUID());
             dtoResource.putAndVerifyBadRequest(vip.getUri(),
-                                               APPLICATION_VIP_JSON, vip);
+                                               APPLICATION_VIP_JSON(), vip);
             // TODO: this requires deeper fixes in ZOOM so that it reports
             // the class and id that were missing
             // assertErrorMatches(error, RESOURCE_NOT_FOUND, "Pool",
@@ -290,7 +289,7 @@ public class TestVip {
             DtoVip vip = getStockVip(pool.getId());
             vip.setSessionPersistence(null);
             dtoResource.postAndVerifyCreated(pool.getVips(),
-                    APPLICATION_VIP_JSON, vip, DtoVip.class);
+                    APPLICATION_VIP_JSON(), vip, DtoVip.class);
         }
 
         @Test
@@ -316,7 +315,7 @@ public class TestVip {
             DtoVip vip3 = getStockVip(pool.getId());
             vip3.setPoolId(pool.getId());
             vip3  = dtoResource.postAndVerifyCreated(pool.getVips(),
-                    APPLICATION_VIP_JSON, vip3, DtoVip.class);
+                    APPLICATION_VIP_JSON(), vip3, DtoVip.class);
             vipCounter++;
             assertParentChildRelationship(loadBalancer, pool, vip3);
 
@@ -368,7 +367,7 @@ public class TestVip {
             // pool ID.
             DtoVip vip3 = getStockVip(pool.getId());
             vip3  = dtoResource.postAndVerifyCreated(pool.getVips(),
-                    APPLICATION_VIP_JSON, vip3, DtoVip.class);
+                    APPLICATION_VIP_JSON(), vip3, DtoVip.class);
             vipCounter++;
             assertParentChildRelationship(loadBalancer, pool, vip3);
 

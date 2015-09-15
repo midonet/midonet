@@ -36,6 +36,9 @@ import org.midonet.cluster.rest_api.models.ErrorEntity;
 import org.midonet.cluster.rest_api.models.ValidationErrorEntity;
 import org.midonet.util.http.HttpSupport;
 
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ERROR_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TOKEN_JSON;
+
 public class ResponseUtils {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
@@ -46,7 +49,7 @@ public class ResponseUtils {
         error.setCode(status);
         error.setMessage(message);
         return Response.status(status).entity(error)
-                .type(VendorMediaType.APPLICATION_ERROR_JSON).build();
+                .type(APPLICATION_ERROR_JSON()).build();
     }
 
     public static Response buildErrorResponse(int status, String message,
@@ -55,7 +58,7 @@ public class ResponseUtils {
         error.setCode(status);
         error.setMessage(message);
         Response.ResponseBuilder response = Response.status(status).entity(error)
-                .type(VendorMediaType.APPLICATION_ERROR_JSON);
+                .type(APPLICATION_ERROR_JSON());
         for (Map.Entry<String, Object> entry : header.entrySet()) {
             response.header(entry.getKey(), entry.getValue());
         }
@@ -82,7 +85,7 @@ public class ResponseUtils {
         }
         errors.setViolations(messages);
         return Response.status(Response.Status.BAD_REQUEST).entity(errors)
-                .type(VendorMediaType.APPLICATION_ERROR_JSON).build();
+                .type(APPLICATION_ERROR_JSON()).build();
     }
 
     public static String generateJsonError(int code, String msg)
@@ -100,7 +103,7 @@ public class ResponseUtils {
 
     public static void setErrorResponse(HttpServletResponse resp, int code,
                                         String msg) throws IOException {
-        resp.setContentType(VendorMediaType.APPLICATION_ERROR_JSON);
+        resp.setContentType(APPLICATION_ERROR_JSON());
         resp.setCharacterEncoding(HttpSupport.UTF8_ENC);
         resp.setStatus(code);
         resp.getWriter().write(generateJsonError(code, msg));
@@ -140,7 +143,7 @@ public class ResponseUtils {
      */
     public static void setEntity(HttpServletResponse resp, Object entity)
             throws IOException {
-        resp.setContentType(VendorMediaType.APPLICATION_TOKEN_JSON);
+        resp.setContentType(APPLICATION_TOKEN_JSON());
         resp.setCharacterEncoding(HttpSupport.UTF8_ENC);
         resp.setStatus(HttpServletResponse.SC_OK);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();

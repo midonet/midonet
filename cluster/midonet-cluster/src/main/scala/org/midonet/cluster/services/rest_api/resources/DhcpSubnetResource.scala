@@ -35,8 +35,7 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, O
 import org.midonet.packets.IPv4Subnet
 
 @RequestScoped
-@AllowCreate(Array(APPLICATION_DHCP_SUBNET_JSON,
-                   APPLICATION_DHCP_SUBNET_JSON_V2,
+@AllowCreate(Array(APPLICATION_DHCP_SUBNET_JSON_V2,
                    APPLICATION_JSON))
 class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
     extends MidonetResource[DhcpSubnet](resContext) {
@@ -44,8 +43,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
 
     @GET
     @Path("{subnetAddress}")
-    @Produces(Array(APPLICATION_DHCP_SUBNET_JSON,
-                    APPLICATION_DHCP_SUBNET_JSON_V2,
+    @Produces(Array(APPLICATION_DHCP_SUBNET_JSON_V2,
                     APPLICATION_JSON))
     override def get(@PathParam("subnetAddress") subnetAddress: String,
                      @HeaderParam("Accept") accept: String): DhcpSubnet = {
@@ -55,8 +53,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
     }
 
     @GET
-    @Produces(Array(APPLICATION_DHCP_SUBNET_COLLECTION_JSON,
-                    APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2))
+    @Produces(Array(APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[DhcpSubnet] = {
         getResource(classOf[Bridge], bridgeId)
@@ -68,8 +65,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
 
     @PUT
     @Path("{subnetAddress}")
-    @Consumes(Array(APPLICATION_DHCP_SUBNET_JSON,
-                    APPLICATION_DHCP_SUBNET_JSON_V2,
+    @Consumes(Array(APPLICATION_DHCP_SUBNET_JSON_V2,
                     APPLICATION_JSON))
     override def update(@PathParam("subnetAddress") subnetAddress: String,
                         subnet: DhcpSubnet,

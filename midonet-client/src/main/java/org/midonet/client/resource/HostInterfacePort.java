@@ -21,7 +21,7 @@ import java.util.UUID;
 
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoHostInterfacePort;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 public class HostInterfacePort
     extends ResourceBase<HostInterfacePort, DtoHostInterfacePort> {
@@ -29,7 +29,7 @@ public class HostInterfacePort
     public HostInterfacePort(WebResource resource, URI uriForCreation,
                              DtoHostInterfacePort interfacePort) {
         super(resource, uriForCreation, interfacePort,
-              VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON);
+              MidonetMediaTypes.APPLICATION_HOST_INTERFACE_PORT_JSON());
     }
 
     @Override

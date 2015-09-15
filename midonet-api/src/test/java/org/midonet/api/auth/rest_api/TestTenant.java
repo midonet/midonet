@@ -31,8 +31,8 @@ import org.midonet.client.dto.DtoApplication;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Tenant;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -110,7 +110,7 @@ public class TestTenant extends JerseyTest {
 
         // Get the actual Tenant objects
         Tenant[] actualRaw = dtoResource.getAndVerifyOk(app.getTenants(),
-                VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON,
+                MidonetMediaTypes.APPLICATION_TENANT_COLLECTION_JSON(),
                 Tenant[].class);
         // Fill in because the URI won't get deserialized
         for (Tenant t : actualRaw) {
@@ -127,7 +127,7 @@ public class TestTenant extends JerseyTest {
 
             // Get the actual object
             Tenant actualTenant = dtoResource.getAndVerifyOk(t.getUri(),
-                    VendorMediaType.APPLICATION_TENANT_JSON,
+                    MidonetMediaTypes.APPLICATION_TENANT_JSON(),
                     Tenant.class);
 
             // Compare

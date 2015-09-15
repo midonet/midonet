@@ -32,11 +32,11 @@ import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_COLLECTION_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_INTERFACE_PORT_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
 
 
 /**
@@ -157,14 +157,14 @@ public class HostTopology {
         public HostTopology build()
                 throws StateAccessException, SerializationException {
             this.app = resource.getWebResource().path("/")
-                    .accept(APPLICATION_JSON_V5)
-                    .type(APPLICATION_JSON_V5).get(DtoApplication.class);
+                    .accept(APPLICATION_JSON_V5())
+                    .type(APPLICATION_JSON_V5()).get(DtoApplication.class);
 
             for (Map.Entry<String, DtoTunnelZone> entry
                     : tunnelZones.entrySet()) {
                 DtoTunnelZone tunnelZone = entry.getValue();
                 tunnelZone = resource.postAndVerifyCreated(app.getTunnelZones(),
-                        APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
+                        APPLICATION_TUNNEL_ZONE_JSON(), tunnelZone,
                         DtoTunnelZone.class);
                 entry.setValue(tunnelZone);
             }
@@ -181,7 +181,7 @@ public class HostTopology {
                 // Get DtoHosts
                 URI hostsUri = this.app.getHosts();
                 DtoHost[] hostList = resource.getAndVerifyOk(hostsUri,
-                        APPLICATION_HOST_COLLECTION_JSON_V3,
+                        APPLICATION_HOST_COLLECTION_JSON_V3(),
                         DtoHost[].class);
                 Map<UUID, DtoHost> hostMap = new HashMap<>();
                 for (DtoHost host : hostList) {
@@ -202,7 +202,7 @@ public class HostTopology {
                     tunnelZoneHost.setTunnelZoneId(tunnelZone.getId());
                     tunnelZoneHost = resource.postAndVerifyCreated(
                             tunnelZone.getHosts(),
-                            APPLICATION_TUNNEL_ZONE_HOST_JSON,
+                            APPLICATION_TUNNEL_ZONE_HOST_JSON(),
                             tunnelZoneHost,
                             DtoTunnelZoneHost.class);
                     entry.setValue(tunnelZoneHost);
@@ -220,7 +220,7 @@ public class HostTopology {
                     hostInterfacePort.setHostId(host.getId());
                     hostInterfacePort = resource.postAndVerifyCreated(
                             host.getPorts(),
-                            APPLICATION_HOST_INTERFACE_PORT_JSON,
+                            APPLICATION_HOST_INTERFACE_PORT_JSON(),
                             hostInterfacePort,
                             DtoHostInterfacePort.class);
                     entry.setValue(hostInterfacePort);

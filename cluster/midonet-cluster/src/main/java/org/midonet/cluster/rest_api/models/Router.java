@@ -28,7 +28,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.util.version.Since;
 
 @ZoomClass(clazz = Topology.Router.class)
 public class Router extends UriResource {
@@ -51,7 +50,6 @@ public class Router extends UriResource {
     @ZoomField(name = "outbound_filter_id", converter = UUIDUtil.Converter.class)
     public UUID outboundFilterId;
 
-    @Since("2")
     @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
     public UUID loadBalancerId;
 
@@ -63,7 +61,6 @@ public class Router extends UriResource {
     @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> routeIds;
 
-    @Since("3")
     @ZoomField(name = "as_number")
     public int asNumber;
 
@@ -119,17 +116,14 @@ public class Router extends UriResource {
         return relativeUri(ResourceUris.ROUTES);
     }
 
-    @Since("2")
     public URI getLoadBalancer() {
         return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
     }
 
-    @Since("3")
     public URI getBgpNetworks() {
         return relativeUri(ResourceUris.BGP_NETWORKS);
     }
 
-    @Since("3")
     public URI getBgpPeers() {
         return relativeUri(ResourceUris.BGP_PEERS);
     }

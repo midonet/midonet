@@ -40,7 +40,31 @@ import org.midonet.client.dto.DtoSystemState;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoWriteVersion;
 
-import static org.midonet.cluster.rest_api.VendorMediaType.*;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_AD_ROUTE_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BGP_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_COLLECTION_JSON_V4;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_COLLECTION_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_VERSION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_COLLECTION_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTE_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_RULE_JSON_V2;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_SYSTEM_STATE_JSON_V2;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_WRITE_VERSION_JSON;
 
 public class Application extends ResourceBase<Application, DtoApplication> {
 
@@ -49,7 +73,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     private static String ID_TOKEN = "{id}";
 
     public Application(WebResource resource, DtoApplication app) {
-        this(resource, app, APPLICATION_JSON_V5);
+        this(resource, app, APPLICATION_JSON_V5());
     }
 
     public Application(WebResource resource, DtoApplication app,
@@ -73,7 +97,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getTenants(),
                 queryParams,
-                APPLICATION_TENANT_COLLECTION_JSON,
+                APPLICATION_TENANT_COLLECTION_JSON(),
                 Tenant.class, Tenant.class);
     }
 
@@ -81,7 +105,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getBridges(),
                                  queryParams,
-                                 APPLICATION_BRIDGE_COLLECTION_JSON_V4,
+                                 APPLICATION_BRIDGE_COLLECTION_JSON_V4(),
                                  Bridge.class, DtoBridge.class);
     }
 
@@ -89,7 +113,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getRouters(),
                                  queryParams,
-                                 APPLICATION_ROUTER_COLLECTION_JSON,
+                                 APPLICATION_ROUTER_COLLECTION_JSON_V3(),
                                  Router.class, DtoRouter.class);
     }
 
@@ -97,7 +121,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getChains(),
                                  queryParams,
-                                 APPLICATION_CHAIN_COLLECTION_JSON,
+                                 APPLICATION_CHAIN_COLLECTION_JSON(),
                                  RuleChain.class, DtoRuleChain.class);
     }
 
@@ -105,7 +129,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getPortGroups(),
                 queryParams,
-                APPLICATION_PORTGROUP_COLLECTION_JSON,
+                APPLICATION_PORTGROUP_COLLECTION_JSON(),
                 PortGroup.class, DtoPortGroup.class);
     }
 
@@ -113,14 +137,14 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getHosts(),
                                  queryParams,
-                                 APPLICATION_HOST_COLLECTION_JSON_V3,
+                                 APPLICATION_HOST_COLLECTION_JSON_V3(),
                                  Host.class, DtoHost.class);
     }
 
     public ResourceCollection<TunnelZone>
             getTunnelZones(MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getTunnelZones(), queryParams,
-            APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
+            APPLICATION_TUNNEL_ZONE_COLLECTION_JSON(),
             TunnelZone.class, DtoTunnelZone.class);
     }
 
@@ -148,15 +172,15 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         return new TunnelZone(resource,
                 principalDto.getTunnelZones(),
                 new DtoTunnelZone(),
-                APPLICATION_TUNNEL_ZONE_HOST_JSON,
-                APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+                APPLICATION_TUNNEL_ZONE_HOST_JSON(),
+                APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON());
     }
 
     public AdRoute getAdRoute(UUID id) {
         URI uri = createUriFromTemplate(
                 app.getAdRouteTemplate(), ID_TOKEN, id);
         DtoAdRoute adRoute = resource.get(uri, null, DtoAdRoute.class,
-                APPLICATION_AD_ROUTE_JSON);
+                APPLICATION_AD_ROUTE_JSON());
         return new AdRoute(resource, null, adRoute);
     }
 
@@ -164,7 +188,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getBgpTemplate(), ID_TOKEN, id);
         DtoBgp bgp = resource.get(uri, null, DtoBgp.class,
-                APPLICATION_BGP_JSON);
+                APPLICATION_BGP_JSON());
         return new Bgp(resource, null, bgp);
     }
 
@@ -172,7 +196,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getBridgeTemplate(), ID_TOKEN, id);
         DtoBridge bridge = resource.get(uri, null, DtoBridge.class,
-                APPLICATION_BRIDGE_JSON_V4);
+                APPLICATION_BRIDGE_JSON_V4());
         return new Bridge(resource, null, bridge);
     }
 
@@ -180,7 +204,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getHostTemplate(), ID_TOKEN, id);
         DtoHost host = resource.get(uri, null, DtoHost.class,
-                APPLICATION_HOST_JSON_V3);
+                APPLICATION_HOST_JSON_V3());
         return new Host(resource, null, host);
     }
 
@@ -188,7 +212,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getPortTemplate(), ID_TOKEN, id);
         DtoPort port = resource.get(uri, null, DtoPort.class,
-                APPLICATION_PORT_V2_JSON);
+                APPLICATION_PORT_V2_JSON());
         if (port instanceof DtoBridgePort) {
             return new BridgePort(resource, null, (DtoBridgePort) port);
         } else if (port instanceof  DtoRouterPort) {
@@ -203,7 +227,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getPortGroupTemplate(), ID_TOKEN, id);
         DtoPortGroup portGroup = resource.get(uri, null, DtoPortGroup.class,
-                APPLICATION_PORTGROUP_JSON);
+                APPLICATION_PORTGROUP_JSON());
         return new PortGroup(resource, null, portGroup);
     }
 
@@ -211,7 +235,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getRouteTemplate(), ID_TOKEN, id);
         DtoRoute route = resource.get(uri, null, DtoRoute.class,
-                APPLICATION_ROUTE_JSON);
+                APPLICATION_ROUTE_JSON());
         return new Route(resource, null, route);
     }
 
@@ -219,7 +243,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getRouterTemplate(), ID_TOKEN, id);
         DtoRouter router = resource.get(uri, null, DtoRouter.class,
-                APPLICATION_ROUTER_JSON);
+                APPLICATION_ROUTER_JSON_V3());
         return new Router(resource, null, router);
     }
 
@@ -227,7 +251,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getRuleTemplate(), ID_TOKEN, id);
         DtoRule rule = resource.get(uri, null, DtoRule.class,
-                APPLICATION_RULE_JSON_V2);
+                APPLICATION_RULE_JSON_V2());
         return new Rule(resource, null, rule);
     }
 
@@ -235,7 +259,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getChainTemplate(), ID_TOKEN, id);
         DtoRuleChain chain = resource.get(uri, null, DtoRuleChain.class,
-                APPLICATION_CHAIN_JSON);
+                APPLICATION_CHAIN_JSON());
         return new RuleChain(resource, null, chain);
     }
 
@@ -246,7 +270,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             resource, null,
             resource.get(uri, null,
                          org.midonet.cluster.rest_api.models.Tenant.class,
-                         APPLICATION_TENANT_JSON)
+                         APPLICATION_TENANT_JSON())
         );
     }
 
@@ -254,7 +278,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = principalDto.getWriteVersion();
         DtoWriteVersion writeVersion = resource.get(uri, null,
                 DtoWriteVersion.class,
-                APPLICATION_WRITE_VERSION_JSON);
+                APPLICATION_WRITE_VERSION_JSON());
         return new WriteVersion(resource, null, writeVersion);
     }
 
@@ -262,13 +286,13 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = principalDto.getSystemState();
         DtoSystemState systemState = resource.get(uri, null,
                 DtoSystemState.class,
-                APPLICATION_SYSTEM_STATE_JSON_V2);
+                APPLICATION_SYSTEM_STATE_JSON_V2());
         return new SystemState(resource, null, systemState);
     }
 
     public ResourceCollection<HostVersion> getHostVersions() {
         return getChildResources(principalDto.getHostVersions(), null,
-                                 APPLICATION_HOST_VERSION_JSON,
+                                 APPLICATION_HOST_VERSION_JSON(),
                                  HostVersion.class, DtoHostVersion.class);
     }
 
@@ -277,9 +301,9 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                 principalDto.getTunnelZoneTemplate(), ID_TOKEN,
                 id);
         DtoTunnelZone tunnelZone = resource.get(uri, null, DtoTunnelZone.class,
-                APPLICATION_TUNNEL_ZONE_JSON);
+                APPLICATION_TUNNEL_ZONE_JSON());
         return new TunnelZone(resource, null, tunnelZone,
-                APPLICATION_TUNNEL_ZONE_HOST_JSON,
-                APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+                APPLICATION_TUNNEL_ZONE_HOST_JSON(),
+                APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON());
     }
 }

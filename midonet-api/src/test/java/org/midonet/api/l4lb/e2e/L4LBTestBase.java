@@ -15,7 +15,15 @@
  */
 package org.midonet.api.l4lb.e2e;
 
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+
 import com.sun.jersey.api.client.ClientResponse;
+
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.client.dto.DtoHealthMonitor;
@@ -28,24 +36,16 @@ import org.midonet.client.dto.l4lb.HealthMonitorType;
 import org.midonet.client.dto.l4lb.PoolProtocol;
 import org.midonet.client.dto.l4lb.VipSessionPersistence;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
-
 import static org.junit.Assert.assertEquals;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
-import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VIP_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HEALTH_MONITOR_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_LOAD_BALANCER_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_POOL_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_POOL_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_POOL_MEMBER_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VIP_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VIP_JSON;
 
 public class L4LBTestBase extends RestApiTestBase {
 
@@ -73,17 +73,17 @@ public class L4LBTestBase extends RestApiTestBase {
 
     protected DtoRouter getRouterV2(URI uri) {
         return dtoResource.getAndVerifyOk(
-                uri, APPLICATION_ROUTER_JSON, DtoRouter.class);
+                uri, APPLICATION_ROUTER_JSON_V3(), DtoRouter.class);
     }
 
     protected DtoRouter postRouter(DtoRouter router) {
         return dtoResource.postAndVerifyCreated(topLevelRoutersUri,
-                APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+                APPLICATION_ROUTER_JSON_V3(), router, DtoRouter.class);
     }
 
     protected DtoRouter updateRouterV2(DtoRouter router) {
         return dtoResource.putAndVerifyNoContent(router.getUri(),
-                APPLICATION_ROUTER_JSON_V2, router, DtoRouter.class);
+                APPLICATION_ROUTER_JSON_V3(), router, DtoRouter.class);
     }
 
     protected DtoRouter getStockRouter() {
@@ -100,25 +100,25 @@ public class L4LBTestBase extends RestApiTestBase {
 
     protected DtoLoadBalancer getLoadBalancer(URI loadBalancerUri) {
         return dtoResource.getAndVerifyOk(loadBalancerUri,
-                APPLICATION_LOAD_BALANCER_JSON, DtoLoadBalancer.class);
+                APPLICATION_LOAD_BALANCER_JSON(), DtoLoadBalancer.class);
     }
 
     protected DtoLoadBalancer postLoadBalancer(DtoLoadBalancer loadBalancer) {
         return dtoResource.postAndVerifyCreated(topLevelLoadBalancersUri,
-                APPLICATION_LOAD_BALANCER_JSON,
+                APPLICATION_LOAD_BALANCER_JSON(),
                 loadBalancer, DtoLoadBalancer.class);
     }
 
     protected DtoLoadBalancer updateLoadBalancer(
             DtoLoadBalancer loadBalancer) {
         return dtoResource.putAndVerifyNoContent(loadBalancer.getUri(),
-                APPLICATION_LOAD_BALANCER_JSON,
+                APPLICATION_LOAD_BALANCER_JSON(),
                 loadBalancer, DtoLoadBalancer.class);
     }
 
     protected void deleteLoadBalancer(URI uri) {
         dtoResource.deleteAndVerifyNoContent(
-                uri, APPLICATION_LOAD_BALANCER_JSON);
+                uri, APPLICATION_LOAD_BALANCER_JSON());
     }
 
     protected DtoLoadBalancer getStockLoadBalancer() {
@@ -138,27 +138,27 @@ public class L4LBTestBase extends RestApiTestBase {
     protected DtoHealthMonitor getHealthMonitor(URI healthMonitorUri) {
         return dtoResource.getAndVerifyOk(
                 healthMonitorUri,
-                APPLICATION_HEALTH_MONITOR_JSON,
+                APPLICATION_HEALTH_MONITOR_JSON(),
                 DtoHealthMonitor.class);
     }
 
     protected DtoHealthMonitor postHealthMonitor(DtoHealthMonitor healthMonitor) {
         return dtoResource.postAndVerifyCreated(topLevelHealthMonitorsUri,
-                APPLICATION_HEALTH_MONITOR_JSON,
+                APPLICATION_HEALTH_MONITOR_JSON(),
                 healthMonitor, DtoHealthMonitor.class);
     }
 
     protected DtoHealthMonitor updateHealthMonitor(
             DtoHealthMonitor healthMonitor) {
         return dtoResource.putAndVerifyNoContent(healthMonitor.getUri(),
-                APPLICATION_HEALTH_MONITOR_JSON,
+                APPLICATION_HEALTH_MONITOR_JSON(),
                 healthMonitor,
                 DtoHealthMonitor.class);
     }
 
     protected void deleteHealthMonitor(URI healthMonitorUri) {
         dtoResource.deleteAndVerifyNoContent(healthMonitorUri,
-                APPLICATION_HEALTH_MONITOR_JSON);
+                APPLICATION_HEALTH_MONITOR_JSON());
     }
 
     protected DtoHealthMonitor getStockHealthMonitor() {
@@ -181,27 +181,27 @@ public class L4LBTestBase extends RestApiTestBase {
 
     protected DtoVip getVip(URI vipUri) {
         return dtoResource.getAndVerifyOk(
-                vipUri, APPLICATION_VIP_JSON, DtoVip.class);
+                vipUri, APPLICATION_VIP_JSON(), DtoVip.class);
     }
 
     protected DtoVip[] getVips(URI vipsUri) {
         return dtoResource.getAndVerifyOk(
-                vipsUri, APPLICATION_VIP_COLLECTION_JSON, DtoVip[].class);
+                vipsUri, APPLICATION_VIP_COLLECTION_JSON(), DtoVip[].class);
     }
 
     protected DtoVip postVip(DtoVip vip) {
         return dtoResource.postAndVerifyCreated(topLevelVipsUri,
-                APPLICATION_VIP_JSON, vip, DtoVip.class);
+                APPLICATION_VIP_JSON(), vip, DtoVip.class);
     }
 
     protected DtoVip updateVip(DtoVip vip) {
         return dtoResource.putAndVerifyNoContent(vip.getUri(),
-                APPLICATION_VIP_JSON, vip, DtoVip.class);
+                APPLICATION_VIP_JSON(), vip, DtoVip.class);
     }
 
     protected void deleteVip(URI vipUri) {
         dtoResource.deleteAndVerifyNoContent(
-                vipUri, APPLICATION_VIP_JSON);
+                vipUri, APPLICATION_VIP_JSON());
     }
 
     protected DtoVip getStockVip(UUID poolId) {
@@ -225,12 +225,12 @@ public class L4LBTestBase extends RestApiTestBase {
 
     protected DtoPool[] getPools(URI poolsUri) {
         return dtoResource.getAndVerifyOk(
-                poolsUri, APPLICATION_POOL_COLLECTION_JSON, DtoPool[].class);
+                poolsUri, APPLICATION_POOL_COLLECTION_JSON(), DtoPool[].class);
     }
 
     protected DtoPool getPool(URI poolUri) {
         ClientResponse response = resource().uri(poolUri)
-                .accept(APPLICATION_POOL_JSON)
+                .accept(APPLICATION_POOL_JSON())
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         return response.getEntity(DtoPool.class);
@@ -238,18 +238,18 @@ public class L4LBTestBase extends RestApiTestBase {
 
     protected DtoPool postPool(DtoPool pool) {
         return dtoResource.postAndVerifyCreated(topLevelPoolsUri,
-                APPLICATION_POOL_JSON, pool, DtoPool.class);
+                APPLICATION_POOL_JSON(), pool, DtoPool.class);
     }
 
     protected DtoPool updatePool(DtoPool pool) {
         return dtoResource.putAndVerifyNoContent(pool.getUri(),
-                APPLICATION_POOL_JSON,
+                APPLICATION_POOL_JSON(),
                 pool, DtoPool.class);
     }
 
     protected void deletePool(URI poolUri) {
         ClientResponse response = resource().uri(poolUri)
-                .type(APPLICATION_POOL_JSON)
+                .type(APPLICATION_POOL_JSON())
                 .delete(ClientResponse.class);
         assertEquals(204, response.getStatus());
     }
@@ -273,38 +273,38 @@ public class L4LBTestBase extends RestApiTestBase {
 
     protected DtoPoolMember getPoolMember(URI uri) {
         return dtoResource.getAndVerifyOk(uri,
-                APPLICATION_POOL_MEMBER_JSON,
+                APPLICATION_POOL_MEMBER_JSON(),
                 DtoPoolMember.class);
     }
 
     protected DtoPoolMember[] getPoolMembers(URI uri) {
         return dtoResource.getAndVerifyOk(uri,
-                APPLICATION_POOL_MEMBER_COLLECTION_JSON,
+                APPLICATION_POOL_MEMBER_COLLECTION_JSON(),
                 DtoPoolMember[].class);
     }
 
     protected DtoPoolMember postPoolMember(DtoPoolMember poolMember) {
         return dtoResource.postAndVerifyCreated(topLevelPoolMembersUri,
-                APPLICATION_POOL_MEMBER_JSON,
+                APPLICATION_POOL_MEMBER_JSON(),
                 poolMember, DtoPoolMember.class);
     }
 
     protected DtoPoolMember postPoolMember(URI poolMembersUri,
                                            DtoPoolMember poolMember) {
         return dtoResource.postAndVerifyCreated(poolMembersUri,
-                APPLICATION_POOL_MEMBER_JSON,
+                APPLICATION_POOL_MEMBER_JSON(),
                 poolMember, DtoPoolMember.class);
     }
 
     protected DtoPoolMember updatePoolMember(DtoPoolMember poolMember) {
         return dtoResource.putAndVerifyNoContent(poolMember.getUri(),
-                APPLICATION_POOL_MEMBER_JSON,
+                APPLICATION_POOL_MEMBER_JSON(),
                 poolMember, DtoPoolMember.class);
     }
 
     protected void deletePoolMember(URI poolMemberUri) {
         dtoResource.deleteAndVerifyNoContent(
-                poolMemberUri, APPLICATION_POOL_MEMBER_JSON);
+                poolMemberUri, APPLICATION_POOL_MEMBER_JSON());
     }
 
     protected DtoPoolMember getStockPoolMember() {

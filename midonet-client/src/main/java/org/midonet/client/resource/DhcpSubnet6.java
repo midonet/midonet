@@ -20,7 +20,9 @@ import java.net.URI;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoDhcpSubnet6;
 import org.midonet.client.dto.DtoDhcpV6Host;
-import org.midonet.cluster.rest_api.VendorMediaType;
+
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_DHCPV6_HOST_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_DHCPV6_SUBNET_JSON;
 
 /*
  * The reason the number 6 is at the end is to make the user think of
@@ -31,8 +33,8 @@ public class DhcpSubnet6 extends ResourceBase<DhcpSubnet6, DtoDhcpSubnet6> {
 
     public DhcpSubnet6(WebResource resource, URI uriForCreation, DtoDhcpSubnet6
         principalDto) {
-        super(resource, uriForCreation, principalDto, VendorMediaType
-            .APPLICATION_DHCPV6_SUBNET_JSON);
+        super(resource, uriForCreation, principalDto,
+              APPLICATION_DHCPV6_SUBNET_JSON());
     }
 
     @Override
@@ -67,7 +69,7 @@ public class DhcpSubnet6 extends ResourceBase<DhcpSubnet6, DtoDhcpSubnet6> {
         return getChildResources(
             principalDto.getHosts(),
             null,
-            VendorMediaType.APPLICATION_DHCPV6_HOST_COLLECTION_JSON,
+            APPLICATION_DHCPV6_HOST_COLLECTION_JSON(),
             DhcpV6Host.class,
             DtoDhcpV6Host.class);
     }

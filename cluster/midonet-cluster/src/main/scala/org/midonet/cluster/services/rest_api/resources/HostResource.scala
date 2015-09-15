@@ -40,11 +40,9 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkRespon
 @ApiResource(version = 1)
 @Path("hosts")
 @RequestScoped
-@AllowGet(Array(APPLICATION_HOST_JSON_V2,
-                APPLICATION_HOST_JSON_V3,
+@AllowGet(Array(APPLICATION_HOST_JSON_V3,
                 APPLICATION_JSON))
-@AllowList(Array(APPLICATION_HOST_COLLECTION_JSON_V2,
-                 APPLICATION_HOST_COLLECTION_JSON_V3,
+@AllowList(Array(APPLICATION_HOST_COLLECTION_JSON_V3,
                  APPLICATION_JSON))
 class HostResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Host](resContext) {
@@ -64,8 +62,7 @@ class HostResource @Inject()(resContext: ResourceContext)
 
     @PUT
     @Path("{id}")
-    @Consumes(Array(APPLICATION_HOST_JSON_V2,
-                    APPLICATION_HOST_JSON_V3,
+    @Consumes(Array(APPLICATION_HOST_JSON_V3,
                     APPLICATION_JSON))
     override def update(@PathParam("id") id: String, host: Host,
                         @HeaderParam("Content-Type") contentType: String)

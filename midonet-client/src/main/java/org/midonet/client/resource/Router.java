@@ -23,15 +23,21 @@ import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.midonet.client.WebResource;
-import org.midonet.client.dto.*;
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.client.dto.DtoPort;
+import org.midonet.client.dto.DtoRoute;
+import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoRouterPort;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
+
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
 
 public class Router extends ResourceBase<Router, DtoRouter> {
 
 
     public Router(WebResource resource, URI uriForCreation, DtoRouter r) {
         super(resource, uriForCreation, r,
-              VendorMediaType.APPLICATION_ROUTER_JSON_V2);
+              APPLICATION_ROUTER_JSON_V3());
     }
 
     /**
@@ -166,7 +172,7 @@ public class Router extends ResourceBase<Router, DtoRouter> {
         return getChildResources(
                 principalDto.getPorts(),
                 queryParams,
-                VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON,
+                APPLICATION_PORT_V2_COLLECTION_JSON(),
                 RouterPort.class,
                 DtoRouterPort.class);
     }
@@ -181,7 +187,7 @@ public class Router extends ResourceBase<Router, DtoRouter> {
         return getChildResources(
             principalDto.getRoutes(),
             queryParams,
-            VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON,
+            APPLICATION_ROUTE_COLLECTION_JSON(),
             Route.class,
             DtoRoute.class);
     }
@@ -200,7 +206,7 @@ public class Router extends ResourceBase<Router, DtoRouter> {
                 .get(principalDto.getPeerPorts(),
                         queryParams,
                         DtoPort[].class,
-                        VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON);
+                        APPLICATION_PORT_V2_COLLECTION_JSON());
 
         for (DtoPort pp : dtoPeerPorts) {
             if (pp instanceof DtoRouterPort) {

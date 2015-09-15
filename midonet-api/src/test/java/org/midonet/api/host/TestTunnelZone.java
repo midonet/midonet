@@ -38,10 +38,12 @@ import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoTunnelZone;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZone {
@@ -80,7 +82,7 @@ public class TestTunnelZone {
             DtoTunnelZone tunnelZone = new DtoTunnelZone();
             tunnelZone.setName("tz1-name");
             tunnelZone = dtoResource.postAndVerifyCreated(tunnelZonesUri,
-                    VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
+                    APPLICATION_TUNNEL_ZONE_JSON(), tunnelZone,
                     DtoTunnelZone.class);
             Assert.assertNotNull(tunnelZone.getId());
             Assert.assertEquals("tz1-name", tunnelZone.getName());
@@ -89,28 +91,28 @@ public class TestTunnelZone {
             DtoTunnelZone tunnelZone2 = new DtoTunnelZone();
             tunnelZone2.setName("tz1-name");
             DtoError error = dtoResource.postAndVerifyBadRequest(tunnelZonesUri,
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone2);
+                APPLICATION_TUNNEL_ZONE_JSON(), tunnelZone2);
             assertErrorMatches(error,
                                MessageProperty.UNIQUE_TUNNEL_ZONE_NAME_TYPE);
 
             // There should only be one
             DtoTunnelZone[] tunnelZones = dtoResource.getAndVerifyOk(
                 tunnelZonesUri,
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
+                APPLICATION_TUNNEL_ZONE_COLLECTION_JSON(),
                 DtoTunnelZone[].class);
             Assert.assertEquals(1, tunnelZones.length);
 
             // Update tunnel zone name
             tunnelZone.setName("tz1-name-updated");
             tunnelZone = dtoResource.putAndVerifyNoContent(tunnelZone.getUri(),
-                    VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
+                    APPLICATION_TUNNEL_ZONE_JSON(), tunnelZone,
                     DtoTunnelZone.class);
             Assert.assertEquals("tz1-name-updated", tunnelZone.getName());
 
             // List and make sure that there is one
             tunnelZones = dtoResource.getAndVerifyOk(
                     tunnelZonesUri,
-                    VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
+                    APPLICATION_TUNNEL_ZONE_COLLECTION_JSON(),
                     DtoTunnelZone[].class);
             Assert.assertEquals(1, tunnelZones.length);
 
@@ -118,7 +120,7 @@ public class TestTunnelZone {
             DtoTunnelZone tZone = dtoResource.getAndVerifyOk(
                     UriBuilder.fromUri(tunnelZonesUri)
                         .path(tunnelZone.getId().toString()).build(),
-                    VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON,
+                    APPLICATION_TUNNEL_ZONE_JSON(),
                     DtoTunnelZone.class);
             Assert.assertEquals(tunnelZone.getType(), tZone.getType());
             Assert.assertEquals(tunnelZone.getName(), tZone.getName());
@@ -127,16 +129,16 @@ public class TestTunnelZone {
             dtoResource.getAndVerifyNotFound(
                 UriBuilder.fromUri(tunnelZonesUri)
                     .path(UUID.randomUUID().toString()).build(),
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
+                APPLICATION_TUNNEL_ZONE_JSON());
 
             // Delete it
             dtoResource.deleteAndVerifyNoContent(tunnelZone.getUri(),
-                    VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
+                    APPLICATION_TUNNEL_ZONE_JSON());
 
             // list and make sure it's gone
             tunnelZones = dtoResource.getAndVerifyOk(
                     tunnelZonesUri,
-                    VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
+                    APPLICATION_TUNNEL_ZONE_COLLECTION_JSON(),
                     DtoTunnelZone[].class);
             Assert.assertEquals(0, tunnelZones.length);
 
@@ -156,19 +158,19 @@ public class TestTunnelZone {
             DtoTunnelZone tunnelZone = new DtoTunnelZone();
             tunnelZone.setName("tz1");
             tunnelZone = dtoResource.postAndVerifyCreated(tunnelZonesUri,
-                      VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
+                      MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON(), tunnelZone,
                       DtoTunnelZone.class);
             DtoVtep vtep = new DtoVtep();
             vtep.setManagementIp(MOCK_VTEP1.mgmtIp());
             vtep.setManagementPort(MOCK_VTEP1.mgmtPort());
             vtep.setTunnelZoneId(tunnelZone.getId());
             dtoResource.postAndVerifyCreated(app.getVteps(),
-                                 VendorMediaType.APPLICATION_VTEP_JSON, vtep,
+                                 MidonetMediaTypes.APPLICATION_VTEP_JSON, vtep,
                                  DtoVtep.class);
 
             // now try to delete the tunnel zone
             dtoResource.deleteAndVerifyError(tunnelZone.getUri(),
-                                 VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON,
+                                 MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON(),
                                  ClientResponse.Status.CONFLICT.getStatusCode());
             */
 
