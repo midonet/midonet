@@ -21,6 +21,7 @@ from midonetclient.neutron import bgp
 from midonetclient.neutron import bridge as br
 from midonetclient.neutron import chain_rule as cr
 from midonetclient.neutron import dhcp
+from midonetclient.neutron import firewall as fw
 from midonetclient.neutron import host
 from midonetclient.neutron import ipaddr_group as ipg
 from midonetclient.neutron import l3
@@ -46,6 +47,7 @@ class MidonetClient(net.NetworkClientMixin,
                     br.BridgeClientMixin,
                     cr.ChainRuleClientMixin,
                     dhcp.DhcpClientMixin,
+                    fw.FirewallClientMixin,
                     host.HostClientMixin,
                     ipg.IpAddrGroupClientMixin,
                     port.PortClientMixin,
