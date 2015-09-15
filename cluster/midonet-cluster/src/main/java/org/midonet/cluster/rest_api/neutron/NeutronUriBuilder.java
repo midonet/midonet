@@ -41,6 +41,8 @@ public class NeutronUriBuilder {
     public static final String HEALTH_MONITORS = "/health_monitors";
     public static final String POOL_HEALTH_MONITOR = "/pool_health_monitor";
 
+    public static final String FIREWALLS = "/firewalls";
+
 
     public static URI getRoot(URI baseUri) {
         return UriBuilder.fromUri(baseUri).path("/").build();
@@ -234,5 +236,20 @@ public class NeutronUriBuilder {
     public static URI getPoolHealthMonitor(URI baseUri) {
         return UriBuilder.fromUri(getLoadBalancer(baseUri))
             .path(POOL_HEALTH_MONITOR).build();
+    }
+
+    // Firewalls
+    public static URI getFirewalls(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+            .path(FIREWALLS).build();
+    }
+
+    public static URI getFirewall(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getFirewalls(baseUri)).path(
+            id.toString()).build();
+    }
+
+    public static String getFirewallTemplate(URI baseUri) {
+        return buildIdTemplateUri(getFirewalls(baseUri));
     }
 }
