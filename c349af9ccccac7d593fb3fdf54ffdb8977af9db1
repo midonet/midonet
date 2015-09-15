@@ -354,6 +354,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_08606a31",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-15T13:18:12Z",
+      "side": 1,
+      "message": "I see. Thanks for the explanation.",
+      "parentUuid": "1ae5cdf2_53e78812",
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_3f264317",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
         "patchSetId": 21
@@ -483,6 +501,30 @@
       "side": 1,
       "message": "Fixed the name.\n\nObs is an Observer[MacLocation] that will only be give by the OVSDB client after it\u0027s connected, so it\u0027s impossible to construct the VtepMacRemoteConsumer beforehand.  This Consumer class does extra work, composing updates from ZK into MacLocations that the VTEP can consume.\n\nI don\u0027t like this in the very least, but we\u0027ll have to work on the OVSDB client interface to fix it unfortunately, most of this is imposed by the client.",
       "parentUuid": "1ae5cdf2_bf633319",
+      "range": {
+        "startLine": 236,
+        "startChar": 16,
+        "endLine": 237,
+        "endChar": 61
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_28db66ee",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-15T13:18:12Z",
+      "side": 1,
+      "message": "Well, it seems to me that you need to pass \"obs\" returned from OVSDB client to VtepMacRemoteConsumer upon connection getting established. Until then VtepMacRemoteConsumer can substitute the fake observer inside.",
+      "parentUuid": "1ae5cdf2_d3a1d8aa",
       "range": {
         "startLine": 236,
         "startChar": 16,
@@ -683,6 +725,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_88e2ba9d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-15T13:18:12Z",
+      "side": 1,
+      "message": "That\u0027s assuming that \"boundNetworks\" doesn\u0027t have the key \"nwId\". If it does, nwInfo is not stored into boundNetworks. Anyway, what I wanted to say that we need to use the NetworkInfo returned by getOrElseUpdate(...).",
+      "parentUuid": "1ae5cdf2_9376703d",
+      "range": {
+        "startLine": 370,
+        "startChar": 8,
+        "endLine": 372,
+        "endChar": 9
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_65dafe79",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
         "patchSetId": 21
@@ -718,6 +784,30 @@
       "side": 1,
       "message": "that\u0027s fine, the vxlan port for a given vtep in a given network never changes.",
       "parentUuid": "1ae5cdf2_65dafe79",
+      "range": {
+        "startLine": 379,
+        "startChar": 24,
+        "endLine": 379,
+        "endChar": 58
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_2889a6ca",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-15T13:18:12Z",
+      "side": 1,
+      "message": "But you want to retry ensureLogicalSwitch, ensureBindings, watchMacPortMap and/or watchArpTable if any of those throw exceptions, correct? But if you set the vxPort here, because of the early return, they will not be retried.",
+      "parentUuid": "1ae5cdf2_b3736c4c",
       "range": {
         "startLine": 379,
         "startChar": 24,
