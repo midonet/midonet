@@ -892,6 +892,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_ab2690b8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-15T14:01:18Z",
+      "side": 1,
+      "message": "Sorry, I was mis-understanding the Future composition. It looks fine now.",
+      "parentUuid": "1ae5cdf2_682f2ea2",
+      "range": {
+        "startLine": 379,
+        "startChar": 24,
+        "endLine": 379,
+        "endChar": 58
+      },
+      "revId": "c349af9ccccac7d593fb3fdf54ffdb8977af9db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_45dd0270",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
         "patchSetId": 21
