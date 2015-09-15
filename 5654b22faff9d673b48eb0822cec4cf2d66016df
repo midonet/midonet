@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_c84f6291",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/RedirectRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-15T13:34:30Z",
+      "side": 1,
+      "message": "return super.apply?",
+      "revId": "5654b22faff9d673b48eb0822cec4cf2d66016df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e8441e76",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-15T13:34:30Z",
+      "side": 1,
+      "message": "i wonder if instead of adding the ignoreAdminState thingie, we could just fetch the peer port and go from there, or directly emit.",
+      "revId": "5654b22faff9d673b48eb0822cec4cf2d66016df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a84a1681",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-15T13:34:30Z",
+      "side": 1,
+      "message": "adminStateUP is already checked on egress right?",
+      "revId": "5654b22faff9d673b48eb0822cec4cf2d66016df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
