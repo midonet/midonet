@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_abe9301c",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/RedirectRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-15T14:18:41Z",
+      "side": 1,
+      "message": "We want to apply even if we haven\u0027t pushed/popped vlans.",
+      "parentUuid": "1ae5cdf2_c84f6291",
+      "revId": "5654b22faff9d673b48eb0822cec4cf2d66016df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_e8441e76",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_4b10ac4e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-15T14:18:41Z",
+      "side": 1,
+      "message": "Actually, I think I might get rid of ignoreAdminState, and just check in the redirect rule apply method whether the port is up or not.",
+      "parentUuid": "1ae5cdf2_e8441e76",
+      "revId": "5654b22faff9d673b48eb0822cec4cf2d66016df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_a84a1681",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2015-09-15T13:34:30Z",
       "side": 1,
       "message": "adminStateUP is already checked on egress right?",
+      "revId": "5654b22faff9d673b48eb0822cec4cf2d66016df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_6b900896",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-15T14:18:41Z",
+      "side": 1,
+      "message": "This isn\u0027t for admin state. It\u0027s so that no filters are run when sending to a service port. I plan to replace this with a ServicePort first class object, which doesn\u0027t have any filters, but only allows redirect traffic (will have to mark it in packet context).",
+      "parentUuid": "1ae5cdf2_a84a1681",
       "revId": "5654b22faff9d673b48eb0822cec4cf2d66016df",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
