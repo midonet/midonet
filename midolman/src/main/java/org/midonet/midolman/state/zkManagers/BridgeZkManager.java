@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.WatchableZkManager;
 import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.rest_api.neutron.models.Network;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -49,14 +48,6 @@ public class BridgeZkManager
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkManager.class);
 
-    /**
-     * Thrown in response to an invalid (i.e., user-requested) update
-     * to a bridge's VxLanPortId property.
-     */
-    public static class VxLanPortIdUpdateException extends Exception {
-        private static final long serialVersionUID = 1L;
-    }
-
     public static class BridgeConfig extends ConfigWithProperties {
         public BridgeConfig() {
             super();
@@ -67,12 +58,6 @@ public class BridgeZkManager
             this.name = name;
             this.inboundFilter = inboundFilter;
             this.outboundFilter = outboundFilter;
-        }
-
-        public BridgeConfig(Network network) {
-            super();
-            this.name = network.name;
-            this.adminStateUp = network.adminStateUp;
         }
 
         // TODO: Make this private with a getter.
@@ -122,9 +107,7 @@ public class BridgeZkManager
 
     private FiltersZkManager filterZkManager;
     private TunnelZkManager tunnelZkManager;
-    private PortZkManager portZkManager;
-    private ChainZkManager chainZkManager;
-    private TraceRequestZkManager traceReqZkManager;
+  private ChainZkManager chainZkManager;
 
     /**
      * Initializes a BridgeZkManager object with a ZooKeeper client and the root
@@ -135,9 +118,7 @@ public class BridgeZkManager
         super(zk, paths, serializer);
         filterZkManager = new FiltersZkManager(zk, paths, serializer);
         tunnelZkManager = new TunnelZkManager(zk, paths, serializer);
-        portZkManager = new PortZkManager(zk, paths, serializer);
         chainZkManager = new ChainZkManager(zk, paths, serializer);
-        traceReqZkManager = new TraceRequestZkManager(zk, paths, serializer);
     }
 
     @Override
@@ -278,75 +259,6 @@ public class BridgeZkManager
         return ops;
     }
 
-    public List<Op> prepareBridgeDelete(UUID id) throws StateAccessException,
-            SerializationException {
-        return prepareBridgeDelete(id, get(id));
-    }
-
-    /**
-     * Constructs a list of operations to perform in a bridge deletion.
-     *
-     * @return A list of Op objects representing the operations to perform.
-     * @throws org.midonet.midolman.serialization.SerializationException
-     *             Serialization error occurred.
-     */
-    public List<Op> prepareBridgeDelete(UUID id, BridgeConfig config)
-            throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<>();
-
-        // delete any trace requests for device
-        traceReqZkManager.deleteForDevice(id);
-
-        if (config.inboundFilter != null) {
-            ops.addAll(chainZkManager.prepareChainBackRefDelete(
-                    config.inboundFilter, ResourceType.BRIDGE, id));
-        }
-        if (config.outboundFilter != null) {
-            ops.addAll(chainZkManager.prepareChainBackRefDelete(
-                    config.outboundFilter, ResourceType.BRIDGE, id));
-        }
-
-        // Delete the ports.
-        Collection<UUID> portIds = portZkManager.getBridgePortIDs(id);
-        for (UUID portId : portIds) {
-            ops.addAll(portZkManager.prepareDelete(portId));
-        }
-
-        portIds = portZkManager.getBridgeLogicalPortIDs(id);
-        for (UUID portId : portIds) {
-            ops.addAll(portZkManager.prepareDelete(portId));
-        }
-
-        ops.add(Op.delete(paths.getBridgePortsPath(id), -1));
-        ops.add(Op.delete(paths.getBridgeLogicalPortsPath(id), -1));
-        ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeDhcpPath(id)));
-        ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeDhcpV6Path(id)));
-        ops.addAll(zk.getRecursiveDeleteOps(
-                paths.getBridgeMacPortsPath(id, Bridge.UNTAGGED_VLAN_ID)));
-        // The bridge may have been created before the tagging was added.
-        if (zk.exists(paths.getBridgeTagsPath(id))) {
-            ops.addAll(zk.getRecursiveDeleteOps(paths.getBridgeTagsPath(id)));
-        }
-        // The bridge may have been created before the ARP feature was added.
-        if (zk.exists(paths.getBridgeIP4MacMapPath(id)))
-            ops.addAll(zk.getRecursiveDeleteOps(
-                    paths.getBridgeIP4MacMapPath(id)));
-
-        if (zk.exists(paths.getBridgeVlansPath(id))){
-            ops.add(Op.delete(paths.getBridgeVlansPath(id), -1));
-        }
-
-        // Delete GRE
-        ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
-
-        // Delete the bridge
-        ops.add(Op.delete(paths.getBridgePath(id), -1));
-
-        ops.addAll(filterZkManager.prepareDelete(id));
-
-        return ops;
-    }
-
     /**
      * removes any reference to the given chainId from the inbound/outbound
      * filters of the bridge identified by id. Called when the chain is
@@ -404,27 +316,6 @@ public class BridgeZkManager
         }
     }
 
-    public void update(UUID id, BridgeConfig newCfg)
-            throws StateAccessException, SerializationException {
-        List<Op> ops = prepareUpdate(id, newCfg);
-        if (!ops.isEmpty()) {
-            zk.multi(ops);
-        }
-    }
-
-    /***
-     * Deletes a bridge and its related data from the ZooKeeper directories
-     * atomically.
-     *
-     * @param id
-     *            ID of the bridge to delete.
-     */
-    public void delete(UUID id) throws StateAccessException,
-
-            SerializationException {
-        zk.multi(prepareBridgeDelete(id));
-    }
-
     // This method creates the directory if it doesn't already exist,
     // because bridges may have been created before the ARP feature was added.
     public Directory getIP4MacMapDirectory(UUID id)
@@ -472,9 +363,4 @@ public class BridgeZkManager
         return zk.exists(paths.getBridgeMacPortsPath(id, vlanId));
     }
 
-    @Override
-    public List<UUID> getAndWatchIdList(Runnable watcher)
-        throws StateAccessException {
-        return getUuidList(paths.getBridgesPath(), watcher);
-    }
 }

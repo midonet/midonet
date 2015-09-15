@@ -16,6 +16,7 @@
 package org.midonet.midolman
 
 import java.util.{ArrayDeque, UUID}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
@@ -29,10 +30,9 @@ import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.{Second, Span}
 
-import org.midonet.cluster.ClusterRouterManager.ArpCacheImpl
+import org.midonet.cluster.ArpCacheImpl
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
+import org.midonet.midolman.simulation.PacketEmitter.{GeneratedLogicalPacket, GeneratedPacket}
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ArpRequestBroker._
 import org.midonet.midolman.state._

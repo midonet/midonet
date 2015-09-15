@@ -393,14 +393,6 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             paths.getBridgeDhcpSubnetPath(bridgeId, subnet.getSubnetAddr());
         ops.add(zk.getSetDataOp(path, serializer.serialize(subnet)));
     }
-
-    public void updateSubnet(UUID bridgeId, Subnet subnet)
-            throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<>();
-        prepareUpdateSubnet(ops, bridgeId, subnet);
-        zk.multi(ops);
-    }
-
     public Subnet getSubnet(UUID bridgeId, IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException {
         String path = paths.getBridgeDhcpSubnetPath(bridgeId, subnetAddr);
@@ -430,13 +422,6 @@ public class BridgeDhcpZkManager extends BaseZkManager {
 
         // Delete the subnet's root directory.
         ops.add(Op.delete(paths.getBridgeDhcpSubnetPath(bridgeId, subnetAddr), -1));
-    }
-
-    public void deleteSubnet(UUID bridgeId, IPv4Subnet subnetAddr)
-            throws StateAccessException {
-        List<Op> ops = new ArrayList<>();
-        prepareDeleteSubnet(ops, bridgeId, subnetAddr);
-        zk.multi(ops);
     }
 
     public List<IPv4Subnet> listSubnets(UUID bridgeId)
@@ -475,28 +460,11 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         return enabledSubnets;
     }
 
-    public void prepareAddHost(List<Op> ops,
-                               org.midonet.cluster.rest_api.neutron.models.Subnet subnet,
-                               Host host)
-            throws SerializationException {
-        String path = paths.getBridgeDhcpHostPath(subnet.networkId,
-                                                  IPv4Subnet.fromCidr(subnet.cidr),
-                                                  host.getMac());
-        ops.add(zk.getPersistentCreateOp(path, serializer.serialize(host)));
-    }
-
     public void addHost(UUID bridgeId, IPv4Subnet subnetAddr, Host host)
             throws StateAccessException, SerializationException {
         String path = paths.getBridgeDhcpHostPath(bridgeId, subnetAddr,
                                                   host.getMac());
         zk.addPersistent(path, serializer.serialize(host));
-    }
-
-    public void updateHost(UUID bridgeId, IPv4Subnet subnetAddr, Host host)
-            throws StateAccessException, SerializationException {
-        String path = paths.getBridgeDhcpHostPath(bridgeId, subnetAddr,
-                                                  host.getMac());
-        zk.update(path, serializer.serialize(host));
     }
 
     public Host getHost(UUID bridgeId, IPv4Subnet subnetAddr, String mac)

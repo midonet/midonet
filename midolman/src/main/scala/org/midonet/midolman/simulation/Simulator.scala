@@ -18,6 +18,8 @@ package org.midonet.midolman.simulation
 
 import java.util.{List => JList, UUID}
 
+import scala.annotation.tailrec
+
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.PacketWorkflow.{SimStep, SimulationResult => Result, _}
@@ -25,10 +27,8 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.odp.FlowMatch
-import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
+import org.midonet.sdn.VirtualActions.VirtualFlowAction
 import org.midonet.util.concurrent.{InstanceStash1, InstanceStash2}
-
-import scala.annotation.tailrec
 
 object Simulator {
     val MAX_DEVICES_TRAVERSED = 12

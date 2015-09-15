@@ -15,7 +15,13 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
@@ -28,13 +34,9 @@ import org.midonet.midolman.rules.RuleList;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.util.functors.Functor;
 
 /**
  * ZooKeeper DAO class for Chains.
@@ -317,29 +319,6 @@ public class ChainZkManager
             SerializationException {
         byte[] data = zk.get(paths.getChainPath(id), null);
         return serializer.deserialize(data, ChainConfig.class);
-    }
-
-    public void getNameAsync(UUID chainId,
-                             DirectoryCallback<String> nameCB,
-                             Directory.TypedWatcher watcher) {
-        zk.asyncGet(
-            paths.getChainPath(chainId),
-            DirectoryCallbackFactory.transform(
-                nameCB,
-                new Functor<byte[], String>() {
-                    @Override
-                    public String apply(byte[] data) {
-                        try {
-                            ChainConfig conf =
-                                serializer.deserialize(data, ChainConfig.class);
-                            return conf.name;
-                        } catch (SerializationException e) {
-                            log.warn("Could not deserialize Chain data");
-                        }
-                        return "";
-                    }
-                }),
-            watcher);
     }
 
     /**

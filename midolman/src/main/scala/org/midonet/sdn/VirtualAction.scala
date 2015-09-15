@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.sdn.flows
+package org.midonet.sdn
 
 import java.nio.ByteBuffer
 import java.util.UUID
