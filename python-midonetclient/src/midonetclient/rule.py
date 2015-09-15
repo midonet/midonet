@@ -28,6 +28,28 @@ class Rule(condition.Condition):
     def __init__(self, uri, dto, auth):
         super(Rule, self).__init__(uri, dto, auth)
 
+# TODO: <move>?
+    def is_no_vlan(self):
+        return self.dto['noVlan']
+
+    def is_pop_vlan(self):
+        return self.dto['popVlan']
+
+    def is_ingress(self):
+        return self.dto['ingress']
+
+    def is_fail_open(self):
+        return self.dto['failOpen']
+
+    def get_vlan(self):
+        return self.dto['vlan']
+
+    def get_push_vlan(self):
+        return self.dto['pushVlan']
+
+    def get_target_port(self):
+        return self.dto['targetPort']
+# TODO: </move>
     def get_chain_id(self):
         return self.dto['chainId']
 
@@ -70,6 +92,37 @@ class Rule(condition.Condition):
     def jump_chain_id(self, jump_chain_id):
         self.dto['jumpChainId'] = jump_chain_id
         return self
+
+# TODO: <move>
+    def no_vlan(self, no_vlan):
+        self.dto['noVlan'] = no_vlan
+        return self
+
+    def pop_vlan(self, pop_vlan):
+        self.dto['popVlan'] = pop_vlan
+        return self
+
+    def vlan(self, vlan):
+        self.dto['vlan'] = vlan
+        return self
+
+    def push_vlan(self, push_vlan):
+        self.dto['pushVlan'] = push_vlan
+        return self
+
+    def ingress(self, ingress):
+        self.dto['ingress'] = ingress
+        return self
+
+    def fail_open(self, fail_open):
+        self.dto['failOpen'] = fail_open
+        return self
+
+    def target_port(self, target_port):
+        self.dto['targetPort'] = target_port
+        return self
+
+# TODO: </move>
 
     def chain_id(self, chain_id):
         self.dto['chainId'] = chain_id
