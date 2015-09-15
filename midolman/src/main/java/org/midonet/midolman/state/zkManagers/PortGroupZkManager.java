@@ -59,12 +59,6 @@ public class PortGroupZkManager
     private final PortZkManager portDao;
     private final RuleZkManager ruleDao;
 
-    public void getMembersAsync(UUID id,
-                                DirectoryCallback<Set<UUID>> cb,
-                                Directory.TypedWatcher watcher) {
-        getUUIDSetAsync(paths.getPortGroupPortsPath(id), cb, watcher);
-    }
-
     /**
      * Initializes a PortGroupZkManager object with a ZooKeeper client and the
      * root path of the ZooKeeper directory.
@@ -147,49 +141,6 @@ public class PortGroupZkManager
     }
 
     /**
-     * Constructs a list of operations to perform in a port group deletion.
-     *
-     * @param id
-     *            The ID of a port group to delete.
-     * @return A list of Op objects representing the operations to perform.
-     * @throws StateAccessException
-     */
-    public List<Op> prepareDelete(UUID id) throws StateAccessException,
-            SerializationException {
-
-        List<Op> ops = new ArrayList<Op>();
-
-        // Delete all the rules that reference this port group
-        String rulesPath = paths.getPortGroupRulesPath(id);
-        Set<String> ruleIds = zk.getChildren(rulesPath);
-        for (String ruleId : ruleIds) {
-            ops.addAll(ruleDao.prepareDelete(UUID.fromString(ruleId)));
-        }
-
-        // Update all the ports that reference this port group.
-        String portsPath = paths.getPortGroupPortsPath(id);
-        Set<String> portIds = zk.getChildren(portsPath);
-        for (String portId : portIds) {
-            UUID portUuid = UUID.fromString(portId);
-            PortConfig port = portDao.get(portUuid);
-            if (port.portGroupIDs != null) { // Should never be null here.
-                port.portGroupIDs.remove(id);
-            }
-            ops.add(Op.setData(paths.getPortPath(portUuid),
-                    serializer.serialize(port), -1));
-            ops.add(Op.delete(
-                    paths.getPortGroupPortPath(id, portUuid), -1));
-        }
-
-        // Delete the port group nodes
-        ops.add(Op.delete(rulesPath, -1));
-        ops.add(Op.delete(portsPath, -1));
-        ops.add(Op.delete(paths.getPortGroupPath(id), -1));
-
-        return ops;
-    }
-
-    /**
      * Performs an atomic update on the ZooKeeper to add a new port group.
      *
      * @return The UUID of the newly created object.
@@ -200,19 +151,6 @@ public class PortGroupZkManager
         UUID id = UUID.randomUUID();
         zk.multi(prepareCreate(id, config));
         return id;
-    }
-
-    /***
-     * Deletes a port group and its related data from the directories
-     * atomically.
-     *
-     * @param id
-     *            ID of the port group to delete.
-     * @throws StateAccessException
-     */
-    public void delete(UUID id) throws StateAccessException,
-            SerializationException {
-        zk.multi(prepareDelete(id));
     }
 
     public boolean portIsMember(UUID id, UUID portId)

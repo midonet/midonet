@@ -16,23 +16,21 @@
 
 package org.midonet.midolman.state.zkManagers;
 
-import com.google.common.base.Objects;
-
 import java.util.List;
 import java.util.UUID;
+
+import com.google.common.base.Objects;
+
 import org.apache.zookeeper.Op;
 
 import org.midonet.cluster.rest_api.neutron.models.SessionPersistenceType;
 import org.midonet.cluster.rest_api.neutron.models.VIP;
-import org.midonet.midolman.state.l4lb.VipSessionPersistence;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 
 import static java.util.Arrays.asList;
 
@@ -41,9 +39,6 @@ import static java.util.Arrays.asList;
  */
 public class VipZkManager
         extends AbstractZkManager<UUID, VipZkManager.VipConfig> {
-
-    private final static Logger log = LoggerFactory
-            .getLogger(VipZkManager.class);
 
     public static class VipConfig extends BaseConfig {
         public UUID loadBalancerId;

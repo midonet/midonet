@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@ package org.midonet.midolman.simulation
 
 import java.lang.{Short => JShort}
 import java.util
-import java.util.{List => JList}
-import java.util.UUID
+import java.util.{List => JList, UUID}
 
 import scala.collection.{Map => ROMap}
 
@@ -26,16 +25,13 @@ import akka.actor.ActorSystem
 
 import org.midonet.cluster.client._
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimStep,
-                                            SimulationResult => Result}
+import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimStep, SimulationResult => Result}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
+import org.midonet.midolman.topology.BridgeMapper.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort,
-                                         tagForBroadcast, tagForBridge,
-                                         tagForFloodedFlowsByDstMac, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridge, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForVlanPort}
 
 
 object Bridge {

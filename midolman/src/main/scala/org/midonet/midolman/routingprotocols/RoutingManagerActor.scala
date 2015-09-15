@@ -17,17 +17,14 @@ package org.midonet.midolman.routingprotocols
 
 import java.util.UUID
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 import akka.actor._
-
 import com.google.inject.Inject
-
 import rx.Subscription
 
+import org.midonet.cluster.Client
 import org.midonet.cluster.data.storage.StateStorage
 import org.midonet.cluster.data.{Converter, Route}
 import org.midonet.cluster.models.Topology.BgpPeer
@@ -35,17 +32,14 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.BgpKey
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.state.RoutingTableStorage._
-import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
-import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices._
-import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopology, VirtualTopologyActor}
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
 import org.midonet.util.concurrent.ReactiveActor
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
@@ -99,8 +93,6 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                           with ActorLogWithoutPath {
     import RoutingManagerActor._
 
-    import context.system
-
     override def logSource = "org.midonet.routing.bgp"
 
     private implicit val ec: ExecutionContext = context.system.dispatcher
@@ -108,8 +100,6 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
 
-    @Inject
-    var dataClient: DataClient = null
     @Inject
     var config: MidolmanConfig = null
     @Inject

@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.inject.Module;
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 

@@ -15,22 +15,26 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import com.google.common.base.Objects;
+
+import org.apache.zookeeper.Op;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.cluster.rest_api.neutron.models.Router;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.apache.zookeeper.Op;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static com.google.common.base.Preconditions.checkState;
 
 
 /**
@@ -176,39 +180,6 @@ public class RouterZkManager
                 Collections.singletonList(Op.setData(paths.getRouterPath(id),
                         serializer.serialize(config), -1)) :
                 Collections.<Op>emptyList();
-    }
-
-    public List<Op> prepareClearRefsToLoadBalancer(UUID id, UUID loadBalancerId)
-            throws SerializationException, StateAccessException,
-            IllegalArgumentException {
-
-        assert(loadBalancerId != null && id != null);
-
-        RouterConfig config = get(id);
-        if (!Objects.equal(config.loadBalancer, loadBalancerId)) {
-            log.warn("Attempted to delete reference from router ID " + id +
-                     " to load balancer ID " + loadBalancerId + " but the" +
-                     " router had a reference to a different load balancer," +
-                     " ID " + config.loadBalancer);
-            return Collections.<Op>emptyList();
-        }
-
-        config.loadBalancer = null;
-        return Collections.singletonList(Op.setData(paths.getRouterPath(id),
-                        serializer.serialize(config), -1));
-    }
-
-    public void prepareUpdateLoadBalancer(List<Op> ops, UUID routerId, UUID loadBalancerId)
-        throws StateAccessException, SerializationException {
-        RouterConfig oldConf = get(routerId);
-        // This is meant to be called to simply update the load balancer id.
-        // It does not go through any of the back ref or association updating.
-        String msg = "The router load balancer must not already be set in" +
-                     " a simple update";
-        checkState(oldConf.loadBalancer == null, msg);
-        oldConf.loadBalancer = loadBalancerId;
-        ops.add(Op.setData(paths.getRouterPath(routerId),
-                           serializer.serialize(oldConf), -1));
     }
 
     @Override

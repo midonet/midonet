@@ -23,8 +23,6 @@ import java.util.UUID;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import org.apache.zookeeper.Watcher;
-
 import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Bridge;
@@ -55,36 +53,23 @@ import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
-import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
 
-import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
-
 public interface DataClient {
 
     /* BGP advertising routes related methods */
     @CheckForNull AdRoute adRoutesGet(UUID id)
-            throws StateAccessException, SerializationException;
-
-    void adRoutesDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    UUID adRoutesCreate(@Nonnull AdRoute adRoute)
             throws StateAccessException, SerializationException;
 
     List<AdRoute> adRoutesFindByBgp(UUID bgpId)
@@ -98,11 +83,6 @@ public interface DataClient {
     @CheckForNull BGP bgpGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void bgpDelete(UUID id) throws StateAccessException, SerializationException;
-
-    UUID bgpCreate(@Nonnull BGP bgp)
-            throws StateAccessException, SerializationException;
-
     List<BGP> bgpFindByPort(UUID portId)
             throws StateAccessException, SerializationException;
 
@@ -111,15 +91,6 @@ public interface DataClient {
             throws StateAccessException;
 
     @CheckForNull Bridge bridgesGet(UUID id)
-            throws StateAccessException, SerializationException;
-
-    void bridgesDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    UUID bridgesCreate(@Nonnull Bridge bridge)
-            throws StateAccessException, SerializationException;
-
-    void bridgesUpdate(@Nonnull Bridge bridge)
             throws StateAccessException, SerializationException;
 
     List<Bridge> bridgesGetAll() throws StateAccessException,
@@ -162,18 +133,6 @@ public interface DataClient {
     List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId, short vlanId)
         throws StateAccessException;
 
-    void bridgeDeleteMacPort(@Nonnull UUID bridgeId, Short vlanId,
-                             @Nonnull MAC mac, @Nonnull UUID portId)
-        throws StateAccessException;
-
-    /**
-     * Creates or replaces an Ip->Mac mapping.
-     * It sets a regular entry (if a learned one existed, it is replaced)
-     */
-    void bridgeAddIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
-                         @Nonnull MAC mac)
-        throws StateAccessException;
-
     /**
      * Checks if a persistent or learned IP->MAC mapping exists.
      */
@@ -187,21 +146,8 @@ public interface DataClient {
     Map<IPv4Addr, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
         throws StateAccessException;
 
-    /**
-     * Deletes an IP->MAC mapping (either learned or persistent).
-     */
-    void bridgeDeleteIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
-                            @Nonnull MAC mac)
-        throws StateAccessException;
-
     /* Chains related methods */
     @CheckForNull Chain chainsGet(UUID id)
-            throws StateAccessException, SerializationException;
-
-    void chainsDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    UUID chainsCreate(@Nonnull Chain chain)
             throws StateAccessException, SerializationException;
 
     List<Chain> chainsGetAll() throws StateAccessException,
@@ -210,16 +156,6 @@ public interface DataClient {
     List<Chain> chainsFindByTenant(String tenantId)
             throws StateAccessException, SerializationException;
 
-
-    /* DHCP related methods */
-    void dhcpSubnetsCreate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
-            throws StateAccessException, SerializationException;
-
-    void dhcpSubnetsUpdate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
-            throws StateAccessException, SerializationException;
-
-    void dhcpSubnetsDelete(UUID bridgeId, IPv4Subnet subnetAddr)
-        throws StateAccessException;
 
     @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId, IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException;
@@ -230,34 +166,13 @@ public interface DataClient {
     List<Subnet> dhcpSubnetsGetByBridgeEnabled(UUID bridgeId)
             throws StateAccessException, SerializationException;
 
-    void dhcpHostsCreate(@Nonnull UUID bridgeId, @Nonnull IPv4Subnet subnet,
-                         org.midonet.cluster.data.dhcp.Host host)
-            throws StateAccessException, SerializationException;
-
-    void dhcpHostsUpdate(@Nonnull UUID bridgeId, @Nonnull IPv4Subnet subnet,
-                         org.midonet.cluster.data.dhcp.Host host)
-            throws StateAccessException, SerializationException;
-
     @CheckForNull org.midonet.cluster.data.dhcp.Host dhcpHostsGet(
             UUID bridgeId, IPv4Subnet subnet, String mac)
             throws StateAccessException, SerializationException;
 
-    void dhcpHostsDelete(UUID bridgId, IPv4Subnet subnet, String mac)
-            throws StateAccessException;
-
     List<org.midonet.cluster.data.dhcp.Host> dhcpHostsGetBySubnet(
             UUID bridgeId, IPv4Subnet subnet)
             throws StateAccessException, SerializationException;
-
-    /* DHCPV6 related methods */
-    void dhcpSubnet6Create(@Nonnull UUID bridgeId, @Nonnull Subnet6 subnet)
-            throws StateAccessException, SerializationException;
-
-    void dhcpSubnet6Update(@Nonnull UUID bridgeId, @Nonnull Subnet6 subnet)
-            throws StateAccessException, SerializationException;
-
-    void dhcpSubnet6Delete(UUID bridgeId, IPv6Subnet prefix)
-        throws StateAccessException;
 
     @CheckForNull Subnet6 dhcpSubnet6Get(UUID bridgeId, IPv6Subnet prefix)
             throws StateAccessException, SerializationException;
@@ -265,32 +180,13 @@ public interface DataClient {
     List<Subnet6> dhcpSubnet6sGetByBridge(UUID bridgeId)
             throws StateAccessException, SerializationException;
 
-    void dhcpV6HostCreate(@Nonnull UUID bridgeId,
-                          @Nonnull IPv6Subnet prefix,
-                          V6Host host)
-            throws StateAccessException, SerializationException;
-
-    void dhcpV6HostUpdate(@Nonnull UUID bridgeId,
-                          @Nonnull IPv6Subnet prefix,
-                          V6Host host)
-            throws StateAccessException, SerializationException;
-
     @CheckForNull V6Host dhcpV6HostGet(
             UUID bridgeId, IPv6Subnet prefix, String clientId)
             throws StateAccessException, SerializationException;
 
-    void dhcpV6HostDelete(UUID bridgId, IPv6Subnet prefix, String clientId)
-            throws StateAccessException;
-
     List<V6Host> dhcpV6HostsGetByPrefix(
             UUID bridgeId, IPv6Subnet prefix)
             throws StateAccessException, SerializationException;
-
-    UUID tunnelZonesCreate(@Nonnull TunnelZone zone)
-            throws StateAccessException, SerializationException;
-
-    void tunnelZonesDelete(UUID uuid)
-        throws StateAccessException;
 
     boolean tunnelZonesExists(UUID uuid) throws StateAccessException;
 
@@ -298,9 +194,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     List<TunnelZone> tunnelZonesGetAll()
-            throws StateAccessException, SerializationException;
-
-    void tunnelZonesUpdate(@Nonnull TunnelZone zone)
             throws StateAccessException, SerializationException;
 
     Set<TunnelZone.HostConfig> tunnelZonesGetMemberships(UUID uuid)
@@ -313,34 +206,11 @@ public interface DataClient {
     boolean tunnelZonesContainHost(UUID hostId)
             throws StateAccessException, SerializationException;
 
-    UUID tunnelZonesAddMembership(
-            @Nonnull UUID zoneId,
-            @Nonnull TunnelZone.HostConfig hostConfig)
-            throws StateAccessException, SerializationException;
-
-    void tunnelZonesDeleteMembership(UUID zoneId, UUID membershipId)
-        throws StateAccessException;
-
-    UUID hostsCreate(@Nonnull UUID id, @Nonnull Host host)
-            throws StateAccessException, SerializationException;
-
     /* load balancers related methods */
 
     @CheckForNull
     LoadBalancer loadBalancerGet(UUID id)
             throws StateAccessException, SerializationException;
-
-    void loadBalancerDelete(UUID id)
-            throws MappingStatusException, StateAccessException,
-                   SerializationException;
-
-    UUID loadBalancerCreate(@Nonnull LoadBalancer loadBalancer)
-            throws StateAccessException, SerializationException,
-            InvalidStateOperationException;
-
-    void loadBalancerUpdate(@Nonnull LoadBalancer loadBalancer)
-            throws StateAccessException, SerializationException,
-            InvalidStateOperationException;
 
     List<LoadBalancer> loadBalancersGetAll()
             throws StateAccessException, SerializationException;
@@ -355,17 +225,6 @@ public interface DataClient {
     HealthMonitor healthMonitorGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void healthMonitorDelete(UUID id)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
-
-    UUID healthMonitorCreate(@Nonnull HealthMonitor healthMonitor)
-            throws StateAccessException, SerializationException;
-
-    void healthMonitorUpdate(@Nonnull HealthMonitor healthMonitor)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
-
     List<HealthMonitor> healthMonitorsGetAll() throws StateAccessException,
             SerializationException;
 
@@ -379,21 +238,6 @@ public interface DataClient {
     PoolMember poolMemberGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void poolMemberDelete(UUID id)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
-
-    UUID poolMemberCreate(@Nonnull PoolMember poolMember)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
-
-    void poolMemberUpdate(@Nonnull PoolMember poolMember)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
-
-    void poolMemberUpdateStatus(UUID poolMemberId, LBStatus status)
-            throws StateAccessException, SerializationException;
-
     List<PoolMember> poolMembersGetAll() throws StateAccessException,
             SerializationException;
 
@@ -402,18 +246,6 @@ public interface DataClient {
     @CheckForNull
     Pool poolGet(UUID id)
             throws StateAccessException, SerializationException;
-
-    void poolDelete(UUID id)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
-
-    UUID poolCreate(@Nonnull Pool pool)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
-
-    void poolUpdate(@Nonnull Pool pool)
-            throws MappingStatusException, MappingViolationException,
-            SerializationException, StateAccessException;
 
     List<Pool> poolsGetAll() throws StateAccessException,
             SerializationException;
@@ -424,26 +256,11 @@ public interface DataClient {
     List<VIP> poolGetVips(UUID id)
             throws StateAccessException, SerializationException;
 
-    void poolSetMapStatus(UUID id, PoolHealthMonitorMappingStatus status)
-            throws StateAccessException, SerializationException;
-
     /* VIP related methods */
 
     @CheckForNull
     VIP vipGet(UUID id)
             throws StateAccessException, SerializationException;
-
-    void vipDelete(UUID id)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
-
-    UUID vipCreate(@Nonnull VIP vip)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
-
-    void vipUpdate(@Nonnull VIP vip)
-            throws MappingStatusException, StateAccessException,
-            SerializationException;
 
     List<VIP> vipGetAll()
             throws StateAccessException, SerializationException;
@@ -451,8 +268,6 @@ public interface DataClient {
     /* hosts related methods */
     @CheckForNull Host hostsGet(UUID hostId)
             throws StateAccessException, SerializationException;
-
-    void hostsDelete(UUID hostId) throws StateAccessException;
 
     boolean hostsExists(UUID hostId) throws StateAccessException;
 
@@ -479,29 +294,8 @@ public interface DataClient {
             UUID hostId, UUID portId)
             throws StateAccessException, SerializationException;
 
-    void hostsAddVrnPortMapping(@Nonnull UUID hostId, @Nonnull UUID portId,
-                                @Nonnull String localPortName)
-            throws StateAccessException, SerializationException;
-
-    Port<?,?> hostsAddVrnPortMappingAndReturnPort(
-            @Nonnull UUID hostId, @Nonnull UUID portId,
-            @Nonnull String localPortName)
-            throws StateAccessException, SerializationException;
-
-    void hostsDelVrnPortMapping(UUID hostId, UUID portId)
-            throws StateAccessException, SerializationException;
-
-    void hostsSetFloodingProxyWeight(UUID hostId, int weight)
-            throws StateAccessException, SerializationException;
-
     /* Ports related methods */
     boolean portsExists(UUID id) throws StateAccessException;
-
-    UUID portsCreate(@Nonnull Port<?, ?> port)
-            throws StateAccessException, SerializationException;
-
-    void portsDelete(UUID id)
-            throws StateAccessException, SerializationException;
 
     List<BridgePort> portsFindByBridge(UUID bridgeId) throws
             StateAccessException, SerializationException;
@@ -530,15 +324,6 @@ public interface DataClient {
     @CheckForNull Port<?, ?> portsGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void portsUpdate(@Nonnull Port<?, ?> port)
-            throws StateAccessException, SerializationException;
-
-    void portsLink(@Nonnull UUID portId, @Nonnull UUID peerPortId)
-            throws StateAccessException, SerializationException;
-
-    void portsUnlink(@Nonnull UUID portId)
-            throws StateAccessException, SerializationException;
-
     List<Port<?, ?>> portsFindByPortGroup(UUID portGroupId)
             throws StateAccessException, SerializationException;
 
@@ -556,33 +341,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     /**
-     * Deletes an IP address group.
-     *
-     * @param id ID of IP address group to delete.
-     *
-     * @throws org.midonet.midolman.state.NoStatePathException
-     *      If no IP address group with the specified ID exists
-     */
-    void ipAddrGroupsDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    /**
-     * Creates an IP address group.
-     *
-     * @param ipAddrGroup
-     *      IP address group information. If the id field is initialized,
-     *      that will be the ID of the newly created address group. Otherwise,
-     *      a random UUID will be assigned.
-     *
-     * @return ID of the newly created IP address group.
-     *
-     * @throws org.midonet.midolman.state.StatePathExistsException
-     *      If an IP address group with the specified ID already exists.
-     */
-    UUID ipAddrGroupsCreate(@Nonnull IpAddrGroup ipAddrGroup)
-            throws StateAccessException, SerializationException;
-
-    /**
      * Returns true if an IP Address group with the specified ID exists.
      */
     boolean ipAddrGroupsExists(UUID id) throws StateAccessException;
@@ -594,26 +352,6 @@ public interface DataClient {
      */
     List<IpAddrGroup> ipAddrGroupsGetAll() throws StateAccessException,
             SerializationException;
-
-    /**
-     * Adds an IP address to an IP address group. Idempotent.
-     *
-     * @param id IP address group's ID.
-     * @param addr IP address. May be IPv4 or IPv6.
-     */
-    void ipAddrGroupAddAddr(@Nonnull UUID id, @Nonnull String addr)
-            throws StateAccessException, SerializationException;
-
-    /**
-     * Removes an IP address from an IP address group. Idempotent.
-     *
-     * @param id IP address group's ID
-     * @param addr IP address. May be IPv4 or IPv6. No canonicalization
-     *             is performed, so only an address with an identical
-     *             string representation will be removed.
-     */
-    void ipAddrGroupRemoveAddr(UUID id, String addr)
-            throws StateAccessException, SerializationException;
 
     /**
      * Checks an IP address group for the specified address.
@@ -649,15 +387,6 @@ public interface DataClient {
     @CheckForNull PortGroup portGroupsGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void portGroupsDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    UUID portGroupsCreate(@Nonnull PortGroup portGroup)
-            throws StateAccessException, SerializationException;
-
-    void portGroupsUpdate(@Nonnull PortGroup portGroup)
-            throws StateAccessException, SerializationException;
-
     boolean portGroupsExists(UUID id) throws StateAccessException;
 
     List<PortGroup> portGroupsGetAll() throws StateAccessException,
@@ -683,12 +412,6 @@ public interface DataClient {
     @CheckForNull Route routesGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void routesDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    UUID routesCreate(@Nonnull Route route)
-            throws StateAccessException, SerializationException;
-
     UUID routesCreateEphemeral(@Nonnull Route route)
             throws StateAccessException, SerializationException;
 
@@ -702,15 +425,6 @@ public interface DataClient {
     @CheckForNull Router routersGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void routersDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    UUID routersCreate(@Nonnull Router router)
-            throws StateAccessException, SerializationException;
-
-    void routersUpdate(@Nonnull Router router)
-            throws StateAccessException, SerializationException;
-
     List<Router> routersGetAll() throws StateAccessException,
             SerializationException;
 
@@ -721,13 +435,6 @@ public interface DataClient {
     /* Rules related methods */
     @CheckForNull Rule<?, ?> rulesGet(UUID id)
             throws StateAccessException, SerializationException;
-
-    void rulesDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    UUID rulesCreate(@Nonnull Rule<?, ?> rule)
-            throws StateAccessException, RuleIndexOutOfBoundsException,
-            SerializationException;
 
     List<Rule<?, ?>> rulesFindByChain(UUID chainId)
             throws StateAccessException, SerializationException;
@@ -748,28 +455,12 @@ public interface DataClient {
     WriteVersion writeVersionGet() throws StateAccessException;
 
     /**
-     * Overwrites the current write version with the string supplied
-     * @param newVersion The new version to set the write version to.
-     */
-    void writeVersionUpdate(WriteVersion newVersion)
-            throws StateAccessException;
-
-    /**
      * Get the system state
      *
      * @return system state info
      * @throws StateAccessException
      */
     SystemState systemStateGet() throws StateAccessException;
-
-    /**
-     * Update the system state
-     *
-     * @param systemState the new system state
-     * @throws StateAccessException
-     */
-    void systemStateUpdate(SystemState systemState)
-        throws StateAccessException;
 
     /**
      * Get the version info for all the hosts.
@@ -785,64 +476,10 @@ public interface DataClient {
     TraceRequest traceRequestGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void traceRequestDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    UUID traceRequestCreate(@Nonnull TraceRequest request)
-            throws StateAccessException, SerializationException,
-            RuleIndexOutOfBoundsException;
-
-    UUID traceRequestCreate(@Nonnull TraceRequest request, boolean enabled)
-            throws StateAccessException, SerializationException,
-            RuleIndexOutOfBoundsException;
-
     List<TraceRequest> traceRequestGetAll()
             throws StateAccessException, SerializationException;
 
     List<TraceRequest> traceRequestFindByTenant(String tenantId)
-            throws StateAccessException, SerializationException;
-
-    void traceRequestEnable(UUID id)
-            throws StateAccessException, SerializationException,
-            RuleIndexOutOfBoundsException;
-
-    void traceRequestDisable(UUID id)
-            throws StateAccessException, SerializationException;
-
-    /**
-     * Get the node id that is in line right before the given myNode for
-     * health monitoring. Returns null if there is none. This is used
-     * in health monitor leader election.
-     *
-     * @return The id of the node in front
-     * @param myNode the node
-     * @throws StateAccessException
-     */
-    Integer getPrecedingHealthMonitorLeader(Integer myNode)
-            throws StateAccessException;
-
-    /**
-     * register as a health monitor capable node.
-     *
-     * @param cb the callback that will be executed upon becoming leader.
-     * @return The id assigned to this node on registering.
-     * @throws StateAccessException
-     */
-    Integer registerAsHealthMonitorNode(
-            ZkLeaderElectionWatcher.ExecuteOnBecomingLeader cb)
-            throws StateAccessException;
-
-    /**
-     * Remove the registration node for health monitor leader election.
-     * Basically useless for anything but testing.
-     *
-     * @param node node to remove
-     * @throws StateAccessException
-     */
-    void removeHealthMonitorLeaderNode(Integer node)
-            throws StateAccessException;
-
-    void vtepCreate(VTEP vtep)
             throws StateAccessException, SerializationException;
 
     VTEP vtepGet(IPv4Addr ipAddr)
@@ -850,32 +487,6 @@ public interface DataClient {
 
     List<VTEP> vtepsGetAll()
             throws StateAccessException, SerializationException;
-
-    /**
-     * Deletes a VTEP. Will fail if the VTEP has bindings.
-     *
-     * @param ipAddr IP address of VTEP to delete.
-     *
-     * @throws org.midonet.midolman.state.NodeNotEmptyStateException
-     *         If the VTEP still has bindings.
-     *
-     * @throws org.midonet.midolman.state.NoStatePathException
-     *         If the VTEP does not exist.
-     */
-    void vtepDelete(IPv4Addr ipAddr)
-            throws StateAccessException, SerializationException;
-
-    void vtepUpdate(VTEP vtep)
-            throws StateAccessException, SerializationException;
-
-    void vtepAddBinding(@Nonnull IPv4Addr ipAddr,
-                               @Nonnull String portName, short vlanId,
-                               @Nonnull UUID networkId)
-            throws StateAccessException;
-
-    void vtepDeleteBinding(@Nonnull IPv4Addr ipAddr,
-                                  @Nonnull String portName, short vlanId)
-            throws StateAccessException;
 
     /**
      * Returns a list containing all the bindings configured in the given VTEP,
@@ -893,33 +504,11 @@ public interface DataClient {
             throws StateAccessException;
 
     /**
-     * Generates and returns a new VNI for VTEP logical switch creation.
-     * Successive calls will return monotonically increasing values.
-     */
-    int getNewVni() throws StateAccessException;
-
-    /**
      * Get all the vtep bindings for this bridge and vtep.
      */
     List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID id,
                                                    IPv4Addr mgmtIp)
         throws StateAccessException, SerializationException;
-
-    VxLanPort bridgeCreateVxLanPort(
-            UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni,
-            IPv4Addr tunnelIp, UUID tunnelZoneId)
-            throws StateAccessException, SerializationException;
-
-    /**
-     * Deletes the VXLAN port associated to the given VTEP. Does not delete
-     * bindings on the VTEP since the DataClient is not VTEP-aware. This will be
-     * done by the VxlanGateway service.
-     */
-    void bridgeDeleteVxLanPort(UUID bridgeId, IPv4Addr vxLanPort)
-            throws SerializationException, StateAccessException;
-
-    void bridgeDeleteVxLanPort(VxLanPort port)
-        throws SerializationException, StateAccessException;
 
     void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
                                      Directory.TypedWatcher watcher)

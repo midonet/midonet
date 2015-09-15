@@ -75,9 +75,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     var dpChannel: DatapathChannel = _
 
     @Inject
-    var clusterDataClient: DataClient = null
-
-    @Inject
     var vt: VirtualTopology = null
 
     @Inject

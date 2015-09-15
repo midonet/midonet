@@ -16,32 +16,20 @@
 package org.midonet.cluster;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import javax.inject.Named;
 
-import com.google.common.base.Strings;
-
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,9 +65,7 @@ import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
-import org.midonet.cluster.data.rules.TraceRule;
 import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.rules.RuleList;
@@ -87,23 +73,12 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
-import org.midonet.midolman.state.PortConfig;
-import org.midonet.midolman.state.PortConfigCache;
-import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkLeaderElectionWatcher;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.ZkUtil;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
-import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
-import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
 import org.midonet.midolman.state.zkManagers.BgpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
@@ -136,14 +111,11 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
-import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
-@SuppressWarnings("unused")
 public class LocalDataClientImpl implements DataClient {
 
     @Inject
@@ -180,9 +152,6 @@ public class LocalDataClientImpl implements DataClient {
     private PortZkManager portZkManager;
 
     @Inject
-    private PortConfigCache portCache;
-
-    @Inject
     private RouteZkManager routeMgr;
 
     @Inject
@@ -216,12 +185,6 @@ public class LocalDataClientImpl implements DataClient {
     private PathBuilder pathBuilder;
 
     @Inject
-    private ClusterRouterManager routerManager;
-
-    @Inject
-    private ClusterBridgeManager bridgeManager;
-
-    @Inject
     private Serializer serializer;
 
     @Inject
@@ -235,10 +198,6 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private VtepZkManager vtepZkManager;
-
-    @Inject
-    @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
-    private Reactor reactor;
 
     private final static Logger log =
             LoggerFactory.getLogger(LocalDataClientImpl.class);
@@ -256,18 +215,6 @@ public class LocalDataClientImpl implements DataClient {
 
         log.debug("Exiting: adRoute={}", adRoute);
         return adRoute;
-    }
-
-    @Override
-    public void adRoutesDelete(UUID id)
-            throws StateAccessException, SerializationException {
-        adRouteZkManager.delete(id);
-    }
-
-    @Override
-    public UUID adRoutesCreate(@Nonnull AdRoute adRoute)
-            throws StateAccessException, SerializationException {
-        return adRouteZkManager.create(Converter.toAdRouteConfig(adRoute));
     }
 
     @Override
@@ -290,19 +237,8 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public @CheckForNull BGP bgpGet(@Nonnull UUID id)
             throws StateAccessException, SerializationException {
-        return new BGP(id, bgpZkManager.get(id)).setStatus(bgpZkManager.getStatus(id));
-    }
-
-    @Override
-    public void bgpDelete(UUID id)
-            throws StateAccessException, SerializationException {
-        bgpZkManager.delete(id);
-    }
-
-    @Override
-    public UUID bgpCreate(@Nonnull BGP bgp)
-            throws StateAccessException, SerializationException {
-        return bgpZkManager.create(bgp);
+        return new BGP(id, bgpZkManager.get(id)).setStatus(
+            bgpZkManager.getStatus(id));
     }
 
     @Override
@@ -328,7 +264,8 @@ public class LocalDataClientImpl implements DataClient {
             }
         }
 
-        log.debug("bridgesFindByTenant exiting: {} bridges found", bridges.size());
+        log.debug("bridgesFindByTenant exiting: {} bridges found",
+                  bridges.size());
         return bridges;
     }
 
@@ -405,16 +342,8 @@ public class LocalDataClientImpl implements DataClient {
                                     @Nonnull MAC mac, @Nonnull UUID portId)
             throws StateAccessException {
         return MacPortMap.hasPersistentEntry(
-            bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId), mac, portId);
-    }
-
-    @Override
-    public void bridgeDeleteMacPort(@Nonnull UUID bridgeId, Short vlanId,
-                                    @Nonnull MAC mac, @Nonnull UUID portId)
-            throws StateAccessException {
-        MacPortMap.deleteEntry(
-                bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId),
-                mac, portId);
+            bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId), mac,
+            portId);
     }
 
     @Override
@@ -425,85 +354,12 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void bridgeAddIp4Mac(
-            @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
-            throws StateAccessException {
-        // TODO: potential race conditions
-        // The following code fixes the unobvious behavior of
-        // replicated maps, but is still subject to potential race conditions
-        // See MN-2637
-        Directory dir = bridgeZkManager.getIP4MacMapDirectory(bridgeId);
-        if (Ip4ToMacReplicatedMap.hasPersistentEntry(dir, ip4, mac)) {
-            return;
-        }
-        MAC oldMac = Ip4ToMacReplicatedMap.getEntry(dir, ip4);
-        if (oldMac != null) {
-            Ip4ToMacReplicatedMap.deleteEntry(dir, ip4, oldMac);
-        }
-        Ip4ToMacReplicatedMap.addPersistentEntry(
-            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
-    }
-
-    @Override
     public boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
                                        @Nonnull IPv4Addr ip, @Nonnull MAC mac)
         throws StateAccessException {
         Directory dir = bridgeZkManager.getIP4MacMapDirectory(bridgeId);
         return Ip4ToMacReplicatedMap.hasPersistentEntry(dir, ip, mac) ||
                Ip4ToMacReplicatedMap.hasLearnedEntry(dir, ip, mac);
-    }
-
-    @Override
-    public void bridgeDeleteIp4Mac(
-            @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
-            throws StateAccessException {
-        Ip4ToMacReplicatedMap.deleteEntry(
-            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
-    }
-
-    @Override
-    public UUID bridgesCreate(@Nonnull Bridge bridge)
-            throws StateAccessException, SerializationException {
-        log.debug("bridgesCreate entered: bridge={}", bridge);
-
-        if (bridge.getId() == null) {
-            bridge.setId(UUID.randomUUID());
-        }
-
-        BridgeZkManager.BridgeConfig bridgeConfig = Converter.toBridgeConfig(
-            bridge);
-
-        List<Op> ops =
-                bridgeZkManager.prepareBridgeCreate(bridge.getId(),
-                                                    bridgeConfig);
-
-        // Create the top level directories for
-        String tenantId = bridge.getProperty(Bridge.Property.tenant_id);
-        if (!Strings.isNullOrEmpty(tenantId)) {
-            ops.addAll(tenantZkManager.prepareCreate(tenantId));
-        }
-        zkManager.multi(ops);
-
-        log.debug("bridgesCreate exiting: bridge={}", bridge);
-        return bridge.getId();
-    }
-
-    @Override
-    public void bridgesUpdate(@Nonnull Bridge b)
-            throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<>();
-
-        // Get the original data
-        Bridge oldBridge = bridgesGet(b.getId());
-
-        BridgeZkManager.BridgeConfig bridgeConfig = Converter.toBridgeConfig(b);
-
-        // Update the config
-        ops.addAll(bridgeZkManager.prepareUpdate(b.getId(), bridgeConfig));
-
-        if (!ops.isEmpty()) {
-            zkManager.multi(ops);
-        }
     }
 
     @Override
@@ -537,35 +393,12 @@ public class LocalDataClientImpl implements DataClient {
         Bridge bridge = null;
         if (bridgeZkManager.exists(id)) {
             BridgeConfig bridgeCfg = bridgeZkManager.get(id);
-            if (bridgeCfg.vxLanPortId != null) {
-                log.info("Migrating legacy vxlanPortId property to " +
-                         "vxlanPortIds on bridge {}", id);
-                if (!bridgeCfg.vxLanPortIds.contains(bridgeCfg.vxLanPortId)) {
-                    bridgeCfg.vxLanPortIds.add(0, bridgeCfg.vxLanPortId);
-                }
-                bridgeCfg.vxLanPortId = null;
-                bridgeZkManager.update(id, bridgeCfg);
-                bridgeCfg = bridgeZkManager.get(id);
-            }
             bridge = Converter.fromBridgeConfig(bridgeCfg);
             bridge.setId(id);
         }
 
         log.debug("Exiting: bridge={}", bridge);
         return bridge;
-    }
-
-    @Override
-    public void bridgesDelete(UUID id)
-            throws StateAccessException, SerializationException {
-
-        Bridge bridge = bridgesGet(id);
-        if (bridge == null) {
-            return;
-        }
-
-        List<Op> ops = bridgeZkManager.prepareBridgeDelete(id);
-        zkManager.multi(ops);
     }
 
      @Override
@@ -606,62 +439,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void chainsDelete(UUID id)
-            throws StateAccessException, SerializationException {
-        Chain chain = chainsGet(id);
-        if (chain == null) {
-            return;
-        }
-
-        List<Op> ops = chainZkManager.prepareDelete(id);
-        zkManager.multi(ops);
-    }
-
-    private UUID prepareChainsCreate(@Nonnull Chain chain, List<Op> ops)
-            throws StateAccessException, SerializationException {
-        if (chain.getId() == null) {
-            chain.setId(UUID.randomUUID());
-        }
-
-        ChainZkManager.ChainConfig chainConfig =
-                Converter.toChainConfig(chain);
-
-        ops.addAll(chainZkManager.prepareCreate(chain.getId(), chainConfig));
-
-        // Create the top level directories for
-        String tenantId = chain.getProperty(Chain.Property.tenant_id);
-        if (!Strings.isNullOrEmpty(tenantId)) {
-            ops.addAll(tenantZkManager.prepareCreate(tenantId));
-        }
-        return chain.getId();
-    }
-
-    @Override
-    public UUID chainsCreate(@Nonnull Chain chain)
-            throws StateAccessException, SerializationException {
-        log.debug("chainsCreate entered: chain={}", chain);
-
-        List<Op> ops = new ArrayList<Op>();
-        UUID chainId = prepareChainsCreate(chain, ops);
-        zkManager.multi(ops);
-
-        log.debug("chainsCreate exiting: chain={}", chain);
-        return chainId;
-    }
-
-    @Override
-    public UUID tunnelZonesCreate(@Nonnull TunnelZone zone)
-            throws StateAccessException, SerializationException {
-        return zonesZkManager.createZone(zone, null);
-    }
-
-    @Override
-    public void tunnelZonesDelete(UUID uuid)
-        throws StateAccessException {
-        zonesZkManager.deleteZone(uuid);
-    }
-
-    @Override
     public boolean tunnelZonesExists(UUID uuid) throws StateAccessException {
         return zonesZkManager.exists(uuid);
     }
@@ -687,12 +464,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return tunnelZones;
-    }
-
-    @Override
-    public void tunnelZonesUpdate(@Nonnull TunnelZone zone)
-            throws StateAccessException, SerializationException {
-        zonesZkManager.updateZone(zone);
     }
 
     @Override
@@ -743,19 +514,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID tunnelZonesAddMembership(
-        @Nonnull UUID zoneId, @Nonnull TunnelZone.HostConfig hostConfig)
-            throws StateAccessException, SerializationException {
-        return zonesZkManager.addMembership(zoneId, hostConfig);
-    }
-
-    @Override
-    public void tunnelZonesDeleteMembership(UUID zoneId, UUID membershipId)
-        throws StateAccessException {
-        zonesZkManager.delMembership(zoneId, membershipId);
-    }
-
-    @Override
     public List<Chain> chainsFindByTenant(String tenantId)
             throws StateAccessException, SerializationException {
         log.debug("chainsFindByTenant entered: tenantId={}", tenantId);
@@ -770,40 +528,6 @@ public class LocalDataClientImpl implements DataClient {
         log.debug("chainsFindByTenant exiting: {} chains found",
                   chains.size());
         return chains;
-    }
-
-    @Override
-    public void dhcpSubnetsCreate(@Nonnull UUID bridgeId,
-                                  @Nonnull Subnet subnet)
-            throws StateAccessException, SerializationException {
-        dhcpZkManager.createSubnet(bridgeId,
-                                   Converter.toDhcpSubnetConfig(subnet));
-    }
-
-    @Override
-    public void dhcpSubnetsUpdate(@Nonnull UUID bridgeId,
-                                  @Nonnull Subnet subnet)
-            throws StateAccessException, SerializationException {
-
-        Subnet oldSubnet = dhcpSubnetsGet(bridgeId, subnet.getSubnetAddr());
-        if (oldSubnet == null) {
-            return;
-        }
-
-        // If isEnabled was not specified in the request, just set it to the
-        // previous value.
-        if (subnet.isEnabled() == null) {
-            subnet.setEnabled(oldSubnet.isEnabled());
-        }
-
-        dhcpZkManager.updateSubnet(bridgeId,
-                                   Converter.toDhcpSubnetConfig(subnet));
-    }
-
-    @Override
-    public void dhcpSubnetsDelete(UUID bridgeId, IPv4Subnet subnetAddr)
-            throws StateAccessException {
-        dhcpZkManager.deleteSubnet(bridgeId, subnetAddr);
     }
 
     @Override
@@ -853,25 +577,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void dhcpHostsCreate(
-            @Nonnull UUID bridgeId, @Nonnull IPv4Subnet subnet,
-            org.midonet.cluster.data.dhcp.Host host)
-            throws StateAccessException, SerializationException {
-
-        dhcpZkManager.addHost(bridgeId, subnet,
-                              Converter.toDhcpHostConfig(host));
-    }
-
-    @Override
-    public void dhcpHostsUpdate(
-            @Nonnull UUID bridgeId, @Nonnull IPv4Subnet subnet,
-            org.midonet.cluster.data.dhcp.Host host)
-            throws StateAccessException, SerializationException {
-        dhcpZkManager.updateHost(bridgeId, subnet,
-                                 Converter.toDhcpHostConfig(host));
-    }
-
-    @Override
     public @CheckForNull org.midonet.cluster.data.dhcp.Host dhcpHostsGet(
             UUID bridgeId, IPv4Subnet subnet, String mac)
             throws StateAccessException, SerializationException {
@@ -885,12 +590,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return host;
-    }
-
-    @Override
-    public void dhcpHostsDelete(UUID bridgId, IPv4Subnet subnet, String mac)
-            throws StateAccessException {
-        dhcpZkManager.deleteHost(bridgId, subnet, mac);
     }
 
     @Override
@@ -908,28 +607,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return hosts;
-    }
-
-    @Override
-    public void dhcpSubnet6Create(@Nonnull UUID bridgeId,
-                                  @Nonnull Subnet6 subnet)
-            throws StateAccessException, SerializationException {
-        dhcpV6ZkManager.createSubnet6(bridgeId,
-                                      Converter.toDhcpSubnet6Config(subnet));
-    }
-
-    @Override
-    public void dhcpSubnet6Update(@Nonnull UUID bridgeId,
-                                  @Nonnull Subnet6 subnet)
-            throws StateAccessException, SerializationException {
-        dhcpV6ZkManager.updateSubnet6(bridgeId,
-                                      Converter.toDhcpSubnet6Config(subnet));
-    }
-
-    @Override
-    public void dhcpSubnet6Delete(UUID bridgeId, IPv6Subnet prefix)
-            throws StateAccessException {
-        dhcpV6ZkManager.deleteSubnet6(bridgeId, prefix);
     }
 
     public @CheckForNull Subnet6 dhcpSubnet6Get(UUID bridgeId,
@@ -964,23 +641,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void dhcpV6HostCreate(
-            @Nonnull UUID bridgeId, @Nonnull IPv6Subnet prefix, V6Host host)
-            throws StateAccessException, SerializationException {
-
-        dhcpV6ZkManager.addHost(bridgeId, prefix,
-                                Converter.toDhcpV6HostConfig(host));
-    }
-
-    @Override
-    public void dhcpV6HostUpdate(
-            @Nonnull UUID bridgeId, @Nonnull IPv6Subnet prefix, V6Host host)
-            throws StateAccessException, SerializationException {
-        dhcpV6ZkManager.updateHost(bridgeId, prefix,
-                Converter.toDhcpV6HostConfig(host));
-    }
-
-    @Override
     public @CheckForNull V6Host dhcpV6HostGet(
             UUID bridgeId, IPv6Subnet prefix, String clientId)
             throws StateAccessException, SerializationException {
@@ -994,13 +654,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return host;
-    }
-
-    @Override
-    public void dhcpV6HostDelete(UUID bridgId, IPv6Subnet prefix,
-                                 String clientId)
-            throws StateAccessException {
-        dhcpV6ZkManager.deleteHost(bridgId, prefix, clientId);
     }
 
     @Override
@@ -1047,11 +700,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return host;
-    }
-
-    @Override
-    public void hostsDelete(UUID hostId) throws StateAccessException {
-        hostZkManager.deleteHost(hostId);
     }
 
     @Override
@@ -1172,12 +820,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void portsDelete(UUID id)
-            throws StateAccessException, SerializationException {
-        portZkManager.delete(id);
-    }
-
-    @Override
     public List<BridgePort> portsFindByBridge(UUID bridgeId)
             throws StateAccessException, SerializationException {
 
@@ -1246,12 +888,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID portsCreate(@Nonnull final Port<?,?> port)
-            throws StateAccessException, SerializationException {
-        return portZkManager.create(Converter.toPortConfig(port));
-    }
-
-    @Override
     public List<Port<?, ?>> portsGetAll()
             throws StateAccessException, SerializationException {
         log.debug("portsGetAll entered");
@@ -1286,32 +922,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void portsUpdate(@Nonnull Port<?,?> port)
-            throws StateAccessException, SerializationException {
-        log.debug("portsUpdate entered: port={}", port);
-
-        // Whatever sent is what gets stored.
-        portZkManager.update(UUID.fromString(port.getId().toString()),
-                Converter.toPortConfig(port));
-
-        log.debug("portsUpdate exiting");
-    }
-
-    @Override
-    public void portsLink(@Nonnull UUID portId, @Nonnull UUID peerPortId)
-            throws StateAccessException, SerializationException {
-
-        portZkManager.link(portId, peerPortId);
-
-    }
-
-    @Override
-    public void portsUnlink(@Nonnull UUID portId)
-            throws StateAccessException, SerializationException {
-        portZkManager.unlink(portId);
-    }
-
-    @Override
     public List<Port<?, ?>> portsFindByPortGroup(UUID portGroupId)
             throws StateAccessException, SerializationException {
         Set<UUID> portIds = portZkManager.getPortGroupPortIds(portGroupId);
@@ -1327,22 +937,9 @@ public class LocalDataClientImpl implements DataClient {
     public IpAddrGroup ipAddrGroupsGet(UUID id)
             throws StateAccessException, SerializationException {
         IpAddrGroup g = Converter.fromIpAddrGroupConfig(
-                ipAddrGroupZkManager.get(id));
+            ipAddrGroupZkManager.get(id));
         g.setId(id);
         return g;
-    }
-
-    @Override
-    public void ipAddrGroupsDelete(UUID id)
-            throws StateAccessException, SerializationException {
-        ipAddrGroupZkManager.delete(id);
-    }
-
-    @Override
-    public UUID ipAddrGroupsCreate(@Nonnull IpAddrGroup ipAddrGroup)
-            throws StateAccessException, SerializationException {
-        return ipAddrGroupZkManager.create(
-            Converter.toIpAddrGroupConfig(ipAddrGroup));
     }
 
     @Override
@@ -1370,18 +967,6 @@ public class LocalDataClientImpl implements DataClient {
     public boolean ipAddrGroupHasAddr(UUID id, String addr)
             throws StateAccessException {
         return ipAddrGroupZkManager.isMember(id, addr);
-    }
-
-    @Override
-    public void ipAddrGroupAddAddr(@Nonnull UUID id, @Nonnull String addr)
-            throws StateAccessException, SerializationException {
-        ipAddrGroupZkManager.addAddr(id, addr);
-    }
-
-    @Override
-    public void ipAddrGroupRemoveAddr(UUID id, String addr)
-            throws StateAccessException, SerializationException {
-        ipAddrGroupZkManager.removeAddr(id, addr);
     }
 
     @Override
@@ -1424,7 +1009,7 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         log.debug("portGroupsFindByPort exiting: {} portGroups found",
-                portGroups.size());
+                  portGroups.size());
         return portGroups;
     }
 
@@ -1446,48 +1031,6 @@ public class LocalDataClientImpl implements DataClient {
     public void portGroupsRemovePortMembership(UUID id, UUID portId)
             throws StateAccessException, SerializationException {
         portGroupZkManager.removePortFromPortGroup(id, portId);
-    }
-
-    @Override
-    public UUID portGroupsCreate(@Nonnull PortGroup portGroup)
-            throws StateAccessException, SerializationException {
-        log.debug("portGroupsCreate entered: portGroup={}", portGroup);
-
-        if (portGroup.getId() == null) {
-            portGroup.setId(UUID.randomUUID());
-        }
-
-        PortGroupZkManager.PortGroupConfig portGroupConfig =
-                Converter.toPortGroupConfig(portGroup);
-
-        List<Op> ops =
-                portGroupZkManager.prepareCreate(portGroup.getId(),
-                                                 portGroupConfig);
-
-        String tenantId = portGroup.getProperty(PortGroup.Property.tenant_id);
-        if (!Strings.isNullOrEmpty(tenantId)) {
-            ops.addAll(tenantZkManager.prepareCreate(tenantId));
-        }
-
-        zkManager.multi(ops);
-
-        log.debug("portGroupsCreate exiting: portGroup={}", portGroup);
-        return portGroup.getId();
-    }
-
-    @Override
-    public void portGroupsUpdate(@Nonnull PortGroup portGroup)
-            throws StateAccessException, SerializationException {
-        PortGroupZkManager.PortGroupConfig pgConfig =
-            Converter.toPortGroupConfig(portGroup);
-        List<Op> ops = new ArrayList<>();
-
-        // Update the config
-        ops.addAll(portGroupZkManager.prepareUpdate(portGroup.getId(), pgConfig));
-
-        if (!ops.isEmpty()) {
-            zkManager.multi(ops);
-        }
     }
 
     @Override
@@ -1526,67 +1069,12 @@ public class LocalDataClientImpl implements DataClient {
         PortGroup portGroup = null;
         if (portGroupZkManager.exists(id)) {
             portGroup = Converter.fromPortGroupConfig(
-                    portGroupZkManager.get(id));
+                portGroupZkManager.get(id));
             portGroup.setId(id);
         }
 
         log.debug("Exiting: portGroup={}", portGroup);
         return portGroup;
-    }
-
-    @Override
-    public void portGroupsDelete(UUID id)
-            throws StateAccessException, SerializationException {
-
-        PortGroup portGroup = portGroupsGet(id);
-        if (portGroup == null) {
-            return;
-        }
-
-        List<Op> ops = portGroupZkManager.prepareDelete(id);
-        zkManager.multi(ops);
-    }
-
-    @Override
-    public UUID hostsCreate(@Nonnull UUID hostId, @Nonnull Host host)
-            throws StateAccessException, SerializationException {
-        hostZkManager.createHost(hostId, Converter.toHostConfig(host));
-        return hostId;
-    }
-
-    @Override
-    public void hostsAddVrnPortMapping(@Nonnull UUID hostId, @Nonnull UUID portId,
-                                       @Nonnull String localPortName)
-            throws StateAccessException, SerializationException {
-        hostZkManager.addVirtualPortMapping(
-                hostId, new HostDirectory.VirtualPortMapping(portId, localPortName));
-    }
-
-    /**
-     * Does the same thing as @hostsAddVrnPortMapping(),
-     * except this returns the updated port object.
-     */
-    @Override
-    public Port<?,?> hostsAddVrnPortMappingAndReturnPort(
-                    @Nonnull UUID hostId, @Nonnull UUID portId,
-                    @Nonnull String localPortName)
-            throws StateAccessException, SerializationException {
-        return
-            hostZkManager.addVirtualPortMapping(
-                    hostId,
-                    new HostDirectory.VirtualPortMapping(portId, localPortName));
-    }
-
-    @Override
-    public void hostsDelVrnPortMapping(UUID hostId, UUID portId)
-            throws StateAccessException, SerializationException {
-        hostZkManager.delVirtualPortMapping(hostId, portId);
-    }
-
-    @Override
-    public void hostsSetFloodingProxyWeight(UUID hostId, int weight)
-            throws StateAccessException, SerializationException {
-        hostZkManager.setFloodingProxyWeight(hostId, weight);
     }
 
     /* load balancer related methods */
@@ -1603,55 +1091,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return loadBalancer;
-    }
-
-    @Override
-    public void loadBalancerDelete(UUID id)
-        throws MappingStatusException, StateAccessException,
-            SerializationException {
-        List<Op> ops = new ArrayList<>();
-
-        Set<UUID> poolIds = loadBalancerZkManager.getPoolIds(id);
-        for (UUID poolId : poolIds) {
-            buildPoolMapDeleteOps(ops, poolId);
-        }
-
-        LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
-            loadBalancerZkManager.get(id);
-        if (loadBalancerConfig.routerId != null) {
-            ops.addAll(
-                routerZkManager.prepareClearRefsToLoadBalancer(
-                    loadBalancerConfig.routerId, id));
-        }
-
-        ops.addAll(loadBalancerZkManager.prepareDelete(id));
-        zkManager.multi(ops);
-    }
-
-    @Override
-    public UUID loadBalancerCreate(@Nonnull LoadBalancer loadBalancer)
-        throws StateAccessException, SerializationException,
-               InvalidStateOperationException {
-        if (loadBalancer.getId() == null) {
-            loadBalancer.setId(UUID.randomUUID());
-        }
-
-        LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
-            Converter.toLoadBalancerConfig(loadBalancer);
-        loadBalancerZkManager.create(loadBalancer.getId(),
-                                     loadBalancerConfig);
-
-        return loadBalancer.getId();
-    }
-
-    @Override
-    public void loadBalancerUpdate(@Nonnull LoadBalancer loadBalancer)
-        throws StateAccessException, SerializationException,
-               InvalidStateOperationException {
-        LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
-            Converter.toLoadBalancerConfig(loadBalancer);
-        loadBalancerZkManager.update(loadBalancer.getId(),
-                                     loadBalancerConfig);
     }
 
     @Override
@@ -1775,47 +1214,6 @@ public class LocalDataClientImpl implements DataClient {
         return new MutablePair<>(mappingPath, mappingConfig);
     }
 
-    private List<Op> preparePoolHealthMonitorMappingUpdate(
-        Pair<String, PoolHealthMonitorConfig> pair)
-        throws SerializationException {
-        List<Op> ops = new ArrayList<>();
-        if (pair != null) {
-            String mappingPath = pair.getLeft();
-            PoolHealthMonitorConfig mappingConfig = pair.getRight();
-            ops.add(Op.setData(mappingPath,
-                               serializer.serialize(mappingConfig), -1));
-        }
-        return ops;
-    }
-
-    /* health monitors related methods */
-    private List<Pair<String, PoolHealthMonitorConfig>>
-    buildPoolHealthMonitorMappings(UUID healthMonitorId,
-                                   @Nullable HealthMonitorZkManager.HealthMonitorConfig config)
-        throws MappingStatusException, SerializationException,
-               StateAccessException {
-        List<UUID> poolIds = healthMonitorZkManager.getPoolIds(healthMonitorId);
-        List<Pair<String, PoolHealthMonitorConfig>> pairs = new ArrayList<>();
-
-        for (UUID poolId : poolIds) {
-            PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
-            MutablePair<String, PoolHealthMonitorConfig> pair =
-                preparePoolHealthMonitorMappings(poolId, poolConfig,
-                                                 poolMemberZkManager,
-                                                 vipZkManager);
-
-            if (pair != null) {
-                // Update health monitor config, which can be null
-                PoolHealthMonitorConfig updatedMappingConfig = pair.getRight();
-                updatedMappingConfig.healthMonitorConfig =
-                    new HealthMonitorConfigWithId(config);
-                pair.setRight(updatedMappingConfig);
-                pairs.add(pair);
-            }
-        }
-        return pairs;
-    }
-
     @Override
     @CheckForNull
     public HealthMonitor healthMonitorGet(UUID id)
@@ -1828,85 +1226,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return healthMonitor;
-    }
-
-    @Override
-    public void healthMonitorDelete(UUID id)
-        throws MappingStatusException, StateAccessException,
-               SerializationException {
-        List<Op> ops = new ArrayList<>();
-
-        List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
-        for (UUID poolId : poolIds) {
-            validatePoolConfigMappingStatus(poolId);
-
-            PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
-            ops.add(Op.setData(pathBuilder.getPoolPath(poolId),
-                               serializer.serialize(poolConfig), -1));
-            // Pool-HealthMonitor mappings
-            ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
-                poolId, id), -1));
-            poolConfig.healthMonitorId = null;
-            // Indicate the mapping is being deleted.
-            poolConfig.mappingStatus =
-                PoolHealthMonitorMappingStatus.PENDING_DELETE;
-            ops.addAll(poolZkManager.prepareUpdate(poolId, poolConfig));
-            ops.addAll(healthMonitorZkManager.prepareRemovePool(id, poolId));
-        }
-
-        ops.addAll(healthMonitorZkManager.prepareDelete(id));
-        zkManager.multi(ops);
-    }
-
-    @Override
-    public UUID healthMonitorCreate(@Nonnull HealthMonitor healthMonitor)
-        throws StateAccessException, SerializationException {
-        if (healthMonitor.getId() == null) {
-            healthMonitor.setId(UUID.randomUUID());
-        }
-
-        HealthMonitorZkManager.HealthMonitorConfig config =
-            Converter.toHealthMonitorConfig(healthMonitor);
-
-        zkManager.multi(
-            healthMonitorZkManager.prepareCreate(
-                healthMonitor.getId(), config));
-
-        return healthMonitor.getId();
-    }
-
-    @Override
-    public void healthMonitorUpdate(@Nonnull HealthMonitor healthMonitor)
-        throws MappingStatusException, StateAccessException,
-               SerializationException {
-        HealthMonitorZkManager.HealthMonitorConfig newConfig =
-            Converter.toHealthMonitorConfig(healthMonitor);
-        HealthMonitorZkManager.HealthMonitorConfig oldConfig =
-            healthMonitorZkManager.get(healthMonitor.getId());
-        UUID id = healthMonitor.getId();
-        if (newConfig.equals(oldConfig)) {
-            return;
-        }
-        List<Op> ops = new ArrayList<>();
-        ops.addAll(healthMonitorZkManager.prepareUpdate(id, newConfig));
-
-        // Pool-HealthMonitor mappings
-        for (Pair<String, PoolHealthMonitorConfig> pair :
-            buildPoolHealthMonitorMappings(id, newConfig)) {
-            List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
-            for (UUID poolId : poolIds) {
-                validatePoolConfigMappingStatus(poolId);
-
-                PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
-                // Indicate the mapping is being updated.
-                poolConfig.mappingStatus =
-                    PoolHealthMonitorMappingStatus.PENDING_UPDATE;
-                ops.add(Op.setData(pathBuilder.getPoolPath(poolId),
-                                   serializer.serialize(poolConfig), -1));
-            }
-            ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
-        }
-        zkManager.multi(ops);
     }
 
     @Override
@@ -1942,48 +1261,6 @@ public class LocalDataClientImpl implements DataClient {
         return pools;
     }
 
-    /* pool member related methods */
-    private Pair<String, PoolHealthMonitorConfig>
-    buildPoolHealthMonitorMappings(final UUID poolMemberId,
-                                   final @Nonnull PoolMemberZkManager.PoolMemberConfig config,
-                                   final boolean deletePoolMember)
-        throws MappingStatusException, SerializationException,
-               StateAccessException {
-        UUID poolId = checkNotNull(config.poolId, "Pool ID is null.");
-        PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
-
-        // Since we haven't deleted/updated this PoolMember in Zookeeper yet,
-        // preparePoolHealthMonitorMappings() will get an outdated version of
-        // this PoolMember when it fetches the Pool's members. The ConfigGetter
-        // intercepts the request for this PoolMember and returns the updated
-        // PoolMemberConfig, or null if it's been deleted.
-        ConfigGetter<UUID, PoolMemberZkManager.PoolMemberConfig> configGetter =
-            new ConfigGetter<UUID, PoolMemberZkManager.PoolMemberConfig>() {
-                @Override
-                public PoolMemberZkManager.PoolMemberConfig get(UUID key)
-                    throws StateAccessException, SerializationException {
-                    if (key.equals(poolMemberId)) {
-                        return deletePoolMember ? null : config;
-                    }
-                    return poolMemberZkManager.get(key);
-                }
-            };
-
-        return preparePoolHealthMonitorMappings(
-            poolId, poolConfig, configGetter, vipZkManager);
-    }
-
-    private List<Op> buildPoolMappingStatusUpdate(
-        PoolMemberZkManager.PoolMemberConfig poolMemberConfig)
-        throws StateAccessException, SerializationException {
-        UUID poolId = poolMemberConfig.poolId;
-        PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
-        // Indicate the mapping is being updated.
-        poolConfig.mappingStatus = PoolHealthMonitorMappingStatus.PENDING_UPDATE;
-        return Arrays.asList(Op.setData(pathBuilder.getPoolPath(poolId),
-                                        serializer.serialize(poolConfig), -1));
-    }
-
     @Override
     @CheckForNull
     public boolean poolMemberExists(UUID id)
@@ -2006,127 +1283,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void poolMemberDelete(UUID id)
-        throws MappingStatusException, StateAccessException,
-               SerializationException {
-        List<Op> ops = new ArrayList<>();
-
-        PoolMemberZkManager.PoolMemberConfig
-            config =
-            poolMemberZkManager.get(id);
-        if (config.poolId != null) {
-            ops.addAll(poolZkManager.prepareRemoveMember(config.poolId, id));
-        }
-
-        ops.addAll(poolMemberZkManager.prepareDelete(id));
-
-        // Pool-HealthMonitor mappings
-        Pair<String, PoolHealthMonitorConfig> pair =
-            buildPoolHealthMonitorMappings(id, config, true);
-        ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
-
-        if (pair != null) {
-            ops.addAll(buildPoolMappingStatusUpdate(config));
-        }
-        zkManager.multi(ops);
-    }
-
-    @Override
-    public UUID poolMemberCreate(@Nonnull PoolMember poolMember)
-        throws MappingStatusException, StateAccessException,
-               SerializationException {
-        validatePoolConfigMappingStatus(poolMember.getPoolId());
-
-        if (poolMember.getId() == null) {
-            poolMember.setId(UUID.randomUUID());
-        }
-        UUID id = poolMember.getId();
-
-        PoolMemberZkManager.PoolMemberConfig config =
-            Converter.toPoolMemberConfig(poolMember);
-
-        List<Op> ops = new ArrayList<>();
-        ops.addAll(poolMemberZkManager.prepareCreate(id, config));
-        ops.addAll(poolZkManager.prepareAddMember(config.poolId, id));
-
-        // Flush the pool member create ops first
-        zkManager.multi(ops);
-        ops.clear();
-
-        Pair<String, PoolHealthMonitorConfig> pair =
-            buildPoolHealthMonitorMappings(id, config, false);
-        ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
-
-        if (pair != null) {
-            ops.addAll(buildPoolMappingStatusUpdate(config));
-        }
-
-        zkManager.multi(ops);
-        return id;
-    }
-
-    @Override
-    public void poolMemberUpdate(@Nonnull PoolMember poolMember)
-        throws MappingStatusException, StateAccessException,
-               SerializationException {
-        validatePoolConfigMappingStatus(poolMember.getPoolId());
-
-        UUID id = poolMember.getId();
-        PoolMemberZkManager.PoolMemberConfig newConfig =
-            Converter.toPoolMemberConfig(poolMember);
-        PoolMemberZkManager.PoolMemberConfig oldConfig =
-            poolMemberZkManager.get(id);
-        boolean isPoolIdChanged =
-            !com.google.common.base.Objects.equal(newConfig.poolId,
-                                                  oldConfig.poolId);
-        if (newConfig.equals(oldConfig)) {
-            return;
-        }
-
-        List<Op> ops = new ArrayList<>();
-        if (isPoolIdChanged) {
-            ops.addAll(poolZkManager.prepareRemoveMember(oldConfig.poolId, id));
-            ops.addAll(poolZkManager.prepareAddMember(newConfig.poolId, id));
-        }
-
-        ops.addAll(poolMemberZkManager.prepareUpdate(id, newConfig));
-        // Flush the update of the pool members first
-        zkManager.multi(ops);
-
-        ops.clear();
-        if (isPoolIdChanged) {
-            // Remove pool member from its old owner's mapping node.
-            Pair<String, PoolHealthMonitorConfig> oldPair =
-                buildPoolHealthMonitorMappings(id, oldConfig, true);
-            ops.addAll(preparePoolHealthMonitorMappingUpdate(oldPair));
-        }
-
-        // Update the pool's pool-HM mapping with the new member.
-        Pair<String, PoolHealthMonitorConfig> pair =
-            buildPoolHealthMonitorMappings(id, newConfig, false);
-        ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
-
-        if (pair != null) {
-            ops.addAll(buildPoolMappingStatusUpdate(newConfig));
-        }
-        zkManager.multi(ops);
-    }
-
-    @Override
-    public void poolMemberUpdateStatus(UUID poolMemberId, LBStatus status)
-        throws StateAccessException, SerializationException {
-        PoolMemberZkManager.PoolMemberConfig config =
-            poolMemberZkManager.get(poolMemberId);
-        if (config == null) {
-            log.error("pool member does not exist" + poolMemberId.toString());
-            return;
-        }
-        config.status = status;
-        List<Op> ops = poolMemberZkManager.prepareUpdate(poolMemberId, config);
-        zkManager.multi(ops);
-    }
-
-    @Override
     public List<PoolMember> poolMembersGetAll()
         throws StateAccessException, SerializationException {
         List<PoolMember> poolMembers = new ArrayList<>();
@@ -2145,19 +1301,6 @@ public class LocalDataClientImpl implements DataClient {
         return poolMembers;
     }
 
-
-    /* pool related methods */
-    private List<Op> prepareDeletePoolHealthMonitorMappingOps(UUID poolId)
-        throws SerializationException, StateAccessException {
-        PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
-        List<Op> ops = new ArrayList<>();
-        if (poolConfig.healthMonitorId != null) {
-            ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
-                poolId, poolConfig.healthMonitorId), -1));
-        }
-        return ops;
-    }
-
     @Override
     @CheckForNull
     public Pool poolGet(UUID id)
@@ -2169,204 +1312,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return pool;
-    }
-
-    private List<Op> buildPoolDeleteOps(UUID id)
-        throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<>();
-        PoolZkManager.PoolConfig config = poolZkManager.get(id);
-
-        List<UUID> memberIds = poolZkManager.getMemberIds(id);
-        for (UUID memberId : memberIds) {
-            ops.addAll(poolZkManager.prepareRemoveMember(id, memberId));
-            ops.addAll(poolMemberZkManager.prepareDelete(memberId));
-        }
-
-        List<UUID> vipIds = poolZkManager.getVipIds(id);
-        for (UUID vipId : vipIds) {
-            ops.addAll(poolZkManager.prepareRemoveVip(id, vipId));
-            ops.addAll(vipZkManager.prepareDelete(vipId));
-            ops.addAll(loadBalancerZkManager.prepareRemoveVip(
-                config.loadBalancerId, vipId));
-        }
-
-        if (config.healthMonitorId != null) {
-            ops.addAll(healthMonitorZkManager.prepareRemovePool(
-                config.healthMonitorId, id));
-        }
-        ops.addAll(loadBalancerZkManager.prepareRemovePool(
-            config.loadBalancerId, id));
-        ops.addAll(poolZkManager.prepareDelete(id));
-        return ops;
-    }
-
-    private void buildPoolMapDeleteOps(List<Op> ops, UUID id)
-        throws MappingStatusException, StateAccessException,
-                SerializationException {
-        ops.addAll(buildPoolDeleteOps(id));
-        PoolZkManager.PoolConfig poolConfig = poolZkManager.get(id);
-        validatePoolConfigMappingStatus(id);
-
-        if (poolConfig.healthMonitorId != null) {
-            ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
-                id, poolConfig.healthMonitorId), -1));
-        }
-    }
-
-    @Override
-    public void poolDelete(UUID id)
-        throws MappingStatusException, StateAccessException,
-               SerializationException {
-        List<Op> ops = new ArrayList<>();
-        buildPoolMapDeleteOps(ops, id);
-        zkManager.multi(ops);
-    }
-
-    @Override
-    public UUID poolCreate(@Nonnull Pool pool)
-        throws MappingStatusException, StateAccessException,
-               SerializationException {
-        if (pool.getId() == null) {
-            pool.setId(UUID.randomUUID());
-        }
-        UUID id = pool.getId();
-
-        PoolZkManager.PoolConfig config = Converter.toPoolConfig(pool);
-
-        List<Op> ops = new ArrayList<>();
-        ops.addAll(poolZkManager.prepareCreate(id, config));
-
-        if (config.loadBalancerId != null) {
-            ops.addAll(loadBalancerZkManager.prepareAddPool(
-                config.loadBalancerId, id));
-        }
-
-        if (config.healthMonitorId != null) {
-            ops.addAll(healthMonitorZkManager.prepareAddPool(
-                config.healthMonitorId, id));
-        }
-        // Flush the pool create ops first.
-        zkManager.multi(ops);
-
-        ops.clear();
-        // Pool-HealthMonitor mappings
-        Pair<String, PoolHealthMonitorConfig> pair =
-            preparePoolHealthMonitorMappings(
-                id, config, poolMemberZkManager, vipZkManager);
-        if (pair != null) {
-            String mappingPath = pair.getLeft();
-            PoolHealthMonitorConfig mappingConfig = pair.getRight();
-            ops.add(Op.create(mappingPath,
-                              serializer.serialize(mappingConfig),
-                              ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                              CreateMode.PERSISTENT));
-            config.mappingStatus =
-                PoolHealthMonitorMappingStatus.PENDING_CREATE;
-            ops.addAll(poolZkManager.prepareUpdate(id, config));
-        }
-        zkManager.multi(ops);
-        return id;
-    }
-
-    @Override
-    public void poolUpdate(@Nonnull Pool pool)
-        throws MappingStatusException, MappingViolationException,
-               SerializationException, StateAccessException {
-        UUID id = pool.getId();
-        PoolZkManager.PoolConfig newConfig = Converter.toPoolConfig(pool);
-        PoolZkManager.PoolConfig oldConfig = poolZkManager.get(id);
-        boolean isHealthMonitorChanged =
-            !com.google.common.base.Objects.equal(newConfig.healthMonitorId,
-                                                  oldConfig.healthMonitorId);
-        if (newConfig.equals(oldConfig)) {
-            return;
-        }
-
-        // Set the internal status for the Pool-HealthMonitor mapping with the
-        // previous value.
-        newConfig.mappingStatus = oldConfig.mappingStatus;
-
-        List<Op> ops = new ArrayList<>();
-        if (isHealthMonitorChanged) {
-            if (oldConfig.healthMonitorId != null) {
-                ops.addAll(healthMonitorZkManager.prepareRemovePool(
-                    oldConfig.healthMonitorId, id));
-            }
-            if (newConfig.healthMonitorId != null) {
-                ops.addAll(healthMonitorZkManager.prepareAddPool(
-                    newConfig.healthMonitorId, id));
-            }
-        }
-
-        if (!com.google.common.base.Objects.equal(oldConfig.loadBalancerId,
-                                                  newConfig.loadBalancerId)) {
-            // Move the pool from the previous load balancer to the new one.
-            ops.addAll(loadBalancerZkManager.prepareRemovePool(
-                oldConfig.loadBalancerId, id));
-            ops.addAll(loadBalancerZkManager.prepareAddPool(
-                newConfig.loadBalancerId, id));
-            // Move the VIPs belong to the pool from the previous load balancer
-            // to the new one.
-            List<UUID> vipIds = poolZkManager.getVipIds(id);
-            for (UUID vipId : vipIds) {
-                ops.addAll(loadBalancerZkManager.prepareRemoveVip(
-                    oldConfig.loadBalancerId, vipId));
-                ops.addAll(loadBalancerZkManager.prepareAddVip(
-                    newConfig.loadBalancerId, vipId));
-                VipZkManager.VipConfig vipConfig = vipZkManager.get(vipId);
-                // Update the load balancer ID of the VIPs with the pool's one.
-                vipConfig.loadBalancerId = newConfig.loadBalancerId;
-                ops.addAll(vipZkManager.prepareUpdate(vipId, vipConfig));
-            }
-        }
-
-        // Pool-HealthMonitor mappings
-        // If the reference to the health monitor is changed, the previous
-        // entries are deleted and the new entries are created.
-        if (isHealthMonitorChanged) {
-            PoolZkManager.PoolConfig poolConfig = poolZkManager.get(id);
-            // Indicate the mapping is being deleted and once it's confirmed
-            // by the health monitor, it's replaced with INACTIVE.
-            if (pool.getHealthMonitorId() == null) {
-                validatePoolConfigMappingStatus(id);
-                newConfig.mappingStatus =
-                    PoolHealthMonitorMappingStatus.PENDING_DELETE;
-                // Delete the old entry
-                ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
-                    id, poolConfig.healthMonitorId), -1));
-            }
-            // Throws an exception if users try to update the health monitor ID
-            // with another one even if the pool is already associated with
-            // another health monitor.
-            if (poolConfig.healthMonitorId != null
-                && pool.getHealthMonitorId() != null) {
-                throw new MappingViolationException();
-            }
-            Pair<String, PoolHealthMonitorConfig> pair =
-                preparePoolHealthMonitorMappings(
-                    id, newConfig, poolMemberZkManager, vipZkManager);
-            if (pair != null) {
-                String mappingPath = pair.getLeft();
-                PoolHealthMonitorConfig mappingConfig = pair.getRight();
-                ops.add(Op.create(mappingPath,
-                                  serializer.serialize(mappingConfig),
-                                  ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                                  CreateMode.PERSISTENT));
-                // Indicate the update is being processed and once it's confirmed
-                // by the health monitor, it's replaced with ACTIVE.
-                if (com.google.common.base.Objects.equal(
-                    oldConfig.mappingStatus,
-                    PoolHealthMonitorMappingStatus.INACTIVE)) {
-                    newConfig.mappingStatus =
-                        PoolHealthMonitorMappingStatus.PENDING_CREATE;
-                } else {
-                    newConfig.mappingStatus =
-                        PoolHealthMonitorMappingStatus.PENDING_UPDATE;
-                }
-            }
-        }
-        ops.addAll(poolZkManager.prepareUpdate(id, newConfig));
-        zkManager.multi(ops);
     }
 
     @Override
@@ -2416,60 +1361,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void poolSetMapStatus(UUID id,
-                                 PoolHealthMonitorMappingStatus status)
-        throws StateAccessException, SerializationException {
-        PoolZkManager.PoolConfig pool = poolZkManager.get(id);
-        if (pool == null) {
-            return;
-        }
-        pool.mappingStatus = status;
-        zkManager.multi(poolZkManager.prepareUpdate(id, pool));
-    }
-
-    private Pair<String, PoolHealthMonitorConfig>
-    buildPoolHealthMonitorMappings(final UUID vipId,
-                                   final @Nonnull VipZkManager.VipConfig config,
-                                   final boolean deleteVip)
-        throws MappingStatusException, SerializationException,
-               StateAccessException {
-        UUID poolId = checkNotNull(config.poolId, "Pool ID is null.");
-        PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
-
-        // Since we haven't deleted/updated this VIP in Zookeeper yet,
-        // preparePoolHealthMonitorMappings() will get an outdated version of
-        // this VIP when it fetches the Pool's vips. The ConfigGetter
-        // intercepts the request for this VIP and returns the updated
-        // VipConfig, or null if it's been deleted.
-        ConfigGetter<UUID, VipZkManager.VipConfig> configGetter =
-            new ConfigGetter<UUID, VipZkManager.VipConfig>() {
-                @Override
-                public VipZkManager.VipConfig get(UUID key)
-                    throws StateAccessException, SerializationException {
-                    if (key.equals(vipId)) {
-                        return deleteVip ? null : config;
-                    }
-                    return vipZkManager.get(key);
-                }
-            };
-
-        return preparePoolHealthMonitorMappings(
-            poolId, poolConfig, poolMemberZkManager, configGetter);
-    }
-
-    private List<Op> buildPoolMappingStatusUpdate(
-        VipZkManager.VipConfig vipConfig)
-        throws StateAccessException, SerializationException {
-        UUID poolId = vipConfig.poolId;
-        PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
-        // Indicate the mapping is being updated.
-        poolConfig.mappingStatus =
-            PoolHealthMonitorMappingStatus.PENDING_UPDATE;
-        return Arrays.asList(Op.setData(pathBuilder.getPoolPath(poolId),
-                                        serializer.serialize(poolConfig), -1));
-    }
-
-    @Override
     @CheckForNull
     public VIP vipGet(UUID id)
         throws StateAccessException, SerializationException {
@@ -2479,132 +1370,6 @@ public class LocalDataClientImpl implements DataClient {
             vip.setId(id);
         }
         return vip;
-    }
-
-    @Override
-    public void vipDelete(UUID id)
-        throws MappingStatusException, StateAccessException,
-               SerializationException {
-        List<Op> ops = new ArrayList<>();
-        VipZkManager.VipConfig config = vipZkManager.get(id);
-
-        if (config.loadBalancerId != null) {
-            ops.addAll(loadBalancerZkManager.prepareRemoveVip(
-                config.loadBalancerId, id));
-        }
-
-        if (config.poolId != null) {
-            ops.addAll(poolZkManager.prepareRemoveVip(config.poolId, id));
-        }
-
-        ops.addAll(vipZkManager.prepareDelete(id));
-
-        // Pool-HealthMonitor mappings
-        Pair<String, PoolHealthMonitorConfig> pair =
-            buildPoolHealthMonitorMappings(id, config, true);
-        ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
-
-        if (pair != null) {
-            ops.addAll(buildPoolMappingStatusUpdate(config));
-        }
-        zkManager.multi(ops);
-    }
-
-    @Override
-    public UUID vipCreate(@Nonnull VIP vip)
-        throws MappingStatusException, StateAccessException,
-               SerializationException {
-        validatePoolConfigMappingStatus(vip.getPoolId());
-
-        if (vip.getId() == null) {
-            vip.setId(UUID.randomUUID());
-        }
-        UUID id = vip.getId();
-
-        // Get the VipConfig and set its loadBalancerId from the PoolConfig.
-        VipZkManager.VipConfig config = Converter.toVipConfig(vip);
-        PoolZkManager.PoolConfig poolConfig = poolZkManager.get(config.poolId);
-        config.loadBalancerId = poolConfig.loadBalancerId;
-
-        List<Op> ops = new ArrayList<>();
-        ops.addAll(vipZkManager.prepareCreate(id, config));
-        ops.addAll(poolZkManager.prepareAddVip(config.poolId, id));
-        ops.addAll(loadBalancerZkManager.prepareAddVip(
-            config.loadBalancerId, id));
-
-        // Flush the VIP first.
-        zkManager.multi(ops);
-        ops.clear();
-
-        // Pool-HealthMonitor mappings
-        Pair<String, PoolHealthMonitorConfig> pair =
-            buildPoolHealthMonitorMappings(id, config, false);
-        ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
-
-        if (pair != null) {
-            ops.addAll(buildPoolMappingStatusUpdate(config));
-        }
-        zkManager.multi(ops);
-        return id;
-    }
-
-    @Override
-    public void vipUpdate(@Nonnull VIP vip)
-        throws MappingStatusException, StateAccessException,
-               SerializationException {
-        validatePoolConfigMappingStatus(vip.getPoolId());
-
-        // See if new config is different from old config.
-        UUID id = vip.getId();
-        VipZkManager.VipConfig newConfig = Converter.toVipConfig(vip);
-        VipZkManager.VipConfig oldConfig = vipZkManager.get(id);
-
-        // User can't set loadBalancerId directly because we get it from
-        // from the pool indicated by poolId.
-        newConfig.loadBalancerId = oldConfig.loadBalancerId;
-        if (newConfig.equals(oldConfig)) {
-            return;
-        }
-
-        List<Op> ops = new ArrayList<>();
-
-        boolean poolIdChanged =
-            !com.google.common.base.Objects.equal(newConfig.poolId,
-                                                  oldConfig.poolId);
-        if (poolIdChanged) {
-            ops.addAll(poolZkManager.prepareRemoveVip(oldConfig.poolId, id));
-            ops.addAll(loadBalancerZkManager.prepareRemoveVip(
-                oldConfig.loadBalancerId, id));
-
-            PoolZkManager.PoolConfig
-                newPoolConfig =
-                poolZkManager.get(newConfig.poolId);
-            newConfig.loadBalancerId = newPoolConfig.loadBalancerId;
-            ops.addAll(poolZkManager.prepareAddVip(newConfig.poolId, id));
-            ops.addAll(loadBalancerZkManager.prepareAddVip(
-                newPoolConfig.loadBalancerId, id));
-        }
-
-        ops.addAll(vipZkManager.prepareUpdate(id, newConfig));
-        zkManager.multi(ops);
-
-        ops.clear();
-        if (poolIdChanged) {
-            // Remove the VIP from the old pool-HM mapping.
-            Pair<String, PoolHealthMonitorConfig> oldPair =
-                buildPoolHealthMonitorMappings(id, oldConfig, true);
-            ops.addAll(preparePoolHealthMonitorMappingUpdate(oldPair));
-        }
-
-        // Update the appropriate pool-HM mapping with the new VIP config.
-        Pair<String, PoolHealthMonitorConfig> pair =
-            buildPoolHealthMonitorMappings(id, newConfig, false);
-        ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
-
-        if (pair != null) {
-            ops.addAll(buildPoolMappingStatusUpdate(newConfig));
-        }
-        zkManager.multi(ops);
     }
 
     @Override
@@ -2639,18 +1404,6 @@ public class LocalDataClientImpl implements DataClient {
 
         log.debug("Exiting: route={}", route);
         return route;
-    }
-
-    @Override
-    public void routesDelete(UUID id)
-            throws StateAccessException, SerializationException {
-        routeZkManager.delete(id);
-    }
-
-    @Override
-    public UUID routesCreate(@Nonnull Route route)
-            throws StateAccessException, SerializationException {
-        return routeZkManager.create(Converter.toRouteConfig(route));
     }
 
     @Override
@@ -2714,62 +1467,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void routersDelete(UUID id)
-            throws StateAccessException, SerializationException {
-        Router router = routersGet(id);
-        if (router == null) {
-            return;
-        }
-
-        List<Op> ops = routerZkManager.prepareRouterDelete(id);
-        zkManager.multi(ops);
-    }
-
-    @Override
-    public UUID routersCreate(@Nonnull Router router)
-            throws StateAccessException, SerializationException {
-        log.debug("routersCreate entered: router={}", router);
-
-        if (router.getId() == null) {
-            router.setId(UUID.randomUUID());
-        }
-
-        RouterZkManager.RouterConfig routerConfig =
-                Converter.toRouterConfig(router);
-
-        List<Op> ops =
-                routerZkManager.prepareRouterCreate(router.getId(),
-                                                    routerConfig);
-
-        // Create the top level directories
-        String tenantId = router.getProperty(Router.Property.tenant_id);
-        if (!Strings.isNullOrEmpty(tenantId)) {
-            ops.addAll(tenantZkManager.prepareCreate(tenantId));
-        }
-        zkManager.multi(ops);
-
-        log.debug("routersCreate ex.ing: router={}", router);
-        return router.getId();
-    }
-
-    @Override
-    public void routersUpdate(@Nonnull Router router) throws
-            StateAccessException, SerializationException {
-        // Get the original data
-        Router oldRouter = routersGet(router.getId());
-        RouterZkManager.RouterConfig routerConfig = Converter.toRouterConfig(
-                router);
-        List<Op> ops = new ArrayList<>();
-
-        // Update the config
-        ops.addAll(routerZkManager.prepareUpdate(router.getId(), routerConfig));
-
-        if (!ops.isEmpty()) {
-            zkManager.multi(ops);
-        }
-    }
-
-    @Override
     public List<Router> routersFindByTenant(String tenantId) throws StateAccessException,
         SerializationException {
         log.debug("routersFindByTenant entered: tenantId={}", tenantId);
@@ -2807,20 +1504,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void rulesDelete(UUID id)
-            throws StateAccessException, SerializationException {
-        ruleZkManager.delete(id);
-    }
-
-    @Override
-    public UUID rulesCreate(@Nonnull Rule<?, ?> rule)
-            throws StateAccessException, RuleIndexOutOfBoundsException,
-            SerializationException {
-        return ruleZkManager.create(rule.getId(), Converter.toRuleConfig(rule),
-                rule.getPosition());
-    }
-
-    @Override
     public List<Rule<?, ?>> rulesFindByChain(UUID chainId)
             throws StateAccessException, SerializationException {
         List<UUID> ruleIds = ruleZkManager.getRuleList(chainId).getRuleList();
@@ -2850,15 +1533,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     /**
-     * Overwrites the current write version with the string supplied
-     * @param newVersion The new version to set the write version to.
-     */
-    public void writeVersionUpdate(WriteVersion newVersion)
-            throws StateAccessException {
-        systemDataProvider.setWriteVersion(newVersion.getVersion());
-    }
-
-    /**
      * Get the system state info.
      *
      * @return System State info.
@@ -2877,20 +1551,6 @@ public class LocalDataClientImpl implements DataClient {
                      : SystemState.Availability.READWRITE.toString());
         systemState.setWriteVersion(writeVersion);
         return systemState;
-    }
-
-    /**
-     * Update the system state info.
-     *
-     * @param systemState the new system state
-     * @throws StateAccessException
-     */
-    public void systemStateUpdate(SystemState systemState)
-            throws StateAccessException {
-
-        systemDataProvider.setOperationState(systemState.getState());
-        systemDataProvider.setConfigState(systemState.getAvailability());
-        systemDataProvider.setWriteVersion(systemState.getWriteVersion());
     }
 
     /**
@@ -2931,76 +1591,6 @@ public class LocalDataClientImpl implements DataClient {
             }
         }
         return null;
-    }
-
-    @Override
-    public void traceRequestDelete(UUID id)
-            throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
-        TraceRequest request = traceRequestGet(id);
-        if (request == null) {
-            throw new StateAccessException("Trace does not exist");
-        }
-        ops.addAll(traceReqZkManager.prepareDelete(id));
-        zkManager.multi(ops);
-    }
-
-    private boolean checkTraceRequestDeviceExists(TraceRequest traceRequest)
-            throws StateAccessException, SerializationException {
-        switch (traceRequest.getDeviceType()) {
-            case ROUTER:
-                return routersGet(traceRequest.getDeviceId()) != null;
-            case BRIDGE:
-                return bridgesGet(traceRequest.getDeviceId()) != null;
-            case PORT:
-                return portsGet(traceRequest.getDeviceId()) != null;
-        }
-        return false;
-    }
-
-    @Override
-    public UUID traceRequestCreate(@Nonnull TraceRequest traceRequest)
-            throws StateAccessException, SerializationException,
-            RuleIndexOutOfBoundsException {
-        return traceRequestCreate(traceRequest, false);
-    }
-
-    @Override
-    public UUID traceRequestCreate(@Nonnull TraceRequest traceRequest,
-                                   boolean enabled)
-            throws StateAccessException, SerializationException,
-            RuleIndexOutOfBoundsException {
-        if (traceRequest.getId() == null) {
-            traceRequest.setId(UUID.randomUUID());
-        }
-        // check device exists
-        if (!checkTraceRequestDeviceExists(traceRequest)) {
-            throw new StateAccessException(
-                    "Device " + traceRequest.getDeviceId()
-                    + " of type " + traceRequest.getDeviceType()
-                    + " does not exist");
-        }
-        UUID id = traceRequest.getId();
-
-        TraceRequestZkManager.TraceRequestConfig config
-            = Converter.toTraceRequestConfig(traceRequest);
-        List<Op> ops = new ArrayList<Op>();
-        ops.addAll(traceReqZkManager.prepareCreate(id, config));
-        if (enabled) {
-            ops.addAll(traceRequestPrepareEnable(traceRequest));
-        }
-        zkManager.multi(ops);
-
-        // device may have been deleted after we checked, but before
-        // we created the trace, if so, the trace is no longer valid,
-        // delete
-        if (!checkTraceRequestDeviceExists(traceRequest)) {
-            traceRequestDelete(traceRequest.getId());
-
-            throw new StateAccessException(
-                    "Device " + traceRequest.getDeviceId() + " deleted");
-        }
-        return id;
     }
 
     @Override
@@ -3074,183 +1664,6 @@ public class LocalDataClientImpl implements DataClient {
         return traceRequests;
     }
 
-    /**
-     * If the agent crashes after this is called but before it
-     * is assigned to a device, a chain will be orphaned.
-     */
-    private UUID traceFindOrCreateChain(TraceRequest request)
-            throws StateAccessException, SerializationException {
-        String name = traceReqZkManager.traceRequestChainName(
-                request.getId());
-        for (Chain chain : chainsGetAll()) {
-            if (chain.getName().equals(name)) {
-                return chain.getId();
-            }
-        }
-        Chain chain = new Chain().setName(name);
-        chainsCreate(chain);
-        return chain.getId();
-    }
-
-    private UUID traceFindOrCreateRule(UUID chainId, TraceRequest request,
-                                       List<Op> ops)
-            throws StateAccessException, SerializationException,
-            RuleIndexOutOfBoundsException {
-        for (Rule<?,?> r : rulesFindByChain(chainId)) {
-            if (r instanceof TraceRule) {
-                TraceRule rule = (TraceRule)r;
-                if (Objects.equals(rule.getRequestId(), request.getId())) {
-                    return rule.getId(); // only one rule per request for now
-                }
-            }
-        }
-
-        TraceRule rule = new TraceRule(request.getId(),
-                                       request.getCondition(),
-                                       request.getLimit());
-        rule.setChainId(chainId).setPosition(1).setId(UUID.randomUUID());
-
-        ops.addAll(ruleZkManager.prepareInsertPositionOrdering(
-            rule.getId(), Converter.toRuleConfig(rule), 1));
-        return rule.getId();
-    }
-
-    private List<Op> traceRequestPrepareEnable(TraceRequest request)
-            throws StateAccessException, SerializationException,
-            RuleIndexOutOfBoundsException {
-        List<Op> ops = new ArrayList<Op>();
-        if (request.getEnabledRule() != null) {
-            return ops; // already enabled
-        }
-        UUID id = request.getId();
-        UUID deviceId = request.getDeviceId();
-        UUID ruleId = null;
-        switch (request.getDeviceType()) {
-        case BRIDGE:
-            Bridge bridge = bridgesGet(deviceId);
-            if (bridge != null) {
-                UUID chainId = bridge.getInboundFilter();
-                if (chainId == null) {
-                    chainId = traceFindOrCreateChain(request);
-                    bridge.setInboundFilter(chainId);
-                    ops.addAll(bridgeZkManager.prepareUpdate(bridge.getId(),
-                           Converter.toBridgeConfig(bridge)));
-                }
-                ruleId = traceFindOrCreateRule(chainId, request, ops);
-            } else {
-                throw new IllegalStateException("Bridge device does not exist");
-            }
-            break;
-        case PORT:
-            Port port = portsGet(deviceId);
-            if (port != null) {
-                UUID chainId = port.getInboundFilter();
-                if (chainId == null) {
-                    chainId = traceFindOrCreateChain(request);
-                    port.setInboundFilter(chainId);
-                    ops.addAll(portZkManager.prepareUpdate(deviceId,
-                                       Converter.toPortConfig(port)));
-                }
-                ruleId = traceFindOrCreateRule(chainId, request, ops);
-            } else {
-                throw new IllegalStateException("Port device does not exist");
-            }
-            break;
-        case ROUTER:
-            Router router = routersGet(deviceId);
-            if (router != null) {
-                UUID chainId = router.getInboundFilter();
-                if (chainId == null) {
-                    chainId = traceFindOrCreateChain(request);
-                    router.setInboundFilter(chainId);
-                    ops.addAll(routerZkManager.prepareUpdate(router.getId(),
-                                       Converter.toRouterConfig(router)));
-                }
-                ruleId = traceFindOrCreateRule(chainId, request, ops);
-            } else {
-                throw new IllegalStateException("Router device does not exist");
-            }
-            break;
-        default:
-            throw new IllegalStateException(
-                    "Unknown device type " + request.getDeviceType());
-        }
-
-        request.setEnabledRule(ruleId);
-        ops.addAll(traceReqZkManager.prepareUpdate(request.getId(),
-                                                   Converter
-                                                       .toTraceRequestConfig(
-                                                           request)));
-        return ops;
-    }
-
-    @Override
-    public void traceRequestEnable(UUID id)
-            throws StateAccessException, SerializationException,
-            RuleIndexOutOfBoundsException {
-        log.debug("Entered(traceRequestEnable): id={}", id);
-        TraceRequest request = traceRequestGet(id);
-        if (request == null) {
-            throw new IllegalStateException("Trace request does not exist");
-        }
-        zkManager.multi(traceRequestPrepareEnable(request));
-        log.debug("Exited(traceRequestEnable): id={}", id);
-    }
-
-    private List<Op> traceRequestPrepareDisable(TraceRequest request)
-            throws StateAccessException, SerializationException {
-        return traceReqZkManager.prepareDisable(request.getId());
-    }
-
-    public void traceRequestDisable(UUID id)
-            throws StateAccessException, SerializationException {
-        log.debug("Entered(traceRequestEnable): id={}", id);
-        TraceRequest request = traceRequestGet(id);
-        if (request == null) {
-            throw new IllegalStateException("Trace request does not exist");
-        }
-        zkManager.multi(traceRequestPrepareDisable(request));
-        log.debug("Exited(traceRequestDisable): id={}", id);
-    }
-
-    @Override
-    public Integer getPrecedingHealthMonitorLeader(Integer myNode)
-            throws StateAccessException {
-        String path = pathBuilder.getHealthMonitorLeaderDirPath();
-        Set<String> set = zkManager.getChildren(path);
-
-        String seqNumPath
-                = ZkUtil.getNextLowerSequenceNumberPath(set, myNode);
-        return seqNumPath == null ? null :
-                ZkUtil.getSequenceNumberFromPath(seqNumPath);
-    }
-
-    @Override
-    public Integer registerAsHealthMonitorNode(
-            ZkLeaderElectionWatcher.ExecuteOnBecomingLeader cb)
-            throws StateAccessException {
-        String path = pathBuilder.getHealthMonitorLeaderDirPath();
-        return ZkLeaderElectionWatcher.registerLeaderNode(cb, path, zkManager);
-    }
-
-    @Override
-    public void removeHealthMonitorLeaderNode(Integer node)
-            throws StateAccessException {
-        if (node == null)
-            return;
-        String path = pathBuilder.getHealthMonitorLeaderDirPath() + "/" +
-                StringUtils.repeat("0", 10 - node.toString().length()) +
-                node.toString();
-        zkManager.delete(path);
-    }
-
-    @Override
-    public void vtepCreate(VTEP vtep)
-            throws StateAccessException, SerializationException {
-        VtepZkManager.VtepConfig config = Converter.toVtepConfig(vtep);
-        zkManager.multi(vtepZkManager.prepareCreate(vtep.getId(), config));
-    }
-
     @Override
     public VTEP vtepGet(IPv4Addr ipAddr)
             throws StateAccessException, SerializationException {
@@ -3279,46 +1692,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return vteps;
-    }
-
-    @Override
-    public void vtepDelete(IPv4Addr ipAddr)
-            throws StateAccessException, SerializationException {
-        List<Op> deleteNoOwner = new ArrayList<>(
-            vtepZkManager.prepareDelete(ipAddr));
-        List<Op> deleteOwner = new ArrayList<>(
-            vtepZkManager.prepareDeleteOwner(ipAddr));
-        deleteOwner.addAll(deleteNoOwner);
-
-        try {
-            zkManager.multi(deleteOwner);
-        } catch (NoStatePathException e) {
-            zkManager.multi(deleteNoOwner);
-        }
-    }
-
-    @Override
-    public void vtepUpdate(VTEP vtep)
-        throws StateAccessException, SerializationException {
-        VtepZkManager.VtepConfig config = Converter.toVtepConfig(vtep);
-        zkManager.multi(vtepZkManager.prepareUpdate(vtep.getId(), config));
-    }
-
-    @Override
-    public void vtepAddBinding(@Nonnull IPv4Addr ipAddr,
-                               @Nonnull String portName, short vlanId,
-                               @Nonnull UUID networkId)
-            throws StateAccessException {
-        zkManager.multi(vtepZkManager.prepareCreateBinding(ipAddr, portName,
-                                                           vlanId, networkId));
-    }
-
-    @Override
-    public void vtepDeleteBinding(@Nonnull IPv4Addr ipAddr,
-                                  @Nonnull String portName, short vlanId)
-            throws StateAccessException {
-        zkManager.multi(
-                vtepZkManager.prepareDeleteBinding(ipAddr, portName, vlanId));
     }
 
     @Override
@@ -3362,183 +1735,6 @@ public class LocalDataClientImpl implements DataClient {
                                       @Nonnull String portName, short vlanId)
             throws StateAccessException {
         return vtepZkManager.getBinding(ipAddr, portName, vlanId);
-    }
-
-    @Override
-    public int getNewVni() throws StateAccessException {
-        return vtepZkManager.getNewVni();
-    }
-
-    /*
-     * Utility method to use internaly. It assumes that the caller has verified
-     * that both the bridge and port are non-null.
-     *
-     * It's convenient to slice this out so other methods can fetch the
-     * parameters as they prefer, and then use this to retrieve the vxlan
-     * tunnel endpoint. The method returns a null IP if the endpoint cannot
-     * be retrieved for any reason (bridge unbound, etc.)
-     *
-     * Note that this method will return null if the bridge is not bound to
-     * any VTEP. This is because we won't be able to figure out the tunnel zone
-     * from which to extract the host's IP.
-     *
-     * @param b a bridge, expected to exist, be bound to a VTEP, and contain the
-     *          given port.
-     * @param port a bridge port on the given bridge, that must be exterior
-     * @return the IP address of the bound host's membership in the VTEP's
-     *         tunnel zone.
-     */
-    private IPv4Addr vxlanTunnelEndpointForInternal(Bridge b, BridgePort port)
-        throws SerializationException, StateAccessException {
-
-        // We can take a random vxlan port, since all are forced to be in the
-        // same tz
-
-        if (b.getVxLanPortIds() == null) {
-            return null;
-        }
-
-        VxLanPort vxlanPort = null;
-        int i = 0;
-        while (vxlanPort == null && i < b.getVxLanPortIds().size()) {
-            vxlanPort = (VxLanPort)portsGet(b.getVxLanPortIds().get(i++));
-            if (vxlanPort == null) {
-                log.warn("VxLanPort {} at bridge {} does not exist anymore",
-                         b.getVxLanPortIds(), b.getId());
-            }
-        }
-
-        if (vxlanPort == null) {
-            log.warn("Can't find VTEP tunnel zone on bridge {} - is it even " +
-                     "bound to a VTEP?", b.getId());
-            return null;
-        }
-
-        IPv4Addr vtepMgmtIp = vxlanPort.getMgmtIpAddr();
-        log.debug("Port's bridge {} is bound to one or more VTEPs", b.getId());
-
-        // We will need the host where the given BridgePort is bound
-        UUID hostId = port.getHostId();
-        if (hostId == null) {
-            log.error("Port {} is not bound to a host", port.getId());
-            return null;
-        }
-
-        // Let's get the tunnel zone this host should be in, and get the IP of
-        // the host in that tunnel zone.
-        VTEP vtep = vtepGet(vtepMgmtIp);
-        if (vtep == null) {
-            log.warn("Vtep {} bound to bridge {} does not exist anymore",
-                     vtepMgmtIp, b.getId());
-            return null;
-        }
-
-        UUID tzId = vtep.getTunnelZoneId();
-        TunnelZone.HostConfig hostCfg =
-            this.tunnelZonesGetMembership(tzId, hostId);
-        if (hostCfg == null) {
-            log.error("Port {} on bridge {} bount to an interface in host {} " +
-                      "was expected to belong to tunnel zone {} through " +
-                      "binding to VTEP {}", port.getId(), b.getId(), hostId,
-                      tzId, vtepMgmtIp);
-            return null;
-        }
-
-        return hostCfg.getIp();
-    }
-
-    @Override
-    public VxLanPort bridgeCreateVxLanPort(
-            UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni,
-            IPv4Addr tunnelIp, UUID tunnelZoneId)
-            throws StateAccessException, SerializationException {
-
-        // the get below migrates from legacy schema if needed
-        BridgeConfig bridgeConfig = bridgeZkManager.get(bridgeId);
-
-        if (bridgeConfig.vxLanPortIds == null) { // should not happen but might
-                                                 // on first read from ZK
-            bridgeConfig.vxLanPortIds = new ArrayList<>(2);
-        }
-
-        // migrate legacy data
-        if (bridgeConfig.vxLanPortId != null) {
-            if (!bridgeConfig.vxLanPortIds.contains(bridgeConfig.vxLanPortId)) {
-                bridgeConfig.vxLanPortIds.add(0, bridgeConfig.vxLanPortId);
-                log.debug("Lazy update of Bridge schema: existing VTEP"
-                          + "binding migrated to new schema in {}", bridgeId);
-            }
-        }
-
-        for (UUID id : bridgeConfig.vxLanPortIds) { // NPE safe
-            VxLanPort p = (VxLanPort) portsGet(id);
-            if (p.getMgmtIpAddr().equals(mgmtIp)) {
-                throw new IllegalStateException(
-                    "Not expected to find a port for vtep " + mgmtIp);
-            }
-        }
-
-        VxLanPort port = new VxLanPort(bridgeId, mgmtIp, mgmtPort, vni,
-                                       tunnelIp, tunnelZoneId);
-        PortConfig portConfig = Converter.toPortConfig(port);
-
-        List<Op> ops = new ArrayList<>();
-        ops.addAll(portZkManager.prepareCreate(port.getId(), portConfig));
-        bridgeConfig.vxLanPortIds.add(port.getId());
-        ops.addAll(bridgeZkManager.prepareUpdate(bridgeId, bridgeConfig));
-
-        zkManager.multi(ops);
-        return port;
-    }
-
-    @Override
-    public void bridgeDeleteVxLanPort(UUID bridgeId, IPv4Addr mgmtIp)
-        throws SerializationException, StateAccessException {
-        Bridge b = bridgesGet(bridgeId);
-        if (b == null || b.getVxLanPortIds() == null) {
-            return;
-        }
-        for (UUID portId : b.getVxLanPortIds()) {
-            VxLanPort p = (VxLanPort)portsGet(portId);
-            if (p.getMgmtIpAddr().equals(mgmtIp)) {
-                bridgeDeleteVxLanPort(p);
-                return;
-            }
-        }
-    }
-
-    @Override
-    public void bridgeDeleteVxLanPort(@Nonnull VxLanPort port)
-            throws SerializationException, StateAccessException {
-
-        // Make sure the bridge has a VXLAN port.
-        BridgeConfig bridgeCfg = bridgeZkManager.get(port.getDeviceId());
-        UUID vxlanPortId = port.getId();
-
-        List<Op> ops = new ArrayList<>();
-        // Let's locate this id in the legacy or new vxlanPortIds of the bridge
-        if (bridgeCfg.vxLanPortId != null &&
-            bridgeCfg.vxLanPortId.equals(vxlanPortId)) {
-            bridgeCfg.vxLanPortId = null;
-        }
-        if (bridgeCfg.vxLanPortIds.contains(vxlanPortId)) {
-            bridgeCfg.vxLanPortIds.remove(vxlanPortId);
-        }
-
-        ops.addAll(bridgeZkManager.prepareUpdate(bridgeCfg.id, bridgeCfg));
-
-        // Delete the port.
-        VxLanPortConfig portConfig =
-                (VxLanPortConfig)portZkManager.get(vxlanPortId);
-
-        ops.addAll(portZkManager.prepareDelete(vxlanPortId));
-
-        // Delete its bindings in Zookeeper.
-        ops.addAll(vtepZkManager.prepareDeleteAllBindings(
-            IPv4Addr.fromString(portConfig.mgmtIpAddr),
-            portConfig.device_id));
-
-        zkManager.multi(ops);
     }
 
     @Override

@@ -15,7 +15,6 @@
  */
 package org.midonet.cluster.storage
 
-import com.google.inject.Inject
 import com.typesafe.config.Config
 import org.apache.curator.framework.CuratorFramework
 

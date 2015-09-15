@@ -16,17 +16,14 @@
 package org.midonet.cluster.state
 
 import java.util.UUID
-
 import javax.annotation.Nonnull
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-
 import org.apache.zookeeper.CreateMode.EPHEMERAL
-
 import rx.Observable
 
-import org.midonet.cluster.{ClusterRouterManager, DataClient}
+import org.midonet.cluster.DataClient
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.Serializer
@@ -34,7 +31,6 @@ import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state._
 import org.midonet.midolman.state.zkManagers.{PortZkManager, RouterZkManager}
 import org.midonet.util.eventloop.Reactor
-import org.midonet.util.functors._
 
 /**
  * An implementation of the [[LegacyStorage]] trait using the legacy ZooKeeper
@@ -47,7 +43,6 @@ class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
                                        zkManager: ZkManager,
                                        portZkManager: PortZkManager,
                                        routerZkManager: RouterZkManager,
-                                       routerManager: ClusterRouterManager,
                                        pathBuilder: PathBuilder)
         extends LegacyStorage with MidolmanLogging {
 
@@ -121,15 +116,7 @@ class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
 
     override def setPortActive(portId: UUID, hostId: UUID, active: Boolean)
     : Observable[PortConfig] = {
-        portZkManager.setActivePort(portId, hostId, active)
-            .observeOn(reactor.rxScheduler)
-            .flatMap(makeFunc1(_ => portZkManager.getWithObservable(portId)))
-            .doOnNext(makeAction1(portConfig => {
-                if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
-                    routerManager.updateRoutesBecauseLocalPortChangedStatus(
-                        portConfig.device_id, portId, active)
-                }
-            }))
+        throw new UnsupportedOperationException("setPortActive is gone in v1")
     }
 
     /** Ensures that the path for the specified bridge is created in the

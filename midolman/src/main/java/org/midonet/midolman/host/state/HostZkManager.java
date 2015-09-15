@@ -27,6 +27,7 @@ import java.util.UUID;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.Watcher;
@@ -609,9 +610,4 @@ public class HostZkManager
         return getUuidList(paths.getHostTunnelZonesPath(hostId), watcher);
     }
 
-    @Override
-    public List<UUID> getAndWatchIdList(Runnable watcher)
-        throws StateAccessException {
-        return getUuidList(paths.getHostsPath(), watcher);
-    }
 }

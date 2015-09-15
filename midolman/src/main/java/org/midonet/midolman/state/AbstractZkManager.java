@@ -186,22 +186,6 @@ public abstract class AbstractZkManager<K, CFG>
         return configs;
     }
 
-    /**
-     * Gets the config for the specified resource ID asynchronously.
-     *
-     * @param callback Receives the config when available.
-     * @param watcher Optional watcher to be notified of a future update.
-     */
-    public void getAsync(final K key,
-                         DirectoryCallback<CFG> callback,
-                         Directory.TypedWatcher watcher) {
-        getAsync(getConfigPath(key), getConfigClass(), callback, watcher);
-    }
-
-    public Observable<CFG> getWithObservable(final K key) {
-        return getWithObservable(key, null);
-    }
-
     public Observable<CFG> getWithObservable(final K key,
             final Directory.TypedWatcher watcher) {
         return Observable.create(new Observable.OnSubscribe<CFG>() {

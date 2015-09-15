@@ -46,7 +46,6 @@ public class VtepZkManager
         implements WatchableZkManager<IPv4Addr, VtepZkManager.VtepConfig> {
 
     public static final int MIN_VNI = 10000;
-    public static final int MAX_VNI = 0xffffff;
 
     public static class VtepConfig {
         public int mgmtPort;
@@ -75,13 +74,6 @@ public class VtepZkManager
                               paths.getVtepBindingsPath(ipAddr), null));
     }
 
-    /**
-     * Removes the ownership from a specific VxLanGatewayService.
-     */
-    public List<Op> prepareDeleteOwner(IPv4Addr ipAddr) {
-        return asList(Op.delete(paths.getVtepOwnerPath(ipAddr), -1));
-    }
-
     public List<Op> prepareDelete(IPv4Addr ipAddr) {
         return asList(Op.delete(paths.getVtepBindingsPath(ipAddr), -1),
                       Op.delete(paths.getVtepPath(ipAddr), -1));
@@ -90,27 +82,6 @@ public class VtepZkManager
     public List<Op> prepareUpdate(IPv4Addr ipAddr, VtepConfig vtepConfig)
         throws SerializationException {
         return asList(simpleUpdateOp(ipAddr, vtepConfig));
-    }
-
-    public List<Op> prepareCreateBinding(IPv4Addr ipAddr, String portName,
-                                         short vlanId, UUID networkId)
-            throws StateAccessException {
-        return asList(zk.getPersistentCreateOp(
-            paths.getVtepBindingPath(ipAddr, portName, vlanId, networkId),
-            null));
-    }
-
-    public List<Op> prepareDeleteBinding(IPv4Addr ipAddr, String portName,
-                                         short vlanId)
-            throws StateAccessException {
-        for (VtepBinding binding : getBindings(ipAddr)) {
-            if (vlanId == binding.getVlanId() &&
-                    portName.equals(binding.getPortName()))
-                return asList(zk.getDeleteOp(paths.getVtepBindingPath(
-                        ipAddr, portName, vlanId, binding.getNetworkId())));
-        }
-
-        return asList();
     }
 
     public List<Op> prepareDeleteAllBindings(IPv4Addr ipAddr, UUID bridgeId)
@@ -161,18 +132,6 @@ public class VtepZkManager
         }
 
         return bindings;
-    }
-
-    /**
-     * Tries to take ownership of a VTEP for the given node identifier.
-     *
-     * @param ip The management IP of the VTEP
-     * @param ownerId The owner identifier.
-     * @return The identifier of the current owner, never null.
-     */
-    public UUID tryOwnVtep(IPv4Addr ip, UUID ownerId)
-        throws StateAccessException, SerializationException {
-        return tryOwnVtep(ip, ownerId, null);
     }
 
     /**
@@ -247,46 +206,4 @@ public class VtepZkManager
         return owner;
     }
 
-    public int getNewVni() throws StateAccessException {
-        for (int i = 0; i < 10; i++) {
-            // Get the VNI counter node and its version.
-            String path = paths.getVniCounterPath();
-            Map.Entry<byte[], Integer> entry = zk.getWithVersion(path, null);
-            int vni = Integer.parseInt(new String(entry.getKey()));
-            int nodeVersion = entry.getValue();
-
-            // Try to increment the counter node.
-            try {
-                int newVni = (vni < MAX_VNI) ? vni + 1 : MIN_VNI;
-                byte[] newData = Integer.toString(newVni).getBytes();
-                zk.update(path, newData, nodeVersion);
-                return vni;
-            } catch (StateVersionException ex) {
-                log.warn("getNewVni() failed due to concurrent update. " +
-                         "Trying again.");
-            }
-        }
-
-        // Time to buy some lottery tickets!
-        throw new RuntimeException("getNewVni() failed due to concurrent " +
-                                   "updates ten times in a row.");
-    }
-
-    @Override
-    public List<IPv4Addr> getAndWatchIdList(Runnable watcher)
-        throws StateAccessException {
-
-        Set<String> vtepIpStrs = zk.getChildren(paths.getVtepsPath(), watcher);
-        List<IPv4Addr> vtepIps = new ArrayList<>(vtepIpStrs.size());
-        for (String vtepIpStr : vtepIpStrs) {
-            try {
-                vtepIps.add(IPv4Addr.fromString(vtepIpStr));
-            } catch (IllegalArgumentException ex) {
-                log.error("'{}' at path '{}' is not a valid IPv4 address. "
-                          + "Zookeeper data may be corrupt.",
-                          vtepIpStr, paths.getVtepsPath(), ex);
-            }
-        }
-        return vtepIps;
-    }
 }
