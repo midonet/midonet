@@ -17,12 +17,16 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.models.Commons.Condition
-import org.midonet.cluster.models.Topology.{Network => TopoBridge, Host, Rule}
+import org.midonet.cluster.models.Commons.{Condition, UUID => PUUID}
+import org.midonet.cluster.models.Topology.{Network => TopoBridge, Host}
+import org.midonet.cluster.models.Topology.{Port => TopoPort, L2Insertion, Rule}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.TopologyBuilder
@@ -61,18 +65,17 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             bridgeId = Some(bridge.getId.asJava))
     }
 
-    def makeServicePort(id: UUID, host: Host, ifName: String, bridge: TopoBridge,
-                        infilter: Option[UUID] = None,
-                        outfilter: Option[UUID] = None) = {
-        val port = createBridgePort(
-            id = id,
-            hostId = Some(host.getId),
-            interfaceName = Some(ifName),
-            adminStateUp = true,
-            inboundFilterId = infilter,
-            outboundFilterId = outfilter,
-            bridgeId = Some(bridge.getId.asJava))
-        port.toBuilder.addSrvInsertions(UUID.randomUUID).build
+    def addServiceToPort(id: PUUID): L2Insertion = {
+        // isn't actually translated to anything, just here
+        // to convert port to service port
+        L2Insertion.newBuilder
+            .setId(UUID.randomUUID().asProto)
+            .setMac(mac1)
+            .setPort(id)
+            .setSrvPort(id)
+            .setPosition(1)
+            .setVlan(10)
+            .build
     }
 
     def packet(srcMac: String, dstMac: String, vlan: Option[Short] = None,
@@ -230,19 +233,22 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                                    Some(vm1In.getId), Some(vm1Out.getId))
             val vm2Port = makePort(new UUID(0,2), host, "if_vm2", vmBridge,
                                    Some(vm2In.getId), Some(vm2Out.getId))
-            var svc1Port = makeServicePort(new UUID(1,1), host,
-                                           "if_svc1", svcBridge,
-                                           Some(svc1In.getId),
-                                           Some(svc1Out.getId))
-            val svc2Port = makeServicePort(new UUID(1,2), host,
-                                           "if_svc2", svcBridge,
-                                           Some(svc2In.getId),
-                                           Some(svc2Out.getId))
+            var svc1Port = makePort(new UUID(1,1), host,
+                                    "if_svc1", svcBridge,
+                                    Some(svc1In.getId),
+                                    Some(svc1Out.getId))
+            val ins1 = addServiceToPort(svc1Port.getId)
+            val svc2Port = makePort(new UUID(1,2), host,
+                                    "if_svc2", svcBridge,
+                                    Some(svc2In.getId),
+                                    Some(svc2Out.getId))
+            val ins2 = addServiceToPort(svc2Port.getId)
 
             List(host, vmBridge, svcBridge,
                  vm1In, vm1Out, vm2In, vm2Out,
                  svc1In, svc1Out, svc2In, svc2Out,
-                 vm1Port, vm2Port, svc1Port, svc2Port
+                 vm1Port, vm2Port, svc1Port, svc2Port,
+                 ins1, ins2
             ).foreach {
                 store.create(_)
             }
@@ -396,6 +402,7 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             p.adminStateUp should be(true)
 
             // Now set svc1Port down. Traffic from VM1 should be dropped because FAIL_OPEN is false.
+            svc1Port = Await.result(store.get(classOf[TopoPort], svc1Port.getId), 5 seconds)
             svc1Port = svc1Port.toBuilder().setAdminStateUp(false).build()
             store.update(svc1Port)
             fetchDevice[Port](svc1Port.getId).

@@ -74,8 +74,14 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                 val infilters = new ArrayList[UUID](1)
                 val outfilters = new ArrayList[UUID](1)
                 traceChain.foreach(infilters.add(_))
+                if (port.hasL2InsertionInfilter) {
+                    infilters.add(port.getL2InsertionInfilter)
+                }
                 if (port.hasInboundFilterId) {
                     infilters.add(port.getInboundFilterId)
+                }
+                if (port.hasL2InsertionOutfilter) {
+                    outfilters.add(port.getL2InsertionOutfilter)
                 }
                 if (port.hasOutboundFilterId) {
                     outfilters.add(port.getOutboundFilterId)
@@ -112,7 +118,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         log.debug("Port updated in topology {}", port)
         chainsTracker.requestRefs(
             if (port.hasInboundFilterId) port.getInboundFilterId else null,
-            if (port.hasOutboundFilterId) port.getOutboundFilterId else null)
+            if (port.hasOutboundFilterId) port.getOutboundFilterId else null,
+            if (port.hasL2InsertionInfilter) port.getL2InsertionInfilter else null,
+            if (port.hasL2InsertionOutfilter) port.getL2InsertionOutfilter else null)
 
         mirrorsTracker.requestRefs(port.getInboundMirrorsList :_*)
         mirrorsTracker.requestRefs(port.getOutboundMirrorsList :_*)
