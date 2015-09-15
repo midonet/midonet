@@ -94,6 +94,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_486fd292",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/MapObservableOnSubscribe.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-15T11:03:05Z",
+      "side": 1,
+      "message": "I\u0027m managing the stop separately for now, assuming that the caller will deal with the stop. Given that this has few usages, and won\u0027t stick around, I didnt\u0027 want to assume a more general use case.",
+      "parentUuid": "1ae5cdf2_e8417e0c",
+      "range": {
+        "startLine": 33,
+        "startChar": 12,
+        "endLine": 33,
+        "endChar": 22
+      },
+      "revId": "6e000c9e6abd65577b26a92e095905dd4d395b35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_e8ca5ea0",
         "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
         "patchSetId": 26
@@ -128,6 +152,30 @@
       "writtenOn": "2015-09-15T10:55:22Z",
       "side": 1,
       "message": "Is this intended? Note: the logger class already contains the path.",
+      "range": {
+        "startLine": 199,
+        "startChar": 12,
+        "endLine": 199,
+        "endChar": 60
+      },
+      "revId": "6e000c9e6abd65577b26a92e095905dd4d395b35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_8869da8d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-15T11:03:05Z",
+      "side": 1,
+      "message": "nah, leftovers",
+      "parentUuid": "1ae5cdf2_08f94ae9",
       "range": {
         "startLine": 199,
         "startChar": 12,
