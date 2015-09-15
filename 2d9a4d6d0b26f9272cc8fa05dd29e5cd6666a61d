@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_08ab0ad9",
+        "filename": "midonet-api/src/test/java/org/midonet/api/network/TestVtep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 782,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-15T10:41:30Z",
+      "side": 1,
+      "message": "Unfortunately it\u0027s not a RuntimeException, so it must be catched. I preferred this than having the throws Exception added all over the place.",
+      "parentUuid": "1ae5cdf2_e86edec8",
+      "range": {
+        "startLine": 780,
+        "startChar": 0,
+        "endLine": 782,
+        "endChar": 9
+      },
+      "revId": "2d9a4d6d0b26f9272cc8fa05dd29e5cd6666a61d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_a874d69c",
         "filename": "midonet-api/src/test/java/org/midonet/api/network/TestVtep.java",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_28afe6e4",
+        "filename": "midonet-api/src/test/java/org/midonet/api/network/TestVtep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 784,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-15T10:41:30Z",
+      "side": 1,
+      "message": "It didn\u0027t work, I\u0027ll try again.",
+      "parentUuid": "1ae5cdf2_a874d69c",
+      "range": {
+        "startLine": 784,
+        "startChar": 26,
+        "endLine": 784,
+        "endChar": 42
+      },
+      "revId": "2d9a4d6d0b26f9272cc8fa05dd29e5cd6666a61d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_0874ea97",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-09-15T10:33:04Z",
       "side": 1,
       "message": "Does this have access to the constant you declared in VtepConstants, or vice-versa, so that you can define one in terms of the other?",
+      "range": {
+        "startLine": 34,
+        "startChar": 64,
+        "endLine": 34,
+        "endChar": 69
+      },
+      "revId": "2d9a4d6d0b26f9272cc8fa05dd29e5cd6666a61d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_88b63a3c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-15T10:41:30Z",
+      "side": 1,
+      "message": "True, unifying",
+      "parentUuid": "1ae5cdf2_0874ea97",
       "range": {
         "startLine": 34,
         "startChar": 64,
