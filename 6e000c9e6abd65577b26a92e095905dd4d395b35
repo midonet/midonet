@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_68b9ee2d",
+        "filename": "cluster/midonet-cluster/conf/logback.xml.dev",
+        "patchSetId": 26
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-15T10:55:22Z",
+      "side": 1,
+      "message": "`.cluster` missing?",
+      "range": {
+        "startLine": 49,
+        "startChar": 35,
+        "endLine": 49,
+        "endChar": 39
+      },
+      "revId": "6e000c9e6abd65577b26a92e095905dd4d395b35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_48ac32ee",
+        "filename": "cluster/midonet-cluster/conf/logback.xml.dev",
+        "patchSetId": 26
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-15T10:55:22Z",
+      "side": 1,
+      "message": "A `.vxgw` missing?",
+      "range": {
+        "startLine": 56,
+        "startChar": 42,
+        "endLine": 56,
+        "endChar": 47
+      },
+      "revId": "6e000c9e6abd65577b26a92e095905dd4d395b35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a8821650",
+        "filename": "cluster/midonet-cluster/conf/logback.xml.dev",
+        "patchSetId": 26
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-15T10:55:22Z",
+      "side": 1,
+      "message": "`.cluster` missing",
+      "range": {
+        "startLine": 62,
+        "startChar": 35,
+        "endLine": 62,
+        "endChar": 39
+      },
+      "revId": "6e000c9e6abd65577b26a92e095905dd4d395b35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e8417e0c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/MapObservableOnSubscribe.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-15T10:55:22Z",
+      "side": 1,
+      "message": "Just a note: do we need to hook an unsubscribe action to call stop for the replicated map?",
+      "range": {
+        "startLine": 33,
+        "startChar": 12,
+        "endLine": 33,
+        "endChar": 22
+      },
+      "revId": "6e000c9e6abd65577b26a92e095905dd4d395b35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e8ca5ea0",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-15T10:55:22Z",
+      "side": 1,
+      "message": "Already imported",
+      "range": {
+        "startLine": 47,
+        "startChar": 4,
+        "endLine": 47,
+        "endChar": 44
+      },
+      "revId": "6e000c9e6abd65577b26a92e095905dd4d395b35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_08f94ae9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-15T10:55:22Z",
+      "side": 1,
+      "message": "Is this intended? Note: the logger class already contains the path.",
+      "range": {
+        "startLine": 199,
+        "startChar": 12,
+        "endLine": 199,
+        "endChar": 60
+      },
+      "revId": "6e000c9e6abd65577b26a92e095905dd4d395b35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
