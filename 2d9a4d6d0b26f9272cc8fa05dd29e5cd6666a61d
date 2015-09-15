@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_08122ab1",
+        "filename": "midonet-api/src/test/java/org/midonet/api/network/TestVtep.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 784,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-15T12:52:39Z",
+      "side": 1,
+      "message": "Nah, this is probably because the midonet-api module doesn\u0027t bring scala.  Since this module is going away in another patch, I\u0027ll fix that later.",
+      "parentUuid": "1ae5cdf2_28afe6e4",
+      "range": {
+        "startLine": 784,
+        "startChar": 26,
+        "endLine": 784,
+        "endChar": 42
+      },
+      "revId": "2d9a4d6d0b26f9272cc8fa05dd29e5cd6666a61d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_0874ea97",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
         "patchSetId": 1
