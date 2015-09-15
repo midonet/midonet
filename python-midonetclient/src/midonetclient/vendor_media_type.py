@@ -56,6 +56,15 @@ APPLICATION_MIRROR_JSON = "application/vnd.org.midonet.Mirror-v1+json"
 APPLICATION_MIRROR_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Mirror-v1+json"
 
+APPLICATION_L2INSERTION_JSON = \
+    "application/vnd.org.midonet.L2Insertion-v1+json"
+APPLICATION_L2INSERTION_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.L2Insertion-v1+json"
+APPLICATION_L2SERVICE_JSON = \
+    "application/vnd.org.midonet.L2Service-v1+json"
+APPLICATION_L2SERVICE_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.L2Service-v1+json"
+
 APPLICATION_RULE_JSON = "application/vnd.org.midonet.Rule-v2+json"
 APPLICATION_RULE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Rule-v2+json"
