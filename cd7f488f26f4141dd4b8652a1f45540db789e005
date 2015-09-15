@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_ab4db074",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Port.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-15T14:27:19Z",
+      "side": 1,
+      "message": "Why? shouldn\u0027t it be part of the json object?",
+      "range": {
+        "startLine": 70,
+        "startChar": 7,
+        "endLine": 70,
+        "endChar": 39
+      },
+      "revId": "cd7f488f26f4141dd4b8652a1f45540db789e005",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_2b68c0b9",
+        "filename": "migrator/src/main/resources/org/midonet/migrator/migrator.conf",
+        "patchSetId": 6
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-15T14:27:19Z",
+      "side": 1,
+      "message": "Doesn\u0027t this have to be provided outside the \u0027mn-conf\u0027 templates?",
+      "range": {
+        "startLine": 2,
+        "startChar": 8,
+        "endLine": 5,
+        "endChar": 15
+      },
+      "revId": "cd7f488f26f4141dd4b8652a1f45540db789e005",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
