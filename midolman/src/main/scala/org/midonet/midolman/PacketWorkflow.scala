@@ -168,8 +168,7 @@ class PacketWorkflow(
             val packetOut: Int => Unit)
         extends Actor with ActorLogWithoutPath with Stash with Backchannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
-        with MetadataServiceWorkflow
-        with FlowController with BackChannelHandler {
+        with MetadataServiceWorkflow with FlowController {
 
     import PacketWorkflow._
 
@@ -263,7 +262,7 @@ class PacketWorkflow(
         }
     }
 
-    override def handle(msg: BackChannelMessage): Unit = msg match {
+    private def handle(msg: BackChannelMessage): Unit = msg match {
         case m: RouterManager.InvalidateFlows => invalidateRoutedFlows(m)
         case tag: FlowTag => invalidateFlowsFor(tag)
         case RestartWorkflow(pktCtx, error) => restart(pktCtx, error)
@@ -271,7 +270,8 @@ class PacketWorkflow(
 
     override def process(): Unit = {
         super.process()
-        backChannel.process(this)
+        while (backChannel.hasMessages)
+            handle(backChannel.poll())
         genPacketEmitter.process(runGeneratedPacket)
         connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
         natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)

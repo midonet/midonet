@@ -27,7 +27,7 @@ import akka.testkit.TestActorRef
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import com.google.inject.{Inject, Injector}
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
-import org.midonet.midolman.{BackChannelHandler, MockScheduler, Referenceable}
+import org.midonet.midolman.{MockScheduler, Referenceable}
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.topology.VirtualTopologyActor
 
@@ -70,12 +70,8 @@ trait MessageAccumulator extends Actor {
 trait BackChannelAccessor { this: VirtualTopologyActor =>
     def getAndClearBC(): mutable.Buffer[BackChannelMessage] = {
         val messages = mutable.Buffer[BackChannelMessage]()
-        backChannel.process(
-            new BackChannelHandler() {
-                override def handle(message: BackChannelMessage): Unit = {
-                    messages += message
-                }
-            })
+        while (backChannel.hasMessages)
+            messages += backChannel.poll()
         messages
     }
 }
