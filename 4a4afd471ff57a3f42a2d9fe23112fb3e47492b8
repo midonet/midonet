@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_fc577c00",
+        "filename": "docs/getting-started.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-16T07:10:07Z",
+      "side": 1,
+      "message": "It\u0027s not really clear what this is doing here. Previously the restart was to disable authentication. If it\u0027s disabled by default, do we need this?",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 49,
+        "endChar": 42
+      },
+      "revId": "4a4afd471ff57a3f42a2d9fe23112fb3e47492b8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
