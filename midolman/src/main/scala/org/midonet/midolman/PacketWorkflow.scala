@@ -72,10 +72,10 @@ object PacketWorkflow {
         extends GeneratedPacket
 
     trait SimulationResult {
-        val simStep: SimStep = (context, as) => this
+        val simStep: SimStep = context => this
     }
 
-    type SimStep = (PacketContext, ActorSystem) => SimulationResult
+    type SimStep = PacketContext => SimulationResult
 
     sealed trait DropAction extends SimulationResult
 
