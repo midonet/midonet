@@ -22,12 +22,11 @@ import java.util.UUID
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
+import scala.util.Failure
 
 import akka.actor._
 import com.typesafe.scalalogging.Logger
 import org.jctools.queues.MpscArrayQueue
-import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.slf4j.{LoggerFactory, MDC}
 
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -45,6 +44,7 @@ import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPhysicalPacket
 import org.midonet.midolman.simulation._
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -63,7 +63,8 @@ import org.midonet.util.concurrent._
 
 object PacketWorkflow {
     case class HandlePackets(packet: Array[Packet])
-    case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
+    case class RestartWorkflow(context: PacketContext, error: Throwable)
+        extends BackChannelMessage
 
     trait SimulationResult {
         val simStep: SimStep = (context, as) => this
@@ -234,20 +235,6 @@ class PacketWorkflow(
 
         case CheckBackchannels =>
             process()
-
-        case RestartWorkflow(pktCtx, error) =>
-            if (pktCtx.idle) {
-                metrics.packetsOnHold.dec()
-                pktCtx.log.debug("Restarting workflow")
-                MDC.put("cookie", pktCtx.cookieStr)
-                if (error eq null)
-                    runWorkflow(pktCtx)
-                else
-                    handleErrorOn(pktCtx, error)
-                MDC.remove("cookie")
-                FlowTracingContext.clearContext()
-            }
-            // Else the packet may have already been expired and dropped
     }
 
     override def shouldProcess(): Boolean =
@@ -255,7 +242,7 @@ class PacketWorkflow(
         genPacketEmitter.pendingPackets > 0 ||
         arpBroker.shouldProcess()
 
-    def handle(msg: RouterManager.InvalidateFlows) {
+    private def invalidateRoutedFlows(msg: RouterManager.InvalidateFlows) {
         val RouterManager.InvalidateFlows(id, added, deleted) = msg
 
         for (route <- deleted) {
@@ -277,8 +264,9 @@ class PacketWorkflow(
     }
 
     override def handle(msg: BackChannelMessage): Unit = msg match {
-        case m: RouterManager.InvalidateFlows => handle(m)
+        case m: RouterManager.InvalidateFlows => invalidateRoutedFlows(m)
         case tag: FlowTag => invalidateFlowsFor(tag)
+        case RestartWorkflow(pktCtx, error) => restart(pktCtx, error)
     }
 
     override def process(): Unit = {
@@ -325,17 +313,31 @@ class PacketWorkflow(
      * Deal with an incomplete workflow that could not complete because it found
      * a NotYet on the way.
      */
-    private def postponeOn(pktCtx: PacketContext, f: Future[_]) {
+    private def postponeOn(pktCtx: PacketContext, f: Future[_]): Unit = {
         pktCtx.postpone()
-        f.onComplete {
-            case Success(_) =>
-                self ! RestartWorkflow(pktCtx, null)
-            case Failure(ex) =>
-                self ! RestartWorkflow(pktCtx, ex)
+        f.onComplete { res =>
+            val error = res match {
+                case Failure(ex) => ex
+                case _ => null
+            }
+            backChannel.tell(RestartWorkflow(pktCtx, error))
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
         waitingRoom enter pktCtx
     }
+
+    private def restart(pktCtx: PacketContext, error: Throwable): Unit =
+        if (pktCtx.idle) {
+            metrics.packetsOnHold.dec()
+            pktCtx.log.debug("Restarting workflow")
+            MDC.put("cookie", pktCtx.cookieStr)
+            if (error eq null)
+                runWorkflow(pktCtx)
+            else
+                handleErrorOn(pktCtx, error)
+            MDC.remove("cookie")
+            FlowTracingContext.clearContext()
+        } // Else the packet may have already been expired and dropped
 
     private val giveUpWorkflow: PacketContext => Unit = context =>
         if (context.idle)
