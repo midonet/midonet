@@ -16,6 +16,24 @@
       "revId": "7de0d15588466f70100ef8534189268936b405be",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_12d0914f",
+        "filename": "cluster/README",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-09-16T16:50:39Z",
+      "side": 1,
+      "message": "Check the changes to the top-level DEVELOPMENT.md",
+      "parentUuid": "1ae5cdf2_d71d3b75",
+      "revId": "7de0d15588466f70100ef8534189268936b405be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
