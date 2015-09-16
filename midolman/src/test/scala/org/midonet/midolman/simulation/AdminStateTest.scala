@@ -28,10 +28,9 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.midolman.PacketWorkflow.{GeneratedLogicalPacket, SimulationResult}
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{BackChannelAccessor, MessageAccumulator}
@@ -413,9 +412,7 @@ class AdminStateTest extends MidolmanSpec {
 
     private[this] def assertExpectedIcmpProhibitPacket(routerPort: UUID,
                                                        context: PacketContext): Unit = {
-        context.packetEmitter.pendingPackets should be (1)
-        val generatedPacket =
-            context.packetEmitter.poll().asInstanceOf[GeneratedLogicalPacket]
+        val generatedPacket = context.backChannel.find[GeneratedLogicalPacket]()
         generatedPacket.egressPort should be(routerPort)
 
         val ipPkt = generatedPacket.eth.getPayload.asInstanceOf[IPv4]

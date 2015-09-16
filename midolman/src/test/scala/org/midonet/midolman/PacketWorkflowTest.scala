@@ -31,10 +31,7 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.FlowRecorderFactory
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPhysicalPacket
-import org.midonet.midolman.simulation.{DhcpConfig, PacketContext}
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -497,7 +494,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                 throw new NotYetException(p.future)
             } else {
                 if (generatedPacket ne null) {
-                    pktCtx.packetEmitter.schedule(generatedPacket)
+                    pktCtx.backChannel.tell(generatedPacket)
                     generatedPacket = null
                 } else if (exception ne null) {
                     throw exception

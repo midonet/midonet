@@ -120,12 +120,12 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
             And("the routing table changes")
             newRoute(clusterRouter, "0.0.0.0", 0, blackholedDestination, 32,
                 NextHop.BLACKHOLE, null, null, 1)
-            flowInvalidator.clear()
+            simBackChannel.clear()
 
             eventually { fetchDevice[Router](clusterRouter) should not be simRouter }
 
             Then("no invalidations are sent to the FlowController")
-            flowInvalidator.clear() should be ('empty)
+            simBackChannel.clear() should be ('empty)
         }
 
         scenario("to-port route") {
@@ -136,7 +136,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
             action should be (AddVirtualWildcardFlow)
 
             And("the routing table changes")
-            flowInvalidator.clear()
+            simBackChannel.clear()
             newRoute(clusterRouter, "0.0.0.0", 0, rightOtherIp, 32,
                 NextHop.REJECT, null, null, 1)
 
@@ -145,7 +145,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
             Then("an invalidation by destination IP is scheduled")
             val tag = FlowTagger.tagForDestinationIp(clusterRouter,
                                                      IPv4Addr(rightOtherIp))
-            flowInvalidator should invalidateForNewRoutes (new IPv4Subnet(rightOtherIp, 32))
+            simBackChannel should invalidateForNewRoutes (new IPv4Subnet(rightOtherIp, 32))
         }
     }
 }

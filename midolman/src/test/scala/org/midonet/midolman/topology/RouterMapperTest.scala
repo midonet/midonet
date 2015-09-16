@@ -1029,7 +1029,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val router = testRouterCreated(obs)._1
 
             And("The flow controller should receive the device invalidation")
-            flowInvalidator should invalidate (tagForRouter(router.getId))
+            simBackChannel should invalidate (tagForRouter(router.getId))
         }
 
         scenario("For added route corresponding to destination IP") {
@@ -1050,7 +1050,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The flow controller should receive the IP invalidation")
-            flowInvalidator should invalidateForNewRoutes(IPv4Subnet.fromCidr("2.0.0.0/24"))
+            simBackChannel should invalidateForNewRoutes(IPv4Subnet.fromCidr("2.0.0.0/24"))
         }
 
         scenario("For removed route") {
@@ -1073,7 +1073,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(3, timeout) shouldBe true
 
             Then("The flow controller should receive a route invalidation")
-            flowInvalidator should invalidateForDeletedRoutes(IPv4Subnet.fromCidr("2.0.0.0/24"))
+            simBackChannel should invalidateForDeletedRoutes(IPv4Subnet.fromCidr("2.0.0.0/24"))
         }
     }
 

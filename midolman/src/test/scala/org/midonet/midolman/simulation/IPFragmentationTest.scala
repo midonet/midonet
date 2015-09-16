@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{LinkedList, UUID}
+import java.util.UUID
 
 import scala.concurrent.duration._
 
@@ -24,12 +24,10 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.PacketWorkflow.{SimulationResult, ErrorDrop}
+import org.midonet.midolman.PacketWorkflow.{GeneratedPacket, GeneratedLogicalPacket, SimulationResult, ErrorDrop}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets._
@@ -72,8 +70,6 @@ class IPFragmentationTest extends MidolmanSpec {
     var dstMac: MAC = _
     var srcSubnet: IPv4Subnet = _
     var dstSubnet: IPv4Subnet = _
-
-    val packetEmitter = new LinkedList[GeneratedPacket]
 
     def setup(useRouter: Boolean = false) {
         this.useRouter = useRouter
@@ -159,7 +155,7 @@ class IPFragmentationTest extends MidolmanSpec {
             assertDropFlowCreated(simRes, temporary = false)
 
             And("No ICMP_FRAG_NEEDED message should be received.")
-            packetEmitter should be (empty)
+            simBackChannel.find[GeneratedPacket]() should be (null)
         }
 
         scenario("Header fragment dropped by router prompts ICMP_FRAG_NEEDED") {
@@ -189,7 +185,7 @@ class IPFragmentationTest extends MidolmanSpec {
             assertDropFlowCreated(simRes, temporary = false)
 
             And("No ICMP_FRAG_NEEDED message should be received.")
-            packetEmitter should be (empty)
+            simBackChannel.find[GeneratedPacket]() should be (null)
         }
     }
 
@@ -205,7 +201,7 @@ class IPFragmentationTest extends MidolmanSpec {
                            etherType: Short = IPv4.ETHERTYPE)
     : (SimulationResult, PacketContext) = {
         val pkt = makePacket(fragType, etherType)
-        val pktCtx = packetContextFor(pkt, srcPort, packetEmitter)
+        val pktCtx = packetContextFor(pkt, srcPort)
         simulate(pktCtx)
     }
 
@@ -245,9 +241,7 @@ class IPFragmentationTest extends MidolmanSpec {
     }
 
     private def assertIcmpFragNeededMessageReceived(context: PacketContext) {
-        context.packetEmitter.pendingPackets should be (1)
-        val generatedPacket =
-            context.packetEmitter.poll().asInstanceOf[GeneratedLogicalPacket]
+        val generatedPacket = context.backChannel.find[GeneratedLogicalPacket]()
 
         generatedPacket.egressPort should be(srcPort)
 

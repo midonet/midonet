@@ -19,6 +19,7 @@ package org.midonet.midolman.util
 import java.util.UUID
 
 import scala.concurrent.ExecutionContext
+import scala.reflect.ClassTag
 
 import akka.actor.ActorSystem
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
@@ -95,8 +96,6 @@ trait MidolmanServices {
     }
 
     def simBackChannel = injector.getInstance(classOf[SimulationBackChannel])
-
-    def flowInvalidator = simBackChannel
 
     val mockFlowInvalidation = new FlowTagIndexer() {
         val log = Logger(NOPLogger.NOP_LOGGER)

@@ -91,13 +91,13 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The flow controller should not received any message")
-            flowInvalidator.get() should be (empty)
+            simBackChannel.get() should be (empty)
 
             When("The stream sends a second device update")
             stream.in.onNext(TestableDevice(id, 1))
 
             Then("The flow controller should not received any message")
-            flowInvalidator.get() should be (empty)
+            simBackChannel.get() should be (empty)
         }
 
         scenario("The flow tags are invalidated for a device update") {
@@ -113,13 +113,13 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The flow controller received one invalidation message")
-            flowInvalidator.get() should contain only DeviceTag(id)
+            simBackChannel.get() should contain only DeviceTag(id)
 
             When("The stream sends a second device update")
             stream.in.onNext(TestableDevice(id, 1))
 
             Then("The flow controller received two invalidation messages")
-            flowInvalidator.get() should contain theSameElementsInOrderAs Vector(
+            simBackChannel.get() should contain theSameElementsInOrderAs Vector(
                 DeviceTag(id), DeviceTag(id))
         }
 
@@ -136,13 +136,13 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The flow controller received one invalidation message")
-            flowInvalidator.get() should contain only DeviceTag(id)
+            simBackChannel.get() should contain only DeviceTag(id)
 
             When("The stream sends an error update")
             stream.in.onError(new NullPointerException())
 
             Then("The flow controller received two invalidation messages")
-            flowInvalidator.get() should contain theSameElementsInOrderAs Vector(
+            simBackChannel.get() should contain theSameElementsInOrderAs Vector(
                 DeviceTag(id), DeviceTag(id))
         }
 
@@ -159,13 +159,13 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("The flow controller received one invalidation message")
-            flowInvalidator.get() should contain only DeviceTag(id)
+            simBackChannel.get() should contain only DeviceTag(id)
 
             When("The stream sends a completed update")
             stream.in.onError(new NullPointerException())
 
             Then("The flow controller received two invalidation messages")
-            flowInvalidator.get() should contain theSameElementsInOrderAs Vector(
+            simBackChannel.get() should contain theSameElementsInOrderAs Vector(
                 DeviceTag(id), DeviceTag(id))
         }
     }

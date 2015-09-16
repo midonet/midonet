@@ -18,19 +18,15 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.{UUID, List => JList}
 
-import org.midonet.sdn.flows.FlowTagger
-
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
-
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.PacketWorkflow.{ErrorDrop, Drop, NoOp, SimulationResult}
+import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.VirtualTopology.tryGet
@@ -39,6 +35,7 @@ import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
 import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
+import org.midonet.sdn.flows.FlowTagger
 
 object Router {
 
@@ -179,7 +176,7 @@ class Router(override val id: UUID,
             return
         }
 
-        val packetEmitter = context.packetEmitter
+        val backChannel = context.backChannel
         // Attempt to refresh the router's arp table.
         context.arpBroker.setAndGet(spa, pkt.getSenderHardwareAddress, inPort, this).onSuccess { case _ =>
             context.log.debug(s"replying to ARP request from $spa for $tpa " +
@@ -188,7 +185,7 @@ class Router(override val id: UUID,
             // Construct the reply, reversing src/dst fields from the request.
             val eth = ARP.makeArpReply(inPort.portMac, sha,
                 pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
-            packetEmitter.schedule(GeneratedLogicalPacket(inPort.id, eth))
+            backChannel.tell(GeneratedLogicalPacket(inPort.id, eth))
         }(ExecutionContext.callingThread)
     }
 

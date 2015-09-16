@@ -23,6 +23,7 @@ import akka.actor.ActorSystem
 import org.apache.curator.test.TestingServer
 import org.apache.zookeeper.CreateMode
 import org.junit.runner.RunWith
+import org.midonet.midolman.PacketWorkflow.{GeneratedLogicalPacket, GeneratedPacket}
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
@@ -31,8 +32,6 @@ import org.scalatest.time.{Second, Span}
 
 import org.midonet.cluster.ClusterRouterManager.ArpCacheImpl
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.ArpRequestBroker._
@@ -99,12 +98,9 @@ class ArpRequestBrokerTest extends Suite
     implicit var actorSystem: ActorSystem = _
     implicit def ec: ExecutionContext = actorSystem.dispatcher
 
-    var emitter: PacketEmitter = _
     val arps = new ArrayDeque[GeneratedPacket]()
     val invalidations = new ArrayDeque[FlowTag]()
     var arpBroker: ArpRequestBroker = _
-
-    var emittedPackets = new ArrayDeque[PacketEmitter.GeneratedPacket]()
 
     val clock = UnixClock.MOCK
 
@@ -121,13 +117,24 @@ class ArpRequestBrokerTest extends Suite
 
     val config = MidolmanConfig.forTests(confValues)
 
-    implicit def packetContext = {
+    val backChannel = new SimulationBackChannel {
+        override def tell(message: BackChannelMessage): Unit =
+            message match {
+                case m: GeneratedPacket => arps.add(m)
+                case m: FlowTag => invalidations.add(m)
+            }
+
+        override def poll(): BackChannelMessage = null
+
+        override def hasMessages: Boolean = arps.size() > 0
+    }
+
+    implicit def packetContext: PacketContext = {
         val frame = Ethernet.random()
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
         fmatch.setInputPortNumber(1)
         val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch)
-        context.packetEmitter = emitter
-        context.arpBroker = arpBroker
+        context.backChannel = backChannel
         context
     }
 
@@ -182,16 +189,7 @@ class ArpRequestBrokerTest extends Suite
         arps.clear()
         invalidations.clear()
 
-        emitter = new PacketEmitter(arps, actorSystem.deadLetters)
-        val invalidator = new SimulationBackChannel {
-            override def tell(t: BackChannelMessage) {
-                invalidations.add(t.asInstanceOf[FlowTag])
-            }
-
-            override def hasMessages: Boolean = !invalidations.isEmpty
-            override def poll() = null
-        }
-        arpBroker = new ArpRequestBroker(emitter, config, invalidator, () => { }, clock)
+        arpBroker = new ArpRequestBroker(config, backChannel, () => { }, clock)
         router = new Router(routerId, Router.Config(), null, null, arpCache)(actorSystem)
     }
 
