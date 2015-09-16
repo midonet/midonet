@@ -288,7 +288,7 @@ class SingleRouterArpRequestBroker(id: UUID,
         val loop = new ArpLoop(ip, port)
 
         val arp = makeArpRequest(port.portMac, port.portAddress, ip)
-        backChannel.tell(GeneratedLogicalPacket(port.id, arp))
+        backChannel.tell(GeneratedLogicalPacket(port.id, arp, -1))
 
         arpLoops.add(ip)
         arpLoopQ.add(loop)
@@ -356,7 +356,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                 val arp = makeArpRequest(loop.port.portMac,
                                          loop.port.portAddress,
                                          loop.ip)
-                backChannel.tell(GeneratedLogicalPacket(loop.port.id, arp))
+                backChannel.tell(GeneratedLogicalPacket(loop.port.id, arp, -1))
                 loop.tick()
                 arpLoopQ.add(loop)
             }
