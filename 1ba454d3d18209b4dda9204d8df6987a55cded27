@@ -22,6 +22,30 @@
       "revId": "1ba454d3d18209b4dda9204d8df6987a55cded27",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_dca640c1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-09-16T08:26:13Z",
+      "side": 1,
+      "message": "Actually, I believe this is unnecessary.  To be consistent with the previous implementation.  I\u0027ll remove it.",
+      "parentUuid": "1ae5cdf2_f9a6b3c0",
+      "range": {
+        "startLine": 232,
+        "startChar": 13,
+        "endLine": 232,
+        "endChar": 32
+      },
+      "revId": "1ba454d3d18209b4dda9204d8df6987a55cded27",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
