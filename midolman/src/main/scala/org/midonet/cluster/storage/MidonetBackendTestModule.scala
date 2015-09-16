@@ -15,7 +15,6 @@
  */
 package org.midonet.cluster.storage
 
-import com.google.inject.Inject
 import com.typesafe.config.Config
 import org.apache.curator.framework.CuratorFramework
 
@@ -38,7 +37,7 @@ class MidonetTestBackend extends MidonetBackend {
     override def curator: CuratorFramework = null
 
     override def doStart(): Unit = {
-        setupBindings()
+        MidonetBackend.setupBindings(store, stateStore)
         notifyStarted()
     }
 

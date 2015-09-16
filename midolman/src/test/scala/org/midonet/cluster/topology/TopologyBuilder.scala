@@ -33,7 +33,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.state.l4lb.{LBStatus => L4LBStatus}
 import org.midonet.midolman.{layer3 => l3}
@@ -43,6 +43,31 @@ import org.midonet.util.Range
 trait TopologyBuilder {
 
     import TopologyBuilder._
+    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
+
+    def createVtep(id: UUID = UUID.randomUUID(),
+                  mgmtIp: IPv4Addr = IPv4Addr.random,
+                  mgmtPort: Int = 6632,
+                  tzId: UUID = UUID.randomUUID(),
+                  bindings: java.util.Set[(Short, String, UUID)]): Vtep = {
+
+        val protoBindings = bindings.map { bdg =>
+            Vtep.Binding.newBuilder()
+                .setVlanId(bdg._1)
+                .setPortName(bdg._2)
+                .setNetworkId(UUIDUtil.toProto(bdg._3))
+                .build()
+        }
+
+        Vtep.newBuilder()
+            .setId(UUIDUtil.toProto(id))
+            .setTunnelZoneId(UUIDUtil.toProto(tzId))
+            .setManagementIp(IPAddressUtil.toProto(mgmtIp))
+            .setManagementPort(mgmtPort)
+            .addAllBindings(protoBindings)
+            .build()
+    }
 
     def createBridgePort(id: UUID = UUID.randomUUID,
                          bridgeId: Option[UUID] = None,
@@ -126,11 +151,13 @@ trait TopologyBuilder {
 
     def createHost(id: UUID = UUID.randomUUID,
                    portIds: Set[UUID] = Set.empty,
-                   tunnelZoneIds: Set[UUID] = Set.empty): Host = {
+                   tunnelZoneIds: Set[UUID] = Set.empty,
+                   floodingProxyWeight: Int = 0): Host = {
         Host.newBuilder
             .setId(id.asProto)
             .addAllPortIds(portIds.map(_.asProto).asJava)
             .addAllTunnelZoneIds(tunnelZoneIds.map(_.asProto).asJava)
+            .setFloodingProxyWeight(floodingProxyWeight)
             .build()
     }
 
@@ -143,7 +170,8 @@ trait TopologyBuilder {
                      outboundFilterId: Option[UUID] = None,
                      portIds: Set[UUID] = Set.empty,
                      vxlanPortIds: Set[UUID] = Set.empty,
-                     dhcpIds: Seq[UUID] = Seq.empty): Network = {
+                     dhcpIds: Seq[UUID] = Seq.empty,
+                     vni: Option[Int] = None): Network = {
         val builder = Network.newBuilder
             .setId(id.asProto)
             .setAdminStateUp(adminStateUp)
@@ -157,6 +185,9 @@ trait TopologyBuilder {
             builder.setInboundFilterId(inboundFilterId.get.asProto)
         if (outboundFilterId.isDefined)
             builder.setOutboundFilterId(outboundFilterId.get.asProto)
+        if(vni.isDefined) {
+            builder.setVni(vni.get)
+        }
         builder.build()
     }
 

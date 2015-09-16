@@ -62,7 +62,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         """.stripMargin)
         )
         backend = new MidonetBackendService(cfg, curator, metricRegistry = null)
-        backend.setupBindings()
+        backend.startAsync().awaitRunning()
 
         val paths = new PathBuilder(ZK_ROOT)
         val resContext = new ResourceContext(backend, uriInfo = null,
@@ -71,6 +71,10 @@ class NeutronZoomPluginTest extends FeatureSpec
                                              stateTables = null)
         val lockFactory = new ZookeeperLockFactory(curator, paths)
         plugin = new NeutronZoomPlugin(resContext, paths, lockFactory)
+    }
+
+    override def teardown(): Unit = {
+        backend.stopAsync().awaitTerminated()
     }
 
     feature("The Plugin should be able to CRUD") {
