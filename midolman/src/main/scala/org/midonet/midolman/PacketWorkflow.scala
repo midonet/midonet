@@ -225,9 +225,6 @@ class PacketWorkflow(
     system.scheduler.schedule(20 millis, 5 seconds, self, CheckBackchannels)
 
     override def receive = {
-        case m: FlowStateBatch =>
-            replicator.importFromStorage(m)
-
         case HandlePackets(packets) =>
             var i = 0
             while (i < packets.length && packets(i) != null) {
@@ -271,6 +268,7 @@ class PacketWorkflow(
         case tag: FlowTag => invalidateFlowsFor(tag)
         case RestartWorkflow(pktCtx, error) => restart(pktCtx, error)
         case m: GeneratedPacket => startWorkflow(generatedPacketContext(m))
+        case m: FlowStateBatch => replicator.importFromStorage(m)
     }
 
     override def process(): Unit = {
