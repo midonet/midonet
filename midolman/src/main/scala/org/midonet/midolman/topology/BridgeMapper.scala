@@ -28,8 +28,6 @@ import scala.compat.Platform
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
-import akka.actor.ActorSystem
-
 import com.typesafe.scalalogging.Logger
 
 import rx.Observable
@@ -269,16 +267,13 @@ object BridgeMapper {
  * A class that implements the [[DeviceMapper]] for a [[SimulationBridge]].
  */
 final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopology,
-                         _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
-                        (implicit actorSystem: ActorSystem)
+                         val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
         extends VirtualDeviceMapper[SimulationBridge](bridgeId, vt)
         with TraceRequestChainMapper[SimulationBridge] {
 
     import BridgeMapper._
 
     override def logSource = s"org.midonet.devices.bridge.bridge-$bridgeId"
-    override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
-        _traceChainMap
 
     private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
     private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
@@ -286,8 +281,6 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
     private val localPorts = new mutable.HashMap[UUID, LocalPortState]
     private val peerPorts = new mutable.HashMap[UUID, PeerPortState]
     private val exteriorPorts = new mutable.HashSet[UUID]
-    private val inboundMirrors = new mutable.HashSet[UUID]
-    private val outboundMirrors = new mutable.HashSet[UUID]
     private var oldExteriorPorts = Set.empty[UUID]
     private var oldRouterMacPortMap = Map.empty[MAC, UUID]
     private var traceChain: Option[UUID] = None
@@ -758,7 +751,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
 
         val inFilters = new ArrayList[UUID]()
         val outFilters = new ArrayList[UUID]()
-        traceChain.foreach(inFilters.add(_))
+        traceChain.foreach(inFilters.add)
         if (bridge.hasInboundFilterId) {
             inFilters.add(bridge.getInboundFilterId.asJava)
         }
