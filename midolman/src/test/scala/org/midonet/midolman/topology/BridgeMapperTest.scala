@@ -1356,7 +1356,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("Brodcast flows should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId),
                 tagForBroadcast(bridgeId))
 
@@ -1367,7 +1367,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(3, timeout) shouldBe true
 
             And("Brodcast flows should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId),
                 tagForBroadcast(bridgeId),
                 tagForPort(portId),
@@ -1400,7 +1400,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The MAC-port mapping should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId),
                 tagForPort(peerPortId),
                 tagForArpRequests(bridgeId),
@@ -1413,7 +1413,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(3, timeout) shouldBe true
 
             And("The MAC-port mapping should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId),
                 tagForPort(peerPortId),
                 tagForArpRequests(bridgeId),
@@ -1461,7 +1461,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 UntaggedVlanId, vlanId)
 
             And("Flows should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId1),
                 tagForPort(portId2),
                 tagForPort(peerPortId1),
@@ -1476,7 +1476,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             map.put(otherMac1, portId1)
 
             Then("Flows should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId1),
                 tagForPort(portId2),
                 tagForPort(peerPortId1),
@@ -1488,7 +1488,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             map.put(otherMac2, portId1)
 
             Then("Flows should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId1),
                 tagForPort(portId2),
                 tagForPort(peerPortId1),
@@ -1500,7 +1500,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             map.put(otherMac1, portId2)
 
             Then("Flows should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId1),
                 tagForPort(portId2),
                 tagForPort(peerPortId1),
@@ -1513,7 +1513,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             map.removeIfOwner(otherMac2)
 
             Then("Flows should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId1),
                 tagForPort(portId2),
                 tagForPort(peerPortId1),
@@ -1553,7 +1553,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 UntaggedVlanId, vlanId)
 
             And("Flows are invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId),
                 tagForPort(peerPortId))
 
@@ -1565,7 +1565,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             device.vlanMacTableMap(vlanId).get(otherMac) shouldBe portId
 
             And("Flows should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId),
                 tagForPort(peerPortId),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac))
@@ -1582,7 +1582,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             }
 
             And("Flows should be invalidated")
-            flowInvalidator should invalidate (
+            simBackChannel should invalidate (
                 tagForPort(portId),
                 tagForPort(peerPortId),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac),

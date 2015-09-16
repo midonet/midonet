@@ -17,7 +17,7 @@
 package org.midonet.midolman.simulation
 
 import java.lang.{Integer => JInteger}
-import java.util.{Arrays, ArrayList, HashSet, Set => JSet, UUID}
+import java.util.{Arrays, ArrayList, UUID}
 import org.midonet.midolman.layer3.Route
 
 import scala.collection.JavaConversions._
@@ -27,8 +27,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman._
 import org.midonet.midolman.flows.ManagedFlow
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPhysicalPacket
+import org.midonet.midolman.PacketWorkflow.{GeneratedPhysicalPacket, GeneratedLogicalPacket}
 import org.midonet.midolman.state.{ArpRequestBroker, FlowStatePackets}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.odp.{FlowMatch, Packet}
@@ -274,7 +273,7 @@ class PacketContext(val cookie: Int,
 
     var inputPort: UUID = _
 
-    var packetEmitter: PacketEmitter = _
+    var backChannel: SimulationBackChannel = _
     var arpBroker: ArpRequestBroker = _
 
     // Stores the callback to call when this flow is removed.
@@ -291,8 +290,8 @@ class PacketContext(val cookie: Int,
 
     def cookieStr = s"[cookie:$cookie]"
 
-    def reset(packetEmitter: PacketEmitter, arpBroker: ArpRequestBroker): Unit = {
-        this.packetEmitter = packetEmitter
+    def reset(backChannel: SimulationBackChannel, arpBroker: ArpRequestBroker): Unit = {
+        this.backChannel = backChannel
         this.arpBroker = arpBroker
     }
 
@@ -323,11 +322,11 @@ class PacketContext(val cookie: Int,
     }
 
     def addGeneratedPacket(uuid: UUID, ethernet: Ethernet): Unit =
-        packetEmitter.schedule(GeneratedLogicalPacket(uuid, ethernet))
+        backChannel.tell(GeneratedLogicalPacket(uuid, ethernet))
 
     def addGeneratedPhysicalPacket(portNo: JInteger,
                                    ethernet: Ethernet): Unit =
-        packetEmitter.schedule(GeneratedPhysicalPacket(portNo, ethernet))
+        backChannel.tell(GeneratedPhysicalPacket(portNo, ethernet))
 
     def markUserspaceOnly(): Unit =
         wcmatch.markUserspaceOnly()

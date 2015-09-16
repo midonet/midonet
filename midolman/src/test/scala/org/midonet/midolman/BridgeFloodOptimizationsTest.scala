@@ -24,10 +24,8 @@ import com.typesafe.config.{Config, ConfigFactory}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp}
+import org.midonet.midolman.PacketWorkflow.{GeneratedLogicalPacket, AddVirtualWildcardFlow, NoOp}
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{ARP, IPv4Addr, MAC, Packets}
@@ -70,18 +68,13 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
 
     feature("The bridge is not flooded") {
         scenario ("The bridge generates an ARP reply") {
-
             val ethPkt = Packets.arpRequest(mac2, ip2, ip1)
-            val generatedPackets = new java.util.LinkedList[GeneratedPacket]()
 
-            val (simRes, _) = simulate(packetContextFor(ethPkt, port2,
-                                                        generatedPackets))
+            val (simRes, _) = simulate(packetContextFor(ethPkt, port2))
 
             simRes should be (NoOp)
-            generatedPackets should have size 1
-
             val GeneratedLogicalPacket(egressPort, genEth) =
-                generatedPackets.poll()
+                simBackChannel.find[GeneratedLogicalPacket]()
 
             egressPort should be (port2)
             genEth should be (ARP.makeArpReply(mac1, mac2,

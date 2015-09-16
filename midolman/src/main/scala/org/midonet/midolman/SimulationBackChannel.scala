@@ -115,6 +115,7 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
                 tellOthers(this, msg)
             else
                 triggerChannelCheck()
+
         }
 
         override def hasMessages: Boolean = !q.isEmpty
