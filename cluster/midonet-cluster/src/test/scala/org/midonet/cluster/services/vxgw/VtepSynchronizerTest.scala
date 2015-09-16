@@ -41,7 +41,7 @@ import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.midolman.state.MapNotification
 import org.midonet.packets.MAC
-import org.midonet.southbound.vtep.VtepConnection.ConnectionState
+import org.midonet.southbound.vtep.ConnectionState
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
@@ -183,8 +183,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
 
             // Expect that the VTEP was updated with the new Logical Switches
             val lsId = UUID.randomUUID()
-            Mockito.when(vtep1Fix.ovsdb.createLogicalSwitch(any(),
-                                                            Eq(vxgw.nw.getVni)))
+            Mockito.when(vtep1Fix.ovsdb.createLogicalSwitch(any(), any()))
                    .thenReturn(Future.successful(lsId))
 
             // And the relevant bindings
