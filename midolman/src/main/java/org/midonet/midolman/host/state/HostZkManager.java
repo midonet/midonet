@@ -609,9 +609,4 @@ public class HostZkManager
         return getUuidList(paths.getHostTunnelZonesPath(hostId), watcher);
     }
 
-    @Override
-    public List<UUID> getAndWatchIdList(Runnable watcher)
-        throws StateAccessException {
-        return getUuidList(paths.getHostsPath(), watcher);
-    }
 }

@@ -16,72 +16,26 @@
 
 package org.midonet.cluster;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
-import org.midonet.cluster.data.Route;
-import org.midonet.cluster.data.Router;
-import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.dhcp.Subnet;
-import org.midonet.cluster.data.ports.RouterPort;
-import org.midonet.midolman.layer3.Route.NextHop;
-import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MAC;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
 
 
 public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
 
     @Test
-    public void routerPortLifecycleTest() throws StateAccessException,
-            SerializationException {
-        // Create a materialized router port.
-        UUID routerId = client.routersCreate(new Router());
-        UUID portId = client.portsCreate(
-            new RouterPort().setDeviceId(routerId)
-                .setHwAddr(MAC.fromString("02:BB:EE:EE:FF:01"))
-                .setPortAddr("10.0.0.3").setNwAddr("10.0.0.0")
-                .setNwLength(24)
-        );
-        // Verify that this automatically creates one route.
-        List<Route> routes = client.routesFindByRouter(routerId);
-        assertThat(routes, hasSize(1));
-        Route rt = routes.get(0);
-        // Verify that the route is type LOCAL and forwards to the new port.
-        assertThat(rt.getNextHop(), equalTo(NextHop.LOCAL));
-        assertThat(rt.getNextHopPort(), equalTo(portId));
-        assertThat(rt.getNextHopGateway(), equalTo(
-            IPv4Addr.intToString(
-                org.midonet.midolman.layer3.Route.NO_GATEWAY)));
-        // Now delete the port and verify that the route is deleted.
-        client.portsDelete(portId);
-        routes = client.routesFindByRouter(routerId);
-        assertThat(routes, hasSize(0));
-    }
-
-    private void assertIsLeader(boolean[] leaderArr, int leader) {
-        assertThat(leaderArr[leader], equalTo(true));
-        for(int i = 0; i < leaderArr.length; i++) {
-            if (i != leader) {
-                assertThat(leaderArr[i], equalTo(false));
-            }
-        }
-    }
-
-    @Test
+    @Ignore // SEE MNA-858
     public void checkHealthMonitorNodeTest() throws StateAccessException {
+        /*
         final boolean[] currentLeader = {false, false, false, false};
 
         // The var accessed inside of functors has to be final, otherwise
@@ -107,14 +61,13 @@ public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
         ExecuteOnBecomingLeader cb2 = new ExecuteOnBecomingLeader() {
             @Override
             public void call() {
-                /* Don't do anything. This makes the UT weaker, but we have
+                 * Don't do anything. This makes the UT weaker, but we have
                  * no way to remove watches so even if we remove the
                  * node corresponding to this callback, the watch callback
                  * will still be triggered. This isn't a problem in production
                  * because the node is removed when the mm agent goes away.
                  *
                  * Functionality to remove watches is in ZooKeeper 3.5.0+
-                 */
             }
         };
         ExecuteOnBecomingLeader cb3 = new ExecuteOnBecomingLeader() {
@@ -169,6 +122,7 @@ public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
         assertIsLeader(currentLeader, hostNum3);
         precLeader = client.getPrecedingHealthMonitorLeader(hostNum3);
         assertThat(precLeader, equalTo(null));
+        */
     }
 
     private void assertSubnetCidrs(List<Subnet> actual,
@@ -183,42 +137,4 @@ public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
                     hasItem(actualSubnet.getSubnetAddr().toZkString()));
         }
     }
-
-    @Test
-    public void dhcpSubnetEnabledTest()
-            throws StateAccessException, SerializationException {
-
-        UUID bridgeId = client.bridgesCreate(getStockBridge());
-
-        // Create an enabled subnet
-        Subnet enabledSubnet = getStockSubnet("10.0.0.0/24");
-        enabledSubnet.setEnabled(true);
-        client.dhcpSubnetsCreate(bridgeId, enabledSubnet);
-
-        // Create an enabled subnet, but not enabled explicitly
-        Subnet defaultEnabledSubnet = getStockSubnet("10.0.1.0/24");
-        client.dhcpSubnetsCreate(bridgeId, defaultEnabledSubnet);
-
-        // Create a disabled subnet
-        Subnet disabledSunbet = getStockSubnet("10.0.2.0/24");
-        disabledSunbet.setEnabled(false);
-        client.dhcpSubnetsCreate(bridgeId, disabledSunbet);
-
-        // Get all to make ensure both return
-        List<Subnet> subnets = client.dhcpSubnetsGetByBridge(bridgeId);
-        assertSubnetCidrs(subnets,
-                Arrays.asList(
-                        "10.0.0.0_24",
-                        "10.0.1.0_24",
-                        "10.0.2.0_24"));
-
-
-        // Get only the enabled and ensure only one return
-        subnets = client.dhcpSubnetsGetByBridgeEnabled(bridgeId);
-        assertSubnetCidrs(subnets,
-                Arrays.asList(
-                        "10.0.0.0_24",
-                        "10.0.1.0_24"));
-    }
-
 }

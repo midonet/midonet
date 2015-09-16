@@ -15,33 +15,25 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
 
-import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.rest_api.neutron.models.Member;
-import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.l4lb.LBStatus;
 
-import static java.util.Arrays.asList;
-
 /**
  * Class to manage the PoolMember ZooKeeper data.
  */
 public class PoolMemberZkManager extends
         AbstractZkManager<UUID, PoolMemberZkManager.PoolMemberConfig> {
-
-    private final static Logger log = LoggerFactory
-            .getLogger(PoolMemberZkManager.class);
 
     public static class PoolMemberConfig extends BaseConfig {
 
@@ -120,17 +112,4 @@ public class PoolMemberZkManager extends
         return PoolMemberConfig.class;
     }
 
-    public List<Op> prepareCreate(UUID id, PoolMemberConfig config)
-            throws SerializationException {
-        return asList(simpleCreateOp(id, config));
-    }
-
-    public List<Op> prepareUpdate(UUID id, PoolMemberConfig config)
-            throws SerializationException {
-        return asList(simpleUpdateOp(id, config));
-    }
-
-    public List<Op> prepareDelete(UUID id) {
-        return asList(Op.delete(paths.getPoolMemberPath(id), -1));
-    }
 }

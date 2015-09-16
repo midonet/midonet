@@ -195,16 +195,6 @@ public class ZkManager {
         }
     }
 
-    public String addEphemeral(String path, byte[] data)
-            throws StateAccessException {
-        try {
-            return zk.add(path, data, CreateMode.EPHEMERAL);
-        } catch (Exception ex) {
-            throw processException(
-                    ex, "adding an ephemeral node at path " + path);
-        }
-    }
-
     /**
      * Creates an ephemeral node if none exists at the specified path.
      * If there already exists one, then it deletes and recreates the
@@ -417,18 +407,6 @@ public class ZkManager {
 
     public Op getSetDataOp(String path, byte[] data) {
         return Op.setData(path, data, -1);
-    }
-
-    public void removeLastOp(List<Op> ops, String path) {
-
-        ListIterator<Op> it = ops.listIterator(ops.size());
-        while (it.hasPrevious()) {
-
-            if (it.previous().getPath().equals(path) ) {
-                it.remove();
-                return;
-            }
-        }
     }
 
     public List<Op> getRecursiveDeleteOps(String root)

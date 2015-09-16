@@ -89,10 +89,6 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
         watchers.add(watcher);
     }
 
-    public void removeWatcher(Callback1<UUID> watcher) {
-        watchers.remove(watcher);
-    }
-
     private void notifyWatchers(UUID portId) {
         // TODO(pino): should these be called asynchronously?
         for (Callback1<UUID> watcher : watchers) {

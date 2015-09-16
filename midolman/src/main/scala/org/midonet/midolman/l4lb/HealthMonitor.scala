@@ -31,10 +31,8 @@ import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure, SockReadFailure}
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
-import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.state.{StatePathExistsException, NoStatePathException, StateAccessException, PoolHealthMonitorMappingStatus}
-import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader
+import org.midonet.midolman.state.{NoStatePathException, PoolHealthMonitorMappingStatus, StateAccessException, StatePathExistsException}
 
 object HealthMonitor extends Referenceable {
     override val Name = "HealthMonitor"
@@ -202,9 +200,11 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
         watcher = context.actorOf(HealthMonitorConfigWatcher.props(
                 fileLocation, namespaceSuffix, self))
 
+        /* TODO: test needs updating to new stack MNA-747
         client.registerAsHealthMonitorNode(new ExecuteOnBecomingLeader {
             def call() = { watcher ! BecomeHaproxyNode}
         })
+        */
     }
 
     def receive = {
