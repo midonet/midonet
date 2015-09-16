@@ -16,6 +16,7 @@
 
 package org.midonet.util.concurrent
 
+import java.nio.channels.Selector
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReferenceArray}
 import java.util.concurrent.locks.LockSupport
 
@@ -31,7 +32,7 @@ object WakerUpper {
      * has conditions to be unparked.
      */
     trait Parkable {
-        private[WakerUpper] var thread: Thread = _
+        private var thread: Thread = _
 
         final def park(retries: Int = 200): Int = {
             var remainingRetries = retries
@@ -48,21 +49,42 @@ object WakerUpper {
                 Thread.`yield`()
                 counter - 1
             } else {
-                 WakerUpper.register(this)
+                thread = Thread.currentThread()
+                WakerUpper.register(this)
                 try {
-                    LockSupport.park()
+                    doPark()
                 } finally {
                     WakerUpper.deregister(this)
+                    thread = null
                 }
                 counter
             }
+        }
+
+        protected def doPark(): Unit =
+            LockSupport.park()
+
+        protected[WakerUpper] def doUnpark(): Unit = {
+            val t = thread
+            if (t ne null)
+                LockSupport.unpark(t)
         }
 
         /**
          * This function tells the WakerUpper whether the blocked thread should
          * be unparked. It should be thread-safe and side-effect free.
          */
-        def shouldWakeUp(): Boolean
+        protected[WakerUpper] def shouldWakeUp(): Boolean
+    }
+
+    trait SelectorParkable extends Parkable {
+        protected def selector: Selector
+
+        override protected def doPark(): Unit =
+            selector.select()
+
+        override protected[WakerUpper] def doUnpark(): Unit =
+            selector.wakeup()
     }
 
     private val threadIdGenerator = new AtomicInteger()
@@ -87,38 +109,30 @@ object WakerUpper {
         wakerThread.start()
     }
 
-    private def register(ctx: Parkable): Unit = {
-        ctx.thread = Thread.currentThread()
+    private def register(ctx: Parkable): Unit =
         waiters.set(threadId.get, ctx)
-    }
 
-    private def deregister(ctx: Parkable): Unit = {
-        ctx.thread = null
-        waiters.set(threadId.get, null) // Cleanup in case of a spurious wake up
-    }
+    private def deregister(ctx: Parkable): Unit =
+        waiters.set(threadId.get, null)
 
-    private def wakerUpperLoop(): Unit =
-        while (true) {
-            var i = 0
-            while (i < waiters.length) {
-                val ctx = waiters.get(i)
-                try {
-                    if ((ctx ne null) && ctx.shouldWakeUp()) {
-                        // We must remove the WaitContext from the array before
-                        // waking up the thread because of the following ABA problem:
-                        //   1) We wake up the thread;
-                        //   2) The thread is scheduled, runs, and blocks again;
-                        //   3) We remove the WaitContext from the array, and
-                        //      won't ever wake up the thread.
-                        waiters.set(i, null)
-                        val thread = ctx.thread
-                        if (thread ne null) {
-                            LockSupport.unpark(thread)
-                        }
-                    }
-                } catch { case ignored: Throwable => }
-                i += 1
-            }
-            LockSupport.parkNanos(1L) // Sleeps around 50us on the latest Linux kernels
+    private def wakerUpperLoop(): Unit = while (true) {
+        var i = 0
+        while (i < waiters.length) {
+            val ctx = waiters.get(i)
+            try {
+                if ((ctx ne null) && ctx.shouldWakeUp()) {
+                    // We must remove the WaitContext from the array before
+                    // waking up the thread because of the following ABA problem:
+                    //   1) We wake up the thread;
+                    //   2) The thread is scheduled, runs, and blocks again;
+                    //   3) We remove the WaitContext from the array, and
+                    //      won't ever wake up the thread.
+                    waiters.set(i, null)
+                    ctx.doUnpark()
+                }
+            } catch { case ignored: Throwable => }
+            i += 1
         }
+        LockSupport.parkNanos(1L) // Sleeps around 50us on the latest Linux kernels
+    }
 }
