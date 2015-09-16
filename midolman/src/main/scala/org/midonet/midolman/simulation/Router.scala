@@ -20,7 +20,6 @@ import java.util.{UUID, List => JList}
 
 import scala.concurrent.ExecutionContext
 
-import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.NotYetException
@@ -73,7 +72,6 @@ class Router(override val id: UUID,
              override val rTable: RoutingTable,
              override val routerMgrTagger: TagManager,
              val arpCache: ArpCache)
-            (implicit system: ActorSystem)
         extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) with MirroringDevice {
 
     override def inboundMirrors = cfg.inboundMirrors
