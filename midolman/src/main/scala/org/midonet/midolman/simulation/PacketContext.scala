@@ -298,11 +298,11 @@ class PacketContext(val cookie: Int,
     }
 
     def addGeneratedPacket(uuid: UUID, ethernet: Ethernet): Unit =
-        backChannel.tell(GeneratedLogicalPacket(uuid, ethernet))
+        backChannel.tell(GeneratedLogicalPacket(uuid, ethernet, cookie))
 
     def addGeneratedPhysicalPacket(portNo: JInteger,
                                    ethernet: Ethernet): Unit =
-        backChannel.tell(GeneratedPhysicalPacket(portNo, ethernet))
+        backChannel.tell(GeneratedPhysicalPacket(portNo, ethernet, cookie))
 
     def markUserspaceOnly(): Unit =
         wcmatch.markUserspaceOnly()
