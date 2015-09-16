@@ -31,11 +31,7 @@ object SimulationBackChannel {
 trait SimulationBackChannel {
     def tell(message: SimulationBackChannel.BackChannelMessage): Unit
     def hasMessages: Boolean
-    def process(handler: BackChannelHandler): Unit
-}
-
-trait BackChannelHandler {
-    def handle(message: SimulationBackChannel.BackChannelMessage): Unit
+    def poll(): SimulationBackChannel.BackChannelMessage
 }
 
 object ShardedSimulationBackChannel {
@@ -94,7 +90,7 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
         false
     }
 
-     override def process(handler: BackChannelHandler): Unit =
+     override def poll(): BackChannelMessage =
         throw new UnsupportedOperationException(
             "Calling process on the main back channel is not supported")
 
@@ -126,12 +122,8 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
         /**
          * Processes the messages in this instance.
          */
-        override def process(handler: BackChannelHandler): Unit = {
-            var msg: BackChannelMessage = null
-            while ({ msg = q.poll(); msg } ne null) {
-                handler.handle(msg)
-            }
-        }
+        override def poll(): BackChannelMessage =
+            q.poll()
 
         override def shouldWakeUp(): Boolean = hasMessages
     }

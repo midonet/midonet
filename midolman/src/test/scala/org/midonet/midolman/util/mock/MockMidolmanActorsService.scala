@@ -29,7 +29,7 @@ import com.google.inject.{Inject, Injector}
 
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
-import org.midonet.midolman.{BackChannelHandler, MockScheduler, Referenceable}
+import org.midonet.midolman.{MockScheduler, Referenceable}
 import org.midonet.midolman.services.MidolmanActorsService
 
 class EmptyActor extends Actor {
@@ -71,12 +71,8 @@ trait MessageAccumulator extends Actor {
 final class BackChannelAccessor(val vt: VirtualTopology) extends AnyVal {
     def getAndClearBC(): mutable.Buffer[BackChannelMessage] = {
         val messages = mutable.Buffer[BackChannelMessage]()
-        vt.simBackChannel.process(
-            new BackChannelHandler() {
-                override def handle(message: BackChannelMessage): Unit = {
-                    messages += message
-                }
-            })
+        while (vt.simBackChannel.hasMessages)
+            messages += vt.simBackChannel.poll()
         messages
     }
 }
