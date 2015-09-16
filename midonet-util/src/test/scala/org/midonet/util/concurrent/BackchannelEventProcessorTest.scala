@@ -29,14 +29,14 @@ import org.scalatest.{FeatureSpec, Matchers, OneInstancePerTest}
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
-class BackchannelEventProcessorTest extends FeatureSpec
+class BackChannelEventProcessorTest extends FeatureSpec
                                     with Matchers
                                     with OneInstancePerTest
                                     with MidonetEventually {
 
     feature ("BackchannelEventProcessor receives events from the " +
              "ring buffer and backchannel") {
-        val backchannel = new Backchannel {
+        val backchannel = new DisruptorBackChannel {
             var processed = 0
             var hasWork = false
             override def shouldProcess() = hasWork
@@ -57,7 +57,7 @@ class BackchannelEventProcessorTest extends FeatureSpec
             }
         }
 
-        val processor = new BackchannelEventProcessor[Object](ringBuffer, handler, backchannel)
+        val processor = new BackChannelEventProcessor[Object](ringBuffer, handler, backchannel)
         val t = new Thread() {
             override def run() = processor.run()
         }

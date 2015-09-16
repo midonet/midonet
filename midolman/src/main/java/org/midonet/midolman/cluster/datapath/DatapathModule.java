@@ -27,7 +27,6 @@ import com.google.inject.Injector;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 
-import com.google.inject.Provides;
 import com.lmax.disruptor.BatchEventProcessor;
 import com.lmax.disruptor.EventPoller;
 import com.lmax.disruptor.EventProcessor;
@@ -60,10 +59,9 @@ import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkChannelFactory;
 import org.midonet.netlink.NetlinkProtocol;
 import org.midonet.netlink.NetlinkUtil;
-import org.midonet.odp.Datapath;
 import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.concurrent.AggregateEventPollerHandler;
-import org.midonet.util.concurrent.BackchannelEventProcessor;
+import org.midonet.util.concurrent.BackChannelEventProcessor;
 import org.midonet.util.concurrent.EventPollerHandlerAdapter;
 import org.midonet.util.concurrent.NanoClock$;
 
@@ -122,7 +120,7 @@ public class DatapathModule extends PrivateModule {
                     flowProcessor,
                     new EventPollerHandlerAdapter(new PacketExecutor(
                         dpState, families, 1, 0, channelFactory, metrics)))));
-            processors[0] = new BackchannelEventProcessor(
+            processors[0] = new BackChannelEventProcessor(
                 ringBuffer, handler, flowProcessor, Seq$.MODULE$.empty());
         } else {
             int numPacketHandlers = threads - 1;
@@ -131,7 +129,7 @@ public class DatapathModule extends PrivateModule {
                     dpState, families, numPacketHandlers, i, channelFactory, metrics);
                 processors[i] = new BatchEventProcessor(ringBuffer, barrier, pexec);
             }
-            processors[numPacketHandlers] = new BackchannelEventProcessor(
+            processors[numPacketHandlers] = new BackChannelEventProcessor(
                 ringBuffer, flowProcessor, flowProcessor,  Seq$.MODULE$.empty());
         }
         return processors;
