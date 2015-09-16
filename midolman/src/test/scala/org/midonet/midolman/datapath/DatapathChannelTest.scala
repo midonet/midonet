@@ -40,7 +40,7 @@ import org.midonet.odp.flows.{FlowKey, FlowKeys, FlowAction, FlowActions}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.util.collection.ArrayObjectPool
-import org.midonet.util.concurrent.{EventPollerHandlerAdapter, BackchannelEventProcessor, AggregateEventPollerHandler}
+import org.midonet.util.concurrent.{BackChannelEventProcessor, EventPollerHandlerAdapter, AggregateEventPollerHandler}
 
 @RunWith(classOf[JUnitRunner])
 class DatapathChannelTest extends MidolmanSpec {
@@ -61,7 +61,7 @@ class DatapathChannelTest extends MidolmanSpec {
         factory.selectorProvider, clock)
     val ringBuffer = RingBuffer.createSingleProducer[PacketContextHolder](
         DisruptorDatapathChannel.Factory, capacity)
-    var processor: BackchannelEventProcessor[PacketContextHolder] = _
+    var processor: BackChannelEventProcessor[PacketContextHolder] = _
     var barrier: SequenceBarrier = _
     var dpChannel: DisruptorDatapathChannel = _
 
@@ -76,7 +76,7 @@ class DatapathChannelTest extends MidolmanSpec {
     }
 
     override def beforeTest(): Unit = {
-        processor = new BackchannelEventProcessor[PacketContextHolder](
+        processor = new BackChannelEventProcessor[PacketContextHolder](
             ringBuffer,
             new AggregateEventPollerHandler(
                 fp,

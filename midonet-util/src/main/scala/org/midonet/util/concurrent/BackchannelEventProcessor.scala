@@ -23,24 +23,24 @@ import com.lmax.disruptor._
 
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
-object BackchannelEventProcessor {
+object BackChannelEventProcessor {
     val DEFAULT_RETRIES = 200
 }
 
 /**
  * An EventProcessor that handles the batching semantics of consuming entries
  * from a RingBuffer, delegating the available events to the specified eventHandler,
- * and responds to work from a Backchannel. This EventProcessor is gated on the
- * supplied sequences. When there are no events or work from the Backchannel, it
+ * and responds to work from a BackChannel. This EventProcessor is gated on the
+ * supplied sequences. When there are no events or work from the BackChannel, it
  * registers the underlying thread with WakerUpper.
  */
-class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
+class BackChannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
                                            eventHandler: EventPoller.Handler[T],
-                                           backchannel: Backchannel,
+                                           backChannel: DisruptorBackChannel,
                                            sequencesToTrack: Sequence*)
     extends EventProcessor with Parkable {
 
-    import BackchannelEventProcessor._
+    import BackChannelEventProcessor._
 
     private val running = new AtomicBoolean(false)
     private val poller = ringBuffer.newPoller(sequencesToTrack:_*)
@@ -57,7 +57,7 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
         running.get
 
     override def shouldWakeUp(): Boolean = {
-        if (backchannel.shouldProcess() || !isRunning) {
+        if (backChannel.shouldProcess() || !isRunning) {
             return true
         }
 
@@ -86,7 +86,7 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
                     case _ =>
                         retries = DEFAULT_RETRIES
                 }
-                backchannel.process()
+                backChannel.process()
             }
         } finally {
             notifyShutdown()
