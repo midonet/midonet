@@ -49,14 +49,6 @@ public class BridgeZkManager
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkManager.class);
 
-    /**
-     * Thrown in response to an invalid (i.e., user-requested) update
-     * to a bridge's VxLanPortId property.
-     */
-    public static class VxLanPortIdUpdateException extends Exception {
-        private static final long serialVersionUID = 1L;
-    }
-
     public static class BridgeConfig extends ConfigWithProperties {
         public BridgeConfig() {
             super();
@@ -470,11 +462,5 @@ public class BridgeZkManager
     public boolean hasVlanMacTable(UUID id, short vlanId)
             throws StateAccessException {
         return zk.exists(paths.getBridgeMacPortsPath(id, vlanId));
-    }
-
-    @Override
-    public List<UUID> getAndWatchIdList(Runnable watcher)
-        throws StateAccessException {
-        return getUuidList(paths.getBridgesPath(), watcher);
     }
 }

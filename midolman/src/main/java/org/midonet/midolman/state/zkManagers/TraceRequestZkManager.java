@@ -26,11 +26,10 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 import org.midonet.cluster.data.TraceRequest;
+import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleList;
-import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -60,21 +59,6 @@ public class TraceRequestZkManager
 
         public TraceRequestConfig() {
             super();
-        }
-
-        public TraceRequestConfig(String name,
-                                  TraceRequest.DeviceType deviceType,
-                                  UUID deviceId, Condition condition,
-                                  long creationTimestampMs,
-                                  long limit, UUID enabledRule) {
-            super();
-            this.name = name;
-            this.deviceType = deviceType;
-            this.deviceId = deviceId;
-            this.condition = condition;
-            this.limit = limit;
-            this.creationTimestampMs = creationTimestampMs;
-            this.enabledRule = enabledRule;
         }
 
         @Override

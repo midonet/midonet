@@ -31,14 +31,11 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
 
     public final String name;
 
-    private MidolmanConfig config;
-
     private SelectorBasedDatapathConnection[] conns;
 
     public OneToOneConnectionPool(String name, int numChannels,
                                   MidolmanConfig config) {
         this.name = name;
-        this.config = config;
 
         conns = new SelectorBasedDatapathConnection[numChannels];
         for (int i=0; i<numChannels; i++) {

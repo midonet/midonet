@@ -22,9 +22,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,9 +169,9 @@ public class PoolZkManager
 
     public List<Op> prepareDelete(UUID id) {
         return asList(
-                Op.delete(paths.getPoolVipsPath(id), -1),
-                Op.delete(paths.getPoolMembersPath(id), -1),
-                Op.delete(paths.getPoolPath(id), -1));
+            Op.delete(paths.getPoolVipsPath(id), -1),
+            Op.delete(paths.getPoolMembersPath(id), -1),
+            Op.delete(paths.getPoolPath(id), -1));
     }
 
     public List<UUID> getMemberIds(UUID id) throws StateAccessException {
@@ -186,26 +184,6 @@ public class PoolZkManager
 
     public List<UUID> getAll() throws StateAccessException {
         return getUuidList(paths.getPoolsPath());
-    }
-
-    public List<Op> prepareAddVip(UUID id, UUID vipId) {
-        return asList(Op.create(
-                paths.getPoolVipPath(id, vipId), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-    }
-
-    public List<Op> prepareRemoveVip(UUID id, UUID vipId) {
-        return asList(Op.delete(paths.getPoolVipPath(id, vipId), -1));
-    }
-
-    public List<Op> prepareAddMember(UUID id, UUID memberId) {
-        return asList(Op.create(
-                paths.getPoolMemberPath(id, memberId), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-    }
-
-    public List<Op> prepareRemoveMember(UUID id, UUID memberId) {
-        return asList(Op.delete(paths.getPoolMemberPath(id, memberId), -1));
     }
 
     public void getPoolMemberIdListAsync(UUID poolId,
