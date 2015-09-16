@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3c4ba42c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-16T08:04:20Z",
+      "side": 1,
+      "message": "Update bindings will re-add the `removed` vtep info to the knownVteps map. Is that intended?",
+      "range": {
+        "startLine": 331,
+        "startChar": 16,
+        "endLine": 331,
+        "endChar": 39
+      },
+      "revId": "b8901f8eeca7135792b6234daaf51e81129f2685",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9cbbd80d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-16T08:04:20Z",
+      "side": 1,
+      "message": "Maybe we should remove the VTEP from the known VTEPs map.",
+      "range": {
+        "startLine": 335,
+        "startChar": 12,
+        "endLine": 335,
+        "endChar": 72
+      },
+      "revId": "b8901f8eeca7135792b6234daaf51e81129f2685",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_bc5ed4e7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VxLanPortMappingServiceTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-16T08:04:20Z",
+      "side": 1,
+      "message": "There is no case for deleting a VTEP.",
+      "range": {
+        "startLine": 45,
+        "startChar": 6,
+        "endLine": 45,
+        "endChar": 33
+      },
+      "revId": "b8901f8eeca7135792b6234daaf51e81129f2685",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
