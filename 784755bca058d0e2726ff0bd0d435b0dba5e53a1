@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_523779e3",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-16T17:05:32Z",
+      "side": 1,
+      "message": "Can we remove this prefix to make it consistent with the above.",
+      "range": {
+        "startLine": 74,
+        "startChar": 33,
+        "endLine": 74,
+        "endChar": 38
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d2ee2922",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-16T17:05:32Z",
+      "side": 1,
+      "message": "s/instances/nodes/ or otherwise remove \"in other instances\".",
+      "range": {
+        "startLine": 49,
+        "startChar": 54,
+        "endLine": 49,
+        "endChar": 63
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_12f971e9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-16T17:05:32Z",
+      "side": 1,
+      "message": "This class is not particular to VTEP.",
+      "range": {
+        "startLine": 59,
+        "startChar": 57,
+        "endLine": 59,
+        "endChar": 61
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b2d0bd54",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-16T17:05:32Z",
+      "side": 1,
+      "message": "Can use typeName?",
+      "range": {
+        "startLine": 85,
+        "startChar": 22,
+        "endLine": 85,
+        "endChar": 37
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_72be3501",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-16T17:05:32Z",
+      "side": 1,
+      "message": "Just commenting. If it\u0027s supposed to be run on a single thread, then this seems a bit verbose. You can do like following (as you\u0027re doing for giveUp()):\n\n\n        if (!isOwner) {\n            isOwner \u003d true\n            onSnatched()\n        }\n\n\nThe similar thing applies to line 107-111.",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 121,
+        "endChar": 9
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_92bbc10d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-16T17:05:32Z",
+      "side": 1,
+      "message": "This log message can be confusing when it doesn\u0027t have the ownership.",
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
