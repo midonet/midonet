@@ -15,34 +15,29 @@
  */
 package org.midonet.midolman.l4lb
 
-import akka.actor._
-
 import java.io._
 import java.nio.ByteBuffer
 import java.nio.channels.IllegalSelectorException
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+import scala.collection.mutable.{HashSet, Set}
+import scala.concurrent.duration._
+
+import akka.actor._
+
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.Route
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor._
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.CheckHealth
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
-import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.cluster.data.ports.RouterPort
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{CheckHealth, ConfigUpdate, _}
 import org.midonet.midolman.layer3.Route.NextHop.PORT
+import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.state.l4lb.LBStatus
-import LBStatus.{INACTIVE => MemberInactive}
-import LBStatus.{ACTIVE => MemberActive}
+import org.midonet.midolman.state.l4lb.LBStatus.{ACTIVE => MemberActive, INACTIVE => MemberInactive}
 import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
 import org.midonet.util.AfUnix
 import org.midonet.util.process.ProcessHelper
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable.HashSet
-import scala.collection.mutable.Set
-import scala.concurrent.duration._
 
 
 /**
@@ -51,6 +46,10 @@ import scala.concurrent.duration._
  * so we handle all of the setup in preStart, and all of the cleanup in
  * postStop. Other than that, the only options for interaction with this
  * actor is telling it to stop/start monitoring, and receiving updates.
+ *
+ *
+ * TODO: dataclient usages are disabled while this gets migrated to v2.
+ *       Refer to MNA-747.
  */
 object HaproxyHealthMonitor {
     def props(config: PoolConfig, manager: ActorRef, routerId: UUID,
@@ -154,7 +153,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                         deleteIpTableRules(healthMonitorName, config.vip.ip)
                     }
                     if (routerId != null && routerPortId != null) {
-                        addVipRoute(conf.vip.ip)
+                        // addVipRoute(conf.vip.ip)
                         createIpTableRules(healthMonitorName, conf.vip.ip)
                     }
                 }
@@ -176,10 +175,12 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 val newUpNodes = upNodes diff currentUpNodes
                 val newDownNodes = downNodes diff currentDownNodes
 
+                /*
                 newUpNodes foreach (id =>
                     dataClient.poolMemberUpdateStatus(id, MemberActive))
                 newDownNodes foreach (id =>
                     dataClient.poolMemberUpdateStatus(id, MemberInactive))
+                */
 
                 currentUpNodes = upNodes
                 currentDownNodes = downNodes
@@ -420,7 +421,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             port match {
                 case rpc: RouterPort =>
                     if (rpc.getPortAddr == RouterIp) {
-                        dataClient.hostsDelVrnPortMapping(hostId, rpc.getId)
+                        // dataClient.hostsDelVrnPortMapping(hostId, rpc.getId)
                         portId = rpc.getId
                     }
             }
@@ -434,21 +435,21 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             routerPort.setNwAddr(NetAddr)
             routerPort.setNwLength(NetLen)
             routerPort.setInterfaceName(namespaceName)
-            portId = dataClient.portsCreate(routerPort)
+            portId = null // dataClient.portsCreate(routerPort)
         }
         routerPortId = portId
         addVipRoute(config.vip.ip)
 
-        dataClient.hostsAddVrnPortMapping(hostId, portId, namespaceName)
+        // dataClient.hostsAddVrnPortMapping(hostId, portId, namespaceName)
 
         createIpTableRules(healthMonitorName, config.vip.ip)
     }
 
     def unhookNamespaceFromRouter() = {
         if (routerPortId != null) {
-            dataClient.hostsDelVrnPortMapping(hostId, routerPortId)
+            // dataClient.hostsDelVrnPortMapping(hostId, routerPortId)
             dataClient.routesDelete(routeId)
-            dataClient.portsDelete(routerPortId)
+            // dataClient.portsDelete(routerPortId)
             deleteIpTableRules(healthMonitorName, config.vip.ip)
             routeId = null
             routerPortId = null

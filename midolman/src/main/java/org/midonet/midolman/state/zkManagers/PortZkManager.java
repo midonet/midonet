@@ -382,16 +382,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         }
     }
 
-    /**
-     * Call this method if the ports you are about to link do not exists.
-     */
-    public void prepareLink(List<Op> ops, UUID id, UUID peerId,
-                            PortConfig port, PortConfig peerPort)
-            throws SerializationException, StateAccessException {
-
-        prepareLink(ops, id, peerId, port, peerPort, false, false);
-    }
-
     public void prepareLink(List<Op> ops, UUID id, UUID peerId)
             throws StateAccessException, SerializationException {
 
@@ -409,15 +399,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             throw new IllegalArgumentException(
                     "Port 'id' is not an unplugged port: " + id);
         }
-    }
-
-    public void prepareCreateAndLink(List<Op> ops, PortConfig port,
-                                     PortConfig peerPort)
-            throws SerializationException, StateAccessException {
-
-        ops.addAll(prepareCreate(port.id, port));
-        ops.addAll(prepareCreate(peerPort.id, peerPort));
-        prepareLink(ops, port.id, peerPort.id, port, peerPort);
     }
 
     public List<Op> prepareUnlink(UUID id) throws StateAccessException,
@@ -491,73 +472,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         }
     }
 
-    public List<PortDirectory.RouterPortConfig> getRouterPorts(UUID routerId,
-                                                               IPv4Subnet sub)
-            throws SerializationException, StateAccessException {
-        return getRouterPorts(routerId, Arrays.asList(sub));
-    }
-
-    public List<PortDirectory.RouterPortConfig> getRouterPorts(
-            UUID routerId, List<IPv4Subnet> subs)
-            throws SerializationException, StateAccessException {
-
-        // Get the ports of this router
-        List<UUID> portIds = getRouterPortIDs(routerId);
-        List<PortDirectory.RouterPortConfig> cfgs = new ArrayList<>();
-        for (UUID portId : portIds) {
-            PortDirectory.RouterPortConfig rpCfg =
-                    (PortDirectory.RouterPortConfig) get(portId);
-
-            for (IPv4Subnet sub : subs) {
-                if (rpCfg.hasSubnet(sub)) {
-                    cfgs.add(rpCfg);
-                    break;
-                }
-            }
-        }
-        return cfgs;
-    }
-
-    /**
-     * Call this method to get the port with the provided subnet that's
-     */
-    public PortDirectory.RouterPortConfig getRouterPort(UUID routerId,
-                                                        UUID deviceId,
-                                                        IPv4Subnet sub)
-            throws SerializationException, StateAccessException {
-        List<PortDirectory.RouterPortConfig> cfgs = getRouterPorts(routerId,
-                sub);
-        for (PortDirectory.RouterPortConfig cfg : cfgs) {
-
-            if (!cfg.isInterior()) continue;
-
-            PortConfig peer = get(cfg.peerId);
-            if (Objects.equals(peer.device_id, deviceId)) {
-                return cfg;
-            }
-        }
-        return null;
-    }
-
-    public void prepareDeleteRouterPorts(List<Op> ops, UUID routerId,
-                                         IPv4Subnet sub, boolean deletePeer)
-            throws StateAccessException, SerializationException {
-
-        List<PortDirectory.RouterPortConfig> cfgs = getRouterPorts(routerId,
-                sub);
-        prepareDelete(ops, cfgs, deletePeer);
-    }
-
-    public void prepareDeleteRouterPorts(List<Op> ops, UUID routerId,
-                                         List<IPv4Subnet> subs,
-                                         boolean deletePeer)
-            throws StateAccessException, SerializationException {
-
-        List<PortDirectory.RouterPortConfig> cfgs = getRouterPorts(routerId,
-                subs);
-        prepareDelete(ops, cfgs, deletePeer);
-    }
-
     public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)
             throws SerializationException, StateAccessException,
             IllegalArgumentException {
@@ -580,52 +494,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
                 Collections.singletonList(Op.setData(paths.getPortPath(id),
                         serializer.serialize(config), -1)) :
                 Collections.<Op>emptyList();
-    }
-
-    public void prepareUpdatePortAdminState(List<Op> ops, UUID portId,
-                                            boolean adminStateUp)
-            throws SerializationException, StateAccessException {
-
-        PortConfig p = get(portId);
-        if (p.adminStateUp != adminStateUp) {
-            p.adminStateUp = adminStateUp;
-            ops.addAll(prepareUpdate(portId, p));
-
-            // Need to also set the peer port
-            if (p.peerId != null) {
-                PortConfig peerConfig = get(p.peerId);
-                peerConfig.adminStateUp = adminStateUp;
-                ops.addAll(prepareUpdate(p.peerId, peerConfig));
-            }
-        }
-    }
-
-    /**
-     * Update the router port with the new IP address.  Updating address also
-     * removes the previous local route and adds a new one for the new
-     * address.  This method throws an exception if the ID passed in is not a
-     * router port.
-     *
-     * @param ops List to which Ops are added
-     * @param portId  ID of the port to update
-     * @param addr  The new address to assign to the port
-     */
-    public void prepareUpdatePortAddress(List<Op> ops, UUID portId, int addr)
-        throws SerializationException, StateAccessException {
-
-        PortDirectory.RouterPortConfig port =
-            (PortDirectory.RouterPortConfig) get(portId);
-
-        // Delete the routes containing the old port address
-        routeZkManager.prepareRoutesDelete(ops, port.device_id,
-                                           port.getPortAddr());
-
-        port.portAddr = addr;
-        ops.add(Op.setData(paths.getPortPath(portId),
-                           serializer.serialize(port), -1));
-
-        // Insert a new route
-        ops.addAll(routeZkManager.prepareLocalRoutesCreate(port.id, port));
     }
 
     public List<Op> prepareUpdate(UUID id, PortConfig config)
@@ -861,79 +729,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return getUuidList(path, watcher);
     }
 
-    public PortDirectory.RouterPortConfig findFirstRouterPortByPeer(
-            UUID routerId, final UUID peerRouterId)
-            throws SerializationException, StateAccessException {
-
-        if (peerRouterId == null) {
-            throw new IllegalArgumentException("peerRouterId is null");
-        }
-
-        return findFirstRouterPortMatch(routerId,
-                new Function<PortDirectory.RouterPortConfig, Boolean>() {
-
-            @Override
-            public Boolean apply(
-                            @Nullable PortDirectory.RouterPortConfig rpCfg) {
-                if (rpCfg.peerId == null) {
-                    return false;
-                }
-
-                // Get the peer port
-                PortConfig c;
-                try {
-                    c = get(rpCfg.peerId);
-                } catch (Exception e) {
-                    throw new IllegalStateException("Could not retrieve port " +
-                            rpCfg.peerId);
-                }
-
-                return Objects.equals(peerRouterId, c.device_id);
-            }
-        });
-    }
-
-    public PortDirectory.RouterPortConfig findFirstRouterPortMatch(
-            UUID routerId,
-            Function<PortDirectory.RouterPortConfig, Boolean> matcher)
-            throws StateAccessException, SerializationException {
-        List<UUID> ids = getRouterPortIDs(routerId);
-        for (UUID id : ids) {
-            PortDirectory.RouterPortConfig cfg =
-                    (PortDirectory.RouterPortConfig) get(id);
-            if (matcher.apply(cfg)) {
-                return cfg;
-            }
-         }
-
-        return null;
-    }
-
-    public PortDirectory.RouterPortConfig findGatewayRouterPortFromBridge(
-            UUID bridgeId, final IPAddr gatewayIp)
-            throws SerializationException, StateAccessException {
-
-        if (bridgeId == null) {
-            throw new IllegalArgumentException("bridgeId is null");
-        }
-
-        if (gatewayIp == null) {
-            throw new IllegalArgumentException("gatewayIp is null");
-        }
-
-        return findFirstRouterPortMatchFromBridge(bridgeId,
-                new Function<PortConfig, Boolean>() {
-
-                    @Override
-                    public Boolean apply(PortConfig pCfg) {
-                        return (pCfg instanceof PortDirectory.RouterPortConfig)
-                            && ((PortDirectory.RouterPortConfig) pCfg)
-                            .portAddressEquals(gatewayIp);
-                    }
-                }
-        );
-    }
-
     public Observable<Void> setActivePort(UUID portId, UUID owner,
             boolean active) throws StateAccessException {
         final String parentPath = paths.getPortActivePath(portId);
@@ -1003,27 +798,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return zk.exists(path) && (zk.getChildren(path).size() > 0);
     }
 
-    public PortDirectory.RouterPortConfig findFirstRouterPortMatchFromBridge(
-            UUID bridgeId,
-            Function<PortConfig, Boolean> matcher)
-            throws StateAccessException, SerializationException {
-        List<UUID> ids = getBridgeLogicalPortIDs(bridgeId);
-        for (UUID id : ids) {
-            PortDirectory.BridgePortConfig cfg =
-                    (PortDirectory.BridgePortConfig) get(id);
-            if (cfg.peerId == null) {
-                continue;
-            }
-
-            PortConfig pCfg = get(cfg.peerId);
-            if (matcher.apply(pCfg)) {
-                return (PortDirectory.RouterPortConfig) pCfg;
-            }
-        }
-
-        return null;
-    }
-
     /**
      * Gets a list of router port IDs for a given router
      *
@@ -1064,12 +838,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     public List<UUID> getBridgePortIDs(UUID bridgeId)
             throws StateAccessException {
         return getBridgePortIDs(bridgeId, null);
-    }
-
-    public PortConfig getPeerPort(UUID portId)
-            throws SerializationException, StateAccessException {
-        PortConfig port = get(portId);
-        return port.peerId == null ? null : get(port.peerId);
     }
 
     public void getVxLanPortIdsAsync(DirectoryCallback<Set<UUID>> callback,

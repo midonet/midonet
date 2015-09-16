@@ -32,8 +32,8 @@ import org.midonet.packets.IPAddr
 class HostManager(clusterClient: Client,
                   actor: ActorRef) extends DeviceHandler {
 
-    def handle(deviceId: UUID) {
-        clusterClient.getHost(deviceId, new LocalHostBuilder(actor, deviceId))
+    def handle(deviceId: UUID): Unit = {
+        throw new UnsupportedOperationException("V1 stack - in retirement")
     }
 
     class LocalHostBuilder(actor: ActorRef, hostId: UUID) extends HostBuilder {

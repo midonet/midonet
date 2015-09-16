@@ -27,12 +27,12 @@ import com.sun.security.auth.module.UnixSystem
 import org.apache.commons.cli._
 import org.apache.curator.framework.CuratorFramework
 
+import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule}
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.cluster.{DataClient, ZookeeperLockFactory}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
@@ -73,18 +73,6 @@ trait PortBinder {
 
     def unbindPort(portId: UUID): Unit = {
         unbindPort(portId, HostIdGenerator.getHostId)
-    }
-}
-
-class DataClientPortBinder(dataClient: DataClient) extends PortBinder {
-
-    override def bindPort(portId: UUID, hostId: UUID,
-                          deviceName: String): Unit = {
-        dataClient.hostsAddVrnPortMapping(hostId, portId, deviceName)
-    }
-
-    override def unbindPort(portId: UUID, hostId: UUID): Unit = {
-        dataClient.hostsDelVrnPortMapping(hostId, portId)
     }
 }
 
