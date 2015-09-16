@@ -135,7 +135,7 @@ case class FlowRecordMatch(inputPortNo: Int, tunnelKey: Long,
 
 case class FlowRecord(host: UUID, inPort: UUID,
                       flowMatch: FlowRecordMatch,
-                      cookie: Int,
+                      cookie: Long,
                       devices: List[TraversedDevice],
                       rules: List[TraversedRule],
                       simResult: SimulationResult.SimulationResult,
@@ -148,7 +148,7 @@ object FlowRecord {
     import Actions._
 
     def random(): FlowRecord = {
-        implicit val r = new Random
+        val r = new Random
 
         import SimulationResult._
         val simRes = Arrays.asList(NOOP, DROP, ERROR_DROP, SHORT_DROP, SEND_PACKET,
@@ -157,7 +157,7 @@ object FlowRecord {
                                    GENERATED_PACKET)
         Collections.shuffle(simRes)
         FlowRecord(UUID.randomUUID, UUID.randomUUID, randomMatch(r),
-                   r.nextInt(), randomDevices(r),
+                   r.nextLong(), randomDevices(r),
                    randomRules(r), simRes.get(0),
                    randomUUIDS(r), randomActions(r))
     }
