@@ -15,10 +15,10 @@
  */
 package org.midonet.midolman
 
-import java.lang.{Boolean => JBoolean, Integer => JInteger}
+import java.lang.{Integer => JInteger}
 import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{HashMap => JHashMap, Set => JSet, UUID}
+import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -51,7 +51,7 @@ import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.netlink._
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
-import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
+import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -151,7 +151,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                                     interfaceScanner: InterfaceScanner,
                                     config: MidolmanConfig,
                                     upcallConnManager: UpcallDatapathConnectionManager,
-                                    flowInvalidator: SimulationBackChannel,
+                                    backChannel: SimulationBackChannel,
                                     clock: NanoClock,
                                     storageFactory: FlowStateStorageFactory,
                                     val netlinkChannelFactory: NetlinkChannelFactory)
@@ -187,8 +187,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     }
 
     private def subscribeToHost(id: UUID): Unit = {
-        val props = Props(classOf[HostRequestProxy],
-                          id, storageFactory.create(), self)
+        val props = Props(new HostRequestProxy(
+                            id, backChannel, storageFactory.create(), self))
                         .withDispatcher(context.props.dispatcher)
         context.actorOf(props, s"HostRequestProxy-$id")
     }
@@ -247,9 +247,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         val dropped = oldZones.keySet.diff(newZones.keySet)
         for (zone <- dropped) {
             VirtualToPhysicalMapper ! TunnelZoneUnsubscribe(zone)
-            for (tag <- driver.removePeersForZone(zone)) {
-                flowInvalidator.tell(tag)
-            }
+            driver.removePeersForZone(zone).foreach(backChannel.tell)
         }
 
         val added = newZones.keySet.diff(oldZones.keySet)
@@ -313,7 +311,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         }
 
         def processTags(tags: TraversableOnce[FlowTag]): Unit =
-            tags foreach flowInvalidator.tell
+            tags foreach backChannel.tell
 
         def processDelPeer(): Unit =
             processTags(driver.removePeer(peerUUID, zone))
@@ -358,8 +356,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         //   - The case for invalidating on deactivation is obvious.
         //   - On activation we invalidate flows for this dp port number in case
         //     it has been reused by the dp: we want to start with a clean state
-        flowInvalidator.tell(FlowTagger.tagForTunnelKey(tunnelKey))
-        flowInvalidator.tell(FlowTagger.tagForDpPort(port.getPortNo))
+        backChannel.tell(FlowTagger.tagForTunnelKey(tunnelKey))
+        backChannel.tell(FlowTagger.tagForDpPort(port.getPortNo))
     }
 
     private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {
