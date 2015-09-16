@@ -150,7 +150,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             val id = UUID.randomUUID()
             val frame: Ethernet = makeFrame(1)
             dda.completeWithGenerated(List(output(1)),
-                                      GeneratedLogicalPacket(id, frame))
+                                      GeneratedLogicalPacket(id, frame, 1))
 
             Then("the generated packet should be simulated")
             packetsSeen map { _.ethernet } should be (List(frame))
@@ -167,7 +167,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             When("the simulation completes")
             val frame: Ethernet = makeFrame(1)
             dda.completeWithGenerated(List(),
-                                      GeneratedPhysicalPacket(2, frame))
+                                      GeneratedPhysicalPacket(2, frame, 1))
 
             Then("the generated packet should be seen")
             packetsSeen map { _.ethernet } should be (List(frame))

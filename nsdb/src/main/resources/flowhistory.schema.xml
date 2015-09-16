@@ -84,7 +84,7 @@
   </types>
   <sbe:message name="FlowSummary" id="1" description="Summary of a flow">
     <field name="simResult" id="1" type="SimulationResult" />
-    <field name="cookie" id="2" type="uint32" />
+    <field name="cookie" id="2" type="uint64" />
     <field name="flowMatchInputPort" id="3" type="uint32" />
     <field name="flowMatchTunnelKey" id="4" type="uint64" />
     <field name="flowMatchTunnelSrc" id="5" type="uint32" />
