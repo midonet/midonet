@@ -172,7 +172,7 @@ class PacketWorkflow(
             val metrics: PacketPipelineMetrics,
             val flowRecorder: FlowRecorder,
             val packetOut: Int => Unit)
-        extends Actor with ActorLogWithoutPath with Stash with Backchannel
+        extends Actor with ActorLogWithoutPath with Stash with DisruptorBackChannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
         with MetadataServiceWorkflow with FlowController {
 

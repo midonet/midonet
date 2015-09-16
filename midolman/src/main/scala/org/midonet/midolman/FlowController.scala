@@ -33,11 +33,11 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.util.collection.{NoOpPool, ArrayObjectPool}
-import org.midonet.util.concurrent.{Backchannel, NanoClock}
+import org.midonet.util.concurrent.{DisruptorBackChannel, NanoClock}
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
 trait FlowController extends FlowIndexer with FlowTagIndexer
-                     with FlowExpirationIndexer with Backchannel { this: Actor =>
+                     with FlowExpirationIndexer with DisruptorBackChannel { this: Actor =>
 
     protected val config: MidolmanConfig
     protected val clock: NanoClock
