@@ -29,7 +29,11 @@ import com.google.protobuf.Message;
 import org.junit.Test;
 
 import org.midonet.cluster.models.TestModels;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -130,6 +134,10 @@ public class ZoomObjectTest {
             .addDeviceList(buildDevice())
             .addDeviceList(buildDevice())
             .setEnumField(TestMessage.Enum.SECOND)
+            .addAddressList(IPAddressUtil.toProto(IPv4Addr.random()))
+            .addAddressList(IPAddressUtil.toProto(IPv4Addr.random()))
+            .addSubnetList(IPSubnetUtil.toProto(IPv4Subnet.fromCidr("1.2.3.4/24")))
+            .addSubnetList(IPSubnetUtil.toProto(IPv4Subnet.fromCidr("5.6.7.8/24")))
             .build();
     }
 
@@ -192,6 +200,15 @@ public class ZoomObjectTest {
                          message.getDeviceList(index));
         }
         assertEquals(pojo.enumField, TestableZoomObject.Enum.SECOND);
+
+        for(int index = 0; index < message.getAddressListCount(); index++) {
+            assertEquals(pojo.addressList.get(index),
+                         message.getAddressList(index).getAddress());
+        }
+        for(int index = 0; index < message.getSubnetListCount(); index++) {
+            assertEquals(pojo.subnetList.get(index),
+                         IPSubnetUtil.fromProto(message.getSubnetList(index)).toString());
+        }
     }
 
     static void assertProto(TestMessage message, TestMessage proto) {
@@ -335,6 +352,11 @@ public class ZoomObjectTest {
 
         @ZoomField(name = "enum_field")
         private Enum enumField;
+
+        @ZoomField(name = "address_list", converter = IPAddressUtil.Converter.class)
+        private List<String> addressList;
+        @ZoomField(name = "subnet_list", converter = IPSubnetUtil.Converter.class)
+        private List<String> subnetList;
 
         private int before;
         private int after;
