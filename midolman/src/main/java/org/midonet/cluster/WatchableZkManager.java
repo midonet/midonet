@@ -15,9 +15,6 @@
  */
 package org.midonet.cluster;
 
-import java.util.List;
-import java.util.UUID;
-
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -28,12 +25,6 @@ import org.midonet.midolman.state.StateAccessException;
  * @param <T> the type of device
  */
 public interface WatchableZkManager<K, T> {
-
-    /**
-     * Retrieve the list of identifiers to watch for modifications.
-     */
-    List<K> getAndWatchIdList(Runnable watcher)
-        throws StateAccessException;
 
     /**
      * Retrieve a device and set a watcher on it, if it exists.

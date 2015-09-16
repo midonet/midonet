@@ -33,9 +33,6 @@ import java.util.Set;
  */
 public class TenantZkManager extends BaseZkManager {
 
-    private final static Logger log =
-            LoggerFactory.getLogger(TenantZkManager.class);
-
     /**
      * Constructor to set ZooKeeper and base path.
      *

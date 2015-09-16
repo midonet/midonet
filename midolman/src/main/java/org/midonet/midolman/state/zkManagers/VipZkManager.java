@@ -42,9 +42,6 @@ import static java.util.Arrays.asList;
 public class VipZkManager
         extends AbstractZkManager<UUID, VipZkManager.VipConfig> {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(VipZkManager.class);
-
     public static class VipConfig extends BaseConfig {
         public UUID loadBalancerId;
         public UUID poolId;
@@ -126,17 +123,4 @@ public class VipZkManager
         return paths.getVipPath(id);
     }
 
-    public List<Op> prepareCreate(UUID id, VipConfig config)
-            throws SerializationException {
-        return asList(simpleCreateOp(id, config));
-    }
-
-    public List<Op> prepareUpdate(UUID id, VipConfig config)
-            throws SerializationException {
-        return asList(simpleUpdateOp(id, config));
-    }
-
-    public List<Op> prepareDelete(UUID id) {
-        return asList(Op.delete(paths.getVipPath(id), -1));
-    }
 }

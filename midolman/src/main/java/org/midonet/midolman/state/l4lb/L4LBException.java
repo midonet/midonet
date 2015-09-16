@@ -22,19 +22,8 @@ package org.midonet.midolman.state.l4lb;
 public class L4LBException extends Exception {
     private static final long serialVersionUID = 1L;
 
-    public L4LBException() {
-        super();
-    }
-
     public L4LBException(String message) {
         super(message);
     }
 
-    public L4LBException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public L4LBException(Throwable cause) {
-        super(cause);
-    }
 }

@@ -27,21 +27,10 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.client.BGPListBuilder;
-import org.midonet.cluster.client.BridgeBuilder;
-import org.midonet.cluster.client.ChainBuilder;
 import org.midonet.cluster.client.HealthMonitorBuilder;
-import org.midonet.cluster.client.HostBuilder;
-import org.midonet.cluster.client.IPAddrGroupBuilder;
-import org.midonet.cluster.client.LoadBalancerBuilder;
-import org.midonet.cluster.client.PoolBuilder;
-import org.midonet.cluster.client.PoolHealthMonitorMapBuilder;
-import org.midonet.cluster.client.PortBuilder;
-import org.midonet.cluster.client.PortGroupBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.TunnelZones;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
@@ -65,27 +54,6 @@ public class LocalClientImpl implements Client {
             .getLogger(LocalClientImpl.class);
 
     @Inject
-    ClusterBgpManager bgpManager;
-
-    @Inject
-    ClusterChainManager chainManager;
-
-    @Inject
-    ClusterIPAddrGroupManager ipAddrGroupManager;
-
-    @Inject
-    ClusterLoadBalancerManager loadBalancerManager;
-
-    @Inject
-    ClusterPoolManager poolManager;
-
-    @Inject
-    ClusterHostManager hostManager;
-
-    @Inject
-    ClusterPortGroupManager portGroupManager;
-
-    @Inject
     ClusterPoolHealthMonitorMapManager poolHealthMonitorMapManager;
 
     @Inject
@@ -96,12 +64,6 @@ public class LocalClientImpl implements Client {
 
     @Inject
     ClusterRouterManager routerManager;
-
-    @Inject
-    ClusterBridgeManager bridgeManager;
-
-    @Inject
-    ClusterPortsManager portsManager;
 
     @Inject
     ZkConnectionAwareWatcher connectionWatcher;
@@ -115,53 +77,9 @@ public class LocalClientImpl implements Client {
     Reactor reactorLoop;
 
     @Override
-    public void getBridge(UUID bridgeID, BridgeBuilder builder) {
-        bridgeManager.registerNewBuilder(bridgeID, builder);
-        log.debug("getBridge {}", bridgeID);
-    }
-
-    @Override
     public void getRouter(UUID routerID, RouterBuilder builder) {
         routerManager.registerNewBuilder(routerID, builder);
         log.debug("getRouter {}", routerID);
-    }
-
-    @Override
-    public void getChain(UUID chainID, ChainBuilder builder) {
-        chainManager.registerNewBuilder(chainID, builder);
-        log.debug("getChain {}", chainID);
-    }
-
-    @Override
-    public void getIPAddrGroup(
-            final UUID uuid, final IPAddrGroupBuilder builder) {
-         ipAddrGroupManager.registerNewBuilder(uuid, builder);
-        log.debug("getIPAddrGroup {}", uuid);
-    }
-
-    @Override
-    public void getLoadBalancer(UUID loadBalancerID, LoadBalancerBuilder builder) {
-        log.debug("getLoadBalancer {}", loadBalancerID);
-        loadBalancerManager.registerNewBuilder(loadBalancerID, builder);
-    }
-
-    @Override
-    public void getPool(UUID poolID, PoolBuilder builder) {
-        log.debug("getPool {}", poolID);
-        poolManager.registerNewBuilder(poolID, builder);
-    }
-
-    @Override
-    public void getPortGroup(UUID id, PortGroupBuilder builder) {
-        log.debug("getPortGroup {}", id);
-        portGroupManager.registerNewBuilder(id, builder);
-    }
-
-    @Override
-    public void getPoolHealthMonitorMap(PoolHealthMonitorMapBuilder builder) {
-        log.debug("getPoolHealthMonitorMap");
-        poolHealthMonitorMapManager.registerNewBuilder(
-                Pool.POOL_HEALTH_MONITOR_MAP_KEY, builder);
     }
 
     @Override
@@ -169,18 +87,6 @@ public class LocalClientImpl implements Client {
                                  HealthMonitorBuilder builder) {
         log.debug("getHealthMonitor {}", healthMonitorId);
         healthMonitorManager.registerNewBuilder(healthMonitorId, builder);
-    }
-
-    @Override
-    public void getPort(UUID portID, PortBuilder builder) {
-        log.debug("getPort {}", portID);
-        portsManager.registerNewBuilder(portID, builder);
-    }
-
-    @Override
-    public void getHost(final UUID hostID, final HostBuilder builder) {
-        log.debug("getHost {}", hostID);
-        hostManager.registerNewBuilder(hostID, builder);
     }
 
     @Override
@@ -192,7 +98,7 @@ public class LocalClientImpl implements Client {
                 try {
                     TunnelZone zone = readTunnelZone(zoneID, builders);
                     readHosts(zone,
-                            new HashMap<UUID, TunnelZone.HostConfig>(),
+                            new HashMap<>(),
                             builders);
 
                 } catch (StateAccessException e) {
@@ -207,12 +113,6 @@ public class LocalClientImpl implements Client {
                 }
             }
         });
-    }
-
-    @Override
-    public void subscribeBgp(UUID portID, BGPListBuilder builder) {
-        log.debug("subscribing port {} for BGP updates", portID);
-        bgpManager.registerNewBuilder(portID, builder);
     }
 
     private void readHosts(final TunnelZone zone,

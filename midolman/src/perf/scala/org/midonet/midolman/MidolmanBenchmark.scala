@@ -21,8 +21,8 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import com.google.inject.{AbstractModule, Guice, Injector, PrivateModule}
-import com.typesafe.config.{ConfigFactory, Config}
-import org.openjdk.jmh.annotations.{TearDown, Setup => JmhSetup}
+import com.typesafe.config.{Config, ConfigFactory}
+import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
 
 import org.midonet.cluster.services.{LegacyStorageService, MidonetBackend}
 import org.midonet.cluster.storage.MidonetBackendTestModule
@@ -31,11 +31,11 @@ import org.midonet.midolman.cluster.datapath.MockDatapathModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.cluster.{MetricsModule, LegacyClusterModule, MidolmanActorsModule, ResourceProtectionModule}
+import org.midonet.midolman.cluster.{LegacyClusterModule, MetricsModule, MidolmanActorsModule, ResourceProtectionModule}
 import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
-import org.midonet.midolman.util.{MidolmanServices, ForwardingVirtualConfigurationBuilders, LegacyVirtualConfigurationBuilders, VirtualConfigurationBuilders, VirtualTopologyHelper}
+import org.midonet.midolman.util._
 import org.midonet.midolman.util.guice.MockMidolmanModule
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.util.concurrent.NanoClock
@@ -116,7 +116,7 @@ trait MidolmanBenchmark extends MockMidolmanActors
             new AbstractModule {
                 override def configure() {
                     bind(classOf[VirtualConfigurationBuilders])
-                        .to(classOf[LegacyVirtualConfigurationBuilders])
+                        .to(classOf[ZoomVirtualConfigurationBuilders])
                         .asEagerSingleton()
                     }
             }

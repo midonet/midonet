@@ -18,7 +18,6 @@ package org.midonet.cluster.services.rest_api.neutron.plugin
 
 import com.google.inject.PrivateModule
 
-import org.midonet.cluster.data.neutron.NeutronClusterModule
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.SequenceDispenser
 
@@ -29,8 +28,6 @@ class NeutronZoomApiModule extends PrivateModule {
 
     override protected def configure() {
         binder.requireExplicitBindings()
-
-        install(new NeutronClusterModule)
 
         bind(classOf[SequenceDispenser]).asEagerSingleton()
         bind(classOf[ResourceContext])

@@ -17,7 +17,6 @@ package org.midonet.midolman.state;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.UUID;
 
 import org.midonet.cluster.data.Bridge;
@@ -42,18 +41,10 @@ public class ZkPathManager {
 
     protected String basePath = null;
 
-    /**
-     * Constructor.
-     *
-     * @param basePath Base path of Zk.
-     */
     public ZkPathManager(String basePath) {
         setBasePath(basePath);
     }
 
-    /**
-     * @return the basePath
-     */
     public String getBasePath() {
         return basePath;
     }
@@ -62,9 +53,6 @@ public class ZkPathManager {
         return new StringBuilder(basePath);
     }
 
-    /**
-     * @param basePath the basePath to set
-     */
     public void setBasePath(String basePath) {
         this.basePath = basePath;
         if (this.basePath == null) {
@@ -767,16 +755,6 @@ public class ZkPathManager {
         return buildPortGroupPortsPath(id).append("/").append(portId);
     }
 
-    /**
-     * Get ZK port group rules path.
-     *
-     * @param id Group UUID.
-     * @return /port_groups/groupId/rules
-     */
-    public String getPortGroupRulesPath(UUID id) {
-        return buildPortGroupRulesPath(id).toString();
-    }
-
     private StringBuilder buildPortGroupRulesPath(UUID id) {
         return buildPortGroupPath(id).append("/rules");
     }
@@ -1209,7 +1187,7 @@ public class ZkPathManager {
 
     public String getHostVrnPortMappingPath(UUID hostIdentifier, UUID virtualPortId) {
         return buildHostVrnPortMappingPath(hostIdentifier,
-                virtualPortId).toString();
+                                           virtualPortId).toString();
     }
 
     private StringBuilder buildHostVrnPortMappingPath(UUID hostIdentifier, UUID virtualPortId) {
@@ -1268,16 +1246,6 @@ public class ZkPathManager {
         return new StringBuilder(getIpAddrGroupsPath()).append("/").append(id);
     }
 
-    /**
-     * Get ZK port group rules path.
-     *
-     * @param id Group UUID.
-     * @return /port_groups/groupId/rules
-     */
-    public String getIpAddrGroupRulesPath(UUID id) {
-        return buildIpAddrGroupRulesPath(id).toString();
-    }
-
     private StringBuilder buildIpAddrGroupRulesPath(UUID id) {
         return buildIpAddrGroupPath(id).append("/rules");
     }
@@ -1312,27 +1280,6 @@ public class ZkPathManager {
         return buildIpAddrGroupAddrPath(id, addr).toString();
     }
 
-    private StringBuilder buildIpAddrGroupAddrPortsPath(UUID id, String addr) {
-        return buildIpAddrGroupAddrPath(id, addr)
-                .append("/ports");
-    }
-
-    public String getIpAddrGroupAddrPortsPath(UUID id, String addr) {
-        return buildIpAddrGroupAddrPortsPath(id, addr).toString();
-    }
-
-    private StringBuilder buildIpAddrGroupAddrPortPath(UUID id, String addr,
-                                                      UUID portId) {
-        return buildIpAddrGroupAddrPortsPath(id, addr)
-                .append("/")
-                .append(portId.toString());
-    }
-
-    public String getIpAddrGroupAddrPortPath(UUID id, String addr,
-                                             UUID portId) {
-        return buildIpAddrGroupAddrPortPath(id, addr, portId).toString();
-    }
-
     private StringBuilder buildLoadBalancersPath() {
         return basePath().append("/load_balancers");
     }
@@ -1365,22 +1312,6 @@ public class ZkPathManager {
         return buildLoadBalancerVipsPath(loadBalancerId).toString();
     }
 
-    private StringBuilder buildLoadBalancerPoolPath(UUID id, UUID poolId) {
-        return buildLoadBalancerPoolsPath(id).append("/").append(poolId);
-    }
-
-    public String getLoadBalancerPoolPath(UUID id, UUID poolId) {
-        return buildLoadBalancerPoolPath(id, poolId).toString();
-    }
-
-    private StringBuilder buildLoadBalancerVipPath(UUID id, UUID vipId) {
-        return buildLoadBalancerVipsPath(id).append("/").append(vipId);
-    }
-
-    public String getLoadBalancerVipPath(UUID id, UUID vipId) {
-        return buildLoadBalancerVipPath(id, vipId).toString();
-    }
-
     private StringBuilder buildHealthMonitorsPath() {
         return basePath().append("/health_monitors");
     }
@@ -1403,14 +1334,6 @@ public class ZkPathManager {
 
     public String getHealthMonitorPoolsPath(UUID healthMonitorId) {
         return buildHealthMonitorPoolsPath(healthMonitorId).toString();
-    }
-
-    private StringBuilder buildHealthMonitorPoolPath(UUID id, UUID poolId) {
-        return buildHealthMonitorPoolsPath(id).append("/").append(poolId);
-    }
-
-    public String getHealthMonitorPoolPath(UUID id, UUID poolId) {
-        return buildHealthMonitorPoolPath(id, poolId).toString();
     }
 
     private StringBuilder buildPoolMembersPath() {
@@ -1453,29 +1376,12 @@ public class ZkPathManager {
         return buildPoolMembersPath(poolId).toString();
     }
 
-    private StringBuilder buildPoolMemberPath(UUID poolId, UUID poolMemberId) {
-        return buildPoolMembersPath(poolId)
-                .append("/").append(poolMemberId.toString());
-    }
-
-    public String getPoolMemberPath(UUID poolId, UUID memberId) {
-        return buildPoolMemberPath(poolId, memberId).toString();
-    }
-
     public StringBuilder buildPoolVipsPath(UUID poolId) {
         return buildPoolPath(poolId).append("/vips");
     }
 
     public String getPoolVipsPath(UUID poolId) {
         return buildPoolVipsPath(poolId).toString();
-    }
-
-    public StringBuilder buildPoolVipPath(UUID poolId, UUID vipId) {
-        return buildPoolVipsPath(poolId).append("/").append(vipId);
-    }
-
-    public String getPoolVipPath(UUID poolId, UUID vipId) {
-        return buildPoolVipPath(poolId, vipId).toString();
     }
 
     private StringBuilder buildVipsPath() {
@@ -1512,7 +1418,7 @@ public class ZkPathManager {
     public String getPoolHealthMonitorMappingsPath(UUID poolId,
                                                    UUID healthMonitorId) {
         return buildPoolHealthMonitorMappingPath(
-                poolId, healthMonitorId).toString();
+            poolId, healthMonitorId).toString();
     }
 
     private StringBuilder buildVtepsPath() {
@@ -1537,24 +1443,6 @@ public class ZkPathManager {
 
     public String getVtepBindingsPath(IPv4Addr ipAddr) {
         return buildVtepBindingsPath(ipAddr).toString();
-    }
-
-    public String getVtepOwnerPath(IPv4Addr ipAddr) {
-        return buildVtepPath(ipAddr).append("/owner").toString();
-    }
-
-    private StringBuilder buildVtepBindingPath(IPv4Addr ipAddr, String portName,
-                                               short vlanId, UUID networkId) {
-        return buildVtepBindingsPath(ipAddr).append('/')
-                .append(vlanId).append('_')
-                .append(networkId).append('_')
-                .append(encodePathSegment(portName));
-    }
-
-    public String getVtepBindingPath(IPv4Addr ipAddr, String portName,
-                                     short vlanId, UUID networkId) {
-        return buildVtepBindingPath(ipAddr, portName,
-                                    vlanId, networkId).toString();
     }
 
     private StringBuilder buildVxLanPortIdsPath() {
@@ -1602,28 +1490,12 @@ public class ZkPathManager {
         return buildNeutronPath().toString();
     }
 
-    public StringBuilder buildNeutronProviderRouterPath() {
-        return buildNeutronPath().append("/provider_router");
-    }
-
-    public String getNeutronProviderRouterPath() {
-        return buildNeutronProviderRouterPath().toString();
-    }
-
     private StringBuilder buildNeutronNetworksPath() {
         return buildNeutronPath().append("/networks");
     }
 
     public String getNeutronNetworksPath() {
         return buildNeutronNetworksPath().toString();
-    }
-
-    private StringBuilder buildNeutronNetworkPath(UUID id) {
-        return buildNeutronNetworksPath().append("/").append(id);
-    }
-
-    public String getNeutronNetworkPath(UUID id) {
-        return buildNeutronNetworkPath(id).toString();
     }
 
     private StringBuilder buildNeutronSubnetsPath() {
@@ -1634,28 +1506,12 @@ public class ZkPathManager {
         return buildNeutronSubnetsPath().toString();
     }
 
-    private StringBuilder buildNeutronSubnetPath(UUID id) {
-        return buildNeutronSubnetsPath().append("/").append(id);
-    }
-
-    public String getNeutronSubnetPath(UUID id) {
-        return buildNeutronSubnetPath(id).toString();
-    }
-
     private StringBuilder buildNeutronPortsPath() {
         return buildNeutronPath().append("/ports");
     }
 
     public String getNeutronPortsPath() {
         return buildNeutronPortsPath().toString();
-    }
-
-    private StringBuilder buildNeutronPortPath(UUID id) {
-        return buildNeutronPortsPath().append("/").append(id);
-    }
-
-    public String getNeutronPortPath(UUID id) {
-        return buildNeutronPortPath(id).toString();
     }
 
     private StringBuilder buildNeutronRoutersPath() {
@@ -1666,28 +1522,12 @@ public class ZkPathManager {
         return buildNeutronRoutersPath().toString();
     }
 
-    private StringBuilder buildNeutronRouterPath(UUID id) {
-        return buildNeutronRoutersPath().append("/").append(id);
-    }
-
-    public String getNeutronRouterPath(UUID id) {
-        return buildNeutronRouterPath(id).toString();
-    }
-
     private StringBuilder buildNeutronFloatingIpsPath() {
         return buildNeutronPath().append("/floating_ips");
     }
 
     public String getNeutronFloatingIpsPath() {
         return buildNeutronFloatingIpsPath().toString();
-    }
-
-    private StringBuilder buildNeutronFloatingIpPath(UUID id) {
-        return buildNeutronFloatingIpsPath().append("/").append(id);
-    }
-
-    public String getNeutronFloatingIpPath(UUID id) {
-        return buildNeutronFloatingIpPath(id).toString();
     }
 
     private StringBuilder buildNeutronSecurityGroupsPath() {
@@ -1698,28 +1538,12 @@ public class ZkPathManager {
         return buildNeutronSecurityGroupsPath().toString();
     }
 
-    private StringBuilder buildNeutronSecurityGroupPath(UUID id) {
-        return buildNeutronSecurityGroupsPath().append("/").append(id);
-    }
-
-    public String getNeutronSecurityGroupPath(UUID id) {
-        return buildNeutronSecurityGroupPath(id).toString();
-    }
-
     private StringBuilder buildNeutronSecurityGroupRulesPath() {
         return buildNeutronPath().append("/security_group_rules");
     }
 
     public String getNeutronSecurityGroupRulesPath() {
         return buildNeutronSecurityGroupRulesPath().toString();
-    }
-
-    private StringBuilder buildNeutronSecurityGroupRulePath(UUID id) {
-        return buildNeutronSecurityGroupRulesPath().append("/").append(id);
-    }
-
-    public String getNeutronSecurityGroupRulePath(UUID id) {
-        return buildNeutronSecurityGroupRulePath(id).toString();
     }
 
     // Neutron Load Balancer Paths
@@ -1739,28 +1563,12 @@ public class ZkPathManager {
         return buildNeutronPoolsPath().toString();
     }
 
-    private StringBuilder buildNeutronPoolPath(UUID id) {
-        return buildNeutronPoolsPath().append("/").append(id);
-    }
-
-    public String getNeutronPoolPath(UUID id) {
-        return buildNeutronPoolPath(id).toString();
-    }
-
     private StringBuilder buildNeutronVipsPath() {
         return buildNeutronLoadBalancerPath().append("/vips");
     }
 
     public String getNeutronVipsPath() {
         return buildNeutronVipsPath().toString();
-    }
-
-    private StringBuilder buildNeutronVipPath(UUID id) {
-        return buildNeutronVipsPath().append("/").append(id);
-    }
-
-    public String getNeutronVipPath(UUID id) {
-        return buildNeutronVipPath(id).toString();
     }
 
     private StringBuilder buildNeutronMembersPath() {
@@ -1771,40 +1579,12 @@ public class ZkPathManager {
         return buildNeutronMembersPath().toString();
     }
 
-    private StringBuilder buildNeutronMemberPath(UUID id) {
-        return buildNeutronMembersPath().append("/").append(id);
-    }
-
-    public String getNeutronMemberPath(UUID id) {
-        return buildNeutronMemberPath(id).toString();
-    }
-
     private StringBuilder buildNeutronHealthMonitorsPath() {
         return buildNeutronLoadBalancerPath().append("/health_monitors");
     }
 
     public String getNeutronHealthMonitorsPath() {
         return buildNeutronHealthMonitorsPath().toString();
-    }
-
-    private StringBuilder buildNeutronHealthMonitorPath(UUID id) {
-        return buildNeutronHealthMonitorsPath().append("/").append(id);
-    }
-
-    public String getNeutronHealthMonitorPath(UUID id) {
-        return buildNeutronHealthMonitorPath(id).toString();
-    }
-
-    /**
-     * URL-encode a path segment that may contain forward slashes.
-     */
-    public static String encodePathSegment(String segment) {
-        try {
-            return URLEncoder.encode(segment, UTF8);
-        } catch (UnsupportedEncodingException ex) {
-            // If UTF-8 isn't supported, the end times are upon us.
-            throw new RuntimeException(ex);
-        }
     }
 
     /**

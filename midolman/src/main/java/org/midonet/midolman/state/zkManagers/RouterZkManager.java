@@ -54,29 +54,6 @@ public class RouterZkManager
             super();
         }
 
-        public RouterConfig(UUID inboundFilter,
-                            UUID outboundFilter, UUID loadBalancer) {
-            this.inboundFilter = inboundFilter;
-            this.outboundFilter = outboundFilter;
-            this.loadBalancer = loadBalancer;
-        }
-
-        public RouterConfig(String name, UUID inboundFilter,
-                            UUID outboundFilter, UUID loadBalancer) {
-            this.name = name;
-            this.inboundFilter = inboundFilter;
-            this.outboundFilter = outboundFilter;
-            this.loadBalancer = loadBalancer;
-        }
-
-        public RouterConfig(Router router, UUID inboundFilter,
-                            UUID outboundFilter) {
-            this.adminStateUp = router.adminStateUp;
-            this.name = router.name;
-            this.inboundFilter = inboundFilter;
-            this.outboundFilter = outboundFilter;
-        }
-
         @Override
         public boolean equals(Object o) {
             if (this == o)

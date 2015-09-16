@@ -79,8 +79,6 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     Map<UUID, PortRoutesCallback> portIdCallback = new HashMap<>();
     Map<UUID, PortRoutesWatcher> portIdWatcher = new HashMap<>();
 
-    Map<UUID, Set<Route>> routeGraveyard = new HashMap<>();
-
     private static final Logger log =
          LoggerFactory.getLogger(ClusterRouterManager.class);
 

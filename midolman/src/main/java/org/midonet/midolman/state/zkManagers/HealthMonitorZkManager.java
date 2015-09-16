@@ -15,7 +15,11 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.google.common.base.Objects;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -24,16 +28,11 @@ import org.midonet.cluster.rest_api.neutron.models.HealthMonitor;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.l4lb.HealthMonitorType;
-import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.UUID;
+import org.midonet.midolman.state.l4lb.HealthMonitorType;
+import org.midonet.midolman.state.l4lb.LBStatus;
 
 import static java.util.Arrays.asList;
 
@@ -42,9 +41,6 @@ import static java.util.Arrays.asList;
  */
 public class HealthMonitorZkManager extends
         AbstractZkManager<UUID, HealthMonitorZkManager.HealthMonitorConfig> {
-
-    private final static Logger log = LoggerFactory
-            .getLogger(HealthMonitorZkManager.class);
 
     public static class HealthMonitorConfig extends BaseConfig {
 
@@ -126,32 +122,16 @@ public class HealthMonitorZkManager extends
             throws SerializationException {
         return asList(simpleCreateOp(id, config),
                       Op.create(paths.getHealthMonitorPoolsPath(id), null,
-                              Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-    }
-
-    public List<Op> prepareUpdate(UUID id, HealthMonitorConfig config)
-            throws SerializationException {
-        return asList(simpleUpdateOp(id, config));
+                                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
     }
 
     public List<Op> prepareDelete(UUID id) {
         return asList(Op.delete(paths.getHealthMonitorPoolsPath(id), -1),
-                Op.delete(paths.getHealthMonitorPath(id), -1));
+                      Op.delete(paths.getHealthMonitorPath(id), -1));
     }
 
-   public List<UUID> getPoolIds(UUID id)
+    public List<UUID> getPoolIds(UUID id)
             throws StateAccessException, SerializationException {
         return getUuidList(paths.getHealthMonitorPoolsPath(id));
-    }
-
-    public List<Op> prepareAddPool(UUID id, UUID poolId) {
-        return asList(Op.create(
-                paths.getHealthMonitorPoolPath(id, poolId), null,
-                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-    }
-
-    public List<Op> prepareRemovePool(UUID id, UUID poolId) {
-        return asList(
-                Op.delete(paths.getHealthMonitorPoolPath(id, poolId), -1));
     }
 }

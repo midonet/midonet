@@ -19,17 +19,14 @@
  */
 package org.midonet.cluster.data;
 
-import static org.junit.Assert.*;
-
 import java.util.UUID;
 
 import org.junit.Test;
+
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 
-/**
- * @author tomohiko
- *
- */
+import static org.junit.Assert.assertEquals;
+
 public class ConverterTest {
     @Test
     public void testToBridgeConfig() {
