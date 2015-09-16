@@ -36,7 +36,7 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':midonet-util'), project(':netlink')
+    compile project(':midonet-util')
 
     compile libraries.cassandra,
             libraries.collections4,

@@ -26,6 +26,7 @@ import org.midonet.odp.flows.FlowStats
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, MeterTag}
 import org.midonet.util.collection.ArrayObjectPool
 
+import org.midonet.management.{FlowStats => JmxFlowStats}
 
 class MeterRegistry(val maxFlows: Int) {
     val log = Logger(LoggerFactory.getLogger("org.midonet.metering"))
@@ -44,7 +45,7 @@ class MeterRegistry(val maxFlows: Int) {
     private val metadataPool = new ArrayObjectPool[FlowData]((maxFlows * 1.1).toInt,
                                                               pool => new FlowData())
 
-    val meters = new ConcurrentHashMap[String, FlowStats]()
+    val meters = new ConcurrentHashMap[String, JmxFlowStats]()
     private val trackedFlows = new JHashMap[FlowMatch, FlowData]()
     private val DELTA = new FlowStats()
 
@@ -66,7 +67,7 @@ class MeterRegistry(val maxFlows: Int) {
                     if (meters.containsKey(meter.meterName)) {
                         log.debug(s"tracking a new flow for meter ${meter.meterName}")
                     } else {
-                        meters.put(meter.meterName, new FlowStats())
+                        meters.put(meter.meterName, new JmxFlowStats())
                         log.debug(s"discovered a new meter: ${meter.meterName}")
                     }
                 case _ => // Do nothing
@@ -94,7 +95,7 @@ class MeterRegistry(val maxFlows: Int) {
             while (i < metadata.meters.size()) {
                 val meterName = metadata.meters.get(i).meterName
                 log.debug(s"meter $meterName got ${DELTA.bytes} bytes / ${DELTA.packets} packets")
-                meters.get(meterName).add(DELTA)
+                meters.get(meterName).add(DELTA.packets, DELTA.bytes)
                 i += 1
             }
         }

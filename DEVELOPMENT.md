@@ -164,3 +164,16 @@ On ubuntu this requires the rpm tools which you can install with
 ### Build all & Run tests
 
     ~/midonet$ ./gradlew test
+
+## Running the Cluster Daemon locally
+
+Simply execute the following command from the root directory of the clone:
+
+    ./gradlew midonet-cluster:run -Pconf=`pwd`/midonet-cluster/conf/midonet-cluster.conf
+
+The Cluster will try to write on /etc/midonet_host_id.properties.  If
+this path is not writable you can either make it so, or override adding:
+
+    -Dmidonet.host_id_filepath=/tmp/midonet_host_id.properties
+
+to the gradlew command.

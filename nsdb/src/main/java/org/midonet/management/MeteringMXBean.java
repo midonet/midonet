@@ -15,8 +15,6 @@
  */
 package org.midonet.management;
 
-import org.midonet.odp.flows.FlowStats;
-
 public interface MeteringMXBean {
     static String NAME = "org.midonet.midolman:type=Metering";
 
