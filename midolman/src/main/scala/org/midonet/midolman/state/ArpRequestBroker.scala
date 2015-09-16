@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.{SimulationBackChannel, NotYetException}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
+import org.midonet.midolman.PacketWorkflow.GeneratedLogicalPacket
 import org.midonet.midolman.simulation._
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
@@ -76,9 +76,8 @@ object ArpRequestBroker {
  * this effect outside of the 1st ARP request, the implementation introduces
  * jitter to the staleness and ARP retry intervals.
  */
-class ArpRequestBroker(emitter: PacketEmitter,
-                       config: MidolmanConfig,
-                       invalidator: SimulationBackChannel,
+class ArpRequestBroker(config: MidolmanConfig,
+                       backChannel: SimulationBackChannel,
                        triggerBackChannel: () => Unit,
                        clock: UnixClock = UnixClock()) {
 
@@ -93,7 +92,7 @@ class ArpRequestBroker(emitter: PacketEmitter,
             case null =>
                 log.info(s"Building new arp request broker for router ${router.id}")
                 val broker = new SingleRouterArpRequestBroker(router.id,
-                        router.arpCache, emitter, config, invalidator, triggerBackChannel, clock)
+                        router.arpCache, config, backChannel, triggerBackChannel, clock)
                 brokers.put(router.id, broker)
                 broker
             case broker => broker
@@ -151,9 +150,8 @@ class ArpRequestBroker(emitter: PacketEmitter,
 
 class SingleRouterArpRequestBroker(id: UUID,
                                    arpCache: ArpCache,
-                                   emitter: PacketEmitter,
                                    config: MidolmanConfig,
-                                   invalidator: SimulationBackChannel,
+                                   backChannel: SimulationBackChannel,
                                    triggerBackChannel: () => Unit,
                                    clock: UnixClock = UnixClock()) {
     import ArpRequestBroker._
@@ -290,7 +288,7 @@ class SingleRouterArpRequestBroker(id: UUID,
         val loop = new ArpLoop(ip, port)
 
         val arp = makeArpRequest(port.portMac, port.portAddress, ip)
-        emitter.schedule(GeneratedLogicalPacket(port.id, arp))
+        backChannel.tell(GeneratedLogicalPacket(port.id, arp))
 
         arpLoops.add(ip)
         arpLoopQ.add(loop)
@@ -344,7 +342,6 @@ class SingleRouterArpRequestBroker(id: UUID,
     }
 
     private def processArpLoops() {
-        val now = clock.time
         while (arpLoopIsReady) {
             val loop = arpLoopQ.poll()
             val entry = arpCache.get(loop.ip)
@@ -359,7 +356,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                 val arp = makeArpRequest(loop.port.portMac,
                                          loop.port.portAddress,
                                          loop.ip)
-                emitter.schedule(GeneratedLogicalPacket(loop.port.id, arp))
+                backChannel.tell(GeneratedLogicalPacket(loop.port.id, arp))
                 loop.tick()
                 arpLoopQ.add(loop)
             }
@@ -384,7 +381,7 @@ class SingleRouterArpRequestBroker(id: UUID,
         if (newMac ne null) {
             if ((oldMac ne null) && (newMac != oldMac)) {
                 log.debug("Invalidating flows for {} in router {}", ip, id)
-                invalidator.tell(FlowTagger.tagForArpEntry(id, ip))
+                backChannel.tell(FlowTagger.tagForArpEntry(id, ip))
             }
             keepPromises(ip, newMac)
         }

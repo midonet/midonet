@@ -28,7 +28,6 @@ import akka.actor._
 
 import com.typesafe.scalalogging.Logger
 
-import org.jctools.queues.MpscArrayQueue
 import org.slf4j.{LoggerFactory, MDC}
 
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -42,9 +41,7 @@ import org.midonet.midolman.monitoring.FlowRecorder
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
-import org.midonet.midolman.simulation.PacketEmitter.{GeneratedLogicalPacket, GeneratedPacket, GeneratedPhysicalPacket}
 import org.midonet.midolman.simulation.{Port, _}
-import org.midonet.midolman.simulation._
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -66,6 +63,14 @@ object PacketWorkflow {
     case class HandlePackets(packet: Array[Packet])
     case class RestartWorkflow(context: PacketContext, error: Throwable)
         extends BackChannelMessage
+
+    sealed trait GeneratedPacket extends BackChannelMessage {
+        val eth: Ethernet
+    }
+    case class GeneratedLogicalPacket(egressPort: UUID, eth: Ethernet)
+        extends GeneratedPacket
+    case class GeneratedPhysicalPacket(egressPort: JInteger, eth: Ethernet)
+        extends GeneratedPacket
 
     trait SimulationResult {
         val simStep: SimStep = (context, as) => this
@@ -184,8 +189,6 @@ class PacketWorkflow(
     private val waitingRoom = new WaitingRoom[PacketContext](
                                         (simulationExpireMillis millis).toNanos)
 
-    private val genPacketEmitter = new PacketEmitter(new MpscArrayQueue(512), self)
-
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
     protected val traceStateTx = new FlowStateTransaction(traceStateTable)
@@ -201,7 +204,7 @@ class PacketWorkflow(
 
     protected val datapathId = dpState.datapath.getIndex
 
-    protected val arpBroker = new ArpRequestBroker(genPacketEmitter, config, backChannel,
+    protected val arpBroker = new ArpRequestBroker(config, backChannel,
                                                    () => self ! CheckBackchannels)
 
     private val invalidateExpiredConnTrackKeys =
@@ -239,7 +242,7 @@ class PacketWorkflow(
 
     override def shouldProcess(): Boolean =
         super.shouldProcess() ||
-        genPacketEmitter.pendingPackets > 0 ||
+        backChannel.hasMessages ||
         arpBroker.shouldProcess()
 
     private def invalidateRoutedFlows(msg: InvalidateFlows) {
@@ -267,13 +270,13 @@ class PacketWorkflow(
         case m: InvalidateFlows => invalidateRoutedFlows(m)
         case tag: FlowTag => invalidateFlowsFor(tag)
         case RestartWorkflow(pktCtx, error) => restart(pktCtx, error)
+        case m: GeneratedPacket => startWorkflow(generatedPacketContext(m))
     }
 
     override def process(): Unit = {
         super.process()
         while (backChannel.hasMessages)
             handle(backChannel.poll())
-        genPacketEmitter.process(runGeneratedPacket)
         connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
         natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
         natLeaser.obliterateUnusedBlocks()
@@ -286,14 +289,13 @@ class PacketWorkflow(
         initialize(packet, packet.getMatch, null, null)
 
     protected def generatedPacketContext(p: GeneratedPacket) = {
+        log.debug(s"Executing generated packet $p")
+        val fmatch = FlowMatches.fromEthernetPacket(p.eth)
+        val packet = new Packet(p.eth, fmatch)
         p match {
-            case GeneratedLogicalPacket(portId, eth) =>
-                val fmatch = FlowMatches.fromEthernetPacket(eth)
-                val packet = new Packet(eth, fmatch)
+            case GeneratedLogicalPacket(portId, _) =>
                 initialize(packet, fmatch, portId, null)
-            case GeneratedPhysicalPacket(portNo, eth) =>
-                val fmatch = FlowMatches.fromEthernetPacket(eth)
-                val packet = new Packet(eth, fmatch)
+            case GeneratedPhysicalPacket(portNo, _) =>
                 initialize(packet, fmatch, null, portNo)
         }
     }
@@ -304,7 +306,7 @@ class PacketWorkflow(
         log.debug(s"Creating new PacketContext for cookie $cookie")
         val context = new PacketContext(cookie, packet, fmatch,
                                         egressPortId, egressPortNo)
-        context.reset(genPacketEmitter, arpBroker)
+        context.reset(backChannel, arpBroker)
         context.initialize(connTrackTx, natTx, natLeaser, traceStateTx)
         context.log = PacketTracing.loggerFor(fmatch)
         context
@@ -442,11 +444,6 @@ class PacketWorkflow(
         } else {
             processPacket(packet)
         }
-
-    private val runGeneratedPacket = (p: GeneratedPacket) => {
-        log.debug(s"Executing generated packet $p")
-        startWorkflow(generatedPacketContext(p))
-    }
 
     private def processPacket(packet: Packet): Unit =
         startWorkflow(packetContext(packet))

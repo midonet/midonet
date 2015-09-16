@@ -17,20 +17,19 @@
 package org.midonet.midolman
 
 import java.nio.ByteBuffer
-import java.util.{LinkedList, UUID}
+import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import org.junit.runner.RunWith
-import org.midonet.midolman.config.MidolmanConfig
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
+import org.midonet.midolman.PacketWorkflow.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.{Bridge, DhcpValueParser, Router}
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
 import org.midonet.packets._
@@ -144,13 +143,10 @@ class DhcpTest extends MidolmanSpec {
                                        DHCPOption.Code.DNS.length,
                                        Array(192,168,1,1).map(_.toByte)))) }
 
-        val emitter = new LinkedList[GeneratedPacket]
-        val pktCtx = packetContextFor(pkt, inPortNumber = portNumber,
-                                      emitter = emitter)
+        val pktCtx = packetContextFor(pkt, inPortNumber = portNumber)
         workflow.start(pktCtx)
 
-        emitter should have size 1
-        val generatedPkt = emitter.head.asInstanceOf[GeneratedLogicalPacket]
+        val generatedPkt = simBackChannel.find[GeneratedLogicalPacket]()
         generatedPkt.egressPort should be (port)
         generatedPkt.eth
     }

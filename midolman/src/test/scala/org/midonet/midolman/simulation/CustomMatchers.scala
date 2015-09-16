@@ -21,6 +21,7 @@ import java.util.UUID
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 import org.scalactic.Prettifier
 import org.scalatest.matchers._
@@ -211,11 +212,11 @@ trait CustomMatchers {
         override def toString(): String = "have invalidated (" + Prettifier.default(tags) + ")"
     }
 
-    implicit class FlowInvalidatorOps(val flowInvalidator: SimulationBackChannel) {
+    implicit class BackChannelOps(val backChannel: SimulationBackChannel) {
         def clear(): List[FlowTag] = {
             val invalidatedTags = mutable.ListBuffer[FlowTag]()
-            while (flowInvalidator.hasMessages) {
-                flowInvalidator.poll() match {
+            while (backChannel.hasMessages) {
+                backChannel.poll() match {
                     case tag: FlowTag =>
                         invalidatedTags += tag
                     case _ =>
@@ -226,8 +227,19 @@ trait CustomMatchers {
 
         def get(): List[FlowTag] = {
             val invalidatedTags = clear()
-            invalidatedTags foreach flowInvalidator.tell
+            invalidatedTags foreach backChannel.tell
             invalidatedTags
+        }
+
+        def find[T >: Null : ClassTag](): T = {
+            while (backChannel.hasMessages) {
+                backChannel.poll() match {
+                    case msg: T =>
+                        return msg
+                    case _ =>
+                }
+            }
+            null
         }
     }
 }
