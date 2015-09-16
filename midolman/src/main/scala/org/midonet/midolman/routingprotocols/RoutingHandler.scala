@@ -48,6 +48,7 @@ import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor, Network}
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent.{ConveyorBelt, ReactiveActor, SingleThreadExecutionContextProvider}
 import org.midonet.util.eventloop.SelectLoop
@@ -221,7 +222,7 @@ object RoutingHandler {
 }
 
 abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
-                              val flowInvalidator: (BackChannelMessage) => Unit,
+                              val flowInvalidator: FlowTag => Unit,
                               val routingStorage: RoutingStorage,
                               val config: MidolmanConfig,
                               val connWatcher: ZkConnectionAwareWatcher)

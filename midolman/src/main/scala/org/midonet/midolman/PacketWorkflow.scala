@@ -43,6 +43,8 @@ import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.PacketEmitter.{GeneratedLogicalPacket, GeneratedPacket, GeneratedPhysicalPacket}
 import org.midonet.midolman.simulation.{Port, _}
+import org.midonet.midolman.simulation._
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -282,7 +284,6 @@ class PacketWorkflow(
     override def handle(msg: BackChannelMessage): Unit = msg match {
         case m: InvalidateFlows => handle(m)
         case tag: FlowTag => invalidateFlowsFor(tag)
-        case _ => // ignored, no other subclasses
     }
 
     override def process(): Unit = {

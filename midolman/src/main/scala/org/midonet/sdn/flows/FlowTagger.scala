@@ -20,12 +20,12 @@ import java.util.{UUID, WeakHashMap}
 import java.lang.ref.WeakReference
 import scala.reflect.{ClassTag,classTag}
 
-import org.midonet.midolman.BackChannelMessage
+import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
 import org.midonet.packets.{IPv6Addr, IPv4Addr, IPAddr, MAC}
 import org.midonet.midolman.layer3.Route
 
 object FlowTagger {
-    trait FlowTag extends BackChannelMessage
+    trait FlowTag extends BackChannelMessage with Broadcast
 
     /**
      * Marker interface used to distinguish flow state tags from normal

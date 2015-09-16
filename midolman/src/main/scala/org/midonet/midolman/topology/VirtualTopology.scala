@@ -37,9 +37,10 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.simulation._
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
-import org.midonet.midolman.{BackChannelMessage, NotYetException, SimulationBackChannel}
+import org.midonet.midolman.{NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.functors.{Predicate, makeFunc1, makeRunnable}
 import org.midonet.util.reactivex._

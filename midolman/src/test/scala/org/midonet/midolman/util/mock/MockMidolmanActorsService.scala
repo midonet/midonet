@@ -26,8 +26,10 @@ import akka.pattern.ask
 import akka.testkit.TestActorRef
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import com.google.inject.{Inject, Injector}
+
 import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, MockScheduler, Referenceable}
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
+import org.midonet.midolman.{BackChannelHandler, MockScheduler, Referenceable}
 import org.midonet.midolman.services.MidolmanActorsService
 
 class EmptyActor extends Actor {

@@ -34,6 +34,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation._
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.ArpRequestBroker._
 import org.midonet.midolman.state._
 import org.midonet.midolman.util.ArpCacheHelper

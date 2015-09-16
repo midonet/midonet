@@ -32,10 +32,10 @@ import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.simulation.{Router => SimulationRouter, Mirror, RouterPort, Chain, LoadBalancer}
+import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
 import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.RouterMapper._
 import org.midonet.odp.FlowMatch
@@ -52,7 +52,7 @@ object RouterMapper {
     case class InvalidateFlows(routerId: UUID,
                                addedRoutes: Set[Route],
                                deletedRoutes: Set[Route])
-        extends BackChannelMessage
+        extends BackChannelMessage with Broadcast
 
     case class RouterInvTrieTagCountModified(dstIp: IPAddr, count: Int)
 

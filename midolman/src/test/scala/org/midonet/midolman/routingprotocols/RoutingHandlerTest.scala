@@ -16,7 +16,6 @@
 
 package org.midonet.midolman.routingprotocols
 
-import java.util
 import java.util.UUID
 
 import scala.concurrent.{Future, Promise}
@@ -34,7 +33,6 @@ import org.scalatest.mock.MockitoSugar
 
 import org.midonet.cluster.data.Route
 import org.midonet.midolman.state.StateAccessException
-import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.simulation.RouterPort
@@ -57,7 +55,7 @@ class RoutingHandlerTest extends FeatureSpecLike
     var routingStorage: MockRoutingStorage = _
     def vty = bgpd.vty
     var routingHandler: ActorRef = _
-    var invalidations = List[BackChannelMessage]()
+    var invalidations = List[FlowTag]()
     val config = MidolmanConfig.forTests
     implicit var as: ActorSystem = _
 
@@ -385,7 +383,7 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
 
 
 class TestableRoutingHandler(rport: RouterPort,
-                             flowInvalidator: (BackChannelMessage) => Unit,
+                             flowInvalidator: FlowTag => Unit,
                              routingStorage: RoutingStorage,
                              config: MidolmanConfig,
                              override val bgpd: MockBgpdProcess)
