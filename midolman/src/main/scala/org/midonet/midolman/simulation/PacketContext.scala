@@ -242,7 +242,7 @@ trait RedirectContext extends Clearable {
  * used to pass state between different simulation stages, or between virtual
  * devices.
  */
-class PacketContext(val cookie: Int,
+class PacketContext(val cookie: Long,
                     val packet: Packet,
                     val origMatch: FlowMatch,
                     val egressPort: UUID = null,

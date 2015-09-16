@@ -52,7 +52,7 @@ class JsonSerialization {
         FlowRecord(readUUID("hostId"),
                    readUUID("inPort"),
                    readMatch(),
-                   readNumber("cookie").toInt,
+                   readNumber("cookie"),
                    readDeviceList("devices"),
                    readRuleList(),
                    readSimResult(),
