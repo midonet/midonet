@@ -64,11 +64,11 @@ object PacketWorkflow {
 
     sealed trait GeneratedPacket extends BackChannelMessage {
         val eth: Ethernet
-        val cookie: Int
+        val cookie: Long
     }
-    case class GeneratedLogicalPacket(egressPort: UUID, eth: Ethernet, cookie: Int)
+    case class GeneratedLogicalPacket(egressPort: UUID, eth: Ethernet, cookie: Long)
         extends GeneratedPacket
-    case class GeneratedPhysicalPacket(egressPort: JInteger, eth: Ethernet, cookie: Int)
+    case class GeneratedPhysicalPacket(egressPort: JInteger, eth: Ethernet, cookie: Long)
         extends GeneratedPacket
 
     trait SimulationResult {
@@ -297,7 +297,7 @@ class PacketWorkflow(
         }
     }
 
-    private def initialize(cookie: Int, packet: Packet, fmatch: FlowMatch,
+    private def initialize(cookie: Long, packet: Packet, fmatch: FlowMatch,
                            egressPortId: UUID, egressPortNo: JInteger) = {
         log.debug(s"Creating new PacketContext for cookie $cookie")
         val context = new PacketContext(cookie, packet, fmatch,
