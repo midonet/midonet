@@ -18,20 +18,16 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import akka.testkit.TestActorRef
-
 import org.junit.runner.RunWith
+import org.midonet.util.collection.IPv4InvalidationArray
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Router => SimRouter, RouterPort}
-import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.{EmptyActor, MessageAccumulator}
 import org.midonet.packets.{IPv4Subnet, Packets, IPv4Addr, MAC}
-import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class RouterFlowInvalidationTest extends MidolmanSpec {
@@ -53,8 +49,6 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
     val networkToReach = "11.11.0.0"
     val networkToReachLength = 16
 
-    var tagsProbe: MessageAccumulator = _
-
     override def beforeTest(): Unit = {
         router = newRouter("router")
         inPort = newRouterPort(router, MAC.fromString(macInPort),
@@ -67,10 +61,6 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
 
         fetchPorts(inPort, outPort)
         simRouter = fetchDevice[SimRouter](router)
-
-        val actor = TestActorRef(new EmptyActor with MessageAccumulator)
-        actorSystem.eventStream.subscribe(actor, classOf[RouterInvTrieTagCountModified])
-        tagsProbe = actor.underlyingActor
     }
 
     scenario("Routes are referenced by flows") {
@@ -90,12 +80,11 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         val (simRes, pktCtx) = simulate(packetContextFor(eth, inPort))
         simRes should not be Drop
 
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipToReach), 1)))
+        val dst = IPv4Addr.fromString(ipToReach).toInt
+        IPv4InvalidationArray.current.countRefs(dst) should be (1)
 
         pktCtx.flowRemovedCallbacks.runAndClear()
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipToReach), 0)))
+        IPv4InvalidationArray.current.countRefs(dst) should be (0)
     }
 
     scenario("Flows are invalidated when adding a route") {
@@ -106,7 +95,6 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
 
         // this vm is on a different sub network
         val ipVm3 = "11.11.2.4"
-        val ipVm3Tag = "11.11.2.0"
         val macVm3 = "11:22:33:44:55:04"
 
         newRoute(router, ipSource, 32, networkToReach, networkToReachLength,
@@ -126,22 +114,22 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         var simRes = simulate(packetContextFor(eth, inPort))._2
         simRes should not be Drop
 
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm1), 1)))
+        IPv4InvalidationArray.current.countRefs(
+            IPv4Addr.fromString(ipVm1).toInt) should be (1)
 
         eth = createUdpPacket(macSource, ipSource, macInPort, ipVm2)
         simRes = simulate(packetContextFor(eth, inPort))._2
         simRes should not be Drop
 
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 1)))
+        IPv4InvalidationArray.current.countRefs(
+            IPv4Addr.fromString(ipVm2).toInt) should be (1)
 
         eth = createUdpPacket(macSource, ipSource, macInPort, ipVm3)
         simRes = simulate(packetContextFor(eth, inPort))._2
         simRes should not be Drop
 
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm3), 1)))
+        IPv4InvalidationArray.current.countRefs(
+            IPv4Addr.fromString(ipVm3).toInt) should be (1)
 
         newRoute(router, ipSource, 32, "11.11.1.0", networkToReachLength+8,
             NextHop.PORT, outPort, new IPv4Addr(NO_GATEWAY).toString,
@@ -168,8 +156,8 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         val (simRes1, pktCtx1) = simulate(packetContextFor(eth, inPort))
         simRes1 should not be Drop
 
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm1), 1)))
+        IPv4InvalidationArray.current.countRefs(
+            IPv4Addr.fromString(ipVm1).toInt) should be (1)
 
         feedArpTable(simRouter, IPv4Addr.fromString(ipVm2),
                      MAC.fromString(macVm2))
@@ -178,12 +166,12 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         val (simRes2, pktCtx2) = simulate(packetContextFor(eth, inPort))
         simRes2 should not be Drop
 
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 1)))
+        IPv4InvalidationArray.current.countRefs(
+            IPv4Addr.fromString(ipVm2).toInt) should be (1)
 
         pktCtx1.flowRemovedCallbacks.runAndClear()
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm1), 0)))
+        IPv4InvalidationArray.current.countRefs(
+            IPv4Addr.fromString(ipVm1).toInt) should be (0)
 
         val ipSource2 = "20.20.0.40"
 
@@ -191,23 +179,23 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         val (simRes3, _) = simulate(packetContextFor(eth, inPort))
         simRes3 should not be Drop
 
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm1), 1)))
+        IPv4InvalidationArray.current.countRefs(
+            IPv4Addr.fromString(ipVm1).toInt) should be (1)
 
         eth = createUdpPacket(macSource, ipSource2, macInPort, ipVm2)
         val (simRes4, pktCtx4) = simulate(packetContextFor(eth, inPort))
         simRes4 should not be Drop
 
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 2)))
+        IPv4InvalidationArray.current.countRefs(
+            IPv4Addr.fromString(ipVm2).toInt) should be (2)
 
         pktCtx2.flowRemovedCallbacks.runAndClear()
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 1)))
+        IPv4InvalidationArray.current.countRefs(
+            IPv4Addr.fromString(ipVm2).toInt) should be (1)
 
         pktCtx4.flowRemovedCallbacks.runAndClear()
-        tagsProbe.getAndClear() should be (List(
-            new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 0)))
+        IPv4InvalidationArray.current.countRefs(
+            IPv4Addr.fromString(ipVm2).toInt) should be (0)
     }
 
     private def createUdpPacket(srcMac: String, srcIp: String,

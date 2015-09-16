@@ -206,7 +206,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             val pktContextIngress = new PacketContext(1, null, ingressMatch)
 
             intercept[NotYetException] {
-                lb.processInbound(pktContextIngress)(actorSystem)
+                lb.processInbound(pktContextIngress)
             }
 
             Then("the VTA should receive a pool request")

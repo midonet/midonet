@@ -35,7 +35,6 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
@@ -171,7 +170,6 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val state: LegacyStorage,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val simBackChannel: SimulationBackChannel,
-                                 val actorsService: MidolmanActorsService,
                                  @Named(VirtualTopology.VtExecutorName)
                                  vtExecutor: ExecutorService,
                                  @Named(VirtualTopology.VtExecutorCheckerName)
@@ -196,7 +194,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
     private val factories = Map[ClassTag[_], DeviceFactory](
         classTag[BgpPort] -> (new BgpPortMapper(_, this)),
         classTag[BgpRouter] -> (new BgpRouterMapper(_, this)),
-        classTag[Bridge] -> (new BridgeMapper(_, this, traceChains)(actorsService.system)),
+        classTag[Bridge] -> (new BridgeMapper(_, this, traceChains)),
         classTag[BridgePort] -> (new PortMapper(_, this, traceChains)),
         classTag[Chain] -> (new ChainMapper(_, this, traceChains)),
         classTag[Host] -> (new HostMapper(_, this)),
@@ -206,7 +204,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         classTag[PoolHealthMonitorMap] -> (id => new PoolHealthMonitorMapper(this)),
         classTag[Port] -> (new PortMapper(_, this, traceChains)),
         classTag[PortGroup] -> (new PortGroupMapper(_, this)),
-        classTag[Router] -> (new RouterMapper(_, this, traceChains)(actorsService.system)),
+        classTag[Router] -> (new RouterMapper(_, this, traceChains)),
         classTag[RouterPort] -> (new PortMapper(_, this, traceChains)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
         classTag[Mirror] -> (new MirrorMapper(_, this)),

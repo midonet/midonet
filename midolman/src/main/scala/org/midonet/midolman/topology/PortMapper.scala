@@ -23,7 +23,6 @@ import rx.Observable
 import rx.subjects.Subject
 
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
@@ -52,7 +51,7 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc3
  *                       +-------------------+  +-------+  +---------+
  */
 final class PortMapper(id: UUID, vt: VirtualTopology,
-                       _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
+                       val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
         extends VirtualDeviceMapper[SimulationPort](id, vt)
         with TraceRequestChainMapper[SimulationPort] {
 
@@ -62,9 +61,6 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private var prevAdminStateUp: Boolean = false
     private var prevActive: Boolean = false
 
-    override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
-        _traceChainMap
-
     private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
     private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
 
@@ -73,7 +69,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             (port: TopologyPort, active: Boolean, traceChain: Option[UUID]) => {
                 val infilters = new ArrayList[UUID](1)
                 val outfilters = new ArrayList[UUID](1)
-                traceChain.foreach(infilters.add(_))
+                traceChain.foreach(infilters.add)
                 if (port.hasInboundFilterId) {
                     infilters.add(port.getInboundFilterId)
                 }
@@ -105,7 +101,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                mirrorsTracker.refsObservable.map[SimulationPort](makeFunc1(refUpdated)),
                portObservable.map[SimulationPort](makeFunc1(portUpdated)))
         .filter(makeFunc1(isPortReady))
-        .doOnNext(makeAction1(maybeInvalidateFlowState(_)))
+        .doOnNext(makeAction1(maybeInvalidateFlowState))
 
     private def topologyPortUpdated(port: TopologyPort): Unit = {
         // Request the chains for this port.

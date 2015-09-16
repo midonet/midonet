@@ -67,10 +67,6 @@ object RouterManager {
     case class InvalidateFlows(
             routerId: UUID, addedRoutes: ROSet[Route], deletedRoutes: ROSet[Route])
             extends BackChannelMessage with Broadcast
-
-    // these msg are used for testing
-    case class RouterInvTrieTagCountModified(dstIp: IPAddr, count: Int)
-
 }
 
 /**
@@ -141,16 +137,11 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         def addIPv4Tag(dstIp: IPv4Addr, matchLength: Int) {
             val refs = IPv4InvalidationArray.current.ref(dstIp.toInt, matchLength)
             log.debug(s"Increased ref count ip prefix $dstIp/28 to $refs")
-            context.system.eventStream.publish(
-                new RouterInvTrieTagCountModified(dstIp, refs))
-
         }
 
         def getFlowRemovalCallback(dstIp: IPv4Addr) = new Callback0 {
             override def call() {
-                val refs = IPv4InvalidationArray.current.unref(dstIp.toInt)
-                context.system.eventStream.publish(
-                    new RouterInvTrieTagCountModified(dstIp, refs))
+                IPv4InvalidationArray.current.unref(dstIp.toInt)
             }
         }
     }
