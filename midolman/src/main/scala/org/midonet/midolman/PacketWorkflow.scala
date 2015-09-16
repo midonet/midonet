@@ -27,6 +27,7 @@ import scala.util.{Failure, Success}
 import akka.actor._
 import com.typesafe.scalalogging.Logger
 import org.jctools.queues.MpscArrayQueue
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.slf4j.{LoggerFactory, MDC}
 
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -278,7 +279,6 @@ class PacketWorkflow(
     override def handle(msg: BackChannelMessage): Unit = msg match {
         case m: RouterManager.InvalidateFlows => handle(m)
         case tag: FlowTag => invalidateFlowsFor(tag)
-        case _ => // ignored, no other subclasses
     }
 
     override def process(): Unit = {

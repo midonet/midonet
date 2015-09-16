@@ -17,7 +17,7 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import org.midonet.midolman.BackChannelMessage
+import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
 import org.midonet.util.collection.IPv4InvalidationArray
 
 import scala.collection.{Set => ROSet}
@@ -35,7 +35,6 @@ import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPAddr, IPv4Addr}
-import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.functors.Callback0
 
 class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP])
@@ -65,9 +64,9 @@ object RouterManager {
     case class TriggerUpdate(cfg: Router.Config, arpCache: ArpCache,
                              rTable: RoutingTableWrapper[IPv4Addr])
 
-    case class InvalidateFlows(routerId: UUID,
-                               addedRoutes: ROSet[Route],
-                               deletedRoutes: ROSet[Route]) extends BackChannelMessage
+    case class InvalidateFlows(
+            routerId: UUID, addedRoutes: ROSet[Route], deletedRoutes: ROSet[Route])
+            extends BackChannelMessage with Broadcast
 
     // these msg are used for testing
     case class RouterInvTrieTagCountModified(dstIp: IPAddr, count: Int)

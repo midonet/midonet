@@ -25,13 +25,14 @@ import scala.reflect._
 
 import akka.actor._
 import com.google.inject.Inject
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 import org.midonet.cluster.Client
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
-import org.midonet.midolman.{BackChannelMessage, SimulationBackChannel, NotYetException, Referenceable}
+import org.midonet.midolman.{SimulationBackChannel, NotYetException, Referenceable}
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
 import org.midonet.util.concurrent._
