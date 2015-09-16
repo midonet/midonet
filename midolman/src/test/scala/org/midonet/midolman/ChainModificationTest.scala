@@ -24,7 +24,6 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
@@ -36,8 +35,6 @@ class ChainModificationTest extends MidolmanSpec {
     var outPort: UUID = _
     var chain: UUID = _
     var chainRules = List[UUID]()
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     override def beforeTest(): Unit = {
         bridge = newBridge("bridge")
@@ -82,7 +79,7 @@ class ChainModificationTest extends MidolmanSpec {
             simResultFor(9009, 80) should not be Drop
             simResultFor(3456, 81) should not be Drop
 
-            deleteRule(chainRules.apply(0))
+            deleteRule(chainRules.head)
 
             simResultFor(9009, 80) should be (Drop)
             simResultFor(3456, 81) should not be Drop

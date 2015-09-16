@@ -37,7 +37,6 @@ import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.state.FlowState
 import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.odp.flows._
@@ -50,8 +49,6 @@ import org.midonet.util.collection.Reducer
 
 @RunWith(classOf[JUnitRunner])
 class NatTest extends MidolmanSpec {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var portMap = Map[Int, UUID]()
     val vmNetworkIp = new IPv4Subnet("10.0.0.0", 24)

@@ -53,9 +53,7 @@ import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.state.FlowStateStorageFactory;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
-import org.midonet.midolman.topology.VirtualTopologyActor;
 import org.midonet.netlink.NetlinkChannelFactory;
-import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.UnixClock;
 import org.midonet.util.UnixClock$;
 import org.midonet.util.concurrent.NanoClock;
@@ -116,7 +114,6 @@ public class MidolmanActorsModule extends PrivateModule {
          * would happen (the behaviour is not defined but akka v2.0.3 will
          * start the actor with a null context). */
         bind(SupervisorActor.class);
-        bind(VirtualTopologyActor.class);
         bind(VirtualToPhysicalMapper.class);
         bind(DatapathController.class);
         bind(PacketsEntryPoint.class);

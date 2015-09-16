@@ -45,7 +45,6 @@ import org.midonet.sdn.state.FlowStateTransaction
 
 @RunWith(classOf[JUnitRunner])
 class FlowTracingTest extends MidolmanSpec {
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var bridge: UUID = _
     var port1: UUID = _

@@ -24,9 +24,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{MAC, IPacket}
 import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
 import org.midonet.midolman.state.ConnTrackState._
@@ -80,9 +78,6 @@ class ConntrackTest extends MidolmanSpec {
         macTable.add(MAC.fromString(leftMac), leftPort)
         macTable.add(MAC.fromString(rightMac), rightPort)
     }
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()
-                                                  with MessageAccumulator))
 
     override def beforeTest() {
         buildTopology()

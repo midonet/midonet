@@ -27,7 +27,6 @@ import org.midonet.midolman.PacketWorkflow.HandlePackets
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{Packet, FlowMatch}
 import org.midonet.odp.flows.{FlowActions, FlowKeys}
@@ -39,8 +38,6 @@ import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class PingRouterWithNat extends MidolmanSpec {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     private var nearRouter: UUID = _
     private var farRouter: UUID = _

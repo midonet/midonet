@@ -26,15 +26,12 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.simulation.{Bridge => SimBridge, Router => SimRouter}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 
 @RunWith(classOf[JUnitRunner])
 class FloatingIpTest extends MidolmanSpec {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     val subnet1 = new IPv4Subnet("192.168.111.0", 24)
     val subnet2 = new IPv4Subnet("192.168.222.0", 24)

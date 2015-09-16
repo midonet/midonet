@@ -35,15 +35,15 @@ import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman._
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.{FlowRecorder, FlowRecorderFactory}
-import org.midonet.midolman.simulation.{Bridge => SimBridge, BridgePort => SimBridgePort, Chain => SimChain, DhcpConfigFromNsdb, LoadBalancer, PacketContext, PacketEmitter, Pool, Port => SimPort, Router => SimRouter, _}
+import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain, DhcpConfigFromNsdb, LoadBalancer, PacketContext, PacketEmitter, Pool, Port => SimPort, Router => SimRouter, _}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, DeviceRequest, LoadBalancerRequest, PoolRequest, PortRequest, RouterRequest}
+import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.Host
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology, VirtualTopologyActor}
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.InternalPort
@@ -68,26 +68,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             force(block)
         }
 
-    private val requestsFactory = Map[ClassTag[_], UUID => DeviceRequest](
-        classTag[SimPort]              -> (new PortRequest(_)),
-        classTag[SimBridgePort]        -> (new PortRequest(_)),
-        classTag[RouterPort]        -> (new PortRequest(_)),
-        classTag[VxLanPort]            -> (new PortRequest(_)),
-        classTag[SimBridge]            -> (new BridgeRequest(_)),
-        classTag[SimRouter]            -> (new RouterRequest(_)),
-        classTag[SimChain]             -> (new ChainRequest(_)),
-        classTag[Pool]                 -> (new PoolRequest(_)),
-        classTag[LoadBalancer]         -> (new LoadBalancerRequest(_))
-    )
-
-    def fetchDevice[T](id: UUID)(implicit tag: ClassTag[T]): T = {
-        requestsFactory.get(tag) match {
-            case Some(factory) =>
-                Await.result(
-                    ask(VirtualTopologyActor, factory(id)).asInstanceOf[Future[T]],
-                    timeout.duration)
-            case None => throw new IllegalArgumentException("factory not found")
-        }
+    def fetchDevice[T <: Device](id: UUID)(implicit tag: ClassTag[T]): T = {
+        Await.result(VirtualTopology.get[T](id), timeout.duration)
     }
 
     def fetchRouters(routers: UUID*): Seq[SimRouter] =

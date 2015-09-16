@@ -28,7 +28,7 @@ import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.FlowStateStorageFactory
-import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper}
 import org.midonet.midolman.util.mock.{MessageAccumulator, MockInterfaceScanner, MockUpcallDatapathConnectionManager}
 import org.midonet.midolman.util.{MidolmanSpec, MockNetlinkChannelFactory}
 import org.midonet.odp.ports.VxLanTunnelPort
@@ -47,7 +47,6 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
     var interfaceScanner: MockInterfaceScanner = null
 
     registerActors(
-        VirtualTopologyActor -> (() => new VirtualTopologyActor),
         VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
                                           with MessageAccumulator),
         DatapathController -> (() => new DatapathController(

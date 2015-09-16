@@ -17,7 +17,7 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean}
-import java.util.{ArrayList, UUID}
+import java.util.{ArrayList => JArrayList, UUID}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -34,13 +34,14 @@ import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.simulation.{Router => SimulationRouter, Mirror, RouterPort, Chain, LoadBalancer}
 import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.RouterMapper._
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.collection.IPv4InvalidationArray
 import org.midonet.util.functors._
 
@@ -48,6 +49,13 @@ object RouterMapper {
 
     private val EmptyRouteSet = Set.empty[Route]
     private val EmptyRouteUpdates = RouteUpdates(EmptyRouteSet, EmptyRouteSet)
+
+    case class InvalidateFlows(routerId: UUID,
+                               addedRoutes: Set[Route],
+                               deletedRoutes: Set[Route])
+        extends BackChannelMessage
+
+    case class RouterInvTrieTagCountModified(dstIp: IPAddr, count: Int)
 
     /**
      * Stores the state for a router port, and exposes an [[Observable]] that
@@ -357,7 +365,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
             log.debug(s"Remove tag for destination address prefix $dst/28")
             val refs = IPv4InvalidationArray.current.unref(dst.toInt)
             actorSystem.eventStream.publish(
-                    new RouterManager.RouterInvTrieTagCountModified(dst, refs))
+                    new RouterInvTrieTagCountModified(dst, refs))
         }
     }
 
@@ -383,7 +391,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
             val refs = IPv4InvalidationArray.current.ref(dst.toInt, matchLength)
             log.debug(s"Increased ref count ip prefix $dst/28 to $refs")
             actorSystem.eventStream.publish(
-                new RouterManager.RouterInvTrieTagCountModified(dst, refs))
+                new RouterInvTrieTagCountModified(dst, refs))
         }
         override def getFlowRemovalCallback(dst: IPv4Addr): Callback0 = {
             new RemoveTagCallback(dst)
@@ -520,8 +528,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         val outboundMirrors = new java.util.ArrayList[UUID]()
         outboundMirrors.addAll(router.getOutboundMirrorsList.asScala.map(_.asJava).asJava)
 
-        val infilters = new ArrayList[UUID](0)
-        val outfilters = new ArrayList[UUID](0)
+        val infilters = new JArrayList[UUID](0)
+        val outfilters = new JArrayList[UUID](0)
         if (router.hasInboundFilterId) {
             infilters.add(router.getInboundFilterId)
         }
@@ -562,8 +570,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         }
 
         // Request trace chain be built if necessary
-        requestTraceChain(router.getTraceRequestIdsList()
-                              .asScala.map(_.asJava).toList)
+        requestTraceChain(router.getTraceRequestIdsList
+                                .asScala.map(_.asJava).toList)
 
         // Request the chains for this router.
         chainsTracker.requestRefs(
@@ -633,7 +641,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         // Update the current routes.
         routes ++= routeUpdates.added
         routes --= routeUpdates.removed
-        vt.tellBackChannel(RouterManager.InvalidateFlows(
+        vt.tellBackChannel(InvalidateFlows(
             id, routeUpdates.added, routeUpdates.removed))
         config
     }
@@ -672,12 +680,11 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         assertThread()
 
         val config2 = traceChain match {
-            case Some(t) => {
-                val infilters = new ArrayList[UUID](2)
+            case Some(t) =>
+                val infilters = new JArrayList[UUID](2)
                 infilters.add(t)
                 infilters.addAll(config.inboundFilters)
                 config.copy(inboundFilters = infilters)
-            }
             case None => config
         }
 

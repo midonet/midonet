@@ -32,7 +32,6 @@ import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Router => SimRouter, Bridge => SimBridge, BridgePort}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows._
 import org.midonet.packets._
@@ -42,8 +41,6 @@ import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class MirroringTest extends MidolmanSpec with TopologyBuilder {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var mirrorA: UUID = _
     var mirrorB: UUID = _

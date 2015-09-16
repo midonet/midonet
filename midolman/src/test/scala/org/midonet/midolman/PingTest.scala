@@ -31,7 +31,6 @@ import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation.{Bridge, Router}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.odp.flows.FlowKeys
@@ -40,7 +39,6 @@ import org.midonet.packets.util.PacketBuilder._
 
 @RunWith(classOf[JUnitRunner])
 class PingTest extends MidolmanSpec {
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     // Router port one connecting to host VM1
     var simRouter : Router = _

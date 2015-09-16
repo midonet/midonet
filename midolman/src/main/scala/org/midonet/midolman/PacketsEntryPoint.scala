@@ -38,7 +38,8 @@ import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
-import org.midonet.midolman.topology.{RouterManager, VirtualTopology}
+import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
@@ -180,7 +181,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     private def broadcast(m: Any) { workers foreach ( _ ! m ) }
 
     override def receive = LoggingReceive {
-        case m: RouterManager.InvalidateFlows => broadcast(m)
+        case m: InvalidateFlows => broadcast(m)
 
         case m: FlowStateBatch => broadcast(m)
 

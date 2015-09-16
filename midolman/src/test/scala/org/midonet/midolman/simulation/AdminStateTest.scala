@@ -23,7 +23,6 @@ import scala.concurrent.duration._
 
 import akka.actor.Actor.emptyBehavior
 import akka.actor._
-import akka.pattern.ask
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 import org.junit.runner.RunWith
@@ -33,7 +32,6 @@ import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{BackChannelAccessor, MessageAccumulator}
@@ -50,10 +48,7 @@ import org.midonet.sdn.flows.FlowTagger
 class AdminStateTest extends MidolmanSpec {
     implicit val askTimeout: Timeout = 1 second
 
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
-                                                    with MessageAccumulator
-                                                    with BackChannelAccessor),
-                   VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
+    registerActors(VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
                                                      with MessageAccumulator))
 
     /*
@@ -74,7 +69,7 @@ class AdminStateTest extends MidolmanSpec {
     var exteriorRouterPort: UUID = _
 
     var brPortIds: List[UUID] = List.empty
-    var vta: BackChannelAccessor = _
+    var bca: BackChannelAccessor = _
 
     override def beforeTest() {
         newHost("myself", hostId)
@@ -133,8 +128,8 @@ class AdminStateTest extends MidolmanSpec {
         sendPacket (fromBridgeSide) should be (flowMatching (emittedRouterSidePkt))
         sendPacket (fromRouterSide) should be (flowMatching (emittedBridgeSidePkt))
 
-        vta = VirtualTopologyActor.as[BackChannelAccessor]
-        vta.getAndClearBC()
+        bca = new BackChannelAccessor(injector.getInstance(classOf[VirtualTopology]))
+        bca.getAndClearBC()
 
         VirtualToPhysicalMapper ! LocalPortActive(exteriorBridgePort,
                                                   active = true)
@@ -245,7 +240,7 @@ class AdminStateTest extends MidolmanSpec {
 
             Given("an exterior bridge port that is flooded")
 
-            val f = ask(VirtualTopologyActor, BridgeRequest(bridge))
+            val f = VirtualTopology.get[Bridge](bridge)
             val simBridge = Await.result(f, Duration.Inf).asInstanceOf[Bridge]
             clearMacTable(simBridge, macBridgeSide, exteriorBridgePort)
 
@@ -452,7 +447,7 @@ class AdminStateTest extends MidolmanSpec {
         scenario("the admin state of a bridge is set to up") {
             Given("a bridge with its state set to down")
             setBridgeAdminStateUp(bridge, false)
-            vta.getAndClearBC()
+            bca.getAndClearBC()
 
             When("setting its state to down")
 
@@ -483,7 +478,7 @@ class AdminStateTest extends MidolmanSpec {
             setPortAdminStateUp(interiorBridgePort, false)
             setPortAdminStateUp(exteriorBridgePort, false)
 
-            vta.getAndClearBC()
+            bca.getAndClearBC()
 
             When("setting their state to up")
 
@@ -511,7 +506,7 @@ class AdminStateTest extends MidolmanSpec {
         scenario("the admin state of a router is set to up") {
             Given("a router with its state set to down")
             setRouterAdminStateUp(router, false)
-            vta.getAndClearBC()
+            bca.getAndClearBC()
 
             When("setting its state to up")
 
@@ -540,7 +535,7 @@ class AdminStateTest extends MidolmanSpec {
             Given("interior and exterior router ports with their state set to down")
             setPortAdminStateUp(interiorRouterPort, false)
             setPortAdminStateUp(exteriorRouterPort, false)
-            vta.getAndClearBC()
+            bca.getAndClearBC()
 
             When("setting their state to up")
 
@@ -555,7 +550,7 @@ class AdminStateTest extends MidolmanSpec {
     }
 
     private[this] def assertFlowTagsInvalidated(tags: FlowTagger.FlowTag*) {
-        val invalidations = vta.getAndClearBC()
+        val invalidations = bca.getAndClearBC()
                 .filter(_.isInstanceOf[FlowTagger.FlowTag])
 
         for (tag <- tags) {

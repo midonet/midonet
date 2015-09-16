@@ -23,7 +23,6 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.{Router, Bridge}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.midolman.util.ArpCacheHelper._
@@ -146,8 +145,6 @@ class ChainInvalidationTest extends MidolmanSpec {
         rightBridge = new BridgeWithOneVm(rightNet, clusterRouter, this)
         rightBridge.buildTopology()
     }
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()))
 
     override def beforeTest() {
         buildTopology()

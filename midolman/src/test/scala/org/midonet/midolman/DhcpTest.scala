@@ -31,7 +31,6 @@ import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Bridge, DhcpValueParser, Router}
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
 import org.midonet.packets._
@@ -39,8 +38,6 @@ import org.midonet.packets.util.PacketBuilder._
 
 @RunWith(classOf[JUnitRunner])
 class DhcpTest extends MidolmanSpec {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     val routerIp1 = new IPv4Subnet("192.168.11.1", 24)
     val routerMac1 = MAC.fromString("22:aa:aa:ff:ff:ff")

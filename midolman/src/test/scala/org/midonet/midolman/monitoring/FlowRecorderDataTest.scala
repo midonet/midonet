@@ -15,28 +15,23 @@
  */
 package org.midonet.midolman.monitoring
 
-import java.util.{LinkedList, Map => JMap, UUID}
+import java.util.{LinkedList, UUID}
 import scala.collection.JavaConverters._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{HandlePackets, SimulationResult}
-import org.midonet.midolman.config.FlowHistoryConfig
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.FlowTagger.DeviceTag
 
 @RunWith(classOf[JUnitRunner])
 class FlowRecorderDataTest extends MidolmanSpec {
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     feature("simulation devices") {
         scenario("expected tags, and only expected tag, show up") {

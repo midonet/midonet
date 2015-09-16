@@ -23,7 +23,6 @@ import java.util.UUID
 
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
@@ -36,8 +35,6 @@ class DpPortTaggingTest extends MidolmanSpec {
     val inPortNumber = 1
     var outPort: UUID = _
     val outPortNumber = 2
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     override def beforeTest(): Unit = {
         bridge = newBridge("bridge")

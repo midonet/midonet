@@ -49,7 +49,8 @@ import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser, _}
 import org.midonet.midolman.simulation.Port
-import org.midonet.midolman.topology.{VirtualTopology, RouterManager, VxLanPortMapper}
+import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowActions.output
@@ -106,7 +107,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     private def handleFromVtep(context: PacketContext): SimulationResult = {
         val srcTunIp = IPv4Addr(context.wcmatch.getTunnelSrc)
         val vni = context.wcmatch.getTunnelKey.toInt
-        val portIdOpt = VxLanPortMapper uuidOf (srcTunIp, vni)
+        val portIdOpt = None // TODO: replace with VxLanPortMappingService
         val simResult = if (portIdOpt.isDefined) {
             context.inputPort = portIdOpt.get
             simulatePacketIn(context)
@@ -254,8 +255,8 @@ class PacketWorkflow(
         genPacketEmitter.pendingPackets > 0 ||
         arpBroker.shouldProcess()
 
-    def handle(msg: RouterManager.InvalidateFlows) {
-        val RouterManager.InvalidateFlows(id, added, deleted) = msg
+    def handle(msg: InvalidateFlows) {
+        val InvalidateFlows(id, added, deleted) = msg
 
         for (route <- deleted) {
             invalidateFlowsFor(FlowTagger.tagForRoute(route))
@@ -276,7 +277,7 @@ class PacketWorkflow(
     }
 
     override def handle(msg: BackChannelMessage): Unit = msg match {
-        case m: RouterManager.InvalidateFlows => handle(m)
+        case m: InvalidateFlows => handle(m)
         case tag: FlowTag => invalidateFlowsFor(tag)
         case _ => // ignored, no other subclasses
     }

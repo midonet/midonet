@@ -45,7 +45,6 @@ import org.midonet.sdn.state.ShardedFlowStateTable
 
 @RunWith(classOf[JUnitRunner])
 class FlowTracingEgressMatchingTest extends MidolmanSpec {
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
     var ingressHost: UUID = null
     var egressHost: UUID = null
     var egressHostIp = IPv4Addr("180.0.1.3")

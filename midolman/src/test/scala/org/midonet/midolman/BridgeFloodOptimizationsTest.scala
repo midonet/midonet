@@ -29,14 +29,11 @@ import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation.Simulator.ToPortAction
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{ARP, IPv4Addr, MAC, Packets}
 
 @RunWith(classOf[JUnitRunner])
 class BridgeFloodOptimizationsTest extends MidolmanSpec {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var bridge: UUID = _
     var port1, port2, port3: UUID = _

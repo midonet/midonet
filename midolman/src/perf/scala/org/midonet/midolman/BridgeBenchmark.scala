@@ -24,7 +24,6 @@ import org.openjdk.jmh.infra.Blackhole
 
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.simulation.{PacketContext, Bridge}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.packets.MAC
 import org.midonet.packets.util.PacketBuilder._
 
@@ -35,7 +34,6 @@ import org.midonet.packets.util.PacketBuilder._
 @Fork(value = 5)
 @State(Scope.Benchmark)
 class BridgeBenchmark extends MidolmanBenchmark {
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     val leftMac = MAC.random
     val rightMac = MAC.random

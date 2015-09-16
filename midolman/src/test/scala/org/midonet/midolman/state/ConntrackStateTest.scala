@@ -28,8 +28,7 @@ import org.midonet.midolman.simulation.BridgePort
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
@@ -40,8 +39,6 @@ import org.midonet.util.collection.Reducer
 
 @RunWith(classOf[JUnitRunner])
 class ConntrackStateTest extends MidolmanSpec {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     val ping: Ethernet =
         { eth src MAC.random() dst MAC.random() } <<
@@ -57,8 +54,7 @@ class ConntrackStateTest extends MidolmanSpec {
 
     override def beforeTest(): Unit = {
         val port = BridgePort(id = portId, networkId = ingressDevice)
-        VirtualTopologyActor ! PortRequest(portId)
-        VirtualTopologyActor ! port
+        VirtualTopology.add(portId, port)
     }
 
     def context(eth: Ethernet = ping, egressPort: UUID = null) = {

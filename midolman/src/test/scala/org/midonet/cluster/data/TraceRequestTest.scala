@@ -27,14 +27,13 @@ import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.midolman.rules.TraceRule
 import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain, Port => SimPort}
 import org.midonet.midolman.state.MockDirectory
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.VirtualConfigurationBuilders.TraceDeviceType
 import org.midonet.packets.{IPv4Subnet, MAC}
 
 @RunWith(classOf[JUnitRunner])
 class TraceRequestTest extends MidolmanSpec {
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     val tenantId = "tenant0"
 
@@ -132,7 +131,7 @@ class TraceRequestTest extends MidolmanSpec {
 
         enableTraceRequest(trace1)
         val port3 = fetchDevice[SimPort](portId)
-        port3.inboundFilters.size should not be (0)
+        port3.inboundFilters.size should not be 0
 
         val chainId = port3.inboundFilters.get(0)
         val chain = fetchDevice[SimChain](chainId)
@@ -153,7 +152,7 @@ class TraceRequestTest extends MidolmanSpec {
         val port4 = fetchDevice[SimPort](portId)
         port4.inboundFilters.size shouldBe 0
 
-        VirtualTopologyActor.clearTopology()
+        VirtualTopology.clear()
         intercept[NotFoundException] {
             fetchDevice[SimChain](chainId)
         }
@@ -224,7 +223,7 @@ class TraceRequestTest extends MidolmanSpec {
         rules.size() should be (1)
         deleteBridge(bridge)
 
-        VirtualTopologyActor.clearTopology()
+        VirtualTopology.clear()
         intercept[NotFoundException] {
             fetchDevice[SimChain](chain)
         }

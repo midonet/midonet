@@ -34,7 +34,7 @@ import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.{VxLanPort, Bridge, PacketContext}
-import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper}
 import org.midonet.midolman.simulation.BridgePort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
@@ -48,8 +48,7 @@ import org.midonet.util.concurrent.ExecutionContextOps
 
 @RunWith(classOf[JUnitRunner])
 class FlowTranslatorTest extends MidolmanSpec {
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor),
-                   VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
+    registerActors(VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
 
     override def beforeTest(): Unit = {
         newHost("self", hostId)

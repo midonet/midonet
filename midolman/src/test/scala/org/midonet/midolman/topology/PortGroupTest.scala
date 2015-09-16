@@ -16,6 +16,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import akka.util.Timeout
@@ -23,20 +24,14 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.simulation.{PortGroup => SimPortGroup}
-import org.midonet.midolman.topology.{VirtualTopologyActor => VTA}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.midolman.topology.VirtualTopologyActor.PortGroupRequest
 import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
 class PortGroupTest extends MidolmanSpec
                     with MidonetEventually {
-    implicit val askTimeout: Timeout = 1 second
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
-        with MessageAccumulator))
+    val timeout = 1 second
 
     var port1: UUID = _
     var port2: UUID = _
@@ -58,12 +53,12 @@ class PortGroupTest extends MidolmanSpec
     }
 
     private def interceptPortGroup(): SimPortGroup = {
-        VirtualTopologyActor.tryAsk[SimPortGroup](portGroup)
+        VirtualTopology.tryGet[SimPortGroup](portGroup)
     }
 
     feature("midolman tracks port groups in the cluster correctly") {
         scenario("VTA gets a port group and receives updates from its manager") {
-            VTA ! PortGroupRequest(portGroup, update = false)
+            Await.result(VirtualTopology.get[SimPortGroup](portGroup), timeout)
 
             val pg = interceptPortGroup()
             pg.name should equal ("port-group-test")

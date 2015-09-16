@@ -425,24 +425,11 @@ abstract class VirtualToPhysicalMapperBase
     override def preStart(): Unit = {
         super.preStart()
         DeviceCaches.clear()
-        startVxLanPortMapper()
     }
 
     override def postStop(): Unit = {
         clearLocalPortActive()
         super.postStop()
-    }
-
-    def startVxLanPortMapper() {
-        val provider = new VxLanIdsProvider {
-            def vxLanPortIdsAsyncGet(cb: DirectoryCallback[JSet[UUID]],
-                                     watcher: TypedWatcher) {
-                cluster vxLanPortIdsAsyncGet (cb, watcher)
-            }
-        }
-        val props = VxLanPortMapper props (VirtualTopologyActor, provider,
-                                           context.props.dispatcher)
-        context actorOf (props, "VxLanPortMapper")
     }
 
     protected override def deviceUpdated(update: AnyRef, createHandler: Boolean)
