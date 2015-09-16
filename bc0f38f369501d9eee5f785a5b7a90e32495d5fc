@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_d2046917",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-16T15:50:37Z",
+      "side": 1,
+      "message": "Fixed, good catch.",
+      "parentUuid": "1ae5cdf2_f75877fc",
+      "revId": "bc0f38f369501d9eee5f785a5b7a90e32495d5fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_b75eefe7",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
         "patchSetId": 11
@@ -54,6 +72,30 @@
       "side": 1,
       "message": "Brandon asked for this indentation.  I prefer to indent with base under the new.\n\nAre there any clear guidelines on this to disambiguate? otherwise I\u0027ll leave as is.",
       "parentUuid": "1ae5cdf2_b75eefe7",
+      "range": {
+        "startLine": 157,
+        "startChar": 20,
+        "endLine": 159,
+        "endChar": 10
+      },
+      "revId": "bc0f38f369501d9eee5f785a5b7a90e32495d5fc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5210594e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-16T15:50:37Z",
+      "side": 1,
+      "message": "Ah sorry, the last line, fixing that.",
+      "parentUuid": "1ae5cdf2_57092b30",
       "range": {
         "startLine": 157,
         "startChar": 20,
