@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1c47c820",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/southbound/vtep/schema/PhysicalLocatorSetTable.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-09-16T08:13:24Z",
+      "side": 1,
+      "message": "maybe we should add a comment indicating that, even if the specs support it, implementations do not support locator sets with more than one locator (so this line is correct)",
+      "range": {
+        "startLine": 88,
+        "startChar": 12,
+        "endLine": 88,
+        "endChar": 48
+      },
+      "revId": "f9ca6cae9db28ad7e1d3e8a3001ac6b1c2072861",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
