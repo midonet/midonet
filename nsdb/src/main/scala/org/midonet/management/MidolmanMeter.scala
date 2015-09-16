@@ -23,8 +23,6 @@ import org.rogach.scallop._
 
 import scala.util.{Failure, Success, Try}
 
-import org.midonet.odp.flows.FlowStats
-
 object MeterCommand {
     val SUCCESS = 0
     val FAILURE = 1

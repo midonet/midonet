@@ -196,14 +196,14 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     }
 }
 
-task rhel7Prepare(type: Copy, dependsOn: installApp) {
+task rhel7Prepare(type: Copy, dependsOn: installShadowApp) {
     from("src/rhel7/systemd/midolman.service") {
         into "usr/lib/systemd/system"
     }
     into "${pkgDestDir}"
 }
 
-task rhel6Prepare(type: Copy, dependsOn: installApp) {
+task rhel6Prepare(type: Copy, dependsOn: installShadowApp) {
     from("src/rhel6/init.d/midolman") {
         into "etc/init.d"
     }

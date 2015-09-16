@@ -65,17 +65,14 @@ dependencies {
             libraries.commons_codec,
             libraries.curator_recipes,
             libraries.curator_framework,
-            libraries.guava,
             libraries.guice,
             libraries.jetty_server,
             libraries.jetty_servlet,
-            libraries.mockit,
             libraries.netty,
             libraries.mysql_jdbc,
             libraries.protobuf,
             libraries.rx,
             libraries.scala,
-            libraries.typesafeconf,
             libraries.zookeeper
 
     testCompile project(path: ':nsdb', configuration: 'tests')
@@ -103,10 +100,8 @@ cobertura {
 // PACKAGING TASKS //
 /////////////////////
 
-task preparePkg(type: Copy, dependsOn: installApp) {
-    from("${buildDir}/install/${project.name}") {
-        include "**/*"
-        exclude "bin"
+task preparePkg(type: Copy, dependsOn: installShadowApp) {
+    from("${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
         into "/usr/share/midonet-cluster"
     }
     from("conf") {
@@ -123,21 +118,19 @@ task preparePkg(type: Copy, dependsOn: installApp) {
     }
     into "${pkgDestDir}"
     doLast {
-        new File("${pkgDestDir}/usr/share/midonet-cluster/lib/${project.name}-${midonetVersion}.jar")
-            .renameTo("${pkgDestDir}/usr/share/midonet-cluster/${project.name}-${midonetVersion}.jar")
-        new File("${pkgDestDir}/usr/share/midonet-cluster/lib")
-            .renameTo("${pkgDestDir}/usr/share/midonet-cluster/dep")
+        new File("${pkgDestDir}/usr/share/midonet-cluster/${project.name}-${midonetVersion}-all.jar")
+            .renameTo("${pkgDestDir}/usr/share/midonet-cluster/${project.name}.jar")
     }
 }
 
-task rhel7Prepare(type: Copy, dependsOn: installApp) {
+task rhel7Prepare(type: Copy, dependsOn: installShadowApp) {
     from("src/rhel7/systemd/midonet-cluster.service") {
         into "usr/lib/systemd/system"
     }
     into "${pkgDestDir}"
 }
 
-task rhel6Prepare(type: Copy, dependsOn: installApp) {
+task rhel6Prepare(type: Copy, dependsOn: installShadowApp) {
     from("src/rhel6/init.d/midonet-brain") {
         into "etc/init.d"
     }
@@ -153,7 +146,7 @@ packaging {
     vendor = project.vendor
     url = project.url
     description = "MidoNet's control cluster"
-    dependencies = []
+    dependencies = ['midonet-tools']
     confFiles = ['/etc/midonet-cluster/logback.xml',
                  '/etc/midonet-cluster/midonet-cluster.conf',
                  '/etc/midonet-cluster/midonet-cluster-env.sh']

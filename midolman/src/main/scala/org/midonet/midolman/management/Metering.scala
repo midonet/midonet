@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.management.MeteringMXBean
 import org.midonet.midolman.monitoring.MeterRegistry
-import org.midonet.odp.flows.FlowStats
+import org.midonet.management.FlowStats
 
 object Metering extends MeteringMXBean {
     val log = Logger(LoggerFactory.getLogger("org.midonet.midolman.management"))
