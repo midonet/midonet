@@ -33,6 +33,24 @@
       "revId": "fd11d4ee90478163909b23b7af1ee8ef07d89772",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_7c036cb8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-16T08:17:51Z",
+      "side": 1,
+      "message": "It\u0027s to fix an intellij warning regarding a forward reference for continueIn",
+      "parentUuid": "1ae5cdf2_fc0f7cdf",
+      "revId": "fd11d4ee90478163909b23b7af1ee8ef07d89772",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
