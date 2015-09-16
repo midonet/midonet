@@ -175,6 +175,7 @@ class Router(override val id: UUID,
         }
 
         val backChannel = context.backChannel
+        val cookie = context.cookie
         // Attempt to refresh the router's arp table.
         context.arpBroker.setAndGet(spa, pkt.getSenderHardwareAddress, inPort, this).onSuccess { case _ =>
             context.log.debug(s"replying to ARP request from $spa for $tpa " +
@@ -183,7 +184,7 @@ class Router(override val id: UUID,
             // Construct the reply, reversing src/dst fields from the request.
             val eth = ARP.makeArpReply(inPort.portMac, sha,
                 pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
-            backChannel.tell(GeneratedLogicalPacket(inPort.id, eth))
+            backChannel.tell(GeneratedLogicalPacket(inPort.id, eth, cookie))
         }(ExecutionContext.callingThread)
     }
 
