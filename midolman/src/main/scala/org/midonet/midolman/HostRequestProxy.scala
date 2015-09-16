@@ -25,6 +25,7 @@ import akka.actor.{Actor, ActorRef}
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.Port
+import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage}
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.FlowStateStorage
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -35,10 +36,13 @@ import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTo
 import org.midonet.util.concurrent._
 
 object HostRequestProxy {
-    case class FlowStateBatch(strongConnTrack: JSet[ConnTrackKey],
-                              weakConnTrack: JSet[ConnTrackKey],
-                              strongNat: JMap[NatKey, NatBinding],
-                              weakNat: JMap[NatKey, NatBinding]) {
+    case class FlowStateBatch(
+            strongConnTrack: JSet[ConnTrackKey],
+            weakConnTrack: JSet[ConnTrackKey],
+            strongNat: JMap[NatKey, NatBinding],
+            weakNat: JMap[NatKey, NatBinding])
+            extends BackChannelMessage with Broadcast {
+
         def merge(other: FlowStateBatch): FlowStateBatch = {
             strongConnTrack.addAll(other.strongConnTrack)
             weakConnTrack.addAll(other.strongConnTrack)
@@ -67,9 +71,10 @@ object HostRequestProxy {
   * host's ports is fetched from Cassandra before the subscriber receives
   * the host object.
   */
-class HostRequestProxy(val hostId: UUID,
-                       val storageFuture: Future[FlowStateStorage],
-                       val subscriber: ActorRef) extends Actor
+class HostRequestProxy(hostId: UUID,
+                       backChannel: SimulationBackChannel,
+                       storageFuture: Future[FlowStateStorage],
+                       subscriber: ActorRef) extends Actor
                                                  with ActorLogWithoutPath
                                                  with SingleThreadExecutionContextProvider {
 
@@ -157,7 +162,7 @@ class HostRequestProxy(val hostId: UUID,
                 storageFuture.flatMap(stateForPorts(_, ps)).andThen {
                     case Success(stateBatch) =>
                         log.debug(s"Fetched ${stateBatch.size()} pieces of flow state for ports $ps")
-                        PacketsEntryPoint ! stateBatch
+                        backChannel tell stateBatch
                     case Failure(e) =>
                         log.warn("Failed to fetch state", e)
                 }(singleThreadExecutionContext)
