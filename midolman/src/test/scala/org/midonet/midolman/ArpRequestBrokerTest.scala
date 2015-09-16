@@ -189,7 +189,7 @@ class ArpRequestBrokerTest extends Suite
             }
 
             override def hasMessages: Boolean = !invalidations.isEmpty
-            override def process(handler: BackChannelHandler): Unit = ???
+            override def poll() = null
         }
         arpBroker = new ArpRequestBroker(emitter, config, invalidator, () => { }, clock)
         router = new Router(routerId, Router.Config(), null, null, arpCache)(actorSystem)
