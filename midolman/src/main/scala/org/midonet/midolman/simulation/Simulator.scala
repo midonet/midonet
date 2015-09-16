@@ -46,17 +46,17 @@ object Simulator {
 
     case object Continue extends ForwardAction
 
-    type SimHook = (PacketContext, ActorSystem) => Unit
+    type SimHook = PacketContext => Unit
 
-    val NOOP_HOOK: SimHook = (c, as) => {}
+    val NOOP_HOOK: SimHook = _ => { }
 
-    def simulate(context: PacketContext)(implicit as: ActorSystem): Result = {
+    def simulate(context: PacketContext): Result = {
         context.log.debug("Simulating a packet")
         reUpStashes()
         if (context.ingressed)
-            tryGet[Port](context.inputPort).ingress(context, as)
+            tryGet[Port](context.inputPort).ingress(context)
         else
-            tryGet[Port](context.egressPort).egress(context, as)
+            tryGet[Port](context.egressPort).egress(context)
     }
 
     private def reUpStashes(): Unit = {
@@ -128,7 +128,7 @@ trait SimDevice {
         result
     }
 
-    private def branch(context: PacketContext, result: Result)(implicit as: ActorSystem): Result = {
+    private def branch(context: PacketContext, result: Result): Result = {
         val branchPoint = PooledMatches(context.wcmatch)
         val inPortId = context.inPortId
         val outPortId = context.outPortId
@@ -144,15 +144,15 @@ trait SimDevice {
     }
 
     @tailrec
-    final def continue(context: PacketContext, simRes: Result)(
-                       implicit as: ActorSystem): Result = simRes match {
-        case ForkAction(first, second) => merge(context,
-                                                branch(context, first),
-                                                branch(context, second))
-        case ToPortAction(port) => continue(context,
-                                            tryGet[Port](port).egress(context, as))
-        case ContinueWith(step) => continue(context, step(context, as))
-        case res => res
+    final def continue(context: PacketContext, simRes: Result): Result =
+        simRes match {
+            case ForkAction(first, second) => merge(context,
+                                                    branch(context, first),
+                                                    branch(context, second))
+            case ToPortAction(port) => continue(context,
+                                                tryGet[Port](port).egress(context))
+            case ContinueWith(step) => continue(context, step(context))
+            case res => res
     }
 }
 
@@ -160,76 +160,78 @@ trait InAndOutFilters extends SimDevice {
 
     import Simulator._
 
-    type DropHook = (PacketContext, ActorSystem, RuleResult.Action) => Result
+    type DropHook = (PacketContext, RuleResult.Action) => Result
 
     def infilters: JList[UUID]
     def outfilters: JList[UUID]
-    protected def reject(context: PacketContext, as: ActorSystem): Unit = {}
+    protected def reject(context: PacketContext): Unit = {}
 
     protected def preIn: SimHook = NOOP_HOOK
     protected def postIn: SimHook = NOOP_HOOK
     protected def preOut: SimHook = NOOP_HOOK
     protected def postOut: SimHook = NOOP_HOOK
-    protected def dropIn: DropHook = (p, as, action) => Drop
-    protected def dropOut: DropHook = (p, as, action) => Drop
+    protected def dropIn: DropHook = (p, action) => Drop
+    protected def dropOut: DropHook = (p, action) => Drop
 
-    final protected val filterIn: (PacketContext, ActorSystem, SimStep) => Result =
+    final protected val filterIn: (PacketContext, SimStep) => Result =
         if (!adminStateUp) {
-            (context, as, continue) => {
-                reject(context, as)
+            (context, continue) => {
+                reject(context)
                 Drop
             }
         } else if (infilters.size > 0) {
-            (context, as, continue) => {
+            (context, continue) => {
                 context.log.debug(s"Applying inbound chain $infilters")
-                doFilters(context, infilters, preIn, postIn, continue, dropIn, as)
+                doFilters(context, infilters, preIn, postIn, continue, dropIn)
             }
         } else {
-            (context, as, continue) => {
-                preIn(context, as)
-                postIn(context, as)
-                continue(context, as)
+            (context, continue) => {
+                preIn(context)
+                postIn(context)
+                continue(context)
             }
         }
 
-    final protected val filterOut: (PacketContext, ActorSystem, SimStep) => Result =
+    final protected val filterOut: (PacketContext, SimStep) => Result =
         if (!adminStateUp) {
-            (context, as, continue) => {
-                reject(context, as)
+            (context, continue) => {
+                reject(context)
                 Drop
             }
         } else if (outfilters.size > 0) {
-            (context, as, continue) =>
+            (context, continue) =>
                 context.log.debug(s"Applying outbound chain $outfilters")
-                doFilters(context, outfilters, preOut, postOut, continue, dropOut, as)
+                doFilters(context, outfilters, preOut, postOut, continue, dropOut)
         } else {
-            (context, as, continue) => {
-                preOut(context, as)
-                postOut(context, as)
-                continue(context, as)
+            (context, continue) => {
+                preOut(context)
+                postOut(context)
+                continue(context)
             }
         }
 
-    private[this] final def doFilters(context: PacketContext, filters: JList[UUID],
-                                      preFilter: SimHook, postFilter: SimHook,
-                                      continue: SimStep, dropHook: DropHook,
-                                      as: ActorSystem): Result = {
-        implicit val _as: ActorSystem = as
-        preFilter(context, as)
+    private[this] final def doFilters(
+            context: PacketContext,
+            filters: JList[UUID],
+            preFilter: SimHook,
+            postFilter: SimHook,
+            continue: SimStep,
+            dropHook: DropHook): Result = {
+        preFilter(context)
 
         val ruleResult = applyAllFilters(context, filters)
 
-        postFilter(context, as)
+        postFilter(context)
         context.log.debug(s"Filters returned: $ruleResult")
 
         ruleResult.action match {
             case RuleResult.Action.ACCEPT =>
-                continue(context, as)
+                continue(context)
             case RuleResult.Action.DROP =>
-                dropHook(context, as, RuleResult.Action.DROP)
+                dropHook(context, RuleResult.Action.DROP)
             case RuleResult.Action.REJECT =>
-                reject(context, as)
-                dropHook(context, as, RuleResult.Action.REJECT)
+                reject(context)
+                dropHook(context, RuleResult.Action.REJECT)
             case a =>
                 context.log.error("Filters {} returned {} which was " +
                                       "not ACCEPT, DROP or REJECT.", filters, a)
@@ -237,8 +239,7 @@ trait InAndOutFilters extends SimDevice {
         }
     }
 
-    def applyAllFilters(context: PacketContext, filters: JList[UUID])
-                       (implicit as: ActorSystem): RuleResult = {
+    def applyAllFilters(context: PacketContext, filters: JList[UUID]): RuleResult = {
         var i = 0
         while (i < filters.size()) {
             val filter = filters.get(i)
