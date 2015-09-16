@@ -85,8 +85,7 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
     @Inject
     override val injector: Injector = null
     private[this] var props = mutable.Map[String, Props]()
-    private[this] val actors =
-        mutable.Map[String, TestActorRef[Actor]]()
+    private[this] val actors = mutable.Map[String, TestActorRef[Actor]]()
     var dispatcher: String = _
 
     def actor(actor: Referenceable): TestActorRef[Actor] =

@@ -43,7 +43,7 @@ class FlowControllerTest extends MidolmanSpec {
         flowController = TestActorRef(new {
              val id = 0
              val flowProcessor = FlowControllerTest.this.flowProcessor
-             val flowInvalidator = FlowControllerTest.this.flowInvalidator
+             val flowInvalidator = FlowControllerTest.this.simBackChannel
              val config = FlowControllerTest.this.config
              val metrics = FlowControllerTest.this.metrics
              val clock = FlowControllerTest.this.clock
