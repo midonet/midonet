@@ -34,12 +34,12 @@ virtual_topology:
                     address: 10.0.1.1
                     admin_state_up: true
                     protocol_port: 10000
-                    weight: 1
+                    weight: 5
                 - member:
                     address: 10.0.1.2
                     admin_state_up: true
                     protocol_port: 10000
-                    weight: 3
+                    weight: 10
                 - member:
                     address: 10.0.1.3
                     admin_state_up: false
@@ -50,11 +50,11 @@ virtual_topology:
                     address: 100.100.1.8
                     admin_state_up: true
                     protocol_port: 10000
-                    session_persistence: SOURCE_IP
                 - vip:
                     address: 100.100.1.9
                     admin_state_up: true
                     protocol_port: 10000
+                    session_persistence: SOURCE_IP
           - pool:
               lb_method: ROUND_ROBIN
               admin_state_up: true
