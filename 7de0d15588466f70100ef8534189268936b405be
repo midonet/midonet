@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d71d3b75",
+        "filename": "cluster/README",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-16T15:45:32Z",
+      "side": 1,
+      "message": "move instead of remove?",
+      "revId": "7de0d15588466f70100ef8534189268936b405be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
