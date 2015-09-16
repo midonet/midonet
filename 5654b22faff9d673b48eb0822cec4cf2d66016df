@@ -122,6 +122,24 @@
       "revId": "5654b22faff9d673b48eb0822cec4cf2d66016df",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_77770703",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-16T14:47:46Z",
+      "side": 1,
+      "message": "It happens in the filters, which are skipped in this case",
+      "parentUuid": "1ae5cdf2_fcf3fc07",
+      "revId": "5654b22faff9d673b48eb0822cec4cf2d66016df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
