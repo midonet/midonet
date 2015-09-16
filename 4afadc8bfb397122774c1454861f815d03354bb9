@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_72e71541",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-16T16:40:21Z",
+      "side": 1,
+      "message": "how are bindings done?",
+      "revId": "4afadc8bfb397122774c1454861f815d03354bb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_52da1979",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-16T16:40:21Z",
+      "side": 1,
+      "message": "yes",
+      "range": {
+        "startLine": 327,
+        "startChar": 7,
+        "endLine": 327,
+        "endChar": 23
+      },
+      "revId": "4afadc8bfb397122774c1454861f815d03354bb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
