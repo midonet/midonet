@@ -19,12 +19,12 @@ package org.midonet.midolman.util.guice
 import java.util.LinkedList
 import java.util.concurrent.ExecutorService
 
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.inject.name.Names
 
 import org.midonet.midolman.services.SelectLoopService
-import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, SimulationBackChannel, ShardedSimulationBackChannel}
+import org.midonet.midolman.{BackChannelHandler, SimulationBackChannel, ShardedSimulationBackChannel}
 import org.midonet.midolman.cluster.MidolmanModule
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.{MockNatBlockAllocator, NatBlockAllocator}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.util.collection.IPv4InvalidationArray
@@ -81,6 +81,4 @@ class MockMidolmanModule extends MidolmanModule {
             .asEagerSingleton()
         expose(classOf[VirtualTopology])
     }
-
 }
-
