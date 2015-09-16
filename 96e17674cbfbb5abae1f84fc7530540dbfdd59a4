@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3c264417",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-16T10:13:55Z",
+      "side": 1,
+      "message": "Strings need \"s\" prefix for interpolation.",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 79
+      },
+      "revId": "96e17674cbfbb5abae1f84fc7530540dbfdd59a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5c6a301b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-16T10:13:55Z",
+      "side": 1,
+      "message": "s\"",
+      "range": {
+        "startLine": 107,
+        "startChar": 29,
+        "endLine": 107,
+        "endChar": 30
+      },
+      "revId": "96e17674cbfbb5abae1f84fc7530540dbfdd59a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
