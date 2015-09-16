@@ -73,7 +73,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
             val (simRes, _) = simulate(packetContextFor(ethPkt, port2))
 
             simRes should be (NoOp)
-            val GeneratedLogicalPacket(egressPort, genEth) =
+            val GeneratedLogicalPacket(egressPort, genEth, _) =
                 simBackChannel.find[GeneratedLogicalPacket]()
 
             egressPort should be (port2)

@@ -175,15 +175,20 @@ class Router(override val id: UUID,
         }
 
         val backChannel = context.backChannel
-        // Attempt to refresh the router's arp table.
-        context.arpBroker.setAndGet(spa, pkt.getSenderHardwareAddress, inPort, this).onSuccess { case _ =>
-            context.log.debug(s"replying to ARP request from $spa for $tpa " +
+        val cookie = context.cookie
+        val log = context.log
+        // Attempt to refresh the router's arp table. Don't close over the
+        // packet context, which can be reused, but instead grab only what's
+        // needed.
+        context.arpBroker.setAndGet(spa, pkt.getSenderHardwareAddress, inPort,
+                                    this, cookie).onSuccess { case _ =>
+            log.debug(s"replying to ARP request from $spa for $tpa " +
                               s"with own mac ${inPort.portMac}")
 
             // Construct the reply, reversing src/dst fields from the request.
             val eth = ARP.makeArpReply(inPort.portMac, sha,
                 pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
-            backChannel.tell(GeneratedLogicalPacket(inPort.id, eth))
+            backChannel.tell(GeneratedLogicalPacket(inPort.id, eth, cookie))
         }(ExecutionContext.callingThread)
     }
 
@@ -269,12 +274,12 @@ class Router(override val id: UUID,
                             context: PacketContext): MAC = {
 
         if (port.isInterior) {
-            return context.arpBroker.get(nextHopIP, port, this)
+            return context.arpBroker.get(nextHopIP, port, this, context.cookie)
         }
 
         port.portSubnet match {
             case extAddr: IPv4Subnet if extAddr.containsAddress(nextHopIP) =>
-                context.arpBroker.get(nextHopIP, port, this)
+                context.arpBroker.get(nextHopIP, port, this, context.cookie)
             case extAddr: IPv4Subnet =>
                 context.log.warn("cannot get MAC for {} - address not " +
                                  "in network segment of port {} ({})",
