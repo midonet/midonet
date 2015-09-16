@@ -36,7 +36,7 @@ import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowKey}
 import org.midonet.{ErrorCode, Util}
-import org.midonet.util.concurrent.{NanoClock, Backchannel}
+import org.midonet.util.concurrent.{NanoClock, DisruptorBackChannel}
 
 object FlowProcessor {
     private val unsafe = Util.getUnsafe
@@ -60,7 +60,7 @@ class FlowProcessor(dpState: DatapathState,
                     selectorProvider: SelectorProvider,
                     clock: NanoClock)
     extends EventPoller.Handler[PacketContextHolder]
-    with Backchannel
+    with DisruptorBackChannel
     with LifecycleAware {
 
     import FlowProcessor._
