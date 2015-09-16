@@ -39,7 +39,7 @@ import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage
 import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.RouterMapper._
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{IPAddr, IPv4Addr}
+import org.midonet.packets.IPv4Addr
 import org.midonet.util.collection.IPv4InvalidationArray
 import org.midonet.util.functors._
 
@@ -52,8 +52,6 @@ object RouterMapper {
                                addedRoutes: Set[Route],
                                deletedRoutes: Set[Route])
         extends BackChannelMessage with Broadcast
-
-    case class RouterInvTrieTagCountModified(dstIp: IPAddr, count: Int)
 
     /**
      * Stores the state for a router port, and exposes an [[Observable]] that
@@ -349,25 +347,18 @@ object RouterMapper {
  * [[SimulationRouter]].
  */
 final class RouterMapper(routerId: UUID, vt: VirtualTopology,
-                         _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
-                        (implicit actorSystem: ActorSystem)
+                         val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
         extends VirtualDeviceMapper[SimulationRouter](routerId, vt)
         with TraceRequestChainMapper[SimulationRouter] {
 
     override def logSource = s"org.midonet.devices.router.router-$routerId"
-    override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
-        _traceChainMap
 
     private class RemoveTagCallback(dst: IPv4Addr) extends Callback0 {
         override def call(): Unit = {
             log.debug(s"Remove tag for destination address prefix $dst/28")
-            val refs = IPv4InvalidationArray.current.unref(dst.toInt)
-            actorSystem.eventStream.publish(
-                    new RouterInvTrieTagCountModified(dst, refs))
+            IPv4InvalidationArray.current.unref(dst.toInt)
         }
     }
-
-    private implicit val ec: ExecutionContext = actorSystem.dispatcher
 
     private var config: Config = null
     private var ready: Boolean = false
@@ -388,8 +379,6 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         override def addIPv4Tag(dst: IPv4Addr, matchLength: Int): Unit = {
             val refs = IPv4InvalidationArray.current.ref(dst.toInt, matchLength)
             log.debug(s"Increased ref count ip prefix $dst/28 to $refs")
-            actorSystem.eventStream.publish(
-                new RouterInvTrieTagCountModified(dst, refs))
         }
         override def getFlowRemovalCallback(dst: IPv4Addr): Callback0 = {
             new RemoveTagCallback(dst)
@@ -691,8 +680,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
             config2,
             new RouterRoutingTable(routes),
             tagManager,
-            arpCache
-            )
+            arpCache)
         log.debug("Build router: {} {}", device, routes)
 
         device
