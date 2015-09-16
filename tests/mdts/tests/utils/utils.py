@@ -222,7 +222,7 @@ def bindings(*args):
                     f_name,
                     binding.get('description'))
                 test_wrapped.__name__ = f.__name__
-                BM.update_binding_data(binding)
+                BM.set_binding_data(binding)
                 yield f,
 
         # copied from nose.tools.make_decorator to preserve metadata
