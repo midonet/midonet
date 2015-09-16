@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_d7a61bc1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-16T15:32:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_3c264417",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 79
+      },
+      "revId": "96e17674cbfbb5abae1f84fc7530540dbfdd59a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_5c6a301b",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
         "patchSetId": 19
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_f7ab1787",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-16T15:32:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_5c6a301b",
+      "range": {
+        "startLine": 107,
+        "startChar": 29,
+        "endLine": 107,
+        "endChar": 30
+      },
+      "revId": "96e17674cbfbb5abae1f84fc7530540dbfdd59a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_bceed489",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
         "patchSetId": 19
@@ -59,6 +107,30 @@
       "writtenOn": "2015-09-16T10:41:20Z",
       "side": 1,
       "message": "I think this is fine. However, just a note on state storage ownership. The state storage already provides ownership support based on the zk client session. However, this is only done for FirstWriteWins keys, where a host can write to a key if that key has not been written by a previous host\n\nThis ownership mechanism is already used in the host service, not to allow to agents with the same host id start. In this case, the monitoring would be like:\n\n  def onNext(key: StateKey): Unit \u003d key match {\n    case SingleValueKey(_,None,_) \u003d\u003e\n      // The key has no value, try take ownership\n      try {\n        stateStore.addValue(ct.runtimeClass, targetId, stateKey, someValue).await(timeout)\n      } catch {\n         case e: NotStateOwnerException \u003d\u003e // somebody else won the race to take ownership\n         case e: UnmodifiableStateException \u003d\u003e // other state storage error\n         case NonFatal(e) \u003d\u003e\n      }\n      // The value doesn\u0027t even matter, since the ownership is tied to the\n      // zk session\n    case SingleValueKey(_,_,ownerId) \u003d\u003e\n      if stateStore.ownerId \u003d\u003d ownerId \u003d\u003e\n        // I\u0027m the owner\n      else\n        // Somebody else is the owner, may retry to retake ownership\n  }",
+      "range": {
+        "startLine": 87,
+        "startChar": 4,
+        "endLine": 111,
+        "endChar": 5
+      },
+      "revId": "96e17674cbfbb5abae1f84fc7530540dbfdd59a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_779f0760",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-16T15:32:15Z",
+      "side": 1,
+      "message": "I\u0027ll reuse this for consistency",
+      "parentUuid": "1ae5cdf2_bceed489",
       "range": {
         "startLine": 87,
         "startChar": 4,
