@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5cadd030",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-16T11:11:42Z",
+      "side": 1,
+      "message": "This will produce either \"overlaytunnelkey\" or \"vxgwvni\". I assume that\u0027s expected.",
+      "range": {
+        "startLine": 67,
+        "startChar": 16,
+        "endLine": 67,
+        "endChar": 45
+      },
+      "revId": "fd56c4ad124a10e03cc353674a6992c4d8603a77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
