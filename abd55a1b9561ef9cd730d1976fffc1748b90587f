@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_7790e795",
+        "filename": "docs/vxgw_service.md",
+        "patchSetId": 7
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-16T12:07:17Z",
+      "side": 1,
+      "message": "s/accross/across",
+      "range": {
+        "startLine": 198,
+        "startChar": 53,
+        "endLine": 198,
+        "endChar": 60
+      },
+      "revId": "abd55a1b9561ef9cd730d1976fffc1748b90587f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
