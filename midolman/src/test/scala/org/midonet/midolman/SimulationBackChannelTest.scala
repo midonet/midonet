@@ -37,11 +37,9 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
         ret
     }
 
-    var handler = new BackChannelHandler {
-        override def handle(message: BackChannelMessage): Unit = {
-            _processedMsgs ::= message
-        }
-    }
+    def process(backChannel: SimulationBackChannel): Unit =
+        while (backChannel.hasMessages)
+            _processedMsgs ::= backChannel.poll()
 
     case class Message(text: String) extends BackChannelMessage
 
@@ -56,27 +54,27 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
     feature("delivers and handles messages") {
         scenario("a message sent to one shard remains in that shard") {
             p1.tell(Message("foo"))
-            p1.process(handler)
+            process(p1)
             processedMsgs should be (List(Message("foo")))
-            p2.process(handler)
+            process(p2)
             processedMsgs should be (Nil)
-            p3.process(handler)
+            process(p3)
             processedMsgs should be (Nil)
         }
 
         scenario("a broacast message sent to one shard ends up in all shards") {
             p1.tell(new Message("foo") with Broadcast)
-            p1.process(handler)
+            process(p1)
             processedMsgs should be (List(Message("foo")))
-            p2.process(handler)
+            process(p2)
             processedMsgs should be (List(Message("foo")))
-            p3.process(handler)
+            process(p3)
             processedMsgs should be (List(Message("foo")))
         }
 
         scenario("cannot process messaged on the main channel") {
             intercept[UnsupportedOperationException] {
-                backChannel.process(handler)
+                backChannel.poll()
             }
         }
 
@@ -88,11 +86,11 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
 
         scenario("a broadcast message sent to the parent channel ends up in all shards") {
             backChannel.tell(new Message("foo") with Broadcast)
-            p1.process(handler)
+            process(p1)
             processedMsgs should be (List(Message("foo")))
-            p2.process(handler)
+            process(p2)
             processedMsgs should be (List(Message("foo")))
-            p3.process(handler)
+            process(p3)
             processedMsgs should be (List(Message("foo")))
         }
 
@@ -100,17 +98,17 @@ class SimulationBackChannelTest extends FeatureSpec with Matchers with BeforeAnd
             backChannel.tell(new Message("foo") with Broadcast)
             backChannel.hasMessages should be (true)
             p1.hasMessages should be (true)
-            p1.process(handler)
+            process(p1)
             p1.hasMessages should be (false)
 
             backChannel.hasMessages should be (true)
             p2.hasMessages should be (true)
-            p2.process(handler)
+            process(p2)
             p2.hasMessages should be (false)
 
             backChannel.hasMessages should be (true)
             p3.hasMessages should be (true)
-            p3.process(handler)
+            process(p3)
             p3.hasMessages should be (false)
 
             backChannel.hasMessages should be (false)
