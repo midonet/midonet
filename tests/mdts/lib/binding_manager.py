@@ -42,10 +42,13 @@ class BindingManager(TopologyManager):
         self._host_id_map = {}
         self._interfaces = []
 
-    def update_binding_data(self, data):
+    def set_binding_data(self, data):
         self._data = data
 
-    def bind(self, filename=None, data=None):
+    def get_binding_data(self):
+        return self._data
+
+    def bind(self, filename=None):
         self._ptm.build()
         self._vtm.build()
         # Get a new api ref to workaround previous zk failures
