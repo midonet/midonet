@@ -25,11 +25,9 @@ import scala.collection.JavaConversions._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp}
+import org.midonet.midolman.PacketWorkflow.{GeneratedLogicalPacket, AddVirtualWildcardFlow, NoOp}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -112,12 +110,11 @@ class PingTest extends MidolmanSpec {
         simRouter = fetchDevice[Router](router)
     }
 
-    def matchIcmp(generatedPackets: LinkedList[GeneratedPacket], egressPort: UUID,
+    def matchIcmp(egressPort: UUID,
                   fromMac: MAC, toMac: MAC,
                   fromIp: IPv4Addr, toIp: IPv4Addr, `type`: Byte,
                   code: Byte): Unit = {
-        generatedPackets should have size 1
-        val pkt = generatedPackets.get(0).asInstanceOf[GeneratedLogicalPacket]
+        val pkt = simBackChannel.find[GeneratedLogicalPacket]()
         pkt.egressPort should be (egressPort)
         val genPkt = pkt.eth
         genPkt.getSourceMACAddress should be (fromMac)
@@ -133,17 +130,14 @@ class PingTest extends MidolmanSpec {
     scenario("Ping internal router port") {
         feedArpTable(simRouter, vm2Ip.getAddress(), vm2Mac)
 
-        val generatedPackets = new LinkedList[GeneratedPacket]()
-
         val pkt = { eth src vm2Mac dst routerMac2 } <<
             { ip4 src vm2Ip.getAddress dst routerIp2.getAddress } <<
             { icmp.echo request }
 
-        val (res, _) = simulate(packetContextFor(pkt, vm2Port,
-                                                 generatedPackets))
+        val (res, _) = simulate(packetContextFor(pkt, vm2Port))
         res should be (NoOp)
 
-        matchIcmp(generatedPackets, rtrPort2, routerMac2, vm2Mac,
+        matchIcmp(rtrPort2, routerMac2, vm2Mac,
                   routerIp2.getAddress, vm2Ip.getAddress,
                   ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
     }
@@ -151,17 +145,14 @@ class PingTest extends MidolmanSpec {
     scenario("Ping external router port") {
         feedArpTable(simRouter, vm2Ip.getAddress(), vm2Mac)
 
-        val generatedPackets = new LinkedList[GeneratedPacket]()
-
         val pkt = { eth src vm2Mac dst routerMac2 } <<
             { ip4 src vm2Ip.getAddress dst routerIp1.getAddress } <<
             { icmp.echo request }
 
-        val (res, _) = simulate(packetContextFor(pkt, vm2Port,
-                                                 generatedPackets))
+        val (res, _) = simulate(packetContextFor(pkt, vm2Port))
         res should be (NoOp)
 
-        matchIcmp(generatedPackets, rtrPort2, routerMac2, vm2Mac,
+        matchIcmp(rtrPort2, routerMac2, vm2Mac,
                   routerIp1.getAddress, vm2Ip.getAddress,
                   ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
     }

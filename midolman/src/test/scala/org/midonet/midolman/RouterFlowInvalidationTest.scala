@@ -147,7 +147,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
             NextHop.PORT, outPort, new IPv4Addr(NO_GATEWAY).toString,
             2)
 
-        flowInvalidator should invalidateForNewRoutes(
+        simBackChannel should invalidateForNewRoutes(
             new IPv4Subnet("11.11.1.0", networkToReachLength+8))
     }
 

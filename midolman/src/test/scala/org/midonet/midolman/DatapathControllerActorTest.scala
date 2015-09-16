@@ -87,7 +87,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
                         Future(true)(ec)
 
                 },
-            flowInvalidator,
+            simBackChannel,
             clock,
             new FlowStateStorageFactory() {
                 override def create() = Future.successful(new MockStateStorage())
@@ -144,7 +144,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
         dpc.driver.peerTunnelInfo(host2) should be (Some(route1))
 
         val tag1 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp1.toInt)
-        flowInvalidator should invalidate(tag1)
+        simBackChannel should invalidate(tag1)
 
         // update the gre ip of the second host
         val dstIp2 = IPv4Addr("192.168.210.1")
@@ -159,7 +159,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
         dpc.driver.peerTunnelInfo(host2) should be (Some(route2))
 
         val tag2 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp2.toInt)
-        flowInvalidator should invalidate(tag1, tag2)
+        simBackChannel should invalidate(tag1, tag2)
     }
 
     private def initialize(): Unit = {

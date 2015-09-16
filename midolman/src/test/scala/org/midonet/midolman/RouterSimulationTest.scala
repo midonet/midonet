@@ -16,7 +16,7 @@
 
 package org.midonet.midolman
 
-import java.util.{LinkedList => JLinkedList, UUID}
+import java.util.UUID
 
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.slf4j.helpers.NOPLogger
@@ -29,8 +29,6 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.simulation.{Router => SimRouter, RouterPort, RouteBalancer}
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
-import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
@@ -55,8 +53,6 @@ class RouterSimulationTest extends MidolmanSpec {
     val uplinkNwLen = 24
     val uplinkPortAddr = "180.0.1.2"
     val uplinkMacAddr = MAC.fromString("02:0a:08:06:04:02")
-
-    val generatedPackets = new JLinkedList[GeneratedPacket]()
 
     override def beforeTest(): Unit = {
         router = newRouter("router")
@@ -166,7 +162,7 @@ class RouterSimulationTest extends MidolmanSpec {
         val pkt = { eth src fromMac dst uplinkMacAddr } <<
                   { ip4 src fromIp dst addressInSegment(port1) } <<
                   { udp src 10 dst 11 }
-        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort))
         simRes should be (ShortDrop)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   IPv4Addr.fromString(uplinkPortAddr), fromIp,
@@ -206,7 +202,7 @@ class RouterSimulationTest extends MidolmanSpec {
         val pkt = { eth src fromMac dst port.portMac } <<
                   { ip4 src fromIp dst IPv4Addr.fromString("45.44.33.22") } <<
                   { udp src 10 dst 11 }
-        val (simRes, _) = simulate(packetContextFor(pkt, port1, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, port1))
         simRes should be (ShortDrop)
         matchIcmp(port1, port.portMac, fromMac,
                   port.portAddress, fromIp,
@@ -223,7 +219,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst uplinkPortAddr } <<
                   { icmp.echo request }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort))
         simRes should be (NoOp)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   IPv4Addr.fromString(uplinkPortAddr), fromIp,
@@ -241,7 +237,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst port.portAddress } <<
                   { icmp.echo request }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort))
         simRes should be (NoOp)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   port.portAddress, fromIp,
@@ -274,7 +270,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst floatingIp } <<
                   { icmp.echo request }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort))
         simRes should be (NoOp)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   floatingIp, fromIp, ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
@@ -292,7 +288,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst "45.44.33.22" } <<
                   { udp src 10 dst 11 }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, port1, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, port1))
         simRes should be (ErrorDrop)
 
         matchIcmp(port1, port.portMac, fromMac,
@@ -316,7 +312,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst "16.0.0.1" } <<
                   { udp src 10 dst 11 }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, port1, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, port1))
         simRes should be (ShortDrop)
 
         matchIcmp(port1, port.portMac, fromMac,
@@ -379,7 +375,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst port.portAddress } <<
                   { icmp.echo request }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort))
         simRes should be (NoOp)
 
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
@@ -423,7 +419,7 @@ class RouterSimulationTest extends MidolmanSpec {
         pkt = { eth src fromMac dst port1dev.portMac } <<
               { ip4 src fromIp dst toIp } <<
               { icmp.echo request }
-        val (simRes3, _) = simulate(packetContextFor(pkt, port1, generatedPackets))
+        val (simRes3, _) = simulate(packetContextFor(pkt, port1))
         simRes3 should be (ShortDrop)
         matchIcmp(port1, port1dev.portMac, fromMac, port1dev.portAddress,
                   fromIp, ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
@@ -442,8 +438,7 @@ class RouterSimulationTest extends MidolmanSpec {
     private def matchIcmp(egressPort: UUID, fromMac: MAC, toMac: MAC,
                           fromIp: IPv4Addr, toIp: IPv4Addr, `type`: Byte,
                           code: Byte): Unit = {
-        generatedPackets should have size 1
-        val pkt = generatedPackets.get(0).asInstanceOf[GeneratedLogicalPacket]
+        val pkt = simBackChannel.find[GeneratedLogicalPacket]()
         pkt.egressPort should be (egressPort)
         val genPkt = pkt.eth
         genPkt.getSourceMACAddress should be (fromMac)

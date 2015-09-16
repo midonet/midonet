@@ -84,7 +84,7 @@ class BridgeInvalidationTest extends MidolmanSpec
         fetchPorts(leftPort, rightPort, otherPort, interiorPort, routerPort)
         fetchDevice[Bridge](clusterBridge)
         fetchDevice[Router](clusterRouter)
-        flowInvalidator.clear()
+        simBackChannel.clear()
     }
 
     override protected def fillConfig(config: Config) = {
@@ -208,13 +208,13 @@ class BridgeInvalidationTest extends MidolmanSpec
             macTable.add(MAC.fromString(rightMac), rightPort)
 
             Then("A flow invalidation for the flooded case should be produced")
-            flowInvalidator should invalidate(rightMacFloodInvalidation)
+            simBackChannel should invalidate(rightMacFloodInvalidation)
 
             When("A MAC address migrates across two ports")
             macTable.add(MAC.fromString(rightMac), otherPort)
 
             Then("A flow invalidation for the unicast case should be produced")
-            flowInvalidator should invalidate(rightMacFloodInvalidation)
+            simBackChannel should invalidate(rightMacFloodInvalidation)
 
             And("new packets should be directed to the newly associated port")
             val (pktContext, action) = simulateDevice(bridge, leftToRightFrame, leftPort)
@@ -235,7 +235,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             macTable.add(MAC.fromString(rightMac), leftPort)
 
             Then("A flow invalidation for the flooded case should be produced")
-            flowInvalidator should invalidate(rightMacFloodInvalidation)
+            simBackChannel should invalidate(rightMacFloodInvalidation)
 
             And("If a packet with the same dst mac comes from that port")
             val (_, action) = simulateDevice(bridge, leftToRightFrame, leftPort)
@@ -248,7 +248,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             When("a packet is sent across the bridge between two VMs")
             val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val (pktContext, action) = simulateDevice(bridge, leftToRightFrame, leftPort)
-            flowInvalidator.clear()
+            simBackChannel.clear()
 
             And("The corresponding flow expires")
             pktContext.flowRemovedCallbacks.runAndClear()
@@ -264,7 +264,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             And("A flow invalidation is produced")
             eventually {
                 bridgeManager ! CheckExpiredMacPorts()
-                flowInvalidator should invalidate(leftPortUnicastInvalidation)
+                simBackChannel should invalidate(leftPortUnicastInvalidation)
             }
         }
     }
@@ -283,7 +283,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             linkPorts(routerPort, leftPort)
 
             Then("Invalidations for flooded and unicast flows should happen")
-            flowInvalidator should invalidate(
+            simBackChannel should invalidate(
                 routerMacFloodInvalidation, FlowTagger.tagForArpRequests(bridge.id))
         }
 
@@ -296,7 +296,7 @@ class BridgeInvalidationTest extends MidolmanSpec
                 newBridge should not be bridge
             }
             bridge = fetchDevice[Bridge](clusterBridge)
-            flowInvalidator.clear()
+            simBackChannel.clear()
 
             val interiorPortTag =
                 FlowTagger.tagForBridgePort(bridge.id, interiorPort)
@@ -307,13 +307,13 @@ class BridgeInvalidationTest extends MidolmanSpec
             val (pktContext, action) = simulateDevice(bridge, leftToRouterFrame, leftPort)
             pktContext.virtualFlowActions should have size 0
             pktContext should be (taggedWith(interiorPortTag, routerPortTag))
-            flowInvalidator.clear()
+            simBackChannel.clear()
 
             And("The interior port is then unlinked")
             unlinkPorts(interiorPort)
 
             Then("A flow invalidation should be produced")
-            flowInvalidator should invalidate(interiorPortTag)
+            simBackChannel should invalidate(interiorPortTag)
         }
     }
 }

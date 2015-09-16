@@ -56,7 +56,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             injector.getInstance(classOf[InterfaceScanner]),
             injector.getInstance(classOf[MidolmanConfig]),
             injector.getInstance(classOf[UpcallDatapathConnectionManager]),
-            flowInvalidator,
+            simBackChannel,
             clock,
             injector.getInstance(classOf[FlowStateStorageFactory]),
             new MockNetlinkChannelFactory)))
