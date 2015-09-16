@@ -28,10 +28,8 @@ import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationRe
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.l4lb.LBStatus
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
@@ -46,9 +44,6 @@ object DisableAction extends Enumeration {
 @RunWith(classOf[JUnitRunner])
 class PoolTest extends MidolmanSpec {
     implicit val askTimeout: Timeout = 1 second
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
-                                                  with MessageAccumulator))
 
     /*
      * The topology for this test consists of one router with one port

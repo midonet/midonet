@@ -31,7 +31,6 @@ import org.midonet.midolman.state.{MockStateStorage, FlowStateReplicator}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -45,7 +44,6 @@ import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
 @Fork(5)
 @State(Scope.Benchmark)
 class ConnTrackBenchmark extends MidolmanBenchmark {
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     val leftMac = MAC.random
     val rightMac = MAC.random

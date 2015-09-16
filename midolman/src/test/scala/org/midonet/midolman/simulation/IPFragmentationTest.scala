@@ -24,16 +24,13 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Entity}
 import org.midonet.midolman.PacketWorkflow.{SimulationResult, ErrorDrop}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
@@ -42,9 +39,6 @@ import org.midonet.sdn.flows.FlowTagger
 @RunWith(classOf[JUnitRunner])
 class IPFragmentationTest extends MidolmanSpec {
     implicit val askTimeout: Timeout = 1 second
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
-                                                  with MessageAccumulator))
 
     /*
      * The topology for this test consists of a single bridge or

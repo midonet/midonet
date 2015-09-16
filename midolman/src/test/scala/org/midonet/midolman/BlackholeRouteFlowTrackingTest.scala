@@ -16,7 +16,6 @@
 package org.midonet.midolman
 
 import java.util.UUID
-import scala.collection.JavaConversions._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -25,13 +24,10 @@ import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, ErrorDrop}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.simulation.Router
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.packets.{IPv4Subnet, IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.MidonetEventually
 
@@ -92,9 +88,6 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
         feedArpCache(simRouter, IPv4Addr(rightOtherIp), MAC.fromString(rightOtherMac))
 
     }
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()
-                                                  with MessageAccumulator))
 
     override def beforeTest() {
         buildTopology()

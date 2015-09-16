@@ -37,7 +37,6 @@ import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.VirtualTopologyActor
 
 /*
  * A base trait for a simple guice service that starts an actor system,
@@ -64,7 +63,6 @@ class MidolmanActorsService extends AbstractService {
 
     protected def actorSpecs = {
         val actors = ListBuffer(
-            (propsFor(classOf[VirtualTopologyActor]), VirtualTopologyActor.Name),
             (propsFor(classOf[VirtualToPhysicalMapper]).
                 withDispatcher("actors.stash-dispatcher"),
                 VirtualToPhysicalMapper.Name),

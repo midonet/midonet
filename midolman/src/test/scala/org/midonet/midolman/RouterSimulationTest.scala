@@ -31,7 +31,6 @@ import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.simulation.{Router => SimRouter, RouterPort, RouteBalancer}
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
@@ -40,8 +39,6 @@ import org.midonet.packets.util.PacketBuilder._
 
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTest extends MidolmanSpec {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var router: UUID = _
     var uplinkPort: UUID = _

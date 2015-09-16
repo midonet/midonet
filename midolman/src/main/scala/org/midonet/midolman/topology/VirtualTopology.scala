@@ -23,6 +23,7 @@ import scala.concurrent.{Future, Promise}
 import scala.reflect._
 import scala.util.control.NonFatal
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.google.inject.name.Named
 
@@ -110,6 +111,22 @@ object VirtualTopology extends MidolmanLogging {
     def observable[D <: Device](id: UUID)
                                (implicit tag: ClassTag[D]): Observable[D] = {
         self.observableOf(Key(tag, id))
+    }
+
+    /**
+     * Clears the topology cache.
+     */
+    @VisibleForTesting
+    private[midonet] def clear(): Unit = {
+        self.devices.clear()
+    }
+
+    /**
+     * Adds a device to the virtual topology.
+     */
+    @VisibleForTesting
+    private[midonet] def add[D <: Device](id: UUID, device: D): Unit = {
+        self.devices.put(id, device)
     }
 
     /**

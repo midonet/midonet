@@ -26,8 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Router => SimRouter, RouterPort}
-import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.RouterMapper.RouterInvTrieTagCountModified
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{EmptyActor, MessageAccumulator}
 import org.midonet.packets.{IPv4Subnet, Packets, IPv4Addr, MAC}
@@ -35,8 +34,6 @@ import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class RouterFlowInvalidationTest extends MidolmanSpec {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var router: UUID = null
     var outPort: UUID = null

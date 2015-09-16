@@ -16,8 +16,8 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean, Long => JLong}
-import java.util.{ArrayList, UUID}
 import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.{ArrayList, UUID}
 
 import javax.annotation.Nullable
 
@@ -40,7 +40,7 @@ import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
+import org.midonet.midolman.simulation.Bridge.{MacFlowCount, RemoveFlowCallbackGenerator, UntaggedVlanId}
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, _}
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state.{ReplicatedMap, StateAccessException}

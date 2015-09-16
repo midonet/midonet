@@ -28,17 +28,27 @@ import org.midonet.cluster.client._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimStep,
                                             SimulationResult => Result}
-import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
+import org.midonet.midolman.simulation.Bridge.{RemoveFlowCallbackGenerator, MacFlowCount, UntaggedVlanId}
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
-import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort,
                                          tagForBroadcast, tagForBridge,
                                          tagForFloodedFlowsByDstMac, tagForVlanPort}
-
+import org.midonet.util.functors.Callback0
 
 object Bridge {
     final val UntaggedVlanId: Short = 0
+
+    /* The MacFlowCount is called from the Coordinators' actors and dispatches
+     * to the BridgeManager's actor to get/modify the flow counts.  */
+    trait MacFlowCount {
+        def increment(mac: MAC, vlanId: Short, port: UUID): Unit
+        def decrement(mac: MAC, vlanId: Short, port: UUID): Unit
+    }
+
+    trait RemoveFlowCallbackGenerator {
+        def getCallback(mac: MAC,vlanId: Short, port: UUID): Callback0
+    }
 }
 
 /**

@@ -26,10 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.PacketWorkflow.{SimulationResult, AddVirtualWildcardFlow, ErrorDrop}
 import org.midonet.midolman.simulation.{PacketContext, Bridge, Router}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
-import org.midonet.midolman.topology.BridgeManager.CheckExpiredMacPorts
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.MidonetEventually
@@ -92,9 +89,6 @@ class BridgeInvalidationTest extends MidolmanSpec
             "agent.bridge.mac_port_mapping_expire",
             ConfigValueFactory.fromAnyRef(s"${macPortExpiration}ms"))
     }
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()
-                                                  with MessageAccumulator))
 
     override def beforeTest() {
         buildTopology()
@@ -255,15 +249,9 @@ class BridgeInvalidationTest extends MidolmanSpec
 
             Then("The MAC port mapping expires too")
             Thread.sleep(macPortExpiration)
-            // Since the check for the expiration of the MAC port association is
-            // done every 2 seconds, let's trigger it
-            val bridgeManagerPath =
-                VirtualTopologyActor.path + "/BridgeManager-" + bridge.id.toString
-            val bridgeManager = actorSystem.actorSelection(bridgeManagerPath)
 
             And("A flow invalidation is produced")
             eventually {
-                bridgeManager ! CheckExpiredMacPorts()
                 flowInvalidator should invalidate(leftPortUnicastInvalidation)
             }
         }

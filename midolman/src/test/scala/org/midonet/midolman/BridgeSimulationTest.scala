@@ -19,29 +19,21 @@ import java.lang.{Short => JShort}
 import java.util.UUID
 
 import scala.collection.JavaConversions._
-import scala.collection.immutable
 
-import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.slf4j.LoggerFactory
-
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, Drop, SimulationResult}
 import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.simulation.{PacketContext, Bridge}
 import org.midonet.midolman.simulation.Simulator.ToPortAction
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 
 
 @RunWith(classOf[JUnitRunner])
 class BridgeSimulationTest extends MidolmanSpec {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     private var port1OnHost1: UUID = _
     private var port2OnHost1: UUID = _
@@ -304,7 +296,7 @@ class BridgeSimulationTest extends MidolmanSpec {
 
 /**
   * The same tests as the parent
-  * [[org.midonet.midolman.BridgeSimulationTestCase]], but transmitting frames
+  * [[org.midonet.midolman.BridgeSimulationTest]], but transmitting frames
   * that have one vlan id.
   *
   * The tests are expected to work in exactly the same way, since here we're
@@ -317,7 +309,7 @@ class BridgeSimulationTestWithOneVlan extends BridgeSimulationTest {
 }
 
 /**
-  * The same tests [[org.midonet.midolman.BridgeSimulationTestCase]], but
+  * The same tests [[org.midonet.midolman.BridgeSimulationTest]], but
   * transmitting frames that have one vlan id.
   */
 class BridgeSimulationTestWithManyVlans extends BridgeSimulationTest {

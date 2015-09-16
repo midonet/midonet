@@ -20,7 +20,7 @@ import java.util
 import java.util.UUID
 
 import org.midonet.midolman.simulation.Simulator.ToPortAction
-import org.midonet.midolman.topology.RouterManager
+import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
 import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, SimulationBackChannel}
 
 import scala.collection.JavaConversions._
@@ -147,12 +147,12 @@ trait CustomMatchers {
             val msgs = backChannel.get()
             MatchResult(
                 msgs forall {
-                    case msg: RouterManager.InvalidateFlows =>
+                    case msg: InvalidateFlows =>
                         msg.deletedRoutes forall {
                             case r =>
                                 ips.contains(new IPv4Subnet(r.dstNetworkAddr, r.dstNetworkLength))
                         }
-                        ips.contains(msg.asInstanceOf[RouterManager.InvalidateFlows].addedRoutes)
+                        ips.contains(msg.asInstanceOf[InvalidateFlows].addedRoutes)
                     case _ => true
                 },
                 s"$msgs did not target all of $ips",
@@ -168,12 +168,12 @@ trait CustomMatchers {
             val msgs = backChannel.get()
             MatchResult(
                 msgs forall {
-                    case msg: RouterManager.InvalidateFlows =>
+                    case msg: InvalidateFlows =>
                         msg.addedRoutes forall {
                             case r =>
                                 ips.contains(new IPv4Subnet(r.dstNetworkAddr, r.dstNetworkLength))
                         }
-                    ips.contains(msg.asInstanceOf[RouterManager.InvalidateFlows].addedRoutes)
+                    ips.contains(msg.asInstanceOf[InvalidateFlows].addedRoutes)
                     case _ => true
                 },
                 s"$msgs did not target all of $ips",

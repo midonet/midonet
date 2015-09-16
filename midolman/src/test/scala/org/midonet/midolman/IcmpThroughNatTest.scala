@@ -18,7 +18,6 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.midonet.sdn.flows.FlowTagger
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.layer3.Route
@@ -26,10 +25,8 @@ import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
 import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
 
@@ -115,9 +112,6 @@ class IcmpThroughNatTest extends MidolmanSpec {
         val snatRule = newForwardNatRuleOnChain(rtrInChain, 1, Condition.TRUE,
                   RuleResult.Action.CONTINUE, Set(snatTarget), isDnat = false)
     }
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()
-                                                  with MessageAccumulator))
 
     implicit var natTx: FlowStateTransaction[NatKey, NatBinding] = _
 

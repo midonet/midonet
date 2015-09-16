@@ -27,7 +27,6 @@ import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.state.NatState.{FWD_SNAT, FWD_DNAT, NatBinding, NatKey}
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows._
 import org.midonet.packets._
@@ -37,8 +36,6 @@ import org.midonet.util.Range
 
 @RunWith(classOf[JUnitRunner])
 class DnatPlusSnatTest extends MidolmanSpec {
-
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var router: UUID = _
     var port1: UUID = _
@@ -60,8 +57,8 @@ class DnatPlusSnatTest extends MidolmanSpec {
     override def beforeTest(): Unit = {
         router = newRouter("router")
 
-        port1 = newRouterPort(router, clientGwMac,
-                                  clientGw.toString, "10.0.0.0", 24)
+        port1 = newRouterPort(router, clientGwMac, clientGw.toString,
+                              "10.0.0.0", 24)
         newRoute(router, "0.0.0.0", 0, "10.0.0.0", 24, NextHop.PORT,
                  port1, null, 10)
         materializePort(port1, hostId, "port1")
