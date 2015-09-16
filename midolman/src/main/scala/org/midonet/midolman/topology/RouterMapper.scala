@@ -26,6 +26,7 @@ import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 
 import rx.Observable
 import rx.subjects.{PublishSubject,Subject}
@@ -34,7 +35,6 @@ import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.simulation.{Router => SimulationRouter, Mirror, RouterPort, Chain, LoadBalancer}
