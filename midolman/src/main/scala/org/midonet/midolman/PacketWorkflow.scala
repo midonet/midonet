@@ -49,7 +49,7 @@ import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser, _}
 import org.midonet.midolman.simulation.Port
-import org.midonet.midolman.topology.{RouterManager, VirtualTopologyActor, VxLanPortMapper}
+import org.midonet.midolman.topology.{VirtualTopology, RouterManager, VxLanPortMapper}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowActions.output
@@ -607,7 +607,7 @@ class PacketWorkflow(
         if (!isDhcp)
             return false
 
-        val port = VirtualTopologyActor.tryAsk[Port](context.inputPort)
+        val port = VirtualTopology.tryGet[Port](context.inputPort)
         val dhcp = context.packet.getEthernet.getPayload.getPayload.getPayload.asInstanceOf[DHCP]
         dhcp.getOpCode == DHCP.OPCODE_REQUEST &&
             processDhcp(context, port, dhcp,

@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.util
 
-import java.util.{LinkedList, List => JList, Queue, UUID}
+import java.util.{LinkedList => JLinkedList, List => JList, Queue => JQueue, UUID}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
@@ -27,6 +27,7 @@ import akka.pattern.ask
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
+
 import com.google.inject.Injector
 
 import org.midonet.midolman.PacketWorkflow.SimulationResult
@@ -108,7 +109,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     }
 
     def clearMacTable(bridge: SimBridge, vlan: Short, mac: MAC, port: UUID): Unit = {
-        bridge.vlanMacTableMap.get(vlan) map { m => m.remove(mac, port) }
+        bridge.vlanMacTableMap.get(vlan) foreach { _.remove(mac, port) }
     }
 
     def clearMacTable(bridge: SimBridge, mac: MAC, port: UUID): Unit = {
@@ -116,7 +117,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     }
 
     def feedMacTable(bridge: SimBridge, vlan: Short, mac: MAC, port: UUID): Unit = {
-        bridge.vlanMacTableMap.get(vlan) map { m => m.add(mac, port) }
+        bridge.vlanMacTableMap.get(vlan) foreach { _.add(mac, port) }
     }
 
     def feedMacTable(bridge: SimBridge, mac: MAC, port: UUID): Unit = {
@@ -124,7 +125,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     }
 
 
-    def throwAwayArpBroker(emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList): ArpRequestBroker =
+    def throwAwayArpBroker(emitter: JQueue[PacketEmitter.GeneratedPacket] = new JLinkedList): ArpRequestBroker =
         new ArpRequestBroker(new PacketEmitter(emitter, actorSystem.deadLetters),
                              config, flowInvalidator, () => { }, UnixClock.MOCK)
 
@@ -133,7 +134,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     val NO_TRACE = new FlowStateTransaction[TraceKey, TraceContext](new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
 
     def packetContextFor(frame: Ethernet, inPort: UUID = null,
-                         emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList,
+                         emitter: JQueue[PacketEmitter.GeneratedPacket] = new JLinkedList,
                          inPortNumber: Int = 0)
                         (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                   natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
@@ -155,7 +156,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     def egressPacketContextFor(
             frame: Ethernet,
             egressPort: UUID = null,
-            emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList)
+            emitter: JQueue[PacketEmitter.GeneratedPacket] = new JLinkedList)
             (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                       natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
                       traceTx: FlowStateTransaction[TraceKey, TraceContext] = NO_TRACE,
@@ -171,7 +172,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     }
 
     def simulateDevice(device: ForwardingDevice, frame: Ethernet, inPort: UUID,
-                       emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList)
+                       emitter: JQueue[PacketEmitter.GeneratedPacket] = new JLinkedList)
                       (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                 natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
                                 arpBroker: ArpRequestBroker = throwAwayArpBroker())
@@ -284,7 +285,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        tunnelPorts: List[Integer] = List.empty,
                        peers: Map[UUID, UnderlayRoute] = Map.empty,
                        dpChannel: DatapathChannel = mockDpChannel,
-                       packetCtxTrap: Queue[PacketContext] = new LinkedList[PacketContext](),
+                       packetCtxTrap: JQueue[PacketContext] = new JLinkedList[PacketContext](),
                        workflowTrap: PacketContext => SimulationResult = null,
                        conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue] = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
                        natTable: FlowStateTable[NatKey, NatBinding] = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),

@@ -30,8 +30,7 @@ import org.midonet.midolman.simulation.Port.NO_MIRRORS
 import org.midonet.midolman.simulation.Simulator.{ContinueWith, SimHook, ToPortAction}
 import org.midonet.midolman.state.PortConfig
 import org.midonet.midolman.state.PortDirectory.{BridgePortConfig, RouterPortConfig, VxLanPortConfig}
-import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
-import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 
@@ -200,7 +199,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     } else if (isInterior) {
         (context, as) =>
             implicit val actorSystem: ActorSystem = as
-            tryAsk[Port](peerId).ingress(context, as)
+            tryGet[Port](peerId).ingress(context, as)
     } else {
         (context, as) =>
             context.log.warn("Port {} is unplugged", id)
@@ -283,7 +282,7 @@ case class BridgePort(override val id: UUID,
     override def toggleActive(active: Boolean) = copy(isActive = active)
     override def deviceId = networkId
 
-    protected def device(implicit as: ActorSystem) = tryAsk[Bridge](networkId)
+    protected def device(implicit as: ActorSystem) = tryGet[Bridge](networkId)
 
     override def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
         if (id == context.inPortId) {
@@ -322,7 +321,7 @@ case class RouterPort(override val id: UUID,
                       override val outboundMirrors: JList[UUID] = NO_MIRRORS)
     extends Port {
 
-    protected def device(implicit as: ActorSystem) = tryAsk[Router](routerId)
+    protected def device(implicit as: ActorSystem) = tryGet[Router](routerId)
 
     override def toggleActive(active: Boolean) = copy(isActive = active)
 
@@ -334,7 +333,7 @@ case class RouterPort(override val id: UUID,
             if (context.inPortId eq id)
                 sendIcmpProhibited(this, context)
             else
-                sendIcmpProhibited(tryAsk[RouterPort](context.inPortId), context)
+                sendIcmpProhibited(tryGet[RouterPort](context.inPortId), context)
         }
     }
 
@@ -376,7 +375,7 @@ case class VxLanPort(override val id: UUID,
     override def isInterior = false
     override def isActive = true
 
-    protected def device(implicit as: ActorSystem) = tryAsk[Bridge](networkId)
+    protected def device(implicit as: ActorSystem) = tryGet[Bridge](networkId)
 
     override def toggleActive(active: Boolean) = this
 

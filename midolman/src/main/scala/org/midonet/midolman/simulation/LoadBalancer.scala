@@ -21,8 +21,7 @@ import java.util.{Objects, UUID}
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
-import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
+import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.sdn.flows.FlowTagger
 
 object LoadBalancer {
@@ -62,7 +61,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
                     val callerDevice = packetContext.currentDevice
                     packetContext.currentDevice = id
 
-                    val pool = tryAsk[Pool](vip.poolId)
+                    val pool = tryGet[Pool](vip.poolId)
                     val result = if (pool.loadBalance(context, vip.isStickySourceIP))
                                      simpleAcceptRuleResult
                                  else
@@ -115,7 +114,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
 
                 // Choose a pool member and reverse DNAT if a valid pool member
                 // is found.
-                val pool = tryAsk[Pool](vip.poolId)
+                val pool = tryGet[Pool](vip.poolId)
                 val validMember = pool.reverseLoadBalanceValid(packetContext,
                                                                backendIp,
                                                                backendPort,
