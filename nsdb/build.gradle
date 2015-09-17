@@ -70,7 +70,7 @@ dependencies {
 }
 
 cobertura {
-    coverageExcludes = ['.*org.midonet.cluster.models.*']
+    coverageExcludes = ['.*org.midonet.cluster.models.*', '*.org.midonet.cluster.rpc.*']
 }
 
 configurations {
