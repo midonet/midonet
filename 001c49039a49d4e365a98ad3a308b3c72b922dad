@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f77eb2ad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-17T16:42:52Z",
+      "side": 1,
+      "message": "nit: I like the {}, less error prone",
+      "range": {
+        "startLine": 355,
+        "startChar": 12,
+        "endLine": 356,
+        "endChar": 22
+      },
+      "revId": "001c49039a49d4e365a98ad3a308b3c72b922dad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_174b1e88",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-17T16:42:52Z",
+      "side": 1,
+      "message": "oh I didn\u0027t know this one",
+      "range": {
+        "startLine": 367,
+        "startChar": 54,
+        "endLine": 367,
+        "endChar": 57
+      },
+      "revId": "001c49039a49d4e365a98ad3a308b3c72b922dad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
