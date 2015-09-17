@@ -39,11 +39,12 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Route.NextHop
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErrorHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErrorHttpException, NotFoundHttpException, ConflictHttpException}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
+import org.midonet.cluster.util.UUIDUtil
 
 class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                                               (implicit tag: ClassTag[P])
@@ -93,6 +94,8 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
 class PortResource @Inject()(resContext: ResourceContext)
     extends AbstractPortResource[Port](resContext) {
 
+    private val store = resContext.backend.store
+
     @POST
     @Path("{id}/link")
     @Consumes(Array(APPLICATION_PORT_LINK_JSON,
@@ -121,6 +124,18 @@ class PortResource @Inject()(resContext: ResourceContext)
     @Path("{id}/port_groups")
     def portGroups(@PathParam("id") id: UUID): PortPortGroupResource = {
         new PortPortGroupResource(id, resContext)
+    }
+
+    protected override def deleteFilter(id: String): Ops = {
+        val port = store.get(classOf[Topology.Port], id).getOrThrow
+        if (port.hasVtepId) {
+            val vtepId = UUIDUtil.fromProto(port.getVtepId)
+            val nwId = UUIDUtil.fromProto(port.getNetworkId)
+            throw new ConflictHttpException("This port type doesn't allow  " +
+                "deletions as it binds network $nwId to VTEP $vtepId. " +
+                "Please remove the bindings instead.")
+        }
+        NoOps
     }
 
     protected override def updateFilter(to: Port, from: Port): Ops = {
