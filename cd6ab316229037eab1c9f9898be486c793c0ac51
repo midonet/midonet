@@ -331,6 +331,52 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_343d7890",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-17T16:42:52Z",
+      "side": 1,
+      "message": "loving the name, I\u0027m sending a pull request to openjdk",
+      "range": {
+        "startLine": 222,
+        "startChar": 12,
+        "endLine": 222,
+        "endChar": 21
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_54420411",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-17T16:42:52Z",
+      "side": 1,
+      "message": "not intentional I guess",
+      "range": {
+        "startLine": 226,
+        "startChar": 12,
+        "endLine": 228,
+        "endChar": 13
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_1127aeb7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
         "patchSetId": 17
