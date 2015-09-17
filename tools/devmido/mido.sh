@@ -275,7 +275,7 @@ cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
 # Copy over the cluster config
 mkdir -p $TOP_DIR/conf
 CLUSTER_CONF=$TOP_DIR/conf/midonet-cluster.conf
-cp cluster/midonet-cluster/conf/midonet-cluster.conf $CLUSTER_CONF
+cp midonet-cluster/conf/midonet-cluster.conf $CLUSTER_CONF
 iniset ${CLUSTER_CONF} zookeeper zookeeper_hosts $ZOOKEEPER_HOSTS
 
 # Configure the cluster using mn-conf
