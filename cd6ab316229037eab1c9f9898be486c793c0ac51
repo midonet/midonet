@@ -232,6 +232,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_71747299",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:23:00Z",
+      "side": 1,
+      "message": "Here\u0027s a slightly less ugly way:\n\n        VxLanPortMappingService.mappings \u003d\n            (for (network \u003c- networks.values.view;\n                 (portId, vtep) \u003c- network.portsToVtep)\n                yield (vtep.tunnelIp, network.vni.intValue) -\u003e portId\n            )(breakOut)",
+      "parentUuid": "1ae5cdf2_2d2530c2",
+      "range": {
+        "startLine": 584,
+        "startChar": 0,
+        "endLine": 589,
+        "endChar": 71
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_d13466e0",
         "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
         "patchSetId": 17
