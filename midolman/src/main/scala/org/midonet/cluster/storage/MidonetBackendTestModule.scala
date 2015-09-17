@@ -67,4 +67,3 @@ class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
         // all tests that need it use a real MidonetBackend, with a Test server
     }
 }
-

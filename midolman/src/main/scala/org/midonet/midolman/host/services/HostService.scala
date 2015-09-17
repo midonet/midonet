@@ -48,13 +48,10 @@ import org.midonet.midolman.Midolman
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.host.state.HostDirectory.{Metadata => HostMetadata}
-import org.midonet.midolman.host.state.HostZkManager
-import org.midonet.midolman.host.updater.InterfaceDataUpdater
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.state.{StateAccessException, ZkManager}
+import org.midonet.midolman.state.StateAccessException
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.reactivex._
 
@@ -68,7 +65,6 @@ object HostService {
 
     class HostIdAlreadyInUseException(message: String)
         extends Exception(message)
-
 }
 
 /**
@@ -95,9 +91,6 @@ class HostService @Inject()(config: MidolmanConfig,
                             backendConfig: MidonetBackendConfig,
                             backend: MidonetBackend,
                             scanner: InterfaceScanner,
-                            interfaceDataUpdater: InterfaceDataUpdater,
-                            hostZkManager: HostZkManager,
-                            zkManager: ZkManager,
                             @Named("directoryReactor") reactor: Reactor)
     extends AbstractService with HostIdProviderService with MidolmanLogging {
     import HostService._
