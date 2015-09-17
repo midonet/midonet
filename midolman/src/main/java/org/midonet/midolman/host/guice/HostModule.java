@@ -26,8 +26,6 @@ import org.midonet.midolman.host.scanner.DefaultInterfaceScanner;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
 import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.host.updater.DefaultInterfaceDataUpdater;
-import org.midonet.midolman.host.updater.InterfaceDataUpdater;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.netlink.NetlinkChannelFactory;
 import org.midonet.netlink.NetlinkUtil;
@@ -62,9 +60,6 @@ public class HostModule extends PrivateModule {
 
         bindInterfaceScanner();
         expose(InterfaceScanner.class);
-
-        bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
-        expose(InterfaceDataUpdater.class);
 
         requireBinding(MidolmanConfig.class);
         expose(HostIdProviderService.class);
