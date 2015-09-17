@@ -225,9 +225,10 @@ def ping_inet(count=10, interval=2, port=2, retries=10):
                                    count=count)
         wait_on_futures([f1])
         output_stream, exec_id = f1.result()
-        exit_status = sender.compute_host.check_exit_status(exec_id,
-                                                            output_stream,
-                                                            timeout=60)
+        exit_status, output = sender.compute_host.check_exit_status(
+            exec_id,
+            output_stream,
+            timeout=60)
 
         assert_that(exit_status, equal_to(0), "Ping did not return any data")
     except:
