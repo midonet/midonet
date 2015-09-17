@@ -42,6 +42,7 @@ import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter}
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
+import org.midonet.cluster.services.c3po.{C3POMinion, C3POStorageManager}
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage.{LegacyStateTableStorage, MidonetBackendConfig}
@@ -66,6 +67,7 @@ object Vladimir {
                       log: Logger) = new JerseyServletModule {
 
         val resProvider = new ResourceProvider(log)
+        val sequenceDispenser = new SequenceDispenser(curator, config.backend)
 
         override def configureServlets(): Unit = {
             // To redirect JDK log to slf4j. Ref: MNA-706
@@ -84,11 +86,15 @@ object Vladimir {
             bind(classOf[CuratorFramework]).toInstance(curator)
             bind(classOf[MidonetBackend]).toInstance(backend)
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
-            bind(classOf[SequenceDispenser]).asEagerSingleton()
+            bind(classOf[SequenceDispenser]).toInstance(sequenceDispenser)
             bind(classOf[MidoNodeConfigurator])
                 .toInstance(MidoNodeConfigurator(
                 curator.usingNamespace(config.backend.rootKey.stripPrefix("/")),
                 None))
+            bind(classOf[C3POStorageManager])
+                .toInstance(C3POMinion.initDataManager(backend.store,
+                                                       sequenceDispenser,
+                                                       paths))
             bind(classOf[ResourceProvider]).toInstance(resProvider)
             bind(classOf[ApplicationResource])
             bind(classOf[Validator])
