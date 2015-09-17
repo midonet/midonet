@@ -39,11 +39,12 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Route.NextHop
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErrorHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErrorHttpException, NotFoundHttpException, ConflictHttpException}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
+import org.midonet.cluster.util.UUIDUtil
 
 class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                                               (implicit tag: ClassTag[P])
@@ -123,6 +124,18 @@ class PortResource @Inject()(resContext: ResourceContext)
         new PortPortGroupResource(id, resContext)
     }
 
+    protected override def deleteFilter(id: String): Ops = {
+        val port = backend.store.get(classOf[Topology.Port], id).getOrThrow
+        if (port.hasVtepId) {
+            val vtepId = UUIDUtil.fromProto(port.getVtepId)
+            val nwId = UUIDUtil.fromProto(port.getNetworkId)
+            throw new ConflictHttpException("This port type doesn't allow  " +
+                s"deletions as it binds network $nwId to VTEP $vtepId. " +
+                "Please remove the bindings instead.")
+        }
+        NoOps
+    }
+
     protected override def updateFilter(to: Port, from: Port): Ops = {
         to.update(from)
         NoOps
@@ -138,8 +151,6 @@ class PortResource @Inject()(resContext: ResourceContext)
 class BridgePortResource @Inject()(bridgeId: UUID,
                                    resContext: ResourceContext)
     extends AbstractPortResource[BridgePort](resContext) {
-
-    private val store = resContext.backend.store
 
     protected override def listIds: Ids = {
         getResource(classOf[Bridge], bridgeId) map { _.portIds.asScala }
@@ -169,12 +180,13 @@ class BridgePortResource @Inject()(bridgeId: UUID,
     }
 
     private def getBindings(id: UUID): List[VtepBinding] = {
-        val p = store.get(classOf[Topology.Port], id).getOrThrow
+        val p = backend.store.get(classOf[Topology.Port], id).getOrThrow
         if (!p.hasVtepId) {
             throw new BadRequestHttpException(getMessage(PORT_NOT_VXLAN_PORT,
                                                          id))
         }
-        val vtep = store.get(classOf[Topology.Vtep], p.getVtepId).getOrThrow
+        val vtep = backend.store.get(classOf[Topology.Vtep], p.getVtepId)
+                          .getOrThrow
         val bindings = vtep.getBindingsList
                            .filter { _.getNetworkId == p.getNetworkId }
                            .map { fromProto(_, classOf[VtepBinding]) }
