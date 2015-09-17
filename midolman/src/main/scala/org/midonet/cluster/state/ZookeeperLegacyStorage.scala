@@ -137,6 +137,7 @@ class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
     @throws[StateAccessException]
     private def ensureBridgePaths(bridgeId: UUID) = {
         // Create path.
+        val bridgesPath = pathBuilder.getBridgesPath
         val bridgePath = pathBuilder.getBridgePath(bridgeId)
         val bridgeMacPortsPath =
             pathBuilder.getBridgeMacPortsPath(bridgeId, UntaggedVlanId)
@@ -144,6 +145,7 @@ class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
 
         // Create the bridge path if it does not exist.
         log.info("Creating bridge {} path in state storage.", bridgeId)
+        createPath(bridgesPath)
         createPath(bridgePath)
         createPath(bridgeMacPortsPath)
         createPath(bridgeVlansPath)
@@ -172,12 +174,14 @@ class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
     @throws[StateAccessException]
     private def ensureRouterPaths(routerId: UUID): Unit = {
         // Create path.
+        val routersPath = pathBuilder.getRoutersPath
         val routerPath = pathBuilder.getRouterPath(routerId)
         val routerArpTablePath = pathBuilder.getRouterArpTablePath(routerId)
         val routerRoutingTablePath = pathBuilder.getRouterRoutingTablePath(routerId)
 
         // Create the router path if it does not exist.
         log.info("Creating router {} path in state storage.", routerId)
+        createPath(routersPath)
         createPath(routerPath)
         createPath(routerArpTablePath)
         createPath(routerRoutingTablePath)

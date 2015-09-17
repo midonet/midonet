@@ -27,19 +27,16 @@ import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Chain;
-import org.midonet.cluster.data.HostVersion;
 import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.PortGroup;
 import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.SystemState;
 import org.midonet.cluster.data.TraceRequest;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.VtepBinding;
-import org.midonet.cluster.data.WriteVersion;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
@@ -58,14 +55,11 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
-
-import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 public interface DataClient {
 
@@ -74,11 +68,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     List<AdRoute> adRoutesFindByBgp(UUID bgpId)
-            throws StateAccessException, SerializationException;
-
-
-    /* BGP related methods */
-    void bgpSetStatus(@Nonnull UUID id, @Nonnull String status)
             throws StateAccessException, SerializationException;
 
     @CheckForNull BGP bgpGet(UUID id)
@@ -120,10 +109,6 @@ public interface DataClient {
             @Nonnull UUID bridgeId, short vlanId, boolean ephemeral)
             throws StateAccessException;
 
-    void bridgeAddMacPort(@Nonnull UUID bridgeId, short vlanId,
-                          @Nonnull MAC mac, @Nonnull UUID portId)
-        throws StateAccessException;
-
     boolean bridgeHasMacPort(@Nonnull UUID bridgeId, Short vlanId,
                              @Nonnull MAC mac, @Nonnull UUID portId)
         throws StateAccessException;
@@ -132,18 +117,6 @@ public interface DataClient {
         throws StateAccessException;
 
     List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId, short vlanId)
-        throws StateAccessException;
-
-    void bridgeDeleteMacPort(@Nonnull UUID bridgeId, Short vlanId,
-                             @Nonnull MAC mac, @Nonnull UUID portId)
-        throws StateAccessException;
-
-    /**
-     * Creates or replaces an Ip->Mac mapping.
-     * It sets a regular entry (if a learned one existed, it is replaced)
-     */
-    void bridgeAddIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
-                         @Nonnull MAC mac)
         throws StateAccessException;
 
     /**
@@ -157,13 +130,6 @@ public interface DataClient {
      * Gets all IP->MAC mappings ('hints' and regular mappings).
      */
     Map<IPv4Addr, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
-        throws StateAccessException;
-
-    /**
-     * Deletes an IP->MAC mapping (either learned or persistent).
-     */
-    void bridgeDeleteIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
-                            @Nonnull MAC mac)
         throws StateAccessException;
 
     /* Chains related methods */
@@ -273,9 +239,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     List<VIP> poolGetVips(UUID id)
-            throws StateAccessException, SerializationException;
-
-    void poolSetMapStatus(UUID id, PoolHealthMonitorMappingStatus status)
             throws StateAccessException, SerializationException;
 
     /* VIP related methods */
@@ -427,15 +390,6 @@ public interface DataClient {
     @CheckForNull Route routesGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void routesDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    UUID routesCreate(@Nonnull Route route)
-            throws StateAccessException, SerializationException;
-
-    UUID routesCreateEphemeral(@Nonnull Route route)
-            throws StateAccessException, SerializationException;
-
     List<Route> routesFindByRouter(UUID routerId)
             throws StateAccessException, SerializationException;
 
@@ -457,47 +411,8 @@ public interface DataClient {
     @CheckForNull Rule<?, ?> rulesGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    void rulesDelete(UUID id)
-            throws StateAccessException, SerializationException;
-
-    UUID rulesCreate(@Nonnull Rule<?, ?> rule)
-            throws StateAccessException, RuleIndexOutOfBoundsException,
-            SerializationException;
-
     List<Rule<?, ?>> rulesFindByChain(UUID chainId)
             throws StateAccessException, SerializationException;
-
-    /**
-     * Get tenants
-     *
-     * @return Set of tenant IDs
-     * @throws StateAccessException
-     */
-    Set<String> tenantsGetAll() throws StateAccessException;
-
-    /**
-     * Get the current write version.
-     *
-     * @return current write version.
-     */
-    WriteVersion writeVersionGet() throws StateAccessException;
-
-    /**
-     * Get the system state
-     *
-     * @return system state info
-     * @throws StateAccessException
-     */
-    SystemState systemStateGet() throws StateAccessException;
-
-    /**
-     * Get the version info for all the hosts.
-     *
-     * @return A list of items containing the host version info
-     * @throws StateAccessException
-     */
-    List<HostVersion> hostVersionsGet()
-            throws StateAccessException;
 
     /* Trace request methods */
     @CheckForNull
