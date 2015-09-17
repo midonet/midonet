@@ -24,12 +24,14 @@ import scala.util.{Failure, Success, Try}
 
 import com.google.inject.{Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
+
 import org.apache.commons.cli._
 import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule}
 import org.midonet.cluster.util.UUIDUtil
@@ -109,11 +111,20 @@ class ZoomPortBinder(storage: Storage,
         lock.acquire(LockWaitSec, TimeUnit.SECONDS)
 
         try {
-            val p = getPortBuilder(portId)
-                          .clearHostId()
-                          .clearInterfaceName()
-                          .build()
-            storage.update(p)
+            val pHostId = UUIDUtil.toProto(hostId)
+            val p = storage.get(classOf[Port], portId).await()
+
+            // Unbind only if the port is currently bound to an interface on
+            // the same host.  This is necessary since in Nova, bind on the
+            // new host happens before unbind on live migration, and we don't
+            // want remove the existing binding on the new host.
+            if (p.hasHostId && pHostId == p.getHostId) {
+                val p = getPortBuilder(portId)
+                              .clearHostId()
+                              .clearInterfaceName()
+                              .build()
+                storage.update(p)
+            }
         } finally {
             lock.release()
         }
