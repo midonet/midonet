@@ -236,7 +236,6 @@ class VtepSynchronizer(vtepId: UUID,
                 ovsdbMacLocationObserver = obs
                 macRemoteConsumer = new VtepMacRemoteConsumer(nsdbVtep,
                               boundNetworks, store, ovsdbMacLocationObserver)
-                ovsdbCnxnStateHandler.onNext(Connected)
                 watchVtepLocalMacs()
                 watchFloodingProxyEvents()
         }
@@ -393,7 +392,7 @@ class VtepSynchronizer(vtepId: UUID,
         if (nwInfo == null) {
             return
         }
-        if (nwInfo.macTable != null) {
+        if (nwInfo.arpTable != null) {
             log.debug(s"ARP table for network $nwId is already being watched")
             return
         }
@@ -415,6 +414,7 @@ class VtepSynchronizer(vtepId: UUID,
         boundNetworks.get(nwId).arpTable = arpTable
 
         watchMap(nwId, arpTable, vtepUpdater.buildArpUpdateHandler(nwId))
+        log.debug(s"ARP table of network $nwId is now watched")
     }
 
     private def watchMacPortMap(nwId: UUID,
@@ -445,6 +445,7 @@ class VtepSynchronizer(vtepId: UUID,
         boundNetworks.get(nwId).macTable = macTable
 
         watchMap(nwId, macTable, vtepUpdater.buildMacPortHandler(nwId))
+        log.debug(s"MAC-Port table of network $nwId is now watched")
     }
 
     /** Watch the given replicated map, do something with each notification.
@@ -483,6 +484,8 @@ class VtepSynchronizer(vtepId: UUID,
                     s"Network $nwId has VNI < 10000 - this is a problem " +
                     s"in the API.  binding will NOT complete")
             } else {
+                val vni = network.getVni
+                log.debug(s"Fetch logical switch for network $nwId vni: $vni")
                 ovsdb.createLogicalSwitch(bridgeIdToLogicalSwitchName(nwId),
                                           network.getVni)
             }
@@ -499,6 +502,7 @@ class VtepSynchronizer(vtepId: UUID,
     private def ensureBindings(lsId: UUID,
                                nwId: UUID,
                                bindings: util.List[NsdbVtep.Binding]) = {
+        log.debug(s"Ensuring that VTEP bindings exist for $nwId")
         if (!boundNetworks.containsKey(nwId)) {
             val msg = s"Can't consolidate bindings for unbound network $nwId"
             log.debug(msg)
