@@ -16,6 +16,24 @@
       "revId": "6bae27b3e93b4e6181aa9a79de3090ddf127775c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_7a7367e9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/models/L2InsertionTranslation.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-17T19:28:14Z",
+      "side": 1,
+      "message": "Ah btw, very nice to have this as an explicit translation.\n\nYou should review NetworkTranslator and ensure that an update of a NeutronNetwork won\u0027t mess up with the custom fields added here.\n\nAlso, test?",
+      "parentUuid": "1ae5cdf2_3a69dff9",
+      "revId": "6bae27b3e93b4e6181aa9a79de3090ddf127775c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
