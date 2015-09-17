@@ -29,7 +29,7 @@ import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.{Chain, Bridge}
-import org.midonet.midolman.simulation.Port
+import org.midonet.midolman.simulation.{Port,ServicePort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger
@@ -59,6 +59,20 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             inboundFilterId = infilter,
             outboundFilterId = outfilter,
             bridgeId = Some(bridge.getId.asJava))
+    }
+
+    def makeServicePort(id: UUID, host: Host, ifName: String, bridge: TopoBridge,
+                        infilter: Option[UUID] = None,
+                        outfilter: Option[UUID] = None) = {
+        val port = createBridgePort(
+            id = id,
+            hostId = Some(host.getId),
+            interfaceName = Some(ifName),
+            adminStateUp = true,
+            inboundFilterId = infilter,
+            outboundFilterId = outfilter,
+            bridgeId = Some(bridge.getId.asJava))
+        port.toBuilder.addSrvInsertions(UUID.randomUUID).build
     }
 
     def packet(srcMac: String, dstMac: String, vlan: Option[Short] = None,
@@ -216,14 +230,14 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                                    Some(vm1In.getId), Some(vm1Out.getId))
             val vm2Port = makePort(new UUID(0,2), host, "if_vm2", vmBridge,
                                    Some(vm2In.getId), Some(vm2Out.getId))
-            var svc1Port = makePort(new UUID(1,1), host,
-                                    "if_svc1", svcBridge,
-                                    Some(svc1In.getId),
-                                    Some(svc1Out.getId))
-            val svc2Port = makePort(new UUID(1,2), host,
-                                    "if_svc2", svcBridge,
-                                    Some(svc2In.getId),
-                                    Some(svc2Out.getId))
+            var svc1Port = makeServicePort(new UUID(1,1), host,
+                                           "if_svc1", svcBridge,
+                                           Some(svc1In.getId),
+                                           Some(svc1Out.getId))
+            val svc2Port = makeServicePort(new UUID(1,2), host,
+                                           "if_svc2", svcBridge,
+                                           Some(svc2In.getId),
+                                           Some(svc2Out.getId))
 
             List(host, vmBridge, svcBridge,
                  vm1In, vm1Out, vm2In, vm2Out,
@@ -378,14 +392,14 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                             FlowTagger.tagForPort(svc2Port.getId),
                             FlowTagger.tagForPort(vm1Port.getId)))
 
-            /* should be enabled in later patch
             var p = fetchDevice[Port](svc1Port.getId)
             p.adminStateUp should be(true)
 
             // Now set svc1Port down. Traffic from VM1 should be dropped because FAIL_OPEN is false.
             svc1Port = svc1Port.toBuilder().setAdminStateUp(false).build()
             store.update(svc1Port)
-            fetchDevice[Port](svc1Port.getId).adminStateUp shouldBe false
+            fetchDevice[Port](svc1Port.getId).
+                asInstanceOf[ServicePort].realAdminStateUp shouldBe false
 
             When("An incoming packet ingresses vm1Port")
             var packetContext = packetContextFor(packet(mac1, mac2),
@@ -418,7 +432,6 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                             FlowTagger.tagForPort(vm1Port.getId),
                             FlowTagger.tagForPort(svc1Port.getId), // still traversed
                             FlowTagger.tagForPort(svc2Port.getId)))
-             */
         }
     }
 }
