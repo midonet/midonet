@@ -45,6 +45,7 @@ import org.midonet.cluster.rest_api.models.Vtep;
 import org.midonet.cluster.rest_api.models.VtepBinding;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.services.MidonetBackend;
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 import org.midonet.packets.IPv4Addr;
 
 import static java.util.UUID.randomUUID;
@@ -70,14 +71,7 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.TUNNEL_ZON
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_HAS_BINDINGS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_COLLECTION_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_BINDING_COLLECTION_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_BINDING_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_COLLECTION_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_PORT_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
 import static org.midonet.cluster.util.SequenceDispenser.VxgwVni$;
 import static org.midonet.southbound.vtep.mock.MockOvsdbVtep.physPortNames;
 
@@ -390,6 +384,21 @@ public class TestVtep extends RestApiTestBase {
     @Test
     public void testAddRemoveMultipleBindingsOnSingleNetwork() {
         testAddRemoveBindings(physPortNames().get(0));
+    }
+
+    @Test
+    public void testNetworkCantDeleteWhenBindings() {
+        DtoVtep vtep = postVtep();
+        DtoBridge br = postBridge("network1");
+        UUID id = br.getId();
+        DtoVtepBinding binding1 = addAndVerifyBinding(vtep, id,
+                                                      physPortNames().get(0), 1);
+        dtoResource.deleteAndVerifyError(br.getUri(),
+                                         APPLICATION_BRIDGE_JSON_V4(),
+                                         CONFLICT.getStatusCode());
+
+        dtoResource.deleteAndVerifyNoContent(binding1.getUri(),
+                                             APPLICATION_VTEP_BINDING_JSON());
     }
 
     @Test
