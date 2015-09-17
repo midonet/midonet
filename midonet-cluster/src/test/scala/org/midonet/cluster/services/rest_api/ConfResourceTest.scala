@@ -43,6 +43,7 @@ class ConfResourceTest extends FeatureSpec
 
     HostIdGenerator.useTemporaryHostId()
 
+    private var backend: MidonetBackendService = _
     private var api: Vladimir = _
     private val httpPort: Int = 10000 + (Math.random() * 50000).toInt
     private val confStr =
@@ -64,8 +65,9 @@ class ConfResourceTest extends FeatureSpec
         super.beforeAll()
         
         val context = ClusterNode.Context(HostIdGenerator.getHostId)
-        val backend = new MidonetBackendService(new MidonetBackendConfig(config),
+        backend = new MidonetBackendService(new MidonetBackendConfig(config),
                                                 zkClient, null)
+        backend.startAsync().awaitRunning()
         api = new Vladimir(context, backend, zkClient,
                            new MockAuthService(config),
                            new ClusterConfig(config))
@@ -75,6 +77,7 @@ class ConfResourceTest extends FeatureSpec
     override def afterAll(): Unit = {
         super.afterAll()
         api.stopAsync().awaitTerminated()
+        backend.stopAsync().awaitTerminated()
     }
 
     private def url(path: String) = {

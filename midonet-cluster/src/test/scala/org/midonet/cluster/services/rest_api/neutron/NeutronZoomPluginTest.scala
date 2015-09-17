@@ -33,11 +33,12 @@ import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronR
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.{ConflictHttpException, BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.neutron.models._
+import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.{IPSubnetUtil, CuratorTestFramework}
+import org.midonet.cluster.util.{SequenceDispenser, IPSubnetUtil, CuratorTestFramework}
 import org.midonet.cluster.util.UUIDUtil.{toProto => toPuuid}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.MidonetEventually
@@ -70,7 +71,11 @@ class NeutronZoomPluginTest extends FeatureSpec
                                              seqDispenser = null,
                                              stateTables = null)
         val lockFactory = new ZookeeperLockFactory(curator, paths)
-        plugin = new NeutronZoomPlugin(resContext, paths, lockFactory)
+        val sequenceDispenser = new SequenceDispenser(curator, cfg)
+        val c3po = C3POMinion.initDataManager(backend.store,
+                                              sequenceDispenser,
+                                              paths)
+        plugin = new NeutronZoomPlugin(resContext, paths, c3po, lockFactory)
     }
 
     override def teardown(): Unit = {
