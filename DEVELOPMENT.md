@@ -126,11 +126,33 @@ these commands:
 
 ## Testing tools
 
+### MDTS
+
 *MidoNet* is tested at both an integration and a functional level by the
 MDTS (Midonet Distributed Testing System), which can be found in the
 midonet repository at
 
 http://github.com/midonet/midonet/tree/master/tests
+
+### Unit tests
+
+To run unit tests, you can run the command:
+
+    ~/midonet$ ./gradlew test
+
+You can run tests only for a specific module.
+For example:
+
+    ~/midonet$ ./gradlew midolman:test
+
+You can specify a specific test class to run.
+For example:
+
+    ~/midonet$ ./gradlew midolman:test -Dtest.single=HmacTest
+
+Unit tests generate HTML reports under build/ directory:
+
+    ~/midonet$ open ./midolman/build/reports/tests/index.html
 
 ## Building the project
 
