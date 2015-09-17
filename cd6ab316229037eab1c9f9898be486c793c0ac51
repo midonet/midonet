@@ -1,0 +1,274 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_ed6d0806",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VtpmRedirector.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "Do these need to be vars? I think Guice can do val injection.",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 35
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_6d81f88e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "We have settings similar to these in the cluster config. Is there a good reason not to use those settings instead of hard-coding them here?",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 45
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_0d4a3480",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "The Scala compiler can infer the type of Map.empty based on context. So you could replace this line with:\n\n    @volatile private var mappings: Map[TunnelIpAndVni, UUID] \u003d Map.empty\n\nAnd then you don\u0027t need to declare EmptyMappings,",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 50
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_cd4f6c91",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "This is pretty confusing. It would be more clear if you defined TunnelIpAndVni as a case class instead of a tuple, e.g. case class TunnelIpAndVni(ip: IPv4Addr, vni: Int).",
+      "range": {
+        "startLine": 62,
+        "startChar": 21,
+        "endLine": 62,
+        "endChar": 36
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_6d581857",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "Alternatively: makeFunc2(VtepInfo.apply)",
+      "range": {
+        "startLine": 92,
+        "startChar": 32,
+        "endLine": 94,
+        "endChar": 5
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_8d55641f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "This doesn\u0027t obviously match what the code. Can a VtepConfiguration be different from the default and still not have any tunnel IPs?",
+      "range": {
+        "startLine": 96,
+        "startChar": 7,
+        "endLine": 96,
+        "endChar": 60
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_4d5b5c54",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "Why all the commented-out code?",
+      "range": {
+        "startLine": 102,
+        "startChar": 4,
+        "endLine": 102,
+        "endChar": 6
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1127aeb7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "Or ports.foreach(updatePort)",
+      "range": {
+        "startLine": 445,
+        "startChar": 0,
+        "endLine": 447,
+        "endChar": 21
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_ad31400d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 558,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "It may be worth using breakOut here to avoid allocating two collections:\n\n  val networkIds: Set[UUID] \u003d vteps.values.flatMap(_.bindings)(breakOut)",
+      "range": {
+        "startLine": 558,
+        "startChar": 8,
+        "endLine": 558,
+        "endChar": 63
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_2d2530c2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "I think this is what you\u0027re trying to do:\n\n        VxLanPortMappingService.mappings \u003d\n            (for (network \u003c- networks.values;\n                  (portId, vtep) \u003c- network.portsToVtep)\n                yield (vtep.tunnelIp, network.vni.intValue) -\u003e portId)(breakOut)\n\nThat sure is ugly, though. I wish there were a better way to use breakOut with a for comprehension. Alternatively:\n\n        val entries \u003d\n            for (network \u003c- networks.values.view;\n                 (portId, vtep) \u003c- network.portsToVtep)\n                yield (vtep.tunnelIp, network.vni.intValue) -\u003e portId\n        VxLanPortMappingService.mappings \u003d entries.toMap",
+      "range": {
+        "startLine": 584,
+        "startChar": 0,
+        "endLine": 589,
+        "endChar": 71
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d13466e0",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 799,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "Indented too far.",
+      "range": {
+        "startLine": 799,
+        "startChar": 15,
+        "endLine": 799,
+        "endChar": 25
+      },
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f13162ed",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VxLanPortMappingServiceTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-17T07:18:06Z",
+      "side": 1,
+      "message": "This scenario is boring.",
+      "revId": "cd6ab316229037eab1c9f9898be486c793c0ac51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
