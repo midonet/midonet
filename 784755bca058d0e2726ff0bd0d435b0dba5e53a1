@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_b1935aa2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-17T07:46:12Z",
+      "side": 1,
+      "message": "Release ownership of snatched VTEPs.",
+      "range": {
+        "startLine": 158,
+        "startChar": 17,
+        "endLine": 158,
+        "endChar": 23
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_d2ee2922",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
         "patchSetId": 20
@@ -87,6 +110,29 @@
         "startChar": 22,
         "endLine": 85,
         "endChar": 37
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_91965e93",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-17T07:46:12Z",
+      "side": 1,
+      "message": "Some(v)",
+      "range": {
+        "startLine": 105,
+        "startChar": 31,
+        "endLine": 105,
+        "endChar": 32
       },
       "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
