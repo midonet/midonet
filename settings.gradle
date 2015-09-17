@@ -1,2 +1,3 @@
 include "midonet-util", "netlink", "nsdb", "midolman",
-        "cluster:midonet-cluster", 'python-midonetclient'
+        "cluster:midonet-cluster", 'python-midonetclient',
+        "midonet-tools"

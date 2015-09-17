@@ -16,7 +16,7 @@
 
 # If MIDO_HOME has not been set, set it.
 if [ -z "$MIDO_HOME" ]; then
-   MIDO_HOME=/usr/share/midolman
+   MIDO_HOME=/usr/share/midonet-tools
 fi
 
 if [ ! -d "$MIDO_HOME" ]; then
@@ -31,17 +31,8 @@ else
     exit 1
 fi
 
-if [ -z "$MIDO_JAR" ]; then
-   MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
-fi
+MAIN_CLASS='org.midonet.conf.MidoConfTool'
+CLASSPATH=$MIDO_HOME/midonet-tools.jar
 
-if [ ! -e "$MIDO_JAR" ]; then
-   echo "ERROR: $MIDO_JAR does not exist"
-   exit 1
-fi
-
-JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
-MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
-
-exec $JAVA $JAVA_LIBRARY_PATH -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
-    -cp $MIDO_JAR:$MIDO_DEP_CLASS_PATH org.midonet.midolman.management.MidolmanMeter $*
+exec $JAVA -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
+    -cp $CLASSPATH $MAIN_CLASS $*

@@ -40,13 +40,14 @@ sourceSets {
 
 dependencies {
     compile project(":midonet-util")
-    compile libraries.hamcrest_core, libraries.hamcrest_lib,
-            libraries.commons_cli, libraries.commons_exec,
+    compile libraries.commons_cli, libraries.commons_exec,
             libraries.jna, libraries.scala, libraries.rx,
             libraries.scallop, libraries.commons_io,
             libraries.guava
 
-    testCompile libraries.scalatest
+    testCompile libraries.scalatest,
+                libraries.hamcrest_core,
+                libraries.hamcrest_lib
 }
 
 

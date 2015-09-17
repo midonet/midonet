@@ -16,7 +16,7 @@
 
 # If MIDO_HOME has not been set, set it.
 if [ -z "$MIDO_HOME" ]; then
-   MIDO_HOME=/usr/share/midolman
+   MIDO_HOME=/usr/share/midonet-tools
 fi
 
 if [ ! -d "$MIDO_HOME" ]; then
@@ -31,8 +31,8 @@ else
     exit 1
 fi
 
-MAIN_CLASS='org.midonet.conf.MidoConfTool'
-CLASSPATH=$MIDO_HOME/*:$MIDO_HOME/dep/*
+MAIN_CLASS='org.midonet.management.MidolmanStat'
+CLASSPATH=$MIDO_HOME/midonet-tools.jar
 
 exec $JAVA -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
     -cp $CLASSPATH $MAIN_CLASS $*
