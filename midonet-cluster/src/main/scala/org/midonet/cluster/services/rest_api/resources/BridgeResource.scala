@@ -41,7 +41,7 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException, ConflictHttpException}
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.midolman.state.MacPortMap.encodePersistentPath
 import org.midonet.midolman.state.PathBuilder
@@ -62,6 +62,8 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                                pathBuilder: PathBuilder,
                                curator: CuratorFramework)
     extends MidonetResource[Bridge](resContext) {
+
+    private val store = resContext.backend.store
 
     @Path("{id}/ports")
     def ports(@PathParam("id") id: UUID): BridgePortResource = {
@@ -106,7 +108,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                 CreateNodeOp(path, null)
             }
         val bridgeOp = CreateOp(toProto(bridge, classOf[Topology.Network]))
-        resContext.backend.store.multi(pathOps :+ bridgeOp)
+        store.multi(pathOps :+ bridgeOp)
         bridge.setBaseUri(resContext.uriInfo.getBaseUri)
 
         OkCreated(bridge.getUri)
@@ -255,7 +257,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                      @PathParam("vlan") vlan: Short,
                      @HeaderParam("Accept") mediaType: String)
     : util.List[MacPort] = {
-        resContext.backend.store.get(classOf[Topology.Network], id).getOrThrow
+        store.get(classOf[Topology.Network], id).getOrThrow
         macPortsInVlan(id, vlan)
     }
 
@@ -265,7 +267,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
     def listMacTable(@PathParam("id") id: UUID,
                      @HeaderParam("Accept") mediaType: String)
     : util.List[MacPort] = {
-        resContext.backend.store.get(classOf[Topology.Network], id).getOrThrow
+        store.get(classOf[Topology.Network], id).getOrThrow
 
         // Fetch entries in all vlans, if any
         val entriesWithVlan = Try {
@@ -279,7 +281,18 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         macPortsNoVlan(id, isV1 = false) ++ entriesWithVlan
     }
 
-    protected override def listFilter(bridges: Seq[Bridge]): Future[Seq[Bridge]] = {
+    protected override def deleteFilter(id: String): Ops = {
+        val b = store.get(classOf[Topology.Network], id).getOrThrow
+        if (!b.getVxlanPortIdsList.isEmpty) {
+            throw new ConflictHttpException("The bridge still has VTEP " +
+                    "bindings, please remove them before deleting the bridge")
+        }
+        NoOps
+    }
+
+
+    protected override def listFilter(bridges: Seq[Bridge])
+    : Future[Seq[Bridge]] = {
         val tenantId = resContext.uriInfo
             .getQueryParameters.getFirst("tenant_id")
         Future.successful(if (tenantId eq null) bridges
@@ -345,9 +358,8 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
     private def putMacTableEntry(macPort: MacPort): Response = {
         throwIfViolationsOn(macPort)
-        val store = resContext.backend.store
         val bridge = store.get(classOf[Topology.Network], macPort.bridgeId)
-                           .getOrThrow
+                          .getOrThrow
 
         try {
             val p = store.get(classOf[Topology.Port], macPort.portId).getOrThrow
@@ -386,7 +398,6 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
     private def doDeleteMacPort(bridgeId: UUID, mac: MAC,
                                 vlan: Short, portId: UUID): Response = {
-        val store = resContext.backend.store
         store.get(classOf[Topology.Port], portId).getOrThrow
         store.get(classOf[Topology.Network], bridgeId).getOrThrow
 
@@ -422,7 +433,6 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         val portId = macPortUriToPort(s)
         val vlanId = vlan.getOrElse(UNTAGGED_VLAN_ID)
 
-        val store = resContext.backend.store
         store.get(classOf[Topology.Network], bridgeId).getOrThrow
         val path = pathBuilder.getBridgeMacPortEntryPath(
             bridgeId, vlanId, encodePersistentPath(mac, portId))
