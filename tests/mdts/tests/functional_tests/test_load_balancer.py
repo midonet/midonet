@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from hamcrest.core import assert_that
-from hamcrest import equal_to, is_not
+from hamcrest import equal_to, is_not, calling, raises
 from nose.plugins.attrib import attr
 from nose.tools import with_setup, nottest
 
@@ -181,22 +181,33 @@ def start_servers():
     for backend_num in range(1, NUM_BACKENDS + 1):
         start_server(backend_num)
 
-
 def stop_servers():
     global SERVERS
     for backend_num in range(1, NUM_BACKENDS + 1):
         stop_server(backend_num)
     SERVERS = dict()
 
-def make_request_to(sender, dest, timeout=10, src_port=None):
+def make_request_to(sender, dest, timeout=10, src_port=None, attempt=5):
         cmd_line = 'ncat --recv-only %s %s %d' % (
             '-p %d' % src_port if src_port is not None else '',
             dest,
             DST_PORT
         )
-        result = sender.execute(cmd_line, timeout, sync=True)
-        LOG.debug("L4LB: request to %s. Response: %s" % (sender, result))
-        return result
+        f1 = sender.execute(cmd_line, timeout, sync=False)
+        output_stream, exec_id = f1.result()
+        exit_code, output = sender.compute_host.check_exit_status(exec_id,
+                                                                  output_stream)
+        if exit_code != 0:
+            if attempt == 0:
+                raise RuntimeError("Exit code != 0. Couldn't connect to netcat"
+                                   "server after 5 attempts. Giving up.")
+            LOG.debug("L4LB: problem connecting to server... retrying.")
+            time.sleep(1)
+            output = make_request_to(sender, dest, timeout, src_port, attempt-1)
+        else:
+            output = output.strip()
+            LOG.debug("L4LB: request to %s. Response: %s" % (sender, output))
+        return output
 
 def assert_request_succeeds_to(sender, dest, timeout=10, src_port=None):
     result = make_request_to(sender, dest, timeout, src_port)
@@ -204,9 +215,12 @@ def assert_request_succeeds_to(sender, dest, timeout=10, src_port=None):
 
 
 def assert_request_fails_to(sender, dest, timeout=10, src_port=None):
-    result = make_request_to(sender, dest, timeout, src_port)
-    assert_that(result, equal_to(''))
-
+    assert_that(calling(make_request_to).with_args(sender,
+                                                   dest,
+                                                   timeout,
+                                                   src_port,
+                                                   attempt=0),
+                raises(RuntimeError))
 
 def make_n_requests_to(sender, num_reqs, dest, timeout=10, src_port=None):
     results = []

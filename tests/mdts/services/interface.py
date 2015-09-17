@@ -128,29 +128,24 @@ class Interface(object):
             LOG.debug('tcp dump running OK')
             # FIXME: wrap it in a function so we don't access members directly
             LOG.debug('Gathering results from stream of %s...' % cmdline)
-            result = ""
-            for log_line in log_stream:
-                result += log_line
-                if store_output:
-                    self._tcpdump_output += log_line
-                LOG.debug('Result is: %s' % log_line.rstrip())
         except StopIteration:
             LOG.debug("Stream didn't block, command %s " % cmdline +
                       " timed out before pulling results.")
 
-        return_code = self.compute_host.check_exit_status(exec_id)
+        return_code, output = self.compute_host.check_exit_status(exec_id,
+                                                                  log_stream)
         if return_code != 0:
             LOG.debug('%s return_code = %s != 0, no packets received... %r' % (
                 cmdline,
                 return_code,
-                result
+                output
             ))
             return False
 
         LOG.debug('%s return_code = %s output = %r' % (
             cmdline,
             return_code,
-            result))
+            output))
         return True
 
     # Inherited methods
