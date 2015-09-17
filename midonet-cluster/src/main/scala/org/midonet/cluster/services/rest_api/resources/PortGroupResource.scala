@@ -43,7 +43,7 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 class PortGroupResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[PortGroup](resContext) {
 
-    private val uriInfo = resContext.uriInfo
+    override protected val uriInfo = resContext.uriInfo
 
     protected override def listFilter(portGroups: Seq[PortGroup])
     : Future[Seq[PortGroup]] = {

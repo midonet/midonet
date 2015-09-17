@@ -33,7 +33,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException}
 
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
-import org.midonet.cluster.data.ZoomConvert.toProto
+import org.midonet.cluster.data.ZoomConvert.{toProto => zoomToProto}
 import org.midonet.cluster.data.storage.{CreateNodeOp, CreateOp}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.ResourceUris.{macPortUriToMac, macPortUriToPort}
@@ -105,7 +105,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             pathBuilder.getBridgeVlansPath(bridge.id)) map { path =>
                 CreateNodeOp(path, null)
             }
-        val bridgeOp = CreateOp(toProto(bridge, classOf[Topology.Network]))
+        val bridgeOp = CreateOp(zoomToProto(bridge, classOf[Topology.Network]))
         resContext.backend.store.multi(pathOps :+ bridgeOp)
         bridge.setBaseUri(resContext.uriInfo.getBaseUri)
 
