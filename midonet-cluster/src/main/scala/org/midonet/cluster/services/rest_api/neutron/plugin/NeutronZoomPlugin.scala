@@ -43,7 +43,7 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.c3po.translators.TranslationException
-import org.midonet.cluster.services.c3po.{C3POMinion, neutron}
+import org.midonet.cluster.services.c3po.{C3POStorageManager, neutron}
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.state.PathBuilder
@@ -51,6 +51,7 @@ import org.midonet.util.concurrent.toFutureOps
 
 class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
                                   pathBuilder: PathBuilder,
+                                  c3po: C3POStorageManager,
                                   lockFactory: ZookeeperLockFactory)
     extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi
             with FirewallApi {
@@ -62,8 +63,6 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     private val timeout = 10.seconds
     private val store = resourceContext.backend.store
     private val seqDispenser = resourceContext.seqDispenser
-    private val c3po = C3POMinion.initDataManager(store, seqDispenser,
-                                                  pathBuilder)
 
     private val lockOpNumber = new AtomicInteger(0)
 
