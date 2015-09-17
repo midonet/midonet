@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3a69dff9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/models/L2InsertionTranslation.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-17T19:19:58Z",
+      "side": 1,
+      "message": "This one belons more in midonet-cluster/org/midonet/cluster/services/c3po/translations (path is off the top of my head) \n\nnsdb is mainly for stuff shared between agent and cluster to communicate with each other (and other components with the cluster).",
+      "revId": "6bae27b3e93b4e6181aa9a79de3090ddf127775c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
