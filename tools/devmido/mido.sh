@@ -275,7 +275,7 @@ cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
 # Copy over the cluster config
 mkdir -p $TOP_DIR/conf
 CLUSTER_CONF=$TOP_DIR/conf/midonet-cluster.conf
-cp cluster/midonet-cluster/conf/midonet-cluster.conf $CLUSTER_CONF
+cp midonet-cluster/conf/midonet-cluster.conf $CLUSTER_CONF
 iniset ${CLUSTER_CONF} zookeeper zookeeper_hosts $ZOOKEEPER_HOSTS
 
 # Configure the cluster using mn-conf
@@ -297,10 +297,10 @@ if [[ "$USE_METADATA" = "True" ]]; then
         "$METADATA_SHARED_SECRET"
 fi
 
-CLUSTER_LOG=$TOP_DIR/cluster/midonet-cluster/conf/logback.xml
-cp $CLUSTER_LOG.dev $TOP_DIR/cluster/midonet-cluster/build/resources/main/logback.xml
+CLUSTER_LOG=$TOP_DIR/midonet-cluster/conf/logback.xml
+cp $CLUSTER_LOG.dev $TOP_DIR/midonet-cluster/build/resources/main/logback.xml
 
-run_process midonet-cluster "./gradlew :cluster:midonet-cluster:run"
+run_process midonet-cluster "./gradlew :midonet-cluster:run"
 
 if ! timeout $API_TIMEOUT sh -c "while ! wget -q -O- $API_URI; do sleep 1; done"; then
     die $LINENO "API server didn't start in $API_TIMEOUT seconds"
