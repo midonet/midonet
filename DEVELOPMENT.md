@@ -143,6 +143,42 @@ To skip the tests, you can run the command:
 
     ~/midonet$ ./gradlew -x test
 
+### Unit tests
+
+To run unit tests, you can run the command:
+
+    ~/midonet$ ./gradlew test
+
+You can run tests only for a specific module.
+For example:
+
+    ~/midonet$ ./gradlew midolman:test
+
+You can specify a specific test class to run.
+For example:
+
+    ~/midonet$ ./gradlew midolman:test -Dtest.single=HmacTest
+
+Unit tests generate HTML reports under build/ directory:
+
+    ~/midonet$ open ./midolman/build/reports/tests/index.html
+
+### Coverage report
+
+The following command generates coverage report running unit tests
+and integration tests:
+
+    ~/midonet$ ./gradlew cobertura
+
+You can exclude integration tests as the following.  It can be useful
+when running tests on non supported platforms like OS X:
+
+    ~/midonet$ ./gradlew cobertura -x integration
+
+The generated report will be available under build/ directory:
+
+    ~/midonet$ open ./midolman/build/reports/cobertura/index.html
+
 ### Distro packages
 
 The build script provides targets to build debian and rpm packages. In
@@ -160,7 +196,3 @@ RHEL 7 packages:
 On ubuntu this requires the rpm tools which you can install with
 
     # apt-get install rpm
-
-### Build all & Run tests
-
-    ~/midonet$ ./gradlew test
