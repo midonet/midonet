@@ -16,6 +16,52 @@
       "revId": "e678dbc8101d849073b2c200409a2b6aa4b28e23",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_c5ad808a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/L2ServiceResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-17T21:49:33Z",
+      "side": 1,
+      "message": "Not needed",
+      "range": {
+        "startLine": 43,
+        "startChar": 50,
+        "endLine": 43,
+        "endChar": 53
+      },
+      "revId": "e678dbc8101d849073b2c200409a2b6aa4b28e23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_25bc64bb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortGroupResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-17T21:49:33Z",
+      "side": 1,
+      "message": "Not needed: the super class field is the same",
+      "range": {
+        "startLine": 46,
+        "startChar": 4,
+        "endLine": 46,
+        "endChar": 55
+      },
+      "revId": "e678dbc8101d849073b2c200409a2b6aa4b28e23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
