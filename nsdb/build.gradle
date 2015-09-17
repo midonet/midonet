@@ -70,7 +70,10 @@ dependencies {
 }
 
 cobertura {
-    coverageExcludes = ['.*org.midonet.cluster.models.*']
+    coverageExcludes = ['.*org.midonet.cluster.models.*',
+                        '.*org.midonet.cluster.rpc.*',
+                        '.*org.midonet.cluster.data.storage.StorageEval.*',
+                        '.*org.midonet.cluster.flowstate.proto.*']
 }
 
 configurations {
