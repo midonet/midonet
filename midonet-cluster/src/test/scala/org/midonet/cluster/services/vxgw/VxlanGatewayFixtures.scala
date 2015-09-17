@@ -186,6 +186,14 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
             Mockito.when(dataClient.getIp4MacMap(Eq(nwId))).thenReturn(arpTable)
         }
 
+        /** This will NOT update the ovsdb mock to return the logical switch
+          * if requested. To do that, mock it like this:
+          *
+          *  val lsId = UUID.randomUUID()
+          *  Mockito.when(vtepFix.ovsdb.createLogicalSwitch(Eq(lsName),
+          *                                                 Eq(vni)))
+          *         .thenReturn(successful(lsId))
+          */
         def createVxPortForVtep(vtep: Vtep): Unit = {
             val vxPortId = randomUUID()
             store.create(createVxLanPort(vxPortId, Some(nwId))
@@ -193,9 +201,6 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
 
             store.update(nw.toBuilder.addVxlanPortIds(UUIDUtil.toProto
                                                           (vxPortId)).build())
-            val lsId = UUID.randomUUID()
-            Mockito.when(vtepFix.ovsdb.createLogicalSwitch(lsName, nw.getVni))
-                   .thenReturn(successful(lsId))
             Mockito.when(vtepFix.ovsdb.setBindings(anyObject(), anyObject()))
                    .thenReturn(successful(10))
         }

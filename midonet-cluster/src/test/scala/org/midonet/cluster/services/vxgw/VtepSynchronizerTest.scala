@@ -104,6 +104,10 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
                                           (ip, port) => vtep1Fix.ovsdb)
             vtep1Fix.addBinding(vxgw.nwId, "swp1_1", 11)
 
+            val lsId = UUID.randomUUID()
+            Mockito.when(vtep1Fix.ovsdb.createLogicalSwitch(any(), any()))
+                   .thenReturn(Future.successful(lsId))
+
             // Preseed table
             val mac1 = MAC.random
             vxgw.macPortMap.put(mac1, vxgw.port1Id)
@@ -169,6 +173,10 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
                                           dataClient, fpHerald,
                                           (ip, port) => vtep1Fix.ovsdb)
 
+            val lsId = UUID.randomUUID()
+            Mockito.when(vtep1Fix.ovsdb.createLogicalSwitch(any(), any()))
+                   .thenReturn(Future.successful(lsId))
+
             vtep1Fix.addBinding(vxgw.nwId, "swp1_1", 11)
 
             // Notify the first VTEP participating in the VxGW
@@ -182,11 +190,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
             vtep1Fix.expectMacRemote(ml, 1)
 
             // Expect that the VTEP was updated with the new Logical Switches
-            val lsId = UUID.randomUUID()
-            Mockito.when(vtep1Fix.ovsdb.createLogicalSwitch(any(), any()))
-                   .thenReturn(Future.successful(lsId))
-
-            // And the relevant bindings
+            // and the relevant bindings
             eventually {
                verify(vtep1Fix.ovsdb, times(1))
                    .createLogicalSwitch(any(), Eq(vxgw.nw.getVni))
