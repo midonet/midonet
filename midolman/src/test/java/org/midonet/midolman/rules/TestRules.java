@@ -21,13 +21,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.typesafe.scalalogging.Logger$;
 
-import org.apache.zookeeper.CreateMode;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -35,20 +30,12 @@ import org.junit.Test;
 import org.slf4j.helpers.NOPLogger;
 
 import org.midonet.midolman.TraceRequiredException;
-import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.rules.RuleResult.Action;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.midolman.state.ConnTrackState;
-import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.HappyGoLuckyLeaser$;
-import org.midonet.midolman.state.MockDirectory;
 import org.midonet.midolman.state.NatState;
-import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.TraceState;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.zkManagers.FiltersZkManager;
-import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
 import org.midonet.packets.Ethernet;
@@ -60,8 +47,6 @@ import org.midonet.sdn.state.FlowStateTable;
 import org.midonet.sdn.state.FlowStateTransaction;
 import org.midonet.sdn.state.ShardedFlowStateTable;
 import org.midonet.util.Range;
-import org.midonet.util.eventloop.MockReactor;
-import org.midonet.util.eventloop.Reactor;
 
 public class TestRules {
 
@@ -122,62 +107,6 @@ public class TestRules {
         nats = new HashSet<>();
         nats.add(new NatTarget(0x0a090807, 0x0a090810, 21333,
                 32999));
-
-        Guice.createInjector(
-            new TestModule("/midonet"),
-            new SerializationModule()
-        );
-    }
-
-    public static class TestModule extends AbstractModule {
-
-        private final String basePath;
-
-        public TestModule(String basePath) {
-            this.basePath = basePath;
-        }
-
-        @Override
-        protected void configure() {
-            bind(Reactor.class).toInstance(new MockReactor());
-            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-        }
-
-        @Provides @Singleton
-        public Directory provideDirectory(PathBuilder paths) {
-            Directory directory = new MockDirectory();
-            try {
-                directory.add(paths.getBasePath(), null, CreateMode.PERSISTENT);
-                directory.add(paths.getWriteVersionPath(),
-                        DataWriteVersion.CURRENT.getBytes(),
-                        CreateMode.PERSISTENT);
-                directory.add(paths.getFiltersPath(), null,
-                        CreateMode.PERSISTENT);
-            } catch (Exception ex) {
-                throw new RuntimeException("Could not initialize zk", ex);
-            }
-            return directory;
-        }
-
-        @Provides @Singleton
-        public ZkManager provideZkManager(Directory directory) {
-            return new ZkManager(directory, basePath);
-        }
-
-        @Provides @Singleton
-        public FiltersZkManager provideFiltersZkManager(ZkManager zkManager,
-                                                        PathBuilder paths,
-                                                        Serializer serializer) {
-            FiltersZkManager zk = new FiltersZkManager(zkManager, paths,
-                    serializer);
-            try {
-                zk.create(ownerId);
-            } catch (Exception e) {
-                throw new RuntimeException(
-                        "Could not initialize FiltersZkManager", e);
-            }
-            return zk;
-        }
     }
 
     @Before
