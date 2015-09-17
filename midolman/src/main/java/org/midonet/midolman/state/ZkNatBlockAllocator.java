@@ -99,7 +99,7 @@ public class ZkNatBlockAllocator implements NatBlockAllocator {
                         // Retry, but allow the reactor to process other work
                         allocateBlockInRange(natRange, callback);
                     } else if (e.code() == KeeperException.Code.NONODE) {
-                        ensureDevicePath(natRange, callback);
+                        ensureNatPath(natRange, callback);
                     } else {
                         callback.onError(e);
                     }
@@ -174,6 +174,25 @@ public class ZkNatBlockAllocator implements NatBlockAllocator {
                 }
             }
         }, null);
+    }
+
+    private void ensureNatPath(final NatRange natRange,
+                               final Callback<NatBlock, Exception> callback) {
+        zk.create(paths.getNatPath(), null,
+                  acl, CreateMode.PERSISTENT,
+                  new AsyncCallback.StringCallback() {
+                      @Override
+                      public void processResult(int rc, String path, Object ctx,
+                                                String name) {
+                          if (rc == KeeperException.Code.OK.intValue() ||
+                              rc == KeeperException.Code.NODEEXISTS.intValue()) {
+                              ensureDevicePath(natRange, callback);
+                          } else {
+                              callback.onError(KeeperException.create(
+                                  KeeperException.Code.get(rc), path));
+                          }
+                      }
+                  }, null);
     }
 
     private void ensureDevicePath(final NatRange natRange,

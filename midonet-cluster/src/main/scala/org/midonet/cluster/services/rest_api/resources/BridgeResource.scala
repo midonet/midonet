@@ -450,13 +450,4 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         macPort.vlanId = vlanId
         macPort
     }
-
-    private def macOrThrow(s: String): MAC = try {
-        MAC.fromString(s)
-    } catch {
-        case t: InvalidMacException =>
-            throw new BadRequestHttpException(getMessage(MAC_URI_FORMAT))
-    }
-
-
 }
