@@ -23,8 +23,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import com.google.protobuf.TextFormat;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
@@ -32,6 +31,7 @@ import com.typesafe.config.ConfigValueFactory;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.test.TestingServer;
 import org.apache.zookeeper.CreateMode;
@@ -39,49 +39,52 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
+
+import rx.Observable;
 
 import org.midonet.cluster.data.storage.KeyType;
+import org.midonet.cluster.data.storage.SingleValueKey;
+import org.midonet.cluster.data.storage.StateKey;
 import org.midonet.cluster.data.storage.StateStorage;
 import org.midonet.cluster.data.storage.Storage;
+import org.midonet.cluster.models.State;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.storage.MidonetBackendConfig;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.MidoTestConfigurator;
-import org.midonet.midolman.Setup;
-import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.host.updater.DefaultInterfaceDataUpdater;
-import org.midonet.midolman.host.updater.InterfaceDataUpdater;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.MockDirectory;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.util.mock.MockInterfaceScanner;
-import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.util.eventloop.Reactor;
+import org.midonet.util.reactivex.RichObservable;
 
-public abstract class HostServiceTest {
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+public class HostServiceTest {
+    final static byte MAX_ATTEMPTS = 100;
+    final static int WAIT_MILLIS = 500;
+    final static String basePath = "/midolman";
 
     Injector injector;
-
-    ZkManager zkManager;
-    HostZkManager hostZkManager;
     Storage store;
     StateStorage stateStore;
-
     UUID hostId;
     String hostName;
-    String versionPath;
-    String alivePath;
-    String basePath = "/midolman";
 
-    private final boolean backendEnabled;
     private final Config config;
     static TestingServer server = null;
 
@@ -97,12 +100,8 @@ public abstract class HostServiceTest {
                                    MidonetBackendConfig backendConfig,
                                    MidonetBackend backend,
                                    InterfaceScanner scanner,
-                                   InterfaceDataUpdater interfaceDataUpdater,
-                                   HostZkManager hostZkManager,
-                                   ZkManager zkManager,
                                    Reactor reactor) {
-            super(config, backendConfig, backend, scanner, interfaceDataUpdater,
-                  hostZkManager, zkManager, reactor);
+            super(config, backendConfig, backend, scanner, reactor);
         }
 
         @Override
@@ -121,8 +120,6 @@ public abstract class HostServiceTest {
 
         @Override
         protected void configure() {
-            bind(InterfaceDataUpdater.class)
-                .to(DefaultInterfaceDataUpdater.class);
             bind(InterfaceScanner.class)
                 .to(MockInterfaceScanner.class)
                 .asEagerSingleton();
@@ -142,39 +139,12 @@ public abstract class HostServiceTest {
             bind(HostService.class)
                 .to(TestableHostService.class).asEagerSingleton();
         }
-
-        @Provides @Singleton
-        public Directory provideDirectory(PathBuilder paths) {
-            Directory directory = new MockDirectory();
-            try {
-                directory.add(paths.getBasePath(), null, CreateMode.PERSISTENT);
-                Setup.ensureZkDirectoryStructureExists(directory, basePath);
-            } catch (Exception ex) {
-                throw new RuntimeException("Could not initialize zk", ex);
-            }
-            return directory;
-        }
-
-        @Provides @Singleton
-        public ZkManager provideZkManager(Directory directory) {
-            return new ZkManager(directory, basePath);
-        }
-
-        @Provides @Singleton
-        public HostZkManager provideHostZkManager(ZkManager zkManager,
-                                                  PathBuilder paths,
-                                                  Serializer serializer) {
-            return new HostZkManager(zkManager, paths, serializer);
-        }
     }
 
-    public HostServiceTest(boolean backendEnabled) throws Exception {
-        this.backendEnabled = backendEnabled;
+    public HostServiceTest() throws Exception {
         config =  MidoTestConfigurator.forAgents()
             .withValue("zookeeper.root_key",
                        ConfigValueFactory.fromAnyRef(basePath))
-            .withValue("zookeeper.use_new_stack",
-                       ConfigValueFactory.fromAnyRef(backendEnabled))
             .withValue("agent.host.wait_time_gen_id",
                        ConfigValueFactory.fromAnyRef(0))
             .withValue("agent.host.retries_gen_id",
@@ -190,43 +160,31 @@ public abstract class HostServiceTest {
             .newClient(server.getConnectString(), sessionTimeoutMs,
                        cnxnTimeoutMs, retryPolicy);
 
-        injector = Guice.createInjector(new SerializationModule(),
-                                        new TestModule(curator));
+        injector = Guice.createInjector(new TestModule(curator));
 
-        zkManager = injector.getInstance(ZkManager.class);
-        hostZkManager = injector.getInstance(HostZkManager.class);
         store = injector.getInstance(MidonetBackend.class).store();
         stateStore = injector.getInstance(MidonetBackend.class).stateStore();
-        versionPath = injector.getInstance(PathBuilder.class)
-                              .getHostVersionPath(hostId,
-                                                  DataWriteVersion.CURRENT);
-        alivePath = injector.getInstance(PathBuilder.class)
-                            .getHostPath(hostId) + "/alive";
         hostName = InetAddress.getLocalHost().getHostName();
 
-        if (backendEnabled) {
-            curator.start();
-            if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
-                throw new Exception("Curator did not connect to the test ZK "
-                                    + "server");
-            }
-
-            store.registerClass(Topology.Host.class);
-            stateStore.registerKey(Topology.Host.class,
-                                   MidonetBackend.AliveKey(),
-                                   KeyType.SingleFirstWriteWins());
-            stateStore.registerKey(Topology.Host.class,
-                                   MidonetBackend.HostKey(),
-                                   KeyType.SingleFirstWriteWins());
-            store.build();
+        curator.start();
+        if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
+            throw new Exception("Curator did not connect to the test ZK "
+                                + "server");
         }
+
+        store.registerClass(Topology.Host.class);
+        stateStore.registerKey(Topology.Host.class,
+                               MidonetBackend.AliveKey(),
+                               KeyType.SingleFirstWriteWins());
+        stateStore.registerKey(Topology.Host.class,
+                               MidonetBackend.HostKey(),
+                               KeyType.SingleFirstWriteWins());
+        store.build();
     }
 
     @After
     public void teardown() throws Exception {
-        if (backendEnabled) {
-            injector.getInstance(CuratorFramework.class).close();
-        }
+        injector.getInstance(CuratorFramework.class).close();
     }
 
     @BeforeClass
@@ -265,5 +223,216 @@ public abstract class HostServiceTest {
         TestableHostService hostService = startService();
         stopService(hostService);
         return hostService;
+    }
+
+      @Test
+    public void createsNewZkHost() throws Throwable {
+        TestableHostService hostService = startService();
+        assertHostState();
+        stopService(hostService);
+        assertEquals(hostService.shutdownCalls, 0);
+    }
+
+    @Test
+    public void recoversZkHostIfAlive() throws Throwable {
+        TestableHostService hostService = startService();
+        stopService(hostService);
+        hostService = startService();
+        assertHostState();
+        stopService(hostService);
+        assertEquals(hostService.shutdownCalls, 0);
+    }
+
+    @Test
+    public void hostServiceDoesNotOverwriteExistingHost() throws Throwable {
+        TestableHostService hostService = startAndStopService();
+
+        Topology.Host oldHost = get(hostId);
+        Topology.Host newHost = oldHost.toBuilder()
+            .addTunnelZoneIds(UUIDUtil.toProto(UUID.randomUUID()))
+            .build();
+        store.update(newHost);
+
+        startAndStopService();
+
+        Topology.Host host = get(hostId);
+
+        assertEquals(host.getTunnelZoneIds(0), newHost.getTunnelZoneIds(0));
+        assertEquals(hostService.shutdownCalls, 0);
+    }
+
+    @Test
+    public void cleanupServiceAfterStop() throws Throwable {
+        TestableHostService hostService = startAndStopService();
+
+        assertEquals(exists(hostId), true);
+        assertFalse(isAlive(hostId));
+        assertNull(getHostState(hostId));
+        assertEquals(hostService.shutdownCalls, 0);
+    }
+
+    @Test(expected = HostService.HostIdAlreadyInUseException.class)
+    public void hostServiceFailsForDifferentHostname() throws Throwable {
+        Topology.Host host = Topology.Host.newBuilder()
+            .setId(UUIDUtil.toProto(hostId))
+            .setName("other")
+            .build();
+        store.create(host);
+
+        startService();
+    }
+
+    @Test
+    public void hostServiceReacquiresOwnershipWhenHostDeleted() throws Throwable {
+        TestableHostService hostService = startService();
+        store.delete(Topology.Host.class, hostId);
+        eventuallyAssertHostState();
+        stopService(hostService);
+        assertEquals(hostService.shutdownCalls, 0);
+    }
+
+    @Test
+    public void hostServiceReacquiresOwnershipWhenAliveDeleted() throws Throwable {
+        TestableHostService hostService = startService();
+        getCurator().delete().forPath(getAlivePath(hostId));
+        eventuallyAssertHostState();
+        stopService(hostService);
+        assertEquals(hostService.shutdownCalls, 0);
+    }
+
+    @Test
+    public void hostServiceShutsdownAgentIfDifferentHost() throws Throwable {
+        TestableHostService hostService = startService();
+
+        CuratorFramework curator =  CuratorFrameworkFactory
+            .newClient(server.getConnectString(), sessionTimeoutMs,
+                       cnxnTimeoutMs, retryPolicy);
+        curator.start();
+        if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
+            throw new Exception("Curator did not connect to the test ZK "
+                                + "server");
+        }
+
+        CuratorTransactionFinal txn =
+            (CuratorTransactionFinal) curator.inTransaction();
+        txn = txn.delete().forPath(getAlivePath(hostId)).and();
+        txn = txn.create().withMode(CreateMode.EPHEMERAL)
+                          .forPath(getAlivePath(hostId)).and();
+        txn.commit();
+
+        eventuallyAssertShutdown(hostService);
+
+        curator.close();
+    }
+
+    @Test
+    public void hostServiceUpdatesHostInterfaces() throws Throwable {
+        TestableHostService hostService = startService();
+        State.HostState hostState;
+
+        hostState = getHostState(hostId);
+        assertNotNull(hostState);
+        assertTrue(hostState.hasHostId());
+        assertEquals(UUIDUtil.fromProto(hostState.getHostId()), hostId);
+        assertEquals(hostState.getInterfacesCount(), 0);
+
+        MockInterfaceScanner scanner = getInterfaceScanner();
+        scanner.addInterface(new InterfaceDescription("eth0"));
+
+        hostState = getHostState(hostId);
+        assertNotNull(hostState);
+        assertTrue(hostState.hasHostId());
+        assertEquals(UUIDUtil.fromProto(hostState.getHostId()), hostId);
+        assertEquals(hostState.getInterfacesCount(), 1);
+        assertEquals(hostState.getInterfaces(0).getName(), "eth0");
+
+        scanner.removeInterface("eth0");
+
+        hostState = getHostState(hostId);
+        assertNotNull(hostState);
+        assertTrue(hostState.hasHostId());
+        assertEquals(UUIDUtil.fromProto(hostState.getHostId()), hostId);
+        assertEquals(hostState.getInterfacesCount(), 0);
+
+        stopService(hostService);
+    }
+
+    @Test
+    public void hostServiceDoesNotUpdateHostInterfacesWhenStopped()
+        throws Throwable {
+        startAndStopService();
+
+        assertNull(getHostState(hostId));
+
+        MockInterfaceScanner scanner = getInterfaceScanner();
+        scanner.addInterface(new InterfaceDescription("eth0"));
+
+        assertNull(getHostState(hostId));
+    }
+
+    private void assertHostState() throws Exception {
+        assertTrue(exists(hostId));
+        assertEquals(get(hostId).getName(), hostName);
+        assertTrue(isAlive(hostId));
+    }
+
+    private boolean exists(UUID hostId) throws Exception {
+        return (boolean)await(store.exists(Topology.Host.class, hostId));
+    }
+
+    private Topology.Host get(UUID hostId) throws Exception {
+        return await(store.get(Topology.Host.class, hostId));
+    }
+
+    private Boolean isAlive(UUID hostId) throws Exception {
+        StateKey key = await(stateStore.getKey(Topology.Host.class, hostId,
+                                               MidonetBackend.AliveKey()));
+        return !key.isEmpty();
+    }
+
+    private State.HostState getHostState(UUID hostId) throws Exception {
+        StateKey key = await(stateStore.getKey(Topology.Host.class, hostId,
+                                               MidonetBackend.HostKey()));
+
+        if (key.isEmpty()) return null;
+
+        String value = ((SingleValueKey)key).value().get();
+
+        State.HostState.Builder builder = State.HostState.newBuilder();
+        TextFormat.merge(value, builder);
+        return builder.build();
+    }
+
+    private void eventuallyAssertHostState() throws Exception {
+        for (byte attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+            try { assertHostState(); return; }
+            catch (Throwable e) { Thread.sleep(WAIT_MILLIS); }
+        }
+        throw new Exception("Eventually host did not exist");
+    }
+
+    private void eventuallyAssertShutdown(TestableHostService hostService)
+        throws Exception {
+        for (byte attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+            try { assertTrue(hostService.shutdownCalls > 0); return; }
+            catch (Throwable e) { Thread.sleep(WAIT_MILLIS); }
+        }
+        throw new Exception("The host did not shut down");
+    }
+
+    static <T> T await(Future<T> future) throws Exception {
+        return Await.result(future, Duration.apply(5, TimeUnit.SECONDS));
+    }
+
+    static <T> T await(Observable<T> observable) throws Exception {
+        return await(new RichObservable<>(observable).asFuture());
+    }
+
+    public CuratorFramework getCurator() {
+        return injector.getInstance(CuratorFramework.class);
+    }
+
+    public String getAlivePath(UUID hostId) {
+        return basePath + "/zoom/0/state/Host/" + hostId + "/alive";
     }
 }

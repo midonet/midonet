@@ -41,7 +41,6 @@ import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.conf.HostIdGenerator;
@@ -209,9 +208,6 @@ public class Midolman {
         );
 
         // start the services
-        injector.getInstance(LegacyStorageService.class)
-            .startAsync()
-            .awaitRunning();
         injector.getInstance(MidonetBackend.class)
             .startAsync()
             .awaitRunning();

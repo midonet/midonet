@@ -51,7 +51,6 @@ class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
                                        pathBuilder: PathBuilder)
         extends LegacyStorage with MidolmanLogging {
 
-
     /**
      * An implementation of a route replicated set.
      */
