@@ -24,7 +24,7 @@ import com.google.inject.{AbstractModule, Guice, Injector, PrivateModule}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
 
-import org.midonet.cluster.services.{LegacyStorageService, MidonetBackend}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.datapath.MockDatapathModule
@@ -49,8 +49,6 @@ trait MidolmanBenchmark extends MockMidolmanActors
     @JmhSetup
     def midolmanBenchmarkSetup(): Unit = {
         injector = Guice.createInjector(getModules)
-        injector.getInstance(classOf[LegacyStorageService])
-                .startAsync().awaitRunning()
         injector.getInstance(classOf[MidonetBackend])
                 .startAsync().awaitRunning()
         injector.getInstance(classOf[MidolmanService])
@@ -63,8 +61,6 @@ trait MidolmanBenchmark extends MockMidolmanActors
             .stopAsync().awaitTerminated()
         injector.getInstance(classOf[MidonetBackend])
                 .stopAsync().awaitTerminated()
-        injector.getInstance(classOf[LegacyStorageService])
-            .stopAsync().awaitTerminated()
     }
 
     protected def fillConfig(config: Config = ConfigFactory.empty) : Config = {

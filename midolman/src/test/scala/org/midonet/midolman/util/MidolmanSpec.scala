@@ -17,6 +17,8 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
+import org.midonet.midolman.state.Directory
+
 import scala.collection.JavaConverters._
 
 import com.google.inject._
@@ -24,7 +26,7 @@ import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.services.{LegacyStorageService, MidonetBackend}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster._
@@ -76,9 +78,9 @@ trait MidolmanSpec extends FeatureSpecLike
         try {
             injector = Guice.createInjector(getModules)
 
-            injector.getInstance(classOf[LegacyStorageService])
-                .startAsync()
-                .awaitRunning()
+            val dir = injector.getInstance(classOf[Directory])
+            ensurePath(dir, "/midonet/v2/routers")
+            ensurePath(dir, "/midonet/v2/bridges")
             injector.getInstance(classOf[MidonetBackend])
                 .startAsync()
                 .awaitRunning()
@@ -100,9 +102,15 @@ trait MidolmanSpec extends FeatureSpecLike
         injector.getInstance(classOf[MidonetBackend])
             .stopAsync()
             .awaitTerminated()
-        injector.getInstance(classOf[LegacyStorageService])
-            .stopAsync()
-            .awaitTerminated()
+    }
+
+    private def ensurePath(dir: Directory, path: String): Unit =
+        path.split("/").reduceLeft(createSegment(dir))
+
+    private def createSegment(dir: Directory)(base: String, segment: String): String = {
+        val path = base + "/" + segment
+        dir.ensureHas(path, null)
+        path
     }
 
     protected def fillConfig(config: Config = ConfigFactory.empty) : Config = {

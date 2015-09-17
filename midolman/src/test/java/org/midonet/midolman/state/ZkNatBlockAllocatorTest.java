@@ -82,8 +82,6 @@ public class ZkNatBlockAllocatorTest {
 
         zk.getZooKeeper().create(paths.getBasePath(), null,
                                  Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-        zk.getZooKeeper().create(paths.getNatPath(), null,
-                                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
 
     @After
