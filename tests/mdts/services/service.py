@@ -213,9 +213,11 @@ class Service(object):
             cmdline += " " + arg
 
         LOG.debug("Checking exit status of %s..." % cmdline)
+        result = ""
         if output_stream:
             for output in output_stream:
-                LOG.debug("Output: %s" % output)
+                result += output
+            LOG.debug("Output: %s" % result)
 
         # Wait for command to finish after a certain amount of time
         while cli.exec_inspect(exec_id)['Running']:
@@ -233,7 +235,7 @@ class Service(object):
             cmdline,
             'succeeded' if exec_info['ExitCode'] == 0 else 'failed'
         ))
-        return exec_info['ExitCode']
+        return exec_info['ExitCode'], result
 
     def wait_for_status(self, status, timeout=120, wait_time=5):
         init_timeout = timeout
