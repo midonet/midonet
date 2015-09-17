@@ -57,6 +57,11 @@ object RouterMapper {
 
     case class RouterInvTrieTagCountModified(dstIp: IPAddr, count: Int)
 
+    case class RouteUpdates(added: Set[Route], removed: Set[Route]) {
+        def nonEmpty = added.nonEmpty || removed.nonEmpty
+        override def toString = s"[added=$added removed=$removed]"
+    }
+
     /**
      * Stores the state for a router port, and exposes an [[Observable]] that
      * emits updates for this port's routes. The observable completes either
@@ -383,8 +388,6 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
     private var arpCache: ArpCache = null
     private var traceChain: Option[UUID] = None
 
-    private val routingTableBroker = new RoutingTableBroker(vt, routerId)
-
     // Provides an implementation of the tag manager for the current router
     private val tagManager = new TagManager {
         override def addIPv4Tag(dst: IPv4Addr, matchLength: Int): Unit = {
@@ -420,10 +423,6 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         .map[Config](makeFunc1(routingTableUpdated))
     private lazy val routesObservable = Observable
         .merge(routesSubject)
-        .map[Config](makeFunc1(routingTableUpdated))
-    private lazy val routingTableObservable = Observable
-        .create(routingTableBroker)
-        .observeOn(vt.vtScheduler)
         .map[Config](makeFunc1(routingTableUpdated))
     private lazy val arpTableObservable = ArpCache
         .createAsObservable(vt, routerId)
@@ -467,8 +466,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
     //    +-----------------+  +-----------------------+  +------------------+
     //                                                          SimulationRouter
     protected override lazy val observable: Observable[SimulationRouter] =
-        Observable.merge(routingTableObservable,
-                         arpTableObservable,
+        Observable.merge(arpTableObservable,
                          portRoutesObservable,
                          routesObservable,
                          traceChainObservable.map[Config](
