@@ -87,7 +87,7 @@ trait CustomMatchers {
                 simRes._2.virtualFlowActions.toList.exists({
                     case vl: FlowActionPushVLAN => vl.getTagControlIdentifier == vlan
                     case _ => false
-                }), s"a pop vlan action ")
+                }), s"a push vlan action ")
     }
 
     def toPort(portId: UUID)(expectedTags: FlowTag*) =
