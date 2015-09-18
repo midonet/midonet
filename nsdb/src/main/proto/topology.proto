@@ -314,6 +314,10 @@ message Port {
     repeated UUID trace_request_ids = 103;
     // Mirrors that forward to this port
     repeated UUID mirror_ids = 104;
+
+
+    // unused for now, only specified to create service ports
+    repeated UUID srv_insertions = 111;
 }
 
 message PortGroup {

@@ -50,7 +50,9 @@ object Port {
     def apply(proto: Topology.Port,
               infilters: JList[UUID],
               outfilters: JList[UUID]): Port = {
-        if (proto.hasVtepId)
+        if (proto.getSrvInsertionsCount > 0 && proto.hasNetworkId)
+            servicePort(proto, infilters)
+        else if (proto.hasVtepId)
             vxLanPort(proto, infilters, outfilters)
         else if (proto.hasNetworkId)
             bridgePort(proto, infilters, outfilters)
@@ -72,7 +74,7 @@ object Port {
 
     private def bridgePort(p: Topology.Port,
                            infilters: JList[UUID],
-                           outfilters: JList[UUID]) = BridgePort(
+                           outfilters: JList[UUID]) = new BridgePort(
             p.getId,
             infilters,
             outfilters,
@@ -88,7 +90,7 @@ object Port {
 
     private def routerPort(p: Topology.Port,
                            infilters: JList[UUID],
-                           outfilters: JList[UUID]) = RouterPort(
+                           outfilters: JList[UUID]) = new RouterPort(
             p.getId,
             infilters,
             outfilters,
@@ -120,8 +122,23 @@ object Port {
             inboundMirrors = p.getInboundMirrorsList,
             outboundMirrors = p.getOutboundMirrorsList)
 
+    private def servicePort(p: Topology.Port,
+                            infilters: JList[UUID]) =
+        new ServicePort(
+            p.getId,
+            infilters,
+            p.getTunnelKey,
+            if (p.hasPeerId) p.getPeerId else null,
+            if (p.hasHostId) p.getHostId else null,
+            if (p.hasInterfaceName) p.getInterfaceName else null,
+            p.getAdminStateUp,
+            p.getPortGroupIdsList, false, p.getVlanId.toShort,
+            if (p.hasNetworkId) p.getNetworkId else null,
+            p.getInboundMirrorsList,
+            p.getOutboundMirrorsList)
+
     @Deprecated
-    private def bridgePort(p: BridgePortConfig) = BridgePort(
+    private def bridgePort(p: BridgePortConfig) = new BridgePort(
             p.id, filterListFrom(p.inboundFilter), filterListFrom(p.outboundFilter),
             p.tunnelKey, p.peerId, p.hostId,
             p.interfaceName, p.adminStateUp, jSetToJArrayList(p.portGroupIDs), false,
@@ -273,26 +290,31 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
 }
 
 object BridgePort {
-    def random = BridgePort(UUID.randomUUID, networkId = UUID.randomUUID)
+    def random = new BridgePort(UUID.randomUUID, networkId = UUID.randomUUID)
 }
 
-case class BridgePort(override val id: UUID,
-                      override val inboundFilters: JList[UUID] = new JArrayList(0),
-                      override val outboundFilters: JList[UUID] = new JArrayList(0),
-                      override val tunnelKey: Long = 0,
-                      override val peerId: UUID = null,
-                      override val hostId: UUID = null,
-                      override val interfaceName: String = null,
-                      override val adminStateUp: Boolean = true,
-                      override val portGroups: JArrayList[UUID] = new JArrayList(0),
-                      override val isActive: Boolean = false,
-                      override val vlanId: Short = Bridge.UntaggedVlanId,
-                      networkId: UUID,
-                      override val inboundMirrors: JArrayList[UUID] = NO_MIRRORS,
-                      override val outboundMirrors: JArrayList[UUID] = NO_MIRRORS)
-    extends Port {
+class BridgePort(override val id: UUID,
+                 override val inboundFilters: JList[UUID] = new JArrayList(0),
+                 override val outboundFilters: JList[UUID] = new JArrayList(0),
+                 override val tunnelKey: Long = 0,
+                 override val peerId: UUID = null,
+                 override val hostId: UUID = null,
+                 override val interfaceName: String = null,
+                 override val adminStateUp: Boolean = true,
+                 override val portGroups: JArrayList[UUID] = new JArrayList(0),
+                 override val isActive: Boolean = false,
+                 override val vlanId: Short = Bridge.UntaggedVlanId,
+                 val networkId: UUID,
+                 override val inboundMirrors: JArrayList[UUID] = NO_MIRRORS,
+                 override val outboundMirrors: JArrayList[UUID] = NO_MIRRORS)
+        extends Port {
+    override def toggleActive(active: Boolean) = new BridgePort(
+        id, inboundFilters, outboundFilters, tunnelKey, peerId, hostId,
+        interfaceName, adminStateUp, portGroups, active, vlanId,
+        networkId, inboundMirrors, outboundMirrors)
+    override def toString =
+        s"BridgePort [${super.toString} networkId=$networkId]"
 
-    override def toggleActive(active: Boolean) = copy(isActive = active)
     override def deviceId = networkId
 
     protected def device(implicit as: ActorSystem) = tryGet[Bridge](networkId)
@@ -307,9 +329,76 @@ case class BridgePort(override val id: UUID,
             super.egressCommon(context, as, next)
         }
     }
+}
+
+class ServicePort(override val id: UUID,
+                  override val inboundFilters: JList[UUID] = new JArrayList(0),
+                  override val tunnelKey: Long = 0,
+                  override val peerId: UUID = null,
+                  override val hostId: UUID = null,
+                  override val interfaceName: String = null,
+                  val realAdminStateUp: Boolean,
+                  override val portGroups: JArrayList[UUID] = new JArrayList(0),
+                  override val isActive: Boolean = false,
+                  override val vlanId: Short = Bridge.UntaggedVlanId,
+                  override val networkId: UUID,
+                  override val inboundMirrors: JArrayList[UUID] = NO_MIRRORS,
+                  override val outboundMirrors: JArrayList[UUID] = NO_MIRRORS)
+        extends BridgePort(id, inboundFilters, new JArrayList(0),
+                           tunnelKey, peerId, hostId, interfaceName, true,
+                           portGroups, isActive, vlanId, networkId,
+                           inboundMirrors, outboundMirrors) {
+
+    override def toggleActive(active: Boolean) = new ServicePort(
+        id, inboundFilters, tunnelKey, peerId, hostId,
+        interfaceName, realAdminStateUp, portGroups, active, vlanId, networkId,
+        inboundMirrors, outboundMirrors)
 
     override def toString =
-        s"BridgePort [${super.toString} networkId=$networkId]"
+        s"ServicePort [${super.toString} networkId=$networkId" +
+            s" realAdminState=$realAdminStateUp]"
+
+    override def ingress(implicit context: PacketContext,
+                         as: ActorSystem): SimulationResult = {
+        if (!realAdminStateUp) {
+            context.log.debug("Service port has adminStateUp=false, Dropping")
+            Drop
+        } else {
+            super.ingress(context, as)
+        }
+    }
+
+    override def egressCommon(context: PacketContext, as: ActorSystem,
+                              next: SimStep): SimulationResult = {
+        if (context.isRedirected()) {
+            if (!realAdminStateUp || !isActive) {
+                /* If a service port is down, what happens to the packet depends
+                 * on whether the redirect has a FAIL_OPEN flag or not.
+                 * - If it doesn't have the flag, the packet is simply dropped.
+                 * - If it does have FAIL_OPEN set, the packet will be bounced
+                 * back, as if it had arrived at the service and the service had
+                 * sent it back to us. To do this, we ingress the packet on the
+                 * port. The admin state and active state will be ignored on
+                 * ingress, as we always report admin state as true for the
+                 * port, and active is only considered on egress.
+                 */
+                if (context.isRedirectFailOpen()) {
+                    context.clearRedirect()
+                    super.ingress(context, as)
+                } else {
+                    context.log.debug(
+                        s"Service port is down (adminStateUp:$realAdminStateUp,"
+                            + s" active:$isActive), Dropping")
+                    Drop
+                }
+            } else {
+                super.egressCommon(context, as, next)
+            }
+        } else {
+            context.log.debug("Non-redirected packet entered service port. Dropping")
+            Drop
+        }
+    }
 }
 
 case class RouterPort(override val id: UUID,
