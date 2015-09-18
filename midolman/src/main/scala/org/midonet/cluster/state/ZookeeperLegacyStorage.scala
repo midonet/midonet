@@ -24,30 +24,21 @@ import com.google.inject.name.Named
 
 import org.apache.zookeeper.CreateMode.EPHEMERAL
 
-import rx.Observable
-
-import org.midonet.cluster.{ClusterRouterManager, DataClient}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.Serializer
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state._
-import org.midonet.midolman.state.zkManagers.{PortZkManager, RouterZkManager}
 import org.midonet.util.eventloop.Reactor
-import org.midonet.util.functors._
 
 /**
  * An implementation of the [[LegacyStorage]] trait using the legacy ZooKeeper
  * managers as backend.
  */
-class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
-                                       @Named("directoryReactor") reactor: Reactor,
+class ZookeeperLegacyStorage @Inject()(@Named("directoryReactor") reactor: Reactor,
                                        connectionWatcher: ZkConnectionAwareWatcher,
                                        serializer: Serializer,
                                        zkManager: ZkManager,
-                                       portZkManager: PortZkManager,
-                                       routerZkManager: RouterZkManager,
-                                       routerManager: ClusterRouterManager,
                                        pathBuilder: PathBuilder)
         extends LegacyStorage with MidolmanLogging {
 
@@ -58,7 +49,7 @@ class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
     @throws[StateAccessException]
     private class ReplicatedRouteTable(routerId: UUID)
         extends ReplicatedSet[Route](
-            routerZkManager.getRoutingTableDirectory(routerId), EPHEMERAL) {
+            zkManager.getSubDirectory(pathBuilder.getRouterRoutingTablePath(routerId)), EPHEMERAL) {
 
         protected override def encode(route: Route): String = {
             try {
@@ -88,15 +79,24 @@ class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
                                 ephemeral: Boolean): MacPortMap = {
         ensureBridgePaths(bridgeId)
         ensureBridgeVlanPaths(bridgeId, vlanId)
-        val map = dataClient.bridgeGetMacTable(bridgeId, vlanId, ephemeral)
+        val map = new MacPortMap(
+            zkManager.getSubDirectory(pathBuilder.getBridgeMacPortsPath(bridgeId, vlanId)),
+            ephemeral)
         map.setConnectionWatcher(connectionWatcher)
         map
+    }
+
+    private def getIP4MacMapDirectory(id: UUID): Directory = {
+        val path = pathBuilder.getBridgeIP4MacMapPath(id)
+        if (!zkManager.exists(path))
+            zkManager.addPersistent(path, null)
+        zkManager.getSubDirectory(path)
     }
 
     @throws[StateAccessException]
     override def bridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap = {
         ensureBridgePaths(bridgeId)
-        val map = dataClient.getIp4MacMap(bridgeId)
+        val map = new Ip4ToMacReplicatedMap(getIP4MacMapDirectory(bridgeId))
         map.setConnectionWatcher(connectionWatcher)
         map
     }
@@ -113,23 +113,10 @@ class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
     @throws[StateAccessException]
     override def routerArpTable(@Nonnull routerId: UUID): ArpTable = {
         ensureRouterPaths(routerId)
-        val arpTable = new ArpTable(routerZkManager
-                                        .getArpTableDirectory(routerId))
+        val arpTable = new ArpTable(zkManager.getSubDirectory(
+                pathBuilder.getRouterArpTablePath(routerId)))
         arpTable.setConnectionWatcher(connectionWatcher)
         arpTable
-    }
-
-    override def setPortActive(portId: UUID, hostId: UUID, active: Boolean)
-    : Observable[PortConfig] = {
-        portZkManager.setActivePort(portId, hostId, active)
-            .observeOn(reactor.rxScheduler)
-            .flatMap(makeFunc1(_ => portZkManager.getWithObservable(portId)))
-            .doOnNext(makeAction1(portConfig => {
-                if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
-                    routerManager.updateRoutesBecauseLocalPortChangedStatus(
-                        portConfig.device_id, portId, active)
-                }
-            }))
     }
 
     /** Ensures that the path for the specified bridge is created in the

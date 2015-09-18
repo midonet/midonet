@@ -21,7 +21,6 @@ import com.google.inject._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.host.services.HostService
-import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.util.mock.MockInterfaceScanner
 
@@ -35,7 +34,6 @@ class MockHostModule extends PrivateModule {
 
         requireBinding(classOf[MidolmanConfig])
         expose(classOf[HostIdProviderService])
-        requireBinding(classOf[HostZkManager])
 
         bind(classOf[HostIdProviderService]).to(
             classOf[HostService]).in(classOf[Singleton])

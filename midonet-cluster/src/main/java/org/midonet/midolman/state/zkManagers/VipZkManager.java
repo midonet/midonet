@@ -25,6 +25,7 @@ import org.apache.zookeeper.Op;
 import org.midonet.cluster.rest_api.neutron.models.SessionPersistenceType;
 import org.midonet.cluster.rest_api.neutron.models.VIP;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
+import org.midonet.nsdb.BaseConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

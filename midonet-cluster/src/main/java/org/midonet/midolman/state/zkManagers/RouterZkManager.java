@@ -27,6 +27,7 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.apache.zookeeper.Op;
+import org.midonet.nsdb.ConfigWithProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +35,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 
 /**
- * Class to manage the router ZooKeeper data.
+ * Class to manage the router ZooKeeper data
  */
 public class RouterZkManager
         extends AbstractZkManager<UUID, RouterZkManager.RouterConfig> {

@@ -55,19 +55,4 @@ trait LegacyStorage {
      */
     @throws[StateAccessException]
     def routerArpTable(@Nonnull routerId: UUID): ArpTable
-
-    /**
-     * Inform the storage cluster that the port is active. This may be used by
-     * the cluster to do trigger related processing e.g. updating the router's
-     * forwarding table if this port belongs to a router. The operation is
-     * executed asynchronously when subscribing to the returned observable.
-     *
-     * @param portId The identifier of the port
-     * @param host The identifier of the host where it's active
-     * @param active True / false depending on what state we want in the end
-     *               for the port
-     */
-    def setPortActive(portId: UUID, host: UUID, active: Boolean)
-    : Observable[PortConfig]
-
 }

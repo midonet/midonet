@@ -16,25 +16,8 @@
 
 package org.midonet.cluster;
 
-import java.util.UUID;
-
-import org.midonet.cluster.client.BGPListBuilder;
-import org.midonet.cluster.client.HealthMonitorBuilder;
-import org.midonet.cluster.client.PoolHealthMonitorMapBuilder;
-import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.cluster.client.TunnelZones;
-
-
 public interface Client {
-
     enum PortType {
         InteriorBridge, ExteriorBridge, InteriorRouter, ExteriorRouter
     }
-
-    void getRouter(UUID routerID, RouterBuilder builder);
-
-    void getTunnelZones(UUID uuid, TunnelZones.BuildersProvider builders);
-
-    void getHealthMonitor(UUID uuid, HealthMonitorBuilder builder);
-
 }

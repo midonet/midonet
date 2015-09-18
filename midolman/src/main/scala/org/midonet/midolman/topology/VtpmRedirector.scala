@@ -60,9 +60,8 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
         new mutable.HashMap[UUID,DeviceSubscriber[_ <: Device]]()
 
     /* Methods implemented by sub-classes */
-    protected def deviceRequested(request: VtpmRequest[_],
-                                  createHandler: Boolean): Unit
-    protected def deviceUpdated(device: AnyRef, createHandler: Boolean): Unit
+    protected def deviceRequested(request: VtpmRequest[_]): Unit
+    protected def deviceUpdated(device: AnyRef): Unit
     protected def removeAllClientSubscriptions[D <: Device](deviceId: UUID)
                                                            (implicit t: ClassTag[D]): Unit
     protected def removeFromCache[D <: Device](id: UUID)
@@ -109,7 +108,7 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
         }
 
         // Add the sender to the client subscribers list.
-        deviceRequested(request, createHandler=false)
+        deviceRequested(request)
 
         // Get or create the virtual topology subscription for this device.
         deviceSubscriptions.getOrElseUpdate(deviceId, {
@@ -179,6 +178,6 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
             onError(deviceId, e)(t)
         case OnNext(deviceId: UUID, device: Device) =>
             log.debug("Device {} update", deviceId)
-            deviceUpdated(device, createHandler=false)
+            deviceUpdated(device)
     }
 }
