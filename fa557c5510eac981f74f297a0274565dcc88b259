@@ -16,6 +16,24 @@
       "revId": "fa557c5510eac981f74f297a0274565dcc88b259",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a6923a55",
+        "filename": "tools/devmido/install_mn_scripts.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-09-18T07:47:19Z",
+      "side": 1,
+      "message": "thanks, done",
+      "parentUuid": "1ae5cdf2_46109601",
+      "revId": "fa557c5510eac981f74f297a0274565dcc88b259",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
