@@ -108,6 +108,8 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
 
+        binding.vtepId = vtepId
+
         throwIfViolationsOn(binding)
 
         val vtep = loadOrBadRequest[Topology.Vtep](binding.vtepId)
