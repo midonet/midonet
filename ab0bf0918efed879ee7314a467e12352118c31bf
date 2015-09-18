@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5aab06d8",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-09-18T09:48:20Z",
+      "side": 1,
+      "message": "Not used.",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 45
+      },
+      "revId": "ab0bf0918efed879ee7314a467e12352118c31bf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
