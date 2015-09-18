@@ -184,8 +184,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
         Logger(LoggerFactory.getLogger(getClass))
 
     private val validator = resContext.validator
-    private val backend = resContext.backend
-    private val uriInfo = resContext.uriInfo
+    protected val backend = resContext.backend
+    protected val uriInfo = resContext.uriInfo
 
     @GET
     @Path("{id}")

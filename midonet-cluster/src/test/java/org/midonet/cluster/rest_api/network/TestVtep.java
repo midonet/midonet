@@ -28,9 +28,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.midonet.cluster.rest_api.rest_api.FuncTest;
-import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
-import org.midonet.cluster.rest_api.rest_api.TopologyBackdoor;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
@@ -43,6 +40,10 @@ import org.midonet.client.dto.DtoVxLanPort;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.models.Vtep;
 import org.midonet.cluster.rest_api.models.VtepBinding;
+import org.midonet.cluster.rest_api.models.VxLanPort;
+import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
+import org.midonet.cluster.rest_api.rest_api.TopologyBackdoor;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
@@ -60,8 +61,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.midonet.cluster.rest_api.network.TestPort.createBridgePort;
 import static org.midonet.cluster.models.State.VtepConnectionState.VTEP_ERROR;
+import static org.midonet.cluster.rest_api.network.TestPort.createBridgePort;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_INVALID;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MAX_VALUE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MIN_VALUE;
@@ -414,7 +415,7 @@ public class TestVtep extends RestApiTestBase {
             vtep, br.getId(), physPortNames().get(1), 1);
         deleteBinding(binding.getUri());
         dtoResource.deleteAndVerifyNoContent(binding.getUri(),
-                                            APPLICATION_VTEP_BINDING_JSON());
+                                             APPLICATION_VTEP_BINDING_JSON());
     }
 
     @Test
@@ -569,41 +570,38 @@ public class TestVtep extends RestApiTestBase {
     }
 
     @Test
-    @Ignore("TODO FIXME - pending implementation in v2")
-    public void testDeleteVxLanPortDeletesBindings() {
+    public void testDeleteVxLanPortDisallowed() {
         DtoBridge bridge1 = postBridge("bridge1");
         DtoBridge bridge2 = postBridge("bridge2");
         DtoVtep vtep = postVtep();
 
-        DtoVtepBinding br1bi1 = postBinding(vtep, makeBinding(vtep.getId(),
-                              mockVtep1.portNames()[0], 1, bridge1.getId()));
-        DtoVtepBinding br1bi2 = postBinding(vtep, makeBinding(vtep.getId(),
-                                                              mockVtep1
-                                                                  .portNames()[1],
-                                                              2,
-                                                              bridge1.getId()));
-        DtoVtepBinding br2bi1 = postBinding(vtep, makeBinding(vtep.getId(),
-                                                              mockVtep1
-                                                                  .portNames()[0],
-                                                              3,
-                                                              bridge2.getId()));
-        DtoVtepBinding br2bi2 = postBinding(vtep, makeBinding(vtep.getId(),
-                                                              mockVtep1
-                                                                  .portNames()[1],
-                                                              4,
-                                                              bridge2.getId()));
+        DtoVtepBinding br1bi1 = postBinding(vtep,
+                        makeBinding(vtep.getId(), physPortNames().get(0), 1,
+                                    bridge1.getId()));
+        DtoVtepBinding br1bi2 = postBinding(vtep,
+                        makeBinding(vtep.getId(), physPortNames().get(1), 2,
+                                    bridge1.getId()));
+        DtoVtepBinding br2bi1 = postBinding(vtep,
+                        makeBinding(vtep.getId(), physPortNames().get(0), 3,
+                                    bridge2.getId()));
+        DtoVtepBinding br2bi2 = postBinding(vtep,
+                        makeBinding(vtep.getId(), physPortNames().get(1), 4,
+                                    bridge2.getId()));
 
         DtoVtepBinding[] bindings = listBindings(vtep);
         assertThat(bindings, arrayContainingInAnyOrder(br1bi1, br1bi2,
                                                        br2bi1, br2bi2));
 
-        /*
         bridge1 = getBridge(bridge1.getId());
-        dtoResource.deleteAndVerifyNoContent(bridge1.getVxLanPorts().get(0),
-                                             APPLICATION_PORT_V2_JSON);
+        VxLanPort p = new VxLanPort();
+        p.setBaseUri(app.getUri());
+        p.id = bridge1.getVxLanPortIds().get(0);
+        dtoResource.deleteAndVerifyError(p.getUri(),
+                                         APPLICATION_PORT_V2_JSON(),
+                                         CONFLICT.getStatusCode());
         bindings = listBindings(vtep);
-        assertThat(bindings, arrayContainingInAnyOrder(br2bi1, br2bi2));
-        */
+        assertThat(bindings, arrayContainingInAnyOrder(br1bi1, br1bi2,
+                                                       br2bi1, br2bi2));
     }
 
     @Test
@@ -743,7 +741,8 @@ public class TestVtep extends RestApiTestBase {
         bindings = listBindings(vtep);
         assertThat(bindings, arrayContainingInAnyOrder(binding2));
         dtoResource.getAndVerifyOk(vxlanPort.getUri(),
-                                   APPLICATION_PORT_V2_JSON(), DtoVxLanPort.class);
+                                   APPLICATION_PORT_V2_JSON(),
+                                   DtoVxLanPort.class);
 
         vxlanPort = getVxLanPort(vxlanPort.getId()); // should exist
 
