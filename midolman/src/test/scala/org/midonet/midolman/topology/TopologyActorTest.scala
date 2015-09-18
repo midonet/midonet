@@ -18,9 +18,12 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.reflect.{ClassTag, classTag}
 
 import akka.actor.{ActorRef, Props}
+import akka.pattern.gracefulStop
 import akka.testkit.TestActorRef
 
 import org.junit.runner.RunWith
@@ -65,6 +68,10 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
         observer = new TestObserver[Device]
         actor = TestActorRef(Props(new TestableTopologyActor(observer)))
         store = injector.getInstance(classOf[MidonetBackend]).store
+    }
+
+    override def afterTest(): Unit = {
+        actorSystem.stop(actor)
     }
 
     feature("The actor can subscribe") {
@@ -225,7 +232,7 @@ class TopologyActorTest extends MidolmanSpec with TopologyBuilder
             actor ! Subscribe(pool1.getId, classTag[Pool])
 
             And("The actor is stopped")
-            actorSystem stop actor
+            Await.result(gracefulStop(actor, 5 seconds), 5 seconds)
 
             And("Updating the pool")
             val pool2 = pool1.setAdminStateUp(true)
