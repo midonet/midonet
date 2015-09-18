@@ -74,7 +74,7 @@ class VxlanGatewayService @Inject()(
 
     private var fpManager: FloodingProxyManager = _
     private val vtepSyncers = new util.HashMap[UUID, Subscription]()
-    private val knownVteps = new java.util.HashMap[UUID, Snatcher[Vtep]]
+    private val knownVteps = new util.HashMap[UUID, Snatcher[Vtep]]
 
     // Executor on which we schedule tasks to release the ZK event thread.
     private val executor = newSingleThreadExecutor(
@@ -164,7 +164,12 @@ class VxlanGatewayService @Inject()(
     override def doStop(): Unit = {
         try {
             shutdown()
+            log.debug("Stop VTEP sync..")
             vtepSyncers.keySet().foreach(stopVtepSync)
+            log.debug("Release VTEPs so other nodes can manage them..")
+            knownVteps.values.foreach { _.giveUp() }
+            knownVteps.clear()
+            log.debug("Service is now shut down")
             notifyStopped()
         } catch {
             case t: Throwable =>
