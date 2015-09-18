@@ -25,22 +25,33 @@ DEVMIDO_DIR=$(cd $(dirname $0) && pwd)
 # Keep track of the midonet root directory
 TOP_DIR=$(cd $DEVMIDO_DIR/../../ && pwd)
 
-# Change MIDO_HOME (used by mm-ctl / mm-dpctl) to point at deps dir
-DEPS_DIR="$TOP_DIR/midodeps"
-AGENT_BUILD_DIR="$TOP_DIR/midolman/build/install/midolman/lib"
-
-rm -rf $DEPS_DIR ; mkdir -p $DEPS_DIR
-cp $AGENT_BUILD_DIR/midolman-*.jar  $DEPS_DIR/midolman.jar
-cp -r $AGENT_BUILD_DIR $DEPS_DIR/dep
-cp $TOP_DIR/midolman/src/deb/init/prepare-java $DEPS_DIR
-
 # Place our executables in /usr/local/bin
 MM_CTL="/usr/local/bin/mm-ctl"
 MM_DPCTL="/usr/local/bin/mm-dpctl"
+
+# While this feels fragile, for simplicity, just point MIDO_HOME to where
+# 'prepare_java' script is since that is the only thing needed from that
+# directory by the scripts
+MM_HOME=$TOP_DIR/midolman/src/deb/init
+MM_JAR=`find $TOP_DIR/midolman/build/installShadow -name "midolman-*-all.jar"`
+MM_SCRIPT_DIR=$TOP_DIR/midolman/src/deb/bin
+
+sed -e "s@%MIDO_HOME%@$MM_HOME@" \
+    -e "s@%MIDO_JAR%@$MM_JAR@" \
+    -e "s@%SCRIPT_DIR%@$MM_SCRIPT_DIR@" \
+    $DEVMIDO_DIR/binproxy | tee $MM_CTL $MM_DPCTL
+chmod +x $MM_CTL $MM_DPCTL
+
+# Do the same for mn-conf
 MN_CONF="/usr/local/bin/mn-conf"
-sed -e "s@%DEPS_DIR%@$DEPS_DIR@" \
-    -e "s@%TOP_DIR%@$TOP_DIR@" \
-    $DEVMIDO_DIR/binproxy | tee $MM_CTL $MM_DPCTL $MN_CONF
-chmod +x $MM_CTL $MM_DPCTL $MN_CONF
+TOOLS_HOME=$TOP_DIR/midonet-tools/src/share
+TOOLS_JAR=`find $TOP_DIR/midonet-tools/build/installShadow -name "midonet-tools-*-all.jar"`
+TOOLS_SCRIPT_DIR=$TOP_DIR/midonet-tools/src/bin
+
+sed -e "s@%MIDO_HOME%@$TOOLS_HOME@" \
+    -e "s@%MIDO_JAR%@$TOOLS_JAR@" \
+    -e "s@%SCRIPT_DIR%@$TOOLS_SCRIPT_DIR@" \
+    $DEVMIDO_DIR/binproxy | tee $MN_CONF
+chmod +x $MN_CONF
 
 echo "install_mn_scripts.sh has successfully completed."

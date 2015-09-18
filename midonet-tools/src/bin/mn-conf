@@ -32,7 +32,18 @@ else
 fi
 
 MAIN_CLASS='org.midonet.conf.MidoConfTool'
-CLASSPATH=$MIDO_HOME/midonet-tools.jar
+
+# Allow overriding the default jar location 
+if [ -z "$MIDO_JAR" ]; then
+   CLASSPATH=$MIDO_HOME/midonet-tools.jar
+else
+   CLASSPATH=$MIDO_JAR
+fi
+
+if [ ! -e "$CLASSPATH" ]; then
+   echo "ERROR: $CLASSPATH is not set"
+   exit 1
+fi
 
 exec $JAVA -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
     -cp $CLASSPATH $MAIN_CLASS $*
