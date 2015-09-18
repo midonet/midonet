@@ -65,7 +65,6 @@ class VxlanGatewayService @Inject()(
         backendCfg: MidonetBackendConfig,
         ovsdbCnxnProvider: OvsdbVtepConnectionProvider,
         zkConnWatcher: ZookeeperConnectionWatcher,
-        curator: CuratorFramework,
         metrics: MetricRegistry,
         conf: ClusterConfig)
     extends Minion(nodeCtx) {
@@ -88,7 +87,19 @@ class VxlanGatewayService @Inject()(
         shutdown()
     }
 
-    private val fpLatch = new LeaderLatch(curator, backendCfg.rootKey +
+    private val fpLatchListener = new LeaderLatchListener {
+        override def isLeader(): Unit = {
+            fpManager = new FloodingProxyManager(backend)
+            fpManager.start()
+        }
+        override def notLeader(): Unit = {
+            val oldFpManager = fpManager
+            fpManager = null
+            oldFpManager.stop()
+        }
+    }
+
+    private val fpLatch = new LeaderLatch(backend.curator, backendCfg.rootKey +
                                           "/vxgw/fp-latch")
     fpLatch.addListener(fpLatchListener)
 
@@ -147,17 +158,23 @@ class VxlanGatewayService @Inject()(
     }
 
     override def doStart(): Unit = {
+        log.info("Starting VxLAN Gateway service")
         selfHealingTypeObservable[Topology.Vtep](backend.store)
             .onBackpressureBuffer(maxVtepBuffer, alertOverflow)
             .observeOn(Schedulers.from(executor))
             .subscribe(new Observer[Observable[Topology.Vtep]] {
-                    override def onCompleted(): Unit = {}
-                    override def onError(e: Throwable): Unit = {}
+                    override def onCompleted(): Unit = {
+                        log.warn("Vtep stream is closed.")
+                    }
+                    override def onError(e: Throwable): Unit = {
+                        log.warn("Vtep stream fails", e)
+                    }
                     override def onNext(v: Observable[Vtep]): Unit = {
                         v.subscribe(watchVtep)
                     }
         })
         fpLatch.start()
+        log.info("Started VxLAN Gateway service")
         notifyStarted()
     }
 
@@ -181,18 +198,6 @@ class VxlanGatewayService @Inject()(
         if (!executor.awaitTermination(5, SECONDS)) {
             log.warn("Failed to stop executor orderly, insisting..")
             executor.shutdownNow()
-        }
-    }
-
-    private val fpLatchListener = new LeaderLatchListener {
-        override def isLeader(): Unit = {
-            fpManager = new FloodingProxyManager(backend)
-            fpManager.start()
-        }
-        override def notLeader(): Unit = {
-            val oldFpManager = fpManager
-            fpManager = null
-            oldFpManager.stop()
         }
     }
 

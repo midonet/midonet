@@ -22,6 +22,8 @@ import scala.async.Async._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
+import scala.util.{Failure, Success}
+import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
@@ -29,6 +31,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.MinionDef
 import org.midonet.cluster.services.Minion
+import org.midonet.util.concurrent.toFutureOps
 
 /** Models the base class that orchestrates the various sub services inside a
   * Midonet Cluster node.
@@ -46,7 +49,12 @@ final protected class Daemon(val nodeId: UUID,
         log.info(s"MidoNet cluster daemon starting on host $nodeId")
 
         val startups: List[Future[Minion]] = minionDefs map { m =>
-            startMinion(m)
+            startMinion(m).andThen {
+                case Success(_) =>
+                    log.info(s"Minion ${m.name} started successfully")
+                case Failure(t) =>
+                    log.error("Minion failed to start", t)
+            }
         }
         val numFailed = startups.count(Await.ready(_, 15.second)
                                             .value.get.isFailure)
