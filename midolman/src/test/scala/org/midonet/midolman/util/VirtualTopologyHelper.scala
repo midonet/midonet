@@ -72,6 +72,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         Await.result(VirtualTopology.get[T](id), timeout.duration)
     }
 
+    def fetchBridges(bridges: UUID*): Seq[SimBridge] =
+        bridges map fetchDevice[SimBridge]
+
     def fetchRouters(routers: UUID*): Seq[SimRouter] =
         routers map fetchDevice[SimRouter]
 
