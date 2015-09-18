@@ -16,15 +16,14 @@
 
 package org.midonet.midolman.state
 
-import org.midonet.util.functors.Callback
+import scala.concurrent.Future
 
 class MockNatBlockAllocator extends NatBlockAllocator {
 
     override def freeBlock(natBlock: NatBlock): Unit = {}
 
-    override def allocateBlockInRange(natRange: NatRange,
-                                      callback: Callback[NatBlock, Exception]): Unit =
-        callback.onSuccess(new NatBlock(
+    override def allocateBlockInRange(natRange: NatRange): Future[NatBlock] =
+        Future.successful(new NatBlock(
             natRange.deviceId,
             natRange.ip,
             natRange.tpPortStart / NatBlock.BLOCK_SIZE))

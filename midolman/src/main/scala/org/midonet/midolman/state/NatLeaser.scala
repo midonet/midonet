@@ -18,20 +18,22 @@ package org.midonet.midolman.state
 
 import java.lang.{Integer => JInt, Long => JLong}
 import java.util.UUID
-import java.util.concurrent.{TimeoutException, ThreadLocalRandom, ConcurrentHashMap}
+import java.util.concurrent.{ThreadLocalRandom, ConcurrentHashMap}
 
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.util.Success
 
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.NatTarget
+import org.midonet.midolman.state.NatBlockAllocator.NoFreeNatBlocksException
 import org.midonet.midolman.state.NatState.NatBinding
 import org.midonet.packets.{IPAddr, IPv4Addr}
-import org.midonet.util.functors.Callback
-import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}
 import org.midonet.util.collection.Reducer
+import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}
+import org.midonet.util.concurrent.ExecutionContextOps
 
 object NatLeaser {
     private val BLOCK_SIZE = NatBlock.BLOCK_SIZE // Guaranteed to be a power of 2
@@ -139,7 +141,8 @@ trait NatLeaser {
             i += 1
         }
 
-        throw new NotYetException(fetchNatBlock(deviceId, natTargets))
+        throw new NotYetException(
+            fetchNatBlock(deviceId, natTargets, natTargets(0).nwStart, 0))
     }
 
     /**
@@ -242,42 +245,26 @@ trait NatLeaser {
         null
     }
 
-    private def fetchNatBlock(deviceId: UUID,
-                              targets: Array[NatTarget]): Future[NatBlock] = {
-        val promise = Promise[NatBlock]()
-        val target = targets(0)
-        doFetchNatBlock(promise, deviceId, targets, target.nwStart, 0)
-        promise.future
-    }
-
-    private def doFetchNatBlock(promise: Promise[NatBlock], deviceId: UUID,
-                                targets: Array[NatTarget], targetIp: IPv4Addr,
-                                targetIndex: Int): Unit = {
+    private def fetchNatBlock(deviceId: UUID, targets: Array[NatTarget],
+                                targetIp: IPv4Addr, targetIndex: Int): Future[NatBlock] = {
         val target = targets(targetIndex)
         val range = new NatRange(deviceId, targetIp, target.tpStart, target.tpEnd)
-        allocator.allocateBlockInRange(range, new Callback[NatBlock, Exception]() {
-            override def onSuccess(data: NatBlock): Unit =
-                if (data eq NatBlock.NO_BLOCK) {
-                    val nextIp = targetIp.next
-                    if (nextIp <= targets(targetIndex).nwEnd) {
-                        doFetchNatBlock(promise, deviceId, targets,
-                                        nextIp, targetIndex)
-                    } else if (targetIndex + 1 < targets.length) {
-                        doFetchNatBlock(promise, deviceId, targets,
-                                        targets(targetIndex + 1).nwStart,
-                                        targetIndex + 1)
-                    } else {
-                        promise.failure(NoNatBindingException)
-                    }
+        implicit val ec = ExecutionContext.callingThread
+        allocator.allocateBlockInRange(range) andThen {
+            case Success(data) => registerNewBlock(data)
+        } recoverWith {
+            case NoFreeNatBlocksException =>
+                val nextIp = targetIp.next
+                if (nextIp <= targets(targetIndex).nwEnd) {
+                    fetchNatBlock(deviceId, targets, nextIp, targetIndex)
+                } else if (targetIndex + 1 < targets.length) {
+                    fetchNatBlock(deviceId, targets,
+                                    targets(targetIndex + 1).nwStart,
+                                    targetIndex + 1)
                 } else {
-                    registerNewBlock(data)
-                    promise.success(data)
+                    Future.failed(NoNatBindingException)
                 }
-
-            override def onError(e: Exception): Unit = promise.failure(e)
-
-            override def onTimeout(): Unit = promise.failure(new TimeoutException)
-        })
+        }
     }
 
     private def registerNewBlock(block: NatBlock): Unit = {
