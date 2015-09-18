@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_ddaab06f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-18T16:05:55Z",
+      "side": 1,
+      "message": "Note for future work: we can have giveUp return a future (with .asFuture), and await here the snatcher releases ownership. That will still subscribe, and make the op asynchronous.",
+      "range": {
+        "startLine": 170,
+        "startChar": 40,
+        "endLine": 170,
+        "endChar": 50
+      },
+      "revId": "f044fd3983ac64509fb5754eee98b839ee10e67d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
