@@ -56,7 +56,9 @@ public class L2Insertion extends UriResource {
     @NotNull
     public String mac;
 
-    public L2Insertion() {}
+    public L2Insertion() {
+        super();
+    }
 
     @Override
     public URI getUri() {
