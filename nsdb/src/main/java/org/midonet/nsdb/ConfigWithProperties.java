@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.state.zkManagers;
+package org.midonet.nsdb;
 
 import java.util.HashMap;
 import java.util.Map;

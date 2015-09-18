@@ -93,6 +93,8 @@ dependencies {
 cobertura {
     coverageExcludes = [
             '.*org.midonet.client.*',
+            '.*org.midonet.midolman.state.zkManagers.*',
+            '.*org.midonet.cluster.LocalDataClientImpl.*'
     ]
 }
 

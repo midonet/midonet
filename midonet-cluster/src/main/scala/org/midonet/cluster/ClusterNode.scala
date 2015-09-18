@@ -163,6 +163,7 @@ object ClusterNode extends App {
 
             install(new SerializationModule)
             install(new LegacyClusterModule)
+            install(new LegacyDataClientModule)
         }
     }
 

@@ -29,7 +29,7 @@ import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.{Second, Span}
 
-import org.midonet.cluster.ClusterRouterManager.ArpCacheImpl
+import org.midonet.midolman.state.LegacyArpCacheImpl
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
@@ -176,8 +176,8 @@ class ArpRequestBrokerTest extends Suite
         remoteArpTable = new ArpTable(directory.getSubDirectory(root))
         remoteArpTable.start()
 
-        arpCache = new ArpCacheImpl(arpTable, routerId, reactor)
-        remoteArpCache = new ArpCacheImpl(arpTable, routerId, reactor)
+        arpCache = new LegacyArpCacheImpl(arpTable, routerId, reactor)
+        remoteArpCache = new LegacyArpCacheImpl(arpTable, routerId, reactor)
         arps.clear()
         invalidations.clear()
 

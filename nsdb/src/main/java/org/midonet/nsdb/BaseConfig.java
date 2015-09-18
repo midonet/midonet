@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.client
+package org.midonet.nsdb;
 
-import java.util.UUID
-import scala.collection.immutable.Map
-import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
+import java.util.UUID;
 
-trait PoolHealthMonitorMapBuilder extends Builder[PoolHealthMonitorMapBuilder] {
-    /**
-     * Sets global mappings of pool IDs to health monitor configs.
-     *
-     * @param mappings Map of pool IDs to health montitor configs.
-     */
-     def set(mappings: Map[UUID, PoolHealthMonitorConfig])
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.util.UUIDUtil;
+
+public abstract class BaseConfig extends ZoomObject {
+    @JsonIgnore
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    public transient UUID id = null;
 }

@@ -33,6 +33,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.l4lb.HealthMonitorType;
 import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.nsdb.BaseConfig;
 
 import static java.util.Arrays.asList;
 
