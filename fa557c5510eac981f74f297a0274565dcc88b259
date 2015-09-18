@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_46109601",
+        "filename": "tools/devmido/install_mn_scripts.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-09-18T07:26:18Z",
+      "side": 1,
+      "message": "you need to make mn-conf look at MIDO_JAR.",
+      "revId": "fa557c5510eac981f74f297a0274565dcc88b259",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
