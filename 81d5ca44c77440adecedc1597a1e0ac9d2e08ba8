@@ -16,6 +16,24 @@
       "revId": "81d5ca44c77440adecedc1597a1e0ac9d2e08ba8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9d1d8812",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/HostServiceTest.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-18T14:50:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_5dd06050",
+      "revId": "81d5ca44c77440adecedc1597a1e0ac9d2e08ba8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
