@@ -20,6 +20,7 @@ import java.util.*;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.midonet.nsdb.ConfigWithProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -25,7 +25,6 @@ import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.host.scanner.DefaultInterfaceScanner;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
 import org.midonet.midolman.host.services.HostService;
-import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.netlink.NetlinkChannelFactory;
 import org.midonet.netlink.NetlinkUtil;
@@ -63,10 +62,6 @@ public class HostModule extends PrivateModule {
 
         requireBinding(MidolmanConfig.class);
         expose(HostIdProviderService.class);
-
-        // TODO: uncomment this when the direct dependency on HostZKManager has been removed
-        // requireBinding(Client.class);
-        requireBinding(HostZkManager.class);
 
         bind(HostIdProviderService.class)
             .to(HostService.class)

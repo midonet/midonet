@@ -28,7 +28,6 @@ import org.scalatest.Matchers
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.time.{Seconds, Span}
 
-import org.midonet.cluster.LocalDataClientImpl
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.RouterAdded
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.RouterRemoved
