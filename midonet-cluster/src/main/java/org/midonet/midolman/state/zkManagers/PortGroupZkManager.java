@@ -18,6 +18,7 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.nsdb.ConfigWithProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

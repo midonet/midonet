@@ -134,7 +134,7 @@ object RoutingHandler {
               flowInvalidator: SimulationBackChannel,
               dpState: DatapathState,
               upcallConnManager: UpcallDatapathConnectionManager,
-              client: Client, routingStorage: RoutingStorage,
+              routingStorage: RoutingStorage,
               config: MidolmanConfig,
               connWatcher: ZkConnectionAwareWatcher,
               selectLoop: SelectLoop) =

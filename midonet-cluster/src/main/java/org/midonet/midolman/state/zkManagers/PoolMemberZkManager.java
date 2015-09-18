@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import com.google.common.base.Objects;
 
+import org.midonet.nsdb.BaseConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

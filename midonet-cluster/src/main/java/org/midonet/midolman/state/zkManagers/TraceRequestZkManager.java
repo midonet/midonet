@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
+import org.midonet.nsdb.BaseConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

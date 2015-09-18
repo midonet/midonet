@@ -73,7 +73,6 @@ import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.ZkUtil;
@@ -144,9 +143,6 @@ public class LocalDataClientImpl implements DataClient {
     private PortZkManager portZkManager;
 
     @Inject
-    private PortConfigCache portCache;
-
-    @Inject
     private RouteZkManager routeMgr;
 
     @Inject
@@ -178,9 +174,6 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private PathBuilder pathBuilder;
-
-    @Inject
-    private ClusterRouterManager routerManager;
 
     @Inject
     private Serializer serializer;
