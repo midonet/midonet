@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_66603233",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-18T08:46:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_523779e3",
+      "range": {
+        "startLine": 74,
+        "startChar": 33,
+        "endLine": 74,
+        "endChar": 38
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_b1935aa2",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
         "patchSetId": 20
@@ -36,6 +60,30 @@
       "writtenOn": "2015-09-17T07:46:12Z",
       "side": 1,
       "message": "Release ownership of snatched VTEPs.",
+      "range": {
+        "startLine": 158,
+        "startChar": 17,
+        "endLine": 158,
+        "endChar": 23
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a6d87af0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-18T08:46:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_b1935aa2",
       "range": {
         "startLine": 158,
         "startChar": 17,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_e6e2829e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-18T08:46:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_d2ee2922",
+      "range": {
+        "startLine": 49,
+        "startChar": 54,
+        "endLine": 49,
+        "endChar": 63
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_12f971e9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
         "patchSetId": 20
@@ -82,6 +154,30 @@
       "writtenOn": "2015-09-16T17:05:32Z",
       "side": 1,
       "message": "This class is not particular to VTEP.",
+      "range": {
+        "startLine": 59,
+        "startChar": 57,
+        "endLine": 59,
+        "endChar": 61
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_06ef6e88",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-18T08:46:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_12f971e9",
       "range": {
         "startLine": 59,
         "startChar": 57,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_46e9767f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-18T08:46:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_b2d0bd54",
+      "range": {
+        "startLine": 85,
+        "startChar": 22,
+        "endLine": 85,
+        "endChar": 37
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_91965e93",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
         "patchSetId": 20
@@ -128,6 +248,30 @@
       "writtenOn": "2015-09-17T07:46:12Z",
       "side": 1,
       "message": "Some(v)",
+      "range": {
+        "startLine": 105,
+        "startChar": 31,
+        "endLine": 105,
+        "endChar": 32
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_66ee728a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-18T08:46:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_91965e93",
       "range": {
         "startLine": 105,
         "startChar": 31,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_c6fca641",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-18T08:46:16Z",
+      "side": 1,
+      "message": "i have no control over what\u0027s running the callback so I want to make sure to have changed state before I go off the class",
+      "parentUuid": "1ae5cdf2_72be3501",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 121,
+        "endChar": 9
+      },
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_92bbc10d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
         "patchSetId": 20
@@ -174,6 +342,24 @@
       "writtenOn": "2015-09-16T17:05:32Z",
       "side": 1,
       "message": "This log message can be confusing when it doesn\u0027t have the ownership.",
+      "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e6f9a24e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/Snatcher.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-18T08:46:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_92bbc10d",
       "revId": "784755bca058d0e2726ff0bd0d435b0dba5e53a1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
