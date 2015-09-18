@@ -371,6 +371,21 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         .getOrElse(log.error("Failed stopping the keep alive DB cnxn"))
     }
 
+    protected def poolJson(id: UUID, routerId: UUID,
+                           adminStateUp: Boolean = true,
+                           healthMonitorIds: Seq[UUID] = Nil): JsonNode = {
+        val lb = nodeFactory.objectNode
+        lb.put("id", id.toString)
+        lb.put("router_id", routerId.toString)
+        lb.put("admin_state_up", adminStateUp)
+        if (healthMonitorIds.nonEmpty) {
+            val hmIds = lb.putArray("health_monitors")
+            for (hmId <- healthMonitorIds)
+                hmIds.add(hmId.toString)
+        }
+        lb
+    }
+
     case class IPAlloc(ipAddress: String, subnetId: UUID)
     case class AddrPair(cidr: String, mac: String)
     protected def portJson(id: UUID,

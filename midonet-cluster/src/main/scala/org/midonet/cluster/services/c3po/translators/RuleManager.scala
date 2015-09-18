@@ -115,7 +115,7 @@ trait RuleManager {
      * 3. Create rules which are in newRules but not in oldRules.
      */
     protected def getRuleChanges(oldRules: List[Rule], newRules: List[Rule])
-        : Tuple3[List[Rule], List[Rule], List[UUID]] = {
+    : (List[Rule], List[Rule], List[UUID]) = {
         val oldRuleIds = oldRules.map(_.getId)
         val newRuleIds = newRules.map(_.getId)
 

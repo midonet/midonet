@@ -19,13 +19,14 @@ import java.util.UUID
 
 import org.junit.runner.RunWith
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType, Router => RouterType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Pool => PoolType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.rest_api.neutron.models.NetworkType
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
@@ -42,7 +43,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
     /* Set up legacy Data Client for testing Replicated Map. */
     override protected val useLegacyDataClient = true
 
-    it should "handle router CRUD" in {
+    "The RouterTranslator" should "handle router CRUD" in {
         val r1Id = UUID.randomUUID()
         val r1Json = routerJson(r1Id, name = "router1")
         insertCreateTask(2, RouterType, r1Json, r1Id)
@@ -316,6 +317,93 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             extNwArpTable.containsKey("10.0.1.4") shouldBe false
         }
         extNwArpTable.stop()
+    }
+
+    it should "Preserve router properties on update" in {
+        // Create external network and subnet.
+        val nwId = UUID.randomUUID()
+        createTenantNetwork(10, nwId, external = true)
+
+        val snId = UUID.randomUUID()
+        createSubnet(20, snId, nwId, "10.0.1.0/24", "10.0.1.1")
+
+        // Create router with gateway port.
+        val rtrId = UUID.randomUUID()
+        val gwPortId = UUID.randomUUID()
+        createRouterGatewayPort(30, gwPortId, nwId, rtrId, "10.0.1.2",
+                                "ab:ab:ab:ab:ab:ab", snId)
+        createRouter(40, rtrId, gwPortId)
+
+        // Create pool to give router load balancer ID.
+        val lbPoolId = UUID.randomUUID()
+        val lbPoolJson = poolJson(lbPoolId, rtrId)
+        insertCreateTask(50, PoolType, lbPoolJson, lbPoolId)
+
+        // Make sure everything was created.
+        val rtr = eventually {
+            val rtr = storage.get(classOf[Router], rtrId).await()
+            rtr.hasLoadBalancerId shouldBe true
+            rtr
+        }
+
+        // Add a route.
+        val routeId = UUID.randomUUID()
+        storage.create(Route.newBuilder
+                           .setId(toProto(routeId))
+                           .setRouterId(toProto(rtrId))
+                           .build())
+
+        // Add mirrors.
+        val inMirrorId = UUID.randomUUID()
+        storage.create(Mirror.newBuilder
+                           .setId(toProto(inMirrorId))
+                           .addRouterInboundIds(toProto(rtrId))
+                           .build())
+        val outMirrorId = UUID.randomUUID()
+        storage.create(Mirror.newBuilder
+                           .setId(toProto(outMirrorId))
+                           .addRouterOutboundIds(toProto(rtrId))
+                           .build())
+
+        // Add BGP network and peer.
+        val bgpNwId = UUID.randomUUID()
+        storage.create(BgpNetwork.newBuilder
+                           .setId(toProto(bgpNwId))
+                           .setRouterId(toProto(rtrId))
+                           .build())
+        val bgpPeerId = UUID.randomUUID()
+        storage.create(BgpPeer.newBuilder
+                           .setId(toProto(bgpPeerId))
+                           .setRouterId(toProto(rtrId))
+                           .build())
+
+        // Add trace request.
+        val trqId = UUID.randomUUID()
+        storage.create(TraceRequest.newBuilder
+                           .setId(toProto(trqId))
+                           .setRouterId(toProto(rtrId))
+                           .build())
+
+        // Now update the router and make sure the references are preserved.
+        val rtrJsonV2 = routerJson(rtrId, name = "routerV2",
+                                   gwPortId = gwPortId)
+        insertUpdateTask(60, RouterType, rtrJsonV2, rtrId)
+        eventually {
+            val rtrV2 = storage.get(classOf[Router], rtrId).await()
+            rtrV2.getId shouldBe toProto(rtrId)
+            rtrV2.getName shouldBe "routerV2"
+            rtrV2.getInboundFilterId shouldBe rtr.getInboundFilterId
+            rtrV2.getOutboundFilterId shouldBe rtr.getOutboundFilterId
+            rtrV2.getLoadBalancerId shouldBe rtr.getLoadBalancerId
+            rtrV2.getRouteIdsList should contain only toProto(routeId)
+            rtrV2.getBgpNetworkIdsList should contain only toProto(bgpNwId)
+            rtrV2.getBgpPeerIdsList should contain only toProto(bgpPeerId)
+            rtrV2.getInboundMirrorsList should contain only toProto(inMirrorId)
+            rtrV2.getOutboundMirrorsList should contain only toProto(outMirrorId)
+            rtrV2.getPortIdsList shouldBe rtr.getPortIdsList
+            rtrV2.getTraceRequestIdsList should contain only toProto(trqId)
+        }
+
     }
 
     private def validateExtraRoute(rtrId: UUID,

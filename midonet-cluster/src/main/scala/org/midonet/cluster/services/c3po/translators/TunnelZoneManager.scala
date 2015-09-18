@@ -45,7 +45,7 @@ trait TunnelZoneManager {
      */
     def getNeutronDefaultTunnelZone(storage: ReadOnlyStorage): TunnelZone = {
         val tzs = storage.getAll(classOf[NeutronConfig]).await()
-        if (tzs.length == 0)
+        if (tzs.isEmpty)
             throw new IllegalStateException("Cannot find a Neutron Config.")
         else if (tzs.length > 1)
             throw new IllegalStateException("Found more than 1 Neutron Config.")
