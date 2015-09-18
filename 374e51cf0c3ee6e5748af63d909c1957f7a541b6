@@ -16,6 +16,24 @@
       "revId": "374e51cf0c3ee6e5748af63d909c1957f7a541b6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_0613eeb8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-18T08:22:12Z",
+      "side": 1,
+      "message": "or rather, it\u0027s confusing that we\u0027re trying to ingress a packet and checking if it\u0027s active or not. this is one of those rare moments where i miss a comment :p",
+      "parentUuid": "1ae5cdf2_2631ca5a",
+      "revId": "374e51cf0c3ee6e5748af63d909c1957f7a541b6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
