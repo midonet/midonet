@@ -198,7 +198,6 @@ allprojects {
 
         tasks.withType(ScalaCompile) {
             scalaCompileOptions.fork = true
-            scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=1024m']
             scalaCompileOptions.useAnt = false
             scalaCompileOptions.deprecation = true
             scalaCompileOptions.unchecked = true
@@ -262,6 +261,10 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     group = 'org.midonet'
 
     tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
+
+    tasks.withType(ScalaCompile) {
         options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
     }
 
