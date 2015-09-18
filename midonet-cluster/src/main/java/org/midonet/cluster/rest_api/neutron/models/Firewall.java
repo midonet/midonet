@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import org.apache.commons.collections4.ListUtils;
@@ -120,7 +121,7 @@ public class Firewall extends ZoomObject {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
             .add("id", id)
             .add("tenantId", tenantId)
             .add("name", name)

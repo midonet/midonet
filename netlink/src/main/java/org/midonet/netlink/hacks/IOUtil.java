@@ -33,7 +33,7 @@ public class IOUtil {
     private static final Logger log = LoggerFactory
         .getLogger(IOUtil.class);
 
-    private static Class ioUtilClassRef;
+    private static Class<?> ioUtilClassRef;
     private static Method fdValRef;
     private static Method newFdRef;
     private static int writeArity;

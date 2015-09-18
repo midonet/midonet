@@ -86,20 +86,9 @@ class VxlanGatewayService @Inject()(
         shutdown()
     }
 
-    private val fpLatchListener = new LeaderLatchListener {
-        override def isLeader(): Unit = {
-            fpManager = new FloodingProxyManager(backend)
-            fpManager.start()
-        }
-        override def notLeader(): Unit = {
-            val oldFpManager = fpManager
-            fpManager = null
-            oldFpManager.stop()
-        }
-    }
-
     private val fpLatch = new LeaderLatch(backend.curator, backendCfg.rootKey +
                                           "/vxgw/fp-latch")
+    private val fpLatchListener = new FloodingProxyLatchListener
     fpLatch.addListener(fpLatchListener)
 
     private def watchVtep = new Observer[Vtep] {
@@ -205,5 +194,16 @@ class VxlanGatewayService @Inject()(
         }
     }
 
+    private class FloodingProxyLatchListener extends LeaderLatchListener {
+        override def isLeader(): Unit = {
+            fpManager = new FloodingProxyManager(backend)
+            fpManager.start()
+        }
+        override def notLeader(): Unit = {
+            val oldFpManager = fpManager
+            fpManager = null
+            oldFpManager.stop()
+        }
+    }
 }
 

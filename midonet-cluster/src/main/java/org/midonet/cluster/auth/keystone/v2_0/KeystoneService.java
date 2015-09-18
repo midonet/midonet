@@ -224,7 +224,7 @@ public class KeystoneService implements AuthService {
      * @throws AuthException
      */
     @Override
-    public List<Tenant> getTenants(HttpServletRequest request)
+    public List<? extends Tenant> getTenants(HttpServletRequest request)
             throws AuthException {
         log.debug("KeystoneService.getTenants entered.  Request: " + request);
 
@@ -238,6 +238,6 @@ public class KeystoneService implements AuthService {
                 + tenantList.getTenants().size()
                 + " tenants found with marker = " + marker + ", limit = ",
                 + limit);
-        return (List<Tenant>) tenantList.get();
+        return tenantList.get();
     }
 }
