@@ -22,6 +22,29 @@
       "revId": "6c593e05c9f820b992769e16a3dc39666264695e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e603620d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/simulation/CustomMatchers.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-18T09:16:46Z",
+      "side": 1,
+      "message": "push",
+      "range": {
+        "startLine": 90,
+        "startChar": 24,
+        "endLine": 90,
+        "endChar": 27
+      },
+      "revId": "6c593e05c9f820b992769e16a3dc39666264695e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
