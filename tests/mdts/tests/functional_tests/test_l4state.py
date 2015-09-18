@@ -223,7 +223,6 @@ def reboot_agents(sleep_secs):
     time.sleep(sleep_secs)
 
     start_midolman_agents()
-    time.sleep(30)
     await_ports(active=True)
 
 
