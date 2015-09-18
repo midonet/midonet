@@ -108,9 +108,11 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
 
+        binding.vtepId = vtepId
+
         throwIfViolationsOn(binding)
 
-        val vtep = loadOrBadRequest[Topology.Vtep](binding.vtepId)
+        val vtep = loadOrBadRequest[Topology.Vtep](vtepId)
         val network = loadOrBadRequest[Topology.Network](binding.networkId)
         val mgmtIp = toIPv4Addr(vtep.getManagementIp)
         val mgmtPort  = vtep.getManagementPort
@@ -136,7 +138,6 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
 
             ensureBindingDoesntExist(vtep, binding)
 
-            binding.vtepId = fromProto(vtep.getId)
             val protoBdg = binding.toProto(classOf[Topology.Vtep.Binding])
                                   .toBuilder
                                   .setVlanId(binding.vlanId)
