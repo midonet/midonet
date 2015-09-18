@@ -91,7 +91,7 @@ class VtepSynchronizer(vtepId: UUID,
                        ovsdbProvider: (IPv4Addr, Int) => OvsdbVtepDataClient)
     extends Observer[NsdbVtep] {
 
-    private val log = getLogger(s"org.midonet.cluster.vxgw-vtep-$vtepId")
+    private val log = getLogger(vxgwVtepControlLog(vtepId))
     private implicit val ec = VtepSynchronizer.ec
 
     // The latest known VTEP instance, in the NSDB
