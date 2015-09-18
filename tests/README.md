@@ -49,13 +49,19 @@ on the MidoNet packages. If they're needed to be installed manually,
 please build them as follows:
 
 ```
-midonet$ git submodule update --init --recursive
-midonet$ ./gradlew clean
-midonet$ ./gradlew -x test debian
-midonet$ find . -name "*.deb"
-./midolman/build/packages/midolman_2015.05~201506030403.f4646d4_all.deb
-./python-midonetclient/python-midonetclient_2015.05~201506030403.f4646d4_all.deb
-./cluster/midonet-cluster/build/packages/midonet-cluster_2015.05~201506030403.f4646d4_all.deb
+git submodule update --init --recursive
+./gradlew clean
+./gradlew -x test debian
+find . -name "*.deb"
+./midonet-cluster/build/packages/midonet-cluster_5.0~201509181011.8599820_all.deb
+./midolman/build/packages/midolman_5.0~201509181011.8599820_all.deb
+./python-midonetclient/python-midonetclient_5.0~201509181011.8599820_all.deb
+./midonet-tools/build/packages/midonet-tools_5.0~201509181011.8599820_all.deb
+```
+
+Install the python-midonetclient on the host:
+```
+sudo dpkg -i ./python-midonetclient/python-midonetclient_5.0~201509181011.8599820_all.deb
 ```
 
 Midonet Sandbox already use a predefined set of docker images to ease the task
@@ -63,10 +69,10 @@ of spawning different Midonet components. To start using sandbox and build the
 initial set of images, you need to:
 
 ```
-midonet$ pushd midonet-sandbox
-midonet/midonet-sandbox$ sudo python setup.py install && popd
-midonet$ pushd tests
-midonet/tests$ sudo sandbox-manage -c sandbox.conf build-all default_v2 && popd
+pushd midonet-sandbox
+sudo python setup.py install && popd
+pushd tests
+sudo sandbox-manage -c sandbox.conf build-all default_v2 && popd
 ```
 
 Wait until all images have been generated. The default_v2 is the default MDTS
@@ -77,20 +83,22 @@ or execute `sandbox-manage --help`.
 Copy all packages inside the corresponding override so Sandbox knows which
 packages to install:
 ```
-midonet$ cp midolman/build/packages/midolman*deb tests/sandbox/override_v2/midolman
-midonet$ cp python-midonetclient/python-midonetclient*deb tests/sandbox/override_v2/api
-midonet$ cp cluster/midonet-cluster/build/packages/midonet-cluster*deb tests/sandbox/override_v2/api
+cp midolman/build/packages/midolman*deb tests/sandbox/override_v2/midolman
+cp midonet-tools/build/packages/midonet-tools*deb tests/sandbox/override_v2/midolman
+cp python-midonetclient/python-midonetclient*deb tests/sandbox/override_v2/cluster
+cp midonet-cluster/build/packages/midonet-cluster*deb tests/sandbox/override_v2/cluster
+cp midonet-tools/build/packages/midonet-tools*deb tests/sandbox/override_v2/cluster
 ```
 
 And start sandbox with a specific flavor, override and provisioning scripts:
 ```
-midonet$ pushd tests
-midonet/tests$ sudo sandbox-manage -c sandbox.conf run default_v2 --name=mdts --override=sandbox/override_v2 --provision=sandbox/provisioning/bgp-l2gw-provisioning.sh
+pushd tests
+sudo sandbox-manage -c sandbox.conf run default_v2 --name=mdts --override=sandbox/override_v2 --provision=sandbox/provisioning/bgp-l2gw-provisioning.sh
 ```
 
 To completely remove all containers to restart sandbox:
 ```
-midonet/tests$ sudo sandbox-manage -c sandbox.conf stop-all --remove
+sudo sandbox-manage -c sandbox.conf stop-all --remove
 ```
 
 Running functional tests
@@ -99,8 +107,8 @@ Running functional tests
 You're now set to run MDTS tests:
 
 ```
-midonet$ pushd tests/mdts/tests/functional_tests
-midonet/tests/mdts/tests/functional_tests$ ./run_tests.sh 
+pushd tests/mdts/tests/functional_tests
+./run_tests.sh
 ```
 
 Refer to documentation in [`run_tests.sh`][run_tests] for further information.
