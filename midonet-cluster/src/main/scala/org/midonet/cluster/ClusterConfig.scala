@@ -58,7 +58,6 @@ class ClusterConfig(_conf: Config) {
     val heartbeat = new HeartbeatConfig(conf)
     val vxgw = new VxGwConfig(conf)
     val topologyApi = new TopologyApiConfig(conf)
-    val snoopy = new TopologySnoopyConfig(conf)
     val restApi = new RestApiConfig(conf)
 }
 
@@ -115,14 +114,6 @@ class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiServic
     def wsPath = conf.getString(s"$Prefix.ws_path")
     def sessionGracePeriod = conf.getDuration(s"$Prefix.session_grace_period", TimeUnit.MILLISECONDS)
     def sessionBufferSize = conf.getInt(s"$Prefix.session_buffer_size")
-}
-
-class TopologySnoopyConfig(val conf: Config) {
-    final val Prefix = "cluster.snoopy"
-
-    def host = conf.getString(s"$Prefix.host")
-    def port = conf.getInt(s"$Prefix.port")
-    def wsPath = conf.getString(s"$Prefix.ws_path")
 }
 
 class RestApiConfig(val conf: Config) extends MinionConfig[Vladimir] {

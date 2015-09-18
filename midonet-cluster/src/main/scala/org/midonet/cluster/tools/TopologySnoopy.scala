@@ -17,17 +17,17 @@
 package org.midonet.cluster.tools
 
 
-import org.midonet.cluster.{ClusterConfig, ClusterConfig$}
-
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
+
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
+import com.typesafe.config.Config
 import org.slf4j.LoggerFactory
 import rx.Subscriber
 
 import org.midonet.cluster.models.{Commons, Topology}
-import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
+import org.midonet.cluster.rpc.Commands.{Response, ResponseType}
 import org.midonet.cluster.services.topology.client.ClientSession
 import org.midonet.cluster.util.UUIDUtil
 
@@ -36,13 +36,12 @@ import org.midonet.cluster.util.UUIDUtil
  * Topology Service and subscribes to all available topology objects,
  * dumping the updates and deletions to a log.
  */
-class TopologySnoopy @Inject()(val cfg: ClusterConfig)
+class TopologySnoopy @Inject()(val cfg: TopologySnoopyConfig)
     extends AbstractService {
     private val log = LoggerFactory.getLogger(classOf[TopologySnoopy])
 
     private final val client = this
-    private val session = new ClientSession(cfg.snoopy.host, cfg.snoopy.port,
-        cfg.snoopy.wsPath)
+    private val session = new ClientSession(cfg.host, cfg.port, cfg.wsPath)
 
     private val types: Array[Topology.Type] = Topology.Type.values()
 
@@ -147,3 +146,10 @@ class TopologySnoopy @Inject()(val cfg: ClusterConfig)
 
 }
 
+class TopologySnoopyConfig(val conf: Config) {
+    final val Prefix = "cluster.snoopy"
+
+    def host = conf.getString(s"$Prefix.host")
+    def port = conf.getInt(s"$Prefix.port")
+    def wsPath = conf.getString(s"$Prefix.ws_path")
+}
