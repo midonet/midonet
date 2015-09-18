@@ -39,7 +39,7 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkCreated, OkNoContentResponse, ResourceContext}
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.SequenceDispenser.VxgwVni
-import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto => uuidToProto}
 import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
 
 @RequestScoped
@@ -141,7 +141,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                                   .toBuilder
                                   .setVlanId(binding.vlanId)
                                   .setPortName(binding.portName)
-                                  .setNetworkId(toProto(binding.networkId))
+                                  .setNetworkId(uuidToProto(binding.networkId))
                                   .build()
 
             val newVtep = vtep.toBuilder.addBindings(protoBdg).build()
@@ -221,7 +221,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
      */
     private def findVxPortForVtep(n: Topology.Network, vtepId: UUID)
     : Option[Topology.Port] = {
-        val protoVtepId = toProto(vtepId)
+        val protoVtepId = uuidToProto(vtepId)
         val ids = n.getVxlanPortIdsList
         val ports = store.getAll(classOf[Topology.Port], ids).getOrThrow
         ports.find { _.getVtepId == protoVtepId }
