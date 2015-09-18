@@ -16,6 +16,7 @@
 package org.midonet.cluster.rest_api.neutron.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -56,7 +57,7 @@ public class SessionPersistence extends ZoomObject {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
             .add("type", type)
             .add("cookieName", cookieName)
             .toString();

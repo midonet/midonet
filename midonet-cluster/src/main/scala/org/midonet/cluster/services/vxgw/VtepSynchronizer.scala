@@ -414,22 +414,22 @@ class VtepSynchronizer(vtepId: UUID,
     private def loadVxlanPortFor(nwId: UUID, nwInfo: NetworkInfo)
     : Future[Unit] = {
         if (nwInfo.vxPort != null) {
-            return Future.successful[Unit]()
+            return Future.successful[Unit](())
         }
         store.get(classOf[Network], nwId).flatMap { nw =>
             val pIds = nw.getVxlanPortIdsList.map { fromProto }
-                store.getAll(classOf[Port], pIds)
-            }.map { ports =>
-                ports.find(p => fromProto(p.getVtepId) == vtepId) match {
-                    case Some(p) =>
-                        nwInfo.vxPort = fromProto(p.getId)
-                        log.debug(s"Network $nwId port for VTEP $vtepId is " +
-                                  s"${nwInfo.vxPort}")
-                    case None =>
-                        throw new IllegalStateException(
-                            "Can't find a VxLan port for vtep $vtepId on" +
-                            "network $nwId")
-                }
+            store.getAll(classOf[Port], pIds)
+        }.map { ports =>
+            ports.find(p => fromProto(p.getVtepId) == vtepId) match {
+                case Some(p) =>
+                    nwInfo.vxPort = fromProto(p.getId)
+                    log.debug(s"Network $nwId port for VTEP $vtepId is " +
+                              s"${nwInfo.vxPort}")
+                case None =>
+                    throw new IllegalStateException(
+                        "Can't find a VxLan port for vtep $vtepId on" +
+                        "network $nwId")
+            }
         }
     }
 

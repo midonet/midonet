@@ -158,15 +158,15 @@ public class TestHost extends JerseyTest {
 
         assertThat(
             "No hosts is not an error situation",
-            response.getClientResponseStatus(),
-            equalTo(ClientResponse.Status.OK));
+            response.getStatusInfo().getStatusCode(),
+            equalTo(ClientResponse.Status.OK.getStatusCode()));
 
         ClientResponse clientResponse = resource()
             .path("hosts/" + UUID.randomUUID().toString())
             .accept(APPLICATION_HOST_JSON_V3()).get(ClientResponse.class);
 
-        assertThat(clientResponse.getClientResponseStatus(),
-                   equalTo(ClientResponse.Status.NOT_FOUND));
+        assertThat(clientResponse.getStatusInfo().getStatusCode(),
+                   equalTo(ClientResponse.Status.NOT_FOUND.getStatusCode()));
     }
 
     @Test

@@ -15,11 +15,13 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.UUID;
+
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
-
-import java.util.UUID;
 
 public class ProviderRouter {
 
@@ -56,7 +58,7 @@ public class ProviderRouter {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id).toString();
     }
 }
