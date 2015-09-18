@@ -19,15 +19,14 @@ package org.midonet.cluster.util
 import java.util.UUID
 
 import scala.reflect.ClassTag
-import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
-import com.google.common.util.concurrent.AbstractScheduledService.Scheduler
 import org.slf4j.LoggerFactory
 import rx.Observer
-import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
 
 import org.midonet.cluster.data.storage._
+import org.midonet.util.reactivex._
 
 
 object Snatcher {
@@ -88,17 +87,16 @@ sealed class Snatcher[D](val targetId: UUID,
     override def onNext(t: StateKey): Unit = t match {
         case SingleValueKey(_, None, _) =>
             log.debug(s"$typeName $targetId isn't taken, grab it!!")
-            try {
+                // The value doesn't even matter, since the ownership is tied to
+                // the zk session
                 stateStore.addValue(ct.runtimeClass, targetId, stateKey,
-                                    nodeId.toString).toBlocking.first()
-            } catch {
-                case e: NotStateOwnerException => // race lost
-                    log.debug(s"Lost race grabbing key: $t", e)
-                case NonFatal(e) =>
-                    log.warn(s"Failed to write state for key: $t", e)
-            }
-            // The value doesn't even matter, since the ownership is tied to the
-            // zk session
+                                    nodeId.toString).andThen {
+                    case Success(_) =>
+                    case Failure(e: NotStateOwnerException) => // race lost
+                        log.debug(s"Lost race grabbing key: $t", e)
+                    case Failure(e) =>
+                        log.warn(s"Failed to write state for key: $t", e)
+                }
         case SingleValueKey(_ , v, session) if stateStore.ownerId == session =>
             log.debug(s"I own $typeName $targetId")
             iAmOwner()
@@ -130,7 +128,15 @@ sealed class Snatcher[D](val targetId: UUID,
         if (isOwner) {
             isOwner = false
             stateStore.removeValue(ct.runtimeClass, targetId, stateKey, null)
-                      .toBlocking.first()
+                      .andThen {
+                          case Success(_) =>
+                              log.debug(s"Released $typeName $targetId")
+                          case Failure(_) =>
+                              log.warn(s"Failed to release $typeName " +
+                                       s"$targetId, it should expire by " +
+                                       "itself anyway")
+                      }
+
             onLost()
         }
     }
