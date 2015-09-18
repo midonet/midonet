@@ -18,15 +18,16 @@ package org.midonet.midolman.state
 
 import java.util.UUID
 
+import org.midonet.midolman.state.NatBlockAllocator.NoFreeNatBlocksException
+
 import scala.collection.mutable
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
-
 import org.junit.runner.RunWith
 
 import org.midonet.midolman.NotYetException
@@ -34,7 +35,6 @@ import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.NatLeaser.{NoNatBindingException, blockOf}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent.MockClock
-import org.midonet.util.functors.Callback
 
 @RunWith(classOf[JUnitRunner])
 class NatLeaserTest extends FeatureSpec
@@ -47,19 +47,17 @@ class NatLeaserTest extends FeatureSpec
     val natLeaser = new NatLeaser {
         override val log = Logger(NOPLogger.NOP_LOGGER)
         override val allocator: NatBlockAllocator = new NatBlockAllocator {
-            override def allocateBlockInRange(natRange: NatRange,
-                                              callback: Callback[NatBlock, Exception]): Unit =
-                callback.onSuccess(
-                    (natRange.tpPortStart to natRange.tpPortEnd) map { port =>
-                        new NatBlock(natRange.deviceId, natRange.ip, blockOf(port))
-                    } find { block =>
-                        if (allocatedBlocks contains block) {
-                            false
-                        } else {
-                            allocatedBlocks += block
-                            true
-                        }
-                    } getOrElse NatBlock.NO_BLOCK)
+            override def allocateBlockInRange(natRange: NatRange) =
+                (natRange.tpPortStart to natRange.tpPortEnd) map { port =>
+                    new NatBlock(natRange.deviceId, natRange.ip, blockOf(port))
+                } find { block =>
+                    if (allocatedBlocks contains block) {
+                        false
+                    } else {
+                        allocatedBlocks += block
+                        true
+                    }
+                } map Future.successful getOrElse Future.failed(NoFreeNatBlocksException)
 
             override def freeBlock(natBlock: NatBlock): Unit = {}
         }

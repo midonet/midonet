@@ -28,9 +28,6 @@ public final class NatBlock extends NatRange {
     public static final int BLOCK_SIZE = 64; // Must be power of 2
     public static final int TOTAL_BLOCKS = 1024;
 
-    public static final NatBlock NO_BLOCK =
-            new NatBlock(UUID.randomUUID(), IPv4Addr.random(), 0);
-
     public final int blockIndex;
 
     public NatBlock(UUID deviceId, IPv4Addr ip, int blockIndex) {
