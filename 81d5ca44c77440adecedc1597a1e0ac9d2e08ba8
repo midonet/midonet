@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5dd06050",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/HostServiceTest.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-18T14:38:59Z",
+      "side": 1,
+      "message": "indent",
+      "revId": "81d5ca44c77440adecedc1597a1e0ac9d2e08ba8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
