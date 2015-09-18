@@ -16,6 +16,7 @@
 package org.midonet.cluster.rest_api.neutron.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -62,7 +63,7 @@ public class ExtraDhcpOpt extends ZoomObject {
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("optName", optName)
                 .add("optValue", optValue).toString();
     }
