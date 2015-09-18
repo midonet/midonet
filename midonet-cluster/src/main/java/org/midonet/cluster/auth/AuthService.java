@@ -54,5 +54,6 @@ public interface AuthService {
      *                tenants.
      * @return List of Tenant objects
      */
-    List<Tenant> getTenants(HttpServletRequest request) throws AuthException;
+    List<? extends Tenant> getTenants(HttpServletRequest request)
+        throws AuthException;
 }
