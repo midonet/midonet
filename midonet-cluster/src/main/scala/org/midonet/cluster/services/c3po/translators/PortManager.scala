@@ -71,7 +71,7 @@ trait PortManager extends RouteManager {
 
         val portBldr = Port.newBuilder(port)
         portBldr.setPeerId(peer.getId)
-        ops += Update(portBldr.build(), PortUpdateValidator)
+        ops += Update(portBldr.build())
 
         // For router ports,
         if (port.hasRouterId)
@@ -96,7 +96,7 @@ trait PortManager extends RouteManager {
         val updatedPort = port.toBuilder
             .setHostId(hostId)
             .setInterfaceName(ifName)
-        List(Update(updatedPort.build(), PortUpdateValidator))
+        List(Update(updatedPort.build()))
     }
 
     protected def isOnUplinkNetwork(np: NeutronPort) = {

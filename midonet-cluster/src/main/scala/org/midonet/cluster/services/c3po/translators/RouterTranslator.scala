@@ -16,7 +16,9 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
+import scala.collection.JavaConverters._
+
+import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
@@ -28,8 +30,6 @@ import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ICMP
 import org.midonet.util.concurrent.toFutureOps
-
-import scala.collection.JavaConverters._
 
 class RouterTranslator(protected val storage: ReadOnlyStorage,
                        protected val pathBldr: PathBuilder)
@@ -73,21 +73,14 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     }
 
     override protected def translateUpdate(nr: NeutronRouter): MidoOpList = {
-        val r = translate(nr)
+        val r = storage.get(classOf[Router], nr.getId).await().toBuilder
+        r.setAdminStateUp(nr.getAdminStateUp)
+        r.setName(nr.getName)
+        r.setTenantId(nr.getTenantId)
+
         val gwOps = gatewayPortUpdateOps(nr, r)
         val rtOps = extraRoutesUpdateOps(nr)
-        Update(r, RouterUpdateValidator) :: gwOps ++ rtOps
-    }
-
-    private object RouterUpdateValidator extends UpdateValidator[Router] {
-        override def validate(oldRouter: Router, newRouter: Router): Router = {
-            // These properties are not initialized by translation from
-            // Neutron and should not be overwritten.
-            newRouter.toBuilder
-                     .addAllPortIds(oldRouter.getPortIdsList)
-                     .addAllRouteIds(oldRouter.getRouteIdsList)
-                     .build()
-        }
+        Update(r.build()) :: gwOps ++ rtOps
     }
 
     private def translate(nr: NeutronRouter): Router = {
@@ -102,7 +95,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     }
 
     private def gatewayPortCreateOps(nr: NeutronRouter,
-                                     r: Router): MidoOpList = {
+                                     r: RouterOrBuilder): MidoOpList = {
         if (!nr.hasGwPortId) return List()
 
         /* There's a bit of a quirk in the translation here. We actually create
@@ -211,7 +204,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     }
 
     private def gatewayPortUpdateOps(nr: NeutronRouter,
-                                     r: Router): MidoOpList = {
+                                     r: RouterOrBuilder): MidoOpList = {
         // It is assumed that the gateway port may not be removed while there
         // still is a VIP associated with it. Therefore we don't need to worry
         // about cleaning up the ARP entry for the VIP associated with this
@@ -239,7 +232,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                             nextHopGwIpAddr = nextHopIp)
     }
 
-    private def snatRuleCreateOps(nr: NeutronRouter, r: Router,
+    private def snatRuleCreateOps(nr: NeutronRouter, r: RouterOrBuilder,
                                   gwIpAddr: IPAddress, tenantGwPortId: UUID)
     : MidoOpList = {
         // If one of the rules exists, they should all exist already.
