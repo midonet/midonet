@@ -19,6 +19,7 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.Arrays;
 
 import javax.inject.Singleton;
+
 import scala.collection.JavaConversions;
 import scala.collection.Seq$;
 
@@ -26,8 +27,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
-
-import com.google.inject.Provides;
 import com.lmax.disruptor.BatchEventProcessor;
 import com.lmax.disruptor.EventPoller;
 import com.lmax.disruptor.EventProcessor;
@@ -49,25 +48,26 @@ import org.midonet.midolman.datapath.DisruptorDatapathChannel;
 import org.midonet.midolman.datapath.FlowProcessor;
 import org.midonet.midolman.datapath.PacketExecutor;
 import org.midonet.midolman.io.DatapathConnectionPool;
+import org.midonet.midolman.io.OneToManyDpConnManager;
 import org.midonet.midolman.io.OneToOneConnectionPool;
 import org.midonet.midolman.io.OneToOneDpConnManager;
-import org.midonet.midolman.io.OneToManyDpConnManager;
-import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.io.TokenBucketPolicy;
+import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkChannelFactory;
 import org.midonet.netlink.NetlinkProtocol;
 import org.midonet.netlink.NetlinkUtil;
-import org.midonet.odp.Datapath;
 import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.concurrent.AggregateEventPollerHandler;
 import org.midonet.util.concurrent.BackchannelEventProcessor;
 import org.midonet.util.concurrent.EventPollerHandlerAdapter;
 import org.midonet.util.concurrent.NanoClock$;
 
-import static org.midonet.midolman.datapath.DisruptorDatapathChannel.*;
+import static org.midonet.Util.uncheckedCast;
+import static org.midonet.midolman.datapath.DisruptorDatapathChannel.Factory$;
+import static org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder;
 
 public class DatapathModule extends PrivateModule {
 
@@ -107,7 +107,7 @@ public class DatapathModule extends PrivateModule {
 
     private EventProcessor[] createProcessors(
             int threads,
-            RingBuffer ringBuffer,
+            RingBuffer<PacketContextHolder> ringBuffer,
             SequenceBarrier barrier,
             FlowProcessor flowProcessor,
             DatapathState dpState,
@@ -117,22 +117,25 @@ public class DatapathModule extends PrivateModule {
         threads = Math.max(threads, 1);
         EventProcessor[] processors = new EventProcessor[threads];
         if (threads == 1) {
-            EventPoller.Handler handler = new AggregateEventPollerHandler(
-                JavaConversions.asScalaBuffer(Arrays.asList(
-                    flowProcessor,
-                    new EventPollerHandlerAdapter(new PacketExecutor(
-                        dpState, families, 1, 0, channelFactory, metrics)))));
-            processors[0] = new BackchannelEventProcessor(
-                ringBuffer, handler, flowProcessor, Seq$.MODULE$.empty());
+            EventPoller.Handler<PacketContextHolder> handler =
+                new AggregateEventPollerHandler<>(
+                    JavaConversions.asScalaBuffer(Arrays.asList(
+                        flowProcessor,
+                        new EventPollerHandlerAdapter<>(new PacketExecutor(
+                            dpState, families, 1, 0, channelFactory, metrics)))));
+            processors[0] = new BackchannelEventProcessor<>(
+                ringBuffer, handler, flowProcessor,
+                uncheckedCast(Seq$.MODULE$.empty()));
         } else {
             int numPacketHandlers = threads - 1;
             for (int i = 0; i < numPacketHandlers; ++i) {
                 PacketExecutor pexec = new PacketExecutor(
                     dpState, families, numPacketHandlers, i, channelFactory, metrics);
-                processors[i] = new BatchEventProcessor(ringBuffer, barrier, pexec);
+                processors[i] = new BatchEventProcessor<>(ringBuffer, barrier, pexec);
             }
-            processors[numPacketHandlers] = new BackchannelEventProcessor(
-                ringBuffer, flowProcessor, flowProcessor,  Seq$.MODULE$.empty());
+            processors[numPacketHandlers] = new BackchannelEventProcessor<>(
+                ringBuffer, flowProcessor, flowProcessor,
+                uncheckedCast(Seq$.MODULE$.empty()));
         }
         return processors;
     }

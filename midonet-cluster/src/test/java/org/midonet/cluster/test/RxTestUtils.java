@@ -51,7 +51,8 @@ public class RxTestUtils {
             this.o = o;
         }
 
-        public TestedObservable<T> expect(T... elements) {
+        @SafeVarargs
+        public final TestedObservable<T> expect(T... elements) {
             onNext = new ActionAccumulator<>(elements);
             return this;
         }
@@ -116,6 +117,7 @@ public class RxTestUtils {
             this.expectCalls = times;
         }
 
+        @SafeVarargs
         public ActionAccumulator(T... expected) {
             this.expected = Arrays.asList(expected);
             this.expectCalls = expected.length;

@@ -31,8 +31,6 @@ import com.google.protobuf.TextFormat;
 import rx.Observable;
 import rx.functions.Func1;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import org.midonet.cluster.data.storage.SingleValueKey;
 import org.midonet.cluster.data.storage.StateKey;
 import org.midonet.cluster.data.storage.StateResult;
@@ -74,7 +72,7 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
         // different tree than the Router, so this test doesn't really verify
         // anything.  We add an Assume clause to the test, so this code should
         // never be hit.
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -217,7 +215,7 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
 
     @Override
     public void setHostVersion(UUID hostId) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override

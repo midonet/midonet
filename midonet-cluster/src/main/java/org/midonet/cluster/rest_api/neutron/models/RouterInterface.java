@@ -15,7 +15,10 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -23,8 +26,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.UUIDUtil.Converter;
-
-import java.util.UUID;
 
 @ZoomClass(clazz = Neutron.NeutronRouterInterface.class)
 public class RouterInterface extends ZoomObject {
@@ -76,7 +77,7 @@ public class RouterInterface extends ZoomObject {
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("portId", portId)
                 .add("subnetId", subnetId)

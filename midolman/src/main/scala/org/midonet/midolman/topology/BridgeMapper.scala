@@ -326,7 +326,7 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
     //            +---------------------------------+
     // Obs.timer->| subscribe(onMacExpirationTimer) |
     //            +---------------------------------+
-    private val timerSubscription = Observable.timer(
+    private val timerSubscription = Observable.interval(
             vt.config.bridge.macPortMappingExpiry, // Initial delay
             2000L, // Update interval
             MILLISECONDS, // Time unit

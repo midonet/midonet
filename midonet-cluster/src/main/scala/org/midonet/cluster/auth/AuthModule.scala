@@ -66,7 +66,11 @@ class AuthModule(config: AuthConfig, log: Logger) extends AbstractModule {
                 throw new ConfigurationException(
                     s"Cannot find authentication provider  " +
                     s"$authProvider in current class path", e)
-            }
+            case Failure(e) =>
+                throw new ConfigurationException(
+                    s"Unexpected error loading authentication provider " +
+                    s"$authProvider", e)
+        }
     }
 
 }

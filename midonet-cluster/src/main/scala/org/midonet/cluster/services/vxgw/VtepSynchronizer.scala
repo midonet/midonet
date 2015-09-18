@@ -29,6 +29,7 @@ import scala.util.{Failure, Success}
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory.getLogger
+
 import rx.functions.Action1
 import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
@@ -418,11 +419,11 @@ class VtepSynchronizer(vtepId: UUID,
     private def loadVxlanPortFor(nwId: UUID, nwInfo: NetworkInfo)
     : Future[Unit] = {
         if (nwInfo.vxPort != null) {
-            return Future.successful[Unit]()
+            return Future.successful[Unit](())
         }
         store.get(classOf[Network], nwId).flatMap { nw =>
             val pIds = nw.getVxlanPortIdsList.map { fromProto }
-                store.getAll(classOf[Port], pIds)
+            store.getAll(classOf[Port], pIds)
         }.map { ports =>
             ports.find(p => fromProto(p.getVtepId) == vtepId) match {
                 case Some(p) =>
