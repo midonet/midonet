@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1d7a5888",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/ConfResourceTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-18T14:11:20Z",
+      "side": 1,
+      "message": "trailing space",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 8
+      },
+      "revId": "7958c6ccb33a9c692cdad03702d12aea2f9ad74a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
