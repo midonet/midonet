@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_860c5e44",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-18T09:14:31Z",
+      "side": 1,
+      "message": "circular dependency? (cluster depends on midolman, for legacy reasons)",
+      "range": {
+        "startLine": 74,
+        "startChar": 4,
+        "endLine": 74,
+        "endChar": 43
+      },
+      "revId": "6c593e05c9f820b992769e16a3dc39666264695e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
