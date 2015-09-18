@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export MIDO_HOME=%DEPS_DIR%
-export MIDO_JAR=$MIDO_HOME/midolman.jar
+export MIDO_HOME=%MIDO_HOME%
+export MIDO_JAR=%MIDO_JAR%
 
 SCRIPT_NAME=`basename $0`
-exec %TOP_DIR%/midolman/src/deb/bin/$SCRIPT_NAME "$@"
+exec %SCRIPT_DIR%/$SCRIPT_NAME "$@"

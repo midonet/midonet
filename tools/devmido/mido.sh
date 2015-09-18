@@ -258,8 +258,9 @@ git submodule update --init
 ./gradlew clean
 ./gradlew assemble
 
-# install jar to midolman's build dir
-./gradlew :midolman:installApp
+# Generate jars for installation for midolman and midonet-tools
+./gradlew :midolman:installShadowApp
+./gradlew :midonet-tools:installShadowApp
 
 # install the midonet scripts.  This must happen before the cluster
 # configuration section since mn-conf is used to configure the cluster.
