@@ -63,8 +63,7 @@ class ConfResourceTest extends FeatureSpec
     override def beforeAll(): Unit = {
         super.beforeAll()
         
-        val context = ClusterNode.Context(HostIdGenerator.getHostId,
-                                          embed = true)
+        val context = ClusterNode.Context(HostIdGenerator.getHostId)
         val backend = new MidonetBackendService(new MidonetBackendConfig(config),
                                                 zkClient, null)
         api = new Vladimir(context, backend, zkClient,

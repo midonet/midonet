@@ -22,6 +22,7 @@ import scala.async.Async._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
+import scala.util.{Failure, Success}
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
@@ -45,8 +46,14 @@ final protected class Daemon(val nodeId: UUID,
     override def doStart(): Unit = {
         log.info(s"MidoNet cluster daemon starting on host $nodeId")
 
-        val startups: List[Future[Minion]] = minionDefs map { m =>
-            startMinion(m)
+        val startups: List[Future[Minion]] = minionDefs map { md =>
+            startMinion(md).andThen {
+                case Success(m) if m.isEnabled =>
+                    log.info(s"Minion ${md.name} started successfully")
+                case Success(m) =>
+                case Failure(t) =>
+                    log.error("Minion failed to start", t)
+            }
         }
         val numFailed = startups.count(Await.ready(_, 15.second)
                                             .value.get.isFailure)
