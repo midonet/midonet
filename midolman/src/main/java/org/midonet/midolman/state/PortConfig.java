@@ -30,7 +30,7 @@ import org.midonet.midolman.state.PortDirectory.InteriorBridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.InteriorRouterPortConfig;
 import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
-import org.midonet.midolman.state.zkManagers.ConfigWithProperties;
+import org.midonet.nsdb.ConfigWithProperties;
 import org.midonet.packets.IPv4Subnet;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,

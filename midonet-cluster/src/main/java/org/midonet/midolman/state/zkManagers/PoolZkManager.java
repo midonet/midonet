@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 
 import org.apache.zookeeper.Op;
+import org.midonet.nsdb.BaseConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

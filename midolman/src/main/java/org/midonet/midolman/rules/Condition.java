@@ -22,7 +22,6 @@ import java.util.UUID;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
 import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.MACUtil;
@@ -30,7 +29,7 @@ import org.midonet.cluster.util.RangeUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.simulation.PacketContext;
-import org.midonet.midolman.state.zkManagers.BaseConfig;
+import org.midonet.nsdb.BaseConfig;
 import org.midonet.odp.FlowMatch;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPSubnet;
@@ -167,21 +166,6 @@ public class Condition extends BaseConfig {
     // This constructor is also used by ZoomConvert.
     public Condition() { super(); }
 
-    public Condition(SecurityGroupRule sgRule) {
-        nwProto = sgRule.protocolNumber();
-        etherType = sgRule.ethertype();
-        matchForwardFlow = sgRule.isEgress();
-        tpDst = sgRule.portRange();
-
-        if (sgRule.isIngress()) {
-            nwSrcIp = sgRule.remoteIpv4Subnet();
-            ipAddrGroupIdSrc = sgRule.remoteGroupId;
-        } else {
-            nwDstIp = sgRule.remoteIpv4Subnet();
-            ipAddrGroupIdDst = sgRule.remoteGroupId;
-        }
-    }
-
     public Condition(MAC macAddress) {
         ethSrc = macAddress;
     }
@@ -202,7 +186,7 @@ public class Condition extends BaseConfig {
          * Given a packet P and a subCondition x, 'xInv x(P)' is true
          * iff either:
          *    1) xInv is false and x(P) is true,
-         * or 2) xInv is true and x(P) is false.
+         * or 2) xInv is true and x(P) is false
          * In other words, 'xInv x(P)' is false iff xInv == x(P).  The entire
          * condition can be expressed as a conjunction:
          *     conjunctionInv (x1Inv x1(P) & ... & x_nInv x_n(P))

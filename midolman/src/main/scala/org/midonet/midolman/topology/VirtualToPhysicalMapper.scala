@@ -38,7 +38,6 @@ import org.midonet.cluster.data.storage.StateResult
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
-import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.HostIdProviderService
@@ -172,19 +171,13 @@ object VirtualToPhysicalMapper extends Referenceable {
     }
 }
 
-trait DeviceHandler {
-    def handle(deviceId: UUID)
-}
-
 /**
  * A class to manage handle devices.
  *
- * @param handler the DeviceHandler responsible for this type of devices
  * @param retrieve how to retrieve a local cached copy of the device
  * @param updateCache how to update a local cached copy of a device
  */
-class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
-                                         retrieve: UUID => Option[T],
+class DeviceHandlersManager[T <: AnyRef](retrieve: UUID => Option[T],
                                          updateCache: (UUID, T) => Any) {
 
     private[this] val deviceHandlers = mutable.Set[UUID]()
@@ -234,8 +227,7 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
         }
     }
 
-    def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean,
-                      createHandler: Boolean) {
+    def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean) {
         (subscriberStatus(deviceId, subscriber), updates, retrieve(deviceId))
             match {
                 case (None, _, None) =>
@@ -254,30 +246,18 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
                     registerSubscriber(deviceId, subscriber, updates)
                 case _ => // do nothing
             }
-
-        if (createHandler) {
-            ensureHandler(deviceId)
-        }
     }
 
-    def updateAndNotifySubscribers(deviceId: UUID, device: T,
-                                   createHandler: Boolean) {
-        updateAndNotifySubscribers(deviceId, device, device, createHandler)
+    def updateAndNotifySubscribers(deviceId: UUID, device: T) {
+        updateAndNotifySubscribers(deviceId, device, device)
     }
 
-    def updateAndNotifySubscribers(deviceId: UUID, device: T, message: AnyRef,
-                                   createHandler: Boolean) {
+    def updateAndNotifySubscribers(deviceId: UUID, device: T, message: AnyRef) {
         updateCache(deviceId, device)
-        notifySubscribers(deviceId, message, createHandler)
+        notifySubscribers(deviceId, message)
     }
 
-    def notifySubscribers(deviceId: UUID, message: AnyRef,
-                          createHandler: Boolean) {
-
-        if (createHandler) {
-            ensureHandler(deviceId)
-        }
-
+    def notifySubscribers(deviceId: UUID, message: AnyRef) {
         for {
             source <- List(deviceSubscribers, deviceOneShotSubscribers)
             clients <- source.get(deviceId)
@@ -292,22 +272,12 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
     }
 
     def removeAllSubscriptions(id: UUID) = deviceSubscribers.remove(id)
-
-    @inline
-    protected[topology] def ensureHandler(deviceId: UUID) {
-        if (!deviceHandlers.contains(deviceId)) {
-            handler.handle(deviceId)
-            deviceHandlers.add(deviceId)
-        }
-    }
 }
 
 trait DataClientLink {
 
     @Inject
     var config: MidolmanConfig = null
-    @Inject
-    val cluster: DataClient = null
     @Inject
     private val backend: MidonetBackend = null
     @Inject
@@ -356,18 +326,8 @@ trait DataClientLink {
 }
 
 trait DeviceManagement {
-
-    @Inject
-    val clusterClient : Client = null
-
     @Inject
     val hostId: HostIdProviderService = null
-
-    def makeHostManager(actor: ActorRef) =
-        new HostManager(clusterClient, actor)
-
-    def makeTunnelZoneManager(actor: ActorRef) =
-        new TunnelZoneManager(clusterClient, actor)
 
 }
 
@@ -392,8 +352,6 @@ abstract class VirtualToPhysicalMapperBase
     import VirtualToPhysicalMapper._
     import context.system
 
-    val cluster: DataClient
-
     private var vxlanPortService: VxLanPortMappingService = _
 
     override def subscribedClasses = Seq(classOf[LocalPortActive])
@@ -401,22 +359,12 @@ abstract class VirtualToPhysicalMapperBase
     def notifyLocalPortActive(vportID: UUID, active: Boolean): Unit
     def clearLocalPortActive(): Unit
 
-    def makeHostManager(actor: ActorRef): DeviceHandler
-    def makeTunnelZoneManager(actor: ActorRef): DeviceHandler
+    private lazy val hostsMgr = new DeviceHandlersManager[Host](DeviceCaches.host,
+                                                                DeviceCaches.addhost)
 
-    private lazy val hostsMgr =
-        new DeviceHandlersManager[Host](
-            makeHostManager(self),
-            DeviceCaches.host,
-            DeviceCaches.addhost
-        )
-
-    private lazy val tunnelZonesMgr =
-        new DeviceHandlersManager[ZoneMembers](
-            makeTunnelZoneManager(self),
-            DeviceCaches.tunnelZone,
-            DeviceCaches.putTunnelZone
-        )
+    private lazy val tunnelZonesMgr = new DeviceHandlersManager[ZoneMembers](
+                                                                DeviceCaches.tunnelZone,
+                                                                DeviceCaches.putTunnelZone)
 
     implicit val requestReplyTimeout = new Timeout(1 second)
     implicit val executor = context.dispatcher
@@ -434,8 +382,7 @@ abstract class VirtualToPhysicalMapperBase
         super.postStop()
     }
 
-    protected override def deviceUpdated(update: AnyRef, createHandler: Boolean)
-    : Unit = update match {
+    protected override def deviceUpdated(update: AnyRef): Unit = update match {
 
         /* If this is the first time we get a NewTunnelZone or a ZoneChanged
          * for this tunnel zone we will send a complete list of members to our
@@ -451,8 +398,7 @@ abstract class VirtualToPhysicalMapperBase
 
             if (msg != null) {
                 tunnelZonesMgr.updateAndNotifySubscribers(tunnelZone.id,
-                                                          newMembers, msg,
-                                                          createHandler)
+                                                          newMembers, msg)
             }
 
         case zoneChanged: ZoneChanged =>
@@ -463,25 +409,21 @@ abstract class VirtualToPhysicalMapperBase
             val newMembers = oldZone.change(zoneChanged)
             val msg = if (DeviceCaches.tunnelZone(zId).isEmpty) newMembers
                       else zoneChanged
-            tunnelZonesMgr.updateAndNotifySubscribers(zId, newMembers, msg,
-                                                      createHandler)
+            tunnelZonesMgr.updateAndNotifySubscribers(zId, newMembers, msg)
 
         case host: Host =>
-            hostsMgr.updateAndNotifySubscribers(host.id, host, createHandler)
+            hostsMgr.updateAndNotifySubscribers(host.id, host)
 
         case _ => log.warn("Unknown device update {}", update)
     }
 
-    protected override def deviceRequested(request: VtpmRequest[_],
-                                           createHandler: Boolean)
+    protected override def deviceRequested(request: VtpmRequest[_])
     : Unit = request match {
 
             case HostRequest(hostId, updates) =>
-                hostsMgr.addSubscriber(hostId, sender(), updates,
-                                       createHandler)
+                hostsMgr.addSubscriber(hostId, sender(), updates)
             case TunnelZoneRequest(zoneId) =>
-                tunnelZonesMgr.addSubscriber(zoneId, sender(), updates=true,
-                                             createHandler)
+                tunnelZonesMgr.addSubscriber(zoneId, sender(), updates=true)
             case _ => log.warn("Unknown device request", request)
     }
 
@@ -538,15 +480,6 @@ abstract class VirtualToPhysicalMapperBase
     }
 
     override def receive = super.receive orElse {
-        case request: VtpmRequest[_] =>
-            deviceRequested(request, createHandler=true)
-
-        case host: Host =>
-            deviceUpdated(host, createHandler=true)
-
-        case zoneChanged: ZoneChanged =>
-            deviceUpdated(zoneChanged, createHandler=true)
-
         case HostUnsubscribe(hostId) =>
             unsubscribeClient(HostUnsubscribe(hostId), sender())
 
