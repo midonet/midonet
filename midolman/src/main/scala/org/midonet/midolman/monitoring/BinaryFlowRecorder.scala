@@ -224,6 +224,8 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                     rule.result(SbeRuleResult.REJECT)
                 case RuleResult.Action.RETURN =>
                     rule.result(SbeRuleResult.RETURN)
+                case RuleResult.Action.REDIRECT =>
+                    rule.result(SbeRuleResult.REDIRECT)
             }
             i += 1
         }

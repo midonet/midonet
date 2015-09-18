@@ -57,7 +57,7 @@ public class JumpRule extends Rule {
         super(condition, Action.JUMP, chainId);
         this.jumpToChainID = jumpToChainID;
         this.jumpToChainName = jumpToChainName;
-        result = new RuleResult(action, jumpToChainID);
+        result = RuleResult.jumpResult(jumpToChainID);
     }
 
     public JumpRule(UUID chainId, UUID jumpChainId,
@@ -69,13 +69,13 @@ public class JumpRule extends Rule {
     @Override
     public void afterFromProto(Message proto) {
         super.afterFromProto(proto);
-        result = new RuleResult(action, jumpToChainID);
+        result = RuleResult.jumpResult(jumpToChainID);
     }
 
     @Override
     protected RuleResult onSuccess() {
         if (result == null) //TODO: Remove this after v2
-            result = new RuleResult(action, jumpToChainID);
+            result = RuleResult.jumpResult(jumpToChainID);
         return result;
     }
 

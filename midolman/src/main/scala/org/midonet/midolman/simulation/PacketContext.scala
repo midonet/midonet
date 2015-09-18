@@ -213,6 +213,29 @@ trait RecordedContext extends Clearable {
     }
 }
 
+trait RedirectContext extends Clearable {
+    var redirected = false
+    var redirectFailOpen = false
+
+    def isRedirected(): Boolean = redirected
+    def isRedirectFailOpen(): Boolean = redirectFailOpen
+
+    def redirect(failOpen: Boolean): Unit = {
+        redirected = true
+        redirectFailOpen = failOpen
+    }
+
+    def clearRedirect(): Unit = {
+        redirected = false
+        redirectFailOpen = false
+    }
+
+    override def clear(): Unit = {
+        clearRedirect()
+        super.clear()
+    }
+}
+
 /**
  * The PacketContext represents the simulation of a packet traversing the
  * virtual topology. Since a simulation runs-to-completion, always in the
@@ -226,6 +249,7 @@ class PacketContext(val cookie: Int,
                     val egressPort: UUID = null,
                     val egressPortNo: JInteger = null) extends Clearable
                                                  with FlowContext
+                                                 with RedirectContext
                                                  with RecordedContext
                                                  with StateContext {
     var log = PacketContext.defaultLog
