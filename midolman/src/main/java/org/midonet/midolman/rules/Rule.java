@@ -34,7 +34,7 @@ import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.simulation.PacketContext;
-import org.midonet.midolman.state.zkManagers.BaseConfig;
+import org.midonet.nsdb.BaseConfig;
 import org.midonet.sdn.flows.FlowTagger;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,

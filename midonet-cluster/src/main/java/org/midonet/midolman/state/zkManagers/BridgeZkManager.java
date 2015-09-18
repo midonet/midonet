@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
+import org.midonet.nsdb.ConfigWithProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

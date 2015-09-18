@@ -34,6 +34,7 @@ import org.midonet.midolman.state.ZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.midonet.nsdb.BaseConfig;
 
 public class AdRouteZkManager
         extends AbstractZkManager<UUID, AdRouteZkManager.AdRouteConfig> {
