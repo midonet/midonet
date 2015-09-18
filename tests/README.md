@@ -55,7 +55,7 @@ midonet$ ./gradlew -x test debian
 midonet$ find . -name "*.deb"
 ./midolman/build/packages/midolman_2015.05~201506030403.f4646d4_all.deb
 ./python-midonetclient/python-midonetclient_2015.05~201506030403.f4646d4_all.deb
-./cluster/midonet-cluster/build/packages/midonet-cluster_2015.05~201506030403.f4646d4_all.deb
+./midonet-cluster/build/packages/midonet-cluster_2015.05~201506030403.f4646d4_all.deb
 ```
 
 Midonet Sandbox already use a predefined set of docker images to ease the task
@@ -79,7 +79,7 @@ packages to install:
 ```
 midonet$ cp midolman/build/packages/midolman*deb tests/sandbox/override_v2/midolman
 midonet$ cp python-midonetclient/python-midonetclient*deb tests/sandbox/override_v2/api
-midonet$ cp cluster/midonet-cluster/build/packages/midonet-cluster*deb tests/sandbox/override_v2/api
+midonet$ cp midonet-cluster/build/packages/midonet-cluster*deb tests/sandbox/override_v2/api
 ```
 
 And start sandbox with a specific flavor, override and provisioning scripts:
