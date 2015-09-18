@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_c6c4a642",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-18T08:13:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_f77eb2ad",
+      "range": {
+        "startLine": 355,
+        "startChar": 12,
+        "endLine": 356,
+        "endChar": 22
+      },
+      "revId": "001c49039a49d4e365a98ad3a308b3c72b922dad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_174b1e88",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VxLanPortMappingService.scala",
         "patchSetId": 19
@@ -59,6 +83,30 @@
       "writtenOn": "2015-09-17T16:48:47Z",
       "side": 1,
       "message": "This won\u0027t happen as the API forbids deleting a VTEP when it still has bindings. \n\nIn any case, let\u0027s keep the tests that do this as the behaviour for the mapper is identical, regardless of whether teh vxlan port is removed or not (that\u0027s a data inconsistency that\u0027d be fault of the API, but unrelated here).  THe test is actually good as it verifies that regardless of the ports, what determines the bindings is the VTEP.",
+      "range": {
+        "startLine": 411,
+        "startChar": 12,
+        "endLine": 412,
+        "endChar": 48
+      },
+      "revId": "001c49039a49d4e365a98ad3a308b3c72b922dad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_46e896b4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VxLanPortMappingServiceTest.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 412,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-18T08:13:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_1a00a300",
       "range": {
         "startLine": 411,
         "startChar": 12,
