@@ -21,6 +21,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
 
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
@@ -56,10 +57,8 @@ object ClusterNode extends App {
     /** Encapsulates node-wide context that might be of use for minions
       *
       * @param nodeId the UUID of this Cluster node
-      * @param embed whether this service is enabled as an embedded service
-      *              (this is legacy for the REST API)
       */
-    case class Context(nodeId: UUID, embed: Boolean = false)
+    case class Context(nodeId: UUID)
 
     private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -71,32 +70,20 @@ object ClusterNode extends App {
     private val configFile = args(0)
     log info s"Loading configuration: $configFile"
     if (!Files.isReadable(Paths.get(configFile))) {
-        System.err.println("OH NO! configuration file is not readable")
+        System.err.println(s"OH NO! configuration file is not readable " +
+                           "$configFile")
         System.exit(1)
     }
+
+    // Load cluster node configuration
+    private val nodeId = HostIdGenerator.getHostId
+    private val nodeContext = new Context(nodeId)
 
     val configurator = MidoNodeConfigurator(configFile)
     if (configurator.deployBundledConfig()) {
         log.info("Deployed new configuration schema into NSDB")
     }
-
-    // TODO: this chunk here is required so that we override the NDSB
-    //       settings and enable the new storage stack when running 2.0 code
-    //       in development.  When the new storage stack is released, we should
-    //       remove it.
-    val CLUSTER_NODE_CONF_OVERRIDES = ConfigFactory.parseString(
-        """
-          |zookeeper {
-          |    use_new_stack = true
-          |    curator_enabled = true
-          |}
-        """.stripMargin)
-
-    // Load cluster node configuration
-    private val nodeId = HostIdGenerator.getHostId
     configurator.centralPerNodeConfig(nodeId)
-                .mergeAndSet(CLUSTER_NODE_CONF_OVERRIDES)
-    private val nodeContext = new Context(nodeId)
 
     val clusterConf = new ClusterConfig(configurator.runtimeConfig)
 
@@ -186,10 +173,10 @@ object ClusterNode extends App {
         dataClientDependencies
     )
 
-    log info "Registering shutdown hook"
+    log debug "Registering shutdown hook"
     sys addShutdownHook {
         if (daemon.isRunning) {
-            log.info("Shutting down..")
+            log.info("Shutdown hook triggered, shutting down..")
             jmxReporter.stop()
             daemon.stopAsync().awaitTerminated()
         }
@@ -204,14 +191,16 @@ object ClusterNode extends App {
         injector.getInstance(classOf[MidonetBackend])
                 .startAsync().awaitRunning()
         daemon.startAsync().awaitRunning()
-        log info "MidoNet Cluster is up"
+        log info "MidoNet Cluster is up!"
     } catch {
         case e: Throwable =>
             e.getCause match {
                 case e: ClusterException =>
                     log error("The Daemon was not able to start", e.getCause)
-                case _ =>
-                    log error(".. actually, not. See error trace", e)
+                    System.exit(255)
+                case NonFatal(t) =>
+                    log error("Failure in Cluster startup", e)
+                    System.exit(255)
             }
     }
 
