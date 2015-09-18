@@ -117,8 +117,7 @@ class PortBindingTranslatorTest extends TranslatorTestBase {
         val midoOps = translator.translate(neutron.Create(binding1))
 
         midoOps should contain only
-            midonet.Update(portWithHost(newPortId, host1NoBindingsId, newIface),
-                           PortUpdateValidator)
+            midonet.Update(portWithHost(newPortId, host1NoBindingsId, newIface))
     }
 
     it should "add a new mapping at the end of the existing mappings" in {
@@ -128,8 +127,7 @@ class PortBindingTranslatorTest extends TranslatorTestBase {
 
         midoOps should contain only
             midonet.Update(
-                portWithHost(newPortId, host2With2BindingsId, newIface),
-                PortUpdateValidator)
+                portWithHost(newPortId, host2With2BindingsId, newIface))
     }
 
     "Port binding to a non-existing port" should "throw an exception" in {

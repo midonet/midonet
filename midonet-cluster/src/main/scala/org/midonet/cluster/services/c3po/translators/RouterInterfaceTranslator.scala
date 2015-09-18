@@ -99,8 +99,6 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         val midoOps = new MidoOpListBuffer
         val routerPort = routerPortBldr.build()
         midoOps += Create(routerPort)
-        midoOps += Create(rifRoute)
-        midoOps += Create(localRoute)
 
         if (isUplink) {
             midoOps ++= bindPortOps(routerPort,
@@ -111,6 +109,12 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
                 routerPortId, nPort.getNetworkId, portSubnet)
             midoOps ++= updateGatewayRoutesOps(gatewayIp, ns.getId)
         }
+
+        // Need to do these after the update returned by bindPortOps(), since
+        // these creates add route IDs to the port's routeIds list, which would
+        // be overwritten by the update.
+        midoOps += Create(rifRoute)
+        midoOps += Create(localRoute)
 
         // Convert Neutron Port to router interface port if it isn't already.
         if (nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE) {

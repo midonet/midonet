@@ -654,15 +654,6 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     }
 }
 
-private[translators] object PortUpdateValidator extends UpdateValidator[Port] {
-    override def validate(oldPort: Port, newPort: Port): Port = {
-        newPort.toBuilder
-            .addAllRouteIds(oldPort.getRouteIdsList)
-            .addAllFipNatRuleIds(oldPort.getFipNatRuleIdsList)
-            .build()
-    }
-}
-
 private[translators] object NeutronPortUpdateValidator
         extends UpdateValidator[NeutronPort] {
     override def validate(oldNPort: NeutronPort, newNPort: NeutronPort)
