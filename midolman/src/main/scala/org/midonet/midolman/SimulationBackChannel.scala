@@ -23,16 +23,19 @@ import org.jctools.queues.MpscArrayQueue
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
-trait BackChannelMessage
+object SimulationBackChannel {
+    trait BackChannelMessage
+    trait Broadcast { this: BackChannelMessage => }
+}
 
 trait SimulationBackChannel {
-    def tell(message: BackChannelMessage): Unit
+    def tell(message: SimulationBackChannel.BackChannelMessage): Unit
     def hasMessages: Boolean
     def process(handler: BackChannelHandler): Unit
 }
 
 trait BackChannelHandler {
-    def handle(message: BackChannelMessage): Unit
+    def handle(message: SimulationBackChannel.BackChannelMessage): Unit
 }
 
 object ShardedSimulationBackChannel {
@@ -47,6 +50,7 @@ object ShardedSimulationBackChannel {
 
 final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
     extends SimulationBackChannel {
+    import SimulationBackChannel._
 
     private val NO_SHARD: BackChannelShard = null
     private val processors = new ArrayList[BackChannelShard]()
@@ -58,7 +62,15 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
     }
 
     override def tell(msg: BackChannelMessage): Unit =
-        tellOthers(NO_SHARD, msg)
+        msg match {
+            case msg: Broadcast =>
+                tellOthers(NO_SHARD, msg)
+            case _ =>
+                throw new IllegalArgumentException(
+                    "Scheduling a non-broadcast messaged on the main back " +
+                    "channel is not supported")
+        }
+
 
     private def tellOthers(shardToSkip: BackChannelShard,
                            msg: BackChannelMessage): Unit = {
@@ -83,7 +95,8 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
     }
 
      override def process(handler: BackChannelHandler): Unit =
-        throw new Exception("Calling process on the main back channel is not supported")
+        throw new UnsupportedOperationException(
+            "Calling process on the main back channel is not supported")
 
     final class BackChannelShard extends SimulationBackChannel with Parkable {
         private val MAX_PENDING = 1024
@@ -96,12 +109,16 @@ final class ShardedSimulationBackChannel(triggerChannelCheck: () => Unit)
             }
         }
 
-        /*
-         * Broadcasts this tag to all invalidation processors.
+        /**
+         * Schedules this message on the current backchannel, and, if it is
+         * a broadcast message, schedules it on all the remaining shards.
          */
         override def tell(msg: BackChannelMessage): Unit = {
             offer(msg)
-            tellOthers(this, msg)
+            if (msg.isInstanceOf[BackChannelMessage with Broadcast])
+                tellOthers(this, msg)
+            else
+                triggerChannelCheck()
         }
 
         override def hasMessages: Boolean = !q.isEmpty

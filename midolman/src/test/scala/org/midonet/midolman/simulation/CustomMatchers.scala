@@ -19,24 +19,23 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.UUID
 
-import org.midonet.midolman.simulation.Simulator.ToPortAction
-import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
-import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, SimulationBackChannel}
-
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
-
 import org.scalactic.Prettifier
 import org.scalatest.matchers._
 
+import org.midonet.midolman.{BackChannelHandler, SimulationBackChannel}
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult, AddVirtualWildcardFlow}
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.flows.FlowTagIndexer
-import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet,
-                            FlowKeyIPv4, FlowActionPopVLAN, FlowActionPushVLAN}
+import org.midonet.odp.flows.{FlowActionPopVLAN, FlowActionPushVLAN}
+import org.midonet.midolman.simulation.Simulator.ToPortAction
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
+import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
+import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet, FlowKeyIPv4}
 import org.midonet.packets.{IPv4Subnet, Ethernet, IPv4}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
