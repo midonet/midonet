@@ -22,7 +22,6 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.host.services.HostService
 import org.midonet.midolman.host.state.HostZkManager
-import org.midonet.midolman.host.updater.{DefaultInterfaceDataUpdater, InterfaceDataUpdater}
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.util.mock.MockInterfaceScanner
 
@@ -33,10 +32,6 @@ class MockHostModule extends PrivateModule {
 
         bind(classOf[InterfaceScanner]).to(classOf[MockInterfaceScanner])
         expose(classOf[InterfaceScanner])
-
-        bind(classOf[InterfaceDataUpdater]).to(
-            classOf[DefaultInterfaceDataUpdater])
-        expose(classOf[InterfaceDataUpdater])
 
         requireBinding(classOf[MidolmanConfig])
         expose(classOf[HostIdProviderService])

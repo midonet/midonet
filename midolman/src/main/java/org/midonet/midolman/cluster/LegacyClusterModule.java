@@ -35,7 +35,6 @@ import org.midonet.cluster.ClusterRouterManager;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.LocalClientImpl;
 import org.midonet.cluster.LocalDataClientImpl;
-import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.state.LegacyStorage;
 import org.midonet.cluster.state.ZookeeperLegacyStorage;
 import org.midonet.cluster.storage.MidonetBackendConfig;
@@ -92,9 +91,6 @@ public class LegacyClusterModule extends PrivateModule {
         bind(PathBuilder.class).toProvider(PathBuilderProvider.class)
                                .asEagerSingleton();
         expose(PathBuilder.class);
-
-        bind(LegacyStorageService.class).asEagerSingleton();
-        expose(LegacyStorageService.class);
 
         bind(ZkManager.class).toProvider(BaseZkManagerProvider.class)
                              .asEagerSingleton();
