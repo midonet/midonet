@@ -89,6 +89,11 @@ public class ZkNatBlockRecycler {
                                       Object ctx,
                                       final List<String> children,
                                       final Stat stat) {
+                if (stat == null) {
+                    log.debug("Skipping NAT block recycling: no NAT blocks "
+                              + "have been allocated");
+                    return;
+                }
                 if (clock.time() - stat.getMtime() < ONE_DAY) {
                     log.debug("Skipping NAT block recycling: too soon after last operation");
                     p.success(0);
