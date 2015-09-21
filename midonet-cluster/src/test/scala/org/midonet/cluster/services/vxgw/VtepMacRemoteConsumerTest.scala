@@ -50,7 +50,7 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
         MoreExecutors.sameThreadExecutor())
 
     var vu: VtepMacRemoteConsumer = _
-    var nwCards: java.util.Map[UUID, NetworkInfo] = _
+    var nwInfos: java.util.Map[UUID, NetworkInfo] = _
     var mockMacRemoteObs: TestAwaitableObserver[MacLocation] = _
     var store: InMemoryStorage = _
 
@@ -64,9 +64,9 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
         vtepFixture = new VtepFixture(store)
         aVxGw = new VxlanGatewayFixture(store, vtepFixture)
 
-        nwCards = new java.util.HashMap[UUID, NetworkInfo]
+        nwInfos = new java.util.HashMap[UUID, NetworkInfo]
         mockMacRemoteObs = new TestAwaitableObserver[MacLocation]
-        vu = new VtepMacRemoteConsumer(vtepFixture.vtep, nwCards, store,
+        vu = new VtepMacRemoteConsumer(vtepFixture.vtep, nwInfos, store,
                                        mockMacRemoteObs)
     }
 
@@ -88,7 +88,7 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
             st.vxPort = randomUUID()
             st.arpTable = mock[Ip4ToMacReplicatedMap]
             st.macTable = mock[MacPortMap]
-            nwCards.put(aVxGw.nwId, st)
+            nwInfos.put(aVxGw.nwId, st)
 
             When("A mac-port change is notified, on a port that's not bound")
             val mac = MAC.random()
@@ -101,6 +101,48 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
             mockMacRemoteObs.getOnNextEvents.head shouldBe MacLocation(mac, lsName, null)
 
         }
+
+        scenario("Macs on the VTEP's VxLAN port do not generate updates") {
+            Given("A VxGW")
+            val vtepId = vtepFixture.vtepId
+            val mpHandler = vu.buildMacPortHandler(aVxGw.nwId)
+            val vxPortId = aVxGw.vxPorts.get(vtepId)
+
+            When("The network appears in the map")
+            val st = new NetworkInfo
+            st.vxPort = vxPortId
+            st.arpTable = mock[Ip4ToMacReplicatedMap]
+            st.macTable = mock[MacPortMap]
+            nwInfos.put(aVxGw.nwId, st)
+
+            val mac1 = MAC.fromString("00:00:00:00:00:00")
+            val mac2 = MAC.fromString("11:11:11:11:11:11")
+            Mockito.when(st.macTable.get(mac1)).thenReturn(vxPortId)
+            Mockito.when(st.macTable.get(mac2)).thenReturn(aVxGw.port1Id)
+
+            And("A mac-port change is notified on the VxLAN port of the VTEP")
+            mpHandler.call(notification(mac1, vxPortId))
+
+            Then("It is ignored")
+            mockMacRemoteObs.getOnNextEvents shouldBe empty
+
+            When("A mac-port change is notified")
+            mpHandler.call(notification(mac2, aVxGw.port1Id))
+
+            Then("It is not ignored")
+            mockMacRemoteObs.getOnNextEvents should have size 1
+            mockMacRemoteObs.getOnNextEvents.head.mac shouldBe mac2
+
+            When("A MAC on the VxLAN port moves to a different port")
+            Mockito.when(st.macTable.get(mac1)).thenReturn(aVxGw.port1Id)
+            mpHandler.call(notification(mac1, aVxGw.port1Id))
+
+            Then("The MacRemote is written")
+            mockMacRemoteObs.getOnNextEvents should have size 2
+            mockMacRemoteObs.getOnNextEvents.last.mac shouldBe mac1
+
+        }
+
         scenario("Handle a MAC lifecycle in a network") {
 
             val lsName = bridgeIdToLogicalSwitchName(aVxGw.nwId)
@@ -115,17 +157,17 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
             val arpHandler = vu.buildArpUpdateHandler(aVxGw.nwId)
             arpHandler.call(notification(ip, mac))
 
-            Then("The macPortHandler should ignore it as it's not in nwCards")
+            Then("The macPortHandler should ignore it as it's not tracked")
             mockMacRemoteObs.getOnCompletedEvents shouldBe empty
             mockMacRemoteObs.getOnErrorEvents shouldBe empty
             mockMacRemoteObs.getOnNextEvents shouldBe empty
 
             When("The network appears in the map")
             val st = new NetworkInfo
-            st.vxPort = randomUUID()
+            st.vxPort = aVxGw.vxPorts.get(vtepFixture.vtepId)
             st.arpTable = mock[Ip4ToMacReplicatedMap]
             st.macTable = mock[MacPortMap]
-            nwCards.put(aVxGw.nwId, st)
+            nwInfos.put(aVxGw.nwId, st)
 
             And("A new MAC-port is added to the map and notified")
             Mockito.when(st.macTable.get(mac)).thenReturn(aVxGw.port1Id)
