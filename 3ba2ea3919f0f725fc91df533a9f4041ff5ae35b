@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_e22500c3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-21T15:24:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_a7e94a82",
+      "range": {
+        "startLine": 144,
+        "startChar": 52,
+        "endLine": 144,
+        "endChar": 53
+      },
+      "revId": "3ba2ea3919f0f725fc91df533a9f4041ff5ae35b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_e702723d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-09-21T11:26:38Z",
       "side": 1,
       "message": "since this is a hostId, should we pass UUID instead?\n\nI guess it\u0027s a string to support \"any\". Would it make sense to have Option[UUID] then?",
+      "range": {
+        "startLine": 187,
+        "startChar": 22,
+        "endLine": 187,
+        "endChar": 26
+      },
+      "revId": "3ba2ea3919f0f725fc91df533a9f4041ff5ae35b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_c23f24d5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-21T15:24:38Z",
+      "side": 1,
+      "message": "\"any\" was intended only as temporary, with the goal to remove it later when the support for multiple hosts is added to the agent too. Do we want to support an `any` hosts state, i.e. None?",
+      "parentUuid": "1ae5cdf2_e702723d",
       "range": {
         "startLine": 187,
         "startChar": 22,
