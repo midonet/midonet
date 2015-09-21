@@ -193,13 +193,14 @@ class PathDirectoryObservableTest extends FlatSpec
         obs.getOnCompletedEvents shouldBe empty
 
         createParent()
-        createChild(0)
         obs.awaitOnNext(2, timeout)
-        createChild(1)
+        createChild(0)
         obs.awaitOnNext(3, timeout)
+        createChild(1)
+        obs.awaitOnNext(4, timeout)
 
-        obs.getOnNextEvents should contain inOrderOnly(
-            Set(), Set("0"), Set("0", "1"))
+        obs.getOnNextEvents should contain theSameElementsInOrderAs List(
+            Set(), Set(), Set("0"), Set("0", "1"))
         obs.getOnErrorEvents shouldBe empty
         obs.getOnCompletedEvents shouldBe empty
     }
