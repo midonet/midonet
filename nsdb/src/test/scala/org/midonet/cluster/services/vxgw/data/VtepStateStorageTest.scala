@@ -43,12 +43,13 @@ class VtepStateStorageTest extends FlatSpec with CuratorTestFramework
                                    with Matchers with GivenWhenThen {
 
     private var storage: ZookeeperObjectMapper = _
+    private val hostId = UUID.randomUUID().toString
     private var ownerId: Long = _
     private val random = new Random
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(ZK_ROOT, curator)
+        storage = new ZookeeperObjectMapper(zkRoot, hostId, curator)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }
