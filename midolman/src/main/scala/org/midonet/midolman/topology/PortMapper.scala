@@ -19,6 +19,7 @@ import java.util.{ArrayList => JArrayList, UUID}
 
 import scala.collection.mutable
 
+import com.codahale.metrics.MetricRegistry
 import rx.Observable
 import rx.subjects.Subject
 
@@ -51,8 +52,9 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc3
  *                       +-------------------+  +-------+  +---------+
  */
 final class PortMapper(id: UUID, vt: VirtualTopology,
+                       metricRegistry: MetricRegistry,
                        val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
-        extends VirtualDeviceMapper[SimulationPort](id, vt)
+        extends VirtualDeviceMapper[SimulationPort](id, vt, metricRegistry)
         with TraceRequestChainMapper[SimulationPort] {
 
     override def logSource = s"org.midonet.devices.port.port-$id"
