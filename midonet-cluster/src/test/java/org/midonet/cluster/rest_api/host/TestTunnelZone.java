@@ -20,30 +20,34 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.cluster.rest_api.host.rest_api.HostTopology;
-import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
-import org.midonet.cluster.rest_api.rest_api.FuncTest;
-import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoTunnelZone;
+import org.midonet.client.dto.DtoVtep;
+import org.midonet.client.dto.TunnelZoneType;
+import org.midonet.cluster.rest_api.host.rest_api.HostTopology;
+import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
+import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_JSON;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZone {
@@ -149,31 +153,27 @@ public class TestTunnelZone {
          * not be possible to delete the tunnel zone.
          */
         @Test
-        @Ignore("Implement in V2")
         public void testDeleteFailsIfVTEPUsingTunnelZone() {
-
-            /*
             DtoApplication app = topology.getApplication();
             URI tunnelZonesUri = app.getTunnelZones();
             DtoTunnelZone tunnelZone = new DtoTunnelZone();
             tunnelZone.setName("tz1");
+            tunnelZone.setType(TunnelZoneType.VTEP);
             tunnelZone = dtoResource.postAndVerifyCreated(tunnelZonesUri,
                       MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON(), tunnelZone,
                       DtoTunnelZone.class);
             DtoVtep vtep = new DtoVtep();
-            vtep.setManagementIp(MOCK_VTEP1.mgmtIp());
-            vtep.setManagementPort(MOCK_VTEP1.mgmtPort());
+            vtep.setManagementIp("192.168.1.2");
+            vtep.setManagementPort(6632);
             vtep.setTunnelZoneId(tunnelZone.getId());
             dtoResource.postAndVerifyCreated(app.getVteps(),
-                                 MidonetMediaTypes.APPLICATION_VTEP_JSON, vtep,
-                                 DtoVtep.class);
+                                             APPLICATION_VTEP_JSON(), vtep,
+                                             DtoVtep.class);
 
             // now try to delete the tunnel zone
             dtoResource.deleteAndVerifyError(tunnelZone.getUri(),
                                  MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON(),
                                  ClientResponse.Status.CONFLICT.getStatusCode());
-            */
-
         }
 
     }
