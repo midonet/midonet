@@ -445,6 +445,8 @@ class InMemoryStorage extends Storage with StateStorage {
 
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
 
+    override val namespace = "any"
+
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
