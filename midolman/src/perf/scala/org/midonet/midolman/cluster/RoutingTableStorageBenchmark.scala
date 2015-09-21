@@ -57,6 +57,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
 
     private final val zkServer = "127.0.0.1:2181"
     private final val zkRoot = "/midonet/benchmark"
+    private final val hostId = UUID.randomUUID().toString
 
     private var curator: CuratorFramework = _
     private var storage: ZookeeperObjectMapper = _
@@ -101,7 +102,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
                                                     cnxnTimeoutMs,
                                                     retryPolicy)
         curator.start()
-        storage = new ZookeeperObjectMapper(zkRoot, curator)
+        storage = new ZookeeperObjectMapper(zkRoot, hostId, curator)
         storage.registerClass(classOf[Port])
         storage.registerKey(classOf[Port], RoutesKey, Multiple)
         storage.build()

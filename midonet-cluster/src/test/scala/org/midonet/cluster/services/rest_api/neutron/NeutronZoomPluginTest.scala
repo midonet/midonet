@@ -59,13 +59,13 @@ class NeutronZoomPluginTest extends FeatureSpec
     override def setup() {
         val cfg = new MidonetBackendConfig(ConfigFactory.parseString(s"""
            |zookeeper.zookeeper_hosts : "${zk.getConnectString}"
-           |zookeeper.root_key : "$ZK_ROOT"
+           |zookeeper.root_key : "$zkRoot"
         """.stripMargin)
         )
         backend = new MidonetBackendService(cfg, curator, metricRegistry = null)
         backend.startAsync().awaitRunning()
 
-        val paths = new PathBuilder(ZK_ROOT)
+        val paths = new PathBuilder(zkRoot)
         val resContext = new ResourceContext(backend, uriInfo = null,
                                              validator = null,
                                              seqDispenser = null,

@@ -48,7 +48,7 @@ class SequenceDispenserTest extends FeatureSpecLike
           |zookeeper {
           |    use_new_stack = false
           |    curator_enabled = false
-          |    root_key = $ZK_ROOT
+          |    root_key = $zkRoot
           |}
         """.stripMargin))
 
@@ -61,7 +61,7 @@ class SequenceDispenserTest extends FeatureSpecLike
                 sequencer.next(t).await(timeout) shouldBe t.seed +2
 
                 // Make sure we're storing things in the right place
-                curator.checkExists().forPath(ZK_ROOT + "/" + t)
+                curator.checkExists().forPath(zkRoot + "/" + t)
             }
         }
     }

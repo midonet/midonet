@@ -27,7 +27,6 @@ import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
 
@@ -230,8 +229,9 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
 
     private val log = getLogger("org.midonet.nsdb")
 
-    private val zoom = new ZookeeperObjectMapper(cfg.rootKey + "/zoom", curator,
-                                                 metricRegistry)
+    private val zoom =
+        new ZookeeperObjectMapper(s"${cfg.rootKey}/zoom", "any", curator,
+                                  metricRegistry)
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom

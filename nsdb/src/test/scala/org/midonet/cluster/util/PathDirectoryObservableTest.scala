@@ -31,7 +31,7 @@ class PathDirectoryObservableTest extends FeatureSpec
                                   with CuratorTestFramework
                                   with Matchers {
 
-    val parentPath = ZK_ROOT + "/parent"
+    val parentPath = zkRoot + "/parent"
     val timeout = 5 seconds
 
     def createParent(): String = {
@@ -153,7 +153,7 @@ class PathDirectoryObservableTest extends FeatureSpec
 
     feature("Test observable errors") {
         scenario("Error on parent does not exist") {
-            val path = ZK_ROOT + "/none"
+            val path = zkRoot + "/none"
             val observable = PathDirectoryObservable.create(curator, path)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 

@@ -43,10 +43,11 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
                                with Eventually {
 
     private var storage: ZookeeperObjectMapper = _
+    private val hostId = UUID.randomUUID.toString
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(ZK_ROOT, curator)
+        storage = new ZookeeperObjectMapper(zkRoot, hostId, curator)
         initAndBuildStorage(storage)
     }
 
@@ -223,7 +224,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         curator2.start()
         if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
             fail("Curator did not connect to the test ZK server")
-        val storage2 = new ZookeeperObjectMapper(ZK_ROOT, curator2)
+        val storage2 = new ZookeeperObjectMapper(zkRoot, hostId, curator2)
         initAndBuildStorage(storage2)
 
         Then("Adding a value should return the current session")
@@ -278,7 +279,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
             curator2.start()
             if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
                 fail("Curator did not connect to the test ZK server")
-            val storage2 = new ZookeeperObjectMapper(ZK_ROOT, curator2)
+            val storage2 = new ZookeeperObjectMapper(zkRoot, hostId, curator2)
             initAndBuildStorage(storage2)
 
             Then("Adding a value should return the current session")
@@ -339,7 +340,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
             if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
                 fail("Curator did not connect to the test ZK server")
             val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
-            val storage2 = new ZookeeperObjectMapper(ZK_ROOT, curator2)
+            val storage2 = new ZookeeperObjectMapper(zkRoot, hostId, curator2)
             initAndBuildStorage(storage2)
 
             Then("Adding a value should return the current session")
@@ -424,7 +425,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
             if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
                 fail("Curator did not connect to the test ZK server")
             val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
-            val storage2 = new ZookeeperObjectMapper(ZK_ROOT, curator2)
+            val storage2 = new ZookeeperObjectMapper(zkRoot, hostId, curator2)
             initAndBuildStorage(storage2)
 
             When("First client adds a value")
@@ -473,7 +474,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
             if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
                 fail("Curator did not connect to the test ZK server")
             val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
-            val storage2 = new ZookeeperObjectMapper(ZK_ROOT, curator2)
+            val storage2 = new ZookeeperObjectMapper(zkRoot, hostId, curator2)
             initAndBuildStorage(storage2)
 
             When("First client adds a value")
