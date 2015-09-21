@@ -44,9 +44,9 @@ object Snatcher {
     }
 }
 
-/** The Snatcher will watch the observable that emits state keys for a given
-  * entity, and compete with other snatchers in other instances to snatch
-  * it if it's not taken, or if a previous owner releases it.
+/** The Snatcher will watch the observable that emits state keys for a
+  *  given entity, and compete with other snatchers to snatch it if it's
+  *  not taken, or if a previous owner releases it.
   *
   * You should avoid using two instances of the Snatcher per entity per node
   * But nothing will prevent you from doing it.
@@ -55,7 +55,7 @@ object Snatcher {
   * subscription, so thread-safety is not enforced within the class.
   *
   * @param targetId the ID of the entity that we'll try to snatch
-  * @param nodeId our node ID, used to take ownership of VTEPs
+  * @param nodeId our node ID, used to take ownership of the target
   * @param stateStore the state storage
   * @param stateKey the state key used to write ownership.  Note that this
   *                 key must be declared in the StateStorage as FirstWriteWins
@@ -80,8 +80,7 @@ sealed class Snatcher[D](val targetId: UUID,
         }
     }
     override def onError(t: Throwable): Unit = {
-        log.error(s"Failure watching entity $targetId of type " +
-                  s"${ct.runtimeClass}", t)
+        log.error(s"Failure watching entity $targetId of type $typeName", t)
         onCompleted()
     }
     override def onNext(t: StateKey): Unit = t match {
@@ -97,10 +96,10 @@ sealed class Snatcher[D](val targetId: UUID,
                     case Failure(e) =>
                         log.warn(s"Failed to write state for key: $t", e)
                 }
-        case SingleValueKey(_ , v, session) if stateStore.ownerId == session =>
+        case SingleValueKey(_ , Some(v), session) if stateStore.ownerId == session =>
             log.debug(s"I own $typeName $targetId")
             iAmOwner()
-        case SingleValueKey(_, v, session) => // Somebody else is the owner
+        case SingleValueKey(_, Some(v), session) => // Somebody else is the owner
             log.debug(s"$typeName $targetId already taken by node $v")
             val wasOwner = isOwner
             isOwner = false
@@ -123,9 +122,9 @@ sealed class Snatcher[D](val targetId: UUID,
       * current owner, it'll give up ownership.
       */
     def giveUp(): Unit = {
-        log.info(s"Release $typeName $targetId")
         sub.unsubscribe()
         if (isOwner) {
+            log.info(s"Release $typeName $targetId")
             isOwner = false
             stateStore.removeValue(ct.runtimeClass, targetId, stateKey, null)
                       .andThen {
