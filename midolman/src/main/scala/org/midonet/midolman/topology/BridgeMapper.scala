@@ -17,7 +17,7 @@ package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean, Long => JLong}
 import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.{ArrayList, UUID}
+import java.util.{ArrayList => JArrayList, UUID}
 
 import javax.annotation.Nullable
 
@@ -26,6 +26,7 @@ import scala.collection.concurrent.{Map => CMap, TrieMap}
 import scala.collection.mutable
 import scala.compat.Platform
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import com.typesafe.scalalogging.Logger
@@ -57,19 +58,21 @@ object BridgeMapper {
      * when calling the complete() method, which is used to signal that a port
      * no longer belongs to a bridge.
      */
-    private class PortState[D >: Null <: Port](val portId: UUID) {
+    private class PortState[D >: Null <: Port](val portId: UUID)
+                                              (implicit tag: ClassTag[D]){
 
-        def this(id: UUID, peerPortState: LocalPortState) = {
-            this(id)
+        def this(id: UUID, peerPortState: LocalPortState)
+                (implicit tag: ClassTag[D]) = {
+            this(id)(tag)
             currentPeer = peerPortState
         }
 
-        private var currentPort: D = null
+        private var currentPort: Port = null
         private var currentPeer: PortState[_ <: Port] = null
         private val mark = PublishSubject.create[Port]()
 
         val observable = VirtualTopology.observable[Port](portId)
-            .doOnNext(makeAction1(port => currentPort = port.asInstanceOf[D]))
+            .doOnNext(makeAction1(port => currentPort = port))
             .takeUntil(mark)
 
         /** Sets the peer state for this port state, and returns the previous
@@ -82,11 +85,15 @@ object BridgeMapper {
         /** Completes the observable corresponding to this port state */
         def complete() = mark.onCompleted()
         /** Gets the underlying port for this port state */
-        @Nullable def port: D = currentPort
+        @Nullable def port: D = currentPort.asInstanceOf[D]
         /** Gets the peer port state */
         @Nullable def peer: PortState[_ <: Port] = currentPeer
         /** Indicates whether the port state has received the port data */
-        def isReady: Boolean = currentPort ne null
+        @inline def isReady: Boolean = currentPort ne null
+        /** Indicates whether the port is of the expected type [[D]]. */
+        @inline def isValidPortType: Boolean = {
+            tag.runtimeClass.isAssignableFrom(currentPort.getClass)
+        }
     }
 
     /**
@@ -662,9 +669,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
         vlanSet += UntaggedVlanId
 
         // Compute the VLAN bridge peer port ID.
-        for (portState <- localPorts.values;
-             localPort = portState.port
-             if localPort.isInterior) {
+        for (portState <- localPorts.values if portState.isValidPortType;
+             localPort = portState.port if localPort.isInterior) {
             val peerState = portState.peer
             val peerPort = peerState.port
 
@@ -749,8 +755,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             oldExteriorPorts = exteriorPorts.toSet
         }
 
-        val inFilters = new ArrayList[UUID]()
-        val outFilters = new ArrayList[UUID]()
+        val inFilters = new JArrayList[UUID]()
+        val outFilters = new JArrayList[UUID]()
         traceChain.foreach(inFilters.add)
         if (bridge.hasInboundFilterId) {
             inFilters.add(bridge.getInboundFilterId.asJava)
@@ -759,9 +765,9 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             outFilters.add(bridge.getOutboundFilterId.asJava)
         }
 
-        val inboundMirrors = new java.util.ArrayList[UUID]()
+        val inboundMirrors = new JArrayList[UUID]()
         inboundMirrors.addAll(bridge.getInboundMirrorsList.asScala.map(_.asJava).asJava)
-        val outboundMirrors = new java.util.ArrayList[UUID]()
+        val outboundMirrors = new JArrayList[UUID]()
         outboundMirrors.addAll(bridge.getOutboundMirrorsList.asScala.map(_.asJava).asJava)
 
         // Create the simulation bridge.
