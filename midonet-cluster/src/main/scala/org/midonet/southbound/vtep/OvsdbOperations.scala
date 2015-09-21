@@ -38,6 +38,7 @@ import rx.Observable.OnSubscribe
 import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.data.vtep.VtepException
+import org.midonet.southbound.vtep.OvsdbTools.opResultHasError
 import org.midonet.southbound.vtep.schema.Table
 import org.midonet.southbound.vtep.schema.Table.OvsdbSelect
 
@@ -134,8 +135,7 @@ object OvsdbOperations {
         asFuture[JList[OperationResult]](client, closeFuture, closeException) {
             Futures.addCallback(transaction.execute(), _, executor)
         } map { results =>
-            for (result <- results.asScala
-                 if OvsdbTools.opResultHasError(result)) {
+            for (result <- results.asScala if opResultHasError(result)) {
                 throw new OvsdbOpException(client, ops.asJava,
                                            results.indexOf(result), result)
             }

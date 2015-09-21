@@ -79,8 +79,8 @@ public abstract class MacsTable<E extends MacEntry> extends Table<E> {
     abstract protected ColumnSchema<GenericTableSchema, UUID> getLocationIdSchema();
 
     /** Generate a condition to match Mac address */
-    static public Condition getMacMatcher(VtepMAC mac) {
-        return new Condition(COL_MAC, Function.EQUALS, mac.toString());
+    static public Condition getMacMatcher(String mac) {
+        return new Condition(COL_MAC, Function.EQUALS, mac);
     }
 
     /** Generate a condition to match logical switch */
@@ -89,9 +89,8 @@ public abstract class MacsTable<E extends MacEntry> extends Table<E> {
     }
 
     /** Generate a condition to match ip address */
-    static public Condition getIpaddrMatcher(IPv4Addr ip) {
-        return new Condition(COL_IPADDR, Function.EQUALS,
-                             (ip == null)? null: ip.toString());
+    static public Condition getIpaddrMatcher(String ip) {
+        return new Condition(COL_IPADDR, Function.EQUALS, ip);
     }
 
     /**
@@ -140,9 +139,9 @@ public abstract class MacsTable<E extends MacEntry> extends Table<E> {
     @Override
     public Table.OvsdbDelete delete(E entry) {
         Delete<GenericTableSchema> op = new Delete<>(tableSchema);
-        op.where(getMacMatcher(entry.mac()));
+        op.where(getMacMatcher(entry.macString()));
         op.where(getLogicalSwitchMatcher(entry.logicalSwitchId()));
-        op.where(getIpaddrMatcher(entry.ip()));
+        op.where(getIpaddrMatcher(entry.ipString()));
         return new OvsdbDelete(op);
     }
 
