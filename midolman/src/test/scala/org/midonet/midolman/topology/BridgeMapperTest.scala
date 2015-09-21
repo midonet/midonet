@@ -1336,6 +1336,42 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             And("The bridge should have the two exterior ports")
             device.exteriorPorts should have size 2
         }
+
+        scenario("Mapper should ignore VXLAN ports") {
+            val bridgeId = UUID.randomUUID
+            val obs = createObserver()
+            val bridge = testBridgeCreated(bridgeId, obs)
+            val hostId = createHostInStore()
+
+            When("Creating an exterior port for the bridge")
+            val portId1 = UUID.randomUUID
+            val port1 = createBridgePort(id = portId1, bridgeId = Some(bridgeId),
+                                         hostId = Some(hostId),
+                                         interfaceName = Some("iface1"))
+            store.create(port1)
+
+            Then("The observer should receive the update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(1)
+            device1 shouldBeDeviceOf bridge
+
+            And("There should be one exterior port")
+            device1.exteriorPorts should contain only portId1
+
+            When("Creating a VXLAN port for the bridge")
+            val portId2 = UUID.randomUUID
+            val port2 = createVxLanPort(id = portId2, bridgeId = Some(bridgeId),
+                                        vtepId = Some(UUID.randomUUID()))
+            store.create(port2)
+
+            Then("The observer should receive the update")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(2)
+            device2 shouldBeDeviceOf bridge
+
+            And("There should be one exterior port")
+            device1.exteriorPorts should contain only portId1
+        }
     }
 
     feature("Test flow invalidation") {
