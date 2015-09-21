@@ -151,7 +151,7 @@ class JmxZoomMetrics(zoom: ZookeeperObjectMapper, registry: MetricRegistry)
         new Gauge[T] { override def getValue = f() }
 
     private def registerMetrics(): Unit = {
-        val metricPrefix = "Zoom-" + zoom.basePath
+        val metricPrefix = "Zoom-" + zoom.basePath + "/"
 
         registry.register(metricPrefix + "ZkConnectionState",
                           gauge { zoom.zkConnectionState _ })
