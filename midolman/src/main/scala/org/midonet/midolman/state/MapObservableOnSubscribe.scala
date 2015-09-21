@@ -6,7 +6,7 @@ import rx.Subscriber
 import org.midonet.midolman.state.MapObservableOnSubscribe.log
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 
-case class MapNotification[K, V](key: K, oldVal: V,  newVal: V)
+case class MapNotification[K, V](key: K, oldVal: V, newVal: V)
 
 object MapObservableOnSubscribe {
     import org.slf4j.LoggerFactory.getLogger

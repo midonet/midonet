@@ -44,7 +44,7 @@ import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state._
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{MAC, IPv4Addr}
 import org.midonet.southbound.vtep.ConnectionState._
 import org.midonet.southbound.vtep.{ConnectionState, OvsdbVtepDataClient}
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
@@ -459,9 +459,9 @@ class VtepSynchronizer(vtepId: UUID,
             case null =>
             case info => info.subscriptions.add (
                 Observable.create(new MapObservableOnSubscribe(map))
-                    .observeOn(VtepSynchronizer.scheduler)
-                    .doOnUnsubscribe { makeAction0 { map.stop() } }
-                    .subscribe(handlr)
+                          .observeOn(VtepSynchronizer.scheduler)
+                          .doOnUnsubscribe { makeAction0 { map.stop() } }
+                          .subscribe(handlr)
             )
         }
     }
