@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.UUID
+
 import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
@@ -33,6 +35,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
     import StorageTest._
 
     private val timeout = 5 seconds
+    private val hostId = UUID.randomUUID.toString
 
     protected override def setup(): Unit = {
         storage = createStorage
@@ -41,7 +44,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
     }
 
     protected override def createStorage = {
-        new ZookeeperObjectMapper(ZK_ROOT, curator)
+        new ZookeeperObjectMapper(zkRoot, hostId, curator)
     }
 
     feature("Test subscribe") {
@@ -145,7 +148,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
     feature("Test Zookeeper") {
         scenario("Test get path") {
             val zoom = storage.asInstanceOf[ZookeeperObjectMapper]
-            zoom.getClassPath(classOf[PojoBridge]) shouldBe s"${ZK_ROOT}/${zoom.version}/models/PojoBridge"
+            zoom.getClassPath(classOf[PojoBridge]) shouldBe s"${zkRoot}/${zoom.version}/models/PojoBridge"
         }
     }
 }

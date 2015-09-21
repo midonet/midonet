@@ -47,7 +47,7 @@ trait CuratorTestFramework extends BeforeAndAfterEach
                            with BeforeAndAfterAll { this: Suite =>
     import org.midonet.cluster.util.CuratorTestFramework.testServers
 
-    protected val ZK_ROOT = "/test"
+    protected val zkRoot = "/test"
     protected var zk: TestingServer = _
     implicit protected var curator: CuratorFramework = _
 
@@ -87,7 +87,7 @@ trait CuratorTestFramework extends BeforeAndAfterEach
         }
 
         clearZookeeper()
-        curator.create().forPath(ZK_ROOT)
+        curator.create().forPath(zkRoot)
 
         setup()
     }
@@ -99,7 +99,7 @@ trait CuratorTestFramework extends BeforeAndAfterEach
     }
 
     protected def clearZookeeper(): Unit =
-        try curator.delete().deletingChildrenIfNeeded().forPath(ZK_ROOT) catch {
+        try curator.delete().deletingChildrenIfNeeded().forPath(zkRoot) catch {
             case _: InterruptedException =>
                 fail("Curator did not connect to the test ZK server")
             case _: Throwable => // OK, doesn't exist
@@ -113,7 +113,7 @@ trait CuratorTestFramework extends BeforeAndAfterEach
     /** Adds a path under the root node, asynchronously. The contents of the
       * node will be s.getBytes() */
     def makePath(s: String): String = {
-        val path = s"$ZK_ROOT/$s"
+        val path = s"$zkRoot/$s"
         curator.create().inBackground().forPath(path, s.getBytes)
         path
     }
@@ -126,7 +126,7 @@ trait CuratorTestFramework extends BeforeAndAfterEach
     def makePaths(start: Int, end: Int): Map[String, String] = {
         var data = Map.empty[String, String]
         start.until(end) foreach { i =>
-            val childPath = s"$ZK_ROOT/$i"
+            val childPath = s"$zkRoot/$i"
             val childData = i.toString
             data += (childPath -> childData)
             curator.create().inBackground()
