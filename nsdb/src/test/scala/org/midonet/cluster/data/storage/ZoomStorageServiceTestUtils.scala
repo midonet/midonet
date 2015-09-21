@@ -159,13 +159,13 @@ trait ZoomStorageTester extends StorageTester
         for (device <- deviceClasses) {
             try {
                 curator.delete().deletingChildrenIfNeeded()
-                       .forPath(zoom.getClassPath(device))
+                       .forPath(zoom.classPath(device))
             } catch {
                 case _: KeeperException.NoNodeException =>
                     // Node may not exist yet.
             }
 
-            val ensurePath = new EnsurePath(zoom.getClassPath(device))
+            val ensurePath = new EnsurePath(zoom.classPath(device))
             ensurePath.ensure(curator.getZookeeperClient)
         }
     }
