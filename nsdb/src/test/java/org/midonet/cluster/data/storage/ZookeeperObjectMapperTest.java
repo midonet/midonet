@@ -1027,6 +1027,7 @@ public class ZookeeperObjectMapperTest {
         zom.delete(PojoChain.class, chain1.id);
         ((AwaitableObserver<PojoChain>)chain1Obs).awaitOnNext(1, ONE_SECOND);
         assertEquals(1, chain1Obs.getOnNextEvents().size());
+        ((AwaitableObserver<PojoChain>)chain1Obs).awaitCompletion(ONE_SECOND);
         assertEquals(1, chain1Obs.getOnCompletedEvents().size());
 
         ClassAwaitableObserver<PojoChain>
