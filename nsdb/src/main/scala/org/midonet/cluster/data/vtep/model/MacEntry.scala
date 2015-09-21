@@ -37,8 +37,8 @@ abstract class MacEntry(id: UUID, val logicalSwitchId: UUID,
             (Objects.hash(logicalSwitchId) & 0xFFFFFFFF)
     )
 
-    val macString = if (mac == null) null else mac.toString
-    val ipString = if (ip == null) null else ip.toString
+    val macString = if (mac == null) "" else mac.toString
+    val ipString = if (ip == null) "" else ip.toString
 
     /** Convenience method to distinguish between unicast and multicast */
     def isUcast: Boolean
