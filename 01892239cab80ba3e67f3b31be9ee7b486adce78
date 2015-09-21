@@ -33,6 +33,46 @@
       "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1c59715a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 672,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-21T08:37:55Z",
+      "side": 1,
+      "message": "indent is off here.",
+      "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_bc3f9dd5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 713,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-21T08:37:55Z",
+      "side": 1,
+      "message": "indent",
+      "range": {
+        "startLine": 713,
+        "startChar": 0,
+        "endLine": 713,
+        "endChar": 3
+      },
+      "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
