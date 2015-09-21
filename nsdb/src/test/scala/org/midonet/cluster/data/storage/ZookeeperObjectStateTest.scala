@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration._
 
-import org.apache.curator.framework.CuratorFrameworkFactory
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.zookeeper.KeeperException.Code
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually
@@ -29,6 +29,7 @@ import org.scalatest.{GivenWhenThen, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
+import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.storage.StorageTestClasses.State
 import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
@@ -43,11 +44,13 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
                                with Eventually {
 
     private var storage: ZookeeperObjectMapper = _
+    private var ownerId: Long = _
     private val hostId = UUID.randomUUID.toString
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
         storage = new ZookeeperObjectMapper(zkRoot, hostId, curator)
+        ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }
 
@@ -60,47 +63,29 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         storage.build()
     }
 
+    private def newStorage(sameHost: Boolean)
+    : (CuratorFramework, Long, String, ZookeeperObjectMapper) = {
+        val curator2 = CuratorFrameworkFactory.newClient(zk.getConnectString,
+                                                         sessionTimeoutMs,
+                                                         cnxnTimeoutMs,
+                                                         retryPolicy)
+        curator2.start()
+        if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
+            fail("Curator did not connect to the test ZK server")
+        val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
+        val hostId2 = if (sameHost) hostId else UUID.randomUUID().toString
+        val storage2 = new ZookeeperObjectMapper(zkRoot, hostId2, curator2)
+        initAndBuildStorage(storage2)
+
+        (curator2, ownerId2, hostId2, storage2)
+    }
+
     feature("Test state paths") {
-        scenario("Root state path") {
-            Given("The root state path")
-            val path = storage.getStateClassPath(classOf[State])
+        scenario("Host state path") {
+            Given("The host state path")
+            val path = storage.stateClassPath(hostId, classOf[State])
             Then("The path should exist")
             curator.checkExists().forPath(path) should not be null
-        }
-
-        scenario("Object paths are created with object") {
-            Given("An object in storage")
-            val obj = new State
-            storage.create(obj)
-
-            And("The paths for the object state and each key")
-            val objPath = storage.getStateObjectPath(classOf[State], obj.id)
-            val key1Path = storage.getKeyPath(classOf[State], obj.id, "first")
-            val key2Path = storage.getKeyPath(classOf[State], obj.id, "last")
-            val key3Path = storage.getKeyPath(classOf[State], obj.id, "multi")
-
-            Then("The path for the object should exist")
-            curator.checkExists().forPath(objPath) should not be null
-            And("The path for the single valued keys should not exist")
-            curator.checkExists().forPath(key1Path) shouldBe null
-            curator.checkExists().forPath(key2Path) shouldBe null
-            And("The path for the multi valued keys should exist")
-            curator.checkExists().forPath(key3Path) should not be null
-        }
-
-        scenario("Object paths are deleted with object") {
-            Given("An object")
-            val obj = new State
-            When("The object is created in storage")
-            storage.create(obj)
-            And("The object is deleted from storage")
-            storage.delete(classOf[State], obj.id)
-
-            Then("Eventually the state path should be deleted")
-            eventually {
-                val objPath = storage.getStateObjectPath(classOf[State], obj.id)
-                curator.checkExists().forPath(objPath) shouldBe null
-            }
         }
     }
 
@@ -176,7 +161,6 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
     def testAddGetRemoveSingleValue(key: String): Unit = {
         Given("An object in storage")
         val obj = new State
-        val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         storage.create(obj)
 
         Then("Adding a value should return the current session")
@@ -196,7 +180,6 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
     def testAddSingleSameClient(key: String): Unit = {
         Given("An object in storage")
         val obj = new State
-        val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         storage.create(obj)
 
         Then("Adding a value should return the current session")
@@ -213,19 +196,10 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
     def testRemoveSingleDifferentClient(key: String): Unit = {
         Given("An object in storage")
         val obj = new State
-        val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         storage.create(obj)
 
         And("A second storage client")
-        val curator2 = CuratorFrameworkFactory.newClient(zk.getConnectString,
-                                                         sessionTimeoutMs,
-                                                         cnxnTimeoutMs,
-                                                         retryPolicy)
-        curator2.start()
-        if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
-            fail("Curator did not connect to the test ZK server")
-        val storage2 = new ZookeeperObjectMapper(zkRoot, hostId, curator2)
-        initAndBuildStorage(storage2)
+        val (curator2, _, _, storage2) = newStorage(sameHost = true)
 
         Then("Adding a value should return the current session")
         storage.addValue(classOf[State], obj.id, key, "1")
@@ -268,19 +242,10 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         scenario("Add another value for a different client") {
             Given("An object in storage")
             val obj = new State
-            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
             storage.create(obj)
 
             And("A second storage client")
-            val curator2 = CuratorFrameworkFactory.newClient(zk.getConnectString,
-                                                             sessionTimeoutMs,
-                                                             cnxnTimeoutMs,
-                                                             retryPolicy)
-            curator2.start()
-            if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
-                fail("Curator did not connect to the test ZK server")
-            val storage2 = new ZookeeperObjectMapper(zkRoot, hostId, curator2)
-            initAndBuildStorage(storage2)
+            val (curator2, ownerId2, _, storage2) = newStorage(sameHost = true)
 
             Then("Adding a value should return the current session")
             storage.addValue(classOf[State], obj.id, "first", "1")
@@ -288,7 +253,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
             And("Adding a value from the second client should fail")
             val e = intercept[NotStateOwnerException] {
                 storage2.addValue(classOf[State], obj.id, "first", "2")
-                        .await(timeout) shouldBe StateResult(ownerId)
+                        .await(timeout) shouldBe StateResult(ownerId2)
             }
 
             e.clazz shouldBe classOf[State].getSimpleName
@@ -328,20 +293,10 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         scenario("Add another value for a different client") {
             Given("An object in storage")
             val obj = new State
-            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
             storage.create(obj)
 
             And("A second storage client")
-            val curator2 = CuratorFrameworkFactory.newClient(zk.getConnectString,
-                                                             sessionTimeoutMs,
-                                                             cnxnTimeoutMs,
-                                                             retryPolicy)
-            curator2.start()
-            if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
-                fail("Curator did not connect to the test ZK server")
-            val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
-            val storage2 = new ZookeeperObjectMapper(zkRoot, hostId, curator2)
-            initAndBuildStorage(storage2)
+            val (curator2, ownerId2, _, storage2) = newStorage(sameHost = true)
 
             Then("Adding a value should return the current session")
             storage.addValue(classOf[State], obj.id, "last", "1")
@@ -378,7 +333,6 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         scenario("Add, get, remove value for object by single client") {
             Given("An object in storage")
             val obj = new State
-            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
             storage.create(obj)
 
             Then("Adding a value should return the current session")
@@ -413,24 +367,14 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         scenario("Add, get, remove value for object by multiple clients") {
             Given("An object in storage")
             val obj = new State
-            val ownerId1 = curator.getZookeeperClient.getZooKeeper.getSessionId
             storage.create(obj)
 
             And("A second storage client")
-            val curator2 = CuratorFrameworkFactory.newClient(zk.getConnectString,
-                                                             sessionTimeoutMs,
-                                                             cnxnTimeoutMs,
-                                                             retryPolicy)
-            curator2.start()
-            if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
-                fail("Curator did not connect to the test ZK server")
-            val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
-            val storage2 = new ZookeeperObjectMapper(zkRoot, hostId, curator2)
-            initAndBuildStorage(storage2)
+            val (curator2, ownerId2, _, storage2) = newStorage(sameHost = true)
 
             When("First client adds a value")
             storage.addValue(classOf[State], obj.id, "multi", "1")
-                .await(timeout) shouldBe StateResult(ownerId1)
+                .await(timeout) shouldBe StateResult(ownerId)
             Then("Reading the key should return the added value")
             storage.getKey(classOf[State], obj.id, "multi")
                 .await(timeout) shouldBe MultiValueKey("multi", Set("1"))
@@ -444,7 +388,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
 
             When("First client removes its value")
             storage.removeValue(classOf[State], obj.id, "multi", "1")
-                .await(timeout) shouldBe StateResult(ownerId1)
+                .await(timeout) shouldBe StateResult(ownerId)
             Then("Reading the key should return the remaining value")
             storage.getKey(classOf[State], obj.id, "multi")
                 .await(timeout) shouldBe MultiValueKey("multi", Set("2"))
@@ -462,24 +406,14 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         scenario("A client cannot remove a value for another client") {
             Given("An object in storage")
             val obj = new State
-            val ownerId1 = curator.getZookeeperClient.getZooKeeper.getSessionId
             storage.create(obj)
 
             And("A second storage client")
-            val curator2 = CuratorFrameworkFactory.newClient(zk.getConnectString,
-                                                             sessionTimeoutMs,
-                                                             cnxnTimeoutMs,
-                                                             retryPolicy)
-            curator2.start()
-            if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
-                fail("Curator did not connect to the test ZK server")
-            val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
-            val storage2 = new ZookeeperObjectMapper(zkRoot, hostId, curator2)
-            initAndBuildStorage(storage2)
+            val (curator2, _, _, storage2) = newStorage(sameHost = true)
 
             When("First client adds a value")
             storage.addValue(classOf[State], obj.id, "multi", "1")
-                .await(timeout) shouldBe StateResult(ownerId1)
+                .await(timeout) shouldBe StateResult(ownerId)
             Then("Second client removing the value should fail")
             val e = intercept[NotStateOwnerException] {
                 storage2.removeValue(classOf[State], obj.id, "multi", "1")
@@ -490,7 +424,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
             e.id shouldBe obj.id.toString
             e.key shouldBe "multi"
             e.value shouldBe "1"
-            e.owner shouldBe ownerId1
+            e.owner shouldBe ownerId
 
             curator2.close()
         }
@@ -509,6 +443,8 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
             Then("The observer should complete")
             obs.awaitCompletion(timeout)
             obs.getOnNextEvents shouldBe empty
+            obs.getOnCompletedEvents should not be empty
+            obs.getOnErrorEvents shouldBe empty
         }
 
         scenario("Value does not exist") {
@@ -530,7 +466,6 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         scenario("Value exists in storage") {
             Given("An object in storage")
             val obj = new State
-            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
             storage.create(obj)
 
             And("A key value")
@@ -551,7 +486,6 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         scenario("Value is created") {
             Given("An object in storage")
             val obj = new State
-            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
             storage.create(obj)
 
             When("An observer subscribed to the key")
@@ -577,7 +511,6 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         scenario("Value is deleted and recreated") {
             Given("An object in storage")
             val obj = new State
-            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
             storage.create(obj)
 
             And("A key value")
@@ -632,7 +565,6 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         scenario("Observable notifies identical values") {
             Given("An object in storage")
             val obj = new State
-            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
             storage.create(obj)
 
             And("A key value")
@@ -818,6 +750,490 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
                 "multi", Set("1"))
             obs.getOnNextEvents.get(1) shouldBe MultiValueKey(
                 "multi", Set())
+        }
+    }
+
+    def testMultiHostAddReadDeleteSingle(key: String): Unit = {
+        Given("A second storage client")
+        val (curator2, ownerId2, hostId2, storage2) = newStorage(sameHost = false)
+
+        And("An object in storage")
+        val obj = new State
+        storage.create(obj)
+
+        When("The first host adds a value")
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout) shouldBe StateResult(ownerId)
+
+        Then("The value is present for the first host")
+        storage.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), ownerId)
+        storage.getKey(hostId, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), ownerId)
+
+        And("The second host can read the first host key")
+        storage2.getKey(hostId, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), ownerId)
+
+        And("The value is not present for the second host")
+        storage2.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+        storage2.getKey(hostId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+
+        And("The first host can read the second host key")
+        storage.getKey(hostId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+
+        When("The second host adds a value")
+        storage2.addValue(classOf[State], obj.id, key, "2")
+            .await(timeout) shouldBe StateResult(ownerId2)
+
+        Then("The key is unmodified for the first host")
+        storage.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), ownerId)
+        storage.getKey(hostId, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), ownerId)
+
+        And("The second host can read the first host key")
+        storage2.getKey(hostId, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), ownerId)
+
+        And("The value is present for the second host")
+        storage2.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), ownerId2)
+        storage2.getKey(hostId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), ownerId2)
+
+        And("The first host can read the second host key")
+        storage.getKey(hostId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), ownerId2)
+
+        When("The first host removes the value")
+        storage.removeValue(classOf[State], obj.id, key, null)
+            .await(timeout) shouldBe StateResult(ownerId)
+
+        Then("The value is not present for the first host")
+        storage.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+        storage.getKey(hostId, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+
+        And("The second host can read the first host key")
+        storage2.getKey(hostId, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+
+        And("The value is unmodified for the second host")
+        storage2.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), ownerId2)
+        storage2.getKey(hostId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), ownerId2)
+
+        And("The first host can read the second host key")
+        storage.getKey(hostId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), ownerId2)
+
+        When("The second host removes the value")
+        storage2.removeValue(classOf[State], obj.id, key, null)
+            .await(timeout) shouldBe StateResult(ownerId2)
+
+        Then("The value is removed for the second host")
+        storage2.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+        storage2.getKey(hostId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+
+        And("The first host can read the second host key")
+        storage.getKey(hostId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+
+        curator2.close()
+    }
+
+    feature("Test state storage for multiple hosts") {
+        scenario("Hosts can add, read and delete different single first state") {
+            testMultiHostAddReadDeleteSingle("first")
+        }
+
+        scenario("Hosts can add, read and delete different single last state") {
+            testMultiHostAddReadDeleteSingle("last")
+        }
+
+        scenario("Hosts can add, read and delete different multi state") {
+            Given("A second storage client")
+            val (curator2, ownerId2, hostId2, storage2) = newStorage(sameHost = false)
+
+            And("An object in storage")
+            val key = "multi"
+            val obj = new State
+            storage.create(obj)
+
+            When("The first host adds a value")
+            storage.addValue(classOf[State], obj.id, key, "1")
+                .await(timeout) shouldBe StateResult(ownerId)
+
+            Then("The value is present for the first host")
+            storage.getKey(classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+            storage.getKey(hostId, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+
+            And("The second host can read the first host key")
+            storage2.getKey(hostId, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+
+            And("The value is not present for the second host")
+            storage2.getKey(classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+            storage2.getKey(hostId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+
+            And("The first host can read the second host key")
+            storage.getKey(hostId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+
+            When("The second host adds a value")
+            storage2.addValue(classOf[State], obj.id, key, "2")
+                .await(timeout) shouldBe StateResult(ownerId2)
+
+            Then("The key is unmodified for the first host")
+            storage.getKey(classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+            storage.getKey(hostId, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+
+            And("The second host can read the first host key")
+            storage2.getKey(hostId, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+
+            And("The value is present for the second host")
+            storage2.getKey(classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("2"))
+            storage2.getKey(hostId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("2"))
+
+            And("The first host can read the second host key")
+            storage.getKey(hostId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("2"))
+
+            When("The first host removes the value")
+            storage.removeValue(classOf[State], obj.id, key, "1")
+                .await(timeout) shouldBe StateResult(ownerId)
+
+            Then("The value is not present for the first host")
+            storage.getKey(classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+            storage.getKey(hostId, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+
+            And("The second host can read the first host key")
+            storage2.getKey(hostId, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+
+            And("The value is unmodified for the second host")
+            storage2.getKey(classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("2"))
+            storage2.getKey(hostId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("2"))
+
+            And("The first host can read the second host key")
+            storage.getKey(hostId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("2"))
+
+            When("The second host removes the value")
+            storage2.removeValue(classOf[State], obj.id, key, "2")
+                .await(timeout) shouldBe StateResult(ownerId2)
+
+            Then("The value is removed for the second host")
+            storage2.getKey(classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+            storage2.getKey(hostId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+
+            And("The first host can read the second host key")
+            storage.getKey(hostId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+
+            curator2.close()
+        }
+
+        scenario("Hosts can monitor other host state for single value keys") {
+            Given("A second storage client")
+            val (curator2, ownerId2, _, storage2) = newStorage(sameHost = false)
+
+            And("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            When("An observer from the first host subscribes")
+            val obs1 = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(hostId, classOf[State], obj.id, "first")
+                .subscribe(obs1)
+
+            Then("The observer should receive a notification")
+            obs1.awaitOnNext(1, timeout) shouldBe true
+            obs1.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            When("An observer from the second host subscribes")
+            val obs2 = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage2.keyObservable(hostId, classOf[State], obj.id, "first")
+                .subscribe(obs2)
+
+            Then("The observer should receive a notification")
+            obs2.awaitOnNext(1, timeout) shouldBe true
+            obs2.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            When("The second host adds a value")
+            storage2.addValue(classOf[State], obj.id, "first", "2")
+                .await(timeout) shouldBe StateResult(ownerId2)
+
+            And("The first host adds a value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout) shouldBe StateResult(ownerId)
+
+            Then("Both observers should receive a notification for the first host")
+            obs1.awaitOnNext(2, timeout) shouldBe true
+            obs1.getOnNextEvents.get(1) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+            obs2.awaitOnNext(2, timeout) shouldBe true
+            obs2.getOnNextEvents.get(1) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+
+            When("The first host removes the value")
+            storage.removeValue(classOf[State], obj.id, "first", null)
+                .await(timeout) shouldBe StateResult(ownerId)
+
+            Then("Both observers should receive a notification for the first host")
+            obs1.awaitOnNext(3, timeout) shouldBe true
+            obs1.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+            obs2.awaitOnNext(3, timeout) shouldBe true
+            obs2.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            curator2.close()
+        }
+
+        scenario("Hosts can monitor other host state for multi value keys") {
+            Given("A second storage client")
+            val (curator2, ownerId2, _, storage2) = newStorage(sameHost = false)
+
+            And("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            When("An observer from the first host subscribes")
+            val obs1 = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(hostId, classOf[State], obj.id, "multi")
+                .subscribe(obs1)
+
+            Then("The observer should receive a notification")
+            obs1.awaitOnNext(1, timeout) shouldBe true
+            obs1.getOnNextEvents.get(0) shouldBe MultiValueKey("multi", Set())
+
+            When("An observer from the second host subscribes")
+            val obs2 = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage2.keyObservable(hostId, classOf[State], obj.id, "multi")
+                .subscribe(obs2)
+
+            Then("The observer should receive a notification")
+            Thread.sleep(1000)
+            obs2.awaitOnNext(1, timeout) shouldBe true
+            obs2.getOnNextEvents.get(0) shouldBe MultiValueKey("multi", Set())
+
+            When("The second host adds a value")
+            storage2.addValue(classOf[State], obj.id, "multi", "2")
+                .await(timeout) shouldBe StateResult(ownerId2)
+
+            And("The first host adds a value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout) shouldBe StateResult(ownerId)
+
+            Then("Both observers should receive a notification for the first host")
+            obs1.awaitOnNext(2, timeout) shouldBe true
+            obs1.getOnNextEvents.get(1) shouldBe MultiValueKey("multi", Set("1"))
+            obs2.awaitOnNext(2, timeout) shouldBe true
+            obs2.getOnNextEvents.get(1) shouldBe MultiValueKey("multi", Set("1"))
+
+            When("The first host removes the value")
+            storage.removeValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout) shouldBe StateResult(ownerId)
+
+            Then("Both observers should receive a notification for the first host")
+            obs1.awaitOnNext(3, timeout) shouldBe true
+            obs1.getOnNextEvents.get(2) shouldBe MultiValueKey("multi", Set())
+            obs2.awaitOnNext(3, timeout) shouldBe true
+            obs2.getOnNextEvents.get(2) shouldBe MultiValueKey("multi", Set())
+
+            curator2.close()
+        }
+
+        scenario("Hosts can switch between host state for single value keys") {
+            Given("A second storage client")
+            val (curator2, ownerId2, hostId2, storage2) = newStorage(sameHost = false)
+
+            And("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A hosts source subject")
+            val hosts = PublishSubject.create[String]
+
+            When("An observer from the first host subscribes")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(hosts, classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            And("The subject emits the first host")
+            hosts onNext hostId
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(1, timeout)
+            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            When("The subject emits the second host")
+            hosts onNext hostId2
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(2, timeout)
+            obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            When("The first host adds a value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout) shouldBe StateResult(ownerId)
+
+            And("The second host adds a value")
+            storage2.addValue(classOf[State], obj.id, "first", "2")
+                .await(timeout) shouldBe StateResult(ownerId2)
+
+            Then("The observer should receive the value from the second host")
+            obs.awaitOnNext(3, timeout)
+            obs.getOnNextEvents.get(2) shouldBe SingleValueKey(
+                "first", Some("2"), ownerId2)
+
+            When("The subject emits the first host")
+            hosts onNext hostId
+
+            Then("The observer should receive the value from the first host")
+            obs.awaitOnNext(4, timeout)
+            obs.getOnNextEvents.get(3) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+
+            When("The second host adds a value")
+            storage2.addValue(classOf[State], obj.id, "first", "3")
+                .await(timeout) shouldBe StateResult(ownerId2)
+
+            And("The first host removes the value")
+            storage.removeValue(classOf[State], obj.id, "first", null)
+                .await(timeout) shouldBe StateResult(ownerId)
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(5, timeout)
+            obs.getOnNextEvents.get(4) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            When("The subject emits the second host")
+            hosts onNext hostId2
+
+            Then("The observer should receive the value from the second host")
+            obs.awaitOnNext(6, timeout)
+            obs.getOnNextEvents.get(5) shouldBe SingleValueKey(
+                "first", Some("3"), ownerId2)
+
+            When("The second host removes the value")
+            storage2.removeValue(classOf[State], obj.id, "first", null)
+                .await(timeout) shouldBe StateResult(ownerId2)
+
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(7, timeout)
+            obs.getOnNextEvents.get(6) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            curator2.close()
+        }
+
+        scenario("Hosts can switch between host state for multi value keys") {
+            Given("A second storage client")
+            val (curator2, ownerId2, hostId2, storage2) = newStorage(sameHost = false)
+
+            And("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A hosts source subject")
+            val hosts = PublishSubject.create[String]
+
+            When("An observer from the first host subscribes")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(hosts, classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            And("The subject emits the first host")
+            hosts onNext hostId
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(1, timeout)
+            obs.getOnNextEvents.get(0) shouldBe MultiValueKey("multi", Set())
+
+            When("The subject emits the second host")
+            hosts onNext hostId2
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(2, timeout)
+            obs.getOnNextEvents.get(1) shouldBe MultiValueKey("multi", Set())
+
+            When("The first host adds a value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout) shouldBe StateResult(ownerId)
+
+            And("The second host adds a value")
+            storage2.addValue(classOf[State], obj.id, "multi", "2")
+                .await(timeout) shouldBe StateResult(ownerId2)
+
+            Then("The observer should receive the value from the second host")
+            obs.awaitOnNext(3, timeout)
+            obs.getOnNextEvents.get(2) shouldBe MultiValueKey("multi", Set("2"))
+
+            When("The subject emits the first host")
+            hosts onNext hostId
+
+            Then("The observer should receive the value from the first host")
+            obs.awaitOnNext(4, timeout)
+            obs.getOnNextEvents.get(3) shouldBe MultiValueKey("multi", Set("1"))
+
+            When("The second host adds a value")
+            storage2.addValue(classOf[State], obj.id, "multi", "3")
+                .await(timeout) shouldBe StateResult(ownerId2)
+
+            And("The first host removes the value")
+            storage.removeValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout) shouldBe StateResult(ownerId)
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(5, timeout)
+            obs.getOnNextEvents.get(4) shouldBe MultiValueKey("multi", Set())
+
+            When("The subject emits the second host")
+            hosts onNext hostId2
+
+            Then("The observer should receive the value from the second host")
+            obs.awaitOnNext(6, timeout)
+            obs.getOnNextEvents.get(5) shouldBe MultiValueKey("multi", Set("2", "3"))
+
+            When("The second host removes the value")
+            storage2.removeValue(classOf[State], obj.id, "multi", "2")
+                .await(timeout) shouldBe StateResult(ownerId2)
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(7, timeout)
+            obs.getOnNextEvents.get(6) shouldBe MultiValueKey("multi", Set("3"))
+
+            curator2.close()
         }
     }
 }
