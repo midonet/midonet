@@ -109,7 +109,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.uuid shouldBe eUuid
             m.logicalSwitchId shouldBe eLS
             m.mac shouldBe null
-            m.macString shouldBe null
+            m.macString shouldBe ""
             m.ip shouldBe eIp
             m.ipString shouldBe eIpStr
             m.locatorId shouldBe eLoc
@@ -120,7 +120,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.uuid shouldBe eUuid
             m.logicalSwitchId shouldBe eLS
             m.mac shouldBe null
-            m.macString shouldBe null
+            m.macString shouldBe ""
             m.ip shouldBe eIp
             m.ipString shouldBe eIpStr
             m.locatorId shouldBe eLoc
@@ -133,7 +133,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.mac shouldBe eMac
             m.macString shouldBe eMacStr
             m.ip shouldBe null
-            m.ipString shouldBe null
+            m.ipString shouldBe ""
             m.locatorId shouldBe eLoc
             m.locator shouldBe eLoc
         }
@@ -144,7 +144,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.mac shouldBe eMac
             m.macString shouldBe eMacStr
             m.ip shouldBe null
-            m.ipString shouldBe null
+            m.ipString shouldBe ""
             m.locatorId shouldBe eLoc
             m.locator shouldBe eLoc
         }
@@ -164,7 +164,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.uuid shouldBe eUuid
             m.logicalSwitchId shouldBe eLS
             m.mac shouldBe null
-            m.macString shouldBe null
+            m.macString shouldBe ""
             m.ip shouldBe eIp
             m.ipString shouldBe eIpStr
             m.locatorId shouldBe eLoc
@@ -175,7 +175,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.uuid shouldBe eUuid
             m.logicalSwitchId shouldBe eLS
             m.mac shouldBe null
-            m.macString shouldBe null
+            m.macString shouldBe ""
             m.ip shouldBe eIp
             m.ipString shouldBe eIpStr
             m.locatorId shouldBe eLoc
@@ -188,7 +188,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.mac shouldBe eMulti
             m.macString shouldBe eMultiStr
             m.ip shouldBe null
-            m.ipString shouldBe null
+            m.ipString shouldBe ""
             m.locatorId shouldBe eLoc
             m.locatorSet shouldBe eLoc
         }
@@ -199,7 +199,7 @@ class MacEntryTest extends FeatureSpec with Matchers {
             m.mac shouldBe eMulti
             m.macString shouldBe eMultiStr
             m.ip shouldBe null
-            m.ipString shouldBe null
+            m.ipString shouldBe ""
             m.locatorId shouldBe eLoc
             m.locatorSet shouldBe eLoc
         }
