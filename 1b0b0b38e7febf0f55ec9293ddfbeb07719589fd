@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_87ba8ebe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-09-21T10:23:20Z",
+      "side": 1,
+      "message": "this means all arp requests will have -1 as cookie?",
+      "revId": "1b0b0b38e7febf0f55ec9293ddfbeb07719589fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
