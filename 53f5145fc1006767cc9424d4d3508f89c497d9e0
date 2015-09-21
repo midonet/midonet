@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_0dca1d6e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/MacEntry.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-21T17:27:46Z",
+      "side": 1,
+      "message": "Does this fix the problem?",
+      "range": {
+        "startLine": 40,
+        "startChar": 8,
+        "endLine": 40,
+        "endChar": 57
+      },
+      "revId": "53f5145fc1006767cc9424d4d3508f89c497d9e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
