@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "1ae5cdf2_e27c2023",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-09-21T14:06:10Z",
+      "side": 1,
+      "message": "shall we take the chance to remove this reference to context from here? ....and add a big fat comment.",
+      "revId": "1b0b0b38e7febf0f55ec9293ddfbeb07719589fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_87ba8ebe",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
         "patchSetId": 7
@@ -31,6 +48,24 @@
       "side": 1,
       "message": "yes.\n\nso, at first i was thinking i would give all generated packets to the input thread (UpcallProcessor it will be called), and it would then give them to the Simulation threads. but this is wasteful, and it\u0027s best to simulate the generated packets right after the main simulation when everything is nice and warm in the cache. \n\nhowever, the cookie will no longer be generated, it will come from the disruptor\u0027s sequence number.\n\nso if this is too shocking, i can forget about this and just keep generating an unique cookie, or i can pass a cookie to the get method and it will become associated with the arp loop; in this case, all arps generated from the arp loop will be identified by the cookie of the first simulation that needed it.",
       "parentUuid": "1ae5cdf2_87ba8ebe",
+      "revId": "1b0b0b38e7febf0f55ec9293ddfbeb07719589fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_2277e83b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-09-21T14:06:10Z",
+      "side": 1,
+      "message": "-1 is ugly. I\u0027m fine with either using the cookie of the packet that made us ARP or using a unique one.",
+      "parentUuid": "1ae5cdf2_47d7a6ed",
       "revId": "1b0b0b38e7febf0f55ec9293ddfbeb07719589fd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
