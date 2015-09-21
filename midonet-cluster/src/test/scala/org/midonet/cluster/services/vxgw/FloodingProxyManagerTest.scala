@@ -196,7 +196,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
 
         obs.awaitOnNext(2, timeout) shouldBe true
         obs.getOnNextEvents.get(1).tunnelIp shouldBe null
-        ensureCurrentFpIs(tzId, null, null)
+        eventually { ensureCurrentFpIs(tzId, null, null) }
     }
 
     "Host deletions" should "release the Flooding Proxy changes" in {
