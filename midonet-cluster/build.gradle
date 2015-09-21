@@ -229,6 +229,11 @@ run {
     } else {
         args = ["conf/midonet-cluster.conf"]
     }
+
+    jvmArgs += '-Dcom.sun.management.jmxremote.local.only=true'
+    jvmArgs += '-Dcom.sun.management.jmxremote.authenticate=false'
+    jvmArgs += '-Dcom.sun.management.jmxremote.port=7201'
+    jvmArgs += '-Dcom.sun.management.jmxremote.ssl=false'
 }
 
 // Runs the Topology API service in stand-alone mode.
