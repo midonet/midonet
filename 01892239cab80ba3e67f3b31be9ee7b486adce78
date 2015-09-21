@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_87d44e48",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1006010
+      },
+      "writtenOn": "2015-09-21T09:15:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_1c309100",
+      "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_dc2549c3",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-09-21T08:36:17Z",
       "side": 1,
       "message": "ident",
+      "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_27e8da0f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1006010
+      },
+      "writtenOn": "2015-09-21T09:15:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_dc2549c3",
       "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_c7f736f4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 672,
+      "author": {
+        "id": 1006010
+      },
+      "writtenOn": "2015-09-21T09:15:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_1c59715a",
+      "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_fc2045b2",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
         "patchSetId": 1
@@ -64,6 +118,30 @@
       "writtenOn": "2015-09-21T08:39:25Z",
       "side": 1,
       "message": "why not just Observable.create(mapper)?",
+      "range": {
+        "startLine": 681,
+        "startChar": 29,
+        "endLine": 681,
+        "endChar": 57
+      },
+      "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_07d91e83",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 681,
+      "author": {
+        "id": 1006010
+      },
+      "writtenOn": "2015-09-21T09:15:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_fc2045b2",
       "range": {
         "startLine": 681,
         "startChar": 29,
@@ -110,6 +188,48 @@
       "writtenOn": "2015-09-21T08:39:25Z",
       "side": 1,
       "message": "indent",
+      "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_47e32633",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 713,
+      "author": {
+        "id": 1006010
+      },
+      "writtenOn": "2015-09-21T09:15:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_bc3f9dd5",
+      "range": {
+        "startLine": 713,
+        "startChar": 0,
+        "endLine": 713,
+        "endChar": 3
+      },
+      "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_67d10257",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 713,
+      "author": {
+        "id": 1006010
+      },
+      "writtenOn": "2015-09-21T09:15:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_9c6e6100",
       "revId": "01892239cab80ba3e67f3b31be9ee7b486adce78",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
