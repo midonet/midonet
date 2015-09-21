@@ -16,7 +16,7 @@
 package org.midonet.cluster.data.storage
 
 import java.io.StringWriter
-import java.util.{UUID, ConcurrentModificationException}
+import java.util.ConcurrentModificationException
 import java.util.concurrent.Executors._
 import java.util.concurrent.atomic.AtomicLong
 
@@ -103,7 +103,7 @@ import org.midonet.util.reactivex._
  *
  */
 class ZookeeperObjectMapper(protected override val rootPath: String,
-                            protected override val hostId: String,
+                            protected override val namespace: String,
                             protected override val curator: CuratorFramework,
                             metricsRegistry: MetricRegistry = null)
     extends ZookeeperObjectState with Storage {
@@ -168,12 +168,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
      * be lost.
      */
     private class ZoomTransactionManager(val version: Long)
-            extends TransactionManager(classInfo.toMap, allBindings)
-            with StateTransactionManager {
+            extends TransactionManager(classInfo.toMap, allBindings) {
 
         import ZookeeperObjectMapper._
-
-        protected override def executorService = executor
 
         // Create an ephemeral node so that we can get Zookeeper's current
         // ZXID. This will allow us to determine if any of the nodes we read
@@ -192,7 +189,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         }
 
         private def getPath(clazz: Class[_], id: ObjId) = {
-            ZookeeperObjectMapper.this.getObjectPath(clazz, id, version)
+            ZookeeperObjectMapper.this.objectPath(clazz, id, version)
         }
 
         override def isRegistered(clazz: Class[_]): Boolean = {
@@ -224,7 +221,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         }
 
         override def commit(): Unit = {
-            val ops = flattenOps ++ createStateOps
+            val ops = flattenOps
             var txn =
                 curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
 
@@ -268,8 +265,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 case rce: ReferenceConflictException => throw rce
                 case NonFatal(ex) => throw new InternalObjectMapperException(ex)
             }
-
-            deleteState()
         }
 
         override protected def nodeExists(path: String): Boolean =
@@ -398,8 +393,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         // in a single round trip to Zookeeper.
         var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
         for (clazz <- classes) {
-            txn = txn.check().forPath(getClassPath(clazz)).and()
-            txn = txn.check().forPath(getStateClassPath(clazz)).and()
+            txn = txn.check().forPath(classPath(clazz)).and()
+            txn = txn.check().forPath(stateClassPath(namespace, clazz)).and()
         }
         try {
             txn.commit()
@@ -414,9 +409,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         try {
             for (clazz <- classes) {
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
-                               getClassPath(clazz))
+                               classPath(clazz))
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
-                               getStateClassPath(clazz))
+                               stateClassPath(namespace, clazz))
             }
         } catch {
             case ex: Exception => throw new InternalObjectMapperException(ex)
@@ -461,7 +456,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         assert(isRegistered(clazz))
 
         val key = Key(clazz, getIdString(clazz, id))
-        val path = getObjectPath(clazz, id)
+        val path = objectPath(clazz, id)
 
         nodeObservables.get(key) match {
             case Some(obs) if !obs.isClosed =>
@@ -510,7 +505,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             }
         }
 
-        val path = getClassPath(clazz)
+        val path = classPath(clazz)
         try {
             curator.getChildren.inBackground(cb).forPath(path)
         } catch {
@@ -538,7 +533,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         }
         try {
             curator.checkExists().inBackground(cb)
-                   .forPath(getObjectPath(clazz, id))
+                   .forPath(objectPath(clazz, id))
         } catch {
             case ex: Exception => throw new InternalObjectMapperException(ex)
         }
@@ -585,7 +580,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         assert(isRegistered(clazz))
 
         val key = Key(clazz, getIdString(clazz, id))
-        val path = getObjectPath(clazz, id)
+        val path = objectPath(clazz, id)
 
         val obs = nodeObservables.getOrElse(key, {
             val nodeObservable = NodeObservable.create(curator, path,
@@ -615,7 +610,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             val onLastUnsubscribe: ClassSubscriptionCache[_] => Unit = c => {
                 classCaches.remove(clazz)
             }
-            val cc = new ClassSubscriptionCache(clazz, getClassPath(clazz),
+            val cc = new ClassSubscriptionCache(clazz, classPath(clazz),
                                                 curator, onLastUnsubscribe,
                                                 metrics)
             classCaches.putIfAbsent(clazz, cc).getOrElse(cc)
@@ -646,15 +641,15 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     }
 
     @inline
-    private[storage] def getClassPath(clazz: Class[_]): String = {
+    private[storage] def classPath(clazz: Class[_]): String = {
         modelPath + "/" + clazz.getSimpleName
     }
 
     @inline
-    private[storage] def getObjectPath(clazz: Class[_], id: ObjId,
-                                       version: Long = version.longValue())
+    protected[storage] override def objectPath(clazz: Class[_], id: ObjId,
+                                               version: Long = version.longValue())
     : String = {
-        getClassPath(clazz) + "/" + getIdString(clazz, id)
+        classPath(clazz) + "/" + getIdString(clazz, id)
     }
 
 }

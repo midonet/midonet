@@ -616,16 +616,6 @@ class ZoomMetricsTest extends FeatureSpec
 
             And("The number of object watchers triggered should be 3")
             getMetricValue("ObjectWatchersTriggered") shouldBe 3
-
-            When("We delete the object associated to the single value")
-            zoom.delete(classOf[State], obj.id)
-
-            Then("Both observers complete")
-            observer2.awaitCompletion(timeout)
-            observer3.awaitCompletion(timeout)
-
-            And("The number of object watcher triggered should be 4")
-            getMetricValue("ObjectWatchersTriggered") shouldBe 4
         }
 
         scenario("Multi-value key observable") {
@@ -668,15 +658,6 @@ class ZoomMetricsTest extends FeatureSpec
 
             And("The number of class watchers triggered should be 2")
             getMetricValue("TypeWatchersTriggered") shouldBe 2
-
-            When("We delete the object associated to the multi-value key")
-            zoom.delete(classOf[State], obj.id)
-
-            Then("The observer completes")
-            observer1.awaitCompletion(timeout)
-
-            And("The number of class watchers triggered should be 3")
-            getMetricValue("TypeWatchersTriggered") shouldBe 3
         }
 
         scenario("Zoom state NoNode exceptions") {
