@@ -23,6 +23,8 @@ import javax.annotation.Nullable
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
+import com.codahale.metrics.MetricRegistry
+import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.Message
 
 import rx.Observable.OnSubscribe
@@ -33,6 +35,7 @@ import rx.{Observable, Observer, Subscriber}
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.ZoomObject
 import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.midolman.monitoring.metrics.{BlackHoleDeviceMapperMetrics, JmxDeviceMapperMetrics}
 import org.midonet.midolman.topology.DeviceMapper._
 import org.midonet.midolman.topology.VirtualTopology.{Key, Device}
 import org.midonet.util.functors._
@@ -112,8 +115,8 @@ object DeviceMapper {
  *  - the [[DeviceMapper]] observer can execute the custom actions before
  *    subscribers are notified.
  */
-abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
-                                        (implicit tag: ClassTag[D])
+abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology,
+    val metricsRegistry: MetricRegistry = null) (implicit tag: ClassTag[D])
     extends OnSubscribe[D] with Observer[D] with MidolmanLogging {
 
     import DeviceMapper.MapperClosedException
@@ -124,6 +127,14 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
     private final val subscriber = Subscribers.from(cache)
 
     @volatile private var error: Throwable = null
+
+    /* Functions and variables to expose metrics using JMX in class
+       DeviceMapperMetrics. */
+    @VisibleForTesting
+    private[topology] val metrics = metricsRegistry match {
+        case null => BlackHoleDeviceMapperMetrics
+        case registry => new JmxDeviceMapperMetrics(this, registry)
+    }
 
     /**
      * An implementing class must override this method, which is called
@@ -161,6 +172,7 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
 
     override final def onError(e: Throwable) = {
         log.error("Device {}/{} error", tag, id, e)
+        metrics.deviceErrorTriggered()
         error = e
         state set MapperState.Error
         vt.devices.remove(id) match {
@@ -172,6 +184,7 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
 
     override final def onNext(device: D) = {
         log.debug("Device {}/{} notification: {}", tag, id, device)
+        metrics.deviceUpdated()
         vt.devices.put(id, device)
         onDeviceChanged(device)
     }
