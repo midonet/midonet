@@ -16,6 +16,167 @@
       "revId": "301046804081dc751da067fef2947949d2783949",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_757a83f2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T20:51:28Z",
+      "side": 1,
+      "message": "debug",
+      "range": {
+        "startLine": 411,
+        "startChar": 20,
+        "endLine": 411,
+        "endChar": 24
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_957d4fea",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T20:51:28Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 414,
+        "startChar": 20,
+        "endLine": 414,
+        "endChar": 24
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b5840bd5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T20:51:28Z",
+      "side": 1,
+      "message": "warn? not sure if, say, an failure during a transient disconnection qualifies as error",
+      "range": {
+        "startLine": 420,
+        "startChar": 20,
+        "endLine": 420,
+        "endChar": 25
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3578fbf1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 653,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T20:51:28Z",
+      "side": 1,
+      "message": "what else accesses this?",
+      "range": {
+        "startLine": 653,
+        "startChar": 4,
+        "endLine": 653,
+        "endChar": 13
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_95646f4a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T20:51:28Z",
+      "side": 1,
+      "message": "shouldn\u0027t we instead refuse to build an instance without a hostId?",
+      "range": {
+        "startLine": 284,
+        "startChar": 8,
+        "endLine": 286,
+        "endChar": 9
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b5d24bd0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T20:51:28Z",
+      "side": 1,
+      "message": "This looks identical to L463, should we factor it out?",
+      "range": {
+        "startLine": 400,
+        "startChar": 20,
+        "endLine": 404,
+        "endChar": 70
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_75c8c322",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T20:51:28Z",
+      "side": 1,
+      "message": "Maybe extracting this to a variable makes sense. It\u0027s used in the 3 methods (which are already in desperate need of some consolidation). Some garbage savings too.",
+      "range": {
+        "startLine": 422,
+        "startChar": 58,
+        "endLine": 425,
+        "endChar": 13
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
