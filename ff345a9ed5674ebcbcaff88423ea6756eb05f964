@@ -76,6 +76,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_5fe3e632",
+        "filename": "midolman/src/test/java/org/midonet/midolman/state/LegacyArpCacheImpl.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-09-22T12:47:17Z",
+      "side": 1,
+      "message": "This is a legacy test-only class meant to be deleted soon, the code path is not executed.",
+      "parentUuid": "1ae5cdf2_7c199087",
+      "revId": "ff345a9ed5674ebcbcaff88423ea6756eb05f964",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_dca3844d",
         "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/AbstractZkManager.java",
         "patchSetId": 3
@@ -87,6 +105,24 @@
       "writtenOn": "2015-09-22T11:02:56Z",
       "side": 1,
       "message": "This line is out of order.",
+      "revId": "ff345a9ed5674ebcbcaff88423ea6756eb05f964",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9fd48e48",
+        "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/AbstractZkManager.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-09-22T12:47:17Z",
+      "side": 1,
+      "message": "The entire zkManager class hierarchy is obsolete and only kept for its use in conversion scripts.",
+      "parentUuid": "1ae5cdf2_dca3844d",
       "revId": "ff345a9ed5674ebcbcaff88423ea6756eb05f964",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
