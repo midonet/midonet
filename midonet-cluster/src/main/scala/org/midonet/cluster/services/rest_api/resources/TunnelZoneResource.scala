@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
@@ -25,12 +24,14 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.rest_api.BadRequestHttpException
+import org.midonet.cluster.rest_api.validation.MessageProperty
+import org.midonet.cluster.rest_api.{ConflictHttpException, BadRequestHttpException}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.TunnelZone
 import org.midonet.cluster.rest_api.validation.MessageProperty.{UNIQUE_TUNNEL_ZONE_NAME_TYPE, getMessage}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.util.UUIDUtil
 
 @ApiResource(version = 1)
 @Path("tunnel_zones")
@@ -62,6 +63,21 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
     : Ops = {
         throwIfTunnelZoneNameUsed(to)
         to.update(from)
+        NoOps
+    }
+
+    protected override def deleteFilter(id: String): Ops = {
+        val vteps = backend.store.getAll(classOf[Topology.Vtep]).getOrThrow
+        val matchingVteps = vteps.filter { v =>
+            UUIDUtil.fromProto(v.getTunnelZoneId).toString == id
+        }
+        if (matchingVteps.nonEmpty) {
+            val ids = matchingVteps.map { v => UUIDUtil.fromProto(v.getId) }
+            throw new ConflictHttpException("Tunnel Zone is used by VTEP(s), " +
+                                            "please delete the following " +
+                                            "VTEPs before deleting this " +
+                                            "tunnel zone: " + ids)
+        }
         NoOps
     }
 
