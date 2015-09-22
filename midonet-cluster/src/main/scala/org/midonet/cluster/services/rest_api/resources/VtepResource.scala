@@ -35,10 +35,11 @@ import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneType
 import org.midonet.cluster.rest_api.models.Vtep.ConnectionState._
 import org.midonet.cluster.rest_api.models.{Host, TunnelZone, Vtep}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
 import org.midonet.util.reactivex._
 
@@ -120,11 +121,16 @@ class VtepResource @Inject()(resContext: ResourceContext,
                         "is not configured")
             } getOrThrow
 
-            val hostIps = listResources(classOf[Host]) map {
-                _.flatMap { _.addresses.map(IPv4Addr.fromString) }.toSet
-            } getOrThrow
+            // Typically we'd go to backend.store directly, however we care
+            // about host ips and addresses so we delegate on HostResource to
+            // do the composition for us.
+            val hostResource = new HostResource(resContext)
+            val hostIps =
+                hostResource.list(APPLICATION_HOST_COLLECTION_JSON_V3)
+                            .flatMap { _.addresses.map(IPAddr.fromString) }
+                            .toSet
 
-            val commonIps = vtepIps.intersect(hostIps)
+            val commonIps = vtepIps.find(hostIps.contains)
             if (commonIps.nonEmpty) {
                 val msg = getMessage(VTEP_HOST_IP_CONFLICT, commonIps.head)
                 throw new ConflictHttpException(msg)
