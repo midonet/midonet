@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendTestModule
-import org.midonet.conf.MidoTestConfigurator
+import org.midonet.conf.{HostIdGenerator, MidoTestConfigurator}
 import org.midonet.midolman.cluster._
 import org.midonet.midolman.cluster.datapath.MockDatapathModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
@@ -60,6 +60,7 @@ trait MidolmanSpec extends FeatureSpecLike
     val log = LoggerFactory.getLogger(getClass)
     System.setProperty("java.nio.channels.spi.SelectorProvider",
                        classOf[MockSelectorProvider].getName)
+    HostIdGenerator.useTemporaryHostId()
 
     var injector: Injector = null
 

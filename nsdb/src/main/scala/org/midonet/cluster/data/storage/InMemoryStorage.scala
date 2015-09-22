@@ -37,6 +37,7 @@ import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException
+import org.midonet.conf.HostIdGenerator
 import org.midonet.util.concurrent._
 import org.midonet.util.functors._
 
@@ -445,7 +446,7 @@ class InMemoryStorage extends Storage with StateStorage {
 
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
 
-    override val hostId = "any"
+    override val hostId = HostIdGenerator.getHostId.toString
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
@@ -563,9 +564,11 @@ class InMemoryStorage extends Storage with StateStorage {
         classes.get(clazz).getKey(id, key, getKeyType(clazz, key))
     }
 
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
     override def getKey(host: String, clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        ???
+        getKey(clazz, id, key)
     }
 
     @throws[ServiceUnavailableException]
@@ -575,14 +578,26 @@ class InMemoryStorage extends Storage with StateStorage {
         classes.get(clazz).keyObservable(id, key, getKeyType(clazz, key))
     }
 
+    @throws[ServiceUnavailableException]
     override def keyObservable(host: String, clazz: Class[_], id: ObjId,
                                key: String): Observable[StateKey] = {
-        ???
+        keyObservable(clazz, id, key)
     }
 
+    @throws[ServiceUnavailableException]
     override def keyObservable(host: Observable[String], clazz: Class[_],
                                id: ObjId, key: String): Observable[StateKey] = {
-        ???
+        assertBuilt()
+        val noneObservable =
+            if (getKeyType(clazz, key).isSingle)
+                Observable.just[StateKey](SingleValueKey(key, None, NoOwnerId))
+            else
+                Observable.just[StateKey](MultiValueKey(key, Set()))
+
+        Observable.switchOnNext(host map makeFunc1 { host =>
+            if (host ne null) keyObservable(host, clazz, id, key)
+            else noneObservable
+        })
     }
 
     override def ownerId = DefaultOwnerId
