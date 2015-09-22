@@ -246,7 +246,8 @@ class FloodingProxyManager(backend: MidonetBackend) {
                 }
              }.recoverWith[FloodingProxy] {
                  case t: NotFoundException if t.clazz == classOf[TunnelZone] =>
-                     log.debug("Clear flooding proxy for tunnel zone: {}", tzId)
+                     log.debug("Tunnel zone {} deleted: clearing flooding proxy",
+                               tzId)
                      Future.successful(null)
                  case NonFatal(t) if retries > 0 =>
                      log.warn("Failed to calculate flooding proxy for " +

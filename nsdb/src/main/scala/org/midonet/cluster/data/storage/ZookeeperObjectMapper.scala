@@ -408,17 +408,13 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         // One or more didn't exist, so we'll have to check them individually.
         try {
             for (clazz <- classes) {
-                log.info("Create path: {}", classPath(clazz))
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
                                classPath(clazz))
-                log.info("Create path: {}", stateClassPath(hostId, clazz))
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
                                stateClassPath(hostId, clazz))
             }
         } catch {
-            case ex: Exception =>
-                log.error("Failed to create class nodes")
-                throw new InternalObjectMapperException(ex)
+            case ex: Exception => throw new InternalObjectMapperException(ex)
         }
     }
 
