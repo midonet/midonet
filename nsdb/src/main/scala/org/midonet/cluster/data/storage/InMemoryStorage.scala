@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
@@ -30,9 +31,9 @@ import rx.Observable.OnSubscribe
 import rx._
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.InMemoryStorage.{DefaultOwnerId, PrimedSubject, asObservable, copyObj}
+import org.midonet.cluster.data.storage.InMemoryStorage.{DefaultOwnerId, NamespaceId, PrimedSubject, asObservable, copyObj}
 import org.midonet.cluster.data.storage.KeyType.KeyType
-import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
+import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
@@ -175,11 +176,12 @@ class InMemoryStorage extends Storage with StateStorage {
             instanceUpdates.clear()
         }
 
-        def addValue(id: ObjId, key: String, value: String, keyType: KeyType)
-        : Observable[StateResult] = {
+        def addValue(namespace: String, id: ObjId, key: String, value: String,
+                     keyType: KeyType): Observable[StateResult] = {
             val idStr = getIdString(clazz, id)
             instances.get(idStr) match {
-                case Some(instance) => instance.addValue(key, value, keyType)
+                case Some(instance) =>
+                    instance.addValue(namespace, key, value, keyType)
                 case None => asObservable {
                     throw new UnmodifiableStateException(
                         clazz.getSimpleName, idStr, key, value,
@@ -188,34 +190,41 @@ class InMemoryStorage extends Storage with StateStorage {
             }
         }
 
-        def removeValue(id: ObjId, key: String, value: String,
+        def removeValue(namespace: String, id: ObjId, key: String, value: String,
                         keyType: KeyType): Observable[StateResult] = {
             val idStr = getIdString(clazz, id)
             instances.get(idStr) match {
-                case Some(instance) => instance.removeValue(key, value, keyType)
+                case Some(instance) =>
+                    instance.removeValue(namespace, key, value, keyType)
                 case None => asObservable {
                     StateResult(NoOwnerId)
                 }
             }
         }
 
-        def getKey(id: ObjId, key: String, keyType: KeyType)
+        def getKey(namespace: String, id: ObjId, key: String, keyType: KeyType)
         : Observable[StateKey] = {
+            if (namespace eq null) {
+                return emptyValueKey(key, keyType)
+            }
             val idStr = getIdString(clazz, id)
             instances.get(idStr) match {
-                case Some(instance) => instance.getKey(key, keyType)
+                case Some(instance) => instance.getKey(namespace, key, keyType)
                 case None if keyType.isSingle =>
                     asObservable { SingleValueKey(key, None, NoOwnerId) }
                 case None =>
-                    asObservable { MultiValueKey(key, Set()) }
+                    asObservable { MultiValueKey(key, EmptyValueSet) }
             }
         }
 
-        def keyObservable(id: ObjId, key: String, keyType: KeyType)
+        def keyObservable(namespace: String, id: ObjId, key: String, keyType: KeyType)
         : Observable[StateKey] = {
+            if (namespace eq null) {
+                return emptyValueKey(key, keyType)
+            }
             val idStr = getIdString(clazz, id)
             instances.get(idStr) match {
-                case Some(instance) => instance.keyObservable(key, keyType)
+                case Some(instance) => instance.keyObservable(namespace, key, keyType)
                 case None if keyType.isSingle =>
                     Observable.empty()
                 case None =>
@@ -223,13 +232,20 @@ class InMemoryStorage extends Storage with StateStorage {
             }
         }
 
+        private def emptyValueKey(key: String, keyType: KeyType)
+        : Observable[StateKey] = {
+            if (keyType.isSingle)
+                Observable.just(SingleValueKey(key, None, NoOwnerId))
+            else
+                Observable.just(MultiValueKey(key, EmptyValueSet))
+        }
     }
 
     private class InstanceNode[T](clazz: Class[T], id: ObjId, obj: T) {
 
         private val ref = new AtomicReference[T](copyObj(obj))
         private val ver = new AtomicInteger
-        private val keys = new TrieMap[String, KeyNode]
+        private val state = new TrieMap[String, StateNode]
 
         private val instanceSubject = new PrimedSubject(ref.get)
         private val instanceObs = Observable.create(instanceSubject)
@@ -260,10 +276,7 @@ class InMemoryStorage extends Storage with StateStorage {
             if (!ver.compareAndSet(version, version + 1))
                 throw new BadVersionException
 
-            for (keyNode <- keys.values) {
-                keyNode.complete()
-            }
-
+            state.values.foreach(_.complete())
             instanceUpdate = Notification.createOnCompleted()
             value
         }
@@ -287,6 +300,39 @@ class InMemoryStorage extends Storage with StateStorage {
             }
         }
 
+        def addValue(namespace: String, key: String, value: String, keyType: KeyType)
+        : Observable[StateResult] = {
+            getOrCreateStateNode(namespace).addValue(key, value, keyType)
+        }
+
+        def removeValue(namespace: String, key: String, value: String, keyType: KeyType)
+        : Observable[StateResult] = {
+            getOrCreateStateNode(namespace).removeValue(key, value, keyType)
+        }
+
+        def getKey(namespace: String, key: String, keyType: KeyType): Observable[StateKey] = {
+            getOrCreateStateNode(namespace).getKey(key, keyType)
+        }
+
+
+        def keyObservable(namespace: String, key: String, keyType: KeyType)
+        : Observable[StateKey] = {
+            getOrCreateStateNode(namespace).keyObservable(key, keyType)
+        }
+
+        private def getOrCreateStateNode(namespace: String): StateNode = {
+            state.getOrElse(namespace, {
+                val node = new StateNode(namespace, clazz.getSimpleName,
+                                         getIdString(clazz, id))
+                state.putIfAbsent(namespace, node).getOrElse(node)
+            })
+        }
+    }
+
+    private class StateNode(namespace: String, clazz: String, id: String) {
+
+        private val keys = new TrieMap[String, KeyNode]
+
         def addValue(key: String, value: String, keyType: KeyType)
         : Observable[StateResult] = {
             getOrCreateKeyNode(key, keyType).add(value)
@@ -307,15 +353,17 @@ class InMemoryStorage extends Storage with StateStorage {
             getOrCreateKeyNode(key, keyType).observable
         }
 
+        def complete(): Unit = {
+            keys.values.foreach(_.complete())
+        }
+
         private def getOrCreateKeyNode(key: String, keyType: KeyType)
         : KeyNode = {
             keys.getOrElse(key, {
-                val node = new KeyNode(clazz.getSimpleName,
-                                       getIdString(clazz, id), key, keyType)
+                val node = new KeyNode(clazz, id, key, keyType)
                 keys.putIfAbsent(key, node).getOrElse(node)
             })
         }
-
     }
 
     private class KeyNode(clazz: String, id: String, key: String,
@@ -445,7 +493,7 @@ class InMemoryStorage extends Storage with StateStorage {
 
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
 
-    override val namespace = "any"
+    override def namespace = NamespaceId.toString
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
@@ -543,46 +591,76 @@ class InMemoryStorage extends Storage with StateStorage {
     @throws[IllegalArgumentException]
     override def addValue(clazz: Class[_], id: ObjId, key: String,
                           value: String): Observable[StateResult] = {
+        addValueAs(namespace, clazz, id, key, value)
+    }
+
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
+    def addValueAs(namespace: String, clazz: Class[_], id: ObjId, key: String,
+                   value: String): Observable[StateResult] = {
         assertBuilt()
-        classes.get(clazz).addValue(id, key, value, getKeyType(clazz, key))
+        classes.get(clazz).addValue(namespace, id, key, value,
+                                    getKeyType(clazz, key))
     }
 
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
     override def removeValue(clazz: Class[_], id: ObjId, key: String,
                              value: String): Observable[StateResult] = {
+        removeValueAs(namespace, clazz, id, key, value)
+    }
+
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
+    def removeValueAs(namespace: String, clazz: Class[_], id: ObjId, key: String,
+                      value: String): Observable[StateResult] = {
         assertBuilt()
-        classes.get(clazz).removeValue(id, key, value, getKeyType(clazz, key))
+        classes.get(clazz).removeValue(namespace, id, key, value,
+                                       getKeyType(clazz, key))
     }
 
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
     override def getKey(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        assertBuilt()
-        classes.get(clazz).getKey(id, key, getKeyType(clazz, key))
+        getKey(namespace, clazz, id, key)
     }
 
-    override def getKey(host: String, clazz: Class[_], id: ObjId, key: String)
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
+    override def getKey(namespace: String, clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        ???
+        assertBuilt()
+        classes.get(clazz).getKey(namespace, id, key, getKeyType(clazz, key))
     }
 
     @throws[ServiceUnavailableException]
     override def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        assertBuilt()
-        classes.get(clazz).keyObservable(id, key, getKeyType(clazz, key))
+        keyObservable(namespace, clazz, id, key)
     }
 
-    override def keyObservable(host: String, clazz: Class[_], id: ObjId,
+    @throws[ServiceUnavailableException]
+    override def keyObservable(namespace: String, clazz: Class[_], id: ObjId,
                                key: String): Observable[StateKey] = {
-        ???
+        assertBuilt()
+        classes.get(clazz).keyObservable(namespace, id, key, getKeyType(clazz, key))
     }
 
-    override def keyObservable(host: Observable[String], clazz: Class[_],
+    @throws[ServiceUnavailableException]
+    override def keyObservable(namespace: Observable[String], clazz: Class[_],
                                id: ObjId, key: String): Observable[StateKey] = {
-        ???
+        assertBuilt()
+        val noneObservable =
+            if (getKeyType(clazz, key).isSingle)
+                Observable.just[StateKey](SingleValueKey(key, None, NoOwnerId))
+            else
+                Observable.just[StateKey](MultiValueKey(key, EmptyValueSet))
+
+        Observable.switchOnNext(namespace map makeFunc1 { namespace =>
+            if (namespace ne null) keyObservable(namespace, clazz, id, key)
+            else noneObservable
+        })
     }
 
     override def ownerId = DefaultOwnerId
@@ -592,6 +670,7 @@ object InMemoryStorage {
 
     final val IOTimeout = 5 seconds
     final val DefaultOwnerId = 1L
+    var NamespaceId = new UUID(0L, 0L)
 
     private def copyObj[T](obj: T): T =
         deserialize(serialize(obj.asInstanceOf[Obj]), obj.getClass)
