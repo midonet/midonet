@@ -93,6 +93,30 @@
       "revId": "3ba2ea3919f0f725fc91df533a9f4041ff5ae35b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5cb5b42f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:02:48Z",
+      "side": 1,
+      "message": "No, I think it\u0027s fine to have the keyObservable api just expose a single host\u0027s key. I don\u0027t see a case where we\u0027ll have to watch all hosts\u0027s opinions (and if we do we can always get all observables and merge)",
+      "parentUuid": "1ae5cdf2_c23f24d5",
+      "range": {
+        "startLine": 187,
+        "startChar": 22,
+        "endLine": 187,
+        "endChar": 26
+      },
+      "revId": "3ba2ea3919f0f725fc91df533a9f4041ff5ae35b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
