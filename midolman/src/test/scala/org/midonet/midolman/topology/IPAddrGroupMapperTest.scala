@@ -21,6 +21,8 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.DurationInt
 
+import com.codahale.metrics.MetricRegistry
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -43,11 +45,13 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
     import TopologyBuilder._
 
     private var vt: VirtualTopology = _
+    private var metricRegistry: MetricRegistry = _
     private var store: Storage = _
     private final val timeout = 5 seconds
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
+        metricRegistry = injector.getInstance(classOf[MetricRegistry])
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
@@ -57,7 +61,7 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
             val id = UUID.randomUUID
 
             And("An ipAddrGroup mapper")
-            val mapper = new IPAddrGroupMapper(id, vt)
+            val mapper = new IPAddrGroupMapper(id, vt, metricRegistry)
 
             And("An observer to the ipAddrGroup mapper")
             val obs = new DeviceObserver[SimAddrGroup](vt)
@@ -78,7 +82,7 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
             val ipAddrGroup = buildAndStoreIpAddrGroup()
 
             And("An ipAddrGroup mapper")
-            val mapper = new IPAddrGroupMapper(ipAddrGroup.getId.asJava, vt)
+            val mapper = new IPAddrGroupMapper(ipAddrGroup.getId.asJava, vt, metricRegistry)
 
             And("An observer to the ipAddrGroup mapper")
             val obs = new DeviceObserver[SimAddrGroup](vt)
@@ -119,7 +123,7 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
             val ipAddrGroup = buildAndStoreIpAddrGroup()
 
             And("An ipAddrGroup mapper")
-            val mapper = new IPAddrGroupMapper(ipAddrGroup.getId.asJava, vt)
+            val mapper = new IPAddrGroupMapper(ipAddrGroup.getId.asJava, vt, metricRegistry)
 
             And("An observer to the ipAddrGroup mapper")
             val obs = new DeviceObserver[SimAddrGroup](vt)
