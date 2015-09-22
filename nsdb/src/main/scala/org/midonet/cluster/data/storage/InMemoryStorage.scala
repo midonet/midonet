@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
@@ -30,7 +31,7 @@ import rx.Observable.OnSubscribe
 import rx._
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.InMemoryStorage.{DefaultOwnerId, PrimedSubject, asObservable, copyObj}
+import org.midonet.cluster.data.storage.InMemoryStorage.{DefaultOwnerId, HostId, PrimedSubject, asObservable, copyObj}
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
 import org.midonet.cluster.data.storage.TransactionManager._
@@ -175,11 +176,12 @@ class InMemoryStorage extends Storage with StateStorage {
             instanceUpdates.clear()
         }
 
-        def addValue(id: ObjId, key: String, value: String, keyType: KeyType)
-        : Observable[StateResult] = {
+        def addValue(host: String, id: ObjId, key: String, value: String,
+                     keyType: KeyType): Observable[StateResult] = {
             val idStr = getIdString(clazz, id)
             instances.get(idStr) match {
-                case Some(instance) => instance.addValue(key, value, keyType)
+                case Some(instance) =>
+                    instance.addValue(host, key, value, keyType)
                 case None => asObservable {
                     throw new UnmodifiableStateException(
                         clazz.getSimpleName, idStr, key, value,
@@ -188,22 +190,23 @@ class InMemoryStorage extends Storage with StateStorage {
             }
         }
 
-        def removeValue(id: ObjId, key: String, value: String,
+        def removeValue(host: String, id: ObjId, key: String, value: String,
                         keyType: KeyType): Observable[StateResult] = {
             val idStr = getIdString(clazz, id)
             instances.get(idStr) match {
-                case Some(instance) => instance.removeValue(key, value, keyType)
+                case Some(instance) =>
+                    instance.removeValue(host, key, value, keyType)
                 case None => asObservable {
                     StateResult(NoOwnerId)
                 }
             }
         }
 
-        def getKey(id: ObjId, key: String, keyType: KeyType)
+        def getKey(host: String, id: ObjId, key: String, keyType: KeyType)
         : Observable[StateKey] = {
             val idStr = getIdString(clazz, id)
             instances.get(idStr) match {
-                case Some(instance) => instance.getKey(key, keyType)
+                case Some(instance) => instance.getKey(host, key, keyType)
                 case None if keyType.isSingle =>
                     asObservable { SingleValueKey(key, None, NoOwnerId) }
                 case None =>
@@ -211,11 +214,11 @@ class InMemoryStorage extends Storage with StateStorage {
             }
         }
 
-        def keyObservable(id: ObjId, key: String, keyType: KeyType)
+        def keyObservable(host: String, id: ObjId, key: String, keyType: KeyType)
         : Observable[StateKey] = {
             val idStr = getIdString(clazz, id)
             instances.get(idStr) match {
-                case Some(instance) => instance.keyObservable(key, keyType)
+                case Some(instance) => instance.keyObservable(host, key, keyType)
                 case None if keyType.isSingle =>
                     Observable.empty()
                 case None =>
@@ -229,7 +232,7 @@ class InMemoryStorage extends Storage with StateStorage {
 
         private val ref = new AtomicReference[T](copyObj(obj))
         private val ver = new AtomicInteger
-        private val keys = new TrieMap[String, KeyNode]
+        private val state = new TrieMap[String, StateNode]
 
         private val instanceSubject = new PrimedSubject(ref.get)
         private val instanceObs = Observable.create(instanceSubject)
@@ -260,10 +263,7 @@ class InMemoryStorage extends Storage with StateStorage {
             if (!ver.compareAndSet(version, version + 1))
                 throw new BadVersionException
 
-            for (keyNode <- keys.values) {
-                keyNode.complete()
-            }
-
+            state.values.foreach(_.complete())
             instanceUpdate = Notification.createOnCompleted()
             value
         }
@@ -287,6 +287,39 @@ class InMemoryStorage extends Storage with StateStorage {
             }
         }
 
+        def addValue(host: String, key: String, value: String, keyType: KeyType)
+        : Observable[StateResult] = {
+            getOrCreateStateNode(host).addValue(key, value, keyType)
+        }
+
+        def removeValue(host: String, key: String, value: String, keyType: KeyType)
+        : Observable[StateResult] = {
+            getOrCreateStateNode(host).removeValue(key, value, keyType)
+        }
+
+        def getKey(host: String, key: String, keyType: KeyType): Observable[StateKey] = {
+            getOrCreateStateNode(host).getKey(key, keyType)
+        }
+
+
+        def keyObservable(host: String, key: String, keyType: KeyType)
+        : Observable[StateKey] = {
+            getOrCreateStateNode(host).keyObservable(key, keyType)
+        }
+
+        private def getOrCreateStateNode(host: String): StateNode = {
+            state.getOrElse(host, {
+                val node = new StateNode(host, clazz.getSimpleName,
+                                         getIdString(clazz, id))
+                state.putIfAbsent(host, node).getOrElse(node)
+            })
+        }
+    }
+
+    private class StateNode(host: String, clazz: String, id: String) {
+
+        private val keys = new TrieMap[String, KeyNode]
+
         def addValue(key: String, value: String, keyType: KeyType)
         : Observable[StateResult] = {
             getOrCreateKeyNode(key, keyType).add(value)
@@ -307,15 +340,17 @@ class InMemoryStorage extends Storage with StateStorage {
             getOrCreateKeyNode(key, keyType).observable
         }
 
+        def complete(): Unit = {
+            keys.values.foreach(_.complete())
+        }
+
         private def getOrCreateKeyNode(key: String, keyType: KeyType)
         : KeyNode = {
             keys.getOrElse(key, {
-                val node = new KeyNode(clazz.getSimpleName,
-                                       getIdString(clazz, id), key, keyType)
+                val node = new KeyNode(clazz, id, key, keyType)
                 keys.putIfAbsent(key, node).getOrElse(node)
             })
         }
-
     }
 
     private class KeyNode(clazz: String, id: String, key: String,
@@ -445,7 +480,7 @@ class InMemoryStorage extends Storage with StateStorage {
 
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
 
-    override val hostId = "any"
+    override def hostId = HostId.toString
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
@@ -543,46 +578,76 @@ class InMemoryStorage extends Storage with StateStorage {
     @throws[IllegalArgumentException]
     override def addValue(clazz: Class[_], id: ObjId, key: String,
                           value: String): Observable[StateResult] = {
+        addValueAs(hostId, clazz, id, key, value)
+    }
+
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
+    def addValueAs(host: String, clazz: Class[_], id: ObjId, key: String,
+                   value: String): Observable[StateResult] = {
         assertBuilt()
-        classes.get(clazz).addValue(id, key, value, getKeyType(clazz, key))
+        classes.get(clazz).addValue(host, id, key, value,
+                                    getKeyType(clazz, key))
     }
 
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
     override def removeValue(clazz: Class[_], id: ObjId, key: String,
                              value: String): Observable[StateResult] = {
+        removeValueAs(hostId, clazz, id, key, value)
+    }
+
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
+    def removeValueAs(host: String, clazz: Class[_], id: ObjId, key: String,
+                      value: String): Observable[StateResult] = {
         assertBuilt()
-        classes.get(clazz).removeValue(id, key, value, getKeyType(clazz, key))
+        classes.get(clazz).removeValue(host, id, key, value,
+                                       getKeyType(clazz, key))
     }
 
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
     override def getKey(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        assertBuilt()
-        classes.get(clazz).getKey(id, key, getKeyType(clazz, key))
+        getKey(hostId, clazz, id, key)
     }
 
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
     override def getKey(host: String, clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        ???
+        assertBuilt()
+        classes.get(clazz).getKey(host, id, key,getKeyType(clazz, key))
     }
 
     @throws[ServiceUnavailableException]
     override def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        assertBuilt()
-        classes.get(clazz).keyObservable(id, key, getKeyType(clazz, key))
+        keyObservable(hostId, clazz, id, key)
     }
 
+    @throws[ServiceUnavailableException]
     override def keyObservable(host: String, clazz: Class[_], id: ObjId,
                                key: String): Observable[StateKey] = {
-        ???
+        assertBuilt()
+        classes.get(clazz).keyObservable(host, id, key, getKeyType(clazz, key))
     }
 
+    @throws[ServiceUnavailableException]
     override def keyObservable(host: Observable[String], clazz: Class[_],
                                id: ObjId, key: String): Observable[StateKey] = {
-        ???
+        assertBuilt()
+        val noneObservable =
+            if (getKeyType(clazz, key).isSingle)
+                Observable.just[StateKey](SingleValueKey(key, None, NoOwnerId))
+            else
+                Observable.just[StateKey](MultiValueKey(key, Set()))
+
+        Observable.switchOnNext(host map makeFunc1 { host =>
+            if (host ne null) keyObservable(host, clazz, id, key)
+            else noneObservable
+        })
     }
 
     override def ownerId = DefaultOwnerId
@@ -592,6 +657,7 @@ object InMemoryStorage {
 
     final val IOTimeout = 5 seconds
     final val DefaultOwnerId = 1L
+    var HostId = new UUID(0L, 0L)
 
     private def copyObj[T](obj: T): T =
         deserialize(serialize(obj.asInstanceOf[Obj]), obj.getClass)
