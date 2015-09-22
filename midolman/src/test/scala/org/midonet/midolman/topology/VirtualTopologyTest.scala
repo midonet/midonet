@@ -421,4 +421,39 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
                 .createOnCompleted()
         }
     }
+
+    feature("Test metrics") {
+        scenario("Add a port, then remove it") {
+            Given("A bridge port")
+            val id = UUID.randomUUID
+            val port = createBridgePort(id = id, bridgeId = Some(bridgeId))
+            store.create(port)
+
+            And("Requesting the port to update the VT cache")
+            ready(intercept[NotYetException] {
+                VirtualTopology.tryGet[SimulationPort](id)
+            }.waitFor, timeout)
+
+            When("Creating an observer to the VT observable")
+            val observer = new DeviceObserver[SimulationPort](vt)
+            vt.observables.get(Key(classTag[SimulationPort], id))
+                .asInstanceOf[Observable[SimulationPort]]
+                .subscribe(observer)
+            observer.awaitOnNext(1, timeout)
+
+            Then("The gauges should be increased.")
+            vt.devicesGauge.getValue shouldBe 1
+            vt.observablesGauge.getValue shouldBe 1
+
+            And("Deleting the port")
+            store.delete(classOf[TopologyPort], id)
+
+            And("Waiting for the notifications")
+            observer.awaitCompletion(timeout)
+
+            Then("The gauges should be decreased.")
+            vt.devicesGauge.getValue shouldBe 0
+            vt.observablesGauge.getValue shouldBe 0
+      }
+    }
 }
