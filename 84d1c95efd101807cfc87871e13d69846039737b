@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_bcacf8a1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-22T09:04:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_9ced7c28",
+      "range": {
+        "startLine": 42,
+        "startChar": 40,
+        "endLine": 42,
+        "endChar": 48
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_bcf4f8f2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
         "patchSetId": 2
