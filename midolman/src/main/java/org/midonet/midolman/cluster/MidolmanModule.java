@@ -61,6 +61,7 @@ public class MidolmanModule extends PrivateModule {
         requireBinding(MidolmanConfig.class);
         requireBinding(DatapathConnectionService.class);
         requireBinding(MidolmanActorsService.class);
+        requireBinding(MetricRegistry.class);
 
         bind(MidolmanService.class).asEagerSingleton();
         expose(MidolmanService.class);

@@ -23,6 +23,7 @@ import scala.concurrent.{Future, Promise}
 import scala.reflect._
 import scala.util.control.NonFatal
 
+import com.codahale.metrics.{Gauge, MetricRegistry}
 import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.google.inject.name.Named
@@ -186,6 +187,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val state: LegacyStorage,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val simBackChannel: SimulationBackChannel,
+                                 val metricRegistry: MetricRegistry,
                                  @Named(VirtualTopology.VtExecutorName)
                                  val vtExecutor: ExecutorService,
                                  @Named(VirtualTopology.VtExecutorCheckerName)
@@ -204,6 +206,16 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         new ConcurrentHashMap[UUID, Device]()
     private[topology] val observables =
         new ConcurrentHashMap[Key, Observable[_]]()
+
+    @VisibleForTesting
+    private[topology] val devicesGauge = metricRegistry.register(
+        MetricRegistry.name(this.getClass.getName, "devices"),
+        new Gauge[Int] { override def getValue: Int = devices.size })
+
+    @VisibleForTesting
+    private[topology] val observablesGauge = metricRegistry.register(
+        MetricRegistry.name(this.getClass.getName, "observables"),
+        new Gauge[Int] { override def getValue: Int = observables.size })
 
     private val traceChains = mutable.Map[UUID,Subject[Chain,Chain]]()
 
