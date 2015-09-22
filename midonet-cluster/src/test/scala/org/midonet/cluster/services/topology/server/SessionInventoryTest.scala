@@ -34,6 +34,7 @@ import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rpc.Commands.{Response, ResponseType}
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.conf.HostIdGenerator
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
 import org.midonet.util.reactivex.TestAwaitableObserver
 
@@ -42,6 +43,8 @@ import org.midonet.util.reactivex.TestAwaitableObserver
 class SessionInventoryTest extends FeatureSpec
                                    with Matchers
                                    with BeforeAndAfter {
+    HostIdGenerator.useTemporaryHostId()
+
     var store: Storage = _
     var inv: SessionInventory = _
 

@@ -33,6 +33,7 @@ import org.midonet.cluster.data.storage.InMemoryStorage
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.vxgw.VtepSynchronizer.NetworkInfo
+import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, MapNotification}
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.VtepConstants
@@ -45,6 +46,7 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
                                                     with GivenWhenThen
                                                     with VxlanGatewayFixtures
                                                     with MockitoSugar {
+    HostIdGenerator.useTemporaryHostId()
 
     implicit val ec = ExecutionContext.fromExecutor(
         MoreExecutors.sameThreadExecutor())
