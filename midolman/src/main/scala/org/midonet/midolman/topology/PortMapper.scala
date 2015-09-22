@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.topology
 
-import java.util.{ArrayList, UUID}
+import java.util.{ArrayList => JArrayList, UUID}
 
 import scala.collection.mutable
 
@@ -71,9 +71,9 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private lazy val combinator =
         makeFunc3[TopologyPort, Boolean, Option[UUID], SimulationPort](
             (port: TopologyPort, active: Boolean, traceChain: Option[UUID]) => {
-                val infilters = new ArrayList[UUID](1)
-                val outfilters = new ArrayList[UUID](1)
-                traceChain.foreach(infilters.add(_))
+                val infilters = new JArrayList[UUID](1)
+                val outfilters = new JArrayList[UUID](1)
+                traceChain.foreach(infilters.add)
                 if (port.hasL2InsertionInfilter) {
                     infilters.add(port.getL2InsertionInfilter)
                 }
@@ -94,7 +94,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             vt.store.observable(classOf[TopologyPort], id)
                 .observeOn(vt.vtScheduler)
                 .doOnNext(makeAction1(topologyPortUpdated))
-                .doOnCompleted(makeAction0(topologyPortDeleted))
+                .doOnCompleted(makeAction0(topologyPortDeleted()))
                 .distinctUntilChanged,
             vt.stateStore.keyObservable(classOf[TopologyPort], id, HostsKey)
                 .observeOn(vt.vtScheduler)
