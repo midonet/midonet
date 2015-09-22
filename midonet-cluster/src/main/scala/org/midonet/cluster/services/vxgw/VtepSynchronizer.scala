@@ -36,18 +36,20 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.{NotFoundException, StateStorage, Storage}
 import org.midonet.cluster.data.vtep.VtepStateException
 import org.midonet.cluster.data.vtep.model.MacLocation
+import org.midonet.cluster.models.State.VtepConfiguration
 import org.midonet.cluster.models.State.VtepConnectionState._
 import org.midonet.cluster.models.Topology.{Network, Port, Vtep => NsdbVtep}
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.services.vxgw.VtepSynchronizer.{NetworkInfo, executor}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
+import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state._
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.ConnectionState._
-import org.midonet.southbound.vtep.{ConnectionState, OvsdbVtepDataClient}
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
+import org.midonet.southbound.vtep.{ConnectionState, OvsdbVtepDataClient}
 import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
@@ -149,8 +151,10 @@ class VtepSynchronizer(vtepId: UUID,
         override def onNext(s: State): Unit = {
             connectionState = s
             val zkState = connectionState match {
-                case Connected => VTEP_CONNECTED
-                case Disconnected | Broken => VTEP_DISCONNECTED
+                case Connected | Ready => VTEP_CONNECTED
+                case Disconnected
+                     | Disconnecting
+                     | Connecting => VTEP_DISCONNECTED
                 case _ => VTEP_ERROR
             }
             log.info(s"OVSDB connection state change: $s")
@@ -233,11 +237,27 @@ class VtepSynchronizer(vtepId: UUID,
                 log.error("Failed to connect to OVDSB", t)
             case Success(obs) =>
                 log.info("Connected to OVSDB, start sync processes..")
+                extractVtepTunnelIps(vtepId)
                 ovsdbMacLocationObserver = obs
                 macRemoteConsumer = new VtepMacRemoteConsumer(nsdbVtep,
                               boundNetworks, store, ovsdbMacLocationObserver)
                 watchVtepLocalMacs()
                 watchFloodingProxyEvents()
+        }
+    }
+
+    private def extractVtepTunnelIps(vtepId: UUID): Unit = {
+        ovsdb.physicalSwitch.andThen {
+            case Success(Some(ps)) =>
+                log.info(s"VTEP $vtepId tunnel IPs are: ${ps.tunnelIpStrings}")
+                val vtepConfig = VtepConfiguration.newBuilder()
+                    .setDescription(ps.description)
+                    .setName(ps.name)
+                    .addAllTunnelAddresses(
+                        ps.tunnelIps.map(IPAddressUtil.toProto))
+                stateStore.setVtepConfig(vtepId, vtepConfig.build()).asFuture
+            case Failure(_) =>
+                log.warn(s"Failed to extract tunnel IPs for VTEP $vtepId")
         }
     }
 
