@@ -20,6 +20,7 @@ import java.util.UUID
 import scala.concurrent.duration._
 import scala.collection.mutable
 
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.{Config, ConfigFactory}
 
 import org.junit.runner.RunWith
@@ -54,6 +55,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
     private var store: Storage = _
     private var vt: VirtualTopology = _
+    private var metricRegistry: MetricRegistry = _
     private var threadId: Long = _
 
     private final val timeout = 5 seconds
@@ -62,6 +64,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
+        metricRegistry = injector.getInstance(classOf[MetricRegistry])
         store = injector.getInstance(classOf[MidonetBackend]).store
         threadId = Thread.currentThread.getId
     }
@@ -91,7 +94,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     private def testBridgeCreated(bridgeId: UUID, obs: BridgeObserver)
     : TopologyBridge = {
         Given("A bridge mapper")
-        val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+        val mapper = new BridgeMapper(bridgeId, vt, metricRegistry, mutable.Map())
 
         And("A bridge")
         val bridge = createBridge(id = bridgeId)
@@ -139,7 +142,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
 
             And("A bridge mapper")
-            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridgeId, vt, metricRegistry, mutable.Map())
 
             And("An observer to the bridge mapper")
             val obs = createObserver()
@@ -1317,7 +1320,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val obs = createObserver()
 
             And("A bridge mapper")
-            val mapper = new BridgeMapper(bridge.getId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridge.getId, vt, metricRegistry, mutable.Map())
 
             When("Requesting the ports to have them cached")
             VirtualTopology.get[BridgePort](port1.getId)
@@ -1632,7 +1635,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Given("A chain mapper")
             val bridgeId = UUID.randomUUID
-            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridgeId, vt, metricRegistry, mutable.Map())
 
             And("A chain")
             val chain = createChain()
@@ -1662,7 +1665,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Given("A bridge mapper")
             val bridgeId = UUID.randomUUID
-            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridgeId, vt, metricRegistry, mutable.Map())
 
             And("A chain")
             val chain1 = createChain()
@@ -1699,7 +1702,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Given("A bridge mapper")
             val bridgeId = UUID.randomUUID
-            val mapper = new BridgeMapper(bridgeId, vt, mutable.Map())
+            val mapper = new BridgeMapper(bridgeId, vt, metricRegistry, mutable.Map())
 
             And("A chain")
             val chain = createChain()
