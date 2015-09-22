@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_354abbc5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T20:38:43Z",
+      "side": 1,
+      "message": "deleted tunnel zone?",
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
