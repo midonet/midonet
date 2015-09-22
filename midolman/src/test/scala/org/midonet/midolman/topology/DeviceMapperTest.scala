@@ -18,6 +18,8 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
+import com.codahale.metrics.MetricRegistry
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable
@@ -25,6 +27,7 @@ import rx.observers.TestObserver
 import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 
+import org.midonet.midolman.monitoring.metrics.JmxDeviceMapperMetrics
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._
@@ -52,9 +55,10 @@ class DeviceMapperTest extends MidolmanSpec {
         def apply(id: UUID, value: Int = 0) = new TestableDevice(id, value)
     }
 
-    class TestableMapper(id: UUID, obs: Observable[TestableDevice])
+    class TestableMapper(id: UUID, obs: Observable[TestableDevice],
+                         metricsRegistry: MetricRegistry = null)
                         (implicit vt: VirtualTopology)
-            extends DeviceMapper[TestableDevice](id, vt) {
+            extends DeviceMapper[TestableDevice](id, vt, metricsRegistry) {
 
         private val subscribed = new AtomicBoolean(false)
         private val stream = BehaviorSubject.create[TestableDevice]()
@@ -660,4 +664,71 @@ class DeviceMapperTest extends MidolmanSpec {
             vt.devices.containsKey(id) shouldBe false
         }
     }
+
+    feature("Test metrics") {
+        scenario("A used observable subscribes to storage") {
+            Given("A storage stream and an observer")
+            val stream = new DeviceStream()
+            val observer = new TestableObserver()
+
+            When("Creating a device observable for this stream")
+            val mapper = new TestableMapper(
+                UUID.randomUUID, stream.out, new MetricRegistry())
+            val observable = Observable.create(mapper)
+
+            When("An observer subscribes")
+            observable.subscribe(observer)
+
+            Then("The metrics should not change.")
+            val metrics = mapper.metrics.asInstanceOf[JmxDeviceMapperMetrics[Device]]
+            metrics.deviceUpdatedMeter.getCount shouldBe 0
+            metrics.deviceErrors.getCount shouldBe 0
+        }
+
+        scenario("An observer receives a device") {
+            Given("A storage stream and an observer")
+            val stream = new DeviceStream()
+            val observer = new TestableObserver()
+
+            When("Creating a device observable for this stream")
+            val mapper = new TestableMapper(
+              UUID.randomUUID, stream.out, new MetricRegistry())
+            val observable = Observable.create(mapper)
+
+            And("And emitting an initial device")
+            val id = UUID.randomUUID
+            stream.in.onNext(TestableDevice(id, 0))
+
+            And("An observer subscribes to the observable")
+            observable.subscribe(observer)
+
+            Then("Only the updated meter should be changed.")
+            val metrics = mapper.metrics.asInstanceOf[JmxDeviceMapperMetrics[Device]]
+            metrics.deviceUpdatedMeter.getCount shouldBe 1
+            metrics.deviceErrors.getCount shouldBe 0
+        }
+
+        scenario("An observer receives an error") {
+            Given("A storage stream and an observer")
+            val stream = new DeviceStream()
+            val observer = new TestableObserver()
+
+            When("Creating a device observable for this stream")
+            val mapper = new TestableMapper(
+              UUID.randomUUID, stream.out, new MetricRegistry())
+            val observable = Observable.create(mapper)
+
+            And("The stream emits an error")
+            val e = new NullPointerException()
+            stream.in.onError(e)
+
+            And("The observer subscribes")
+            val subscription = observable.subscribe(observer)
+
+            Then("Only the error metric should be increased.")
+            val metrics = mapper.metrics.asInstanceOf[JmxDeviceMapperMetrics[Device]]
+            metrics.deviceUpdatedMeter.getCount shouldBe 0
+            metrics.deviceErrors.getCount shouldBe 1
+    }
+  }
 }
