@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f241493a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-22T15:32:32Z",
+      "side": 1,
+      "message": "Should we also have the following mappings:\nConnecting -\u003e VTEP_DISCONNECTED\nDisconnecting -\u003e VTEP_DISCONNECTED\n\nBroken -\u003e ERROR (?)",
+      "range": {
+        "startLine": 155,
+        "startChar": 46,
+        "endLine": 155,
+        "endChar": 63
+      },
+      "revId": "6d9c617d312690c88030784c2d2001712f87fdb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
