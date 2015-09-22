@@ -25,7 +25,9 @@ import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers, GivenWhenThen}
 import org.scalatest.junit.JUnitRunner
 
+import rx.Observable
 import rx.observers.TestObserver
+import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.storage.InMemoryStorage.DefaultOwnerId
 import org.midonet.cluster.data.storage.StorageTestClasses.State
@@ -39,10 +41,12 @@ class InMemoryStateStorageTest extends FeatureSpec with BeforeAndAfter
                                with Matchers with GivenWhenThen {
 
     private var storage: InMemoryStorage = _
+    private var namespaceId: String = _
     private final val timeout = 1 second
 
     before {
         storage = new InMemoryStorage
+        namespaceId = storage.namespace
         storage.registerClass(classOf[State])
         storage.registerKey(classOf[State], "first", SingleFirstWriteWins)
         storage.registerKey(classOf[State], "last", SingleLastWriteWins)
@@ -567,6 +571,487 @@ class InMemoryStateStorageTest extends FeatureSpec with BeforeAndAfter
                 "multi", Set("1"))
             obs.getOnNextEvents.get(1) shouldBe MultiValueKey(
                 "multi", Set())
+        }
+    }
+
+    def testMultiNamespaceAddReadDeleteSingle(key: String): Unit = {
+        Given("Two storage clients")
+        val namespaceId2 = UUID.randomUUID().toString
+
+        And("An object in storage")
+        val obj = new State
+        storage.create(obj)
+
+        When("The first namespace adds a value")
+        storage.addValue(classOf[State], obj.id, key, "1")
+            .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+        Then("The value is present for the first namespace")
+        storage.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), DefaultOwnerId)
+        storage.getKey(namespaceId, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), DefaultOwnerId)
+
+        And("The value is not present for the second namespace")
+        storage.getKey(namespaceId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+
+        When("The second namespace adds a value")
+        storage.addValueAs(namespaceId2, classOf[State], obj.id, key, "2")
+            .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+        Then("The key is unmodified for the first namespace")
+        storage.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), DefaultOwnerId)
+        storage.getKey(namespaceId, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("1"), DefaultOwnerId)
+
+        And("The value is present for the second namespace")
+        storage.getKey(namespaceId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), DefaultOwnerId)
+
+        When("The first namespace removes the value")
+        storage.removeValue(classOf[State], obj.id, key, null)
+            .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+        Then("The value is not present for the first namespace")
+        storage.getKey(classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+        storage.getKey(namespaceId, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+
+        And("The value is unmodified for the second namespace")
+        storage.getKey(namespaceId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, Some("2"), DefaultOwnerId)
+
+        When("The second namespace removes the value")
+        storage.removeValueAs(namespaceId2, classOf[State], obj.id, key, null)
+            .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+        Then("The value is removed for the second namespace")
+        storage.getKey(namespaceId2, classOf[State], obj.id, key)
+            .await(timeout) shouldBe SingleValueKey(key, None, NoOwnerId)
+    }
+
+    feature("Test state storage for multiple namespaces") {
+        scenario("Get single value key returns empty for null namespace") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            Then("Requesting the key for a null namespace returns none")
+            storage.getKey(null, classOf[State], obj.id, "first")
+                .await(timeout) shouldBe SingleValueKey("first", None, NoOwnerId)
+        }
+
+        scenario("Get multi value key returns empty for null namespace") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            Then("Requesting the key for a null namespace return an empty set")
+            storage.getKey(null, classOf[State], obj.id, "multi")
+                .await(timeout) shouldBe MultiValueKey("multi", Set())
+        }
+
+        scenario("Single value key observable emits empty for null namespace") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A null namespace")
+            val namespace: String = null
+
+            When("An observer from the first namespace subscribes")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(namespace, classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            Then("The observer receives an empty state and then completes")
+            obs.awaitOnNext(1, timeout)
+            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+            obs.awaitCompletion(timeout)
+            obs.getOnCompletedEvents should not be empty
+        }
+
+        scenario("Multi value key observable emits empty for null namespace") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A null namespace")
+            val namespace: String = null
+
+            When("An observer from the first namespace subscribes")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(namespace, classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            Then("The observer receives an empty state and then completes")
+            obs.awaitOnNext(1, timeout)
+            obs.getOnNextEvents.get(0) shouldBe MultiValueKey("multi", Set())
+            obs.awaitCompletion(timeout)
+            obs.getOnCompletedEvents should not be empty
+        }
+
+        scenario("Single value key namespaces observable emits empty for null namespace") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A null namespaces observable")
+            val namespaces = Observable.just[String](null)
+
+            When("An observer from the first namespace subscribes")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(namespaces, classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            Then("The observer receives an empty state and then completes")
+            obs.awaitOnNext(1, timeout)
+            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+            obs.awaitCompletion(timeout)
+            obs.getOnCompletedEvents should not be empty
+        }
+
+        scenario("Multi value key namespaces observable emits empty for null namespace") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A null namespaces observable")
+            val namespaces = Observable.just[String](null)
+
+            When("An observer from the first namespace subscribes")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(namespaces, classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            Then("The observer receives an empty state and then completes")
+            obs.awaitOnNext(1, timeout)
+            obs.getOnNextEvents.get(0) shouldBe MultiValueKey("multi", Set())
+            obs.awaitCompletion(timeout)
+            obs.getOnCompletedEvents should not be empty
+        }
+
+        scenario("Namespaces can add, read and delete different single first state")
+        {
+            testMultiNamespaceAddReadDeleteSingle("first")
+        }
+
+        scenario("Namespaces can add, read and delete different single last state") {
+            testMultiNamespaceAddReadDeleteSingle("last")
+        }
+
+        scenario("Namespaces can add, read and delete different multi state") {
+            Given("A second storage client")
+            val namespaceId2 = UUID.randomUUID().toString
+
+            And("An object in storage")
+            val key = "multi"
+            val obj = new State
+            storage.create(obj)
+
+            When("The first namespace adds a value")
+            storage.addValue(classOf[State], obj.id, key, "1")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The value is present for the first namespace")
+            storage.getKey(classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+            storage.getKey(namespaceId, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+
+            And("The second namespace can read the first namespace key")
+            storage.getKey(namespaceId, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+
+            And("The value is not present for the second namespace")
+            storage.getKey(namespaceId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+
+            When("The second namespace adds a value")
+            storage.addValueAs(namespaceId2, classOf[State], obj.id, key, "2")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The key is unmodified for the first namespace")
+            storage.getKey(classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+            storage.getKey(namespaceId, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("1"))
+
+            And("The value is present for the second namespace")
+            storage.getKey(namespaceId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("2"))
+
+            When("The first namespace removes the value")
+            storage.removeValue(classOf[State], obj.id, key, "1")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The value is not present for the first namespace")
+            storage.getKey(classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+            storage.getKey(namespaceId, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+
+            And("The value is unmodified for the second namespace")
+            storage.getKey(namespaceId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set("2"))
+
+            When("The second namespace removes the value")
+            storage.removeValueAs(namespaceId2, classOf[State], obj.id, key, "2")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The value is removed for the second namespace")
+            storage.getKey(namespaceId2, classOf[State], obj.id, key)
+                .await(timeout) shouldBe MultiValueKey(key, Set())
+        }
+
+        scenario("Namespaces can monitor other namespace state for single value keys") {
+            Given("A second storage client")
+            val namespaceId2 = UUID.randomUUID().toString
+
+            And("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            When("An observer from the first namespace subscribes")
+            val obs1 = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(namespaceId, classOf[State], obj.id, "first")
+                .subscribe(obs1)
+
+            Then("The observer should receive a notification")
+            obs1.awaitOnNext(1, timeout) shouldBe true
+            obs1.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            When("The second namespace adds a value")
+            storage.addValueAs(namespaceId2, classOf[State], obj.id, "first", "2")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            And("The first namespace adds a value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The observers should receive a notification for the first namespace")
+            obs1.awaitOnNext(2, timeout) shouldBe true
+            obs1.getOnNextEvents.get(1) shouldBe SingleValueKey(
+                "first", Some("1"), DefaultOwnerId)
+
+            When("The first namespace removes the value")
+            storage.removeValue(classOf[State], obj.id, "first", null)
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The observer should receive a notification for the first namespace")
+            obs1.awaitOnNext(3, timeout) shouldBe true
+            obs1.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+        }
+
+        scenario("Namespaces can monitor other namespace state for multi value keys") {
+            Given("A second storage client")
+            val namespaceId2 = UUID.randomUUID().toString
+
+            And("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            When("An observer from the first namespace subscribes")
+            val obs1 = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(namespaceId, classOf[State], obj.id, "multi")
+                .subscribe(obs1)
+
+            Then("The observer should receive a notification")
+            obs1.awaitOnNext(1, timeout) shouldBe true
+            obs1.getOnNextEvents.get(0) shouldBe MultiValueKey("multi", Set())
+
+            When("The second namespace adds a value")
+            storage.addValueAs(namespaceId2, classOf[State], obj.id, "multi", "2")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            And("The first namespace adds a value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The observer should receive a notification for the first namespace")
+            obs1.awaitOnNext(2, timeout) shouldBe true
+            obs1.getOnNextEvents.get(1) shouldBe
+            MultiValueKey("multi", Set("1"))
+
+            When("The first namespace removes the value")
+            storage.removeValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The observer should receive a notification for the first namespace")
+            obs1.awaitOnNext(3, timeout) shouldBe true
+            obs1.getOnNextEvents.get(2) shouldBe MultiValueKey("multi", Set())
+        }
+
+        scenario("Namespaces can switch between namespace state for single value keys") {
+            Given("A second storage client")
+            val namespaceId2 = UUID.randomUUID().toString
+
+            And("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A namespaces source subject")
+            val namespaces = PublishSubject.create[String]
+
+            When("An observer from the first namespace subscribes")
+            val obs = new
+                    TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(namespaces, classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            And("The subject emits the first namespace")
+            namespaces onNext namespaceId
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(1, timeout)
+            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            When("The subject emits the second namespace")
+            namespaces onNext namespaceId2
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(2, timeout)
+            obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            When("The first namespace adds a value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            And("The second namespace adds a value")
+            storage.addValueAs(namespaceId2, classOf[State], obj.id, "first", "2")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The observer should receive the value from the second namespace")
+            obs.awaitOnNext(3, timeout)
+            obs.getOnNextEvents.get(2) shouldBe SingleValueKey(
+                "first", Some("2"), DefaultOwnerId)
+
+            When("The subject emits the first namespace")
+            namespaces onNext namespaceId
+
+            Then("The observer should receive the value from the first namespace")
+            obs.awaitOnNext(4, timeout)
+            obs.getOnNextEvents.get(3) shouldBe SingleValueKey(
+                "first", Some("1"), DefaultOwnerId)
+
+            When("The second namespace adds a value")
+            storage.addValueAs(namespaceId2, classOf[State], obj.id, "first", "3")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            And("The first namespace removes the value")
+            storage.removeValue(classOf[State], obj.id, "first", null)
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(5, timeout)
+            obs.getOnNextEvents.get(4) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            When("The subject emits the second namespace")
+            namespaces onNext namespaceId2
+
+            Then("The observer should receive the value from the second namespace")
+            obs.awaitOnNext(6, timeout)
+            obs.getOnNextEvents.get(5) shouldBe SingleValueKey(
+                "first", Some("3"), DefaultOwnerId)
+
+            When("The second namespace removes the value")
+            storage.removeValueAs(namespaceId2, classOf[State], obj.id, "first", null)
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(7, timeout)
+            obs.getOnNextEvents.get(6) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+        }
+
+        scenario("Namespaces can switch between namespace state for multi value keys") {
+            Given("A second storage client")
+            val namespaceId2 = UUID.randomUUID().toString
+
+            And("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A namespaces source subject")
+            val namespaces = PublishSubject.create[String]
+
+            When("An observer from the first namespace subscribes")
+            val obs = new
+                    TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(namespaces, classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            And("The subject emits the first namespace")
+            namespaces onNext namespaceId
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(1, timeout)
+            obs.getOnNextEvents.get(0) shouldBe MultiValueKey("multi", Set())
+
+            When("The subject emits the second namespace")
+            namespaces onNext namespaceId2
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(2, timeout)
+            obs.getOnNextEvents.get(1) shouldBe MultiValueKey("multi", Set())
+
+            When("The first namespace adds a value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            And("The second namespace adds a value")
+            storage.addValueAs(namespaceId2, classOf[State], obj.id, "multi", "2")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The observer should receive the value from the second namespace")
+            obs.awaitOnNext(3, timeout)
+            obs.getOnNextEvents.get(2) shouldBe MultiValueKey("multi", Set("2"))
+
+            When("The subject emits the first namespace")
+            namespaces onNext namespaceId
+
+            Then("The observer should receive the value from the first namespace")
+            obs.awaitOnNext(4, timeout)
+            obs.getOnNextEvents.get(3) shouldBe MultiValueKey("multi", Set("1"))
+
+            When("The second namespace adds a value")
+            storage.addValueAs(namespaceId2, classOf[State], obj.id, "multi", "3")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            And("The first namespace removes the value")
+            storage.removeValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(5, timeout)
+            obs.getOnNextEvents.get(4) shouldBe MultiValueKey("multi", Set())
+
+            When("The subject emits the second namespace")
+            namespaces onNext namespaceId2
+
+            Then("The observer should receive the value from the second namespace")
+            obs.awaitOnNext(6, timeout)
+            obs.getOnNextEvents.get(5) shouldBe
+            MultiValueKey("multi", Set("2", "3"))
+
+            When("The second namespace removes the value")
+            storage.removeValueAs(namespaceId2, classOf[State], obj.id, "multi", "2")
+                .await(timeout) shouldBe StateResult(DefaultOwnerId)
+
+            Then("The observer should receive an empty value")
+            obs.awaitOnNext(7, timeout)
+            obs.getOnNextEvents.get(6) shouldBe MultiValueKey("multi", Set("3"))
         }
     }
 }

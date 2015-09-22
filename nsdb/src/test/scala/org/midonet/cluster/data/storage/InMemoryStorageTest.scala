@@ -18,8 +18,12 @@ package org.midonet.cluster.data.storage
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.conf.HostIdGenerator
+
 @RunWith(classOf[JUnitRunner])
-trait InMemoryStorageTest extends StorageTest {
+class InMemoryStorageTest extends StorageTest {
+
+    HostIdGenerator.useTemporaryHostId()
 
     before {
         val inMemoryStorage = new InMemoryStorage
