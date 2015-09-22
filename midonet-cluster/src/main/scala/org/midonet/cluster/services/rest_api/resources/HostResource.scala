@@ -109,7 +109,7 @@ class HostResource @Inject()(resContext: ResourceContext)
 
         host.alive = isAlive(host.id.toString)
         host.hostInterfaces = interfaces.asJava
-        host.addresses = interfaces.flatMap(_.addresses).map(_.toString).asJava
+        host.addresses = interfaces.flatMap(_.addresses).map(_.getHostAddress).asJava
         host
     }
 
