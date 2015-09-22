@@ -22,6 +22,8 @@ import java.util.{ArrayList, HashMap => JHashMap}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
+import com.codahale.metrics.MetricRegistry
+
 import rx.Observable
 import rx.subjects.{PublishSubject,Subject}
 
@@ -115,9 +117,9 @@ object ChainMapper {
 
 }
 
-final class ChainMapper(chainId: UUID, vt: VirtualTopology,
+final class ChainMapper(chainId: UUID, vt: VirtualTopology, metricRegistry: MetricRegistry,
                         traceChainMap: mutable.Map[UUID,Subject[SimChain,SimChain]])
-    extends VirtualDeviceMapper[SimChain](chainId, vt)
+    extends VirtualDeviceMapper[SimChain](chainId, vt, metricRegistry)
             with MidolmanLogging {
 
     override def logSource = s"org.midonet.devices.chain.chain-$chainId"

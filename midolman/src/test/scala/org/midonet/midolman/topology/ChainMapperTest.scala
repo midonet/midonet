@@ -29,6 +29,8 @@ import akka.testkit.TestKit
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import com.codahale.metrics.MetricRegistry
+
 import rx.Observable
 import rx.subjects.Subject
 
@@ -57,17 +59,19 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
     import TopologyBuilder._
 
     private var vt: VirtualTopology = _
+    private var metricRegistry: MetricRegistry = _
     private implicit var store: Storage = _
     private val timeout = 5 second
     private val traceChains = mutable.Map[UUID,Subject[SimChain,SimChain]]()
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
+        metricRegistry = injector.getInstance(classOf[MetricRegistry])
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
     private def subscribeToChain(count: Int, chainId: UUID) = {
-        val mapper = new ChainMapper(chainId, vt, traceChains)
+        val mapper = new ChainMapper(chainId, vt, metricRegistry, traceChains)
         val obs = new DeviceObserver[SimChain](vt)
         val subscription = Observable.create(mapper).subscribe(obs)
         (subscription, obs)

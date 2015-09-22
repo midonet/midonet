@@ -79,7 +79,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
             val traceChainId = subscriber.getOnNextEvents.get(0).get
 
             val chainObj = Observable.create(
-                new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
+                new ChainMapper(traceChainId, vt, metricRegistry, chainMap)).toBlocking.first
 
             chainObj.rules.size shouldBe 1
             chainObj.rules.get(0) match {
@@ -94,7 +94,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
 
             intercept[NotFoundException] {
                 Observable.create(
-                    new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
+                    new ChainMapper(traceChainId, vt, metricRegistry, chainMap)).toBlocking.first
             }
         }
 
@@ -118,17 +118,17 @@ class TraceRequestMapperTest extends MidolmanSpec {
 
             val traceChainId = subscriber.getOnNextEvents.get(0).get
             var chainObj = Observable.create(
-                new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
+                new ChainMapper(traceChainId, vt, metricRegistry, chainMap)).toBlocking.first
             chainObj.rules.size shouldBe 1
             vt.store.update(tr.toBuilder.setEnabled(false).build())
             intercept[NotFoundException] {
                 Observable.create(
-                    new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
+                    new ChainMapper(traceChainId, vt, metricRegistry, chainMap)).toBlocking.first
             }
 
             vt.store.update(tr.toBuilder.setEnabled(true).build())
             chainObj = Observable.create(
-                new ChainMapper(traceChainId, vt, chainMap)).toBlocking.first
+                new ChainMapper(traceChainId, vt, metricRegistry, chainMap)).toBlocking.first
             chainObj.rules.size shouldBe 1
         }
     }
