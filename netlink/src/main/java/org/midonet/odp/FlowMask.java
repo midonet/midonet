@@ -241,6 +241,7 @@ public class FlowMask extends NetlinkSerializable
             ipv6.ipv6_hlimit = EXACT_8;
         }
         if (highestLayer >= 4) {
+            ipv6.ipv6_proto = EXACT_8;
             maskLayer4(fmatch);
         } else if (fmatch.isSeen(FlowMatch.Field.NetworkProto)) {
             ipv6.ipv6_proto = EXACT_8;
