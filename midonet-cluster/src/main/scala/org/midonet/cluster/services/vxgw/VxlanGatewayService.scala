@@ -26,7 +26,6 @@ import scala.concurrent.duration._
 
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
-import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
@@ -152,7 +151,7 @@ class VxlanGatewayService @Inject()(
         vtepSyncers.remove(vtepId) match {
             case null =>
             case syncer =>
-                log.info("Stop managing VTEP $vtepId")
+                log.info(s"Stop managing VTEP $vtepId")
                 syncer.unsubscribe()
         }
     }
