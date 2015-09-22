@@ -25,7 +25,6 @@ import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
@@ -74,9 +73,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
 
     @Inject
     var dpChannel: DatapathChannel = _
-
-    @Inject
-    var clusterDataClient: DataClient = null
 
     @Inject
     var vt: VirtualTopology = null
