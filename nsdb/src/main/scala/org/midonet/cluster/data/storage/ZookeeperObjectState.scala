@@ -651,8 +651,8 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         val path = getKeyPath(clazz, getIdString(clazz, id), key, version)
 
         val obs = multiObservables.getOrElse(index, {
-            val observable = PathDirectoryObservable.create(curator, path,
-                                                            metrics)
+            val observable = PathDirectoryObservable.create(
+                curator, path, completeOnDelete = true, metrics)
             multiObservables.putIfAbsent(index, observable)
                             .getOrElse(observable)
         })

@@ -19,7 +19,7 @@ import scala.concurrent.duration._
 
 import org.apache.curator.retry.RetryOneTime
 import org.junit.runner.RunWith
-import org.scalatest.{FlatSpec, Matchers, FeatureSpec}
+import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
@@ -27,7 +27,7 @@ import rx.observers.TestObserver
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class PathDirectoryObservableTest extends FeatureSpec
+class PathDirectoryObservableTest extends FlatSpec
                                   with CuratorTestFramework
                                   with Matchers {
 
@@ -60,159 +60,222 @@ class PathDirectoryObservableTest extends FeatureSpec
         curator.delete().forPath(parentPath + "/" + index)
     }
 
-    feature("Test children notification") {
+    "Directory observable" should "notify empty children set" in {
+        createParent()
 
-        scenario("Notification of empty children set") {
-            createParent()
+        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+        observable.subscribe(obs)
+        obs.awaitOnNext(1, timeout) shouldBe true
 
-            val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
-            observable.subscribe(obs)
-            obs.awaitOnNext(1, timeout) shouldBe true
-
-            obs.getOnNextEvents should contain only Set()
-            obs.getOnErrorEvents shouldBe empty
-            obs.getOnCompletedEvents shouldBe empty
-        }
-
-        scenario("Notification of existing children") {
-            createParent()
-            createChildren(0, 4)
-
-            val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
-            observable.subscribe(obs)
-            obs.awaitOnNext(1, timeout) shouldBe true
-
-            obs.getOnNextEvents should contain only Set("0", "1", "2", "3", "4")
-            obs.getOnErrorEvents shouldBe empty
-            obs.getOnCompletedEvents shouldBe empty
-        }
-
-        scenario("Notification of added children") {
-            createParent()
-
-            val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
-            observable.subscribe(obs)
-
-            obs.awaitOnNext(1, timeout) shouldBe true
-            createChild(0)
-            obs.awaitOnNext(2, timeout) shouldBe true
-            createChild(1)
-            obs.awaitOnNext(3, timeout) shouldBe true
-            createChild(2)
-            obs.awaitOnNext(4, timeout) shouldBe true
-
-            obs.getOnNextEvents should contain inOrderOnly(
-                Set(), Set("0"), Set("0", "1"), Set("0", "1", "2"))
-            obs.getOnErrorEvents shouldBe empty
-            obs.getOnCompletedEvents shouldBe empty
-        }
-
-        scenario("Notification of deleted children") {
-            createParent()
-            createChildren(0, 4)
-
-            val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
-
-            observable.subscribe(obs)
-            obs.awaitOnNext(1, timeout) shouldBe true
-            deleteChild(0)
-            obs.awaitOnNext(2, timeout) shouldBe true
-            deleteChild(1)
-            obs.awaitOnNext(3, timeout) shouldBe true
-
-            obs.getOnNextEvents should contain inOrderOnly(
-                Set("0", "1", "2", "3", "4"), Set("1", "2", "3", "4"),
-                Set("2", "3", "4"))
-            obs.getOnErrorEvents shouldBe empty
-            obs.getOnCompletedEvents shouldBe empty
-        }
+        obs.getOnNextEvents should contain only Set()
+        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents shouldBe empty
     }
 
-    feature("Test cache close") {
-        scenario("Error on cache close") {
-            createParent()
+    "Directory observable" should "notify existing children" in {
+        createParent()
+        createChildren(0, 4)
 
-            val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+        observable.subscribe(obs)
+        obs.awaitOnNext(1, timeout) shouldBe true
 
-            observable.subscribe(obs)
-            obs.awaitOnNext(1, timeout) shouldBe true
-            observable.close()
-            obs.awaitCompletion(timeout)
-
-            obs.getOnNextEvents should contain only Set()
-            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                DirectoryObservableClosedException]
-            obs.getOnCompletedEvents shouldBe empty
-        }
+        obs.getOnNextEvents should contain only Set("0", "1", "2", "3", "4")
+        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents shouldBe empty
     }
 
-    feature("Test observable errors") {
-        scenario("Error on parent does not exist") {
-            val path = zkRoot + "/none"
-            val observable = PathDirectoryObservable.create(curator, path)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+    "Directory observable" should "notify added children" in {
+        createParent()
 
-            observable.subscribe(obs)
-            obs.awaitCompletion(timeout)
+        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+        observable.subscribe(obs)
 
-            obs.getOnNextEvents shouldBe empty
-            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                ParentDeletedException]
-            obs.getOnCompletedEvents shouldBe empty
-        }
+        obs.awaitOnNext(1, timeout) shouldBe true
+        createChild(0)
+        obs.awaitOnNext(2, timeout) shouldBe true
+        createChild(1)
+        obs.awaitOnNext(3, timeout) shouldBe true
+        createChild(2)
+        obs.awaitOnNext(4, timeout) shouldBe true
 
-        scenario("Error on parent deletion") {
-            createParent()
+        obs.getOnNextEvents should contain inOrderOnly(
+            Set(), Set("0"), Set("0", "1"), Set("0", "1", "2"))
+        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents shouldBe empty
+    }
 
-            val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+    "Directory observable" should "notify deleted children" in {
+        createParent()
+        createChildren(0, 4)
 
-            observable.subscribe(obs)
-            obs.awaitOnNext(1, timeout) shouldBe true
+        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
-            deleteParent()
-            obs.awaitCompletion(timeout)
+        observable.subscribe(obs)
+        obs.awaitOnNext(1, timeout) shouldBe true
+        deleteChild(0)
+        obs.awaitOnNext(2, timeout) shouldBe true
+        deleteChild(1)
+        obs.awaitOnNext(3, timeout) shouldBe true
 
-            obs.getOnNextEvents should contain only Set()
-            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                ParentDeletedException]
-        }
+        obs.getOnNextEvents should contain inOrderOnly(
+            Set("0", "1", "2", "3", "4"), Set("1", "2", "3", "4"),
+            Set("2", "3", "4"))
+        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents shouldBe empty
+    }
 
-        scenario("Error on connect failure") {
-            curator.close()
+    "Directory observable" should "emit error on cache close" in {
+        createParent()
 
-            val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
-            observable.subscribe(obs)
-            obs.awaitCompletion(timeout)
+        observable.subscribe(obs)
+        obs.awaitOnNext(1, timeout) shouldBe true
+        observable.close()
+        obs.awaitCompletion(timeout)
 
-            obs.getOnNextEvents shouldBe empty
-            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                DirectoryObservableDisconnectedException]
-        }
+        obs.getOnNextEvents should contain only Set()
+        obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
+            DirectoryObservableClosedException]
+        obs.getOnCompletedEvents shouldBe empty
+    }
 
-        scenario("Error on lost connection") {
-            createParent()
+    "Complete on delete directory observable" should
+    "emit error if the parent does not exist" in {
+        val path = zkRoot + "/none"
+        val observable = PathDirectoryObservable.create(curator, path)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
-            val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+        observable.subscribe(obs)
+        obs.awaitCompletion(timeout)
 
-            observable.subscribe(obs)
-            obs.awaitOnNext(1, timeout) shouldBe true
-            zk.stop()
-            obs.awaitCompletion(30 seconds)
+        obs.getOnNextEvents shouldBe empty
+        obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
+            ParentDeletedException]
+        obs.getOnCompletedEvents shouldBe empty
+    }
 
-            obs.getOnNextEvents should contain only Set()
-            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                DirectoryObservableDisconnectedException]
-            curator.close()
-        }
+    "Complete on delete directory observable" should
+    "emit error on parent deletion" in {
+        createParent()
+
+        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+
+        observable.subscribe(obs)
+        obs.awaitOnNext(1, timeout) shouldBe true
+
+        deleteParent()
+        obs.awaitCompletion(timeout)
+
+        obs.getOnNextEvents should contain only Set()
+        obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
+            ParentDeletedException]
+    }
+
+    "Continue on delete directory observable" should
+    "monitor parent if the parent does not exist" in {
+        val observable = PathDirectoryObservable.create(curator, parentPath,
+                                                        completeOnDelete = false)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+
+        observable.subscribe(obs)
+        obs.awaitOnNext(1, timeout)
+
+        obs.getOnNextEvents should contain only Set()
+        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents shouldBe empty
+
+        createParent()
+        createChild(0)
+        obs.awaitOnNext(2, timeout)
+        createChild(1)
+        obs.awaitOnNext(3, timeout)
+
+        obs.getOnNextEvents should contain inOrderOnly(
+            Set(), Set("0"), Set("0", "1"))
+        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents shouldBe empty
+    }
+
+    "Continue on delete directory observable" should
+    "monitor parent after the parent is deleted" in {
+        createParent()
+        createChild(0)
+
+        val observable = PathDirectoryObservable.create(curator, parentPath,
+                                                        completeOnDelete = false)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+
+        observable.subscribe(obs)
+        obs.awaitOnNext(1, timeout)
+
+        obs.getOnNextEvents should contain only Set("0")
+        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents shouldBe empty
+
+        deleteChild(0)
+        obs.awaitOnNext(2, timeout)
+        deleteParent()
+        obs.awaitOnNext(3, timeout)
+
+        obs.getOnNextEvents should contain theSameElementsInOrderAs List(
+            Set("0"), Set(), Set())
+        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents shouldBe empty
+
+        createParent()
+        obs.awaitOnNext(4, timeout)
+
+        obs.getOnNextEvents should contain theSameElementsInOrderAs List(
+            Set("0"), Set(), Set(), Set())
+        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents shouldBe empty
+
+        createChild(1)
+        obs.awaitOnNext(5, timeout)
+
+        obs.getOnNextEvents should contain theSameElementsInOrderAs List(
+            Set("0"), Set(), Set(), Set(), Set("1"))
+        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents shouldBe empty
+    }
+
+    "Directory observable" should "emit error on connect failure" in {
+        curator.close()
+
+        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+
+        observable.subscribe(obs)
+        obs.awaitCompletion(timeout)
+
+        obs.getOnNextEvents shouldBe empty
+        obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
+            DirectoryObservableDisconnectedException]
+    }
+
+    "Directory observable" should "emit error on lost connection" in {
+        createParent()
+
+        val observable = PathDirectoryObservable.create(curator, parentPath)
+        val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+
+        observable.subscribe(obs)
+        obs.awaitOnNext(1, timeout) shouldBe true
+        zk.stop()
+        obs.awaitCompletion(30 seconds)
+
+        obs.getOnNextEvents should contain only Set()
+        obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
+            DirectoryObservableDisconnectedException]
+        curator.close()
     }
 }
 
