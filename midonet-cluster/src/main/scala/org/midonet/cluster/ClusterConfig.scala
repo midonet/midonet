@@ -53,7 +53,6 @@ class ClusterConfig(_conf: Config) {
 
     val auth = new AuthConfig(conf)
     val backend = new MidonetBackendConfig(conf)
-    val embedding = new EmbeddedClusterNodeConfig(conf)
     val c3po = new C3POConfig(conf)
     val heartbeat = new HeartbeatConfig(conf)
     val vxgw = new VxGwConfig(conf)
@@ -68,10 +67,6 @@ class AuthConfig(val conf: Config) {
     def adminRole = conf.getString(s"$Prefix.admin_role")
     def tenantAdminRole = conf.getString(s"$Prefix.tenant_admin_role")
     def tenantUserRole = conf.getString(s"$Prefix.tenant_user_role")
-}
-
-class EmbeddedClusterNodeConfig(conf: Config) {
-    def enabled = conf.getBoolean("midocluster.vxgw_enabled")
 }
 
 class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
