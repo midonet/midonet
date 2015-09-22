@@ -430,13 +430,17 @@ object FlowTagger {
     }
 
     def tagForUserMeter(meterName: String): UserTag = {
-        val segment = cachedUserTags.get().getOrAddSegment(meterName)
-        var tag = segment.value
-        if (tag eq null) {
-            tag = UserTag(meterName)
-            segment.value = tag
+        if (meterName eq null) {
+            null
+        } else {
+            val segment = cachedUserTags.get().getOrAddSegment(meterName)
+            var tag = segment.value
+            if (tag eq null) {
+                tag = UserTag(meterName)
+                segment.value = tag
+            }
+            tag.asInstanceOf[UserTag]
         }
-        tag.asInstanceOf[UserTag]
     }
 
     /**
