@@ -39,6 +39,7 @@ object PacketBuilder {
     def eth = EthBuilder()
     def arp = ArpBuilder()
     def ip4 = IPv4Builder()
+    def ip6 = IPv6Builder()
     def tcp = TcpBuilder()
     def udp = UdpBuilder()
     def icmp = IcmpBuilder()
@@ -71,7 +72,7 @@ object PacketBuilder {
         def -->(addr: IPv4Addr): Ip4Pair =  dst(addr)
     }
 
-    implicit def stringToIp4Pair(src: String): Ip4Pair = Ip4Pair(src)
+    implicit def stringToIpPair[T](src: String): Ip4Pair = Ip4Pair(src)
     implicit def intToIp4Pair(src: Int): Ip4Pair = Ip4Pair(src)
     implicit def ip4ToIp4Pair(src: IPv4Addr): Ip4Pair = Ip4Pair(src)
 
@@ -266,6 +267,23 @@ case class IPv4Builder(packet: IPv4 = new IPv4()) extends PacketBuilder[IPv4] {
     def frag_offset(offset: Short): IPv4Builder = { packet.setFragmentOffset(offset) ; this }
     def proto(protocol: Byte): IPv4Builder = { packet.setProtocol(protocol) ; this }
     def options(protocol: Array[Byte]): IPv4Builder = { packet.setOptions(protocol) ; this }
+}
+
+case class IPv6Builder(packet: IPv6 = new IPv6()) extends PacketBuilder[IPv6] {
+    override val etherType = IPv6.ETHERTYPE
+
+    override protected def setPayload(b: PacketBuilder[_ <: IPacket]): this.type = {
+        super.setPayload(b)
+        proto(b.ipProto)
+        this
+    }
+
+    def src(addr: String): IPv6Builder = { packet.setSourceAddress(addr) ; this }
+    def src(addr: IPv6Addr): IPv6Builder = { packet.setDestinationAddress(addr); this }
+    def dst(addr: String): IPv6Builder = { packet.setDestinationAddress(addr) ; this }
+    def dst(addr: IPv6Addr): IPv6Builder = { packet.setDestinationAddress(addr) ; this }
+    def version(ver: Byte): IPv6Builder = { packet.setVersion(ver) ; this }
+    def proto(protocol: Byte): IPv6Builder = { packet.setNextHeader(protocol) ; this }
 }
 
 case class ArpBuilder() extends PacketBuilder[ARP] with NonAppendable[ARP] {

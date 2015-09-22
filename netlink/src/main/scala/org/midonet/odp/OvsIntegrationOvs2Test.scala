@@ -15,6 +15,8 @@
  */
 package org.midonet.odp.test
 
+import org.midonet.odp.FlowMatch.Field
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -24,8 +26,8 @@ import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.odp.ports._
 import org.midonet.odp.util.TapWrapper
-import org.midonet.packets.util.EthBuilder
-import org.midonet.packets.util.PacketBuilder.{tcp, _}
+import org.midonet.packets.util.{IPv6Builder, EthBuilder}
+import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.util.BatchCollector
 
@@ -85,6 +87,22 @@ trait MegaFlowTest extends TapTrafficInjectBase {
 
     def delWFlow(dpF: Future[Datapath], f: Flow): Unit =
         Await.result(dpF flatMap { con delFlow(f, _) }, 1 second)
+
+    def checkIpv6Masked(dpF: Future[Datapath]): Future[Any] = {
+        val packet =
+            { eth src "fa:16:3e:18:24:4d" dst "33:33:00:00:00:fb" } <<
+            { ip6 src "fe80:0:0:0:f816:3eff:fe18:244d" dst "ff02:0:0:0:0:0:0:fb" } <<
+            { tcp src 5353 dst 5353 }
+        val fmatch = FlowMatches.fromEthernetPacket(packet)
+        fmatch.fieldSeen(Field.EthSrc)
+        fmatch.fieldSeen(Field.EthDst)
+        fmatch.fieldSeen(Field.EtherType)
+        fmatch.fieldSeen(Field.NetworkSrc)
+        fmatch.fieldSeen(Field.NetworkDst)
+        fmatch.fieldSeen(Field.SrcPort)
+        fmatch.fieldSeen(Field.DstPort)
+        dpF flatMap { con createFlow(new Flow(fmatch), _) }
+    }
 
     def wflowTests(dpF: Future[Datapath]): Seq[(String, Future[Any])] = {
         initTap(dpF)
@@ -178,7 +196,9 @@ trait MegaFlowTest extends TapTrafficInjectBase {
             ("can match specific TCP ports",
                 checkFlow(exactPort, tcpDstVariations, tcpDstVariations.length - 1)),
             ("can match a wildcarded TCP port",
-                checkFlow(wildcardedPort, tcpDstVariations, 0))
+                checkFlow(wildcardedPort, tcpDstVariations, 0)),
+            ("can match IPv6 flow",
+                checkIpv6Masked(dpF))
         )
         Future.sequence(fs map (_._2)).onComplete(_ =>  closeTap(dpF))
         fs
