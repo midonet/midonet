@@ -308,6 +308,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_7f00a201",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T11:23:19Z",
+      "side": 1,
+      "message": "if the curator client is disconnected (and trying to reconnect) I believe this will fail instantly, so you\u0027ll get a stampedede of retries",
+      "parentUuid": "1ae5cdf2_fcce8082",
+      "range": {
+        "startLine": 116,
+        "startChar": 16,
+        "endLine": 117,
+        "endChar": 46
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_1cc08c7b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
         "patchSetId": 2
