@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9ced7c28",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:49:07Z",
+      "side": 1,
+      "message": "nit: case is odd. I guess just ip would suffice.",
+      "range": {
+        "startLine": 42,
+        "startChar": 40,
+        "endLine": 42,
+        "endChar": 48
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_bcf4f8f2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:49:07Z",
+      "side": 1,
+      "message": "nit: wrap and indent?",
+      "range": {
+        "startLine": 78,
+        "startChar": 8,
+        "endLine": 79,
+        "endChar": 53
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_fcdda071",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:49:07Z",
+      "side": 1,
+      "message": "org.midonet. would be convenient so that this can be controlled with the rest of midonet logs, no?",
+      "range": {
+        "startLine": 82,
+        "startChar": 52,
+        "endLine": 82,
+        "endChar": 54
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3ce8e80f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:49:07Z",
+      "side": 1,
+      "message": "you can spare this with makeRunnable {}",
+      "range": {
+        "startLine": 89,
+        "startChar": 30,
+        "endLine": 90,
+        "endChar": 36
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1cd96c83",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:49:07Z",
+      "side": 1,
+      "message": "are the brackets required?",
+      "range": {
+        "startLine": 96,
+        "startChar": 4,
+        "endLine": 99,
+        "endChar": 4
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_dcce24b4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:49:07Z",
+      "side": 1,
+      "message": "Do we want to limit retries? Or delay retries?",
+      "range": {
+        "startLine": 116,
+        "startChar": 16,
+        "endLine": 117,
+        "endChar": 46
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1cc08c7b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:49:07Z",
+      "side": 1,
+      "message": "nit: wrap results and align blocks below it?",
+      "range": {
+        "startLine": 129,
+        "startChar": 12,
+        "endLine": 131,
+        "endChar": 45
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5cba140b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:49:07Z",
+      "side": 1,
+      "message": "NPE? if the root path doesn\u0027t exist",
+      "range": {
+        "startLine": 140,
+        "startChar": 16,
+        "endLine": 140,
+        "endChar": 21
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9c3bbc9b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:49:07Z",
+      "side": 1,
+      "message": "what is this one? given ZK\u0027s extraordinarily detailed documentation, the reader will appreciate info.",
+      "range": {
+        "startLine": 143,
+        "startChar": 37,
+        "endLine": 143,
+        "endChar": 39
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_dc13840b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-22T08:49:07Z",
+      "side": 1,
+      "message": "ditto re. limiting retries",
+      "range": {
+        "startLine": 165,
+        "startChar": 8,
+        "endLine": 166,
+        "endChar": 55
+      },
+      "revId": "84d1c95efd101807cfc87871e13d69846039737b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
