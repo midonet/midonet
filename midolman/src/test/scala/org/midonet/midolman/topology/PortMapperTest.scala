@@ -30,8 +30,9 @@ import rx.Observable
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.services.MidonetBackend.HostsKey
+import org.midonet.cluster.services.MidonetBackend.ActiveKey
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
+import org.midonet.cluster.topology.TopologyBuilder._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.simulation.{BridgePort, Port => SimPort, RouterPort, VxLanPort}
@@ -44,15 +45,16 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
 
     private var vt: VirtualTopology = _
     private var metricRegistry: MetricRegistry = _
-    private var store: Storage = _
-    private var stateStore: StateStorage = _
+    private var store: InMemoryStorage = _
     private final val timeout = 5 seconds
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
         metricRegistry = injector.getInstance(classOf[MetricRegistry])
         store = injector.getInstance(classOf[MidonetBackend]).store
-        stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
+                        .asInstanceOf[InMemoryStorage]
+
+        store create createHost(id = InMemoryStorage.NamespaceId)
     }
 
     feature("The port mapper emits port devices") {
@@ -208,7 +210,8 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             And("A bridge and a port")
             val bridge = createBridge()
             val port = createBridgePort(id = id,
-                                        bridgeId = Some(bridge.getId.asJava))
+                                        bridgeId = Some(bridge.getId.asJava),
+                                        hostId = Some(InMemoryStorage.NamespaceId))
             store.multi(Seq(CreateOp(bridge), CreateOp(port)))
 
             And("A port mapper")
@@ -229,8 +232,8 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
 
             When("Adding a first owner to the port")
             val owner1 = UUID.randomUUID.toString
-            stateStore.addValue(classOf[TopologyPort], id, HostsKey, owner1)
-                .await(timeout)
+            store.addValue(classOf[TopologyPort], id, ActiveKey, owner1)
+                 .await(timeout)
 
             Then("The observer should receive the update")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -239,24 +242,9 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             device2 shouldBeDeviceOf port
             device2.isActive shouldBe true
 
-            When("Adding a second owner to the port")
-            val owner2 = UUID.randomUUID.toString
-            stateStore.addValue(classOf[TopologyPort], id, HostsKey, owner2)
-                .await(timeout)
-
-            Then("The observer should not receive a new update")
-            obs.getOnNextEvents.size shouldBe 2
-
             When("Removing the first owner from the port")
-            stateStore.removeValue(classOf[TopologyPort], id, HostsKey, owner1)
-                .await(timeout)
-
-            Then("The observer should not receive a new update")
-            obs.getOnNextEvents.size shouldBe 2
-
-            When("Removing the second owner from the port")
-            stateStore.removeValue(classOf[TopologyPort], id, HostsKey, owner2)
-                .await(timeout)
+            store.removeValue(classOf[TopologyPort], id, ActiveKey, owner1)
+                 .await(timeout)
 
             Then("The observer should receive a new update")
             obs.awaitOnNext(3, timeout) shouldBe true
@@ -264,6 +252,69 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val device3 = obs.getOnNextEvents.get(2).asInstanceOf[BridgePort]
             device3 shouldBeDeviceOf port
             device3.isActive shouldBe false
+        }
+
+        scenario("The mapper handles port migration") {
+            Given("A port identifier")
+            val id = UUID.randomUUID
+
+            And("A second host")
+            val host2 = createHost()
+            val hostId2 = host2.getId.asJava.toString
+            store create host2
+
+            And("A bridge and a port bound to a first host")
+            val bridge = createBridge()
+            val port1 = createBridgePort(id = id,
+                                         bridgeId = Some(bridge.getId.asJava),
+                                         hostId = Some(InMemoryStorage.NamespaceId))
+            store.multi(Seq(CreateOp(bridge), CreateOp(port1)))
+
+            And("A port mapper")
+            val mapper = new PortMapper(id, vt, metricRegistry, mutable.Map())
+
+            And("An observer to the port mapper")
+            val obs = new DeviceObserver[SimPort](vt)
+
+            When("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the port as not active")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(0).asInstanceOf[BridgePort]
+            device1 shouldBeDeviceOf port1
+            device1.isActive shouldBe false
+
+            When("The first host sets the port as active")
+            store.addValue(classOf[TopologyPort], id, ActiveKey, store.namespace)
+                .await(timeout)
+
+            Then("The observer should receive the port as active")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(1).asInstanceOf[BridgePort]
+            device2 shouldBeDeviceOf port1
+            device2.isActive shouldBe true
+
+            When("The port migrates to the second host")
+            val port2 = port1.setHostId(host2.getId)
+            store update port2
+
+            Then("The observer should receive the port as not active")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(2).asInstanceOf[BridgePort]
+            device3 shouldBeDeviceOf port2
+            device3.isActive shouldBe false
+
+            When("The first host sets the port as active")
+            store.addValueAs(hostId2, classOf[TopologyPort], id, ActiveKey,
+                             store.namespace)
+                .await(timeout)
+
+            Then("The observer should receive the port as active")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device4 = obs.getOnNextEvents.get(3).asInstanceOf[BridgePort]
+            device4 shouldBeDeviceOf port2
+            device4.isActive shouldBe true
         }
 
         scenario("The mapper completes on port delete") {

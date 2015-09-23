@@ -86,7 +86,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     private def createHostInStore(): UUID = {
-        val hostId = UUID.randomUUID()
         store.create(createHost(id = hostId))
         hostId
     }

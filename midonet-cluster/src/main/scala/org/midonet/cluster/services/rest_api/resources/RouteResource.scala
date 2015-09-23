@@ -86,8 +86,8 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
                 for (port <- ports) {
                     futures += listResources(classOf[Route], port.routeIds.asScala)
                 }
-                for (portId <- router.portIds.asScala) {
-                    futures += getLearnedRoutes(portId)
+                for (port <- ports) {
+                    futures += getLearnedRoutes(port)
                 }
                 Future.sequence(futures) map { result =>
                     for (route <- result.flatten) yield {
@@ -134,8 +134,8 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
         }
     }
 
-    private def getLearnedRoutes(portId: UUID): Future[Seq[Route]] = {
-        resContext.backend.stateStore.getPortRoutes(portId)
+    private def getLearnedRoutes(port: Port): Future[Seq[Route]] = {
+        resContext.backend.stateStore.getPortRoutes(port.id, port.hostId)
             .map[Seq[Route]](makeFunc1(_.map(route => {
                 val r = Route.fromLearned(route)
                 r.setBaseUri(resContext.uriInfo.getBaseUri)
