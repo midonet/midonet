@@ -22,6 +22,8 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
+import com.codahale.metrics.MetricRegistry
+
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -38,8 +40,8 @@ import org.midonet.util.collection._
  * layer-4 load balancer pool. The pool observable combines the latest updates
  * from both the topology pool object and the pool members.
  */
-final class PoolMapper(poolId: UUID, vt: VirtualTopology)
-    extends VirtualDeviceMapper[SimulationPool](poolId, vt) {
+final class PoolMapper(poolId: UUID, vt: VirtualTopology, metricRegistry: MetricRegistry)
+    extends VirtualDeviceMapper[SimulationPool](poolId, vt, metricRegistry) {
 
     override def logSource = s"org.midonet.devices.pool.pool-$poolId"
 
