@@ -15,6 +15,10 @@
  */
 package org.midonet.cluster.services
 
+import java.util.UUID
+
+import scala.util.control.NonFatal
+
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
@@ -29,13 +33,22 @@ import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.conf.HostIdGenerator
 
 object MidonetBackend {
+
+    /** Indicates whether the [[MidonetBackend]] instance is used by cluster,
+      * in which case the state path uses a unique host identifier. */
+    protected[cluster] var isCluster = false
+    /** Unique namespace identifier for the cluster in the [[MidonetBackend]].
+      * All cluster nodes share the same storage namespace. */
+    final val ClusterNamespaceId = new UUID(0L, 0L)
+
+    final val ActiveKey = "active"
     final val AliveKey = "alive"
     final val BgpKey = "bgp"
     final val FloodingProxyKey = "flooding_proxy"
     final val HostKey = "host"
-    final val HostsKey = "hosts"
     final val RoutesKey = "routes"
     final val VtepConfig = "config"
     final val VtepConnState = "connection_state"
@@ -192,10 +205,10 @@ object MidonetBackend {
         store.declareBinding(classOf[Port], "trace_request_ids", CASCADE,
                              classOf[TraceRequest], "port_id", CLEAR)
 
-        stateStore.registerKey(classOf[Host], AliveKey, SingleFirstWriteWins)
         stateStore.registerKey(classOf[BgpPeer], BgpKey, SingleLastWriteWins)
+        stateStore.registerKey(classOf[Host], AliveKey, SingleFirstWriteWins)
         stateStore.registerKey(classOf[Host], HostKey, SingleFirstWriteWins)
-        stateStore.registerKey(classOf[Port], HostsKey, Multiple)
+        stateStore.registerKey(classOf[Port], ActiveKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
         stateStore.registerKey(classOf[TunnelZone], FloodingProxyKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepConfig, SingleLastWriteWins)
@@ -229,15 +242,19 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
 
     private val log = getLogger("org.midonet.nsdb")
 
+    private val namespaceId =
+        if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
+        else HostIdGenerator.getHostId
+
     private val zoom =
-        new ZookeeperObjectMapper(s"${cfg.rootKey}/zoom", "any", curator,
-                                  metricRegistry)
+        new ZookeeperObjectMapper(s"${cfg.rootKey}/zoom", namespaceId.toString,
+                                  curator, metricRegistry)
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
 
     protected override def doStart(): Unit = {
-        log.info(s"Starting backend store")
+        log.info("Starting backend store for host {}", namespaceId)
         try {
             if (curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()
@@ -246,13 +263,14 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
             MidonetBackend.setupBindings(zoom, zoom)
             notifyStarted()
         } catch {
-            case e: Exception =>
+            case NonFatal(e) =>
                 log.error("Failed to start backend service", e)
                 this.notifyFailed(e)
         }
     }
 
     protected def doStop(): Unit = {
+        log.info("Stopping backend store for host {}", namespaceId)
         curator.close()
         notifyStopped()
     }

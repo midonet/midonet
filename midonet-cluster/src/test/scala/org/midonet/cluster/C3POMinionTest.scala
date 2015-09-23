@@ -59,7 +59,7 @@ import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.{DataClient => LegacyDataClient}
-import org.midonet.conf.{HostIdGenerator, MidoTestConfigurator}
+import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
@@ -132,6 +132,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         """.stripMargin)
 
     private val clusterCfg = new ClusterConfig(C3PO_CFG_OBJECT)
+    MidonetBackend.isCluster = true
 
     // Data sources
     private val zk: TestingServer = new TestingServer(ZK_PORT)
