@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_ab510c10",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-23T08:20:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_354abbc5",
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_757a83f2",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2015-09-22T20:51:28Z",
       "side": 1,
       "message": "debug",
+      "range": {
+        "startLine": 411,
+        "startChar": 20,
+        "endLine": 411,
+        "endChar": 24
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_0b42003e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-23T08:20:18Z",
+      "side": 1,
+      "message": "I forgot these here (used them during a debug)",
+      "parentUuid": "1ae5cdf2_757a83f2",
       "range": {
         "startLine": 411,
         "startChar": 20,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_2b3dfcbb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-23T08:20:18Z",
+      "side": 1,
+      "message": "Same",
+      "parentUuid": "1ae5cdf2_957d4fea",
+      "range": {
+        "startLine": 414,
+        "startChar": 20,
+        "endLine": 414,
+        "endChar": 24
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_b5840bd5",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 3
@@ -76,6 +142,30 @@
       "writtenOn": "2015-09-22T20:51:28Z",
       "side": 1,
       "message": "warn? not sure if, say, an failure during a transient disconnection qualifies as error",
+      "range": {
+        "startLine": 420,
+        "startChar": 20,
+        "endLine": 420,
+        "endChar": 25
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_4b4c0871",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-23T08:20:18Z",
+      "side": 1,
+      "message": "Same",
+      "parentUuid": "1ae5cdf2_b5840bd5",
       "range": {
         "startLine": 420,
         "startChar": 20,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_0b73e080",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 653,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-23T08:20:18Z",
+      "side": 1,
+      "message": "The state storage to get the path of an object. This is used for validating that the object exists, and monitoring the object for the observables (maybe I will add an ExistsObservable in the future, since it\u0027s not necessary to get the object data). Previously this was not needed, since the state path was created/deleted when the model changed. Now, this doesn\u0027t happen.",
+      "parentUuid": "1ae5cdf2_3578fbf1",
+      "range": {
+        "startLine": 653,
+        "startChar": 4,
+        "endLine": 653,
+        "endChar": 13
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_95646f4a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 3
@@ -122,6 +236,30 @@
       "writtenOn": "2015-09-22T20:51:28Z",
       "side": 1,
       "message": "shouldn\u0027t we instead refuse to build an instance without a hostId?",
+      "range": {
+        "startLine": 284,
+        "startChar": 8,
+        "endLine": 286,
+        "endChar": 9
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_ab782c90",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-23T08:20:18Z",
+      "side": 1,
+      "message": "i.e. return an error via the observable? Changed to that.",
+      "parentUuid": "1ae5cdf2_95646f4a",
       "range": {
         "startLine": 284,
         "startChar": 8,
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_abed8c27",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-23T08:20:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_b5d24bd0",
+      "range": {
+        "startLine": 400,
+        "startChar": 20,
+        "endLine": 404,
+        "endChar": 70
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_75c8c322",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 3
@@ -168,6 +330,30 @@
       "writtenOn": "2015-09-22T20:51:28Z",
       "side": 1,
       "message": "Maybe extracting this to a variable makes sense. It\u0027s used in the 3 methods (which are already in desperate need of some consolidation). Some garbage savings too.",
+      "range": {
+        "startLine": 422,
+        "startChar": 58,
+        "endLine": 425,
+        "endChar": 13
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_ab3bcc9a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-23T08:20:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_75c8c322",
       "range": {
         "startLine": 422,
         "startChar": 58,
