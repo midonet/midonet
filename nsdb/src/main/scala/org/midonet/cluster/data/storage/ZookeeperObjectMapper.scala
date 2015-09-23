@@ -16,8 +16,7 @@
 package org.midonet.cluster.data.storage
 
 import java.io.StringWriter
-import java.lang.{Long => JLong}
-import java.util.ConcurrentModificationException
+import java.util.{UUID, ConcurrentModificationException}
 import java.util.concurrent.Executors._
 import java.util.concurrent.atomic.AtomicLong
 
@@ -104,6 +103,7 @@ import org.midonet.util.reactivex._
  *
  */
 class ZookeeperObjectMapper(protected override val rootPath: String,
+                            protected override val hostId: String,
                             protected override val curator: CuratorFramework,
                             metricsRegistry: MetricRegistry = null)
     extends ZookeeperObjectState with Storage {
@@ -679,7 +679,7 @@ object ZookeeperObjectMapper {
         def idOf(obj: Obj) = idField.get(obj)
     }
 
-    protected val log = LoggerFactory.getLogger(ZookeeperObjectMapper.getClass)
+    protected val log = LoggerFactory.getLogger("org.midonet.nsdb")
 
     private val jsonFactory = new JsonFactory(new ObjectMapper())
     private val deserializers =

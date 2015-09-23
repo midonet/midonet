@@ -107,10 +107,10 @@ class ObservablePathChildrenCacheTest extends Suite
         makePaths(nChildren)
 
         eventually {    // avoid races with the subscription
-            curator.getChildren.forPath(ZK_ROOT) should have size nChildren
+            curator.getChildren.forPath(zkRoot) should have size nChildren
         }
 
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
         opcc.subscribe(collector)
         assert(latch.await(timeout, TimeUnit.SECONDS))
         collector.getOnNextEvents should have size nChildren
@@ -152,7 +152,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val ts = new TestAwaitableObserver[ChildData]()
 
         makePaths(1)
-        ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        ObservablePathChildrenCache.create(curator, zkRoot)
                                    .observableChild("NOT_A_REAL_CHILD")
                                    .subscribe(ts)
 
@@ -175,10 +175,10 @@ class ObservablePathChildrenCacheTest extends Suite
         makePaths(nItems)
 
         eventually {    // avoid races with the subscription
-            curator.getChildren.forPath(ZK_ROOT) should have size nItems
+            curator.getChildren.forPath(zkRoot) should have size nItems
         }
 
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
         opcc.asObservable().subscribe(ts)
         ts.awaitOnNext(nItems, timeout.seconds)
         opcc close()
@@ -209,10 +209,10 @@ class ObservablePathChildrenCacheTest extends Suite
 
         makePaths(2)
 
-        eventually { curator.getChildren.forPath(ZK_ROOT) should have size 2 }
+        eventually { curator.getChildren.forPath(zkRoot) should have size 2 }
 
         val collector = new ChildDataAccumulator()
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
         opcc.subscribe(collector)
 
         eventually {
@@ -248,7 +248,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val nodeData = makePaths(1)
         val childData = nodeData.values.head
         val collector = new ChildDataAccumulator()
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
 
         nodeData should not be null
 
@@ -290,15 +290,15 @@ class ObservablePathChildrenCacheTest extends Suite
         val nodeData = makePaths(1)
         val oldChildData = nodeData.values.head
         val collector = new ChildDataAccumulator()
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
 
         opcc.subscribe(collector)
 
         eventually { collector.getOnNextEvents should have size 1 }
 
         val newChildData = "new"
-        val newChildPath = ZK_ROOT + "/newchild"
-        curator.create().forPath(ZK_ROOT + "/newchild", newChildData.getBytes)
+        val newChildPath = zkRoot + "/newchild"
+        curator.create().forPath(zkRoot + "/newchild", newChildData.getBytes)
 
         eventually {
             collector.getOnNextEvents should have size 2
@@ -329,7 +329,7 @@ class ObservablePathChildrenCacheTest extends Suite
 
         makePaths(nInitial) // Create nInitial children
 
-        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val opcc = ObservablePathChildrenCache.create(curator, zkRoot)
 
         // Let the OPCC catch up to the initial state
         eventually { opcc.allChildren should have size nInitial }
@@ -409,7 +409,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
     def testOnErrorEmittedWhenCacheLosesConnection(): Unit = {
         val ts1 = new TestAwaitableObserver[Observable[ChildData]]
         makePaths(2)
-        val o = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        val o = ObservablePathChildrenCache.create(curator, zkRoot)
         o.subscribe(ts1)
         ts1.awaitOnNext(2, timeout.seconds)
         ts1.getOnErrorEvents shouldBe empty

@@ -27,12 +27,12 @@ import org.midonet.cluster.util.CuratorTestFramework
 class ZoomNodeTests extends Suite with CuratorTestFramework with Matchers {
     private var zom: ZookeeperObjectMapper = _
 
-    override protected val ZK_ROOT = "/maps"
+    override protected val zkRoot = "/maps"
 
     private val Bridge1Path = "/maps/bridge/1"
 
     override protected def setup(): Unit = {
-        zom = new ZookeeperObjectMapper(ZK_ROOT, curator)
+        zom = new ZookeeperObjectMapper(zkRoot, "host", curator)
         zom.build()
     }
 

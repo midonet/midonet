@@ -561,11 +561,26 @@ class InMemoryStorage extends Storage with StateStorage {
         classes.get(clazz).getKey(id, key, getKeyType(clazz, key))
     }
 
+    override def getKey(host: String, clazz: Class[_], id: ObjId, key: String)
+    : Observable[StateKey] = {
+        ???
+    }
+
     @throws[ServiceUnavailableException]
     override def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
         assertBuilt()
         classes.get(clazz).keyObservable(id, key, getKeyType(clazz, key))
+    }
+
+    override def keyObservable(host: String, clazz: Class[_], id: ObjId,
+                               key: String): Observable[StateKey] = {
+        ???
+    }
+
+    override def keyObservable(host: Observable[String], clazz: Class[_],
+                               id: ObjId, key: String): Observable[StateKey] = {
+        ???
     }
 
     override def ownerId = DefaultOwnerId
