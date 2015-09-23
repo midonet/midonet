@@ -94,7 +94,7 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                 payload(UUID.randomUUID().toString)
             case Some(v) =>
                 {
-                    eth addr srcMac -> dstMac vlan (v)
+                    eth addr srcMac -> dstMac vlan v
                 } << {
                     ip4 addr "10.0.0.10" --> "10.0.0.11"
                 } << {
@@ -210,7 +210,7 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("Test redirect with vlans") {
-            val host = createHost()
+            val host = createHost(id = hostId)
 
             val vmBridge = createBridge(name = Some("vmBridge"),
                                         adminStateUp = true)
@@ -399,11 +399,11 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                             FlowTagger.tagForPort(vm1Port.getId)))
 
             var p = fetchDevice[Port](svc1Port.getId)
-            p.adminStateUp should be(true)
+            p.adminStateUp shouldBe true
 
             // Now set svc1Port down. Traffic from VM1 should be dropped because FAIL_OPEN is false.
             svc1Port = Await.result(store.get(classOf[TopoPort], svc1Port.getId), 5 seconds)
-            svc1Port = svc1Port.toBuilder().setAdminStateUp(false).build()
+            svc1Port = svc1Port.toBuilder.setAdminStateUp(false).build()
             store.update(svc1Port)
             fetchDevice[Port](svc1Port.getId).
                 asInstanceOf[ServicePort].realAdminStateUp shouldBe false

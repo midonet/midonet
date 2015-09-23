@@ -35,9 +35,8 @@ import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.storage.StateResult
-import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.HostIdProviderService
@@ -45,6 +44,7 @@ import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{Host, TunnelZone => NewTunnelZone}
 import org.midonet.util.concurrent._
 import org.midonet.util.reactivex._
+
 
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
@@ -290,30 +290,16 @@ trait DataClientLink {
     def notifyLocalPortActive(portId: UUID, active: Boolean): Unit = {
         val hostId = hostIdProvider.hostId()
 
-        if (active) {
-            backend.stateStore.addValue(classOf[Port], portId, HostsKey,
-                                        hostId.toString) andThen {
-                case Success(StateResult(ownerId)) =>
-                    log.debug("Port {} active (owner {})", portId,
-                              Long.box(ownerId))
-                    activeLocalPorts.putIfAbsent(portId, true)
-                    VirtualToPhysicalMapper.subjectLocalPortActive.onNext(
-                        LocalPortActive(portId, active = true))
-                case Failure(e) =>
-                    log.error("Failed to set port {} active", portId, e)
-            }
-        } else {
-            backend.stateStore.removeValue(classOf[Port], portId, HostsKey,
-                                           hostId.toString) andThen {
-                case Success(StateResult(ownerId)) =>
-                    log.debug("Port {} inactive (owner {})", portId,
-                              Long.box(ownerId))
-                    activeLocalPorts.remove(portId)
-                    VirtualToPhysicalMapper.subjectLocalPortActive.onNext(
-                        LocalPortActive(portId, active = false))
-                case Failure(e) =>
-                    log.error("Failed to set port {} inactive", portId, e)
-            }
+        backend.stateStore.setPortActive(portId, hostId, active) andThen {
+            case Success(StateResult(ownerId)) =>
+                log.debug("Port {} active to {} (owner {})", portId,
+                          Boolean.box(active), Long.box(ownerId))
+                activeLocalPorts.putIfAbsent(portId, true)
+                VirtualToPhysicalMapper.subjectLocalPortActive.onNext(
+                    LocalPortActive(portId, active = true))
+            case Failure(e) =>
+                log.error("Failed to set port {} active to {}", portId,
+                          Boolean.box(active), e)
         }
     }
 

@@ -23,6 +23,7 @@ import scala.util.Random
 
 import org.scalatest.{FlatSpec, Matchers, GivenWhenThen}
 
+import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.KeyType._
@@ -42,13 +43,13 @@ class RoutingTableStorageTest extends FlatSpec with CuratorTestFramework
                               with TopologyBuilder {
 
     private var storage: ZookeeperObjectMapper = _
-    private val hostId = UUID.randomUUID.toString
+    private val hostId = UUID.randomUUID
     private var ownerId: Long = _
     private val random = new Random
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(zkRoot, hostId, curator)
+        storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }
@@ -72,7 +73,7 @@ class RoutingTableStorageTest extends FlatSpec with CuratorTestFramework
         val route = createPortRoute(portId = port.getId)
         storage.addRoute(route).await(timeout) shouldBe StateResult(ownerId)
 
-        storage.getPortRoutes(port.getId).await(timeout) shouldBe Set(route)
+        storage.getPortRoutes(port.getId, hostId).await(timeout) shouldBe Set(route)
     }
 
     "Store" should "remove a port route from the routing table" in {
@@ -83,7 +84,7 @@ class RoutingTableStorageTest extends FlatSpec with CuratorTestFramework
         storage.addRoute(route).await(timeout) shouldBe StateResult(ownerId)
         storage.removeRoute(route).await(timeout) shouldBe StateResult(ownerId)
 
-        storage.getPortRoutes(port.getId).await(timeout) shouldBe Set()
+        storage.getPortRoutes(port.getId, hostId).await(timeout) shouldBe Set()
     }
 
     "Store observable" should "emit notifications on port updates" in {
@@ -91,7 +92,8 @@ class RoutingTableStorageTest extends FlatSpec with CuratorTestFramework
         storage.create(port)
 
         val obs = new TestObserver[Set[Route]] with AwaitableObserver[Set[Route]]
-        storage.portRoutesObservable(port.getId).subscribe(obs)
+        storage.portRoutesObservable(port.getId, Observable.just(hostId))
+               .subscribe(obs)
 
         obs.awaitOnNext(1, timeout) shouldBe true
         obs.getOnNextEvents.get(0) shouldBe Set()
@@ -124,7 +126,8 @@ class RoutingTableStorageTest extends FlatSpec with CuratorTestFramework
         storage.create(port)
 
         val obs = new TestObserver[Set[Route]] with AwaitableObserver[Set[Route]]
-        storage.portRoutesObservable(port.getId).subscribe(obs)
+        storage.portRoutesObservable(port.getId, Observable.just(hostId))
+               .subscribe(obs)
 
         obs.awaitOnNext(1, timeout) shouldBe true
         obs.getOnNextEvents.get(0) shouldBe Set()
