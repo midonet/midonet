@@ -36,6 +36,7 @@ import org.midonet.cluster.data.storage.{ObjectExistsException, Storage}
 import org.midonet.cluster.data.vtep.model.{MacLocation, PhysicalSwitch}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.topology.TopologyBuilder
+import org.midonet.cluster.util.UUIDUtil.{toProto, fromProto}
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, MockDirectory}
 import org.midonet.packets.IPv4Addr
@@ -90,7 +91,7 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
         def addBinding(nwId: UUID, physPort: String, vlan: Int): Unit = {
             val v = reload().toBuilder.addBindings(
                 Vtep.Binding.newBuilder()
-                    .setNetworkId(UUIDUtil.toProto(nwId))
+                    .setNetworkId(toProto(nwId))
                     .setPortName(physPort)
                     .setVlanId(vlan)
                     .build()
@@ -177,6 +178,8 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
         var macPortMap: MacPortMap = _
         var arpTable: Ip4ToMacReplicatedMap = _
 
+        val vxPorts = new java.util.HashMap[UUID, UUID]
+
         createVxPortForVtep(vtepFix.vtep)
 
         /** Gives two mocks of the state tables of a given network, and mocks
@@ -194,8 +197,14 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
             Mockito.when(dataClient.getIp4MacMap(Eq(nwId))).thenReturn(arpTable)
         }
 
-        /** This will NOT update the ovsdb mock to return the logical switch
-          * if requested. To do that, mock it like this:
+        /** Add a VxLAN port on the network connecting to the given VTEP, and
+          * put the vtepId -> portId entry in the vxPorts map.
+          *
+          * Note that this will not validate whether you have another vxPort for
+          * the same VTEP.
+          *
+          * Also, this will NOT update the ovsdb mock to return the logical
+          * switch if requested.  To do that, mock it like this:
           *
           *  val lsId = UUID.randomUUID()
           *  Mockito.when(vtepFix.ovsdb.createLogicalSwitch(Eq(lsName),
@@ -207,10 +216,11 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
             store.create(createVxLanPort(vxPortId, Some(nwId))
                              .toBuilder.setVtepId(vtep.getId).build())
 
-            store.update(nw.toBuilder.addVxlanPortIds(UUIDUtil.toProto
-                                                          (vxPortId)).build())
+            store.update(nw.toBuilder.addVxlanPortIds(toProto(vxPortId)).build())
             Mockito.when(vtepFix.ovsdb.setBindings(anyObject(), anyObject()))
                    .thenReturn(successful(10))
+
+            vxPorts.put(fromProto(vtep.getId), vxPortId)
         }
 
         def lsName = bridgeIdToLogicalSwitchName(nwId)
@@ -218,13 +228,13 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
         def putOnHost(p: Port, hId: UUID, ifc: String): Port = {
             store.create(p.toBuilder
                           .setInterfaceName(ifc)
-                          .setHostId(UUIDUtil.toProto(hId))
+                          .setHostId(toProto(hId))
                           .build())
             store.get(classOf[Port], p.getId).await()
         }
 
         def putOnTz(h: UUID, ip: IPv4Addr, tzId: UUID): Unit  = {
-            val hostId = UUIDUtil.toProto(h)
+            val hostId = toProto(h)
             val _tz = store.get(classOf[TunnelZone], tzId).await()
                            .toBuilder
                            .addHostIds(hostId)

@@ -76,10 +76,18 @@ class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
             log.debug(s"MAC $mac moves from $oldPortId to $newPortId")
             nwInfos.get(nwId) match {
                 case null => // no longer watching this network
-                case nwInfo if newPortId == nwInfo.vxPort =>
-                    // ignore, this is an entry we have added
                 case nwInfo if newPortId == null =>
-                    removeRemoteMac(mac, lsName) // it's gone, or removed
+                    if (oldPortId != nwInfo.vxPort) {
+                        // A MAC removed on a port other than the VxLAN Port
+                        // connecting to our VTEP, clear its MacRemote entry
+                        removeRemoteMac(mac, lsName) // it's gone, or removed
+                    }
+                case nwInfo if newPortId == nwInfo.vxPort =>
+                    // The MAC is on the VxLAN port of our VTEP, don't write
+                    // a MAC remote, but remove the previous mapping if any
+                    if (oldPortId != null) {
+                        removeRemoteMac(mac, lsName)
+                    }
                 case nwInfo =>
                     // We can't push more than 1 ip per MAC.  If this is a
                     // router port, it will have several IPs but we can only
@@ -88,7 +96,9 @@ class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
                     val ip = if (nwInfo.arpTable != null) {
                         val ipsOnMac = nwInfo.arpTable.getByValue(mac)
                         if (ipsOnMac.isEmpty) null else ipsOnMac.head
-                    } else null
+                    } else {
+                        null
+                    }
                     setRemoteMac(mac, ip, lsName, newPortId) // learned
             }
         }
@@ -138,7 +148,13 @@ class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
                 case null =>
                     log.debug(s"Can't set IP $ip on an unknown MAC $newMac")
                 case port =>
-                    setRemoteMac(newMac, ip, lsName, port)
+                    val nwInfo = nwInfos.get(nwId)
+                    if (nwInfo.vxPort != port) {
+                        // If the IP is on a MAC that is on a port other than
+                        // the VxLAN port associated to our VTEP, push it as
+                        // a MacRemote to the VTEP
+                        setRemoteMac(newMac, ip, lsName, port)
+                    }
             }
         }
     }
