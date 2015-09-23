@@ -480,7 +480,7 @@ class InMemoryStorage extends Storage with StateStorage {
 
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
 
-    override def hostId = HostId.toString
+    override def namespace = HostId.toString
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
@@ -578,7 +578,7 @@ class InMemoryStorage extends Storage with StateStorage {
     @throws[IllegalArgumentException]
     override def addValue(clazz: Class[_], id: ObjId, key: String,
                           value: String): Observable[StateResult] = {
-        addValueAs(hostId, clazz, id, key, value)
+        addValueAs(namespace, clazz, id, key, value)
     }
 
     @throws[ServiceUnavailableException]
@@ -594,7 +594,7 @@ class InMemoryStorage extends Storage with StateStorage {
     @throws[IllegalArgumentException]
     override def removeValue(clazz: Class[_], id: ObjId, key: String,
                              value: String): Observable[StateResult] = {
-        removeValueAs(hostId, clazz, id, key, value)
+        removeValueAs(namespace, clazz, id, key, value)
     }
 
     @throws[ServiceUnavailableException]
@@ -610,7 +610,7 @@ class InMemoryStorage extends Storage with StateStorage {
     @throws[IllegalArgumentException]
     override def getKey(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        getKey(hostId, clazz, id, key)
+        getKey(namespace, clazz, id, key)
     }
 
     @throws[ServiceUnavailableException]
@@ -624,7 +624,7 @@ class InMemoryStorage extends Storage with StateStorage {
     @throws[ServiceUnavailableException]
     override def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        keyObservable(hostId, clazz, id, key)
+        keyObservable(namespace, clazz, id, key)
     }
 
     @throws[ServiceUnavailableException]

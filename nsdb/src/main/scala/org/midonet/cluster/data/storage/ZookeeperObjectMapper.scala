@@ -103,7 +103,7 @@ import org.midonet.util.reactivex._
  *
  */
 class ZookeeperObjectMapper(protected override val rootPath: String,
-                            protected override val hostId: String,
+                            protected override val namespace: String,
                             protected override val curator: CuratorFramework,
                             metricsRegistry: MetricRegistry = null)
     extends ZookeeperObjectState with Storage {
@@ -394,7 +394,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
         for (clazz <- classes) {
             txn = txn.check().forPath(classPath(clazz)).and()
-            txn = txn.check().forPath(stateClassPath(hostId, clazz)).and()
+            txn = txn.check().forPath(stateClassPath(namespace, clazz)).and()
         }
         try {
             txn.commit()
@@ -411,7 +411,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
                                classPath(clazz))
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
-                               stateClassPath(hostId, clazz))
+                               stateClassPath(namespace, clazz))
             }
         } catch {
             case ex: Exception => throw new InternalObjectMapperException(ex)

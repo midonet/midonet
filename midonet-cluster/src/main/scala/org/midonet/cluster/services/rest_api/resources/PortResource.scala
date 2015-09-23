@@ -40,7 +40,7 @@ import org.midonet.cluster.rest_api.models.Route.NextHop
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErrorHttpException, NotFoundHttpException, ConflictHttpException}
-import org.midonet.cluster.services.MidonetBackend.HostsKey
+import org.midonet.cluster.services.MidonetBackend.ActiveKey
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
@@ -59,12 +59,13 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
         Future.successful(ports)
     }
 
-    private def isActive(id: String): Boolean = {
-        getResourceState(classOf[Port], id, HostsKey).getOrThrow.nonEmpty
+    private def isActive(port: Port): Boolean = {
+        getResourceState(port.hostId.toString, classOf[Port], port.id.toString,
+                         ActiveKey).getOrThrow.nonEmpty
     }
 
     private def setActive(port: P): P = {
-        port.active = isActive(port.id.toString)
+        port.active = isActive(port)
         port
     }
 

@@ -433,7 +433,7 @@ public class HostServiceTest {
     }
 
     public String getAlivePath(UUID hostId) {
-        return basePath + "/zoom/0/state/" + stateStore.hostId() + "/Host/" +
+        return basePath + "/zoom/0/state/" + stateStore.namespace() + "/Host/" +
                hostId + "/alive";
     }
 }

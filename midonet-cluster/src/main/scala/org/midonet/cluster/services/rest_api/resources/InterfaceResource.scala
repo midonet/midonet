@@ -70,7 +70,8 @@ class InterfaceResource @Inject()(hostId: UUID, resContext: ResourceContext)
     }
 
     private def getInterfaces(hostId: String): Future[Seq[Interface]] = {
-        getResourceState(classOf[Host], hostId, MidonetBackend.HostKey).map {
+        getResourceState(hostId.toString, classOf[Host], hostId,
+                         MidonetBackend.HostKey).map {
             case SingleValueKey(_, Some(value), _) =>
                 val builder = State.HostState.newBuilder()
                 TextFormat.merge(value, builder)

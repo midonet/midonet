@@ -17,6 +17,7 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
+import org.midonet.cluster.data.storage.InMemoryStorage
 import org.midonet.midolman.state.Directory
 
 import scala.collection.JavaConverters._
@@ -87,6 +88,8 @@ trait MidolmanSpec extends FeatureSpecLike
             injector.getInstance(classOf[MidolmanService])
                 .startAsync()
                 .awaitRunning()
+            InMemoryStorage.HostId =
+                injector.getInstance(classOf[HostIdProviderService]).hostId
 
             beforeTest()
         } catch {

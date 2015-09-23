@@ -45,7 +45,7 @@ class InMemoryStateStorageTest extends FeatureSpec with BeforeAndAfter
 
     before {
         storage = new InMemoryStorage
-        hostId = storage.hostId
+        hostId = storage.namespace
         storage.registerClass(classOf[State])
         storage.registerKey(classOf[State], "first", SingleFirstWriteWins)
         storage.registerKey(classOf[State], "last", SingleLastWriteWins)

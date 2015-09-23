@@ -182,10 +182,10 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         assertBuilt()
 
         if (getKeyType(clazz, key).isSingle) {
-            removeValue(clazz, id, key, value, keyPath(hostId, clazz, id, key))
+            removeValue(clazz, id, key, value, keyPath(namespace, clazz, id, key))
         } else {
             removeValue(clazz, id, key, value,
-                        valuePath(hostId, clazz, id, key, value))
+                        valuePath(namespace, clazz, id, key, value))
         }
     }
 
@@ -200,7 +200,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     @throws[IllegalArgumentException]
     override def getKey(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        getKey(hostId, clazz, id, key)
+        getKey(namespace, clazz, id, key)
     }
 
     /**
@@ -267,7 +267,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     @throws[ServiceUnavailableException]
     override def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
-        keyObservable(hostId, clazz, id, key)
+        keyObservable(namespace, clazz, id, key)
     }
 
     /**
@@ -370,7 +370,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     private def addSingleValueFirst(clazz: Class[_], id: ObjId, key: String,
                                     value: String): Observable[StateResult] = {
 
-        val path = keyPath(hostId, clazz, id, key)
+        val path = keyPath(namespace, clazz, id, key)
         val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
 
         onObjectAndStateExist(clazz, id, key, value, path) flatMap makeFunc1 { event =>
@@ -401,7 +401,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     private def addSingleValueLast(clazz: Class[_], id: ObjId, key: String,
                                    value: String): Observable[StateResult] = {
         val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
-        val path = keyPath(hostId, clazz, id, key)
+        val path = keyPath(namespace, clazz, id, key)
 
         onObjectAndStateExist(clazz, id, key, value, path) flatMap makeFunc1 { event =>
             if (event.getResultCode == Code.OK.intValue()) {
@@ -449,7 +449,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     private def addMultiValue(clazz: Class[_], id: ObjId, key: String,
                               value: String): Observable[StateResult] = {
         val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
-        val path = valuePath(hostId, clazz, id, key, value)
+        val path = valuePath(namespace, clazz, id, key, value)
 
         onObjectAndStateExist(clazz, id, key, value, path) flatMap makeFunc1 { event =>
             if (event.getResultCode == Code.OK.intValue()) {

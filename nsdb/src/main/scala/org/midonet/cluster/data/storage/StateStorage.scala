@@ -123,7 +123,7 @@ trait StateStorage {
 
     protected[this] val stateInfo = new TrieMap[Class[_], StateInfo]
 
-    protected def hostId: String
+    protected def namespace: String
 
     /** Registers a new key for a class using the specified key type. */
     @throws[IllegalStateException]
