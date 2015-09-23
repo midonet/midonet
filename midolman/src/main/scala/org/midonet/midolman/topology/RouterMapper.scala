@@ -81,6 +81,9 @@ object RouterMapper {
         // port.
         private val routesCache = new mutable.HashSet[Route]
 
+        private val portStateSubject = PublishSubject.create[UUID]
+        private var portStateReady = false
+
         private val portObservable = VirtualTopology
             .observable[RouterPort](portId)
             .map[RouteUpdates](makeFunc1(portUpdated))
@@ -88,7 +91,7 @@ object RouterMapper {
             .merge(routesSubject)
             .map[RouteUpdates](makeFunc1(routeUpdated))
         private val learnedRoutesObservable = vt.stateStore
-            .portRoutesObservable(portId)
+            .portRoutesObservable(portId, portStateSubject)
             .observeOn(vt.vtScheduler)
             .map[RouteUpdates](makeFunc1(learnedRoutesUpdated))
 
@@ -127,7 +130,8 @@ object RouterMapper {
         }
         /** Indicates whether the port state has received the port data. */
         def isReady: Boolean = {
-            (currentPort ne null) && routes.forall(_._2.isReady)
+            (currentPort ne null) && portStateReady &&
+            routes.forall(_._2.isReady)
         }
 
         /**
@@ -148,6 +152,13 @@ object RouterMapper {
             val oldPublish = isPublishingRoutes
             val newPublish = port.isInterior || port.isExterior &&
                                                 port.isActive
+
+            if ((currentPort eq null) || (currentPort.hostId != port.hostId)) {
+                val hostId = port.hostId
+                log.debug("Monitoring port state for host: {}", hostId)
+                portStateReady = false
+                portStateSubject onNext hostId
+            }
 
             currentPort = port
 
@@ -215,6 +226,7 @@ object RouterMapper {
             vt.assertThread()
             log.debug("Learned port routes updated: {} routes",
                       Int.box(routes.size))
+            portStateReady = true
 
             val added = new mutable.HashSet[Route]
             val removed = new mutable.HashSet[Route]

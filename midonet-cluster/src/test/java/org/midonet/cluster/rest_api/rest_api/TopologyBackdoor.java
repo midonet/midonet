@@ -43,6 +43,8 @@ import org.midonet.packets.MAC;
  */
 public interface TopologyBackdoor {
 
+    String getNamespace();
+
     void addArpTableEntryToRouter(UUID routerId, IPv4Addr ip, MAC mac);
 
     void createHost(UUID hostId, String name, InetAddress[] addresses);

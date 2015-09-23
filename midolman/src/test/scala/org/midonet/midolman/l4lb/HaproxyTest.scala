@@ -123,11 +123,6 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
         conf = injector.getInstance(classOf[MidolmanConfig])
         HMSystem.ipCommand = mock(classOf[IP])
 
-        val host = Host.newBuilder
-            .setId(UUIDUtil.toProto(hostId))
-            .build()
-        backend.store.create(host)
-
         hmSystem = TestActorRef(Props(new TestableHealthMonitor()))(actorSystem)
     }
 
