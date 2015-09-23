@@ -15,9 +15,10 @@
  */
 package org.midonet.cluster.util
 
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
 import scala.collection.JavaConverters._
+import scala.util.control.NonFatal
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.{CuratorEvent, BackgroundCallback}
@@ -56,26 +57,40 @@ object PathDirectoryObservable {
      * [[DirectoryObservableDisconnectedException]] error. When the observable
      * is closed by calling the `close()` method, the observable emits a
      * [[DirectoryObservableClosedException]].
+     *
+     * @param completeOnDelete The argument specifies whether the observable
+     *                         should complete when the path is deleted or if it
+     *                         does not exist. When `true` the observable
+     *                         completes with a [[ParentDeletedException]] when
+     *                         the path is deleted. Otherwise, the observable
+     *                         will install an exists watcher on the underlying
+     *                         node such that it triggers a notification when
+     *                         the node is created.
      */
     def create(curator: CuratorFramework, path: String,
+               completeOnDelete: Boolean = true,
                zoomMetrics: ZoomMetrics = BlackHoleZoomMetrics)
     :PathDirectoryObservable = {
         new PathDirectoryObservable(
-            new OnSubscribeToDirectory(curator, path, zoomMetrics))
+            new OnSubscribeToDirectory(curator, path, completeOnDelete,
+                                       zoomMetrics))
     }
 }
 
 private[util]
 class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
-                             zoomMetrics: ZoomMetrics)
+                             completeOnDelete: Boolean, zoomMetrics: ZoomMetrics)
     extends OnSubscribe[Set[String]] {
 
     private val log = getLogger(s"org.midonet.cluster.zk-directory-[$path]")
+
+    final val none = Set.empty[String]
 
     private val state = new AtomicReference[State](State.Stopped)
 
     private val subject = BehaviorSubject.create[Set[String]]()
     private val children = new AtomicReference[Set[String]]()
+    private val connected = new AtomicBoolean(true)
 
     private val unsubscribeAction = makeAction0 {
         if (!subject.hasObservers) {
@@ -93,6 +108,13 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
             }
             processWatcher(event)
         }
+    }
+
+    @volatile
+    private var existsCallback = new BackgroundCallback {
+        override def processResult(client: CuratorFramework,
+                                   event: CuratorEvent): Unit =
+            processExists(event)
     }
 
     @volatile
@@ -124,23 +146,58 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
     }
 
     private def refresh(): Unit = {
+        if (!connected.get) {
+            return
+        }
         try {
             curator.getChildren
                 .usingWatcher(childrenWatcher)
                 .inBackground(childrenCallback)
                 .forPath(path)
         } catch {
-            case e: Exception =>
+            case NonFatal(e) =>
                 log.debug("Exception on refreshing the directory observable", e)
                 close(new DirectoryObservableDisconnectedException(path, e))
         }
     }
 
+    private def monitor(): Unit = {
+        if (!connected.get) {
+            return
+        }
+        try {
+            curator.checkExists()
+                .usingWatcher(childrenWatcher)
+                .inBackground(existsCallback)
+                .forPath(path)
+        } catch {
+            case NonFatal(e) =>
+                log.debug("Exception on setting the exists watcher", e)
+                close(new DirectoryObservableDisconnectedException(path, e))
+        }
+    }
 
     private def processWatcher(event: WatchedEvent): Unit = {
         if (state.get == State.Started) {
             log.debug("Watcher event {}: refreshing", event.getType)
             refresh()
+        }
+    }
+
+    private def processExists(event: CuratorEvent): Unit = {
+        if (state.get != State.Started) {
+            return
+        }
+        if (event.getResultCode == Code.OK.intValue()) {
+            refresh()
+        } else if (event.getResultCode == Code.NONODE.intValue()) {
+            log.debug("Node does not exist: waiting for creation")
+        } else if (event.getResultCode == Code.CONNECTIONLOSS.intValue()) {
+            log.debug("Connection lost")
+            close(new DirectoryObservableDisconnectedException(path))
+        } else {
+            log.error("Check node existence failed with {}", event.getResultCode)
+            close(new DirectoryObservableDisconnectedException(path))
         }
     }
 
@@ -152,9 +209,15 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
             children.set(event.getChildren.asScala.toSet)
             subject.onNext(children.get)
         } else if (event.getResultCode == Code.NONODE.intValue) {
-            log.debug("Node deleted: closing the observable")
             zoomMetrics.zkNoNodeTriggered()
-            close(new ParentDeletedException(path))
+            if (completeOnDelete) {
+                log.debug("Node deleted: closing the observable")
+                close(new ParentDeletedException(path))
+            } else {
+                children.set(none)
+                subject.onNext(none)
+                monitor()
+            }
         } else if (event.getResultCode == Code.CONNECTIONLOSS.intValue) {
             log.debug("Connection lost")
             close(new DirectoryObservableDisconnectedException(path))
@@ -165,15 +228,24 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
     }
 
     private def processStateChanged(state: ConnectionState): Unit = state match {
-        case ConnectionState.CONNECTED => log.debug("Observable connected")
-        case ConnectionState.SUSPENDED => log.debug("Observable suspended")
+        case ConnectionState.CONNECTED =>
+            log.debug("Observable connected")
+            connected.set(true)
+        case ConnectionState.SUSPENDED =>
+            log.debug("Observable suspended")
+            connected.set(false)
         case ConnectionState.RECONNECTED =>
             log.debug("Observable reconnected")
-            refresh()
+            if (connected.compareAndSet(false, true)) {
+                refresh()
+            }
         case ConnectionState.LOST =>
             log.debug("Connection lost")
+            connected.set(false)
             close(new DirectoryObservableDisconnectedException(path))
-        case ConnectionState.READ_ONLY => log.debug("Observable read-only")
+        case ConnectionState.READ_ONLY =>
+            log.debug("Observable read-only")
+            connected.set(false)
     }
 
     /** Terminates the connection and complete the observable */
@@ -186,6 +258,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
 
             connectionListener = null
             childrenWatcher = null
+            existsCallback = null
             childrenCallback = null
         }
     }
