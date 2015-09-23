@@ -32,9 +32,9 @@ import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Port => TopologyPort, Route => TopologyRoute, Router => TopologyRouter}
+import org.midonet.cluster.models.Topology.{Port => TopologyPort, Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.services.MidonetBackend.HostsKey
+import org.midonet.cluster.services.MidonetBackend.ActiveKey
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
@@ -72,7 +72,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     implicit def asIPSubnet(str: String): IPSubnet[_] = IPSubnet.fromString(str)
-    implicit def asIPAddres(str: String): IPv4Addr = IPv4Addr(str)
+    implicit def asIPAddress(str: String): IPv4Addr = IPv4Addr(str)
     implicit def asMAC(str: String): MAC = MAC.fromString(str)
     implicit def asRoute(str: String): Route =
         new Route(0, 0, IPv4Addr(str).toInt, 32, null, null, 0, 0, null, null)
@@ -93,11 +93,9 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
     private def createExteriorPort(routerId: UUID, adminStateUp: Boolean = true)
     : TopologyPort = {
-        val hostId = UUID.randomUUID()
-        store.create(createHost(id = hostId))
         createRouterPort(routerId = Some(routerId),
                          adminStateUp = adminStateUp,
-                         hostId = Some(hostId),
+                         hostId = Some(InMemoryStorage.NamespaceId),
                          interfaceName = Some("iface0"))
     }
 
@@ -259,7 +257,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The port becomes active")
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 UUID.randomUUID.toString).await(timeout)
 
             Then("The observer should receive a router update")
@@ -373,14 +371,14 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The port becomes active")
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 ownerId).await(timeout)
 
             Then("The observer should receive a router update")
             obs.awaitOnNext(3, timeout) shouldBe true
 
             When("The port becomes inactive")
-            stateStore.removeValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.removeValue(classOf[TopologyPort], port.getId, ActiveKey,
                                    ownerId).await(timeout)
 
             Then("The observer should receive a router update")
@@ -465,7 +463,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The port becomes active")
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 ownerId).await(timeout)
 
             Then("The observer should receive a router update")
@@ -499,7 +497,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             When("The port becomes active")
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 ownerId).await(timeout)
 
             Then("The observer should receive a router update")
@@ -555,7 +553,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The port becomes active")
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 UUID.randomUUID.toString).await(timeout)
 
             Then("The observer should receive a router update and no routes")
@@ -593,7 +591,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The port becomes active")
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 UUID.randomUUID.toString).await(timeout)
 
             Then("The observer should receive a router update")
@@ -623,7 +621,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The port becomes active")
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 UUID.randomUUID.toString).await(timeout)
 
             Then("The observer should receive a router update")
@@ -850,7 +848,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The port becomes active")
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 UUID.randomUUID.toString).await(timeout)
 
             Then("The observer should receive a router update and no routes")
@@ -904,7 +902,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             device1.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
 
             When("The port becomes active")
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 UUID.randomUUID.toString).await(timeout)
 
             Then("The observer should receive a router update with the route")
@@ -926,7 +924,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("The port becomes active")
             val ownerId = UUID.randomUUID.toString
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 ownerId).await(timeout)
 
             Then("The observer should receive a router update and no routes")
@@ -949,7 +947,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
                 route
 
             When("The port becomes inactive")
-            stateStore.removeValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.removeValue(classOf[TopologyPort], port.getId, ActiveKey,
                                    ownerId).await(timeout)
 
             Then("The observer should receive a router update with no route")
@@ -974,7 +972,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The port becomes active")
-            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+            stateStore.addValue(classOf[TopologyPort], port.getId, ActiveKey,
                                 UUID.randomUUID.toString).await(timeout)
 
             Then("The observer should receive a router update with the route")
