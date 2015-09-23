@@ -273,7 +273,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                 .build()
             vt.store.create(tr)
             val routerSubscriber = new TestSubscriber[SimRouter]
-            val mapper = new RouterMapper(routerId, vt, chainMap)
+            val mapper = new RouterMapper(routerId, vt, metricRegistry, chainMap)
             mapper.call(routerSubscriber)
 
             routerSubscriber.getOnNextEvents.size shouldBe 1
