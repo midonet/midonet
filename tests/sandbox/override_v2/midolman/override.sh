@@ -1,5 +1,7 @@
 #!/bin/bash
 
+apt-get -y install iptables
+
 # Installs newest package (lexicographycally) in override
 LATEST=$(ls /override/midolman*deb | tail -n1)
 LATEST_TOOLS=$(ls /override/midonet-tools*deb | tail -n1)
