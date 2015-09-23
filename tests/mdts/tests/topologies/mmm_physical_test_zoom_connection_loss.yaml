@@ -1,0 +1,53 @@
+# Copyright 2015 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+physical_topology:
+  hosts:
+    - host:
+        id: 1
+        provided: true
+        mn_host_id: 00000000-0000-0000-0000-000000000001
+        tunnel_zone:
+          name: default
+          ip_addr: 10.0.0.8
+        mm_namespace: ns008
+        interfaces:
+          - interface:
+              id: 1
+              ifname: null
+              type: "netns"
+              ipv4_addr: [172.16.1.1/24]
+              ipv6_addr: []
+              ipv4_gw: 172.16.1.254
+              hw_addr: aa:bb:cc:00:01:01
+              mtu: 1500
+
+    - host:
+        id: 2
+        provided: true
+        mn_host_id: 00000000-0000-0000-0000-000000000002
+        tunnel_zone:
+          name: default
+          ip_addr: 10.0.0.9
+        mm_namespace: ns009
+        interfaces:
+          - interface:
+              id: 1
+              ifname: null
+              type: "netns"
+              ipv4_addr: [172.16.1.2/24]
+              ipv6_addr: []
+              ipv4_gw: 172.16.1.254
+              hw_addr: aa:bb:cc:00:01:03
+              mtu: 1500
