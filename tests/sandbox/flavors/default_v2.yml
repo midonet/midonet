@@ -136,6 +136,7 @@ quagga:
       interface: mdts.services.quagga.QuaggaHost
       type: quagga
   environment:
+  - ADVERTISED_NETWORK=1.1.1.1/32
   # Edge1 interface peering midolman1, 10.1.0.240/24
   - BGP0_IFACE=bgp0
   # Edge2 interface peering midolman2, 10.2.0.240/24
