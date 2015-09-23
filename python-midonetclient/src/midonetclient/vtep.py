@@ -20,7 +20,7 @@ from midonetclient import vtep_binding
 
 class Vtep(resource_base.ResourceBase):
 
-    media_type = vendor_media_type.APPLICATION_VTEP_JSON
+    media_type = vendor_media_type.APPLICATION_VTEP_JSON_V2
 
     def __init__(self, uri, dto, auth):
         super(Vtep, self).__init__(uri, dto, auth)

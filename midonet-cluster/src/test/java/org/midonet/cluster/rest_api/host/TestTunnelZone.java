@@ -167,7 +167,7 @@ public class TestTunnelZone {
             vtep.setManagementPort(6632);
             vtep.setTunnelZoneId(tunnelZone.getId());
             dtoResource.postAndVerifyCreated(app.getVteps(),
-                                             APPLICATION_VTEP_JSON(), vtep,
+                                             APPLICATION_VTEP_JSON_V2(), vtep,
                                              DtoVtep.class);
 
             // now try to delete the tunnel zone
