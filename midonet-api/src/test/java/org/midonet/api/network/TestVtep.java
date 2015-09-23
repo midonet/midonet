@@ -45,6 +45,7 @@ import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.midolman.state.VtepConnectionState;
 
+import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
@@ -53,6 +54,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.midonet.cluster.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
 import static org.midonet.cluster.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V2;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_BRIDGE_JSON_V3;
 import static org.midonet.cluster.VendorMediaType.APPLICATION_PORT_JSON;
 import static org.midonet.cluster.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
 import static org.midonet.cluster.VendorMediaType.APPLICATION_PORT_V2_JSON;
@@ -164,7 +166,7 @@ public class TestVtep extends RestApiTestBase {
         String ipAddr = mockVtep1.mgmtIp();
         postVtep();
         DtoError error = postVtepWithError(ipAddr, mockVtep1.mgmtPort() + 1,
-                                           Status.CONFLICT);
+                                           CONFLICT);
         assertErrorMatches(error, MessageProperty.VTEP_EXISTS, ipAddr);
     }
 
@@ -187,14 +189,14 @@ public class TestVtep extends RestApiTestBase {
         // Add the host to ZooKeeper.
         Host host = new Host();
         host.setId(UUID.randomUUID());
-        host.setAddresses(new InetAddress[] {
-            InetAddress.getByName(ip) });
+        host.setAddresses(new InetAddress[]{
+            InetAddress.getByName(ip)});
         JerseyGuiceTestServletContextListener
             .getHostZkManager()
             .createHost(host.getId(), Converter.toHostConfig(host));
 
         // Try add the VTEP with the same IP address.
-        postVtepWithError(ip, mockVtep1.mgmtPort(), Status.CONFLICT);
+        postVtepWithError(ip, mockVtep1.mgmtPort(), CONFLICT);
     }
 
     @Test
@@ -265,16 +267,16 @@ public class TestVtep extends RestApiTestBase {
     @Test
     public void testDeleteNonexistingVtep() {
         DtoError error = dtoResource.deleteAndVerifyNotFound(
-                ResourceUriBuilder.getVtep(app.getUri(), "1.2.3.4"),
-                APPLICATION_VTEP_JSON);
+            ResourceUriBuilder.getVtep(app.getUri(), "1.2.3.4"),
+            APPLICATION_VTEP_JSON);
         assertErrorMatches(error, VTEP_NOT_FOUND, "1.2.3.4");
     }
 
     @Test
     public void testDeleteVtepWithInvalidIPAddress() {
         DtoError error = dtoResource.deleteAndVerifyBadRequest(
-                ResourceUriBuilder.getVtep(app.getUri(), "300.1.2.3"),
-                APPLICATION_VTEP_JSON);
+            ResourceUriBuilder.getVtep(app.getUri(), "300.1.2.3"),
+            APPLICATION_VTEP_JSON);
         assertErrorMatches(error, IP_ADDR_INVALID_WITH_PARAM, "300.1.2.3");
     }
 
@@ -405,17 +407,19 @@ public class TestVtep extends RestApiTestBase {
                 addAndVerifyBinding(vtep, br, mockVtep1.portNames()[0], 1);
         deleteBinding(binding.getUri());
         dtoResource.deleteAndVerifyNotFound(binding.getUri(),
-                APPLICATION_VTEP_BINDING_JSON);
+                                            APPLICATION_VTEP_BINDING_JSON);
     }
 
     @Test
     public void testAddBindingWithIllFormedIP() {
         DtoVtep vtep = postVtep();
         URI bindingsUri = replaceInUri(
-                vtep.getBindings(), mockVtep1.mgmtIp(), "300.0.0.1");
+            vtep.getBindings(), mockVtep1.mgmtIp(), "300.0.0.1");
         DtoVtepBinding binding = makeBinding("eth0", 1, UUID.randomUUID());
         DtoError error = dtoResource.postAndVerifyError(bindingsUri,
-                APPLICATION_VTEP_BINDING_JSON, binding, Status.BAD_REQUEST);
+                                                        APPLICATION_VTEP_BINDING_JSON,
+                                                        binding,
+                                                        Status.BAD_REQUEST);
         assertErrorMatches(error, IP_ADDR_INVALID_WITH_PARAM, "300.0.0.1");
     }
 
@@ -436,7 +440,9 @@ public class TestVtep extends RestApiTestBase {
     public void testAddBindingWithNegativeVlanId() {
         DtoVtep vtep = postVtep();
         DtoError error = postBindingWithError(vtep,
-                makeBinding("eth0", -1, UUID.randomUUID()), Status.BAD_REQUEST);
+                                              makeBinding("eth0", -1,
+                                                          UUID.randomUUID()),
+                                              Status.BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "vlanId", MIN_VALUE, 0);
     }
 
@@ -481,7 +487,7 @@ public class TestVtep extends RestApiTestBase {
         DtoVtepBinding binding = makeBinding("blah", 1, bridge.getId());
         DtoError err = postBindingWithError(vtep, binding, Status.NOT_FOUND);
         assertErrorMatches(err, VTEP_PORT_NOT_FOUND, mockVtep1.mgmtIp(),
-                mockVtep1.mgmtPort(), "blah");
+                           mockVtep1.mgmtPort(), "blah");
     }
 
     // The same port/vlan pair on the same vtep should not be used by two
@@ -496,7 +502,7 @@ public class TestVtep extends RestApiTestBase {
         DtoError err = postBindingWithError(vtep,
                                             makeBinding(mockVtep1.portNames()[0],
                                                         3, bridge2.getId()),
-                                            Status.CONFLICT);
+                                            CONFLICT);
         assertErrorMatches(err, VTEP_PORT_VLAN_PAIR_ALREADY_USED,
                            mockVtep1.mgmtIp(), mockVtep1.mgmtPort(),
                            mockVtep1.portNames()[0], 3, bridge.getId());
@@ -613,7 +619,7 @@ public class TestVtep extends RestApiTestBase {
         URI bindingsUri =
                 ResourceUriBuilder.getVxLanPortBindings(app.getUri(), portId);
         DtoError error = dtoResource.getAndVerifyNotFound(
-                bindingsUri, APPLICATION_VTEP_BINDING_COLLECTION_JSON);
+            bindingsUri, APPLICATION_VTEP_BINDING_COLLECTION_JSON);
         assertErrorMatches(error, RESOURCE_NOT_FOUND, "port", portId);
     }
 
@@ -621,7 +627,7 @@ public class TestVtep extends RestApiTestBase {
     public void testGetBindingOnNonexistingPort() throws Exception {
         UUID portId = UUID.randomUUID();
         URI bindingUri = ResourceUriBuilder.getVxLanPortBinding
-                (app.getUri(), portId, "eth0", (short) 1);
+            (app.getUri(), portId, "eth0", (short) 1);
         DtoError error = dtoResource.getAndVerifyNotFound(
                 bindingUri, APPLICATION_VTEP_BINDING_JSON);
         assertErrorMatches(error, RESOURCE_NOT_FOUND, "port", portId);
@@ -631,8 +637,8 @@ public class TestVtep extends RestApiTestBase {
     public void testListVtepPorts() {
         DtoVtep vtep = postVtep();
         DtoVtepPort[] ports = dtoResource.getAndVerifyOk(vtep.getPorts(),
-                VendorMediaType.APPLICATION_VTEP_PORT_COLLECTION_JSON,
-                DtoVtepPort[].class);
+                                                         VendorMediaType.APPLICATION_VTEP_PORT_COLLECTION_JSON,
+                                                         DtoVtepPort[].class);
 
         DtoVtepPort[] expectedPorts =
                 new DtoVtepPort[mockVtep1.portNames().length];
@@ -642,6 +648,19 @@ public class TestVtep extends RestApiTestBase {
                                                + "-desc");
 
         assertThat(ports, arrayContainingInAnyOrder(expectedPorts));
+    }
+
+    @Test
+    public void testBridgeCantBeDeletedIfBindings() {
+        DtoVtep vtep = postVtep();
+        assertEquals(0, listBindings(vtep).length);
+        DtoBridge br = postBridge("network1");
+        String portName = mockVtep1.portNames()[0];
+        int vlan = 1;
+        addAndVerifyFirstBinding(vtep, br, portName, vlan, 10000);
+        dtoResource.deleteAndVerifyStatus(br.getUri(),
+                                          APPLICATION_BRIDGE_JSON_V3,
+                                          CONFLICT.getStatusCode());
     }
 
     @Test

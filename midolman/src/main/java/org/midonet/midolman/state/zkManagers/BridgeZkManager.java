@@ -306,6 +306,11 @@ public class BridgeZkManager
                     config.outboundFilter, ResourceType.BRIDGE, id));
         }
 
+        if (config.vxLanPortIds != null && !config.vxLanPortIds.isEmpty()) {
+            throw new IllegalStateException("A Bridge cannot be deleted if it"
+                                            + " has bindings to a VTEP.");
+        }
+
         // Delete the ports.
         Collection<UUID> portIds = portZkManager.getBridgePortIDs(id);
         for (UUID portId : portIds) {
