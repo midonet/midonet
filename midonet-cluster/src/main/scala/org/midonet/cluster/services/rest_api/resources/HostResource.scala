@@ -114,12 +114,13 @@ class HostResource @Inject()(resContext: ResourceContext)
     }
 
     private def isAlive(id: String): Boolean = {
-        getResourceState(classOf[Host], id, MidonetBackend.AliveKey)
+        getResourceState(id.toString, classOf[Host], id, MidonetBackend.AliveKey)
             .getOrThrow.nonEmpty
     }
 
     private def getInterfaces(hostId: String): Future[Seq[Interface]] = {
-        getResourceState(classOf[Host], hostId, MidonetBackend.HostKey).map {
+        getResourceState(hostId.toString,classOf[Host], hostId,
+                         MidonetBackend.HostKey).map {
             case SingleValueKey(_, Some(value), _) =>
                 val builder = State.HostState.newBuilder()
                 TextFormat.merge(value, builder)

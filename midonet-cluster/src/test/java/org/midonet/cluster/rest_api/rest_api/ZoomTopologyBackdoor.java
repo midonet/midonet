@@ -59,6 +59,10 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
 
     private static final Duration TIMEOUT = Duration.apply(5, TimeUnit.SECONDS);
 
+    public String getNamespace() {
+        return backend.stateStore().namespace();
+    }
+
     @Override
     public void addArpTableEntryToRouter(UUID routerId, IPv4Addr ip, MAC mac) {
         // Implementing this is just pointless in v2.  This is just used in

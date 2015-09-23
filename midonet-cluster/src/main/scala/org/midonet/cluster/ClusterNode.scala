@@ -26,7 +26,6 @@ import scala.util.control.NonFatal
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice, Singleton}
-import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 import org.apache.commons.dbcp2.BasicDataSource
 import org.reflections.Reflections
@@ -77,6 +76,7 @@ object ClusterNode extends App {
     // Load cluster node configuration
     private val nodeId = HostIdGenerator.getHostId
     private val nodeContext = new Context(nodeId)
+    MidonetBackend.isCluster = true
 
     val configurator = MidoNodeConfigurator(configFile)
     if (configurator.deployBundledConfig()) {

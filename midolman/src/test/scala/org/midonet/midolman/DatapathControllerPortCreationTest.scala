@@ -76,7 +76,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
 
     private def addAndMaterializeBridgePort(hostId: UUID, br: UUID,
             ifname: String): UUID = {
-        val port = newBridgePort(br)
+        val port = newBridgePort(br, host = Some(hostId))
         port should not be null
         addHostVrnPortMapping(hostId, port, ifname)
         port

@@ -58,7 +58,8 @@ object RoutingManagerActor extends Referenceable {
         def setStatus(bgpId: UUID, status: String): Future[UUID]
         def addRoute(route: Route): Future[Route]
         def removeRoute(route: Route): Future[Route]
-        def learnedRoutes(routerId: UUID, portId: UUID): Future[Set[Route]]
+        def learnedRoutes(routerId: UUID, portId: UUID, hostId: UUID)
+        : Future[Set[Route]]
     }
 
     private[routingprotocols] class RoutingStorageImpl(storage: StateStorage)
@@ -78,9 +79,9 @@ object RoutingManagerActor extends Referenceable {
                    .map[Route](makeFunc1(_ => route))
                    .asFuture
         }
-        override def learnedRoutes(routerId: UUID, portId: UUID)
+        override def learnedRoutes(routerId: UUID, portId: UUID, hostId: UUID)
         : Future[Set[Route]] = {
-            storage.getPortRoutes(portId)
+            storage.getPortRoutes(portId, hostId)
                    .map[Set[Route]](makeFunc1(_.map(Converter.fromRouteConfig)))
                    .asFuture
         }
