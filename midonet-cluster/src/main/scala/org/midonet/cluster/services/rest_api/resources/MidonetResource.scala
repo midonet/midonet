@@ -334,10 +334,11 @@ abstract class MidonetResource[T >: Null <: UriResource]
         }
     }
 
-    protected def getResourceState[U >: Null <: UriResource](clazz: Class[U],
+    protected def getResourceState[U >: Null <: UriResource](host: String,
+                                                             clazz: Class[U],
                                                              id: Any, key: String)
     : Future[StateKey] = {
-        backend.stateStore.getKey(UriResource.getZoomClass(clazz), id, key)
+        backend.stateStore.getKey(host, UriResource.getZoomClass(clazz), id, key)
             .asFuture
     }
 
