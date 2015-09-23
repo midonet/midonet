@@ -30,7 +30,7 @@ import org.midonet.cluster.southbound.vtep.model.LogicalSwitch
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.BridgePort
+import org.midonet.cluster.data.ports.{VxLanPort, BridgePort}
 import org.midonet.cluster.data.{Bridge, TunnelZone, VTEP}
 import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
@@ -138,7 +138,17 @@ trait VxlanGatewayTest {
         log.info("----------------------------------------------------")
 
         def delete(): Unit = {
+            import scala.collection.JavaConversions._
             macPortMap.stop()
+            val br = dataClient.bridgesGet(nwId)
+            val vxPorts = br.getVxLanPortIds
+            if (vxPorts != null) {
+                br.getVxLanPortIds.foreach { pId =>
+                    val vxPort = dataClient.portsGet(pId)
+                                           .asInstanceOf[VxLanPort]
+                    dataClient.bridgeDeleteVxLanPort(vxPort)
+                }
+            }
             dataClient.bridgesDelete(nwId) // removes also ports
         }
     }

@@ -18,6 +18,7 @@ package org.midonet.api.network.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
@@ -102,7 +103,11 @@ public class BridgeResource extends AbstractResource {
         if (dataClient.bridgesGet(id) == null)
             return;
         authoriser.tryAuthoriseBridge(id, "delete bridge");
-        dataClient.bridgesDelete(id);
+        try {
+            dataClient.bridgesDelete(id);
+        } catch (IllegalStateException e) {
+            throw new ConflictHttpException(e.getMessage());
+        }
         bridgeEvent.delete(id);
     }
 
