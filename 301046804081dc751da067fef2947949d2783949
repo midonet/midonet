@@ -320,6 +320,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_4b0408c0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-23T08:26:26Z",
+      "side": 1,
+      "message": "It\u0027s just an argument validation actually, maybe not really needed",
+      "parentUuid": "1ae5cdf2_0bfa00bd",
+      "range": {
+        "startLine": 284,
+        "startChar": 8,
+        "endLine": 286,
+        "endChar": 9
+      },
+      "revId": "301046804081dc751da067fef2947949d2783949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_b5d24bd0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 3
