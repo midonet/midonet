@@ -22,6 +22,30 @@
       "revId": "331fb3afc3dc60cd8eee45887f1e399dfb25f516",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_eb16b454",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepMacRemoteConsumer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-23T10:23:03Z",
+      "side": 1,
+      "message": "This class is only processing updates TO the VTEP. That is: macs in a MidoNet port that are meant to be written in the Remote table.\n\nA separate class is writen the Local macs from the VTEP to MidoNet.  This will also write in the replicated map associating the MAC in the VTEP to the vxlan port of this vtep on the Network.  This will trigger a notification that will get to the handler constructed by this method.  This if covers for that case. If the mac-port update being processed was on the vtep\u0027s own vxlan port, then we don\u0027t need to remove it from the VTEP, because this mac-port udpate is actually reflecting a Local mac removal on the VTEP that was written previously.\n\nMakes sense?",
+      "parentUuid": "1ae5cdf2_eba3144d",
+      "range": {
+        "startLine": 80,
+        "startChar": 20,
+        "endLine": 80,
+        "endChar": 51
+      },
+      "revId": "331fb3afc3dc60cd8eee45887f1e399dfb25f516",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
