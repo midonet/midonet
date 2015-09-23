@@ -571,7 +571,7 @@ class Application(resource_base.ResourceBase):
 
     def get_vteps(self):
         headers = {'Accept':
-                   vendor_media_type.APPLICATION_VTEP_COLLECTION_JSON}
+                   vendor_media_type.APPLICATION_VTEP_COLLECTION_JSON_V2}
         return self.get_children(self.dto['vteps'], {}, headers, vtep.Vtep)
 
     def add_vtep(self):
