@@ -37,7 +37,7 @@ import org.midonet.cluster.models.Commons.Condition
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.rules.{JumpRule, TraceRule}
+import org.midonet.midolman.rules.TraceRule
 import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain, Port => SimPort, Router => SimRouter}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.util.MidolmanSpec
@@ -177,8 +177,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                        5 seconds)
             vt.store.update(topPort.toBuilder.setInboundFilterId(chain2).build())
 
-            portSubscriber.getOnNextEvents.size shouldBe 5
-            port = portSubscriber.getOnNextEvents.get(4)
+            portSubscriber.getOnNextEvents.size shouldBe 4
+            port = portSubscriber.getOnNextEvents.get(3)
             port.inboundFilters.get(0) shouldBe traceChainId
             chainObj = chainMap.get(port.inboundFilters.get(0))
                 .get.toBlocking.first
@@ -192,8 +192,8 @@ class TraceRequestMapperTest extends MidolmanSpec {
             port.inboundFilters.get(1) shouldBe chain2
 
             vt.store.update(tr.toBuilder.setEnabled(false).build())
-            portSubscriber.getOnNextEvents.size shouldBe 6
-            port = portSubscriber.getOnNextEvents.get(5)
+            portSubscriber.getOnNextEvents.size shouldBe 5
+            port = portSubscriber.getOnNextEvents.get(4)
             port.inboundFilters.get(0) shouldBe chain2
         }
 
@@ -221,7 +221,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
             vt.store.update(tr.toBuilder.setEnabled(true).build)
             bridgeSubscriber.getOnNextEvents.size shouldBe 2
             bridge = bridgeSubscriber.getOnNextEvents.get(1)
-            bridge.infilters.get(0) should not be (chain)
+            bridge.infilters.get(0) should not be chain
             var chainObj = chainMap.get(bridge.infilters.get(0))
                 .get.toBlocking.first
             chainObj.rules.size shouldBe 1
@@ -510,10 +510,9 @@ class TraceRequestMapperTest extends MidolmanSpec {
             var expected = mutable.Set(tr0.getId.asJava, tr1.getId.asJava, tr2.getId.asJava)
             for (rule <- chainObj.rules.asScala) {
                 rule match {
-                    case r: TraceRule => {
+                    case r: TraceRule =>
                         expected should contain (r.getRequestId)
                         expected -= r.getRequestId
-                    }
                     case _ => fail("Unexpected")
                 }
             }
@@ -529,10 +528,9 @@ class TraceRequestMapperTest extends MidolmanSpec {
             expected = mutable.Set(tr0.getId.asJava, tr2.getId.asJava)
             for (rule <- chainObj.rules.asScala) {
                 rule match {
-                    case r: TraceRule => {
+                    case r: TraceRule =>
                         expected should contain (r.getRequestId)
                         expected -= r.getRequestId
-                    }
                     case _ => fail("Unexpected")
                 }
             }

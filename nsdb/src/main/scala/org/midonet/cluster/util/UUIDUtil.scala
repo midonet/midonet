@@ -17,7 +17,7 @@ package org.midonet.cluster.util
 
 import java.lang.reflect.Type
 import java.nio.ByteBuffer
-import java.util.{UUID => JUUID, ArrayList}
+import java.util.{UUID => JUUID, ArrayList => JArrayList}
 import javax.annotation.Nonnull
 
 import scala.collection.JavaConverters._
@@ -60,8 +60,8 @@ object UUIDUtil {
         new JUUID(uuid.getMsb, uuid.getLsb)
     }
 
-    implicit def fromProtoList(from: java.util.List[Commons.UUID]): ArrayList[JUUID] = {
-        val res = new ArrayList[JUUID]
+    implicit def fromProtoList(from: java.util.List[Commons.UUID]): JArrayList[JUUID] = {
+        val res = new JArrayList[JUUID]
         if (from ne null) {
             val it = from.iterator()
             while (it.hasNext)
@@ -77,6 +77,8 @@ object UUIDUtil {
     implicit class RichJavaUuid(val uuid: JUUID) extends AnyVal {
         def asProto: PUUID = toProto(uuid)
 
+        def asNullableString = if (uuid ne null) uuid.toString else null
+
         def toBytes: Array[Byte] = {
             val bs = new Array[Byte](16)
             serializeTo(ByteBuffer.wrap(bs))
@@ -84,8 +86,8 @@ object UUIDUtil {
         }
 
         def serializeTo(bb: ByteBuffer): Unit = {
-            bb.putLong(uuid.getMostSignificantBits())
-            bb.putLong(uuid.getLeastSignificantBits())
+            bb.putLong(uuid.getMostSignificantBits)
+            bb.putLong(uuid.getLeastSignificantBits)
         }
     }
 

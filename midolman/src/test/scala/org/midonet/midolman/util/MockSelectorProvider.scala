@@ -20,7 +20,9 @@ import java.net.ProtocolFamily
 import java.nio.channels.spi.{AbstractSelector, SelectorProvider}
 import java.nio.channels.{DatagramChannel, Pipe, ServerSocketChannel, SocketChannel}
 
-class MockSelectorProvider extends SelectorProvider {
+import org.midonet.netlink.NetlinkSelectorProvider
+
+class MockSelectorProvider extends NetlinkSelectorProvider {
 
     val selector = new MockSelector(this)
 
