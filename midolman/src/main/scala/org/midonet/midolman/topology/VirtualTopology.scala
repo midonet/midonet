@@ -235,7 +235,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         classTag[Router] -> (new RouterMapper(_, this, metricRegistry, traceChains)),
         classTag[RouterPort] -> (new PortMapper(_, this, metricRegistry, traceChains)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this, metricRegistry)),
-        classTag[Mirror] -> (new MirrorMapper(_, this)),
+        classTag[Mirror] -> (new MirrorMapper(_, this, metricRegistry)),
         classTag[VxLanPort] -> (new PortMapper(_, this, metricRegistry, traceChains))
     )
 
