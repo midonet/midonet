@@ -61,7 +61,7 @@ class VtepClientMixin(VtepUrlProviderMixin):
     def create_vtep(self, vtep):
         LOG.info("create_vtep %r", vtep)
         return self.client.post(self.vtep_url(),
-                                mt.APPLICATION_VTEP_JSON, body=vtep)
+                                mt.APPLICATION_VTEP_JSON_V2, body=vtep)
 
     def delete_vtep(self, ip_addr):
         LOG.info("delete_vtep %r", ip_addr)
@@ -71,14 +71,14 @@ class VtepClientMixin(VtepUrlProviderMixin):
     def get_vtep(self, ip_addr, fields=None):
         LOG.info("get_vtep %r", ip_addr)
         return self.client.get(self.vtep_url(ip_addr),
-                               mt.APPLICATION_VTEP_JSON)
+                               mt.APPLICATION_VTEP_JSON_V2)
 
     @util.convert_case
     def get_vteps(self, filters=None, fields=None, sorts=None, limit=None,
                   marker=None, page_reverse=False):
         LOG.info("get_vteps")
         return self.client.get(self.vteps_binding_url(),
-                               mt.APPLICATION_VTEP_COLLECTION_JSON)
+                               mt.APPLICATION_VTEP_COLLECTION_JSON_V2)
 
     #VTEP_BINDINGs
 
@@ -86,7 +86,7 @@ class VtepClientMixin(VtepUrlProviderMixin):
     def create_vtep_binding(self, vtep_binding):
         LOG.info("create_vtep_binding %r", vtep_binding)
         return self.client.post(self.vtep_url(),
-                                mt.APPLICATION_VTEP_BINDING_JSON,
+                                mt.APPLICATION_VTEP_BINDING_JSON_V2,
                                 body=vtep_binding)
 
     def delete_vtep_binding(self, binding, vtep_id):
@@ -102,13 +102,13 @@ class VtepClientMixin(VtepUrlProviderMixin):
         LOG.info("get_vtep_binding %r", ip_addr, port_name, vlan_id)
         return self.client.get(self.vtep_binding_url(ip_addr, port_name,
                                                      vlan_id),
-                               mt.APPLICATION_VTEP_BINDING_JSON)
+                               mt.APPLICATION_VTEP_BINDING_JSON_V2)
 
     @util.convert_case
     def get_vtep_bindings(self, ip_addr):
         LOG.info("get_vtep_bindings %r", ip_addr)
         return self.client.get(self.vtep_bindings_url(ip_addr),
-                               mt.APPLICATION_VTEP_BINDING_COLLECTION_JSON)
+                               mt.APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2)
 
     # VXLAN Port
 
@@ -117,11 +117,11 @@ class VtepClientMixin(VtepUrlProviderMixin):
         LOG.info("get_vxlan_port %r %r %r", port_id, port_name, vlan_id)
         return self.client.get(self.vxlan_port_url(port_id, port_name,
                                                    vlan_id),
-                               mt.APPLICATION_VTEP_BINDING_JSON)
+                               mt.APPLICATION_VTEP_BINDING_JSON_V2)
 
     @util.convert_case
     def get_vxlan_ports(self, port_id, filters=None, fields=None, sorts=None,
                         limit=None, marker=None, page_reverse=False):
         LOG.info("get_vxlan_ports %r", port_id)
         return self.client.get(self.vxlan_ports_url(port_id),
-                               mt.APPLICATION_VTEP_BINDING_COLLECTION_JSON)
+                               mt.APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2)

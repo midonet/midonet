@@ -106,10 +106,10 @@ object MidonetMediaTypes {
     final val APPLICATION_VIP_COLLECTION_JSON = "application/vnd.org.midonet.collection.VIP-v1+json"
 
     // VXGW
-    final val APPLICATION_VTEP_JSON = "application/vnd.org.midonet.VTEP-v1+json"
-    final val APPLICATION_VTEP_COLLECTION_JSON = "application/vnd.org.midonet.collection.VTEP-v1+json"
-    final val APPLICATION_VTEP_BINDING_JSON = "application/vnd.org.midonet.VTEPBinding-v1+json"
-    final val APPLICATION_VTEP_BINDING_COLLECTION_JSON = "application/vnd.org.midonet.collection.VTEPBinding-v1+json"
+    final val APPLICATION_VTEP_JSON_V2 = "application/vnd.org.midonet.VTEP-v2+json"
+    final val APPLICATION_VTEP_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.VTEP-v2+json"
+    final val APPLICATION_VTEP_BINDING_JSON_V2 = "application/vnd.org.midonet.VTEPBinding-v2+json"
+    final val APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.VTEPBinding-v2+json"
     final val APPLICATION_VTEP_PORT_COLLECTION_JSON = "application/vnd.org.midonet.collection.VTEPPort-v1+json"
 
     // Token Information
