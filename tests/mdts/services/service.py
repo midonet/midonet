@@ -289,6 +289,24 @@ class Service(object):
                   % (self.get_hostname(), iface_name, result))
         time.sleep(wait_time)
 
+    def inject_packet_loss_for_ip(self, ip, wait_time=0):
+        cmdline = "iptables -I INPUT -s %s -j DROP" % ip
+        result1 = self.exec_command(cmdline, stream=False)
+        cmdline = "iptables -I OUTPUT -d %s -j DROP" % ip
+        result2 = self.exec_command(cmdline, stream=False)
+        LOG.debug('[%s] Dropping traffic from ip %s. IN:%s,OUT:%s' \
+                  % (self.get_hostname(), ip, result1, result2))
+        time.sleep(wait_time)
+
+    def eject_packet_loss_for_ip(self, ip, wait_time=0):
+        cmdline = "iptables -D INPUT -s %s -j DROP" % ip
+        result1 = self.exec_command(cmdline, stream=False)
+        cmdline = "iptables -D OUTPUT -d %s -j DROP" % ip
+        result2 = self.exec_command(cmdline, stream=False)
+        LOG.debug('[%s] Allowing traffic from ip %s. IN:%s,OUT:%s' \
+                  % (self.get_hostname(), ip, result1, result2))
+        time.sleep(wait_time)
+
 def load_from_id(container_id):
     container_info = cli.inspect_container(container_id)
     fqn = container_info['Config']['Labels']['interface']
