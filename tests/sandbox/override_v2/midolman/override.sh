@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # Installs newest package (lexicographycally) in override
 LATEST=$(ls /override/midolman*deb | tail -n1)
