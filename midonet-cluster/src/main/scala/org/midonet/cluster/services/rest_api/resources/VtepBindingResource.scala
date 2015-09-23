@@ -52,7 +52,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
 
     @GET
     @Path("{portName}/{vlanId}")
-    @Produces(Array(APPLICATION_VTEP_BINDING_JSON,
+    @Produces(Array(APPLICATION_VTEP_BINDING_JSON_V2,
                     APPLICATION_JSON))
     def get(@PathParam("portName") portName: String,
             @PathParam("vlanId") vlanId: Short): VtepBinding = {
@@ -71,7 +71,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
     }
 
     @GET
-    @Produces(Array(APPLICATION_VTEP_BINDING_COLLECTION_JSON,
+    @Produces(Array(APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2,
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[VtepBinding] = {
@@ -102,7 +102,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
     }
 
     @POST
-    @Consumes(Array(APPLICATION_VTEP_BINDING_JSON,
+    @Consumes(Array(APPLICATION_VTEP_BINDING_JSON_V2,
                     APPLICATION_JSON))
     override def create(binding: VtepBinding,
                         @HeaderParam("Content-Type") contentType: String)
