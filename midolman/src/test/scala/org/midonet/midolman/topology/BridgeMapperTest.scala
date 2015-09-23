@@ -85,12 +85,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
         new DeviceObserver[SimulationBridge](vt)
     }
 
-    private def createHostInStore(): UUID = {
-        val hostId = UUID.randomUUID()
-        store.create(createHost(id = hostId))
-        hostId
-    }
-
     private def testBridgeCreated(bridgeId: UUID, obs: BridgeObserver)
     : TopologyBridge = {
         Given("A bridge mapper")
@@ -202,7 +196,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             val bridge = testBridgeCreated(bridgeId, obs)
-            val hostId = createHostInStore()
 
             When("Creating a first exterior port for the bridge")
             val portId1 = UUID.randomUUID
@@ -265,7 +258,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             val bridge = testBridgeCreated(bridgeId, obs)
-            val hostId = createHostInStore()
 
             When("Creating a first exterior port for the bridge")
             val portId = UUID.randomUUID
@@ -303,7 +295,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             val bridge = testBridgeCreated(bridgeId, obs)
-            val hostId = createHostInStore()
 
             When("Creating a first exterior port for the bridge")
             val portId = UUID.randomUUID
@@ -339,7 +330,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             val bridge = testBridgeCreated(bridgeId, obs)
-            val hostId = createHostInStore()
 
             When("Creating a first exterior port for the bridge")
             val portId = UUID.randomUUID
@@ -1306,7 +1296,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Mapper does not emit bridge until all ports are loaded") {
             Given("A bridge with two exterior ports")
-            val hostId = createHostInStore()
             val bridge = createBridge()
             val port1 = createBridgePort(bridgeId = Some(bridge.getId),
                                          hostId = Some(hostId),
@@ -1344,7 +1333,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             val bridge = testBridgeCreated(bridgeId, obs)
-            val hostId = createHostInStore()
 
             When("Creating an exterior port for the bridge")
             val portId1 = UUID.randomUUID
@@ -1382,7 +1370,6 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             testBridgeCreated(bridgeId, obs)
-            val hostId = createHostInStore()
 
             When("Creating an exterior port for the bridge")
             val portId = UUID.randomUUID
