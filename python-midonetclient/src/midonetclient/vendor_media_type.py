@@ -174,13 +174,13 @@ APPLICATION_POOL_STATISTIC_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.PoolStatistic-v1+json"
 
 # VxGW
-APPLICATION_VTEP_JSON = "application/vnd.org.midonet.VTEP-v1+json"
+APPLICATION_VTEP_JSON_V2 = "application/vnd.org.midonet.VTEP-v2+json"
 APPLICATION_VTEP_COLLECTION_JSON = \
-            "application/vnd.org.midonet.collection.VTEP-v1+json"
-APPLICATION_VTEP_BINDING_JSON = \
-    "application/vnd.org.midonet.VTEPBinding-v1+json"
-APPLICATION_VTEP_BINDING_COLLECTION_JSON = \
-            "application/vnd.org.midonet.collection.VTEPBinding-v1+json"
+            "application/vnd.org.midonet.collection.VTEP-v2+json"
+APPLICATION_VTEP_BINDING_JSON_V2 = \
+    "application/vnd.org.midonet.VTEPBinding-v2+json"
+APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2 = \
+            "application/vnd.org.midonet.collection.VTEPBinding-v2+json"
 
 # trace requests
 APPLICATION_TRACE_REQUEST_JSON = "application/vnd.org.midonet.TraceRequest-v1+json"
