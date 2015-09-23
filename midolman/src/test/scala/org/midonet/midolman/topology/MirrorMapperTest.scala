@@ -18,6 +18,8 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable
@@ -44,6 +46,7 @@ class MirrorMapperTest extends MidolmanSpec with TopologyBuilder
 
     private var store: Storage = _
     private var vt: VirtualTopology = _
+    private var metricRegistry: MetricRegistry = _
     private var threadId: Long = _
 
     private final val timeout = 5 seconds
@@ -52,6 +55,7 @@ class MirrorMapperTest extends MidolmanSpec with TopologyBuilder
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
+        metricRegistry = injector.getInstance(classOf[MetricRegistry])
         store = injector.getInstance(classOf[MidonetBackend]).store
         threadId = Thread.currentThread.getId
 
@@ -72,7 +76,7 @@ class MirrorMapperTest extends MidolmanSpec with TopologyBuilder
 
     private def testMirrorCreated(id: UUID, obs: MirrorObserver): TopologyMirror = {
         Given("A mirror mapper")
-        val mapper = new MirrorMapper(id, vt)
+        val mapper = new MirrorMapper(id, vt, metricRegistry)
 
         And("A mirror")
         val builder = createMirrorBuilder(id, toPort)
@@ -124,7 +128,7 @@ class MirrorMapperTest extends MidolmanSpec with TopologyBuilder
             val mirrorId = UUID.randomUUID
 
             And("A mirror mapper")
-            val mapper = new MirrorMapper(mirrorId, vt)
+            val mapper = new MirrorMapper(mirrorId, vt, metricRegistry)
 
             And("An observer to the mirror mapper")
             val obs = createObserver()
