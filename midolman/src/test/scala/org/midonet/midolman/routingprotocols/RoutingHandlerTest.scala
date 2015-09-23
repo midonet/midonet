@@ -289,7 +289,7 @@ class MockRoutingStorage extends RoutingStorage {
     def break(): Unit = { broken = true }
     def unbreak(): Unit = { broken = false }
 
-    def setStatus(bgpId: UUID, status: String): Future[UUID] = {
+    override def setStatus(bgpId: UUID, status: String): Future[UUID] = {
         if (broken) {
             Promise.failed(new StateAccessException("whatever")).future
         } else {
@@ -297,7 +297,7 @@ class MockRoutingStorage extends RoutingStorage {
         }
     }
 
-    def addRoute(route: Route): Future[Route] = {
+    override def addRoute(route: Route): Future[Route] = {
         if (broken) {
             Promise.failed(new StateAccessException("whatever")).future
         } else {
@@ -305,7 +305,7 @@ class MockRoutingStorage extends RoutingStorage {
         }
     }
 
-    def removeRoute(route: Route): Future[Route] = {
+    override def removeRoute(route: Route): Future[Route] = {
         if (broken) {
             Promise.failed(new StateAccessException("whatever")).future
         } else {
@@ -313,7 +313,8 @@ class MockRoutingStorage extends RoutingStorage {
         }
     }
 
-    def learnedRoutes(routerId: UUID, portId: UUID): Future[Set[Route]] = {
+    override def learnedRoutes(routerId: UUID, portId: UUID, hostId: UUID)
+    : Future[Set[Route]] = {
         if (broken) {
             Promise.failed(new StateAccessException("whatever")).future
         } else {
