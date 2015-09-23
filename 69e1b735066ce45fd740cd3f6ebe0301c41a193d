@@ -46,6 +46,30 @@
       "revId": "69e1b735066ce45fd740cd3f6ebe0301c41a193d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_8b4e106e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/PathDirectoryObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-23T07:50:21Z",
+      "side": 1,
+      "message": "Definitely.",
+      "parentUuid": "1ae5cdf2_4b35e8d8",
+      "range": {
+        "startLine": 196,
+        "startChar": 11,
+        "endLine": 196,
+        "endChar": 40
+      },
+      "revId": "69e1b735066ce45fd740cd3f6ebe0301c41a193d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
