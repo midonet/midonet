@@ -33,15 +33,14 @@ import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.{ObjectExistsException, Storage}
-import org.midonet.cluster.data.vtep.model.MacLocation
+import org.midonet.cluster.data.vtep.model.{MacLocation, PhysicalSwitch}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, MockDirectory}
 import org.midonet.packets.IPv4Addr
-import org.midonet.southbound.vtep.OvsdbVtepDataClient
-import org.midonet.southbound.vtep.ConnectionState
 import org.midonet.southbound.vtep.ConnectionState.Disconnected
+import org.midonet.southbound.vtep.{ConnectionState, OvsdbVtepDataClient}
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.util.concurrent._
 import org.midonet.util.reactivex.TestAwaitableObserver
@@ -57,6 +56,15 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
         var macLocalsFromVtep = PublishSubject.create[MacLocation]
         var macRemotesToVtep = new TestAwaitableObserver[MacLocation]
 
+        val mgmtIp = IPv4Addr.random
+        val tunIp = IPv4Addr.random
+        val physSwitchId = UUID.randomUUID()
+        val physSwitch = new PhysicalSwitch(physSwitchId,
+                                            "name-" + physSwitchId,
+                                            "desc-" + physSwitchId,
+                                            Set(), Set(mgmtIp),
+                                            Set(tunIp))
+
         try {
             store.create(createTunnelZone(tzId, TunnelZone.Type.VTEP,
                                           Some("vtep-Tz")))
@@ -70,6 +78,7 @@ trait VxlanGatewayFixtures extends TopologyBuilder with MockitoSugar
         def vtep = reload()
 
         Mockito.when(ovsdb.observable).thenReturn(ovsdbConnEvents)
+        Mockito.when(ovsdb.physicalSwitch).thenReturn(successful(Some(physSwitch)))
         Mockito.when(ovsdb.macLocalUpdates).thenReturn(macLocalsFromVtep)
         Mockito.when(ovsdb.macRemoteUpdater).thenReturn(successful(macRemotesToVtep))
         Mockito.when(ovsdb.connect()).thenReturn(successful(Disconnected))
