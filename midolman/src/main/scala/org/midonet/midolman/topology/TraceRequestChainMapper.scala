@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.topology
 
-import java.util.{List => JList, UUID}
+import java.util.UUID
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -25,7 +25,6 @@ import rx.Observable
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Commons.{UUID => PbUUID}
 import org.midonet.cluster.models.Topology.TraceRequest
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.rules.{Condition, TraceRule, Rule}
@@ -76,7 +75,7 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
         def makeRule(tr: TraceRequest): TraceRequest = {
             val condition = ZoomConvert.fromProto(tr.getCondition,
                                                   classOf[Condition])
-            if (tr.getEnabled()) {
+            if (tr.getEnabled) {
                 rule = new TraceRule(tr.getId, condition, tr.getLimit,
                                      traceChainId)
                 enabled = true
@@ -86,8 +85,8 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
             tr
         }
 
-        def complete = {
-            mark.onCompleted
+        def complete() = {
+            mark.onCompleted()
         }
 
         var rule: TraceRule = null
@@ -109,7 +108,7 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
 
         var removed = 0
         for (trace <- traceRequests.keys if !traceIds.contains(trace)) {
-            traceRequests.remove(trace).foreach(_.complete)
+            traceRequests.remove(trace).foreach(_.complete())
             removed += 1
         }
 
@@ -117,27 +116,27 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
             traceRulesObs onNext state.observable
         }
 
-        awaitingTraceChain = added.size > 0 || removed > 0
+        awaitingTraceChain = added.nonEmpty || removed > 0
 
         // we need to send something to observable to retrigger
         // the chain generation in the case that no new trace requests
         // have been added, and some old trace requests have been removed
         // If not, the chain would not be updated to reflect these changes
-        if (added.size == 0 && removed > 0) {
+        if (added.isEmpty && removed > 0) {
             retriggerObs onNext Observable.just(null)
         }
     }
 
     private def removeFromMap(): Unit = {
         traceChainMap.remove(traceChainId) match {
-            case Some(p) => p onCompleted
+            case Some(p) => p.onCompleted()
             case None =>
         }
     }
 
     def completeTraceChain(): Unit = {
         removeFromMap()
-        traceRequests.foreach(_._2.complete)
+        traceRequests.foreach(_._2.complete())
         retriggerObs.onCompleted()
         traceRulesObs.onCompleted()
     }
@@ -159,10 +158,9 @@ trait TraceRequestChainMapper[D <: VirtualDevice] {
         if (chain.hasTracesEnabled) {
             traceChainMap.get(chain.getId) match {
                 case Some(p) => p onNext chain
-                case None => {
+                case None =>
                     val subject = BehaviorSubject.create[Chain](chain)
                     traceChainMap += (chain.getId -> subject)
-                }
             }
             Some(chain.getId)
         } else {

@@ -17,6 +17,7 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
+import org.midonet.cluster.data.storage.InMemoryStorage
 import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.state.Directory
@@ -92,6 +93,10 @@ trait MidolmanSpec extends FeatureSpecLike
             injector.getInstance(classOf[MidolmanService])
                 .startAsync()
                 .awaitRunning()
+
+            InMemoryStorage.NamespaceId =
+                injector.getInstance(classOf[HostIdProviderService]).hostId
+
             beforeTest()
         } catch {
             case e: Throwable => fail(e)

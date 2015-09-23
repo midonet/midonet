@@ -22,7 +22,7 @@ import rx.Observable
 
 import org.midonet.cluster.data.storage.{StateResult, StateStorage}
 import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.services.MidonetBackend.HostsKey
+import org.midonet.cluster.services.MidonetBackend.ActiveKey
 
 object PortStateStorage {
 
@@ -44,9 +44,9 @@ class PortStateStorage(val store: StateStorage) extends AnyVal {
     def setPortActive(portId: UUID, hostId: UUID, active: Boolean)
     : Observable[StateResult] = {
         if (active) {
-            store.addValue(classOf[Port], portId, HostsKey, hostId.toString)
+            store.addValue(classOf[Port], portId, ActiveKey, hostId.toString)
         } else {
-            store.removeValue(classOf[Port], portId, HostsKey, hostId.toString)
+            store.removeValue(classOf[Port], portId, ActiveKey, hostId.toString)
         }
     }
 
