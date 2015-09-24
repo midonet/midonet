@@ -46,7 +46,7 @@ import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state._
-import org.midonet.packets.{MAC, IPv4Addr}
+import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.ConnectionState._
 import org.midonet.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.southbound.vtep.{ConnectionState, OvsdbVtepDataClient}
@@ -117,7 +117,7 @@ class VtepSynchronizer(vtepId: UUID,
 
     // Input channel to push MacLocations to the VTEP.  We initialize with a
     // dummy implementation that will get replaced after OVSDB connects.
-    private var ovsdbMacLocationObserver: Observer[MacLocation] =
+    @volatile private var ovsdbMacLocationObserver: Observer[MacLocation] =
         new Observer[MacLocation] {
             override def onCompleted(): Unit = {
                 log.debug("MidoNet stops emitting MAC locations")
@@ -160,8 +160,9 @@ class VtepSynchronizer(vtepId: UUID,
             log.info(s"OVSDB connection state change: $s")
             stateStore.setVtepConnectionState(vtepId, zkState).asFuture
 
-            if (connectionState == Connected) {
-                syncNsdbIntoOvsdb()
+            if (connectionState == Ready) {
+                // Make sure that we update the OVSDB after any reconnection
+                syncNsdbIntoOvsdb(forceFloodingProxyFeed = false)
             }
         }
     }
@@ -218,9 +219,6 @@ class VtepSynchronizer(vtepId: UUID,
             connectToOvsdb()
             watchOvsdbConnectionEvents()
         }
-        if (connectionState == Connected) {
-            syncNsdbIntoOvsdb()
-        }
     }
 
     /** This method will connect to the VTEP's OVSDB and wire the
@@ -241,6 +239,10 @@ class VtepSynchronizer(vtepId: UUID,
                 ovsdbMacLocationObserver = obs
                 macRemoteConsumer = new VtepMacRemoteConsumer(nsdbVtep,
                               boundNetworks, store, ovsdbMacLocationObserver)
+                // Since this is the first connect, we ensure that all networks
+                // will get the FP.
+                syncNsdbIntoOvsdb(forceFloodingProxyFeed = true)
+                boundNetworks.keySet().foreach(feedFloodingProxyTo)
                 watchVtepLocalMacs()
                 watchFloodingProxyEvents()
         }
@@ -289,8 +291,14 @@ class VtepSynchronizer(vtepId: UUID,
         )
     }
 
-    /** Synchronizes configuration from NSDB into the VTEP. */
-    private def syncNsdbIntoOvsdb(): Unit = {
+    /** Synchronizes configuration from NSDB into the VTEP.
+      *
+      * @param forceFloodingProxyFeed if true, it will publish the flooding
+      *                               proxy to all networks; if false, it
+      *                               will only publish to the networks that
+      *                               are newly learned on this sync.
+      */
+    private def syncNsdbIntoOvsdb(forceFloodingProxyFeed: Boolean): Unit = {
 
         log.debug("Syncing with VTEP")
 
@@ -300,11 +308,13 @@ class VtepSynchronizer(vtepId: UUID,
                             .toSet
 
         // Take those that are newly bound and bootstrap them
-        nwIds.filterNot( boundNetworks.containsKey )
-             .foreach { nwId =>
-                 watchNetwork(nwId)
-                 whenVtepConnected { feedFloodingProxyTo(nwId) }
-             }
+        val nwsToFeedFp = if (forceFloodingProxyFeed) nwIds
+                          else nwIds.filterNot( boundNetworks.containsKey )
+
+        nwsToFeedFp.foreach { nwId =>
+                                watchNetwork(nwId)
+                                whenVtepReady { feedFloodingProxyTo(nwId) }
+                            }
 
         // Take those that are no longer bound and update MidoNet
         boundNetworks.keySet().filterNot(nwIds.contains)
@@ -329,16 +339,16 @@ class VtepSynchronizer(vtepId: UUID,
         ovsdb.logicalSwitch(lsName) foreach {
             case Some(ls) => ovsdb.deleteLogicalSwitch(ls.uuid).recover {
                 case t: Throwable =>
-                    whenVtepConnected { removeLogicalSwitchWithRetry(id) }
+                    whenVtepReady { removeLogicalSwitchWithRetry(id) }
             }
             case None => // fine then
         }
     }
 
     /** Invoke the given action when reconnected */
-    private def whenVtepConnected(doIt: => Unit): Unit = {
+    private def whenVtepReady(doIt: => Unit): Unit = {
         ovsdb.observable
-             .filter{makeFunc1 { _ == Connected }}
+             .filter{makeFunc1 { _ == Ready }}
              .take(1)
              .observeOn(VtepSynchronizer.scheduler)
              .subscribe(makeAction1[ConnectionState.State] { _ => doIt })
@@ -371,7 +381,7 @@ class VtepSynchronizer(vtepId: UUID,
                 case Failure(e: VtepStateException) =>
                     log.info("OVSDB not reachable, waiting until connected, " +
                              s"$retries retries left")
-                    whenVtepConnected { watchNetwork(nwId, retries - 1) }
+                    whenVtepReady { watchNetwork(nwId, retries - 1) }
                 case Failure(t) =>
                     log.warn(s"Network $nwId failed to bootstrap, $retries " +
                              s"retries left", t)
