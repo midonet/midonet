@@ -116,7 +116,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
             vs.onNext(vtep1Fix.vtep)
 
             // Report a connection from OVSDB
-            vtep1Fix.ovsdbConnEvents.onNext(ConnectionState.Connected)
+            vtep1Fix.ovsdbConnEvents.onNext(ConnectionState.Ready)
 
             // Expect the Flooding Proxy published to the VTEP as a signal that
             // the sync synced topology
@@ -183,7 +183,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
             vs.onNext(vtep1Fix.vtep)
 
             // Stablish the connection to the OVSDB
-            vtep1Fix.ovsdbConnEvents.onNext(ConnectionState.Connected)
+            vtep1Fix.ovsdbConnEvents.onNext(ConnectionState.Ready)
 
             // Expect the Flooding Proxy published to the VTEP
             var ml = MacLocation.unknownAt(null, vxgw.lsName)
@@ -247,8 +247,11 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
     }
 
     def updateFpTo(fp: FloodingProxy): Unit = {
-        Mockito.when(fpHerald.lookup(vtep1Fix.tzId))
-               .thenReturn(if (fp.tunnelIp == null) None else Some(fp))
+        val retVal = if (fp.tunnelIp == null) None else Some(fp)
+        Mockito.when(fpHerald.lookup(vtep1Fix.tzId)).thenReturn(retVal)
         fpObservable.onNext(fp)
+        eventually {
+            fpHerald.lookup(vtep1Fix.tzId) shouldBe retVal
+        }
     }
 }
