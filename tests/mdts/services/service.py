@@ -24,7 +24,6 @@ from mdts.services.interface import Interface
 cli = Client(base_url='unix://var/run/docker.sock')
 LOG = logging.getLogger(__name__)
 
-
 class Service(object):
 
     def __init__(self, container_id):
@@ -155,7 +154,7 @@ class Service(object):
         return Interface(**iface_kwargs)
 
     def exec_command(self, cmd, stdout=True, stderr=False, tty=False,
-                     detach=False, stream=False):
+                     detach=False, stream=False, raise_on_failure=False):
         """
 
         :param cmd:
@@ -186,6 +185,11 @@ class Service(object):
             #self._ensure_command_running(exec_id) # TODO
             # Result is a data blocking stream, exec_id for future checks
             return result, exec_id
+
+        if (raise_on_failure):
+            exec_info = cli.exec_inspect(exec_id)
+            if exec_info['ExitCode'] != 0:
+                raise RuntimeError("Command '%s' exited with non zero exit code." % cmd)
 
         result = result.rstrip()
         # FIXME: different return result depending on params might be confusing
@@ -251,22 +255,22 @@ class Service(object):
     def inject_interface_failure(self, iface_name, wait_time=0):
         # put iptables rule or just set the interface down
         cmdline = "ip link set dev %s down" % iface_name
-        result = self.exec_command(cmdline, stream=False)
+        result = self.exec_command(cmdline, stream=False, raise_on_failure=True)
 
     def eject_interface_failure(self, iface_name, wait_time=0):
         cmdline = "ip link set dev %s up" % iface_name
-        result = self.exec_command(cmdline, stream=False)
+        result = self.exec_command(cmdline, stream=False, raise_on_failure=True)
 
     def inject_packet_loss(self, iface_name, wait_time=0):
         cmdline = "iptables -i %s -A INPUT -j DROP" % iface_name
-        result = self.exec_command(cmdline, stream=False)
+        result = self.exec_command(cmdline, stream=False, raise_on_failure=True)
         LOG.debug('[%s] Dropping packets coming from %s. %s' \
                   % (self.get_hostname(), iface_name, result))
         time.sleep(wait_time)
 
     def eject_packet_loss(self, iface_name, wait_time=0):
         cmdline = "iptables -i %s -D INPUT -j DROP" % iface_name
-        result = self.exec_command(cmdline, stream=False)
+        result = self.exec_command(cmdline, stream=False, raise_on_failure=True)
         LOG.debug('[%s] Receiving packets coming from %s. %s' \
                   % (self.get_hostname(), iface_name, result))
         time.sleep(wait_time)
