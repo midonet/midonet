@@ -176,7 +176,10 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                 client.close()
                 throw t
         }
-        result.getOrThrow
+
+        val res = result.getOrThrow
+        client.close()
+        res
     }
 
     /** Makes a new VxLAN port for the given vtep and network, that resides
@@ -265,15 +268,13 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                                removedBinding.getNetworkId).getOrThrow
                 findVxPortForVtep(nw, vtepId) map { p =>
                     // Exclude this port from the network's vxlan ports
-                    val newVxPorts = nw.getVxlanPortIdsList.filterNot {
-                        _ == p.getId
-                    }
+                    val newVxPorts = nw.getVxlanPortIdsList - p.getId
                     val newNw = nw.toBuilder
                                   .clearVxlanPortIds()
                                   .addAllVxlanPortIds(newVxPorts)
                                   .build()
-                    ops.add(DeleteOp(classOf[Topology.Port], p.getId))
                     ops.add(UpdateOp(newNw))
+                    ops.add(DeleteOp(classOf[Topology.Port], p.getId))
                 }
             } catch {
                 case t: NotFoundException =>
