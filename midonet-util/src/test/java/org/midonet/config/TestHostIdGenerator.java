@@ -70,13 +70,4 @@ public class TestHostIdGenerator {
             properties.getProperty(uuidPropertyName));
         Assert.assertTrue(id.equals(idFromProperty));
     }
-
-    @Test(expected = HostIdGenerator.PropertiesFileNotWritableException.class)
-    public void propertyFileCorrupted() throws Exception {
-        // delete properties file so no ID will be loaded from there
-        boolean res = propFile.delete();
-        propFile.createNewFile();
-        propFile.setReadOnly();
-        UUID id = HostIdGenerator.getHostId();
-    }
 }
