@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1413f8b8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-09-25T10:56:47Z",
+      "side": 1,
+      "message": "Need a title and the signoff. There\u0027s a guide in https://github.com/midonet/midonet/wiki/Developer\u0027s-Guide",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_94f8e87d",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-09-25T10:56:47Z",
+      "side": 1,
+      "message": "I\u0027d create two bindings: a 1 host binding, and multi-host binding. Both with a single bridge and two ports. There are examples in test_bridge.",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_142cd801",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-09-25T10:56:47Z",
+      "side": 1,
+      "message": "This method is called once ALL the tests in this module are executed. It\u0027s ok as we only have one test here. But there is a method decorator @with_setup that accepts 1 setup and 1 teardown methods to be executed for each test. We may need to change this in the future if we want to add more tests on this module.",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_74eb5cb0",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-09-25T10:56:47Z",
+      "side": 1,
+      "message": "This is a pre-condition in all our tests so I wouldn\u0027t add it in a per-test case. So either we don\u0027t check it at all as it consumes resources (calls to the api) and hope for the best, or we do it on the mdts framework (on a setup method that all tests execute). If we do the latter, I\u0027d do it on a separate patch.",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b43a4432",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-09-25T10:56:47Z",
+      "side": 1,
+      "message": "Related to comment on line 144. You could specify the bindings with the bindings decorator which allow you to execute the same test on different scenarios (usually single host and multi-host).",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_94d1c8fd",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-09-25T10:56:47Z",
+      "side": 1,
+      "message": "put the wait_on_futures inside the helper method? It doesn\u0027t make much sense to wait on futures outside unless you need to do concurrent work after calling the ping.",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f4d68cf0",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-09-25T10:56:47Z",
+      "side": 1,
+      "message": "May be better to set the admin state of the port to down? This way you won\u0027t need to play with bindings and a second bridge. Just set it as \u0027down\u0027 here, assert that ping works, end of sabotage, assert that ping fails, end of test (no need to create a second bridge).",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_1405b879",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-09-25T10:56:47Z",
+      "side": 1,
+      "message": "ditto with the futures.",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d43430e0",
+        "filename": "tests/sandbox/override_v2/midolman/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-09-25T10:56:47Z",
+      "side": 1,
+      "message": "Remove. This should be already present in the docker images of sandbox (I\u0027ll do it as I need to do other changes as well).",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
