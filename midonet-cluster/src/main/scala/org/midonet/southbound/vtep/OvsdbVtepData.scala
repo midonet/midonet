@@ -285,15 +285,15 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
 
         override def onStart(): Unit = request(1)
         override def onCompleted(): Unit = {
-            log.debug("Completed remote MAC location updates")
+            log.debug("Closed stream of Remote MAC updates")
             unsubscribe()
         }
         override def onError(err: Throwable): Unit = {
-            log.warn("Error on remote MAC location updates", err)
+            log.warn("Error on stream of Remote MAC updates", err)
             unsubscribe()
         }
         override def onNext(ml: MacLocation): Unit = {
-            log.debug("Received remote MAC location: {}", ml)
+            log.debug("Publishing remote MAC to VTEP: {}", ml)
             if (ml != null) {
                 applyMac(ml)
             }
@@ -302,7 +302,7 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
         private def applyMac(ml: MacLocation): Unit = {
             logicalSwitch(ml.logicalSwitchName) map {
                 case None =>
-                    log.warn("Unknown logical switch in MAC location: {}",
+                    log.warn("Unknown logical switch in MAC Remote update: {}",
                              ml.logicalSwitchName)
                     Seq.empty
 
