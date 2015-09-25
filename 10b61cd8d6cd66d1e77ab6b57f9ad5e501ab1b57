@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_bf213dfe",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-25T14:05:21Z",
+      "side": 1,
+      "message": "nitpick: please break down such sentences, it\u0027s hard to parse.",
+      "range": {
+        "startLine": 10,
+        "startChar": 24,
+        "endLine": 11,
+        "endChar": 55
+      },
+      "revId": "10b61cd8d6cd66d1e77ab6b57f9ad5e501ab1b57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
