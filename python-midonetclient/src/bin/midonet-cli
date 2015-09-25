@@ -285,6 +285,11 @@ class MirrorRef(ObjectRef):
     def __init__(self, unused = None):
         super(MirrorRef, self).__init__('mirror')
 
+
+class VtepRef(ObjectRef):
+    def __init__(self, unused = None):
+        super(VtepRef, self).__init__('vtep')
+
 class StringType(ValueType):
     pass
 
@@ -2177,9 +2182,9 @@ class BridgePort(ObjectType):
                                  setter = 'link',
                                  unsetter = 'unlink',
                                  optional = True))
-        self.put_attr(SingleAttr(name = 'management-ip',
-                                 value_type = IPv4Address(),
-                                 getter = 'get_mgmt_ip'))
+        self.put_attr(SingleAttr(name = 'vtep',
+                                 value_type = VtepRef(),
+                                 getter = 'get_vtep'))
         self.put_attr(SingleAttr(name = 'vni',
                                  value_type = StringType(),
                                  getter = 'get_vni'))
@@ -2549,7 +2554,7 @@ class PoolStatistic(ObjectType):
 class Vtep(ObjectType):
     def __init__(self, obj):
         super(Vtep, self).__init__(obj)
-        self.clear_attrs()
+
         self.put_attr(SingleAttr(name = 'name',
                                  value_type = StringType(),
                                  getter = 'get_name',
