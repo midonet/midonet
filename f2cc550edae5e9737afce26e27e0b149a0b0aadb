@@ -229,6 +229,30 @@
       "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_7fec1590",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:28:21Z",
+      "side": 1,
+      "message": "Okay, I will address this as part of MNA-901",
+      "parentUuid": "1ae5cdf2_df4e09c1",
+      "range": {
+        "startLine": 542,
+        "startChar": 12,
+        "endLine": 542,
+        "endChar": 50
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
