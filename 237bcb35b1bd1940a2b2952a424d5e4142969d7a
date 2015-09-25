@@ -16,6 +16,29 @@
       "revId": "237bcb35b1bd1940a2b2952a424d5e4142969d7a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3f3b6d9d",
+        "filename": "python-midonetclient/src/midonetclient/bridge.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T12:55:36Z",
+      "side": 1,
+      "message": "why not remove?",
+      "range": {
+        "startLine": 85,
+        "startChar": 8,
+        "endLine": 94,
+        "endChar": 21
+      },
+      "revId": "237bcb35b1bd1940a2b2952a424d5e4142969d7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
