@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_ffb90516",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T12:54:30Z",
+      "side": 1,
+      "message": "done too in https://review.gerrithub.io/#/c/248248/1/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala, it should not conflict",
+      "revId": "237bcb35b1bd1940a2b2952a424d5e4142969d7a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
