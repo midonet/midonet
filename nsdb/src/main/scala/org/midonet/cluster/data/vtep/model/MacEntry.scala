@@ -79,7 +79,7 @@ final case class UcastMac(id: UUID, ls: UUID, macAddr: VtepMAC, ipAddr: IPv4Addr
 
     // Sanity check
     if (mac != null && !mac.isUcast)
-        throw new IllegalArgumentException("not an unicast mac: " + mac)
+        throw new IllegalArgumentException("Not a unicast mac: " + mac)
 
     override def isUcast: Boolean = true
     override def locatorId: String = locator
