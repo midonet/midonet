@@ -150,15 +150,20 @@ class PortResource @Inject()(resContext: ResourceContext)
                    APPLICATION_JSON))
 class BridgePortResource @Inject()(bridgeId: UUID,
                                    resContext: ResourceContext)
-    extends AbstractPortResource[BridgePort](resContext) {
+    extends AbstractPortResource[Port](resContext) {
 
     protected override def listIds: Ids = {
         getResource(classOf[Bridge], bridgeId) map { _.portIds.asScala }
     }
 
-    protected override def createFilter(port: BridgePort): Ops = {
+    protected override def createFilter(port: Port): Ops = {
+        val bridgePort = port match {
+            case bp: BridgePort => bp
+            case _ =>
+                throw new BadRequestHttpException("Not a bridge port.")
+        }
         ensureTunnelKey(port) flatMap { _ =>
-            port.create(bridgeId)
+            bridgePort.create(bridgeId)
             NoOps
         }
     }
@@ -241,6 +246,21 @@ class BridgePeerPortResource @Inject()(bridgeId: UUID,
             listResources(classOf[Port], bridge.portIds.asScala).getOrThrow
         val peerPortIds = ports.filter(_.peerId ne null).map(_.peerId)
         listResources(classOf[Port], peerPortIds).getOrThrow.asJava
+    }
+
+}
+
+@RequestScoped
+class BridgeVxlanPortResource @Inject()(bridgeId: UUID,
+                                        resContext: ResourceContext)
+    extends AbstractPortResource[Port](resContext) {
+
+    @GET
+    @Produces(Array(APPLICATION_PORT_V2_COLLECTION_JSON,
+                    APPLICATION_JSON))
+    override def list(@HeaderParam("Accept") accept: String): JList[Port] = {
+        val bridge = getResource(classOf[Bridge], bridgeId).getOrThrow
+        listResources(classOf[Port], bridge.vxLanPortIds.asScala).getOrThrow.asJava
     }
 
 }

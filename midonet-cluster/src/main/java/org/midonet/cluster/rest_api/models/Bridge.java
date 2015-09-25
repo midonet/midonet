@@ -37,6 +37,7 @@ import static org.midonet.cluster.rest_api.ResourceUris.DHCPV6;
 import static org.midonet.cluster.rest_api.ResourceUris.MAC_TABLE;
 import static org.midonet.cluster.rest_api.ResourceUris.PEER_PORTS;
 import static org.midonet.cluster.rest_api.ResourceUris.PORTS;
+import static org.midonet.cluster.rest_api.ResourceUris.VXLAN_PORTS;
 
 @ZoomClass(clazz = Topology.Network.class)
 public class Bridge extends UriResource {
@@ -111,7 +112,7 @@ public class Bridge extends UriResource {
     }
 
     public URI getVxLanPorts() {
-        return relativeUri(PORTS);
+        return relativeUri(VXLAN_PORTS);
     }
 
     public URI getMacTable() {

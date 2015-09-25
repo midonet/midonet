@@ -83,8 +83,8 @@ class Port(resource_base.ResourceBase,
                    vendor_media_type.APPLICATION_BGP_COLLECTION_JSON}
         return self.get_children(self.dto['bgps'], query, headers, bgp.Bgp)
 
-    def get_mgmt_ip(self):
-        return self.dto['mgmtIpAddr']
+    def get_vtep(self):
+        return self.dto['vtepId']
 
     def get_vni(self):
         return self.dto['vni']

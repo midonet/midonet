@@ -272,8 +272,8 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                                   .clearVxlanPortIds()
                                   .addAllVxlanPortIds(newVxPorts)
                                   .build()
-                    ops.add(DeleteOp(classOf[Topology.Port], p.getId))
                     ops.add(UpdateOp(newNw))
+                    ops.add(DeleteOp(classOf[Topology.Port], p.getId))
                 }
             } catch {
                 case t: NotFoundException =>
