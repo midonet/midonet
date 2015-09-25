@@ -47,7 +47,7 @@ import org.midonet.midolman.state.StateAccessException;
 
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_JSON_V2;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZone {
@@ -167,7 +167,7 @@ public class TestTunnelZone {
             vtep.setManagementPort(6632);
             vtep.setTunnelZoneId(tunnelZone.getId());
             dtoResource.postAndVerifyCreated(app.getVteps(),
-                                             APPLICATION_VTEP_JSON(), vtep,
+                                             APPLICATION_VTEP_JSON_V2(), vtep,
                                              DtoVtep.class);
 
             // now try to delete the tunnel zone
