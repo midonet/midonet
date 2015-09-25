@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_1a2ddf46",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T15:49:34Z",
+      "side": 1,
+      "message": "onNext actually submits the contents of the method into the executor (which is the same thread that will be used to handle all notifications), so it gets off the curator thread before it reaches the ovsdb ref.\n\nonComplete doesn\u0027t actually look into nsdbVtep no?\n\nIn any case, we should make it a habit of documenting this on variables.",
+      "parentUuid": "1ae5cdf2_7fb895e5",
+      "range": {
+        "startLine": 100,
+        "startChar": 16,
+        "endLine": 100,
+        "endChar": 24
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_bfc93d7b",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-09-25T14:14:22Z",
       "side": 1,
       "message": "This one too?",
+      "range": {
+        "startLine": 104,
+        "startChar": 16,
+        "endLine": 104,
+        "endChar": 21
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_7ae183fd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T15:49:34Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "1ae5cdf2_bfc93d7b",
       "range": {
         "startLine": 104,
         "startChar": 16,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_5aacc7a0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T15:49:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_dfc8c976",
+      "range": {
+        "startLine": 227,
+        "startChar": 37,
+        "endLine": 227,
+        "endChar": 38
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_3fa52db5",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
         "patchSetId": 3
@@ -105,6 +177,30 @@
       "writtenOn": "2015-09-25T14:14:22Z",
       "side": 1,
       "message": "Nit: choose",
+      "range": {
+        "startLine": 308,
+        "startChar": 11,
+        "endLine": 308,
+        "endChar": 16
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3ad7fb24",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T15:49:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_3fa52db5",
       "range": {
         "startLine": 308,
         "startChar": 11,
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_1ad4ff1e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T15:49:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_ff710545",
+      "range": {
+        "startLine": 314,
+        "startChar": 49,
+        "endLine": 314,
+        "endChar": 53
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_7f397540",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
         "patchSetId": 3
@@ -151,6 +271,30 @@
       "writtenOn": "2015-09-25T14:14:22Z",
       "side": 1,
       "message": "Just a question here, maybe to address in the future: if the VTEP becomes disconnected isn\u0027t it simpler to drop all actions and flush the ovsdb and restart the synchronization when the vtep becomes available again using the latest data from nsdb?",
+      "range": {
+        "startLine": 340,
+        "startChar": 16,
+        "endLine": 341,
+        "endChar": 70
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5a104701",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T15:49:34Z",
+      "side": 1,
+      "message": "Yes, very good idea.",
+      "parentUuid": "1ae5cdf2_7f397540",
       "range": {
         "startLine": 340,
         "startChar": 16,
@@ -186,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_fa1593e5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T15:49:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_5f0d998f",
+      "range": {
+        "startLine": 376,
+        "startChar": 29,
+        "endLine": 376,
+        "endChar": 30
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_3f160da8",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
         "patchSetId": 3
@@ -197,6 +365,30 @@
       "writtenOn": "2015-09-25T14:14:22Z",
       "side": 1,
       "message": "Not needed",
+      "range": {
+        "startLine": 387,
+        "startChar": 29,
+        "endLine": 387,
+        "endChar": 30
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_da1a9716",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T15:49:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_3f160da8",
       "range": {
         "startLine": 387,
         "startChar": 29,
@@ -244,6 +436,30 @@
       "side": 1,
       "message": "Okay, I will address this as part of MNA-901",
       "parentUuid": "1ae5cdf2_df4e09c1",
+      "range": {
+        "startLine": 542,
+        "startChar": 12,
+        "endLine": 542,
+        "endChar": 50
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_bad86b80",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-09-25T15:49:34Z",
+      "side": 1,
+      "message": "Yes, that was my intention as that was the client\u0027s behaviour on the previous version of the feature.  Otherwise we can\u0027t have a single transaction apply all updates on the OVSDB",
+      "parentUuid": "1ae5cdf2_7fec1590",
       "range": {
         "startLine": 542,
         "startChar": 12,
