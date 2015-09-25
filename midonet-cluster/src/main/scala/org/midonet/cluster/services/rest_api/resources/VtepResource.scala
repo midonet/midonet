@@ -45,11 +45,11 @@ import org.midonet.util.reactivex._
 @ApiResource(version = 1)
 @Path("vteps")
 @RequestScoped
-@AllowGet(Array(APPLICATION_VTEP_JSON,
+@AllowGet(Array(APPLICATION_VTEP_JSON_V2,
                 APPLICATION_JSON))
-@AllowList(Array(APPLICATION_VTEP_COLLECTION_JSON,
+@AllowList(Array(APPLICATION_VTEP_COLLECTION_JSON_V2,
                  APPLICATION_JSON))
-@AllowCreate(Array(APPLICATION_VTEP_JSON,
+@AllowCreate(Array(APPLICATION_VTEP_JSON_V2,
                    APPLICATION_JSON))
 @AllowDelete
 class VtepResource @Inject()(resContext: ResourceContext,
