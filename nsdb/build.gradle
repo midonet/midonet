@@ -56,7 +56,8 @@ dependencies {
             libraries.scala_async,
             libraries.scala_logging,
             libraries.scallop,
-            libraries.typesafeconf
+            libraries.typesafeconf,
+            libraries.jgroups
 
     testCompile project(path: ':midonet-util', configuration: 'tests')
 
@@ -124,4 +125,31 @@ task sbetool(type:JavaExec) {
     }
 }
 compileSbeGenJava.dependsOn sbetool
+
+/* '-Pmyargs=<port>' */
+task runJGroupsBroker(type: JavaExec) {
+    description = 'Run the JGroups Broker'
+    classpath sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.net.preferIPv4Stack', 'true'
+
+    main = "org.midonet.cluster.data.storage.jgroups.JGroupsBroker"
+
+    if (project.hasProperty('myargs')) {
+        args(myargs.split(','))
+    }
+}
+
+task runJGroupsClient(type: JavaExec) {
+    description = 'Run the JGroups Client'
+    classpath sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.net.preferIPv4Stack', 'true'
+
+    main = "org.midonet.cluster.data.storage.jgroups.JGroupsClient"
+
+    if (project.hasProperty('myargs')) {
+        args(myargs.split(','))
+    }
+}
 
