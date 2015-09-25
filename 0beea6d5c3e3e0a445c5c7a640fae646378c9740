@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b4f404d0",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-25T09:39:33Z",
+      "side": 1,
+      "message": "Is this being used?",
+      "revId": "0beea6d5c3e3e0a445c5c7a640fae646378c9740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d40350b6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/auth/AuthModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-09-25T09:39:33Z",
+      "side": 1,
+      "message": "s/Unexcepted/Unexpected/",
+      "range": {
+        "startLine": 71,
+        "startChar": 22,
+        "endLine": 71,
+        "endChar": 32
+      },
+      "revId": "0beea6d5c3e3e0a445c5c7a640fae646378c9740",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
