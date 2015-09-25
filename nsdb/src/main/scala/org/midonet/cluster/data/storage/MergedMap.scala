@@ -17,6 +17,7 @@
 package org.midonet.cluster.data.storage
 
 import java.util.concurrent.Executors.newSingleThreadExecutor
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import javax.annotation.Nonnull
 
 import scala.collection.JavaConverters._
@@ -33,6 +34,7 @@ import rx.subjects.PublishSubject
 import rx.{Observable, Observer, Subscriber}
 
 import org.midonet.util.functors.{makeAction0, makeAction1, makeRunnable}
+import org.midonet.util.concurrent.NamedThreadFactory
 
 /**
  * This trait exposes a bus that is to be used with a merged map.
@@ -42,6 +44,12 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeRunnable}
  * An opinion with a null value indicates that the opinion is deleted.
  */
 trait MergedMapBus[K, V] {
+
+    /**
+     * An opinion is a (key, value, owner) triple
+     */
+    type Opinion = (K, V, String)
+
     /**
      * @return The map id this bus corresponds to.
      */
@@ -73,7 +81,7 @@ trait MergedMapBus[K, V] {
 object MergedMap {
     case class MapUpdate[K, V >: Null <: AnyRef](key: K, oldValue: V, newValue: V)
     private[storage] val executor =
-        newSingleThreadExecutor(DaemonThreadFactory.INSTANCE)
+        new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("MergedMap", true))
 }
 
 /**

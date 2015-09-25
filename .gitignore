@@ -55,3 +55,6 @@ python-midonetclient/*.rpm
 
 # devmido generated files
 *-screenrc
+
+# jgroups generated files
+/nsdb/pubsub

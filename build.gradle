@@ -66,6 +66,7 @@ project.ext {
         logback_logstash: "net.logstash.logback:logstash-logback-encoder:3.5",
         jna: ["net.java.dev.jna:jna:4.1.0", "net.java.dev.jna:jna-platform:4.1.0"],
         jsch: 'com.jcraft:jsch:0.1.45',
+        log4j: ['org.apache.logging.log4j:log4j-core:2.4.1', 'org.apache.logging.log4j:log4j-api:2.4.1'],
         collections4: 'org.apache.commons:commons-collections4:4.0',
         commons_codec: "commons-codec:commons-codec:1.9",
         commons_conf: "commons-configuration:commons-configuration:1.8",
@@ -115,6 +116,7 @@ project.ext {
             exclude group: 'log4j', module: 'log4j'},
         curator_test: "org.apache.curator:curator-test:2.9.1",
 
+        jgroups: "org.jgroups:jgroups:3.6.6.Final",
         persistence: "javax.persistence:persistence-api:1.0",
         jsr250: "javax.annotation:jsr250-api:1.0",
         jsr311: "javax.ws.rs:jsr311-api:1.1",
