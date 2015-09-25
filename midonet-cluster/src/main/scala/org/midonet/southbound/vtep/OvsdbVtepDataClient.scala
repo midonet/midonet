@@ -144,10 +144,8 @@ class OvsdbVtepDataClient(cnxn: VtepConnection)
     /** Sets the bindings for the logical switch with the specified name. The
       * bindings are specified as an [[Iterable]] of port name and VLAN pairs.
       * The method overwrites any of the previous bindings for the specified
-      * physical ports, and replaces them with the given ones. The physical
-      * ports that are not included in the bindings list are left unchanged.
-      * The method returns a future with the number of physical ports that
-      * were changed. */
+      * logical switch, and replaces them with the given ones. The method
+      * returns a future with the number of physical ports that were changed. */
     override def setBindings(lsId: UUID, bindings: Iterable[(String, Short)])
     : Future[Int] = {
         onReady { _.setBindings(lsId, bindings) }
