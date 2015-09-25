@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_344e3497",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-09-25T12:02:55Z",
+      "side": 1,
+      "message": "I didnt know that, I will modify the test to use the decorator",
+      "parentUuid": "1ae5cdf2_142cd801",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_74eb5cb0",
         "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
         "patchSetId": 1
@@ -64,6 +82,24 @@
       "writtenOn": "2015-09-25T10:56:47Z",
       "side": 1,
       "message": "This is a pre-condition in all our tests so I wouldn\u0027t add it in a per-test case. So either we don\u0027t check it at all as it consumes resources (calls to the api) and hope for the best, or we do it on the mdts framework (on a setup method that all tests execute). If we do the latter, I\u0027d do it on a separate patch.",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5445806e",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-09-25T12:02:55Z",
+      "side": 1,
+      "message": "Forgot to remove this, used it for learning purposes",
+      "parentUuid": "1ae5cdf2_74eb5cb0",
       "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -121,6 +157,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_743fdcd6",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-09-25T12:02:55Z",
+      "side": 1,
+      "message": "Wanted to create a second bridge to see if new topology would be added correctly as well as checking if existing topology is updated correctly, but if only updating of existing topology is enough i will change it.",
+      "parentUuid": "1ae5cdf2_f4d68cf0",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_1405b879",
         "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
         "patchSetId": 1
@@ -149,6 +203,24 @@
       "writtenOn": "2015-09-25T10:56:47Z",
       "side": 1,
       "message": "Remove. This should be already present in the docker images of sandbox (I\u0027ll do it as I need to do other changes as well).",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d4819090",
+        "filename": "tests/sandbox/override_v2/midolman/override.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-09-25T12:02:55Z",
+      "side": 1,
+      "message": "Ok thats good, but I think it needs to stay somewhere in the repo, because without it you won\u0027t be able to clone the mdts and run it without errors (or in this case even silent failure https://review.gerrithub.io/#/c/248152/).",
+      "parentUuid": "1ae5cdf2_d43430e0",
       "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
