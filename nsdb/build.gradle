@@ -57,7 +57,10 @@ dependencies {
             libraries.scala_logging,
             libraries.scallop,
             libraries.typesafeconf,
-            libraries.reflections
+            libraries.reflections,
+            libraries.jgroups,
+            libraries.log4j,
+            libraries.netty
 
     testCompile project(path: ':midonet-util', configuration: 'tests')
 
@@ -125,4 +128,34 @@ task sbetool(type:JavaExec) {
     }
 }
 compileSbeGenJava.dependsOn sbetool
+
+/* '-Pmyargs=<port>' */
+task runJGroupsBroker(type: JavaExec) {
+    description = 'Run the JGroups Broker'
+    classpath sourceSets.main.runtimeClasspath
+
+
+    systemProperty 'java.net.preferIPv4Stack', 'true'
+    systemProperty 'logback.configurationFile', '/home/huub/Desktop/Work/Midokura/jgroups/midonet/logback.xml'
+    systemProperty 'log4j.configurationFile', '/home/huub/Desktop/Work/Midokura/jgroups/midonet/log4j2.xml'
+
+    main = "org.midonet.cluster.data.storage.jgroups.JGroupsBroker"
+
+    if (project.hasProperty('myargs')) {
+        args(myargs.split(','))
+    }
+}
+
+task runJGroupsClient(type: JavaExec) {
+    description = 'Run the JGroups Client'
+    classpath sourceSets.main.runtimeClasspath
+
+    systemProperty 'java.net.preferIPv4Stack', 'true'
+
+    main = "org.midonet.cluster.data.storage.jgroups.JGroupsClient"
+
+    if (project.hasProperty('myargs')) {
+        args(myargs.split(','))
+    }
+}
 

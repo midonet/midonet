@@ -42,6 +42,12 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeRunnable}
  * An opinion with a null value indicates that the opinion is deleted.
  */
 trait MergedMapBus[K, V] {
+
+    /**
+     * An opinion is a (key, value, owner) triple
+     */
+    type Opinion = (K, V, String)
+
     /**
      * @return The map id this bus corresponds to.
      */
