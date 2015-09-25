@@ -41,3 +41,10 @@ class CassandraConfig(val conf: Config) {
     def cluster = conf.getString("cassandra.cluster")
     def replication_factor = conf.getInt("cassandra.replication_factor")
 }
+
+class JGroupsConfig(val conf: Config) {
+    def zkBrokersRoot = conf.getString("jgroups.zk_brokers_root")
+    def clusterName = conf.getString("jgroups.cluster_name")
+    def heartbeatPeriod = conf.getDuration("jgroups.heartbeat_period", TimeUnit.MILLISECONDS)
+    def heartbeatTimeout = conf.getDuration("jgroups.heartbeat_timeout", TimeUnit.MILLISECONDS)
+}

@@ -113,6 +113,7 @@ project.ext {
             exclude group: 'log4j', module: 'log4j'},
         curator_test: "org.apache.curator:curator-test:2.9.1",
 
+        jgroups: "org.jgroups:jgroups:3.6.6.Final",
         persistence: "javax.persistence:persistence-api:1.0",
         jsr250: "javax.annotation:jsr250-api:1.0",
         jsr311: "javax.ws.rs:jsr311-api:1.1",
