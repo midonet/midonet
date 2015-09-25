@@ -213,17 +213,14 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
     /** Sets the bindings for the logical switch with the specified name. The
       * bindings are specified as an [[Iterable]] of port name and VLAN pairs.
       * The method overwrites any of the previous bindings for the specified
-      * physical ports, and replaces them with the given ones. The physical
-      * ports that are not included in the bindings list are left unchanged.
-      * The method returns a future with the number of physical ports that
-      * were changed. */
+      * logical switch, and replaces them with the given ones. The method
+      * returns a future with the number of physical ports that were changed. */
     override def setBindings(lsId: UUID, bindings: Iterable[(String, Short)])
     : Future[Int] = {
         updateBindings(lsId, ps => {
-            val boundPorts = bindings.map(_._1).toSet
             var ports = ps.ports.flatMap(portTable.get)
-                                .filter(p => boundPorts.contains(p.name))
-                                .map(p => (p.name, p.clearBindings())).toMap
+                                .filter(_.isBoundToLogicalSwitchId(lsId))
+                                .map(p => (p.name, p.clearBindings(lsId))).toMap
 
             for (binding <- bindings) ports.get(binding._1) match {
                 case None =>
