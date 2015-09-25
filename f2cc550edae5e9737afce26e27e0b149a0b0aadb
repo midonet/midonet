@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_7fb895e5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:14:22Z",
+      "side": 1,
+      "message": "Should this be volatile? It is accessed both in onNext (which is the zoom/curator thread) and also in onComplete (which is the VTEP thread)",
+      "range": {
+        "startLine": 100,
+        "startChar": 16,
+        "endLine": 100,
+        "endChar": 24
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_bfc93d7b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:14:22Z",
+      "side": 1,
+      "message": "This one too?",
+      "range": {
+        "startLine": 104,
+        "startChar": 16,
+        "endLine": 104,
+        "endChar": 21
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_dfc8c976",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:14:22Z",
+      "side": 1,
+      "message": "it",
+      "range": {
+        "startLine": 227,
+        "startChar": 37,
+        "endLine": 227,
+        "endChar": 38
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9f264115",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:14:22Z",
+      "side": 1,
+      "message": "s prefix not needed",
+      "range": {
+        "startLine": 227,
+        "startChar": 21,
+        "endLine": 227,
+        "endChar": 22
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3fa52db5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:14:22Z",
+      "side": 1,
+      "message": "Nit: choose",
+      "range": {
+        "startLine": 308,
+        "startChar": 11,
+        "endLine": 308,
+        "endChar": 16
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_ff710545",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:14:22Z",
+      "side": 1,
+      "message": "keySet may prevent making a new set out of enumeration",
+      "range": {
+        "startLine": 314,
+        "startChar": 49,
+        "endLine": 314,
+        "endChar": 53
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_7f397540",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:14:22Z",
+      "side": 1,
+      "message": "Just a question here, maybe to address in the future: if the VTEP becomes disconnected isn\u0027t it simpler to drop all actions and flush the ovsdb and restart the synchronization when the vtep becomes available again using the latest data from nsdb?",
+      "range": {
+        "startLine": 340,
+        "startChar": 16,
+        "endLine": 341,
+        "endChar": 70
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5f0d998f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:14:22Z",
+      "side": 1,
+      "message": "Not needed",
+      "range": {
+        "startLine": 376,
+        "startChar": 29,
+        "endLine": 376,
+        "endChar": 30
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_3f160da8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:14:22Z",
+      "side": 1,
+      "message": "Not needed",
+      "range": {
+        "startLine": 387,
+        "startChar": 29,
+        "endLine": 387,
+        "endChar": 30
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_df4e09c1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T14:14:22Z",
+      "side": 1,
+      "message": "This only sets the bindings for the physical ports added to the list. However, it doesn\u0027t change any vlan bindings for the other physical ports, such that the ones that may have been removed. I think we need to enhance this method to clear the bindings from the remaining physical ports.",
+      "range": {
+        "startLine": 542,
+        "startChar": 12,
+        "endLine": 542,
+        "endChar": 50
+      },
+      "revId": "f2cc550edae5e9737afce26e27e0b149a0b0aadb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
