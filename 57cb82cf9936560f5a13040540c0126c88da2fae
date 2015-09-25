@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d4bef0fe",
+        "filename": "python-midonetclient/src/midonetclient/vendor_media_type.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-09-25T09:13:02Z",
+      "side": 1,
+      "message": "Nit: missing `_V2`",
+      "revId": "57cb82cf9936560f5a13040540c0126c88da2fae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
