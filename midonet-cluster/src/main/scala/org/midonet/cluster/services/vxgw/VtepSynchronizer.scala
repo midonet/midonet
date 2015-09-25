@@ -251,10 +251,12 @@ class VtepSynchronizer(vtepId: UUID,
             case Success(Some(ps)) =>
                 log.info(s"VTEP $vtepId tunnel IPs are: ${ps.tunnelIpStrings}")
                 val vtepConfig = VtepConfiguration.newBuilder()
-                    .setDescription(ps.description)
-                    .setName(ps.name)
                     .addAllTunnelAddresses(
                         ps.tunnelIps.map(IPAddressUtil.toProto))
+                if (ps.name ne null)
+                    vtepConfig.setName(ps.name)
+                if (ps.description ne null)
+                    vtepConfig.setDescription(ps.description)
                 stateStore.setVtepConfig(vtepId, vtepConfig.build()).asFuture
             case Failure(_) =>
                 log.warn(s"Failed to extract tunnel IPs for VTEP $vtepId")

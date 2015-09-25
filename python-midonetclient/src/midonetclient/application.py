@@ -577,15 +577,15 @@ class Application(resource_base.ResourceBase):
     def add_vtep(self):
         return vtep.Vtep(self.dto['vteps'], {}, self.auth)
 
-    def get_vtep(self, mgmt_ip):
-        return self._get_resource_by_ip_addr(vtep.Vtep,
-                                             self.dto['vteps'],
-                                             self.get_vtep_template(),
-                                             mgmt_ip)
+    def get_vtep(self, id):
+        return self._get_resource_by_id(vtep.Vtep,
+                                        self.dto['vteps'],
+                                        self.get_vtep_template(),
+                                        id)
 
-    def delete_vtep(self, mgmt_ip):
-        return self._delete_resource_by_ip_addr(self.get_vtep_template(),
-                                                mgmt_ip)
+    def delete_vtep(self, id):
+        return self._delete_resource_by_id(self.get_vtep_template(),
+                                           mgmt_ip)
 
     def get_tracerequests(self, query):
         headers = {'Accept':

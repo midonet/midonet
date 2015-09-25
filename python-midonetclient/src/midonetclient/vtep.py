@@ -25,6 +25,9 @@ class Vtep(resource_base.ResourceBase):
     def __init__(self, uri, dto, auth):
         super(Vtep, self).__init__(uri, dto, auth)
 
+    def get_id(self):
+        return self.dto['id']
+
     def get_name(self):
         return self.dto['name']
 
