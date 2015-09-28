@@ -264,6 +264,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_81b7d1d7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-28T13:04:21Z",
+      "side": 1,
+      "message": "actually no, this is not the only caller",
+      "parentUuid": "1ae5cdf2_81bb51e4",
+      "range": {
+        "startLine": 156,
+        "startChar": 24,
+        "endLine": 156,
+        "endChar": 78
+      },
+      "revId": "397778afb0e39305c3c70f050eb87bcab2c67a7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_04a40649",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
         "patchSetId": 1
@@ -275,6 +299,30 @@
       "writtenOn": "2015-08-12T18:54:21Z",
       "side": 1,
       "message": "I\u0027d appreciate some javadoc here, hard to guess the purpose. I assume you want to track the State of all the tzs of a given host, in that case the take(1) below applies, and also you could simply fetch a Future[TunnelZone] from ZOOM and onSuccess { tz \u003d\u003e if (tz.type \u003d\u003d VTEP) backend.stateStore.keyObservable etc.}\n\nBut I may be misinterpreting the purpose as I said.",
+      "range": {
+        "startLine": 175,
+        "startChar": 16,
+        "endLine": 175,
+        "endChar": 35
+      },
+      "revId": "397778afb0e39305c3c70f050eb87bcab2c67a7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e1eb35ae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-09-28T13:04:21Z",
+      "side": 1,
+      "message": "Right, the future approach would work as well. But in that case I don\u0027t see how I can get a hold of the subscription. I think there would be a race between the future\u0027s completion and the tunnel zone being possibly removed",
+      "parentUuid": "9ad9bd40_04a40649",
       "range": {
         "startLine": 175,
         "startChar": 16,
