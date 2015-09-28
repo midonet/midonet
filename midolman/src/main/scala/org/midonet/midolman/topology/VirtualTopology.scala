@@ -223,20 +223,20 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         classTag[BgpPort] -> (new BgpPortMapper(_, this)),
         classTag[BgpRouter] -> (new BgpRouterMapper(_, this)),
         classTag[Bridge] -> (new BridgeMapper(_, this, traceChains)),
-        classTag[BridgePort] -> (new PortMapper(_, this, traceChains)),
+        classTag[BridgePort] -> (new PortMapper(_, this, metricRegistry, traceChains)),
         classTag[Chain] -> (new ChainMapper(_, this, traceChains)),
         classTag[Host] -> (new HostMapper(_, this)),
         classTag[IPAddrGroup] -> (new IPAddrGroupMapper(_, this)),
         classTag[LoadBalancer] -> (new LoadBalancerMapper(_, this)),
         classTag[Pool] -> (new PoolMapper(_, this)),
         classTag[PoolHealthMonitorMap] -> (id => new PoolHealthMonitorMapper(this)),
-        classTag[Port] -> (new PortMapper(_, this, traceChains)),
+        classTag[Port] -> (new PortMapper(_, this, metricRegistry, traceChains)),
         classTag[PortGroup] -> (new PortGroupMapper(_, this)),
         classTag[Router] -> (new RouterMapper(_, this, traceChains)),
-        classTag[RouterPort] -> (new PortMapper(_, this, traceChains)),
+        classTag[RouterPort] -> (new PortMapper(_, this, metricRegistry, traceChains)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
         classTag[Mirror] -> (new MirrorMapper(_, this)),
-        classTag[VxLanPort] -> (new PortMapper(_, this, traceChains))
+        classTag[VxLanPort] -> (new PortMapper(_, this, metricRegistry, traceChains))
     )
 
     register(this)

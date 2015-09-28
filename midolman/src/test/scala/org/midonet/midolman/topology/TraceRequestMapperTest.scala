@@ -24,6 +24,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
+import com.codahale.metrics.MetricRegistry
+
 import org.junit.runner.RunWith
 
 import rx.{Observable, Observer}
@@ -45,6 +47,7 @@ import org.scalatest.junit.JUnitRunner
 class TraceRequestMapperTest extends MidolmanSpec {
 
     private var vt: VirtualTopology = _
+    private var metricRegistry: MetricRegistry = _
     private var store: Storage = _
     private var chainMap: mutable.Map[UUID,Subject[SimChain,SimChain]] = _
 
@@ -146,7 +149,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
                                 .build()
             vt.store.create(tr)
             val portSubscriber = new TestSubscriber[SimPort]
-            val mapper = new PortMapper(portId, vt, chainMap)
+            val mapper = new PortMapper(portId, vt, metricRegistry, chainMap)
             mapper.call(portSubscriber)
 
             portSubscriber.getOnNextEvents.size shouldBe 1
