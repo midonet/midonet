@@ -94,12 +94,12 @@ object MidolmanMetricCatalog {
     val SIM_LATENCY = s"$BASE.PacketPipelineHistogram.simulationLatency"
     val SIM_PACKETS = s"$BASE.PacketPipelineMeter.packetsSimulated.packets"
 
-    val CMS_GC= "java.lang:type=GarbageCollector,name=ConcurrentMarkSweep"
-    val NEW_GC= "java.lang:type=GarbageCollector,name=ParNew"
+    val CMS_GC= "java.lang:type=GarbageCollector,name=G1 Old Generation"
+    val NEW_GC= "java.lang:type=GarbageCollector,name=G1 Young Generation"
 
-    val OLD_MEM = "java.lang:type=MemoryPool,name=CMS Old Gen"
-    val SURVIVOR_MEM = "java.lang:type=MemoryPool,name=Par Survivor Space"
-    val EDEN_MEM = "java.lang:type=MemoryPool,name=Par Eden Space"
+    val OLD_MEM = "java.lang:type=MemoryPool,name=G1 Old Gen"
+    val SURVIVOR_MEM = "java.lang:type=MemoryPool,name=G1 Survivor Space"
+    val EDEN_MEM = "java.lang:type=MemoryPool,name=G1 Eden Space"
 
     class AllMetrics(val mbsc: MBeanServerConnection) {
         val dpFlowsGauge = new Gauge(mbsc, DP_FLOWS_GAUGE)
