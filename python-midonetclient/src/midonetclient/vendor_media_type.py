@@ -175,7 +175,7 @@ APPLICATION_POOL_STATISTIC_COLLECTION_JSON = \
 
 # VxGW
 APPLICATION_VTEP_JSON_V2 = "application/vnd.org.midonet.VTEP-v2+json"
-APPLICATION_VTEP_COLLECTION_JSON = \
+APPLICATION_VTEP_COLLECTION_JSON_V2 = \
             "application/vnd.org.midonet.collection.VTEP-v2+json"
 APPLICATION_VTEP_BINDING_JSON_V2 = \
     "application/vnd.org.midonet.VTEPBinding-v2+json"
