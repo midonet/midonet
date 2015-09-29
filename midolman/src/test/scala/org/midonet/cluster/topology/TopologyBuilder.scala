@@ -697,6 +697,7 @@ trait TopologyBuilder {
     def createPool(id: UUID = UUID.randomUUID,
                    healthMonitorId: Option[UUID] = None,
                    loadBalancerId: Option[UUID] = None,
+                   vipId: Option[UUID] = None,
                    adminStateUp: Option[Boolean] = None,
                    protocol: Option[PoolProtocol] = None,
                    lbMethod: Option[PoolLBMethod] = None,
@@ -708,6 +709,8 @@ trait TopologyBuilder {
             builder.setHealthMonitorId(healthMonitorId.get.asProto)
         if (loadBalancerId.isDefined)
             builder.setLoadBalancerId(loadBalancerId.get.asProto)
+        if (vipId.isDefined)
+            builder.addVipIds(vipId.get.asProto)
         if (adminStateUp.isDefined)
             builder.setAdminStateUp(adminStateUp.get)
         if (protocol.isDefined) builder.setProtocol(protocol.get)
