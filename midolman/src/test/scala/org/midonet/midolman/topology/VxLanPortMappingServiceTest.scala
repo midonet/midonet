@@ -35,7 +35,7 @@ import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.topology.VxLanPortMappingService.uuidOf
+import org.midonet.midolman.topology.VxLanPortMappingService.{TunnelInfo, portOf, tunnelOf}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent._
@@ -67,11 +67,11 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
 
     private def addVtep(vtepId: UUID = UUID.randomUUID,
                         tunnelIps: Seq[IPv4Addr] = Seq(IPv4Addr.random))
-    : (UUID, IPv4Addr) = {
+    : (UUID, IPv4Addr, UUID) = {
         val vtep = createVtep(id = vtepId)
         store create vtep
         setTunnelIps(vtepId, tunnelIps: _*)
-        (vtepId, tunnelIps.head)
+        (vtepId, tunnelIps.head, vtep.getTunnelZoneId.asJava)
     }
 
     private def setTunnelIps(vtepId: UUID, tunnelIps: IPv4Addr*): Unit = {
@@ -174,37 +174,43 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
     feature("Mapper returns None for non-existing keys") {
         scenario("Non-existing VNI") {
             Given("A VTEP")
-            addVtep()
+            val (vtepId, tunnelIp, tzoneId) = addVtep()
 
             Then("The mapper returns none for a random VNI")
-            uuidOf(IPv4Addr.random, random.nextInt()) shouldBe None
+            portOf(IPv4Addr.random, random.nextInt()) shouldBe None
         }
 
         scenario("Non-existing tunnel IP") {
             Given("A VTEP with a network binding")
-            val (vtepId, _) = addVtep()
+            val (vtepId, tunnelIp, tzoneId) = addVtep()
             val (networkId, vni) = addNetwork()
-            addFirstBinding(vtepId, networkId, "port0")
+            val portId = addFirstBinding(vtepId, networkId, "port0")
 
             Then("The mapper returns none for a random tunnel IP")
-            uuidOf(IPv4Addr.random, vni) shouldBe None
+            portOf(IPv4Addr.random, vni) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni))
         }
     }
 
     feature("Mapper processes VTEP updates") {
         scenario("A VTEP with a network binding") {
             Given("A VTEP with a network binding")
-            val (vtepId, tunnelIp) = addVtep()
+            val (vtepId, tunnelIp, tzoneId) = addVtep()
             val (networkId, vni) = addNetwork()
             val portId = addFirstBinding(vtepId, networkId, "port0")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni) shouldBe Some(portId)
+            portOf(tunnelIp, vni) shouldBe Some(portId)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni))
         }
 
         scenario("Adding bindings") {
             Given("A VTEP with a binding")
-            val (vtepId, tunnelIp) = addVtep()
+            val (vtepId, tunnelIp, tzoneId) = addVtep()
             val (networkId1, vni1) = addNetwork()
             val portId1 = addFirstBinding(vtepId, networkId1, "port1")
 
@@ -213,22 +219,31 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
             val portId2 = addFirstBinding(vtepId, networkId2, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni1) shouldBe Some(portId1)
-            uuidOf(tunnelIp, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp, vni1) shouldBe Some(portId1)
+            portOf(tunnelIp, vni2) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni1))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni2))
 
             When("Adding a binding to a third network")
             val (networkId3, vni3) = addNetwork()
             val portId3 = addFirstBinding(vtepId, networkId3, "port3")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni1) shouldBe Some(portId1)
-            uuidOf(tunnelIp, vni2) shouldBe Some(portId2)
-            uuidOf(tunnelIp, vni3) shouldBe Some(portId3)
+            portOf(tunnelIp, vni1) shouldBe Some(portId1)
+            portOf(tunnelIp, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp, vni3) shouldBe Some(portId3)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni1))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni2))
+            tunnelOf(portId3) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni3))
         }
 
         scenario("Removing binding") {
             Given("A VTEP with two bindings")
-            val (vtepId, tunnelIp) = addVtep()
+            val (vtepId, tunnelIp, tzoneId) = addVtep()
             val (networkId1, vni1) = addNetwork()
             val (networkId2, vni2) = addNetwork()
             val portId1 = addFirstBinding(vtepId, networkId1, "port1")
@@ -238,20 +253,24 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
             removeLastBinding(vtepId, networkId1, portId1, "port1")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni1) shouldBe None
-            uuidOf(tunnelIp, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp, vni1) shouldBe None
+            portOf(tunnelIp, vni2) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni2))
 
             When("Removing the second binding")
             removeLastBinding(vtepId, networkId2, portId2, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni1) shouldBe None
-            uuidOf(tunnelIp, vni2) shouldBe None
+            portOf(tunnelIp, vni1) shouldBe None
+            portOf(tunnelIp, vni2) shouldBe None
         }
 
         scenario("Replace bindings") {
             Given("A VTEP with two bindings")
-            val (vtepId, tunnelIp) = addVtep()
+            val (vtepId, tunnelIp, tzoneId) = addVtep()
             val (networkId1, vni1) = addNetwork()
             val (networkId2, vni2) = addNetwork()
             val portId1 = addFirstBinding(vtepId, networkId1, "port1")
@@ -266,249 +285,352 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
             val portId4 = addFirstBinding(vtepId, networkId4, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni1) shouldBe None
-            uuidOf(tunnelIp, vni2) shouldBe None
-            uuidOf(tunnelIp, vni3) shouldBe Some(portId3)
-            uuidOf(tunnelIp, vni4) shouldBe Some(portId4)
+            portOf(tunnelIp, vni1) shouldBe None
+            portOf(tunnelIp, vni2) shouldBe None
+            portOf(tunnelIp, vni3) shouldBe Some(portId3)
+            portOf(tunnelIp, vni4) shouldBe Some(portId4)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe None
+            tunnelOf(portId3) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni3))
+            tunnelOf(portId4) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni4))
         }
 
         scenario("Add multiple bindings to the same network") {
             Given("A VTEP with a binding")
-            val (vtepId, tunnelIp) = addVtep()
+            val (vtepId, tunnelIp, tzoneId) = addVtep()
             val (networkId, vni) = addNetwork()
             val portId = addFirstBinding(vtepId, networkId, "port1")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni) shouldBe Some(portId)
+            portOf(tunnelIp, vni) shouldBe Some(portId)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni))
 
             When("Adding a second binding to the same network")
             addNextBinding(vtepId, networkId, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni) shouldBe Some(portId)
+            portOf(tunnelIp, vni) shouldBe Some(portId)
         }
 
         scenario("Remove multiple bindings from the same network") {
             Given("A VTEP with two binding")
-            val (vtepId, tunnelIp) = addVtep()
+            val (vtepId, tunnelIp, tzoneId) = addVtep()
             val (networkId, vni) = addNetwork()
             val portId = addFirstBinding(vtepId, networkId, "port1")
             addNextBinding(vtepId, networkId, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni) shouldBe Some(portId)
+            portOf(tunnelIp, vni) shouldBe Some(portId)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni))
 
             When("Removing the first binding")
             removeFirstBinding(vtepId, networkId, "port1")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni) shouldBe Some(portId)
+            portOf(tunnelIp, vni) shouldBe Some(portId)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId) shouldBe Some(TunnelInfo(tunnelIp, tzoneId, vni))
 
             When("Removing the last binding")
             removeLastBinding(vtepId, networkId, portId, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp, vni) shouldBe None
+            portOf(tunnelIp, vni) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId) shouldBe None
         }
 
         scenario("Updating the VTEP tunnel IP") {
             Given("A VTEP with a network binding")
-            val (vtepId, tunnelIp1) = addVtep()
+            val (vtepId, tunnelIp1, tzoneId) = addVtep()
             val (networkId, vni) = addNetwork()
             val portId = addFirstBinding(vtepId, networkId, "port0")
+
+            Then("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId, vni))
 
             When("Changing the tunnel IP")
             val tunnelIp2 = IPv4Addr.random
             setTunnelIps(vtepId, tunnelIp2)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe None
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId)
+            portOf(tunnelIp1, vni) shouldBe None
+            portOf(tunnelIp2, vni) shouldBe Some(portId)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId, vni))
         }
 
         scenario("Adding a VTEP with binding to the same network") {
             Given("A VTEP with a network binding")
-            val (vtepId1, tunnelIp1) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
             val (networkId, vni) = addNetwork()
             val portId1 = addFirstBinding(vtepId1, networkId, "port1")
 
+            Then("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni))
+
             When("Adding a second VTEP")
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val portId2 = addFirstBinding(vtepId2, networkId, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni))
 
             When("Adding a third VTEP")
-            val (vtepId3, tunnelIp3) = addVtep()
+            val (vtepId3, tunnelIp3, tzoneId3) = addVtep()
             val portId3 = addFirstBinding(vtepId3, networkId, "port3")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId2)
-            uuidOf(tunnelIp3, vni) shouldBe Some(portId3)
+            portOf(tunnelIp1, vni) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni) shouldBe Some(portId2)
+            portOf(tunnelIp3, vni) shouldBe Some(portId3)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni))
+            tunnelOf(portId3) shouldBe Some(TunnelInfo(tunnelIp3, tzoneId3, vni))
         }
 
         scenario("Adding a VTEP with a binding to a different network") {
             Given("A VTEP with a network binding")
-            val (vtepId1, tunnelIp1) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
             val (networkId1, vni1) = addNetwork()
             val portId1 = addFirstBinding(vtepId1, networkId1, "port1")
 
+            Then("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni1))
+
             When("Adding a second VTEP")
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val (networkId2, vni2) = addNetwork()
             val portId2 = addFirstBinding(vtepId2, networkId2, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni2) shouldBe Some(portId2)
-            uuidOf(tunnelIp1, vni2) shouldBe None
-            uuidOf(tunnelIp2, vni1) shouldBe None
+            portOf(tunnelIp1, vni1) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni2) shouldBe None
+            portOf(tunnelIp2, vni1) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni1))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni2))
         }
 
         scenario("Deleting only VTEPs bound to the same network") {
             Given("Two VTEPs with a network binding")
             val (networkId, vni) = addNetwork()
-            val (vtepId1, tunnelIp1) = addVtep()
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val portId1 = addFirstBinding(vtepId1, networkId, "port1")
             val portId2 = addFirstBinding(vtepId2, networkId, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni))
 
             When("Deleting the first VTEP")
             store.delete(classOf[Vtep], vtepId1)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe None
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni) shouldBe None
+            portOf(tunnelIp2, vni) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni))
 
             When("Deleting the second VTEP")
             store.delete(classOf[Vtep], vtepId2)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe None
-            uuidOf(tunnelIp2, vni) shouldBe None
+            portOf(tunnelIp1, vni) shouldBe None
+            portOf(tunnelIp2, vni) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe None
         }
 
         scenario("Deleting only VTEPs bound to different networks") {
             Given("Two VTEPs with a network binding")
-            val (vtepId1, tunnelIp1) = addVtep()
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val (networkId1, vni1) = addNetwork()
             val (networkId2, vni2) = addNetwork()
             val portId1 = addFirstBinding(vtepId1, networkId1, "port1")
             val portId2 = addFirstBinding(vtepId2, networkId2, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni1) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni2) shouldBe Some(portId2)
 
             When("Deleting the first VTEP")
             store.delete(classOf[Vtep], vtepId1)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe None
-            uuidOf(tunnelIp2, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni1) shouldBe None
+            portOf(tunnelIp2, vni2) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni2))
 
             When("Deleting the second VTEP")
             store.delete(classOf[Vtep], vtepId2)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe None
-            uuidOf(tunnelIp2, vni2) shouldBe None
+            portOf(tunnelIp1, vni1) shouldBe None
+            portOf(tunnelIp2, vni2) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe None
         }
 
         scenario("Deleting VTEPs and bindings to the same network") {
             Given("Two VTEPs with a network binding")
             val (networkId, vni) = addNetwork()
-            val (vtepId1, tunnelIp1) = addVtep()
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val portId1 = addFirstBinding(vtepId1, networkId, "port1")
             val portId2 = addFirstBinding(vtepId2, networkId, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni))
 
             When("Deleting the first binding")
             removeLastBinding(vtepId1, networkId, portId1, "port1")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe None
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni) shouldBe None
+            portOf(tunnelIp2, vni) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni))
 
             When("Deleting the first VTEP")
             store.delete(classOf[Vtep], vtepId1)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe None
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni) shouldBe None
+            portOf(tunnelIp2, vni) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni))
 
             When("Deleting the second binding")
             removeLastBinding(vtepId2, networkId, portId2, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe None
-            uuidOf(tunnelIp2, vni) shouldBe None
+            portOf(tunnelIp1, vni) shouldBe None
+            portOf(tunnelIp2, vni) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe None
 
             When("Deleting the second VTEP")
             store.delete(classOf[Vtep], vtepId2)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe None
-            uuidOf(tunnelIp2, vni) shouldBe None
+            portOf(tunnelIp1, vni) shouldBe None
+            portOf(tunnelIp2, vni) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe None
         }
 
         scenario("Deleting VTEPs and bindings to different networks") {
             Given("Two VTEPs with a network binding")
-            val (vtepId1, tunnelIp1) = addVtep()
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val (networkId1, vni1) = addNetwork()
             val (networkId2, vni2) = addNetwork()
             val portId1 = addFirstBinding(vtepId1, networkId1, "port1")
             val portId2 = addFirstBinding(vtepId2, networkId2, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni1) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni2) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni1))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni2))
 
             When("Deleting the first binding")
             removeLastBinding(vtepId1, networkId1, portId1, "port1")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe None
-            uuidOf(tunnelIp2, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni1) shouldBe None
+            portOf(tunnelIp2, vni2) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni2))
 
             When("Deleting the first VTEP")
             store.delete(classOf[Vtep], vtepId1)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe None
-            uuidOf(tunnelIp2, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni1) shouldBe None
+            portOf(tunnelIp2, vni2) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni2))
 
             When("Deleting the second binding")
             removeLastBinding(vtepId2, networkId2, portId2, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe None
-            uuidOf(tunnelIp2, vni2) shouldBe None
+            portOf(tunnelIp1, vni1) shouldBe None
+            portOf(tunnelIp2, vni2) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe None
 
             When("Deleting the second VTEP")
             store.delete(classOf[Vtep], vtepId2)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe None
-            uuidOf(tunnelIp2, vni2) shouldBe None
+            portOf(tunnelIp1, vni1) shouldBe None
+            portOf(tunnelIp2, vni2) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe None
         }
 
         scenario("VTEP removed when emitting an error") {
             Given("A VTEP with a network binding")
-            val (vtepId, tunnelIp) = addVtep()
+            val (vtepId, tunnelIp, tzoneId) = addVtep()
             val (networkId, vni) = addNetwork()
             val portId = addFirstBinding(vtepId, networkId, "port0")
 
@@ -516,13 +638,16 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
             corruptTunnelIp(vtepId)
 
             Then("The mapper removes the VTEP")
-            uuidOf(tunnelIp, vni) shouldBe None
+            portOf(tunnelIp, vni) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId) shouldBe None
         }
 
         scenario("VTEP error does not prevent other VTEP addition to the " +
                  "same network") {
             Given("A VTEP with a network binding")
-            val (vtepId1, tunnelIp1) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
             val (networkId, vni) = addNetwork()
             val portId1 = addFirstBinding(vtepId1, networkId, "port1")
 
@@ -530,18 +655,22 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
             corruptTunnelIp(vtepId1)
 
             And("Adding a new VTEP to the same network")
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val portId2 = addFirstBinding(vtepId2, networkId, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe None
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni) shouldBe None
+            portOf(tunnelIp2, vni) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni))
         }
 
         scenario("VTEP error does not prevent other VTEP addition to the " +
                  "another network") {
             Given("A VTEP with a network binding")
-            val (vtepId1, tunnelIp1) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
             val (networkId1, vni1) = addNetwork()
             val portId1 = addFirstBinding(vtepId1, networkId1, "port1")
 
@@ -549,27 +678,35 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
             corruptTunnelIp(vtepId1)
 
             And("Adding a new VTEP to the same network")
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val (networkId2, vni2) = addNetwork()
             val portId2 = addFirstBinding(vtepId2, networkId2, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe None
-            uuidOf(tunnelIp2, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni1) shouldBe None
+            portOf(tunnelIp2, vni2) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni2))
         }
 
         scenario("VTEP error does not prevent other VTEP update bound to the " +
                  "same network") {
             Given("Two VTEPs with a network binding")
             val (networkId, vni) = addNetwork()
-            val (vtepId1, tunnelIp1) = addVtep()
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val portId1 = addFirstBinding(vtepId1, networkId, "port1")
             val portId2 = addFirstBinding(vtepId2, networkId, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni))
 
             When("The first VTEP is updated with a corrupted tunnel IP")
             corruptTunnelIp(vtepId1)
@@ -579,24 +716,32 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
             setTunnelIps(vtepId2, tunnelIp3)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe None
-            uuidOf(tunnelIp2, vni) shouldBe None
-            uuidOf(tunnelIp3, vni) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni) shouldBe None
+            portOf(tunnelIp2, vni) shouldBe None
+            portOf(tunnelIp3, vni) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp3, tzoneId2, vni))
         }
 
         scenario("VTEP error does not prevent other VTEP update bound to a " +
                  "different network") {
             Given("Two VTEPs with a network binding")
-            val (vtepId1, tunnelIp1) = addVtep()
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val (networkId1, vni1) = addNetwork()
             val (networkId2, vni2) = addNetwork()
             val portId1 = addFirstBinding(vtepId1, networkId1, "port1")
             val portId2 = addFirstBinding(vtepId2, networkId2, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni1) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni2) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni1))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni2))
 
             When("The first VTEP is updated with a corrupted tunnel IP")
             corruptTunnelIp(vtepId1)
@@ -606,23 +751,31 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
             setTunnelIps(vtepId2, tunnelIp3)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe None
-            uuidOf(tunnelIp2, vni2) shouldBe None
-            uuidOf(tunnelIp3, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni1) shouldBe None
+            portOf(tunnelIp2, vni2) shouldBe None
+            portOf(tunnelIp3, vni2) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp3, tzoneId2, vni2))
         }
 
         scenario("VTEP error does not prevent other VTEP removal bound to " +
                  "the same network") {
             Given("Two VTEPs with a network binding")
             val (networkId, vni) = addNetwork()
-            val (vtepId1, tunnelIp1) = addVtep()
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val portId1 = addFirstBinding(vtepId1, networkId, "port1")
             val portId2 = addFirstBinding(vtepId2, networkId, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni))
 
             When("The first VTEP is updated with a corrupted tunnel IP")
             corruptTunnelIp(vtepId1)
@@ -631,23 +784,31 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
             store.delete(classOf[Vtep], vtepId2)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni) shouldBe None
-            uuidOf(tunnelIp2, vni) shouldBe None
+            portOf(tunnelIp1, vni) shouldBe None
+            portOf(tunnelIp2, vni) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe None
         }
 
         scenario("VTEP error does not prevent other VTEP removal bound to " +
                  "a different network") {
             Given("Two VTEPs with a network binding")
-            val (vtepId1, tunnelIp1) = addVtep()
-            val (vtepId2, tunnelIp2) = addVtep()
+            val (vtepId1, tunnelIp1, tzoneId1) = addVtep()
+            val (vtepId2, tunnelIp2, tzoneId2) = addVtep()
             val (networkId1, vni1) = addNetwork()
             val (networkId2, vni2) = addNetwork()
             val portId1 = addFirstBinding(vtepId1, networkId1, "port1")
             val portId2 = addFirstBinding(vtepId2, networkId2, "port2")
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe Some(portId1)
-            uuidOf(tunnelIp2, vni2) shouldBe Some(portId2)
+            portOf(tunnelIp1, vni1) shouldBe Some(portId1)
+            portOf(tunnelIp2, vni2) shouldBe Some(portId2)
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe Some(TunnelInfo(tunnelIp1, tzoneId1, vni1))
+            tunnelOf(portId2) shouldBe Some(TunnelInfo(tunnelIp2, tzoneId2, vni2))
 
             When("The first VTEP is updated with a corrupted tunnel IP")
             corruptTunnelIp(vtepId1)
@@ -656,8 +817,12 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
             store.delete(classOf[Vtep], vtepId2)
 
             Then("The mapper returns the port for the tunnel IP and VNI")
-            uuidOf(tunnelIp1, vni1) shouldBe None
-            uuidOf(tunnelIp2, vni2) shouldBe None
+            portOf(tunnelIp1, vni1) shouldBe None
+            portOf(tunnelIp2, vni2) shouldBe None
+
+            And("The mapper returns the VTEP information for the VTEP")
+            tunnelOf(portId1) shouldBe None
+            tunnelOf(portId2) shouldBe None
         }
     }
 }

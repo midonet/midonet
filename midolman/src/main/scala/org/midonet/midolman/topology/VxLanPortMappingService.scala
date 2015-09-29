@@ -39,22 +39,30 @@ import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.selfHealingTypeObservable
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.topology.VxLanPortMappingService.{TunnelIpAndVni, VtepInfo}
+import org.midonet.midolman.topology.VxLanPortMappingService.{TunnelInfo, TunnelIpAndVni, VtepInfo}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors.{makeAction0, makeFunc1, makeFunc2}
 
 object VxLanPortMappingService {
 
     case class TunnelIpAndVni(tunnelIp: IPv4Addr, vni: Int)
+    case class TunnelInfo(tunnelIp: IPv4Addr, tunnelZoneId: UUID, vni: Int)
     case class VtepInfo(vtep: Vtep, config: VtepConfiguration)
 
-    @volatile private var mappings = Map.empty[TunnelIpAndVni, UUID]
+    @volatile private var toPortMappings = Map.empty[TunnelIpAndVni, UUID]
+    @volatile private var toVtepMappings = Map.empty[UUID, TunnelInfo]
 
-    /** Synchronous query method to retrieve the uuid of an external vxlan port
-      * associated to the given VNI key and tunnel IP. The vni key is 24 bits
+    /** Synchronous query method to retrieve the ID of an external VXLAN port
+      * associated to the given VNI key and tunnel IP. The VNI key is 24 bits
       * and its highest byte is ignored. */
-    def uuidOf(tunnelIp: IPv4Addr, vni: Int): Option[UUID] = {
-        mappings get TunnelIpAndVni(tunnelIp, vni)
+    def portOf(tunnelIp: IPv4Addr, vni: Int): Option[UUID] = {
+        toPortMappings get TunnelIpAndVni(tunnelIp, vni)
+    }
+
+    /** Synchronous query method to retrieve the VTEP tunnel information for
+      * the specified VXLAN port identifier. */
+    def tunnelOf(portId: UUID): Option[TunnelInfo] = {
+        toVtepMappings get portId
     }
 
 }
@@ -103,6 +111,8 @@ class VxLanPortMappingService(vt: VirtualTopology)
     private def updateNetworks(vtepId: UUID, addedNetworks: Set[UUID],
                                removedNetworks: Set[UUID])
     : Unit = {
+        log.debug("Networks updated for VTEP {} added: {} removed: {}",
+                  vtepId, addedNetworks, removedNetworks)
 
         val networkIds: Set[UUID] = vteps.values.flatMap(_.networkIds)(breakOut)
         var networksChanged = false
@@ -148,10 +158,19 @@ class VxLanPortMappingService(vt: VirtualTopology)
         for (vtep <- vteps.values if !vtep.isReady) return
         for (network <- networks.values if !network.isReady) return
 
-        VxLanPortMappingService.mappings =
+        VxLanPortMappingService.toPortMappings =
             (for (network <- networks.values;
                   (portId, vtep) <- network.portsToVtep)
                 yield TunnelIpAndVni(vtep.tunnelIp, network.vni.intValue) -> portId)(breakOut)
+
+        VxLanPortMappingService.toVtepMappings =
+            (for (network <- networks.values;
+                  (portId, vtep) <- network.portsToVtep)
+                yield portId -> TunnelInfo(vtep.tunnelIp, vtep.tunnelZoneId, network.vni))(breakOut)
+
+        log.debug("Mappings updated: toPort={} toVtep={}",
+                  VxLanPortMappingService.toPortMappings,
+                  VxLanPortMappingService.toVtepMappings)
     }
 
     /**
@@ -164,14 +183,16 @@ class VxLanPortMappingService(vt: VirtualTopology)
      */
     private class VtepSubscriber(val vtepId: UUID) extends Subscriber[VtepInfo] {
 
-        /** The VTEP tunnel IP address, of `null` if not set. */
+        /** The VTEP tunnel IP address, or `null` if not set. */
         var tunnelIp: IPv4Addr = null
+        /** The VTEP tunnel zone ID, or `null` if not set. */
+        var tunnelZoneId: UUID = null
         /** The networks bound to the VTEP. */
         var networkIds = Set.empty[UUID]
 
         /** Indicates whether the VTEP subscriber has received the VTEP
           * configuration from storage. */
-        @inline def isReady = tunnelIp ne null
+        @inline def isReady = (tunnelIp ne null) && (tunnelZoneId ne null)
 
         override def onNext(vtepInfo: VtepInfo): Unit = {
             vt.assertThread()
@@ -193,6 +214,10 @@ class VxLanPortMappingService(vt: VirtualTopology)
                     }
                     tunnelIps.get(0).asIPv4Address
                 }
+            val newTunnelZoneId =
+                if (vtepInfo.vtep.hasTunnelZoneId)
+                    vtepInfo.vtep.getTunnelZoneId.asJava
+                else null
             val newNetworkIds = vtepInfo.vtep.getBindingsList.asScala
                                              .map(_.getNetworkId.asJava)
                                              .toSet
@@ -203,18 +228,22 @@ class VxLanPortMappingService(vt: VirtualTopology)
             // the corresponding VXLAN ports removed.
             val addedNetworks = newNetworkIds -- networkIds
             val removedNetworks = networkIds -- newNetworkIds
-            val tunnelIpChanged = tunnelIp != newTunnelIp
+            val vtepChanged = tunnelIp != newTunnelIp ||
+                              tunnelZoneId != newTunnelZoneId
 
             tunnelIp = newTunnelIp
+            tunnelZoneId = newTunnelZoneId
             networkIds = newNetworkIds
 
-            log.debug("VTEP {} updated: tunnelIp={} bindings={}", vtepId,
-                      tunnelIp, networkIds)
+            log.debug("VTEP {} updated: tunnelIp={} tzoneId={} bindings={}",
+                      vtepId, tunnelIp, tunnelZoneId, networkIds)
 
             if (addedNetworks.nonEmpty || removedNetworks.nonEmpty) {
                 updateNetworks(vtepId, addedNetworks, removedNetworks)
             }
-            else if (tunnelIpChanged) updateMappings()
+            else if (vtepChanged) {
+                updateMappings()
+            }
         }
 
         override def onCompleted(): Unit = {
@@ -385,6 +414,7 @@ class VxLanPortMappingService(vt: VirtualTopology)
         }
         override def onNext(vtepObservable: Observable[Vtep]): Unit = {
             vt.assertThread()
+            log.debug("New VTEP: waiting for first update")
 
             val vtep = try {
                 // This future should complete immediately, as the
@@ -403,6 +433,8 @@ class VxLanPortMappingService(vt: VirtualTopology)
             val vtepId = vtep.getId.asJava
             val vtepSubscriber = new VtepSubscriber(vtepId)
             vteps += vtepId -> vtepSubscriber
+            log.debug("New VTEP {}: subscribing to model and state updates",
+                      vtepId)
 
             // get an observable with updates on the VTEP State key - This one
             // is written by the Cluster, with the tunnel IPs configured in
@@ -423,6 +455,7 @@ class VxLanPortMappingService(vt: VirtualTopology)
     }
 
     override protected def doStart(): Unit = {
+        log info "Starting VXLAN port mapping service"
         vtepsSubscription = selfHealingTypeObservable[Vtep](store)
                                 .observeOn(vt.vtScheduler)
                                 .subscribe(vtepsObserver)
@@ -430,6 +463,7 @@ class VxLanPortMappingService(vt: VirtualTopology)
     }
 
     override protected def doStop(): Unit = {
+        log info "Stopping VXLAN port mapping service"
         vtepsSubscription.unsubscribe()
         for (vtep <- vteps.values) {
             vtep.unsubscribe()

@@ -114,7 +114,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     private def handleFromVtep(context: PacketContext): SimulationResult = {
         val srcTunIp = IPv4Addr(context.wcmatch.getTunnelSrc)
         val vni = context.wcmatch.getTunnelKey.toInt
-        val portIdOpt = VxLanPortMappingService uuidOf (srcTunIp, vni)
+        val portIdOpt = VxLanPortMappingService portOf (srcTunIp, vni)
         val simResult = if (portIdOpt.isDefined) {
             context.inputPort = portIdOpt.get
             simulatePacketIn(context)
