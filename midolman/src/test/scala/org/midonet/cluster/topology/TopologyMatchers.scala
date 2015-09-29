@@ -129,8 +129,6 @@ object TopologyMatchers {
                 bridge.infilters should contain (b.getInboundFilterId.asJava)
             if (b.hasOutboundFilterId)
                 bridge.outfilters should contain (b.getOutboundFilterId.asJava)
-            bridge.vxlanPortIds should contain theSameElementsAs
-                b.getVxlanPortIdsList.asScala.map(_.asJava)
         }
     }
 

@@ -28,7 +28,7 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 
 import org.midonet.midolman.simulation.{VxLanPort, PacketContext}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper
+import org.midonet.midolman.topology.{VxLanPortMappingService, VirtualToPhysicalMapper}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.midolman.simulation.Port
@@ -145,23 +145,36 @@ trait FlowTranslator {
      *  action for the given vtep tunnel addr and vni key. The tzId is the
      *  id of the tunnel zone specified by this VTEP's config which allows
      *  us to determine which of the host's IP we should use */
-    private def outputActionsToVtep(vni: Int, vtepIp: IPv4Addr, tzId: UUID,
-                                    context: PacketContext): Unit = {
-        context.log.debug(s"Emitting towards vtep at $vtepIp with vni $vni")
+    private def outputActionsToVtep(portId: UUID,  context: PacketContext): Unit = {
+        context.log.debug("Forwarding to VXLAN port: {}", portId)
+
+        val tunnel = VxLanPortMappingService.tunnelOf(portId) match {
+            case Some(t) =>
+                context.log.debug("VXLAN port {} has VTEP tunnel zone: {} " +
+                                  "tunnel IP: {} VNI: {}", portId, t.tunnelZoneId,
+                                  t.tunnelIp, Int.box(t.vni))
+                t
+            case None =>
+                context.log.warn("No VTEP tunnel found for VXLAN port {}: " +
+                                 "dropping packet", portId)
+                return
+        }
 
         val host = VirtualToPhysicalMapper.tryAsk(new HostRequest(hostId))
-        val tzMembership = host.tunnelZones.get(tzId)
+        val tzMembership = host.tunnelZones.get(tunnel.tunnelZoneId)
 
         if (tzMembership eq None) {
-            context.log.warn(s"Can't output to VTEP with tunnel IP: $vtepIp, host not in "
-                             + s"VTEP's tunnel zone: $tzId")
+            context.log.warn( "Cannot forward to VTEP with tunnel IP {}: host " +
+                              "not in VTEP's tunnel zone: {}", tunnel.tunnelIp,
+                              tunnel.tunnelZoneId)
             return
         }
 
         val localIp = tzMembership.get.asInstanceOf[IPv4Addr].toInt
-        val vtepIntIp = vtepIp.toInt
+        val vtepIntIp = tunnel.tunnelIp.toInt
         context.addFlowTag(FlowTagger.tagForTunnelRoute(localIp, vtepIntIp))
-        context.addFlowAndPacketAction(setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIntIp, 0)))
+        context.addFlowAndPacketAction(setKey(
+            FlowKeys.tunnel(tunnel.vni.toLong, localIp, vtepIntIp, 0)))
         context.addFlowAndPacketAction(dpState.vtepTunnellingOutputAction)
     }
 
@@ -170,13 +183,12 @@ trait FlowTranslator {
             case null => // Translate to a remote port or a vtep peer.
                 tryGet[Port](port) match {
                     case p: VxLanPort => // Always exterior
-                        outputActionsToVtep(p.vtepVni, p.vtepTunnelIp,
-                                            p.vtepTunnelZoneId, context)
+                        outputActionsToVtep(p.id, context)
                     case p: Port if p.isExterior =>
                         context.outPorts.add(port)
                         outputActionsToPeer(p.tunnelKey, p.hostId, context)
-                    case _ =>
-                        context.log.warn("Port {} was not exterior", port)
+                    case p =>
+                        context.log.warn("Port is not exterior: {}", p)
                 }
             case portNum =>
                 context.outPorts.add(port)
