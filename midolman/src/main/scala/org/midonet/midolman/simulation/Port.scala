@@ -26,8 +26,6 @@ import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, Drop, ErrorDrop, SimStep, SimulationResult}
 import org.midonet.midolman.simulation.Port.NO_MIRRORS
 import org.midonet.midolman.simulation.Simulator.{ContinueWith, SimHook, ToPortAction}
-import org.midonet.midolman.state.PortConfig
-import org.midonet.midolman.state.PortDirectory.{BridgePortConfig, RouterPortConfig, VxLanPortConfig}
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
@@ -58,16 +56,6 @@ object Port {
             routerPort(proto, infilters, outfilters)
         else
             throw new ConvertException("Unknown port type")
-    }
-
-    @Deprecated
-    def apply(config: PortConfig): Port = {
-        config match {
-            case p: BridgePortConfig => bridgePort(p)
-            case p: RouterPortConfig => routerPort(p)
-            case p: VxLanPortConfig => vxLanPort(p)
-            case _ => throw new IllegalArgumentException("Unknown port type")
-        }
     }
 
     private def bridgePort(p: Topology.Port,
@@ -115,8 +103,8 @@ object Port {
             if (p.hasPeerId) p.getPeerId else null,
             p.getAdminStateUp,
             p.getPortGroupIdsList,
-            if (p.hasVtepId) p.getVtepId else null,
             if (p.hasNetworkId) p.getNetworkId else null,
+            if (p.hasVtepId) p.getVtepId else null,
             inboundMirrors = p.getInboundMirrorsList,
             outboundMirrors = p.getOutboundMirrorsList)
 
@@ -134,32 +122,6 @@ object Port {
             if (p.hasNetworkId) p.getNetworkId else null,
             p.getInboundMirrorsList,
             p.getOutboundMirrorsList)
-
-    @Deprecated
-    private def bridgePort(p: BridgePortConfig) = new BridgePort(
-            p.id, filterListFrom(p.inboundFilter), filterListFrom(p.outboundFilter),
-            p.tunnelKey, p.peerId, p.hostId,
-            p.interfaceName, p.adminStateUp, jSetToJArrayList(p.portGroupIDs), false,
-            if (p.vlanId ne null) p.vlanId else Bridge.UntaggedVlanId,
-            p.device_id, new JArrayList[UUID](), new JArrayList[UUID]())
-
-    @Deprecated
-    private def routerPort(p: RouterPortConfig) = RouterPort(
-            p.id, filterListFrom(p.inboundFilter), filterListFrom(p.outboundFilter),
-            p.tunnelKey, p.peerId, p.hostId,
-            p.interfaceName, p.adminStateUp, jSetToJArrayList(p.portGroupIDs), false,
-            p.device_id, new IPv4Subnet(p.nwAddr, p.nwLength),
-            IPv4Addr.fromString(p.getPortAddr), p.getHwAddr, null,
-            new JArrayList[UUID](), new JArrayList[UUID]())
-
-    @Deprecated
-    private def vxLanPort(p: VxLanPortConfig) = VxLanPort(
-            p.id, filterListFrom(p.inboundFilter), filterListFrom(p.outboundFilter),
-            p.tunnelKey, p.peerId,
-            p.adminStateUp, jSetToJArrayList(p.portGroupIDs), new UUID(1, 39), p.device_id,
-            IPv4Addr.fromString(p.mgmtIpAddr), p.mgmtPort,
-            IPv4Addr.fromString(p.tunIpAddr), p.tunnelZoneId, p.vni,
-            new JArrayList[UUID](), new JArrayList[UUID]())
 
     private def filterListFrom(id: UUID): JList[UUID] = {
         val list = new JArrayList[UUID](1)
@@ -249,10 +211,6 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
         egressCommon(context, filterAndContinueOut)
     }
 
-    val egressNoFilter: SimStep = context => {
-        egressCommon(context, continueOut)
-    }
-
     private[this] val ingressDevice: SimStep = context => {
         val dev = device
         dev.continue(context, dev.process(context))
@@ -262,6 +220,9 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     protected val continueOut: SimStep = c => mirroringOutbound(c, emit)
     protected val filterAndContinueOut: SimStep = context => {
         filterOut(context, continueOut)
+    }
+    val egressNoFilter: SimStep = context => {
+        egressCommon(context, continueOut)
     }
 
     private val portIngress = ContinueWith(filterIn(_, continueIn))
@@ -450,13 +411,8 @@ case class VxLanPort(override val id: UUID,
                      override val peerId: UUID = null,
                      override val adminStateUp: Boolean = true,
                      override val portGroups: JArrayList[UUID] = new JArrayList(0),
-                     vtepId: UUID,
                      networkId: UUID,
-                     vtepMgmtIp: IPv4Addr = null,
-                     vtepMgmtPort: Int = 0,
-                     vtepTunnelIp: IPv4Addr = null,
-                     vtepTunnelZoneId: UUID = null,
-                     vtepVni: Int = 0,
+                     vtepId: UUID,
                      override val inboundMirrors: JList[UUID] = NO_MIRRORS,
                      override val outboundMirrors: JList[UUID] = NO_MIRRORS)
     extends Port {
