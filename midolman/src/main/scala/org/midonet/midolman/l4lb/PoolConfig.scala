@@ -69,7 +69,7 @@ class PoolConfig(val id: UUID,
 s"""global
         daemon
         user nobody
-        group nogroup
+        group daemon
         log /dev/log local0
         log /dev/log local1 notice
         stats socket $haproxySockFileLoc mode 0666 level user
