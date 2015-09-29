@@ -266,7 +266,7 @@ object BridgeMapper {
         }
     }
 
-    private type LocalPortState = PortState[BridgePort]
+    private type LocalPortState = PortState[Port]
     private type PeerPortState = PortState[Port]
 }
 
@@ -601,9 +601,18 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
      * Processes updates for local ports.
      */
     private def localPortUpdated(port: Port): Unit = {
-        if (!port.isInstanceOf[BridgePort]) {
-            log.error("Update for local port {} is not a bridge port", port.id)
-            return
+        port match {
+            case bridgePort: BridgePort => // Process bridge port
+            case vxlanPort: VxLanPort =>
+                if (!exteriorPorts.contains(port.id)) {
+                    log.debug("Add VXLAN port {} to exterior ports", port.id)
+                    exteriorPorts += port.id
+                }
+                return
+            case _ =>
+                log.warn("Local port {} is not a bridge or VXLAN port", port.id)
+                exteriorPorts -= port.id
+                return
         }
 
         val portState = localPorts(port.id)
@@ -781,7 +790,6 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
             inFilters,
             outFilters,
             vlanPeerBridgePortId,
-            bridge.getVxlanPortIdsList.asScala.map(_.asJava),
             flowCallbackGenerator,
             oldRouterMacPortMap,
             routerIpToMacMap.toMap,
