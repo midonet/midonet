@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,6 +102,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     private var routerPortId: UUID = null
     private var routeId: UUID = null
     private var namespaceName: String = null
+
+    val ipCommand = HealthMonitor.ipCommand
 
     override def preStart(): Unit = {
         try {
@@ -293,8 +295,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         val iptablePre = "iptables --table nat --" + op +" PREROUTING" +
             " --destination " + ip + " --jump DNAT --to-destination " +
             NameSpaceIp
-        IP.execIn(nsName, iptablePre)
-        IP.execIn(nsName, iptablePost)
+        ipCommand.execIn(nsName, iptablePre)
+        ipCommand.execIn(nsName, iptablePost)
     }
 
 
@@ -310,15 +312,18 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         val dp = name + "_dp"
         val ns = name + "_ns"
         try {
-            IP.ensureNamespace(name)
-            IP.link("add name " + dp + " type veth peer name " + ns)
-            IP.link("set " + dp + " up")
-            IP.link("set " + ns + " netns " + name)
-            IP.execIn(name, "ip link set " + ns + " address " + NameSpaceMAC)
-            IP.execIn(name, "ip link set " + ns + " up")
-            IP.execIn(name, "ip address add " + NameSpaceIp + "/30 dev " + ns)
-            IP.execIn(name, "ip link set dev lo up")
-            IP.execIn(name, "route add default gateway " + RouterIp + " " + ns)
+            ipCommand.ensureNamespace(name)
+            ipCommand.link("add name " + dp + " type veth peer name " + ns)
+            ipCommand.link("set " + dp + " up")
+            ipCommand.link("set " + ns + " netns " + name)
+            ipCommand.execIn(name, "ip link set " + ns + " address " +
+                             NameSpaceMAC)
+            ipCommand.execIn(name, "ip link set " + ns + " up")
+            ipCommand.execIn(name, "ip address add " + NameSpaceIp +
+                                   "/30 dev " + ns)
+            ipCommand.execIn(name, "ip link set dev lo up")
+            ipCommand.execIn(name, "route add default gateway " +
+                                   RouterIp + " " + ns)
         } catch {
             case e: Exception =>
                 HealthMonitor.cleanAndDeleteNamespace(name, config.nsPostFix,
@@ -350,7 +355,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         }
     }
 
-    def startHaproxy(name: String) = IP.execIn(name, haproxyCommandLine())
+    def startHaproxy(name: String) = ipCommand.execIn(name,
+                                                      haproxyCommandLine())
 
     /*
      * This will restart haproxy with the given config file.
@@ -416,9 +422,9 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             return
 
         val host = store.get(classOf[Host],
-                                     UUIDUtil.toProto(hostId)).await()
+                             UUIDUtil.toProto(hostId)).await()
         val ports = store.getAll(classOf[Port],
-                                         host.getPortIdsList).await()
+                                 host.getPortIdsList).await()
         ports.filter(_.getInterfaceName == namespaceName).foreach { p =>
             log.warn("deleting unused health monitor port " + p.getId +
                      " for pool " + config.id)
@@ -457,28 +463,24 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     }
 }
 
-object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
+class IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
 
-    val exec: String => Int =
-        ProcessHelper.executeCommandLine(_).returnValue
+    def exec(s: String) =
+        ProcessHelper.executeCommandLine(s).returnValue
 
-    val execNoErrors: String => Int =
-        ProcessHelper.executeCommandLine(_, true).returnValue
+    def execNoErrors(s: String) =
+        ProcessHelper.executeCommandLine(s, true).returnValue
 
-    val execGetOutput: String => java.util.List[String] =
-        ProcessHelper.executeCommandLine(_).consoleOutput
+    def execGetOutput(s: String) =
+        ProcessHelper.executeCommandLine(s).consoleOutput
 
-    val link: String => Int =
-        s => exec("ip link " + s)
+    def link(linkStr: String) = exec("ip link " + linkStr)
 
-    val ifaceExists: String => Int =
-        s => execNoErrors("ip link show " + s)
+    def ifaceExists(s: String) = execNoErrors("ip link show " + s)
 
-    val netns: String => Int =
-        s => exec("ip netns " + s)
+    def netns(s: String) = exec("ip netns " + s)
 
-    val netnsGetOutput: String => java.util.List[String] =
-        s => execGetOutput("ip netns " + s)
+    def netnsGetOutput(s: String) = execGetOutput("ip netns " + s)
 
     def execIn(ns: String, cmd: String): Int =
         if (ns == "") exec(cmd) else netns("exec " + ns + " " + cmd)
@@ -501,7 +503,7 @@ object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
 
     /** checks if an interface exists and deletes if it does */
     def ensureNoInterface(itf: String) =
-        if (ifaceExists(itf) == 0) IP.deleteItf(itf) else 0
+        if (ifaceExists(itf) == 0) deleteItf(itf) else 0
 
     def deleteItf(itf: String) = link(" delete " + itf)
 
