@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_37df0c3d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-29T10:00:32Z",
+      "side": 1,
+      "message": "stream",
+      "range": {
+        "startLine": 297,
+        "startChar": 30,
+        "endLine": 297,
+        "endChar": 35
+      },
+      "revId": "798cca091ee21a242b9f7bc26c4df2d8ae18aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_37b62cfb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-29T10:00:32Z",
+      "side": 1,
+      "message": "remove \u0027where both\u0027 and surround with parentheses?",
+      "range": {
+        "startLine": 340,
+        "startChar": 40,
+        "endLine": 341,
+        "endChar": 33
+      },
+      "revId": "798cca091ee21a242b9f7bc26c4df2d8ae18aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_97caa06c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-29T10:00:32Z",
+      "side": 1,
+      "message": "referencing",
+      "range": {
+        "startLine": 348,
+        "startChar": 50,
+        "endLine": 348,
+        "endChar": 62
+      },
+      "revId": "798cca091ee21a242b9f7bc26c4df2d8ae18aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d79b4870",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-29T10:00:32Z",
+      "side": 1,
+      "message": "name?",
+      "range": {
+        "startLine": 370,
+        "startChar": 86,
+        "endLine": 370,
+        "endChar": 90
+      },
+      "revId": "798cca091ee21a242b9f7bc26c4df2d8ae18aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f7892427",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-29T10:00:32Z",
+      "side": 1,
+      "message": "name?",
+      "range": {
+        "startLine": 375,
+        "startChar": 65,
+        "endLine": 375,
+        "endChar": 69
+      },
+      "revId": "798cca091ee21a242b9f7bc26c4df2d8ae18aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_178db031",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-29T10:00:32Z",
+      "side": 1,
+      "message": "exist",
+      "range": {
+        "startLine": 381,
+        "startChar": 44,
+        "endLine": 381,
+        "endChar": 50
+      },
+      "revId": "798cca091ee21a242b9f7bc26c4df2d8ae18aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_37846c0b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-29T10:00:32Z",
+      "side": 1,
+      "message": "name?",
+      "range": {
+        "startLine": 415,
+        "startChar": 86,
+        "endLine": 415,
+        "endChar": 90
+      },
+      "revId": "798cca091ee21a242b9f7bc26c4df2d8ae18aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_5787380f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-29T10:00:32Z",
+      "side": 1,
+      "message": "name?",
+      "range": {
+        "startLine": 420,
+        "startChar": 68,
+        "endLine": 420,
+        "endChar": 72
+      },
+      "revId": "798cca091ee21a242b9f7bc26c4df2d8ae18aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_777d141c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-29T10:00:32Z",
+      "side": 1,
+      "message": "name",
+      "range": {
+        "startLine": 431,
+        "startChar": 57,
+        "endLine": 431,
+        "endChar": 61
+      },
+      "revId": "798cca091ee21a242b9f7bc26c4df2d8ae18aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_9778e02c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/vtep/OvsdbVtepData.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-09-29T10:00:32Z",
+      "side": 1,
+      "message": "name",
+      "range": {
+        "startLine": 434,
+        "startChar": 57,
+        "endLine": 434,
+        "endChar": 61
+      },
+      "revId": "798cca091ee21a242b9f7bc26c4df2d8ae18aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
