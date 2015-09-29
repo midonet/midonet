@@ -29,7 +29,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Port, PortGroup, PortGroupPort}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
 @ApiResource(version = 1)
 @Path("port_groups")
@@ -38,6 +38,8 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 @AllowList(Array(APPLICATION_PORTGROUP_COLLECTION_JSON,
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_PORTGROUP_JSON,
+                   APPLICATION_JSON))
+@AllowUpdate(Array(APPLICATION_PORTGROUP_JSON,
                    APPLICATION_JSON))
 @AllowDelete
 class PortGroupResource @Inject()(resContext: ResourceContext)
@@ -59,6 +61,11 @@ class PortGroupResource @Inject()(resContext: ResourceContext)
                               portGroups filter { _.tenantId == tenantId }
                           else
                               portGroups)
+    }
+
+    protected override def updateFilter(to: PortGroup, from: PortGroup): Ops = {
+        to.update(from)
+        NoOps
     }
 
     @Path("{id}/ports")
