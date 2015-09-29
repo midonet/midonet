@@ -263,6 +263,11 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
 
     tasks.withType(JavaCompile) {
         options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        options.compilerArgs << "-XDignore.symbol.file"
+    }
+
+    tasks.withType(ScalaCompile) {
+        options.compilerArgs << "-XDignore.symbol.file"
     }
 
     configurations {
