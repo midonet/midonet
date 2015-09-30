@@ -85,15 +85,6 @@ object Bridge {
   *                   considered to be on VLAN X, Note that a vlan-unaware
   *                   bridge can only be connected to a single vlan-aware device
   *                   (thus having only a single optional value)
-  * @param vxlanPortIds uuids of optional virtual exterior ports logically
-                       connected to a virtual switch running on a vtep gateway.
-                       If defined, the UUIDs will point in the virtual topology
-                       to an exterior vport of subtype VxLanPort that
-                       contains the information needed for tunnelling traffic to
-                       the peer vtep.
-                       FIXME: at the moment (v1.5), this field instance is only
-                       needed for flooding traffic. With mac syncing, it will
-                       become unnecessary.
   * @param flowRemovedCallbackGen
   * @param macToLogicalPortId
   * @param ipToMac
@@ -109,7 +100,6 @@ class Bridge(val id: UUID,
              val infilters: JList[UUID],
              val outfilters: JList[UUID],
              val vlanPortId: Option[UUID],
-             val vxlanPortIds: Seq[UUID],
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val macToLogicalPortId: ROMap[MAC, UUID],
              val ipToMac: ROMap[IPAddr, MAC],
@@ -135,8 +125,7 @@ class Bridge(val id: UUID,
         s"Bridge [id=$id adminStateUp=$adminStateUp tunnelKey=$tunnelKey " +
         s"vlans=${vlanMacTableMap.keys} inFilterIds=$infilters " +
         s"outFilterIds=$outfilters vlanPortId=$vlanPortId " +
-        s"vxlanPortIds=$vxlanPortIds vlanToPorts=$vlanToPort " +
-        s"exteriorPorts=$exteriorPorts]"
+        s"vlanToPorts=$vlanToPort exteriorPorts=$exteriorPorts]"
 
     /*
      * Avoid generating ToPortXActions directly in the processing methods

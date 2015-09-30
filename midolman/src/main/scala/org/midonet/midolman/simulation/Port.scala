@@ -105,8 +105,8 @@ object Port {
             if (p.hasPeerId) p.getPeerId else null,
             p.getAdminStateUp,
             p.getPortGroupIdsList,
-            if (p.hasVtepId) p.getVtepId else null,
             if (p.hasNetworkId) p.getNetworkId else null,
+            if (p.hasVtepId) p.getVtepId else null,
             inboundMirrors = p.getInboundMirrorsList,
             outboundMirrors = p.getOutboundMirrorsList)
 
@@ -213,9 +213,6 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
         egressCommon(context, as, filterAndContinueOut)
     }
 
-    val egressNoFilter: SimStep = (context, as) => {
-        egressCommon(context, as, continueOut)
-    }
 
     private[this] val ingressDevice: SimStep = (context, as) => {
         val dev = device(as)
@@ -226,6 +223,9 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     protected val continueOut: SimStep = (c, as) => mirroringOutbound(c, emit, as)
     protected val filterAndContinueOut: SimStep = (context, as) => {
         filterOut(context, as, continueOut)
+    }
+    val egressNoFilter: SimStep = (context, as) => {
+        egressCommon(context, as, continueOut)
     }
 
     private val portIngress = ContinueWith((context, as) => {
@@ -418,13 +418,8 @@ case class VxLanPort(override val id: UUID,
                      override val peerId: UUID = null,
                      override val adminStateUp: Boolean = true,
                      override val portGroups: JArrayList[UUID] = new JArrayList(0),
-                     vtepId: UUID,
                      networkId: UUID,
-                     vtepMgmtIp: IPv4Addr = null,
-                     vtepMgmtPort: Int = 0,
-                     vtepTunnelIp: IPv4Addr = null,
-                     vtepTunnelZoneId: UUID = null,
-                     vtepVni: Int = 0,
+                     vtepId: UUID,
                      override val inboundMirrors: JList[UUID] = NO_MIRRORS,
                      override val outboundMirrors: JList[UUID] = NO_MIRRORS)
     extends Port {
