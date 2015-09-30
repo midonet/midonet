@@ -18,6 +18,7 @@ package org.midonet.cluster.services.rest_api
 
 import java.io.File
 import java.util
+
 import javax.servlet.DispatcherType
 import javax.validation.Validator
 
@@ -29,6 +30,7 @@ import com.google.inject.{Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
 import com.typesafe.scalalogging.Logger
+
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.http.HttpVersion._
 import org.eclipse.jetty.server._
@@ -39,7 +41,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler
 
 import org.midonet.cluster.auth.{AuthModule, AuthService}
 import org.midonet.cluster.data.storage.StateTableStorage
-import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter}
+import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter, LoginFilter}
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
 import org.midonet.cluster.services.c3po.{C3POMinion, C3POStorageManager}
@@ -102,6 +104,7 @@ object Vladimir {
                 .asEagerSingleton()
 
             filter("/*").through(classOf[CorsFilter])
+            filter("/login").through(classOf[LoginFilter])
             filter("/*").through(classOf[AuthFilter])
             filter("/*").through(classOf[AdminOnlyAuthFilter])
 
