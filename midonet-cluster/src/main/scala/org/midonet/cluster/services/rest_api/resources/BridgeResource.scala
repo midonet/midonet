@@ -75,6 +75,11 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         new BridgePeerPortResource(id, resContext)
     }
 
+    @Path("{id}/vxlan_ports")
+    def vxlanPorts(@PathParam("id") id: UUID): BridgeVxlanPortResource = {
+        new BridgeVxlanPortResource(id, resContext)
+    }
+
     @Path("{id}/dhcp")
     def dhcps(@PathParam("id") id: UUID): DhcpSubnetResource = {
         new DhcpSubnetResource(id, resContext)
