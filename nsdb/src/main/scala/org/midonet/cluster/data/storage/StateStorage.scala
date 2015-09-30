@@ -102,10 +102,11 @@ object StateStorage {
  * that object's identifier.
  *
  * Depending on the [[KeyType]] a key may support a single or multiple
- * values. It is desirable, but not a requirement that state values are
- * independent of the object's data, so that modifications to the object
- * do not affect that object's state. However, the state for the object should
- * not be available after the object has been deleted.
+ * values. The state of an object is independent from it's data and is isolated
+ * from each host. Because a new host can create state after an object has been
+ * created, the state paths are created on demand when a hosts adds a value
+ * to a state key. However, it is not possible to add a state value for an
+ * object that doesn't exist.
  *
  * For example, the state storage is used by the agent to add alive state to
  * existing hosts, which are stored separately from the host object. Since a
@@ -129,9 +130,9 @@ trait StateStorage {
     : Unit
 
     /** Adds a value to a key for the object with the specified class and
-      * identifier. The method is asynchronous, returning an observable that
-      * when subscribed to will execute the add and will emit one notification
-      * with the result of the operation.
+      * identifier to the state of the current host. The method is asynchronous,
+      * returning an observable that when subscribed to will execute the add and
+      * will emit one notification with the result of the operation.
       * @throws ServiceUnavailableException The storage is not built.
       * @throws IllegalArgumentException The key or class have not been
       * registered. */
@@ -141,40 +142,66 @@ trait StateStorage {
     : Observable[StateResult]
 
     /** Removes a value from a key for the object with the specified class and
-      * identifier. For single value keys, the `value` is ignored, and any
-      * current value is deleted. The method is asynchronous, returning an
-      * observable that when subscribed to will execute the remove and will emit
-      * one notification with the result of the operation. */
+      * identifier from the state of the current host. For single value keys,
+      * the `value` is ignored, and any current value is deleted. The method is
+      * asynchronous, returning an observable that when subscribed to will
+      * execute the remove and will emit one notification with the result of the
+      * operation. */
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
     def removeValue(clazz: Class[_], id: ObjId, key: String, value: String)
     : Observable[StateResult]
 
-    /** Gets the set of values corresponding to a state key. The method is
-      * asynchronous, returning an observable that when subscribed to will
-      * execute the get and will emit one notification with the request
-      * result. */
+    /** Gets the set of values corresponding to a state key from the state of
+      * the current host. The method is asynchronous, returning an observable
+      * that when subscribed to will execute the get and will emit one
+      * notification with the request result. */
     @throws[ServiceUnavailableException]
     def getKey(clazz: Class[_], id: ObjId, key: String): Observable[StateKey]
 
-    /** Returns an observable for a state key. Upon subscription, the observable
-      * will emit a notification with current set of values corresponding to key
-      * and thereafter an additional notification whenever the set of values has
-      * changed. The observable does not emit notifications for successful
-      * write operations, which do not modify the value set.
-      *
-      * - When the state key refers to an entity that doesn't exist at the time
-      *   of subscription to the keyObservable, it will complete.
-      *
-      * - When the state key doesn't exist, a SingleValue(_, None, _)
-      *
-      * - If the object to which the state corresponds does not exist the
-      *   keyObservable will complete.
-      *
+    /** The same as the previous `getKey`, except that this method returns
+      * the state key value for the specified host. */
+    @throws[ServiceUnavailableException]
+    def getKey(host: String, clazz: Class[_], id: ObjId, key: String)
+    : Observable[StateKey]
+
+    /** Returns an observable for a state key of the current host. Upon
+      * subscription, the observable will emit a notification with current set
+      * of values corresponding to key and thereafter an additional notification
+      * whenever the set of values has changed. The observable does not emit
+      * notifications for successful write operations, which do not modify the
+      * value set.
+      * - If the host state does not exist, the observable completes
+      *   immediately.
+      * - If the object class or object instance do not exist, the observable
+      *   completes immediately.
+      * - If a value for the state key has not been set, the observable returns
+      *   a value option equal to [[None]].
       */
     @throws[ServiceUnavailableException]
     def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey]
+
+    /** The same as the previous `keyObservable` method, except that this method
+      * returns an observable for the state of the specified host.*/
+    @throws[ServiceUnavailableException]
+    def keyObservable(host: String, clazz: Class[_], id: ObjId, key: String)
+    : Observable[StateKey]
+
+    /** The same as the previous `keyObservable` method, except that this method
+      * returns an observable for the state of the last host identifier emitted
+      * by the input `host` observable.
+      *
+      * The output observable will not emit a notification until the input
+      * observable emits at least one host identifier. If the specified host
+      * state does not exist, the observable emits [[None]] as key value.
+      * Therefore, the input observable can emit a non-existing host identifier
+      * such as `null` to stop receiving updates from the last emitted host
+      * state.
+      */
+    @throws[ServiceUnavailableException]
+    def keyObservable(host: Observable[String], clazz: Class[_], id: ObjId,
+                      key: String): Observable[StateKey]
 
     /** Returns a number uniquely identifying the current owner.  Note that
       * this value has nothing to do with the node ID.

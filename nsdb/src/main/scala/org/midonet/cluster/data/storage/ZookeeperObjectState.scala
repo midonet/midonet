@@ -155,6 +155,8 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
     private def statePath(version: Long) = s"$rootPath/$version/state"
 
+    protected def hostId: String
+
     protected def rootPath: String
 
     protected def curator: CuratorFramework
@@ -300,6 +302,11 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         }
     }
 
+    override def getKey(host: String, clazz: Class[_], id: ObjId, key: String)
+    : Observable[StateKey] = {
+        ???
+    }
+
     /**
      * Returns an observable that emits change notifications for the specified
      * object and state key. The observable will emit an `onNext` notification
@@ -317,6 +324,16 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         } else {
             multiObservable(index, ver)
         }
+    }
+
+    override def keyObservable(host: String, clazz: Class[_], id: ObjId,
+                               key: String): Observable[StateKey] = {
+        ???
+    }
+
+    override def keyObservable(host: Observable[String], clazz: Class[_],
+                               id: ObjId, key: String): Observable[StateKey] = {
+        ???
     }
 
     /**

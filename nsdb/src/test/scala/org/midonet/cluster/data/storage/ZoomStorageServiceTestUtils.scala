@@ -145,7 +145,7 @@ trait ZoomStorageTester extends StorageTester
     override def registerClass(c: Class[_]): Unit = zoom.registerClass(c)
 
     override protected def setup(): Unit = {
-        zoom = new ZookeeperObjectMapper(ZK_ROOT, curator)
+        zoom = new ZookeeperObjectMapper(zkRoot, "host", curator)
         registerClasses(deviceClasses, bindings)
         zoom.build()
     }
