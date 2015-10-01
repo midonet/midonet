@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_03ee4d22",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 1
+      },
+      "lineNbr": 1352,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-01T09:41:35Z",
+      "side": 1,
+      "message": "mmm, can FieldType.dereference hide this and base the decision in the SingleAttr\u0027s \"has_inv()\" method?",
+      "revId": "68d4e82610c28eb9910ddee40628e418920ad505",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
