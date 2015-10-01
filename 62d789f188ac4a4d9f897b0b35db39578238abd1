@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_43ecd5c7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-01T11:52:12Z",
+      "side": 1,
+      "message": "because they are garbage-free and fast, unlike scala collections",
+      "parentUuid": "1ae5cdf2_a3f2f9cf",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 52
+      },
+      "revId": "62d789f188ac4a4d9f897b0b35db39578238abd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_23dfc93c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2015-10-01T11:38:46Z",
       "side": 1,
       "message": "Why not use this\u0027s intrinsic lock?",
+      "range": {
+        "startLine": 75,
+        "startChar": 4,
+        "endLine": 75,
+        "endChar": 33
+      },
+      "revId": "62d789f188ac4a4d9f897b0b35db39578238abd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_63d2b101",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-01T11:52:12Z",
+      "side": 1,
+      "message": "might be locked from the outside; with an internal lock, you have precise control over it. i guess there is no harm in this case since we know what we\u0027re doing, but this is how i write this stuff by default.",
+      "parentUuid": "1ae5cdf2_23dfc93c",
       "range": {
         "startLine": 75,
         "startChar": 4,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_c3d705ec",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-01T11:52:12Z",
+      "side": 1,
+      "message": "i don\u0027t think collection exposes a get(index) method, which i need to iterate without allocating an iterator",
+      "parentUuid": "1ae5cdf2_43b935e8",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 5
+      },
+      "revId": "62d789f188ac4a4d9f897b0b35db39578238abd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_e3bb21e3",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2015-10-01T11:38:46Z",
       "side": 1,
       "message": "Why not use a ConcurrentHashMap or TrieMap?\n\nOr if there\u0027s some reason that won\u0027t work, wouldn\u0027t Scala\u0027s immutable map be much better? I don\u0027t know the details, but my understanding is that it allows you to create a copy of a map with an added or deleted element without cloning the whole thing.",
+      "range": {
+        "startLine": 101,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 23
+      },
+      "revId": "62d789f188ac4a4d9f897b0b35db39578238abd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_0309ed94",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-01T11:52:12Z",
+      "side": 1,
+      "message": "I can change that. At the beginning I thought I was going to use the lookup method, so I didn\u0027t want any of the Scala crap that allocates en Option. Indeed, the lookup method is returning an option.\n\nI didn\u0027t make it a ConcurrentHashMap for similar reasons: reading a hash map from a volatile variable is cheaper than doing a lookup in a ConcurrentHashMap, so this is a good tradeoff since updates are expected to be rare.",
+      "parentUuid": "1ae5cdf2_e3bb21e3",
       "range": {
         "startLine": 101,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_2300a966",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-01T11:52:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_63cf1180",
+      "range": {
+        "startLine": 109,
+        "startChar": 45,
+        "endLine": 109,
+        "endChar": 46
+      },
+      "revId": "62d789f188ac4a4d9f897b0b35db39578238abd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_c3a9c57c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
         "patchSetId": 7
@@ -128,6 +248,30 @@
       "writtenOn": "2015-10-01T11:38:46Z",
       "side": 1,
       "message": "What happens to these subscriptions? It looks like this just throws away the reference, so we can\u0027t unsubscribe. Is that okay?",
+      "range": {
+        "startLine": 192,
+        "startChar": 28,
+        "endLine": 192,
+        "endChar": 62
+      },
+      "revId": "62d789f188ac4a4d9f897b0b35db39578238abd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_63f9d17f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-01T11:52:12Z",
+      "side": 1,
+      "message": "I\u0027m not sure. I thought the subscription would be freed when the observable terminates?",
+      "parentUuid": "1ae5cdf2_c3a9c57c",
       "range": {
         "startLine": 192,
         "startChar": 28,
