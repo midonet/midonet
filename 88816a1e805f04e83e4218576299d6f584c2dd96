@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_033c8d92",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/RoutingTableStorage.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T12:13:49Z",
+      "side": 1,
+      "message": "hosts",
+      "range": {
+        "startLine": 193,
+        "startChar": 36,
+        "endLine": 193,
+        "endChar": 40
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_63739180",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T12:13:49Z",
+      "side": 1,
+      "message": "This hostId cannot be null? Should it be hostId.asNullableString?",
+      "range": {
+        "startLine": 158,
+        "startChar": 40,
+        "endLine": 158,
+        "endChar": 46
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a3ae7983",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T12:13:49Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 313,
+        "startChar": 58,
+        "endLine": 313,
+        "endChar": 61
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_e3b7a1d6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TraceRequestMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T12:13:49Z",
+      "side": 1,
+      "message": "I don\u0027t understand this change.",
+      "range": {
+        "startLine": 180,
+        "startChar": 57,
+        "endLine": 180,
+        "endChar": 58
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_4303f572",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T12:13:49Z",
+      "side": 1,
+      "message": "I saw in Midonetbackend that if true, this means the backend uses a unique host id. In which circumstance would we use multiple host ids?",
+      "range": {
+        "startLine": 79,
+        "startChar": 19,
+        "endLine": 79,
+        "endChar": 28
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_230ee98d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T12:13:49Z",
+      "side": 1,
+      "message": "In which scenario would we use multiple host ids?",
+      "range": {
+        "startLine": 41,
+        "startChar": 11,
+        "endLine": 41,
+        "endChar": 66
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
