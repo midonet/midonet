@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_03bf2dd1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HaproxyTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-01T10:52:36Z",
+      "side": 1,
+      "message": "I think some of these methods are already in TopologyBuilder (you\u0027ll need to mix it in)",
+      "revId": "45de333f2b0d4201ba2751377df39a9312f992ea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
