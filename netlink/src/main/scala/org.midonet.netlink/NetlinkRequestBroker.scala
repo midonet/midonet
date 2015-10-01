@@ -256,7 +256,6 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
                 start += size
                 readBuf.position(start)
             }
-            advanceReadSeqAndCheckTimeouts()
             nbytes
         } catch { case e: NetlinkException =>
             val pos = readBuf.getInt(NetlinkMessage.NLMSG_SEQ_OFFSET)
@@ -265,6 +264,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
             obs.onError(e)
             0
         } finally {
+            advanceReadSeqAndCheckTimeouts()
             readBuf.clear()
         }
     }
