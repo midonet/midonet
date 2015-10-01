@@ -15,11 +15,15 @@ This documentation describes its implementation details.
                     |    Datapath<----------> "metadata" port
                     |        ^                        ^ 169.254.169.254:9697
                     |        |                        |
-    LocalPortActive |        v                        |
-                    |    PacketWorkFlow----+          |
-                    |                      |          |
-                    |                      |          |
               +--------------------------------------------------------+
+              |     |        |                        |                |
+              |     |        v                        |                |
+              |     |    PacketWorkFlow----+          |                |
+              |     |                      |          |                |
+              |     |                      |          |                |
+              | DatapathPortEntangler      |          |                |
+              |     |                      |          |                |
+              |     |LocalPortActive       |          |                |
               |     |                      |          |                |
               |  +--v-------------------+  | +--------+-------------+  |
               |  |MetadataServiceManager|  | | Metadata Proxy       |  |
