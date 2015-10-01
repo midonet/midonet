@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_009ac313",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T09:49:25Z",
+      "side": 1,
+      "message": "Are there any reasons why so of the maps are TrieMaps and others ConcurrentHashMaps?",
+      "range": {
+        "startLine": 602,
+        "startChar": 8,
+        "endLine": 602,
+        "endChar": 15
+      },
+      "revId": "9dc3b606fccfbe2f4151e84aed4596c972b7de7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_c3b54532",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 652,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T09:49:25Z",
+      "side": 1,
+      "message": "an empty set?",
+      "range": {
+        "startLine": 652,
+        "startChar": 66,
+        "endLine": 652,
+        "endChar": 70
+      },
+      "revId": "9dc3b606fccfbe2f4151e84aed4596c972b7de7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_63de316f",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 925,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T09:49:25Z",
+      "side": 1,
+      "message": "We add a value not in a namespace? Or is it the case that the default one is the 1st namespace?",
+      "range": {
+        "startLine": 925,
+        "startChar": 18,
+        "endLine": 925,
+        "endChar": 50
+      },
+      "revId": "9dc3b606fccfbe2f4151e84aed4596c972b7de7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_83d97d85",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 939,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T09:49:25Z",
+      "side": 1,
+      "message": "Why is this needed, it was done above already?",
+      "range": {
+        "startLine": 939,
+        "startChar": 12,
+        "endLine": 939,
+        "endChar": 41
+      },
+      "revId": "9dc3b606fccfbe2f4151e84aed4596c972b7de7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_23cc29bc",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 944,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-01T09:49:25Z",
+      "side": 1,
+      "message": "Does this happen because the default namespace is the 1st namespace?",
+      "range": {
+        "startLine": 943,
+        "startChar": 12,
+        "endLine": 944,
+        "endChar": 51
+      },
+      "revId": "9dc3b606fccfbe2f4151e84aed4596c972b7de7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
