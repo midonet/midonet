@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_c0ee1bb4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-01T07:36:50Z",
+      "side": 1,
+      "message": "I don\u0027t think routers can have security groups. In Neutron, VMs are assigned to security groups, and in Midonet that\u0027s translated to rules on those ports\u0027 chains.",
+      "parentUuid": "1ae5cdf2_c0c0db2c",
+      "range": {
+        "startLine": 76,
+        "startChar": 8,
+        "endLine": 79,
+        "endChar": 37
+      },
+      "revId": "5fe0d9a15d3787f2afffe366f6de5f3deefa93ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_fd9ca3c2",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 3
