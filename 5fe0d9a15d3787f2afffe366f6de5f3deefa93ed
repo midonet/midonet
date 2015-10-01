@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_e0907745",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-01T06:19:51Z",
+      "side": 1,
+      "message": "Chains don\u0027t exist in the Neutron model. They\u0027re an internal Midonet concept that we use to implement things like NAT, security groups, and other things. So there\u0027s no Neutron operation that would translate to changing the inboundFilterId or outboundFilterId.",
+      "parentUuid": "1ae5cdf2_dd5e0712",
+      "range": {
+        "startLine": 76,
+        "startChar": 8,
+        "endLine": 79,
+        "endChar": 37
+      },
+      "revId": "5fe0d9a15d3787f2afffe366f6de5f3deefa93ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_fd9ca3c2",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-09-29T17:01:40Z",
       "side": 1,
       "message": "So this used only for create then, is that right?",
+      "range": {
+        "startLine": 86,
+        "startChar": 16,
+        "endLine": 86,
+        "endChar": 25
+      },
+      "revId": "5fe0d9a15d3787f2afffe366f6de5f3deefa93ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_008d6331",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-01T06:19:51Z",
+      "side": 1,
+      "message": "Yes, that\u0027s true now.",
+      "parentUuid": "1ae5cdf2_fd9ca3c2",
       "range": {
         "startLine": 86,
         "startChar": 16,
