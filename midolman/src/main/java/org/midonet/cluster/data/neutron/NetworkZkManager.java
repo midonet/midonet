@@ -231,8 +231,11 @@ public class NetworkZkManager extends BaseZkManager {
             // set when converting from a neutron Subnet (ie. fields that are
             // populated when creating a dhcp port rather than the subnet
             // itself)
-            config.setOpt121Routes(oldConfig.getOpt121Routes());
             config.setServerAddr(oldConfig.getServerAddr());
+            if (config.getServerAddr() != null) {
+                config.addOpt121Route(MetaDataService.IPv4_ADDRESS,
+                                      config.getServerAddr().toString());
+            }
             config.setDefaultGateway((IPv4Addr) subnet.gatewayIpAddr());
             dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, config);
         } else if (subnet.isIpv6()) {
