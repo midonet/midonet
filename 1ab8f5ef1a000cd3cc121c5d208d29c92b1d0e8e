@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_80f5f3cc",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-01T04:12:06Z",
+      "side": 1,
+      "message": "\u0027configure and enable\u0027 could be shortened to \u0027enable\u0027 as mn-conf implies configuration changes.",
+      "revId": "1ab8f5ef1a000cd3cc121c5d208d29c92b1d0e8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a004afc0",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-01T04:12:06Z",
+      "side": 1,
+      "message": "settings",
+      "revId": "1ab8f5ef1a000cd3cc121c5d208d29c92b1d0e8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_205a5ff3",
+        "filename": "docs/openstack-metadata-usage.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-01T04:12:06Z",
+      "side": 1,
+      "message": "midolman is (re-)started",
+      "revId": "1ab8f5ef1a000cd3cc121c5d208d29c92b1d0e8e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
