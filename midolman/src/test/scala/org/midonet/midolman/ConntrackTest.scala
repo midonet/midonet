@@ -43,16 +43,13 @@ class ConntrackTest extends MidolmanSpec {
     var clusterBridge: UUID = null
 
     private def buildTopology() {
-        val host = newHost("myself", hostId)
-        host should not be null
-
         clusterBridge = newBridge("bridge")
         clusterBridge should not be null
 
         leftPort = newBridgePort(clusterBridge)
-        materializePort(leftPort, host, "left")
+        materializePort(leftPort, hostId, "left")
         rightPort = newBridgePort(clusterBridge)
-        materializePort(rightPort, host, "right")
+        materializePort(rightPort, hostId, "right")
 
         val brChain = newInboundChainOnBridge("brChain", clusterBridge)
 

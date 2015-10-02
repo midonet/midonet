@@ -73,7 +73,6 @@ class IPFragmentationTest extends MidolmanSpec {
 
     def setup(useRouter: Boolean = false) {
         this.useRouter = useRouter
-        newHost("myself", hostId)
 
         if (useRouter) {
             router = newRouter("router1")

@@ -133,6 +133,4 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
             .getConfig("midolman")
             .withValue("akka.scheduler.implementation",
                        ConfigValueFactory.fromAnyRef(classOf[MockScheduler].getName)))
-
-    override def initProcessing() { }
 }

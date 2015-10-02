@@ -20,7 +20,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.DatapathController.Initialize
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
@@ -41,7 +40,6 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
     val ifname = "eth0"
     val ifmtu = 1000
     val ip = IPv4Addr("1.1.1.1")
-    var host: UUID = null
     var clusterBridge: UUID = null
     var connManager: MockUpcallDatapathConnectionManager = null
     var interfaceScanner: MockInterfaceScanner = null
@@ -64,7 +62,6 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
         testableDpc = DatapathController.as[DatapathController]
         testableDpc should not be null
         buildTopology()
-        DatapathController ! Initialize
 
         connManager =
             injector.getInstance(classOf[UpcallDatapathConnectionManager]).
@@ -88,12 +85,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
     private def buildTopology() {
         val zone = greTunnelZone("twilight-zone")
 
-        host = newHost("myself",
-            injector.getInstance(classOf[HostIdProviderService]).hostId,
-            Set(zone))
-        host should not be null
-
-        addTunnelZoneMember(zone, host, ip)
+        addTunnelZoneMember(zone, hostId, ip)
 
         clusterBridge = newBridge("bridge")
         clusterBridge should not be null
@@ -114,7 +106,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
     feature("DatapathController manages ports") {
         scenario("Ports are created and removed based on interface status") {
             When("a port binding exists")
-            val port = addAndMaterializeBridgePort(host, clusterBridge, ifname)
+            val port = addAndMaterializeBridgePort(hostId, clusterBridge, ifname)
 
             And("its network interface becomes active")
             VirtualToPhysicalMapper.getAndClear()
@@ -154,7 +146,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
 
             When("and a port binding is created")
             VirtualToPhysicalMapper.getAndClear()
-            val port = addAndMaterializeBridgePort(host, clusterBridge, ifname)
+            val port = addAndMaterializeBridgePort(hostId, clusterBridge, ifname)
 
             Then("the DpC should create the datapath port")
             testableDpc.driver.getDpPortNumberForVport(port) should not equal None
@@ -165,7 +157,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
 
             When("the binding disappears")
             VirtualToPhysicalMapper.getAndClear()
-            deletePort(port, host)
+            deletePort(port, hostId)
 
             Then("the DpC should delete the datapath port")
             testableDpc.driver.getDpPortNumberForVport(port) should be (null)

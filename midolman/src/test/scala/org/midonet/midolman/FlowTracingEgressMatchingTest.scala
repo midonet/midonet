@@ -96,7 +96,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     private val packetCtxTrapEgress = new LinkedList[PacketContext]
 
     override def beforeTest(): Unit = {
-        ingressHost = newHost("ingressHost", hostId)
+        ingressHost = hostId
         egressHost = newHost("egressHost")
 
         router = newRouter("router")

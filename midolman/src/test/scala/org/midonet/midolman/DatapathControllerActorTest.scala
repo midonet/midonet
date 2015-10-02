@@ -99,7 +99,6 @@ class DatapathControllerActorTest extends MidolmanSpec {
 
     protected override def beforeTest() = {
         dpc = DatapathController.as[TestableDpC]
-        newHost("host1", hostId)
     }
 
     scenario("The default MTU should be retrieved from the config file") {
@@ -163,7 +162,6 @@ class DatapathControllerActorTest extends MidolmanSpec {
     }
 
     private def initialize(): Unit = {
-        DatapathController ! Initialize
         while (scheduler.pop exists { r => r.run(); true }) { }
         DatapathController.getAndClear()
     }

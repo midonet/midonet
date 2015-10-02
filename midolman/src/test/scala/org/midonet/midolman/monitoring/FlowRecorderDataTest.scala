@@ -36,7 +36,7 @@ class FlowRecorderDataTest extends MidolmanSpec {
     feature("simulation devices") {
         scenario("expected tags, and only expected tag, show up") {
             val tunnelZone = greTunnelZone("tzone0")
-            val host1 = newHost("host1", hostId)
+            val host1 = hostId
             val host2 = newHost("host2")
 
             val bridge = newBridge("bridge0")

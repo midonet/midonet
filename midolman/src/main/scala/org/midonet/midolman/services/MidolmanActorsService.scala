@@ -176,9 +176,4 @@ class MidolmanActorsService extends AbstractService {
     protected def createActorSystem(): ActorSystem =
         ActorSystem.create("midolman", ConfigFactory.load()
                 .getConfig("midolman"))
-
-    def initProcessing() {
-        log.debug("Sending Initialization message to datapath controller.")
-        DatapathController ! DatapathController.initializeMsg
-    }
 }

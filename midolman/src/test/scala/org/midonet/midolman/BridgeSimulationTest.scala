@@ -54,7 +54,7 @@ class BridgeSimulationTest extends MidolmanSpec {
     override def beforeTest(): Unit ={
         val tunnelZone = greTunnelZone("default")
 
-        val host1 = newHost("host1", hostId)
+        val host1 = hostId
         val host2 = newHost("host2")
         val host3 = newHost("host3")
 

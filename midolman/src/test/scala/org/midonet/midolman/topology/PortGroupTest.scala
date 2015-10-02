@@ -45,7 +45,6 @@ class PortGroupTest extends MidolmanSpec
     }
 
     override def beforeTest() {
-        newHost("myself", hostId)
         val router = newRouter("router0")
         port1 = randomPort(router)
         port2 = randomPort(router)
