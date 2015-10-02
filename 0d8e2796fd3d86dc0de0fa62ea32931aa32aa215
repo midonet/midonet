@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d94b7285",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-02T04:36:28Z",
+      "side": 1,
+      "message": "Perhaps it\u0027d be a bit easier to understand if this part explicitly says \"bindPortOps\" that may overwrite route IDs in the port.",
+      "range": {
+        "startLine": 113,
+        "startChar": 61,
+        "endLine": 113,
+        "endChar": 78
+      },
+      "revId": "0d8e2796fd3d86dc0de0fa62ea32931aa32aa215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f94e6e95",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterTranslatorIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-02T04:36:28Z",
+      "side": 1,
+      "message": "The assertion below would automatically test this, so this assertion may be unnecessary.",
+      "range": {
+        "startLine": 403,
+        "startChar": 12,
+        "endLine": 403,
+        "endChar": 44
+      },
+      "revId": "0d8e2796fd3d86dc0de0fa62ea32931aa32aa215",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
