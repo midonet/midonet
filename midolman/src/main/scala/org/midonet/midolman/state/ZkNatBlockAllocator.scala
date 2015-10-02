@@ -103,9 +103,8 @@ class ZkNatBlockAllocator @Inject()(
         val startBlock = natRange.tpPortStart / NatBlock.BLOCK_SIZE
         val endBlock = natRange.tpPortEnd / NatBlock.BLOCK_SIZE
         val blocks = (startBlock to endBlock).toIndexedSeq
-        Future.traverse(blocks map {
-            blockPath(natRange.deviceId, natRange.ip, _)
-        })(fetchOrCreateBlock) flatMap { results =>
+        val blockPaths = blocks map (blockPath(natRange.deviceId, natRange.ip, _))
+        Future.traverse(blockPaths)(fetchOrCreateBlock) flatMap { results =>
             val block = chooseBlock(results, blocks)
             if (block >= 0) {
                 claimBlock(block, natRange)
@@ -133,17 +132,16 @@ class ZkNatBlockAllocator @Inject()(
         var lruBlockZxid = Long.MaxValue
         var i = 0
         while (i < results.size) {
-            val block = blocks(i)
             val stat = results(i).getStat
             if (stat.getNumChildren == 0) {
                 // Pzxid is the (undocumented) zxid of the last modified child
                 // and Czxid is the zxid at node creation time
                 val pzxid = stat.getPzxid
                 if (pzxid == stat.getCzxid) {
-                    virginBlocks.add(block)
+                    virginBlocks.add(blocks(i))
                 } else if (pzxid < lruBlockZxid) {
                     lruBlockZxid = pzxid
-                    lruBlock = block
+                    lruBlock = blocks(i)
                 }
             }
             i += 1
@@ -168,7 +166,10 @@ class ZkNatBlockAllocator @Inject()(
                   .creatingParentsIfNeeded()
                   .inBackground(backgroundCallbackToFuture, createPromise, executor)
                   .forPath(path)
-                createPromise.future flatMap { _ => fetchOrCreateBlock(path) }
+                createPromise.future flatMap { _ =>
+                    // Fetch the ZK stat of the created block
+                    fetchOrCreateBlock(path)
+                }
         }
     }
 
