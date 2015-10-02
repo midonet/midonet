@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_34b8dd75",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-02T11:19:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_b41b0d1a",
+      "range": {
+        "startLine": 106,
+        "startChar": 24,
+        "endLine": 108,
+        "endChar": 9
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_14a681c1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
         "patchSetId": 3
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_54bba971",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-02T11:19:05Z",
+      "side": 1,
+      "message": "It\u0027s all in the documentation :)",
+      "parentUuid": "1ae5cdf2_14a681c1",
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_34ad3d9d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
         "patchSetId": 3
@@ -53,6 +95,30 @@
       "writtenOn": "2015-10-02T10:52:38Z",
       "side": 1,
       "message": "This can be moved into the if block. Or just inlined, since it\u0027s a very short expression used in only two places.",
+      "range": {
+        "startLine": 136,
+        "startChar": 12,
+        "endLine": 136,
+        "endChar": 33
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_74b1858e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-02T11:19:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_34ad3d9d",
       "range": {
         "startLine": 136,
         "startChar": 12,
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_94ac5137",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-02T11:19:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_943611e6",
+      "range": {
+        "startLine": 171,
+        "startChar": 37,
+        "endLine": 171,
+        "endChar": 78
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_7440a5a5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
         "patchSetId": 3
@@ -99,6 +189,30 @@
       "writtenOn": "2015-10-02T10:52:38Z",
       "side": 1,
       "message": "Should document what the int means.",
+      "range": {
+        "startLine": 68,
+        "startChar": 19,
+        "endLine": 68,
+        "endChar": 30
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b4ab0d1c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-02T11:19:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_7440a5a5",
       "range": {
         "startLine": 68,
         "startChar": 19,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_d4a6d952",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-02T11:19:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_14092195",
+      "range": {
+        "startLine": 70,
+        "startChar": 11,
+        "endLine": 70,
+        "endChar": 22
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_f405957a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
         "patchSetId": 3
@@ -145,6 +283,30 @@
       "writtenOn": "2015-10-02T09:44:27Z",
       "side": 1,
       "message": "shuffle",
+      "range": {
+        "startLine": 120,
+        "startChar": 25,
+        "endLine": 120,
+        "endChar": 42
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f464b523",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-02T11:19:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_f405957a",
       "range": {
         "startLine": 120,
         "startChar": 25,
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_146841f4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-02T11:19:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_d4d7b9eb",
+      "range": {
+        "startLine": 149,
+        "startChar": 35,
+        "endLine": 149,
+        "endChar": 52
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_b4dced13",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
         "patchSetId": 3
@@ -191,6 +377,30 @@
       "writtenOn": "2015-10-02T09:44:27Z",
       "side": 1,
       "message": "I\u0027d put a Collections.shuffle around this, so that in the case that there\u0027s every a problematic element, other elements will eventually get cleaned up.",
+      "range": {
+        "startLine": 164,
+        "startChar": 21,
+        "endLine": 164,
+        "endChar": 35
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_346ffdfe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-02T11:19:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_b4dced13",
       "range": {
         "startLine": 164,
         "startChar": 21,
