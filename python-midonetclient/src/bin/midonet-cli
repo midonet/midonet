@@ -1126,12 +1126,18 @@ class FieldType():
 
     def dereference(self):
         if isinstance(self._type, ObjectRef):
-            ret = self._type.dereference(self.value)
-            return ret
-        else:
-            return self
+            v = self.value
+            if self._spec.has_inv() and (v.startswith("!")):
+                v = v.lstrip('!')
+            return self._type.dereference(v)
 
     def describe(self):
+        deref = self.dereference()
+        if isinstance(deref, ObjectType):
+            v = ":".join(aliases.add(deref))
+            if self._spec.has_inv() and (self.value.startswith("!")):
+                v = "!%s" % (v)
+            return v
         return self.value
 
 class ObjectType(object):
@@ -1302,13 +1308,13 @@ class ObjectType(object):
             return None
 
         spec = self.attrs()[field_name]
-        return FieldType(field_name, spec, val).dereference()
+        return FieldType(field_name, spec, val)
 
     def _value_to_str(self, value):
         if isinstance(value, ObjectType):
             return ":".join(aliases.add(value))
         else:
-            return value.value
+            return value.describe()
 
     def describe(self):
         flist = filter(lambda f: self.attrs()[f].show, self.fields())
