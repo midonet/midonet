@@ -20,7 +20,6 @@ import java.util.UUID
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.BGPListBuilder
 import org.midonet.cluster.data.{AdRoute, BGP}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.packets.{IPv4Addr, IPv4Subnet}
@@ -28,7 +27,7 @@ import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor, Network}
 
 class BgpModelTranslator(var portId: UUID,
                          val config: MidolmanConfig,
-                         val subscriber: (BgpRouter, Set[UUID]) => Unit) extends BGPListBuilder {
+                         val subscriber: (BgpRouter, Set[UUID]) => Unit) {
 
     val log = Logger(LoggerFactory.getLogger(s"org.midonet.routing.bgp-translator"))
 
@@ -47,7 +46,7 @@ class BgpModelTranslator(var portId: UUID,
         }
     }
 
-    override def addBGP(bgp: BGP): Unit = publish(_addBGP(bgp, router))
+    def addBGP(bgp: BGP): Unit = publish(_addBGP(bgp, router))
 
     private def updateAs(updateOn: BgpRouter, newAs: Int)(f: (BgpRouter) => BgpRouter): BgpRouter = {
         if (updateOn.as == NO_AS) {
@@ -86,13 +85,13 @@ class BgpModelTranslator(var portId: UUID,
         }
     }
 
-    override def updateBGP(bgp: BGP): Unit = publish(_updateBGP(bgp, router))
+    def updateBGP(bgp: BGP): Unit = publish(_updateBGP(bgp, router))
 
     protected def _updateBGP(bgp: BGP, _addTo: BgpRouter): BgpRouter = {
         _addBGP(bgp, _removeBGP(bgp.getId, _addTo))
     }
 
-    override def removeBGP(bgpID: UUID): Unit = publish(_removeBGP(bgpID, router))
+    def removeBGP(bgpID: UUID): Unit = publish(_removeBGP(bgpID, router))
 
     protected def _removeBGP(bgpID: UUID, _removeFrom: BgpRouter): BgpRouter = {
         var removeFrom = _removeFrom
@@ -110,7 +109,7 @@ class BgpModelTranslator(var portId: UUID,
         removeFrom
     }
 
-    override def addAdvertisedRoute(route: AdRoute): Unit = {
+    def addAdvertisedRoute(route: AdRoute): Unit = {
         val cidr = IPv4Subnet.fromCidr(s"${route.getNwPrefix.getHostAddress}/${route.getPrefixLength}")
         localNetworks += route.getId -> cidr
         val net = Network(cidr)
@@ -119,7 +118,7 @@ class BgpModelTranslator(var portId: UUID,
         }
     }
 
-    override def removeAdvertisedRoute(route: AdRoute) {
+    def removeAdvertisedRoute(route: AdRoute) {
         if (localNetworks.contains(route.getId)) {
             val cidr = IPv4Subnet.fromCidr(s"${route.getNwPrefix.getHostAddress}/${route.getPrefixLength}")
 
