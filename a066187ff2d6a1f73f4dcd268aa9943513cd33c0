@@ -2,6 +2,115 @@
   "comments": [
     {
       "key": {
+        "uuid": "1ae5cdf2_b41b0d1a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-02T10:52:38Z",
+      "side": 1,
+      "message": "IMO it would be a bit clearer if this were lifted out:\n\n  val blockPaths \u003d blocks map { blockPath(natRange.deviceId, natRange.ip, _) }\n  Future.traverse(blockPaths)(fetchOrCreateBlock) flatMap { ... }",
+      "range": {
+        "startLine": 106,
+        "startChar": 24,
+        "endLine": 108,
+        "endChar": 9
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_14a681c1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-02T10:52:38Z",
+      "side": 1,
+      "message": "Could you elaborate on why we choose the LRU block?",
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_34ad3d9d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-02T10:52:38Z",
+      "side": 1,
+      "message": "This can be moved into the if block. Or just inlined, since it\u0027s a very short expression used in only two places.",
+      "range": {
+        "startLine": 136,
+        "startChar": 12,
+        "endLine": 136,
+        "endChar": 33
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_943611e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockAllocator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-02T10:52:38Z",
+      "side": 1,
+      "message": "I would add a comment here explaining that you need to do the get in order to get the ZK stat object so you can get the zxid. It took me a while to figure out why you were fetching a node you just wrote.",
+      "range": {
+        "startLine": 171,
+        "startChar": 37,
+        "endLine": 171,
+        "endChar": 78
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_7440a5a5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-02T10:52:38Z",
+      "side": 1,
+      "message": "Should document what the int means.",
+      "range": {
+        "startLine": 68,
+        "startChar": 19,
+        "endLine": 68,
+        "endChar": 30
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_14092195",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
         "patchSetId": 3
