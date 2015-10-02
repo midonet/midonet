@@ -1139,12 +1139,20 @@ class FieldType():
 
     def dereference(self):
         if isinstance(self._type, ObjectRef):
-            ret = self._type.dereference(self.value)
-            return ret
+            v = self.value
+            if self._spec.has_inv() and (v.startswith("!")):
+                v = v.lstrip('!')
+            return self._type.dereference(v)
         else:
             return self
 
     def describe(self):
+        deref = self.dereference()
+        if isinstance(deref, ObjectType):
+            v = ":".join(aliases.add(deref))
+            if self._spec.has_inv() and (self.value.startswith("!")):
+                v = "!%s" % (v)
+            return v
         return self.value
 
 class ObjectType(object):
@@ -1343,13 +1351,13 @@ class ObjectType(object):
             return None
 
         spec = self.attrs()[field_name]
-        return FieldType(field_name, spec, val).dereference()
+        return FieldType(field_name, spec, val)
 
     def _value_to_str(self, value):
         if isinstance(value, ObjectType):
             return ":".join(aliases.add(value))
         else:
-            return value.value
+            return value.describe()
 
     def describe(self):
         flist = filter(lambda f: self.attrs()[f].show, self.fields())
@@ -1427,7 +1435,7 @@ class TunnelZone(ObjectType):
 
 class TunnelZoneHost(ObjectType):
     def type_name(self):
-        return "tunnel-zone-host"
+        return "memb"
 
     def __init__(self, obj):
         super(TunnelZoneHost, self).__init__(obj)
@@ -1468,7 +1476,7 @@ class PortGroup(ObjectType):
 
 class PortGroupPort(ObjectType):
     def type_name(self):
-        return "port-group-port"
+        return "pgport"
 
     def __init__(self, obj):
         super(PortGroupPort, self).__init__(obj)
@@ -1485,7 +1493,7 @@ class PortGroupPort(ObjectType):
 
 class IpAddressGroup(ObjectType):
     def type_name(self):
-        return "ip-address-group"
+        return "ipg"
 
     def __init__(self, obj):
         super(IpAddressGroup, self).__init__(obj)
@@ -1508,7 +1516,7 @@ class IpAddressGroup(ObjectType):
 
 class IpAddressGroupAddress(ObjectType):
     def type_name(self):
-        return "ip-address-group-address"
+        return "addr"
 
     def __init__(self, obj):
         ObjectType.__init__(self, obj)
@@ -1618,7 +1626,7 @@ class BgpNetwork(ObjectType):
                                mask_setter='subnet_prefix'))
 
     def type_name(self):
-        return "bgp-network"
+        return "net"
 
 
 class BgpPeer(ObjectType):
@@ -1649,7 +1657,7 @@ class BgpPeer(ObjectType):
                                  optional=True))
 
     def type_name(self):
-        return "bgp-peer"
+        return "peer"
 
 
 class AdRoute(ObjectType):
@@ -2638,7 +2646,7 @@ class TraceRequest(Condition):
                                  getter = 'get_enabled'))
 
     def type_name(self):
-        return "tracerequest"
+        return "tr"
 
 def _port_resolver(port):
     # This function dispatches the appropriate port class depending on the
