@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_14092195",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-10-02T09:44:27Z",
+      "side": 1,
+      "message": "shuffle",
+      "range": {
+        "startLine": 70,
+        "startChar": 11,
+        "endLine": 70,
+        "endChar": 22
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f405957a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-10-02T09:44:27Z",
+      "side": 1,
+      "message": "shuffle",
+      "range": {
+        "startLine": 120,
+        "startChar": 25,
+        "endLine": 120,
+        "endChar": 42
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d4d7b9eb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-10-02T09:44:27Z",
+      "side": 1,
+      "message": "shuffle",
+      "range": {
+        "startLine": 149,
+        "startChar": 35,
+        "endLine": 149,
+        "endChar": 52
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b4dced13",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ZkNatBlockRecycler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-10-02T09:44:27Z",
+      "side": 1,
+      "message": "I\u0027d put a Collections.shuffle around this, so that in the case that there\u0027s every a problematic element, other elements will eventually get cleaned up.",
+      "range": {
+        "startLine": 164,
+        "startChar": 21,
+        "endLine": 164,
+        "endChar": 35
+      },
+      "revId": "a066187ff2d6a1f73f4dcd268aa9943513cd33c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
