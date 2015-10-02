@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.state
 
+import java.util.Collections
 import java.util.concurrent.{TimeUnit, Executor}
 
 import scala.collection.JavaConversions._
@@ -51,7 +52,11 @@ object ZkNatBlockRecycler {
  * 3) another host grabs that block by randomly choosing it over all the blocks
  * for that IP
  * 4) a connection for the same dst ip is created and the host simulating that
- * connection randomly chooses the same port as an existing, migrated connection
+ * connection randomly chooses the same port as an existing, migrated connection.
+ *
+ * We shuffle the list of nodes we obtain from ZK to guarantee that if there's
+ * ever a problematic element, othe NAT blocks in the ZK directory structure
+ * will eventually get cleaned up.
  */
 class ZkNatBlockRecycler(
         zk: CuratorFramework,
@@ -65,9 +70,14 @@ class ZkNatBlockRecycler(
     private implicit val ex = ExecutionContext.callingThread
     private val bytes = Array[Byte](1)
 
+    /**
+     * Recycles unneeded nodes in the NAT leasing ZK directory structure.
+     * Only one recycle operation is carried out in a 24h period.
+     * @return A future holding the number of blocks recycled.
+     */
     def recycle(): Future[Int] = {
         val p = Promise[Int]()
-        zk.getChildren
+        zk.getData
           .inBackground(tryStartRecycling, p, executor)
           .forPath(natPath)
         p.future
@@ -117,7 +127,9 @@ class ZkNatBlockRecycler(
             val p = event.getContext.asInstanceOf[Promise[Int]]
             if (event.getResultCode == KeeperException.Code.OK.intValue()) {
                 var ps = ListBuffer[Future[Int]]()
-                val it = event.getChildren.iterator()
+                val children = event.getChildren
+                Collections.shuffle(children)
+                val it = children.iterator()
                 while (it.hasNext) {
                     val p = Promise[Int]()
                     val path = event.getPath + "/" + it.next()
@@ -146,7 +158,9 @@ class ZkNatBlockRecycler(
                     p success 0
                 } else {
                     try {
-                        p success (event.getChildren map {
+                        val children = event.getChildren
+                        Collections.shuffle(children)
+                        p success (children map {
                             event.getPath + "/" + _
                         } map recycleIp sum)
                     } catch { case NonFatal(e) =>
@@ -161,12 +175,12 @@ class ZkNatBlockRecycler(
 
     private def recycleIp(path: String): Int = {
         val stat = new Stat()
-        val blocks = zk.getChildren.storingStatIn(stat).forPath(path) map {
-            path + "/" + _
-        } map { block =>
+        val blocks = zk.getChildren.storingStatIn(stat).forPath(path)
+        Collections.shuffle(blocks)
+        val blockStats = blocks map { path + "/" + _ } map { block =>
             (block, zk.checkExists().forPath(block))
         }
-        maybeRecycleBlocks(path, stat, blocks)
+        maybeRecycleBlocks(path, stat, blockStats)
     }
 
     private def maybeRecycleBlocks(
