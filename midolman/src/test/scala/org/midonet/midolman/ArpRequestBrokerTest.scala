@@ -216,7 +216,7 @@ class ArpRequestBrokerTest extends Suite
     private def addMoreWaiters(waiters: List[Future[MAC]], howMany: Int = 10): List[Future[MAC]] = {
         if (howMany > 0) {
             val NotYetException(macFuture, _) = intercept[NotYetException] {
-                arpBroker.get(THEIR_IP, port, router)
+                arpBroker.get(THEIR_IP, port, router, -1)
             }
             addMoreWaiters(macFuture.asInstanceOf[Future[MAC]] :: waiters, howMany-1)
         } else {
@@ -301,7 +301,7 @@ class ArpRequestBrokerTest extends Suite
 
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
         eventually(ZK_RTT_TIMEOUT) {
-            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+            arpBroker.get(THEIR_IP, port, router, -1) should be (THEIR_MAC)
         }
 
         arpBroker.process()
@@ -316,7 +316,7 @@ class ArpRequestBrokerTest extends Suite
 
         ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, THEIR_MAC)
         eventually(ZK_RTT_TIMEOUT) {
-            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+            arpBroker.get(THEIR_IP, port, router, -1) should be (THEIR_MAC)
             arpBroker.shouldProcess() should be (true)
         }
         arpBroker.process()
@@ -326,10 +326,10 @@ class ArpRequestBrokerTest extends Suite
     }
 
     def testInvalidatesFlowsRemotely(): Unit = {
-        intercept[NotYetException] { arpBroker.get(THEIR_IP, port, router) }
+        intercept[NotYetException] { arpBroker.get(THEIR_IP, port, router, -1) }
         ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, THEIR_MAC)
         eventually(ZK_RTT_TIMEOUT) {
-            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+            arpBroker.get(THEIR_IP, port, router, -1) should be (THEIR_MAC)
         }
 
         ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, MAC.random())
@@ -343,7 +343,7 @@ class ArpRequestBrokerTest extends Suite
     def testInvalidatesFlowsLocally(): Unit = {
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
         eventually(ZK_RTT_TIMEOUT) {
-            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+            arpBroker.get(THEIR_IP, port, router, -1) should be (THEIR_MAC)
         }
 
         arpBroker.set(THEIR_IP, MAC.random(), router)
@@ -374,7 +374,7 @@ class ArpRequestBrokerTest extends Suite
         arps should be ('empty)
 
         // ask for the MAC and expec the broker to emit an ARP
-        arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+        arpBroker.get(THEIR_IP, port, router, -1) should be (THEIR_MAC)
         expectEmitArp()
 
         // let one arp retry iteration go by, expect another ARP
@@ -405,7 +405,7 @@ class ArpRequestBrokerTest extends Suite
     def testExpiresEntries(): Unit = {
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
         eventually(ZK_RTT_TIMEOUT) {
-            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+            arpBroker.get(THEIR_IP, port, router, -1) should be (THEIR_MAC)
         }
         arpBroker.process()
         arps.clear()

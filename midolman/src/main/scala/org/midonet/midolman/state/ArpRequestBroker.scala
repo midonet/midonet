@@ -107,8 +107,8 @@ class ArpRequestBroker(config: MidolmanConfig,
      * address.
      */
     @throws(classOf[NotYetException])
-    def get(ip: IPv4Addr, port: RouterPort, router: Router): MAC = {
-        broker(router).get(ip, port)
+    def get(ip: IPv4Addr, port: RouterPort, router: Router, cookie: Long): MAC = {
+        broker(router).get(ip, port, cookie)
     }
 
     /*
@@ -127,8 +127,8 @@ class ArpRequestBroker(config: MidolmanConfig,
      * was unknown up to this call) has been committed to storage.
      */
     def setAndGet(ip: IPv4Addr, mac: MAC, port: RouterPort,
-            router: Router): Future[MAC] = {
-        broker(router).setAndGet(ip, mac, port)
+            router: Router, cookie: Long): Future[MAC] = {
+        broker(router).setAndGet(ip, mac, port, cookie)
     }
 
     def process(): Unit = {
@@ -260,12 +260,12 @@ class SingleRouterArpRequestBroker(id: UUID,
      * if the MAC is unknownn.
      */
     @throws(classOf[NotYetException])
-    def get(ip: IPv4Addr, port: RouterPort): MAC = {
+    def get(ip: IPv4Addr, port: RouterPort, cookie: Long): MAC = {
 
         val cacheEntry = arpCache.get(ip)
 
         if (shouldArp(cacheEntry)) {
-            arpForAddress(ip, port)
+            arpForAddress(ip, port, cookie)
             if ((cacheEntry ne null) && (cacheEntry.macAddr ne null))
                 cacheEntry.macAddr
             else
@@ -281,14 +281,14 @@ class SingleRouterArpRequestBroker(id: UUID,
         promise.future
     }
 
-    private def arpForAddress(ip: IPv4Addr, port: RouterPort): Unit = {
+    private def arpForAddress(ip: IPv4Addr, port: RouterPort, cookie: Long): Unit = {
         if (arpLoops.contains(ip))
             return
 
-        val loop = new ArpLoop(ip, port)
+        val loop = new ArpLoop(ip, port, cookie)
 
         val arp = makeArpRequest(port.portMac, port.portAddress, ip)
-        backChannel.tell(GeneratedLogicalPacket(port.id, arp))
+        backChannel.tell(GeneratedLogicalPacket(port.id, arp, cookie.toInt))
 
         arpLoops.add(ip)
         arpLoopQ.add(loop)
@@ -315,7 +315,7 @@ class SingleRouterArpRequestBroker(id: UUID,
         }
     }
 
-    def setAndGet(ip: IPv4Addr, mac: MAC, port: RouterPort): Future[MAC] = {
+    def setAndGet(ip: IPv4Addr, mac: MAC, port: RouterPort, cookie: Long): Future[MAC] = {
         set(ip, mac)
         val entry = arpCache.get(ip)
 
@@ -356,7 +356,8 @@ class SingleRouterArpRequestBroker(id: UUID,
                 val arp = makeArpRequest(loop.port.portMac,
                                          loop.port.portAddress,
                                          loop.ip)
-                backChannel.tell(GeneratedLogicalPacket(loop.port.id, arp))
+                backChannel.tell(
+                    GeneratedLogicalPacket(loop.port.id, arp, loop.cookie.toInt))
                 loop.tick()
                 arpLoopQ.add(loop)
             }
@@ -395,7 +396,7 @@ class SingleRouterArpRequestBroker(id: UUID,
             { arp.req mac srcMac -> eth_zero ip srcIp --> dstIp}
     }
 
-    class ArpLoop(val ip: IPv4Addr, val port: RouterPort) {
+    class ArpLoop(val ip: IPv4Addr, val port: RouterPort, val cookie: Long) {
         private val timeout = clock.time + config.arptable.timeout
 
         private val baseJitter = random.nextDouble() * RETRY_JITTER_GAP + RETRY_MIN_BASE_JITTER
@@ -416,7 +417,7 @@ class SingleRouterArpRequestBroker(id: UUID,
         def timedOut: Boolean = clock.time >= timeout
     }
 
-    object ImmortalLoop extends ArpLoop(IPv4Addr.fromString("255.255.255.255" ), null) {
+    object ImmortalLoop extends ArpLoop(IPv4Addr.fromString("255.255.255.255" ), null, -1) {
         override val nextTry = Long.MaxValue
         override def tick() {}
         override def timedOut = false

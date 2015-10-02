@@ -66,10 +66,11 @@ object PacketWorkflow {
 
     sealed trait GeneratedPacket extends BackChannelMessage {
         val eth: Ethernet
+        val cookie: Int
     }
-    case class GeneratedLogicalPacket(egressPort: UUID, eth: Ethernet)
+    case class GeneratedLogicalPacket(egressPort: UUID, eth: Ethernet, cookie: Int)
         extends GeneratedPacket
-    case class GeneratedPhysicalPacket(egressPort: JInteger, eth: Ethernet)
+    case class GeneratedPhysicalPacket(egressPort: JInteger, eth: Ethernet, cookie: Int)
         extends GeneratedPacket
 
     trait SimulationResult {
@@ -284,23 +285,22 @@ class PacketWorkflow(
     }
 
     protected def packetContext(packet: Packet): PacketContext =
-        initialize(packet, packet.getMatch, null, null)
+        initialize(cookieGen.next, packet, packet.getMatch, null, null)
 
     protected def generatedPacketContext(p: GeneratedPacket) = {
         log.debug(s"Executing generated packet $p")
         val fmatch = FlowMatches.fromEthernetPacket(p.eth)
         val packet = new Packet(p.eth, fmatch)
         p match {
-            case GeneratedLogicalPacket(portId, _) =>
-                initialize(packet, fmatch, portId, null)
-            case GeneratedPhysicalPacket(portNo, _) =>
-                initialize(packet, fmatch, null, portNo)
+            case GeneratedLogicalPacket(portId, _, _) =>
+                initialize(p.cookie, packet, fmatch, portId, null)
+            case GeneratedPhysicalPacket(portNo, _, _) =>
+                initialize(p.cookie, packet, fmatch, null, portNo)
         }
     }
 
-    private def initialize(packet: Packet, fmatch: FlowMatch,
+    private def initialize(cookie: Int, packet: Packet, fmatch: FlowMatch,
                            egressPortId: UUID, egressPortNo: JInteger) = {
-        val cookie = cookieGen.next
         log.debug(s"Creating new PacketContext for cookie $cookie")
         val context = new PacketContext(cookie, packet, fmatch,
                                         egressPortId, egressPortNo)
