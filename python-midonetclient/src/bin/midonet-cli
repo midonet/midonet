@@ -2161,16 +2161,6 @@ class BridgePort(ObjectType):
                                  setter = 'outbound_filter_id',
                                  getter = 'get_outbound_filter_id',
                                  unsetter = 'outbound_filter_id'))
-        self.put_attr(ListAttr(name = 'inchains',
-                                 element_type = ObjectRef('chain'),
-                                 getter = 'get_inbound_chains',
-                                 setter = 'inbound_chains',
-                                 optional = True))
-        self.put_attr(ListAttr(name = 'outchains',
-                                 element_type = ObjectRef('chain'),
-                                 getter = 'get_outbound_chains',
-                                 setter = 'outbound_chains',
-                                 optional = True))
         self.put_attr(SingleAttr(name = 'vlan',
                                  value_type = StringType(),
                                  setter = 'vlan_id',
