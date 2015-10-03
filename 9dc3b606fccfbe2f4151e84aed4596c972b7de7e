@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_65cf1180",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-03T09:27:54Z",
+      "side": 1,
+      "message": "i normally used TrieMaps to take advantage of getOrElse. I think this one initially was a HashMap, because concurrency is not really needed (classes are only defined before build()), but a later comment in a different patch suggested a ConcurrentHashMap.",
+      "parentUuid": "1ae5cdf2_009ac313",
+      "range": {
+        "startLine": 602,
+        "startChar": 8,
+        "endLine": 602,
+        "endChar": 15
+      },
+      "revId": "9dc3b606fccfbe2f4151e84aed4596c972b7de7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_c3b54532",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
         "patchSetId": 14
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_85ca5d6c",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 925,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-03T09:27:54Z",
+      "side": 1,
+      "message": "Yes, the default namespace is the first one.",
+      "parentUuid": "1ae5cdf2_63de316f",
+      "range": {
+        "startLine": 925,
+        "startChar": 18,
+        "endLine": 925,
+        "endChar": 50
+      },
+      "revId": "9dc3b606fccfbe2f4151e84aed4596c972b7de7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_83d97d85",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
         "patchSetId": 14
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_a5c9197a",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 939,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-03T09:27:54Z",
+      "side": 1,
+      "message": "So the idea of his observable is that you emit on it the namespace you want to watch, and the state observable returns the key values from that namespaces. So in this test above, we start with:\n\n  namespaces onNext namespaceId\n\nWhich emits the state from the first namespace. Then:\n\n  namespaces onNext namespaceId2\n\nForgets about the first namespace, and switches to the second (like Observable.switchOnNext)\n\nHere, we go back to the first namespace:\n\n  namespaces onNext namespaceId",
+      "parentUuid": "1ae5cdf2_83d97d85",
+      "range": {
+        "startLine": 939,
+        "startChar": 12,
+        "endLine": 939,
+        "endChar": 41
+      },
+      "revId": "9dc3b606fccfbe2f4151e84aed4596c972b7de7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_23cc29bc",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
         "patchSetId": 14
@@ -105,6 +177,30 @@
       "writtenOn": "2015-10-01T09:49:25Z",
       "side": 1,
       "message": "Does this happen because the default namespace is the 1st namespace?",
+      "range": {
+        "startLine": 943,
+        "startChar": 12,
+        "endLine": 944,
+        "endChar": 51
+      },
+      "revId": "9dc3b606fccfbe2f4151e84aed4596c972b7de7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_c5c46561",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 944,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-03T09:27:54Z",
+      "side": 1,
+      "message": "No, it happens because at like 939 we switched to the first namespace.",
+      "parentUuid": "1ae5cdf2_23cc29bc",
       "range": {
         "startLine": 943,
         "startChar": 12,
