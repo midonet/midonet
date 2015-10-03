@@ -237,6 +237,52 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_25dfc93c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-03T08:59:36Z",
+      "side": 1,
+      "message": "Do we need to remove the flooding proxy for onError too?",
+      "range": {
+        "startLine": 124,
+        "startChar": 63,
+        "endLine": 124,
+        "endChar": 65
+      },
+      "revId": "62d789f188ac4a4d9f897b0b35db39578238abd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_05d80d52",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-03T08:59:36Z",
+      "side": 1,
+      "message": "Nit: just `t` should be enough, isn\u0027t it?",
+      "range": {
+        "startLine": 184,
+        "startChar": 47,
+        "endLine": 184,
+        "endChar": 65
+      },
+      "revId": "62d789f188ac4a4d9f897b0b35db39578238abd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_c3a9c57c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
         "patchSetId": 7
@@ -272,6 +318,30 @@
       "side": 1,
       "message": "I\u0027m not sure. I thought the subscription would be freed when the observable terminates?",
       "parentUuid": "1ae5cdf2_c3a9c57c",
+      "range": {
+        "startLine": 192,
+        "startChar": 28,
+        "endLine": 192,
+        "endChar": 62
+      },
+      "revId": "62d789f188ac4a4d9f897b0b35db39578238abd1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a5f2f9cf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-03T08:59:36Z",
+      "side": 1,
+      "message": "Yes, the subscription terminates when the observable completes. Plus, in this case a reference to the subscription is held via the Subscriber (Subscriber extends Subscription, and they are the same instance; see Observable.subscribe(Subscriber) - the subscription is the subscriber).\n\nThe method tzObserver could be called tzSubscriber though.",
+      "parentUuid": "1ae5cdf2_63f9d17f",
       "range": {
         "startLine": 192,
         "startChar": 28,
