@@ -222,7 +222,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
     private val factories = Map[ClassTag[_], DeviceFactory](
         classTag[BgpPort] -> (new BgpPortMapper(_, this)),
         classTag[BgpRouter] -> (new BgpRouterMapper(_, this)),
-        classTag[Bridge] -> (new BridgeMapper(_, this, traceChains)),
+        classTag[Bridge] -> (new BridgeMapper(_, this, metricRegistry, traceChains)),
         classTag[BridgePort] -> (new PortMapper(_, this, metricRegistry, traceChains)),
         classTag[Chain] -> (new ChainMapper(_, this, traceChains)),
         classTag[Host] -> (new HostMapper(_, this)),

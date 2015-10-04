@@ -29,6 +29,7 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.scalalogging.Logger
 
 import rx.Observable
@@ -274,8 +275,9 @@ object BridgeMapper {
  * A class that implements the [[DeviceMapper]] for a [[SimulationBridge]].
  */
 final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopology,
+                         metricRegistry: MetricRegistry,
                          val traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
-        extends VirtualDeviceMapper[SimulationBridge](bridgeId, vt)
+        extends VirtualDeviceMapper[SimulationBridge](bridgeId, vt, metricRegistry)
         with TraceRequestChainMapper[SimulationBridge] {
 
     import BridgeMapper._
