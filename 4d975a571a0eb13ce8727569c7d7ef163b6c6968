@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fab399f4_c3e3dc03",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-05T17:06:57Z",
+      "side": 1,
+      "message": "This is fine. But maybe having a nice formatter for the proto port fields here may aid debugging. Does it make sense to add a TopologyFormatter that would nicely format topology protobufs?",
+      "range": {
+        "startLine": 116,
+        "startChar": 8,
+        "endLine": 116,
+        "endChar": 67
+      },
+      "revId": "4d975a571a0eb13ce8727569c7d7ef163b6c6968",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
