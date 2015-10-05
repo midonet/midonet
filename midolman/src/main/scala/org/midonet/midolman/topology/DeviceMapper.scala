@@ -156,7 +156,9 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology,
 
         if (state.compareAndSet(MapperState.Unsubscribed,
                                 MapperState.Subscribed)) {
-            observable.doOnEach(this).subscribe(subscriber)
+            observable.subscribeOn(vt.vtScheduler)
+                      .doOnEach(this)
+                      .subscribe(subscriber)
         }
         cache subscribe child
     }
@@ -184,6 +186,7 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology,
     }
 
     override final def onNext(device: D) = {
+        assertThread()
         log.debug("Device {}/{} notification: {}", tag, id, device)
         metrics.deviceUpdated()
         vt.devices.put(id, device)
