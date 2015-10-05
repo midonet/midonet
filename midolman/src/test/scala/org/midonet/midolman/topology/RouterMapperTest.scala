@@ -21,6 +21,8 @@ import java.util.UUID
 import scala.concurrent.duration._
 import scala.collection.mutable
 
+import com.codahale.metrics.MetricRegistry
+
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
@@ -56,12 +58,14 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
     private var store: Storage = _
     private var stateStore: StateStorage = _
     private var vt: VirtualTopology = _
+    private var metricRegistry: MetricRegistry = _
     private var threadId: Long = _
 
     private final val timeout = 5 seconds
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
+        metricRegistry = injector.getInstance(classOf[MetricRegistry])
         store = injector.getInstance(classOf[MidonetBackend]).store
         stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
         threadId = Thread.currentThread.getId
@@ -113,7 +117,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
     : (TopologyRouter, RouterMapper) = {
         Given("A router mapper")
         val routerId = UUID.randomUUID
-        val mapper = new RouterMapper(routerId, vt, mutable.Map())
+        val mapper = new RouterMapper(routerId, vt, metricRegistry, mutable.Map())
 
         And("A router")
         val router = createRouter(id = routerId)
@@ -162,7 +166,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val routerId = UUID.randomUUID
 
             And("A router mapper")
-            val mapper = new RouterMapper(routerId, vt, mutable.Map())
+            val mapper = new RouterMapper(routerId, vt, metricRegistry, mutable.Map())
 
             And("An observer to the router mapper")
             val obs = createObserver()
@@ -665,7 +669,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val obs = createObserver()
 
             And("A router mapper")
-            val mapper = new RouterMapper(router.getId, vt, mutable.Map())
+            val mapper = new RouterMapper(router.getId, vt, metricRegistry, mutable.Map())
 
             And("Requesting the ports to have them cached")
             VirtualTopology.get[RouterPort](port1.getId)
@@ -704,7 +708,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val obs = createObserver()
 
             And("A router mapper")
-            val mapper = new RouterMapper(router.getId, vt, mutable.Map())
+            val mapper = new RouterMapper(router.getId, vt, metricRegistry, mutable.Map())
 
             And("Requesting the routes to have them cached")
             val obsRoute = new TestObserver[TopologyRoute]
@@ -813,7 +817,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val obs = new DeviceObserver[SimulationRouter](vt)
 
             And("A router mapper")
-            val mapper = new RouterMapper(router.getId, vt, mutable.Map())
+            val mapper = new RouterMapper(router.getId, vt, metricRegistry, mutable.Map())
 
             And("Requesting the routes to have them cached in store")
             val obsRoute = new TestObserver[TopologyRoute]
@@ -1083,7 +1087,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             Given("A router mapper")
             val routerId = UUID.randomUUID
-            val mapper = new RouterMapper(routerId, vt, mutable.Map())
+            val mapper = new RouterMapper(routerId, vt, metricRegistry, mutable.Map())
 
             And("A chain")
             val chain = createChain()
@@ -1113,7 +1117,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             Given("A router mapper")
             val routerId = UUID.randomUUID
-            val mapper = new RouterMapper(routerId, vt, mutable.Map())
+            val mapper = new RouterMapper(routerId, vt, metricRegistry, mutable.Map())
 
             And("A chain")
             val chain1 = createChain()
@@ -1150,7 +1154,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             Given("A router mapper")
             val routerId = UUID.randomUUID
-            val mapper = new RouterMapper(routerId, vt, mutable.Map())
+            val mapper = new RouterMapper(routerId, vt, metricRegistry, mutable.Map())
 
             And("A chain")
             val chain = createChain()

@@ -20,6 +20,8 @@ import java.util.UUID
 
 import scala.concurrent.duration._
 
+import com.codahale.metrics.MetricRegistry
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -45,11 +47,13 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
     import TopologyBuilder._
 
     private var vt: VirtualTopology = _
+    private var metricRegistry: MetricRegistry = _
     private var store: Storage = _
     private final val timeout = 5 seconds
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
+        metricRegistry = injector.getInstance(classOf[MetricRegistry])
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
@@ -61,7 +65,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val id = UUID.randomUUID
 
             And("A pool mapper")
-            val mapper = new PoolMapper(id, vt)
+            val mapper = new PoolMapper(id, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -82,7 +86,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(pool)
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -102,7 +106,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(pool1)
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool1.getId, vt)
+            val mapper = new PoolMapper(pool1.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -133,7 +137,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(pool)
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -160,7 +164,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(pool)
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -197,7 +201,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member1)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -236,7 +240,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -270,7 +274,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(pool)
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -307,7 +311,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member1)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -346,7 +350,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -380,7 +384,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(pool)
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -413,7 +417,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member1)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -450,7 +454,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -488,7 +492,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member1)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -527,7 +531,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member1)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -566,7 +570,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member1)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -605,7 +609,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member1)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -642,7 +646,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member1)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -682,7 +686,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(member1)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -727,7 +731,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val obs = new DeviceObserver[SimulationPool](vt)
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             When("Requesting the members to have them cached in the store")
             val obsMember = new TestObserver[PoolMember]
@@ -761,7 +765,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             }
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -784,7 +788,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(pool)
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -817,7 +821,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(vip1)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -851,7 +855,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(pool), CreateOp(vip)))
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
@@ -890,7 +894,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val obs = new DeviceObserver[SimulationPool](vt)
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             When("Requesting the members to have them cached in the store")
             val obsVip = new TestObserver[Vip]
@@ -922,7 +926,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             }
 
             And("A pool mapper")
-            val mapper = new PoolMapper(pool.getId, vt)
+            val mapper = new PoolMapper(pool.getId, vt, metricRegistry)
 
             And("An observer to the pool mapper")
             val obs = new DeviceObserver[SimulationPool](vt)
