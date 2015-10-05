@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fab399f4_00030a10",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-05T16:19:04Z",
+      "side": 1,
+      "message": "Specify behaviour if namespace is null.",
+      "range": {
+        "startLine": 207,
+        "startChar": 7,
+        "endLine": 208,
+        "endChar": 16
+      },
+      "revId": "c05429f6c031ea76c36addd9ce8c514d100b6cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fab399f4_dd573f25",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 13
