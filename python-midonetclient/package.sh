@@ -42,6 +42,8 @@ function clean() {
     find . -name "*.pyc" -exec rm {} \;
     rm -f doc/*.{gz,.1}
     rm -rf build
+    rm -f python-midonetclient*.deb
+    rm -f python-midonetclient*.rpm
 }
 
 function build_protobuf_modules() {
