@@ -32,7 +32,7 @@ import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer, Subscription}
 
-import org.midonet.cluster.data.storage.StateKey
+import org.midonet.cluster.data.storage.{NotFoundException, StateKey}
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
@@ -221,8 +221,9 @@ class FloodingProxyManager(backend: MidonetBackend) {
                                              retries: Int = MaxFpRetries)
     : Unit = recalculateFpFor(tzId).onComplete {
         case Success(null) =>
+            _herald.announce(FloodingProxy(tzId, null, null), _ => {})
         case Success(fp) =>
-            log.debug("Announcing Flooding Proxy" + fp)
+            log.debug("Announcing flooding proxy: {}", fp)
             _herald.announce(fp, t => {
                 cacheAndPublishFloodingProxy(tzId, retries - 1)
             })
@@ -244,6 +245,10 @@ class FloodingProxyManager(backend: MidonetBackend) {
                     FloodingProxy(tzId, null, null)
                 }
              }.recoverWith[FloodingProxy] {
+                 case t: NotFoundException if t.clazz == classOf[TunnelZone] =>
+                     log.debug("Tunnel zone {} deleted: clearing flooding proxy",
+                               tzId)
+                     Future.successful(null)
                  case NonFatal(t) if retries > 0 =>
                      log.warn("Failed to calculate flooding proxy for " +
                               s"tunnel zone $tzId, ($retries) retries left.", t)
