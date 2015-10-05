@@ -196,7 +196,7 @@ class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
 
     @inline
     private def removeRemoteMac(mac: MAC, lsName: String): Unit = {
-        log.debug(s"Removing mac $mac from Logical Switch $lsName")
+        log.debug(s"Removing MAC $mac from logical switch $lsName")
         macRemoteConsumer.onNext(MacLocation(mac, lsName,
                                              vxlanTunnelEndpoint = null))
     }
