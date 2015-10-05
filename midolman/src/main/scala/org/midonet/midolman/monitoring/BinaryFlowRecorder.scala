@@ -292,7 +292,9 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                     actionEnc.pushVlan(a.getTagProtocolIdentifier(),
                                        a.getTagControlIdentifier())
                 case a: FlowActionUserspace =>
-                    actionEnc.userspace(a.uplinkPid, a.userData)
+                    actionEnc.userspace(a.uplinkPid,
+                                        if (a.userData == null) 0
+                                        else a.userData)
                 case a: FlowActionSetKey =>
                     a.getFlowKey match {
                         case k: FlowKeyARP =>
