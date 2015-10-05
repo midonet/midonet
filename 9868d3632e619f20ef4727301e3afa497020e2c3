@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_a702136d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-05T09:09:14Z",
+      "side": 1,
+      "message": "Set.empty is already a single instance, even shared across different element types:\n\n  scala\u003e val x \u003d Set.empty[String]\n  x: scala.collection.immutable.Set[String] \u003d Set()\n\n  scala\u003e val y \u003d Set.empty[Float]\n  y: scala.collection.immutable.Set[Float] \u003d Set()\n\n  scala\u003e x eq y\n  res0: Boolean \u003d true",
+      "range": {
+        "startLine": 93,
+        "startChar": 4,
+        "endLine": 93,
+        "endChar": 47
+      },
+      "revId": "9868d3632e619f20ef4727301e3afa497020e2c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
