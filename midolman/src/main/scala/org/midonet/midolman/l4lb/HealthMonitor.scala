@@ -19,7 +19,7 @@ package org.midonet.midolman.l4lb
 import java.io._
 import java.util.UUID
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.{Props, Actor, ActorRef}
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
@@ -45,6 +45,8 @@ object HealthMonitor extends Referenceable {
     case class ConfigDeleted(id: UUID)
     case class ConfigAdded(poolId: UUID, config: PoolConfig, routerId: UUID)
     case class RouterChanged(poolId: UUID, config: PoolConfig, routerId: UUID)
+
+    var ipCommand = new IP()
 
     private val log: Logger
         = LoggerFactory.getLogger(classOf[HealthMonitor])
@@ -95,7 +97,7 @@ object HealthMonitor extends Referenceable {
     def killHaproxy(ns: String, pid: Int, pidFilePath: String,
                     confFilePath: String): Unit = {
         if (isRunningHaproxyPid(pid, pidFilePath, confFilePath)) {
-            IP.exec("kill -15 " + pid)
+            ipCommand.exec("kill -15 " + pid)
             if (!isRunningHaproxyPid(pid, pidFilePath, confFilePath))
                 return
             Thread.sleep(200)
@@ -104,7 +106,7 @@ object HealthMonitor extends Referenceable {
             Thread.sleep(5000)
             if (!isRunningHaproxyPid(pid, pidFilePath, confFilePath))
                 return
-            IP.exec("kill -9 " + pid)
+            ipCommand.exec("kill -9 " + pid)
             Thread.sleep(200)
             if (!isRunningHaproxyPid(pid, pidFilePath, confFilePath))
                 return
@@ -155,18 +157,18 @@ object HealthMonitor extends Referenceable {
 
     def deleteLink(ns: String) = {
         val ns_dev = ns + "_dp"
-        if (IP.interfaceExistsInNs(ns, ns_dev)) {
-            IP.exec("ip link delete " + ns_dev)
+        if (ipCommand.interfaceExistsInNs(ns, ns_dev)) {
+            ipCommand.exec("ip link delete " + ns_dev)
         }
     }
 
     def cleanAndDeleteNamespace(nsName: String, nsPostfix: String,
                               fileLoc: String): Unit = {
-        if (IP.namespaceExist(nsName)) {
+        if (ipCommand.namespaceExist(nsName)) {
             deleteLink(nsName)
             for (i <- 1 to 10) {
                 killHaproxyIfRunning(nsName, nsPostfix, fileLoc)
-                if (0 == IP.deleteNS(nsName)) {
+                if (0 == ipCommand.deleteNS(nsName)) {
                     return
                 } else {
                     Thread.sleep(200)
@@ -186,11 +188,13 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
                                curator: CuratorFramework)
     extends Actor with ActorLogWithoutPath {
 
-    private val namespaceSuffix: String = "_hm"
+    val namespaceSuffix: String = "_hm"
     private var hostId: UUID = null
-    private val store = backend.store
+    val store = backend.store
 
     private var watcher: ActorRef = null
+
+    val ipCom = HealthMonitor.ipCommand
 
     private def setPoolMappingStatus(poolId: UUID,
                                      status: PoolHealthMonitorMappingStatus) = {
@@ -201,9 +205,9 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
     private def inactivatePoolMap(poolId: UUID) =
         setPoolMappingStatus(poolId, PoolHealthMonitorMappingStatus.INACTIVE)
 
+    def getHostId = HostIdGenerator.getIdFromPropertiesFile
+
     private val hmLatchListener = new LeaderLatchListener {
-        val watcher = context.actorOf(HealthMonitorConfigWatcher.props(
-                config.healthMonitor.haproxyFileLoc, namespaceSuffix, self))
 
         override def isLeader() = watcher ! BecomeHaproxyNode
         override def notLeader() = {
@@ -212,16 +216,26 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
         }
     }
 
-    private val hmLatch = new LeaderLatch(curator,
-                                          config.zookeeper.rootKey + "/lb/hm-latch")
+    def getWatcher = context.actorOf(HealthMonitorConfigWatcher.props(
+            config.healthMonitor.haproxyFileLoc, namespaceSuffix, self)
+            .withDispatcher(context.props.dispatcher))
+
     override def preStart(): Unit = {
         if (config.healthMonitor.namespaceCleanup) {
             cleanupNamespaces()
         }
+        watcher = getWatcher
         log.info("Starting Health Monitor")
-        hostId = HostIdGenerator.getIdFromPropertiesFile()
-        hmLatch.addListener(hmLatchListener)
-        hmLatch.start()
+        hostId = getHostId
+        if (curator == null) {
+            watcher ! BecomeHaproxyNode
+        } else {
+            val hmLatch = new LeaderLatch(curator,
+                                          config.zookeeper.rootKey +
+                                          "/lb/hm-latch")
+            hmLatch.addListener(hmLatchListener)
+            hmLatch.start()
+        }
     }
 
     def receive = {
@@ -314,13 +328,16 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
 
     def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
                                  routerId: UUID) = {
-        context.actorOf(HaproxyHealthMonitor.props(config, self, routerId,
-            store, hostId).withDispatcher("actors.pinned-dispatcher"),
-                 config.id.toString)
+        context.actorOf(
+            Props(
+                new HaproxyHealthMonitor(config, self, routerId, store,
+                                         hostId)
+            ).withDispatcher(context.props.dispatcher),
+            config.id.toString)
     }
 
     def cleanupNamespaces() = {
-        val namespaces = IP.execGetOutput("ip netns")
+        val namespaces = ipCom.execGetOutput("ip netns")
         /*
          * First kill all haproxy instances, then delete the namespaces.
          * We separate these steps due to a bug in the kernel that keeps
@@ -332,7 +349,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
         // Kill all Haproxy Instances.
         namespaces.toSet
             .filter(ns => ns.endsWith(namespaceSuffix) &&
-                                      IP.namespaceExist(ns))
+                                      ipCom.namespaceExist(ns))
             .foreach { ns =>
                 HealthMonitor.killHaproxyIfRunning(ns, namespaceSuffix,
                                                    config.healthMonitor.haproxyFileLoc)
@@ -341,7 +358,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
         // unlink all links
         namespaces.toSet
             .filter(ns => ns.endsWith(namespaceSuffix) &&
-                          IP.namespaceExist(ns))
+                          ipCom.namespaceExist(ns))
             .foreach { ns =>
                 HealthMonitor.deleteLink(ns)
             }
@@ -349,10 +366,10 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
         // delete all namespaces
         namespaces.toSet
             .filter(ns => ns.endsWith(namespaceSuffix) &&
-            IP.namespaceExist(ns))
+            ipCom.namespaceExist(ns))
             .foreach { ns =>
                 var count = 0
-                while (0 != IP.deleteNS(ns) && count < 10) {
+                while (0 != ipCom.deleteNS(ns) && count < 10) {
                     Thread.sleep(200)
                     count +=1
                 }
