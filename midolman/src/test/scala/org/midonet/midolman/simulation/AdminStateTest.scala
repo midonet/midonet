@@ -71,7 +71,6 @@ class AdminStateTest extends MidolmanSpec {
     var bca: BackChannelAccessor = _
 
     override def beforeTest() {
-        newHost("myself", hostId)
         bridge = newBridge("bridge0")
         router = newRouter("router0")
 

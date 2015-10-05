@@ -50,10 +50,6 @@ import org.midonet.util.concurrent.ExecutionContextOps
 class FlowTranslatorTest extends MidolmanSpec {
     registerActors(VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
 
-    override def beforeTest(): Unit = {
-        newHost("self", hostId)
-    }
-
     trait TranslationContext {
         protected val dpState: TestDatapathState
 

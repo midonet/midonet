@@ -64,8 +64,6 @@ class PingRouterWithNat extends MidolmanSpec {
     private val pingId: Short = 8756
 
     override def beforeTest(): Unit = {
-        newHost("myself", hostId)
-
         nearRouter = newRouter("near_router")
         farRouter = newRouter("far_router")
 

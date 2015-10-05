@@ -17,6 +17,8 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
+import org.midonet.cluster.models.Topology.Host
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.state.Directory
 
 import scala.collection.JavaConverters._
@@ -81,13 +83,15 @@ trait MidolmanSpec extends FeatureSpecLike
             val dir = injector.getInstance(classOf[Directory])
             ensurePath(dir, "/midonet/v2/routers")
             ensurePath(dir, "/midonet/v2/bridges")
-            injector.getInstance(classOf[MidonetBackend])
-                .startAsync()
-                .awaitRunning()
+            val backend = injector.getInstance(classOf[MidonetBackend])
+            backend.startAsync().awaitRunning()
+            backend.store.create(
+                Host.newBuilder()
+                    .setId(UUIDUtil.toProto(hostId))
+                    .build())
             injector.getInstance(classOf[MidolmanService])
                 .startAsync()
                 .awaitRunning()
-
             beforeTest()
         } catch {
             case e: Throwable => fail(e)

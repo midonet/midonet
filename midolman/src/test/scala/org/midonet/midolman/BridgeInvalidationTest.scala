@@ -63,9 +63,6 @@ class BridgeInvalidationTest extends MidolmanSpec
     }
 
     private def buildTopology() {
-        val host = newHost("myself", hostId)
-        host should not be null
-
         clusterBridge = newBridge("bridge")
         clusterBridge should not be null
         clusterRouter = newRouter("router")

@@ -98,15 +98,6 @@ object DatapathController extends Referenceable {
 
     override val Name = "DatapathController"
 
-    /**
-     * This will make the Datapath Controller to start the local state
-     * initialization process.
-     */
-    case object Initialize
-
-    /** Java API */
-    val initializeMsg = Initialize
-
     // This value is actually configured in preStart of a DatapathController
     // instance based on the value specified in /etc/midolman/midolman.conf
     // because we can't inject midolmanConfig into Scala's companion object.
@@ -176,10 +167,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         super.preStart()
         defaultMtu = config.dhcpMtu
         cachedMinMtu = defaultMtu
-        context become (DatapathInitializationActor orElse {
-            case m =>
-                log.info(s"Not handling $m (still initializing)")
-        })
+        initialize()
     }
 
     override def postStop(): Unit = {
@@ -193,52 +181,54 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         context.actorOf(props, s"HostRequestProxy-$id")
     }
 
-    val DatapathInitializationActor: Receive = {
-        case Initialize =>
+    private def initialize(): Unit = {
+        context become {
+            case TunnelPortsCreated_ =>
+                subscribeToHost(hostService.hostId)
+                log.info("Initialization complete")
+                context become receive
+                portWatcher = interfaceScanner.subscribe(
+                    new Observer[Set[InterfaceDescription]] {
+                        def onCompleted(): Unit =
+                            log.debug("Interface scanner is completed.")
+
+                        def onError(t: Throwable): Unit =
+                            log.error(s"Interface scanner got an error: $t")
+
+                        def onNext(data: Set[InterfaceDescription]): Unit =
+                            self ! InterfacesUpdate_(data)
+                    })
+            case m =>
+                log.info(s"Not handling $m (still initializing)")
+        }
+
+        makeTunnelPort(OverlayTunnel) { () =>
+            GreTunnelPort make "tngre-overlay"
+        } flatMap { gre =>
+            driver.tunnelOverlayGre = gre
             makeTunnelPort(OverlayTunnel) { () =>
-                GreTunnelPort make "tngre-overlay"
-            } flatMap { gre =>
-                driver.tunnelOverlayGre = gre
-                makeTunnelPort(OverlayTunnel) { () =>
-                    val overlayUdpPort = config.datapath.vxlanOverlayUdpPort
-                    VxLanTunnelPort make("tnvxlan-overlay", overlayUdpPort)
-                }
-            } flatMap { vxlan =>
-                driver.tunnelOverlayVxLan = vxlan
-                makeTunnelPort(VtepTunnel) { () =>
-                    val vtepUdpPort = config.datapath.vxlanVtepUdpPort
-                    VxLanTunnelPort make("tnvxlan-vtep", vtepUdpPort)
-               }
-            } map { vtep =>
-                driver.tunnelVtepVxLan = vtep
-                TunnelPortsCreated_
-            } pipeTo self
-
-        case TunnelPortsCreated_ =>
-            subscribeToHost(hostService.hostId)
-            log.info("Initialization complete. Starting to act as a controller.")
-            context become receive
-            portWatcher = interfaceScanner.subscribe(
-                new Observer[Set[InterfaceDescription]] {
-                    def onCompleted(): Unit =
-                        log.debug("Interface scanner is completed.")
-
-                    def onError(t: Throwable): Unit =
-                        log.error(s"Interface scanner got an error: $t")
-
-                    def onNext(data: Set[InterfaceDescription]): Unit =
-                        self ! InterfacesUpdate_(data)
-                })
+                val overlayUdpPort = config.datapath.vxlanOverlayUdpPort
+                VxLanTunnelPort make("tnvxlan-overlay", overlayUdpPort)
+            }
+        } flatMap { vxlan =>
+            driver.tunnelOverlayVxLan = vxlan
+            makeTunnelPort(VtepTunnel) { () =>
+                val vtepUdpPort = config.datapath.vxlanVtepUdpPort
+                VxLanTunnelPort make("tnvxlan-vtep", vtepUdpPort)
+           }
+        } map { vtep =>
+            driver.tunnelVtepVxLan = vtep
+            TunnelPortsCreated_
+        } pipeTo self
     }
 
-    def makeTunnelPort[P <: DpPort](t: ChannelType)(portFact: () => P)
-                                   (implicit tag: ClassTag[P]): Future[P] =
+    private def makeTunnelPort[P <: DpPort](t: ChannelType)(portFact: () => P)
+                                           (implicit tag: ClassTag[P]): Future[P] =
         upcallConnManager.createAndHookDpPort(driver.datapath, portFact(), t) map {
             case (p, _) => p.asInstanceOf[P]
-        } recoverWith {
-            case ex: Throwable =>
-                log.warn(tag + " creation failed: => retrying", ex)
-                after(1 second, system.scheduler)(makeTunnelPort(t)(portFact))
+        } recoverWith { case ex: Throwable =>
+            log.warn(tag + " creation failed: => retrying", ex)
+            after(1 second, system.scheduler)(makeTunnelPort(t)(portFact))
         }
 
     private def doDatapathZonesUpdate(
@@ -257,19 +247,6 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     }
 
     override def receive: Receive = super.receive orElse {
-
-        // When we get the initialization message we switch into initialization
-        // mode and only respond to some messages.
-        // When initialization is completed we will revert back to this Actor
-        // loop for general message response
-        case Initialize =>
-            context.become(DatapathInitializationActor)
-            // In case there were some scheduled port update checks, cancel them.
-            if (portWatcher != null) {
-                portWatcher.unsubscribe()
-            }
-            self ! Initialize
-
         case host: ResolvedHost =>
             val oldZones = zones
             val newZones = host.zones

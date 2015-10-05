@@ -58,22 +58,18 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
     var clusterRouter: UUID = null
 
     private def buildTopology() {
-        val host = newHost("myself",
-            injector.getInstance(classOf[HostIdProviderService]).hostId)
-        host should not be null
-
         clusterRouter = newRouter("router")
         clusterRouter should not be null
 
         leftPort = newRouterPort(clusterRouter,
             MAC.fromString(leftRouterMac), leftRouterIp, leftNet, netmask)
         leftPort should not be null
-        materializePort(leftPort, host, "eth0")
+        materializePort(leftPort, hostId, "eth0")
 
         rightPort = newRouterPort(clusterRouter,
             MAC.fromString(rightRouterMac), rightRouterIp, rightNet, netmask)
         rightPort should not be null
-        materializePort(rightPort, host, "eth1")
+        materializePort(rightPort, hostId, "eth1")
 
         newRoute(clusterRouter, "0.0.0.0", 0, blackholedDestination, 30,
                  NextHop.BLACKHOLE, null, null, 1)

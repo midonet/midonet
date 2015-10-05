@@ -226,10 +226,6 @@ public class Midolman {
         configurator.observableRuntimeConfig(HostIdGenerator.getHostId()).
                 subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
 
-        // fire the initialize message to an actor
-        injector.getInstance(MidolmanActorsService.class).initProcessing();
-        log.info("Actors service was initialized");
-
         enableFlowTracingAppender(
                 injector.getInstance(FlowTracingAppender.class));
 

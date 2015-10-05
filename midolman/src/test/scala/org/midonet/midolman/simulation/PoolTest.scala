@@ -122,8 +122,6 @@ class PoolTest extends MidolmanSpec {
     implicit var natTx: FlowStateTransaction[NatKey, NatBinding] = _
 
     override def beforeTest() {
-        newHost("myself", hostId)
-
         router = newRouter("router0")
 
         exteriorClientPort = newRouterPort(router,
