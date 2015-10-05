@@ -24,7 +24,9 @@ import akka.actor.{Actor, ActorRef}
 import com.google.inject.Inject
 import rx.{Observable, Subscriber}
 
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe, TunnelZoneRequest, TunnelZoneUnsubscribe}
 import org.midonet.midolman.topology.VirtualTopology.Device
@@ -91,12 +93,16 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
     private def recoverableObservable[D <: Device](deviceId: UUID)
                                                   (implicit t: ClassTag[D])
     : Observable[D] = {
-        VirtualTopology.observable[D](deviceId)
-                       .onErrorResumeNext(makeFunc1 { e: Throwable =>
-                           log.error("Device {}/{} error", t.runtimeClass,
-                                     deviceId, e)
-                           recoverableObservable[D](deviceId)
-                       })
+        VirtualTopology
+            .observable[D](deviceId)
+            .onErrorResumeNext(makeFunc1 { e: Throwable => e match {
+                case nfe: NotFoundException if nfe.id == toProto(deviceId) =>
+                    log.warn("Device {}/{} not found", t.runtimeClass, deviceId, e)
+                    Observable.error(e)
+                case _ =>
+                    log.error("Device {}/{} error", t.runtimeClass, deviceId, e)
+                    recoverableObservable[D](deviceId)
+        }})
     }
 
     private def onRequest[D <: Device](request: VtpmRequest[_])

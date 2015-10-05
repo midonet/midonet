@@ -39,7 +39,6 @@ import rx.observers.TestObserver
 import org.midonet.cluster.data.TunnelZone.HostConfig
 import org.midonet.cluster.data.storage.{Storage, StateStorage}
 import org.midonet.cluster.data.{TunnelZone => OldTunnel, ZoomConvert}
-import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host => TopologyHost, TunnelZone => TopologyTunnelZone}
 import org.midonet.cluster.services.MidonetBackend
@@ -444,5 +443,9 @@ class VtpmRedirectorTest extends TestKit(ActorSystem("VtpmRedirectorTest"))
                 Await.result(nye.waitFor, timeout)
             }
         }
+    }
+
+    feature("The VTPMRedirector handles errors in device observables") {
+        // TODO: resume when object still exists, otherwise not
     }
 }
