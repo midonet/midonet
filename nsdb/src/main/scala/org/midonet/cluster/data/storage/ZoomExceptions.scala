@@ -15,8 +15,12 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.{UUID => JUUID}
+
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage.TransactionManager.getIdString
+import org.midonet.cluster.models.Commons.{UUID => PUUID}
+import org.midonet.cluster.util.UUIDUtil
 
 /**
  * Catch-all wrapper for any non-runtime exception occurring in the
@@ -41,7 +45,15 @@ class NotFoundException (val clazz: Class[_], val id: ObjId)
     extends StorageException(
         if (id != None) s"There is no ${clazz.getSimpleName} with ID " +
                         s"${getIdString(clazz, id)}."
-        else s"There is no ${clazz.getSimpleName} with the specified ID.")
+        else s"There is no ${clazz.getSimpleName} with the specified ID.") {
+
+    def getIdString(): String = id match {
+        case pId: PUUID => UUIDUtil.toString(pId)
+        case jId: JUUID => jId.toString
+        case sId: String => sId
+        case _ => throw new IllegalArgumentException("Unknown object id: " + id)
+    }
+}
 
 class ObjectExistsException (val clazz: Class[_], val id: ObjId)
     extends StorageException(
