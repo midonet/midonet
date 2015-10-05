@@ -22,6 +22,30 @@
       "revId": "0077fe220e393bf4902e93ba7a3c912e6e78594b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fab399f4_635a1085",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-05T18:06:23Z",
+      "side": 1,
+      "message": "I now submit this as a runnable on the vt thread. Since notifications, onComplete, and onError are notified on the same thread that subscribes to the observable, state is not an atomic reference anymore.",
+      "parentUuid": "fab399f4_63ddb042",
+      "range": {
+        "startLine": 163,
+        "startChar": 8,
+        "endLine": 163,
+        "endChar": 29
+      },
+      "revId": "0077fe220e393bf4902e93ba7a3c912e6e78594b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
