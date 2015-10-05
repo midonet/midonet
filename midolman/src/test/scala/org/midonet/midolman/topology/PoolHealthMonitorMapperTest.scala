@@ -26,10 +26,11 @@ import rx.Observable
 
 import org.midonet.cluster.data.storage.{CreateOp, Storage, UpdateOp}
 import org.midonet.cluster.models.Commons.LBStatus
-import org.midonet.cluster.models.Topology.{PoolMember, Pool}
+import org.midonet.cluster.models.Topology.{PoolMember, Pool, Vip}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.TopologyBuilder._
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
+import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
 import org.midonet.midolman.util.MidolmanSpec
@@ -94,10 +95,13 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
             Then("The observer should receive a pool health monitor map")
             obs.awaitOnNext(1, timeout) shouldBe true
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty)
+                obs.awaitOnNext(2, timeout)
 
-            val map = obs.getOnNextEvents.get(0).mappings
+            val map = obs.getOnNextEvents.last.mappings
             map should not be empty
-            map should contain key fromProto(pool.getId)
+            map.contains(fromProto(pool.getId)) shouldBe true
 
             val phm = map(fromProto(pool.getId))
             phm.healthMonitor.id shouldBe fromProto(healthMonitor.getId)
@@ -132,17 +136,21 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
             Then("The observer should receive a pool health monitor map")
             obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty) {
+                obs.awaitOnNext(2, timeout) shouldBe true
+            }
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
-            When("Updating the pool member")
-            val poolMember2 = poolMember1.setAdminStateUp(true)
-            store.update(poolMember2)
+            When("We update the pool member")
+            val pmUpdated = poolMember1.setAdminStateUp(true)
+            store.update(pmUpdated)
 
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            val map = obs.getOnNextEvents.get(1).mappings
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val map = obs.getOnNextEvents.last.mappings
             map should not be empty
-
             val data = map(pool.getId)
             data.healthMonitor shouldBeDeviceOf healthMonitor
             data.loadBalancer.id shouldBe fromProto(loadBalancer.getId)
@@ -177,7 +185,11 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
             Then("The observer should receive a pool health monitor map")
             obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty)
+                obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
             When("Creating a new pool member")
             val poolMember2 = createPoolMember(poolId = Some(pool.getId),
@@ -186,8 +198,8 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             store.create(poolMember2)
 
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            val map = obs.getOnNextEvents.get(1).mappings
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val map = obs.getOnNextEvents.last.mappings
             map should not be empty
             map should contain key pool.getId.asJava
 
@@ -225,16 +237,21 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
             Then("The observer should receive a pool health monitor map")
             obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty) {
+                obs.awaitOnNext(1, timeout) shouldBe true
+            }
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
-            When("Deleting the pool member")
+            When("We remove a pool member")
             store.delete(classOf[PoolMember], poolMember.getId)
 
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            val map = obs.getOnNextEvents.get(1).mappings
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val map = obs.getOnNextEvents.last.mappings
             map should not be empty
-            map should contain key pool.getId.asJava
+            map.contains(pool.getId) shouldBe true
 
             val data = map(pool.getId)
             data.healthMonitor shouldBeDeviceOf healthMonitor
@@ -269,14 +286,19 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
             Then("The observer should receive a pool health monitor map")
             obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty)
+                obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
-            When("Deleting the pool")
+            When("We remove the pool")
             store.delete(classOf[Pool], pool.getId)
 
-            Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents.get(1).mappings shouldBe empty
+            Then("The observer should be notified with a pool health monitor map")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val map = obs.getOnNextEvents.last.mappings
+            map.isEmpty shouldBe true
         }
 
         scenario("The mapper emits a map on health monitor update") {
@@ -305,18 +327,20 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
             Then("The observer should receive a pool health monitor map")
             obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty)
+                obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
-            When("Updating the health monitor")
-            val healthMonitor2 = healthMonitor1
-                .setMaxRetries(42).setPoolId(pool.getId)
+            When("We update the health monitor")
+            val healthMonitor2 = healthMonitor1.setMaxRetries(42).setPoolId(pool.getId)
             store.update(healthMonitor2)
 
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            val map = obs.getOnNextEvents.get(1).mappings
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val map = obs.getOnNextEvents.last.mappings
             map should not be empty
-
             val data = map(pool.getId)
             data.healthMonitor shouldBeDeviceOf healthMonitor2
             data.loadBalancer.id shouldBe fromProto(loadBalancer.getId)
@@ -349,9 +373,16 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
+            var events = 1
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            obs.awaitOnNext(events, timeout) shouldBe true
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty) {
+                events += 1
+                obs.awaitOnNext(events, timeout) shouldBe true
+            }
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
             When("Creating a new health monitor")
             val healthMonitor2 = createHealthMonitor()
@@ -363,7 +394,15 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             store.update(pool2)
 
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(3, timeout) shouldBe true
+            events += 1
+            obs.awaitOnNext(events, timeout) shouldBe true
+            // Depending on the timing, we may see an empty map
+            // while waiting for the new health monitor data
+            if (obs.getOnNextEvents.last.mappings.isEmpty) {
+                events += 1
+                obs.awaitOnNext(events, timeout) shouldBe true
+            }
+
             val map = obs.getOnNextEvents.last.mappings
             map should not be empty
 
@@ -400,7 +439,11 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
             Then("The observer should receive a pool health monitor map")
             obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty)
+                obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
             When("Removing the pool from the health monitor")
             val pool2 = pool1.removeHealthMonitorId()
@@ -408,8 +451,8 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             store.update(pool2)
 
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(2).mappings shouldBe empty
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents.last.mappings shouldBe empty
         }
 
         scenario("The mapper emits a map on load balancer update") {
@@ -438,7 +481,11 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
             Then("The observer should receive a pool health monitor map")
             obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty)
+                obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
             When("Updating the load balancer")
             val loadBalancer2 = loadBalancer1.addPool(pool.getId)
@@ -446,8 +493,8 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             store.update(loadBalancer2)
 
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            val map = obs.getOnNextEvents.get(1).mappings
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val map = obs.getOnNextEvents.last.mappings
             map should not be empty
 
             val data = map(pool.getId)
@@ -482,9 +529,16 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
+            var events = 1
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            obs.awaitOnNext(events, timeout) shouldBe true
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty) {
+                events += 1
+                obs.awaitOnNext(events, timeout) shouldBe true
+            }
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
             When("Adding the pool to a different load-balancer")
             val loadBalancer2 = createLoadBalancer()
@@ -493,9 +547,9 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             store.multi(Seq(CreateOp(loadBalancer2), UpdateOp(pool2)))
 
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(4, timeout) shouldBe true
+            obs.awaitOnNext(events, timeout) shouldBe true
 
-            val map = obs.getOnNextEvents.get(3).mappings
+            val map = obs.getOnNextEvents.last.mappings
             map should not be empty
 
             val data = map(pool2.getId)
@@ -529,9 +583,16 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
+            var events = 1
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            obs.awaitOnNext(events, timeout) shouldBe true
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty) {
+                events += 1
+                obs.awaitOnNext(events, timeout) shouldBe true
+            }
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
             When("Removing the pool from the load-balancer")
             val pool2 = pool1.removeLoadBalancerId()
@@ -539,8 +600,8 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             store.update(pool2)
 
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(2).mappings shouldBe empty
+            obs.awaitOnNext(events, timeout) shouldBe true
+            obs.getOnNextEvents.last.mappings shouldBe empty
         }
 
         scenario("The mapper emits a map on VIP update") {
@@ -553,10 +614,10 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
                                               status = Some(LBStatus.ACTIVE),
                                               weight = Some(1))
             val vip1 = createVip(poolId = Some(pool.getId))
-
+            val vip2 = createVip(poolId = Some(pool.getId))
             store.multi(Seq(CreateOp(healthMonitor), CreateOp(loadBalancer),
                             CreateOp(pool), CreateOp(poolMember),
-                            CreateOp(vip1)))
+                            CreateOp(vip1), CreateOp(vip2)))
 
             And("A pool health monitor mapper")
             val mapper = new PoolHealthMonitorMapper(vt)
@@ -569,23 +630,32 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
             Then("The observer should receive a pool health monitor map")
             obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty)
+                obs.awaitOnNext(2, timeout) shouldBe true
+            obs.reset()
 
-            When("Updating the VIP")
-            val vip2 = vip1.setAddress("10.0.0.1")
-            store.update(vip2)
-
-            Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            val map = obs.getOnNextEvents.get(1).mappings
+            var map = obs.getOnNextEvents.last.mappings
+            map = obs.getOnNextEvents.last.mappings
             map should not be empty
-
-            val data = map(pool.getId)
+            var data = map(pool.getId)
             data.healthMonitor shouldBeDeviceOf healthMonitor
             data.loadBalancer.id shouldBe fromProto(loadBalancer.getId)
             data.poolMembers.map(_.id).toSet shouldBe Set(fromProto(poolMember.getId))
-            data.vips.map(_.id).toList shouldBe List(fromProto(vip2.getId))
-            data.vips.head.address shouldBe IPv4Addr.fromString("10.0.0.1")
+            data.vips.map(_.id).toList shouldBe List(fromProto(vip1.getId),
+                                                     fromProto(vip2.getId))
+
+            When("We update the 2nd vip")
+            val updatedVip2 = vip2.toBuilder
+                                  .setAddress(IPAddressUtil.toProto("10.0.0.1"))
+                                  .build()
+            store.update(updatedVip2)
+
+            Then("The observer should receive an updated map")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            map = obs.getOnNextEvents.last.mappings
+            data = map(pool.getId)
+            data.vips.last.address shouldBe IPv4Addr.fromString("10.0.0.1")
         }
 
         scenario("The mapper emits a map on vip addition") {
@@ -614,16 +684,20 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
             Then("The observer should receive a pool health monitor map")
             obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0).mappings should not be empty
+            // Depending on timing we may see the initial empty map
+            if (obs.getOnNextEvents.head.mappings.isEmpty)
+                obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.last.mappings should not be empty
+            obs.reset()
 
             When("Adding a second VIP to the pool")
             val vip2 = createVip(poolId = Some(pool.getId))
             store.create(vip2)
 
             Then("The observer should receive a pool health monitor map")
-            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.awaitOnNext(1, timeout) shouldBe true
 
-            val map = obs.getOnNextEvents.get(1).mappings
+            val map = obs.getOnNextEvents.last.mappings
             map should not be empty
 
             val data = map(pool.getId)
