@@ -47,7 +47,7 @@ class TenantResource @Inject()(authService: AuthService,
 
     @GET
     @Produces(Array(APPLICATION_TENANT_COLLECTION_JSON))
-    def list(): java.util.List[Tenant] = {
+    def list(): java.util.List[_ <: Tenant] = {
         wrapException {
             authService.getTenants(requestContext)
         }

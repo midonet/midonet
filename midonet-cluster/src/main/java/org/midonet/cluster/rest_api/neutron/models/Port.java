@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -33,8 +34,8 @@ import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.collection.ListUtil;
 
-import static org.apache.commons.collections4.ListUtils.isEqualList;
 import static org.apache.commons.collections4.ListUtils.hashCodeForList;
+import static org.apache.commons.collections4.ListUtils.isEqualList;
 
 @ZoomClass(clazz = Neutron.NeutronPort.class)
 public class Port extends ZoomObject {
@@ -164,7 +165,7 @@ public class Port extends ZoomObject {
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("name", name)
                 .add("networkId", networkId)

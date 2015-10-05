@@ -265,8 +265,9 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
             tableData.get(t.getName) match {
                 case Some(MockData(data)) =>
                     data.put(e.uuid, e) match {
-                        case Some(old: E) =>
-                            update.addRow(toOvsdb(e.uuid), t.generateRow(old),
+                        case Some(old) =>
+                            update.addRow(toOvsdb(e.uuid),
+                                          t.generateRow(old.asInstanceOf[E]),
                                           t.generateRow(e))
                         case None =>
                             update.addRow(toOvsdb(e.uuid), null,
@@ -287,8 +288,9 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
             val update = new TableUpdate[GenericTableSchema]()
             tableData.get(t.getName) match {
                 case Some(MockData(data)) => data.remove(id) match {
-                    case Some(old: E) =>
-                        update.addRow(toOvsdb(id), t.generateRow(old), null)
+                    case Some(old) =>
+                        update.addRow(toOvsdb(id),
+                                      t.generateRow(old.asInstanceOf[E]), null)
                     case _ => // do nothing
                 }
                 case _ => // do nothing
@@ -367,7 +369,7 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
         result.setError(null)
         result.setDetails(null)
 
-        tableData.get(op.getTable) match {
+        tableData.get(op.getTable).map(_.asInstanceOf[MockData[E]]) match {
             case Some(MockData(data)) => op match {
                 case ins: Insert[_] =>
                     val t = tableParserFor[E](op)
@@ -379,7 +381,7 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
                                   new Column(uuidSchema, toOvsdb(newId)))
                     val entry = t.parseEntry(row)
                     if (data.contains(entry.uuid)) {
-                        val old = data(entry.uuid).asInstanceOf[E]
+                        val old = data(entry.uuid)
                         if (old != entry)
                             update.addRow(toOvsdb(entry.uuid),
                                           t.generateRow(old), row)
@@ -396,7 +398,7 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
                     val conditions = del.getWhere.toIterable
                     val removed = new util.ArrayList[Row[GenericTableSchema]]()
                     data.values
-                        .map { case e: E => (e, t.generateRow(e)) }.toSeq
+                        .map(e => (e, t.generateRow(e))).toSeq
                         .filter(p => conditions.forall(filterRow(p._2, _)))
                         .foreach({case (e, r) =>
                             data.remove(e.uuid)
@@ -410,7 +412,7 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
                     val conditions = upd.getWhere.toIterable
                     val updated = new util.ArrayList[Row[GenericTableSchema]]()
                     data.values
-                        .map { case e: E => (e, t.generateRow(e)) }.toSeq
+                        .map(e => (e, t.generateRow(e))).toSeq
                         .filter(p => conditions.forall(filterRow(p._2, _)))
                         .foreach({case (e, r) =>
                             val newRow = t.updateRow(r, upd.getRow)
@@ -427,7 +429,7 @@ class InMemoryOvsdbVtep(mgmtIp: IPv4Addr = IPv4Addr.random,
                     val t = tableParserFor[E](op)
                     val conditions = sel.getWhere
                     val out = data.values
-                                  .map { case e: E => t.generateRow(e) }
+                                  .map { e => t.generateRow(e) }
                                   .toSeq
                                   .filter { r =>
                                       conditions.forall(filterRow(r, _))

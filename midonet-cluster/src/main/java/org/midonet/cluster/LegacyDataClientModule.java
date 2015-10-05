@@ -68,42 +68,39 @@ public class LegacyDataClientModule extends PrivateModule {
     }
 
     protected void bindZkManagers() {
-        List<Class<? extends BaseZkManager>> managers = new ArrayList<>();
-
-        managers.add(HostZkManager.class);
-        managers.add(BgpZkManager.class);
-        managers.add(RouterZkManager.class);
-        managers.add(RouteZkManager.class);
-        managers.add(RuleZkManager.class);
-        managers.add(BridgeDhcpZkManager.class);
-        managers.add(BridgeDhcpV6ZkManager.class);
-        managers.add(BridgeZkManager.class);
-        managers.add(ChainZkManager.class);
-        managers.add(PortZkManager.class);
-        managers.add(AdRouteZkManager.class);
-        managers.add(PortGroupZkManager.class);
-        managers.add(TenantZkManager.class);
-        managers.add(TunnelZoneZkManager.class);
-        managers.add(IpAddrGroupZkManager.class);
-        managers.add(VtepZkManager.class);
-        managers.add(TraceRequestZkManager.class);
+        bindZkManager(HostZkManager.class);
+        bindZkManager(BgpZkManager.class);
+        bindZkManager(RouterZkManager.class);
+        bindZkManager(RouteZkManager.class);
+        bindZkManager(RuleZkManager.class);
+        bindZkManager(BridgeDhcpZkManager.class);
+        bindZkManager(BridgeDhcpV6ZkManager.class);
+        bindZkManager(BridgeZkManager.class);
+        bindZkManager(ChainZkManager.class);
+        bindZkManager(PortZkManager.class);
+        bindZkManager(AdRouteZkManager.class);
+        bindZkManager(PortGroupZkManager.class);
+        bindZkManager(TenantZkManager.class);
+        bindZkManager(TunnelZoneZkManager.class);
+        bindZkManager(IpAddrGroupZkManager.class);
+        bindZkManager(VtepZkManager.class);
+        bindZkManager(TraceRequestZkManager.class);
         /*
          * The Cluster.*Managers managers still the L4LB zkmanagers.
          */
-        managers.add(HealthMonitorZkManager.class);
-        managers.add(LoadBalancerZkManager.class);
-        managers.add(PoolZkManager.class);
-        managers.add(PoolHealthMonitorZkManager.class);
-        managers.add(PoolMemberZkManager.class);
-        managers.add(VipZkManager.class);
+        bindZkManager(HealthMonitorZkManager.class);
+        bindZkManager(LoadBalancerZkManager.class);
+        bindZkManager(PoolZkManager.class);
+        bindZkManager(PoolHealthMonitorZkManager.class);
+        bindZkManager(PoolMemberZkManager.class);
+        bindZkManager(VipZkManager.class);
+    }
 
-        for (Class<? extends BaseZkManager> managerClass : managers) {
-            //noinspection unchecked
-            bind(managerClass)
-                    .toProvider(new ZkManagerProvider(managerClass))
-                    .asEagerSingleton();
-            expose(managerClass);
-        }
+    private <T extends BaseZkManager> void bindZkManager(Class<T> managerClass) {
+        bind(managerClass)
+            .toProvider(new ZkManagerProvider<T>(managerClass))
+            .asEagerSingleton();
+        expose(managerClass);
     }
 
     private static class ZkManagerProvider<T extends BaseZkManager>

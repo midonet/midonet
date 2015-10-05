@@ -18,6 +18,7 @@ package org.midonet.cluster.rest_api.neutron.models;
 import java.net.URI;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import org.midonet.util.version.Since;
@@ -134,7 +135,7 @@ public class Neutron {
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
             .add("uri", uri)
             .add("networks", networks)
             .add("networkTemplate", networkTemplate)

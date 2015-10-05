@@ -15,8 +15,11 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -27,8 +30,6 @@ import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
-
-import java.util.UUID;
 
 @ZoomClass(clazz = Neutron.FloatingIp.class)
 public class FloatingIp extends ZoomObject {
@@ -102,7 +103,7 @@ public class FloatingIp extends ZoomObject {
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("floatingIpAddress", floatingIpAddress)
                 .add("floatingNetworkId", floatingNetworkId)
