@@ -16,15 +16,12 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicReference
-
 import javax.annotation.Nullable
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
 import com.google.protobuf.Message
-
 import rx.Observable.OnSubscribe
 import rx.observers.Subscribers
 import rx.subjects.{BehaviorSubject, PublishSubject}
@@ -34,7 +31,7 @@ import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.ZoomObject
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.DeviceMapper._
-import org.midonet.midolman.topology.VirtualTopology.{Key, Device}
+import org.midonet.midolman.topology.VirtualTopology.{Device, Key}
 import org.midonet.util.functors._
 
 object DeviceMapper {
@@ -119,7 +116,7 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
     import DeviceMapper.MapperClosedException
 
     private final val key = Key(tag, id)
-    private final val state = new AtomicReference(MapperState.Unsubscribed)
+    private final var state = MapperState.Unsubscribed
     private final val cache = BehaviorSubject.create[D]()
     private final val subscriber = Subscribers.from(cache)
 
@@ -135,23 +132,25 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
      */
     protected def observable: Observable[D]
 
-    override final def call(child: Subscriber[_ >: D]): Unit = {
-        // If the mapper is in any terminal state, complete the child
-        // immediately and return.
-        if (handleSubscriptionIfTerminal(child)) {
-            return
-        }
+    override final def call(child: Subscriber[_ >: D]): Unit =
+        vt.vtExecutor.submit(makeRunnable {
+            // If the mapper is in any terminal state, complete the child
+            // immediately and return.
+            if (handleSubscriptionIfTerminal(child)) {
+                return
+            }
 
-        if (state.compareAndSet(MapperState.Unsubscribed,
-                                MapperState.Subscribed)) {
-            observable.doOnEach(this).subscribe(subscriber)
-        }
-        cache subscribe child
-    }
+            if (state == MapperState.Unsubscribed) {
+                state = MapperState.Subscribed
+                observable.doOnEach(this).subscribe(subscriber)
+            }
+            cache subscribe child
+        })
 
     override final def onCompleted() = {
+        assertThread()
         log.debug("Device {}/{} deleted", tag, id)
-        state set MapperState.Completed
+        state = MapperState.Completed
         vt.devices.remove(id) match {
             case device: D => onDeviceChanged(device)
             case _ =>
@@ -160,9 +159,10 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
     }
 
     override final def onError(e: Throwable) = {
+        assertThread()
         log.error("Device {}/{} error", tag, id, e)
         error = e
-        state set MapperState.Error
+        state = MapperState.Error
         vt.devices.remove(id) match {
             case device: D => onDeviceChanged(device)
             case _ =>
@@ -171,6 +171,7 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
     }
 
     override final def onNext(device: D) = {
+        assertThread()
         log.debug("Device {}/{} notification: {}", tag, id, device)
         vt.devices.put(id, device)
         onDeviceChanged(device)
@@ -275,15 +276,15 @@ abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
       * returns `true` if the mapper was in a terminal state. */
     private def handleSubscriptionIfTerminal(child: Subscriber[_ >: D])
     : Boolean = {
-        if (state.get == MapperState.Completed) {
+        if (state == MapperState.Completed) {
             child.onCompleted()
             return true
         }
-        if (state.get == MapperState.Error) {
+        if (state == MapperState.Error) {
             child onError error
             return true
         }
-        if (state.get == MapperState.Closed) {
+        if (state == MapperState.Closed) {
             child onError MapperClosedException
             return true
         }
