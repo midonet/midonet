@@ -94,9 +94,11 @@ class FlowTracingAppenderTest extends FeatureSpec
         scenario("Logging without context set doesn't throw exception") {
             logger.trace("test log")
 
-            val results = cass.session.execute(
-                s"SELECT * FROM ${FlowTracingSchema.FLOW_EVENTS_TABLE}").all
-            results.size should be (0)
+            eventually {
+                val results = cass.session.execute(
+                    s"SELECT * FROM ${FlowTracingSchema.FLOW_EVENTS_TABLE}").all
+                results.size should be (0)
+            }
         }
 
         scenario("Logging with trace request id set, and flow trace id, empty trace key") {
@@ -108,16 +110,18 @@ class FlowTracingAppenderTest extends FeatureSpec
             val logString = "test log 2"
             logger.trace(logString)
 
-            val queryString =
-                s"SELECT * FROM ${FlowTracingSchema.FLOW_EVENTS_TABLE}"
-            val results = cass.session.execute(queryString).all
-            results.size should be (1)
-            results.get(0).getString("data") should be (logString)
+            eventually {
+                val queryString =
+                    s"SELECT * FROM ${FlowTracingSchema.FLOW_EVENTS_TABLE}"
+                val results = cass.session.execute(queryString).all
+                results.size should be (1)
+                results.get(0).getString("data") should be (logString)
 
-            val queryString2 =
-                s"SELECT * FROM ${FlowTracingSchema.FLOWS_TABLE}"
-            val results2 = cass.session.execute(queryString2).all
-            results2.size should be (1)
+                val queryString2 =
+                    s"SELECT * FROM ${FlowTracingSchema.FLOWS_TABLE}"
+                val results2 = cass.session.execute(queryString2).all
+                results2.size should be (1)
+            }
         }
 
         scenario("Logging with multiple req id") {
@@ -133,23 +137,25 @@ class FlowTracingAppenderTest extends FeatureSpec
             logger.trace(logString)
             logger.trace(logString)
 
-            val queryString =
-                s"SELECT * FROM ${FlowTracingSchema.FLOW_EVENTS_TABLE}"
-            val results = cass.session.execute(queryString).all
-            results.size should be (6)
-            for (r <- results.asScala) {
-                r.getString("data") should be (logString)
+            eventually {
+                val queryString =
+                    s"SELECT * FROM ${FlowTracingSchema.FLOW_EVENTS_TABLE}"
+                val results = cass.session.execute(queryString).all
+                results.size should be (6)
+                for (r <- results.asScala) {
+                    r.getString("data") should be (logString)
+                }
+
+                val queryString2 =
+                    s"SELECT * FROM ${FlowTracingSchema.FLOWS_TABLE}"
+                val results2 = cass.session.execute(queryString2).all
+                results2.size should be (2)
+                results2.get(0).getUUID("flowTraceId") should be (
+                    results2.get(1).getUUID("flowTraceId"))
+
+                results2.get(0).getUUID("traceRequestId") should not be (
+                    results2.get(1).getUUID("traceRequestId"))
             }
-
-            val queryString2 =
-                s"SELECT * FROM ${FlowTracingSchema.FLOWS_TABLE}"
-            val results2 = cass.session.execute(queryString2).all
-            results2.size should be (2)
-            results2.get(0).getUUID("flowTraceId") should be (
-                results2.get(1).getUUID("flowTraceId"))
-
-            results2.get(0).getUUID("traceRequestId") should not be (
-                results2.get(1).getUUID("traceRequestId"))
         }
     }
 
