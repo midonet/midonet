@@ -31,7 +31,6 @@ import org.scalatest.time.SpanSugar
 
 import org.midonet.cluster.models.Topology.{HealthMonitor => topHM, Router, Pool => topPool, Host}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.{HealthMonitor => HMSystem}

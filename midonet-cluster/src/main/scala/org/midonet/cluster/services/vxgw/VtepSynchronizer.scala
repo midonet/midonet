@@ -26,6 +26,8 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
+import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory.getLogger
 import rx.functions.Action1
 import rx.schedulers.Schedulers
@@ -93,7 +95,7 @@ class VtepSynchronizer(vtepId: UUID,
                        ovsdbProvider: (IPv4Addr, Int) => OvsdbVtepDataClient)
     extends Observer[NsdbVtep] {
 
-    private val log = getLogger(vxgwVtepControlLog(vtepId))
+    private val log = Logger(getLogger(vxgwVtepControlLog(vtepId)))
     private implicit val ec = VtepSynchronizer.ec
 
     // The latest known VTEP instance, in the NSDB.  This variable is always
@@ -131,13 +133,14 @@ class VtepSynchronizer(vtepId: UUID,
     private var ovsdbMacLocationObserver: Observer[MacLocation] =
         new Observer[MacLocation] {
             override def onCompleted(): Unit = {
-                log.debug("MidoNet stops emitting MAC locations")
+                log.debug("MAC location stream completed")
             }
             override def onError(e: Throwable): Unit = {
-                log.warn("MidoNet MAC stream failed: ", e)
+                log.warn("MAC location stream failed", e)
             }
             override def onNext(ml: MacLocation): Unit = {
-                log.info(s"MacLocation ignored: OVSDB still not connected $ml")
+                log.info("MAC location ignored: OVSDB still not connected: {}",
+                         ml)
             }
     }
 
@@ -168,7 +171,7 @@ class VtepSynchronizer(vtepId: UUID,
                      | Connecting => VTEP_DISCONNECTED
                 case _ => VTEP_ERROR
             }
-            log.info(s"OVSDB connection state change: $s")
+            log.info("OVSDB connection state change: {}", s)
             stateStore.setVtepConnectionState(vtepId, zkState).asFuture
 
             if (connectionState == Ready) {
@@ -184,9 +187,9 @@ class VtepSynchronizer(vtepId: UUID,
     private def feedFloodingProxyTo(nwId: UUID): Unit = {
         val tzId = fromProto(nsdbVtep.getTunnelZoneId)
         val fpIp = fpHerald.lookup(tzId).map(_.tunnelIp).orNull
-        log.debug(s"FloodingProxy lookup for tunnel zone $tzId yields $fpIp")
+        log.debug(s"Flooding proxy lookup for tunnel zone $tzId yields $fpIp")
         val lsName = bridgeIdToLogicalSwitchName(nwId)
-        log.debug(s"FloodingProxy $fpIp announced to LogicalSwitch $lsName")
+        log.debug(s"Flooding proxy $fpIp announced to logical switch $lsName")
         ovsdbMacLocationObserver.onNext(MacLocation.unknownAt(fpIp, lsName))
     }
 
@@ -196,7 +199,7 @@ class VtepSynchronizer(vtepId: UUID,
       * Runs on the event thread from Storage.
       */
     override def onError(t: Throwable): Unit = {
-        log.error("Error on VTEP subscription to NSDB", t)
+        log.error("VTEP error", t)
         ovsdb.close()
         subscription.unsubscribe()
         subscription.clear()
@@ -208,7 +211,7 @@ class VtepSynchronizer(vtepId: UUID,
       * Runs on the event thread from Storage.
       */
     override def onCompleted(): Unit = {
-        log.info("The VTEP was deleted from MidoNet, cleaning up..")
+        log.info("VTEP deleted: cleaning up")
         ovsdb.close()
         subscription.unsubscribe()
         subscription.clear()
@@ -230,16 +233,17 @@ class VtepSynchronizer(vtepId: UUID,
         if (oldState == null) {
             val mgmtIp = toIPv4Addr(vtep.getManagementIp)
             val mgmtPort = vtep.getManagementPort
-            log.info(s"First loaded VTEP data from OVSDB $mgmtIp:$mgmtPort")
+            log.info("VTEP added: loading data from OVSDB at {}:{}",
+                     mgmtIp, Int.box(mgmtPort))
             ovsdb = ovsdbProvider(mgmtIp, mgmtPort)
             connectToOvsdb()
             watchOvsdbConnectionEvents()
         } else if (connectionState == Ready) {
-            log.debug(s"Syncing NSDB into OVSDB for VTEP $vtepId")
+            log.debug("VTEP updated: synchronizing NSDB into OVSDB")
             syncNsdbIntoOvsdb()
         } else {
-            log.info(s"Received update about VTEP $vtepId, but OVDSB is " +
-                     "disconnected (it will sync when reconnected)")
+            log.info("VTEP updated, but OVDSB is disconnected: will " +
+                     "synchronize when reconnected")
         }
     }
 
@@ -256,7 +260,7 @@ class VtepSynchronizer(vtepId: UUID,
             case Failure(NonFatal(t)) =>
                 log.error("Failed to connect to OVDSB", t)
             case Success(obs) =>
-                log.info("Connected to OVSDB, start sync processes..")
+                log.info("Connected to OVSDB, start VTEP synchronization")
                 extractVtepTunnelIps(vtepId)
                 ovsdbMacLocationObserver = obs
                 macRemoteConsumer = new VtepMacRemoteConsumer(nsdbVtep,
@@ -272,7 +276,7 @@ class VtepSynchronizer(vtepId: UUID,
     private def extractVtepTunnelIps(vtepId: UUID): Unit = {
         ovsdb.physicalSwitch.andThen {
             case Success(Some(ps)) =>
-                log.info(s"VTEP $vtepId tunnel IPs are: ${ps.tunnelIpStrings}")
+                log.info("VTEP tunnel IPs are: {}", ps.tunnelIpStrings)
                 val vtepConfig = VtepConfiguration.newBuilder()
                     .addAllTunnelAddresses(
                         ps.tunnelIps.map(IPAddressUtil.toProto))
@@ -282,7 +286,7 @@ class VtepSynchronizer(vtepId: UUID,
                     vtepConfig.setDescription(ps.description)
                 stateStore.setVtepConfig(vtepId, vtepConfig.build()).asFuture
             case Failure(_) =>
-                log.warn(s"Failed to extract tunnel IPs for VTEP $vtepId")
+                log.warn("Failed to extract tunnel IPs")
         }
     }
 
@@ -320,7 +324,7 @@ class VtepSynchronizer(vtepId: UUID,
       */
     private def syncNsdbIntoOvsdb(): Unit = {
 
-        log.debug("Syncing with VTEP")
+        log.debug("Synchronizing with VTEP")
 
         // Choose the set of network ids that have bindings
         val nwIds = nsdbVtep.getBindingsList
@@ -337,7 +341,7 @@ class VtepSynchronizer(vtepId: UUID,
     }
 
     private def ignoreNetwork(id: UUID): Unit = {
-        log.info(s"Network $id is no longer a Vxlan Gateway, unbinding")
+        log.info(s"Network $id is no longer a VXLAN gateway: unbinding")
         val nwState = boundNetworks.remove(id)
         nwState.subscriptions.unsubscribe()
         if (nwState.arpTable != null) nwState.arpTable.stop()
@@ -387,21 +391,21 @@ class VtepSynchronizer(vtepId: UUID,
             .map { _ => feedFloodingProxyTo(nwId) }
             .onComplete {
                 case Success(_) =>
-                    log.debug(s"Network $nwId is now watched")
+                    log.debug("Network {} is now watched", nwId)
                 case Failure(t) if retries == 0 =>
-                    log.warn(s"Failed to watch network $nwId, no more " +
-                             "retries left", t)
+                    log.warn("Failed to watch network {}: no more retries left",
+                             nwId, t)
                 case Failure(e: IllegalStateException) =>
-                    log.info(s"Network $nwId is not bound to the VTEP anymore")
+                    log.info("Network {} is not bound to the VTEP anymore", nwId)
                 case Failure(e: NotFoundException) =>
-                    log.info(s"Network $nwId was removed")
+                    log.info("Network {} was removed", nwId)
                 case Failure(e: VtepStateException) =>
                     log.info("OVSDB not reachable, waiting until connected, " +
-                             s"$retries retries left")
+                             "{} retries left", Int.box(retries))
                     whenVtepReady { watchNetwork(nwId, retries - 1) }
                 case Failure(t) =>
-                    log.warn(s"Network $nwId failed to bootstrap, $retries " +
-                             "retries left", t)
+                    log.warn("Network {} failed to bootstrap: {} retries left",
+                             nwId, Int.box(retries), t)
                     executor submit makeRunnable(watchNetwork(nwId, retries -1))
              }
     }
@@ -423,12 +427,11 @@ class VtepSynchronizer(vtepId: UUID,
             ports.find(p => fromProto(p.getVtepId) == vtepId) match {
                 case Some(p) =>
                     nwInfo.vxPort = fromProto(p.getId)
-                    log.debug(s"Network $nwId port for VTEP $vtepId is " +
-                              s"${nwInfo.vxPort}")
+                    log.debug("Network {} port for VTEP is: {}", nwId,
+                              nwInfo.vxPort)
                 case None =>
                     throw new IllegalStateException(
-                        "Can't find a VxLan port for vtep $vtepId on" +
-                        "network $nwId")
+                        s"Cannot find a VXLAN port for VTEP on network $nwId")
             }
         }
     }
@@ -440,28 +443,28 @@ class VtepSynchronizer(vtepId: UUID,
             return
         }
         if (nwInfo.arpTable != null) {
-            log.debug(s"ARP table for network $nwId is already being watched")
+            log.debug("ARP table for network {} is already being watched", nwId)
             return
         }
         val arpTable: Ip4ToMacReplicatedMap = try {
             dataClient.getIp4MacMap(nwId)
         } catch {
             case e: StateAccessException =>
-                log.warn(s"Error loading ARP table of network $nwId, retrying")
+                log.warn("Error loading ARP table of network {}: retrying", nwId)
                 executor.submit( makeRunnable {
                     watchArpTable(nwId, vtepUpdater)
                 })
                 return
-            case NonFatal(_) =>
+            case NonFatal(e) =>
                 log.error("Non recoverable failure loading ARP table of " +
-                          s"network " + nwId)
+                          "network: {}", nwId, e)
                 return
         }
 
         boundNetworks.get(nwId).arpTable = arpTable
 
         watchMap(nwId, arpTable, vtepUpdater.buildArpUpdateHandler(nwId))
-        log.debug(s"ARP table of network $nwId is now watched")
+        log.debug("ARP table of network {} is now watched", nwId)
     }
 
     private def watchMacPortMap(nwId: UUID,
@@ -471,28 +474,28 @@ class VtepSynchronizer(vtepId: UUID,
             return
         }
         if (nwInfo.macTable != null) {
-            log.debug(s"MAC table for network $nwId is already being watched")
+            log.debug("MAC table for network {} is already being watched", nwId)
             return
         }
         val macTable: MacPortMap = try {
             dataClient.bridgeGetMacTable(nwId, 0, false)
         } catch {
             case e: StateAccessException =>
-                log.warn(s"Error loading MAC table of network $nwId, retring")
+                log.warn("Error loading MAC table of network {}: retrying", nwId)
                 executor.submit( makeRunnable {
                     watchMacPortMap(nwId, vtepUpdater)
                 })
                 return
-            case NonFatal(_) =>
-                log.error(s"Non recoverable failure loading MAC table of " +
-                          s"network " + nwId)
+            case NonFatal(e) =>
+                log.error("Non recoverable failure while loading the MAC " +
+                          "table for network: {}", nwId, e)
                 return
         }
 
         boundNetworks.get(nwId).macTable = macTable
 
         watchMap(nwId, macTable, vtepUpdater.buildMacPortHandler(nwId))
-        log.debug(s"MAC-Port table of network $nwId is now watched")
+        log.debug("MAC-port table of network {} is now watched", nwId)
     }
 
     /** Watch the given replicated map, do something with each notification.
@@ -521,18 +524,20 @@ class VtepSynchronizer(vtepId: UUID,
       */
     private def ensureLogicalSwitch(nwId: UUID): Future[UUID] = {
         if (!boundNetworks.containsKey(nwId)) {
-            val msg = s"Can't verify LogicalSwitch for unbound network $nwId"
+            val msg =
+                s"Cannot verify the logical switch for unbound network $nwId"
             log.debug(msg)
             return Future.failed(new IllegalStateException(msg))
         }
         store.get(classOf[Network], nwId).flatMap { network =>
             if (network.getVni < 10000) {
                 throw new IllegalStateException(
-                    s"Network $nwId has VNI < 10000 - this is a problem " +
-                    s"in the API.  binding will NOT complete")
+                    s"Network $nwId has unsupported VNI less than 10000 " +
+                    "(this is a problem): binding will not complete")
             } else {
                 val vni = network.getVni
-                log.debug(s"Fetch logical switch for network $nwId vni: $vni")
+                log.debug("Fetch logical switch for network: {} VNI: {}",
+                          nwId, Int.box(vni))
                 ovsdb.createLogicalSwitch(bridgeIdToLogicalSwitchName(nwId),
                                           network.getVni)
             }
@@ -545,17 +550,16 @@ class VtepSynchronizer(vtepId: UUID,
     private def ensureBindings(lsId: UUID,
                                nwId: UUID,
                                bindings: util.List[NsdbVtep.Binding]) = {
-        log.debug(s"Ensuring that VTEP bindings exist for $nwId")
+        log.debug("Ensuring that VTEP bindings exist for network: {}", nwId)
         if (!boundNetworks.containsKey(nwId)) {
-            val msg = s"Can't consolidate bindings for unbound network $nwId"
+            val msg = s"Cannot consolidate bindings for unbound network: $nwId"
             log.debug(msg)
             Future.failed(new IllegalArgumentException(msg))
         } else {
             val portVlanPairs =
                 bindings.filter(bdg => fromProto(bdg.getNetworkId) == nwId)
                         .map(bdg => (bdg.getPortName, bdg.getVlanId.toShort))
-            log.debug(s"New bindings from network $nwId to VTEP $vtepId: " +
-                      s"$portVlanPairs")
+            log.debug("New bindings from network {}: {}", nwId, portVlanPairs)
             ovsdb.setBindings(lsId, portVlanPairs)
         }
     }
