@@ -305,6 +305,7 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
             if (ml != null) {
                 applyMac(ml)
             }
+            request(1)
         }
 
         private def applyMac(ml: MacLocation): Unit = {
