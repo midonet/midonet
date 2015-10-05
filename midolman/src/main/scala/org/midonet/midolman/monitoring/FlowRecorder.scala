@@ -198,7 +198,9 @@ object FlowRecordBuilder {
                 case a: FlowActionSetKey =>
                     setKeyAction(a)
                 case a: FlowActionUserspace =>
-                    recActions.add(Actions.Userspace(a.uplinkPid, a.userData))
+                    recActions.add(Actions.Userspace(a.uplinkPid,
+                                                     if (a.userData == null) 0
+                                                     else a.userData))
                 case _ =>
                     recActions.add(Actions.Unknown())
             }

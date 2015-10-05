@@ -72,7 +72,11 @@ public class FlowActionUserspace implements FlowAction,
 
     public void randomize() {
         uplinkPid = FlowActions.rand.nextInt();
-        userData = FlowActions.rand.nextLong();
+        if (FlowActions.rand.nextBoolean()) {
+            userData = FlowActions.rand.nextLong();
+        } else {
+            userData = null;
+        }
     }
 
     @Override
