@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fab399f4_63f3f00a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-05T16:38:49Z",
+      "side": 1,
+      "message": "Huub, could you fix the commit message to be like this please: https://github.com/midonet/midonet/wiki/Developer%27s-Guide#message \n\nthanks!",
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
