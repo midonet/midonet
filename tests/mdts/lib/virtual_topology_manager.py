@@ -25,6 +25,7 @@ from mdts.lib.mdts_exception import MdtsException
 from mdts.lib.port_group import PortGroup
 from mdts.lib.resource_reference import ResourceReference
 from mdts.lib.router import Router
+from mdts.lib.mirror import Mirror
 from mdts.lib.tenants import get_or_create_tenant
 from mdts.lib.topology_manager import TopologyManager
 from mdts.lib.tracerequest import TraceRequest
@@ -33,6 +34,9 @@ from mdts.tests.utils.utils import clear_virtual_topology_for_tenants
 from midonetclient.api import MidonetApi
 
 from webob.exc import HTTPBadRequest
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 class ResourceNotFoundException(MdtsException):
@@ -70,6 +74,7 @@ class VirtualTopologyManager(TopologyManager):
         self._resource_references = []
         self._routers = {}
         self._bridges = {}
+        self._mirrors = {}
         self._bridge_router = {}
         self._chains = {}
         self._tracerequests = {}
@@ -129,6 +134,10 @@ class VirtualTopologyManager(TopologyManager):
             try: link.build()
             except HTTPBadRequest as e:
                 raise DevicePortLinkingException(link, e)
+
+        for mirror in self._vt.get('mirrors') or []:
+            self.add_mirror(mirror['mirror'])
+
 
     def look_up_resource(self, referrer, setter, reference_spec):
         """Looks up a resource referred by referrer.
@@ -257,6 +266,14 @@ class VirtualTopologyManager(TopologyManager):
 
     def get_bridge(self, name):
         return self._bridges[name]
+
+    def add_mirror(self, mirror):
+        mirror_obj = Mirror(self._api, self, mirror)
+        mirror_obj.build()
+        self._mirrors[mirror['name']] = mirror_obj
+
+    def get_mirror(self, name):
+        return self._mirrors[name]
 
     def add_router(self, router):
         router_obj = Router(self._api, self, router)

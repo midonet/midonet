@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo modprobe openvswitch
+sudo modprobe 8021q
 # install python dependencies (may have changed since image build)
 sudo pip install -r tests/mdts.dependencies
 
