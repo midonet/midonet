@@ -115,7 +115,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
     private def topologyPortUpdated(port: TopologyPort): Unit = {
         // Request the chains for this port.
-        log.debug("Port updated in topology {}", port)
+        log.debug("Port updated in topology {}", port.getId.asJava)
         chainsTracker.requestRefs(
             if (port.hasInboundFilterId) port.getInboundFilterId else null,
             if (port.hasOutboundFilterId) port.getOutboundFilterId else null,
