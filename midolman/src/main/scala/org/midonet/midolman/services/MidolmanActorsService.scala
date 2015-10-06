@@ -27,7 +27,6 @@ import akka.util.Timeout
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.{Inject, Injector}
 
-import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman._
@@ -55,9 +54,10 @@ class MidolmanActorsService extends AbstractService {
     @Inject
     val config: MidolmanConfig = null
 
-    private var _system: ActorSystem = null
-    implicit def system: ActorSystem = _system
-    implicit def ex: ExecutionContext = _system.dispatcher
+    @Inject
+    implicit val system: ActorSystem = null
+
+    implicit def ex: ExecutionContext = system.dispatcher
     implicit protected val childActorTimeout = 200.milliseconds
     implicit protected val tout = new Timeout(60 seconds)
 
@@ -99,7 +99,6 @@ class MidolmanActorsService extends AbstractService {
             log.info("Booting up actors service")
 
             PacketTracing.registerAsMXBean()
-            _system = createActorSystem()
             supervisorActor = startTopActor(
                                 propsFor(classOf[SupervisorActor]),
                                 SupervisorActor.Name)
@@ -172,8 +171,4 @@ class MidolmanActorsService extends AbstractService {
         log.debug("Request for starting actor {}", name)
         (supervisorActor ? StartChild(props, name)).mapTo[ActorRef]
     }
-
-    protected def createActorSystem(): ActorSystem =
-        ActorSystem.create("midolman", ConfigFactory.load()
-                .getConfig("midolman"))
 }

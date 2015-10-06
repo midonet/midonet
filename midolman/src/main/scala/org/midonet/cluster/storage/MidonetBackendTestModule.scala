@@ -16,7 +16,7 @@
 package org.midonet.cluster.storage
 
 import com.typesafe.config.Config
-import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
 
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, Storage}
 import org.midonet.cluster.services.MidonetBackend
@@ -52,16 +52,10 @@ object MidonetBackendTestModule {
 class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
     extends MidonetBackendModule(new MidonetBackendConfig(cfg)) {
 
-    override protected def bindStorage(): Unit = {
-        bind(classOf[MidonetBackend])
-            .to(classOf[MidonetTestBackend])
-            .asEagerSingleton()
-        expose(classOf[MidonetBackend])
-    }
+    override protected def curatorFramework() = null
 
-    override protected def bindCurator(): Unit = {
-
-    }
+    override protected  def backend(curatorFramework: CuratorFramework) =
+        new MidonetTestBackend
 
     override protected def bindLockFactory(): Unit = {
         // all tests that need it use a real MidonetBackend, with a Test server

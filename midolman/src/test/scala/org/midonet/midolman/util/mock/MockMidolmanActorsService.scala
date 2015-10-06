@@ -21,15 +21,14 @@ import scala.collection.mutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
-import akka.actor.{Actor, ActorIdentity, ActorSystem, Identify, Props}
+import akka.actor.{Actor, ActorIdentity, Identify, Props}
 import akka.pattern.ask
 import akka.testkit.TestActorRef
-import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import com.google.inject.{Inject, Injector}
 
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
-import org.midonet.midolman.{MockScheduler, Referenceable}
+import org.midonet.midolman.Referenceable
 import org.midonet.midolman.services.MidolmanActorsService
 
 class EmptyActor extends Actor {
@@ -127,10 +126,4 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
         actors += (name -> testRef)
         Future successful testRef
     }
-
-    override def createActorSystem(): ActorSystem =
-        ActorSystem.create("MidolmanActors", ConfigFactory.load()
-            .getConfig("midolman")
-            .withValue("akka.scheduler.implementation",
-                       ConfigValueFactory.fromAnyRef(classOf[MockScheduler].getName)))
 }
