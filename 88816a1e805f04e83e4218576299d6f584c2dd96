@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_05a64dc1",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/RoutingTableStorage.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-06T10:05:59Z",
+      "side": 1,
+      "message": "It is only the state for the last host emitted on the hostIds input observable.",
+      "parentUuid": "1ae5cdf2_033c8d92",
+      "range": {
+        "startLine": 193,
+        "startChar": 36,
+        "endLine": 193,
+        "endChar": 40
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_63739180",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-10-01T12:13:49Z",
       "side": 1,
       "message": "This hostId cannot be null? Should it be hostId.asNullableString?",
+      "range": {
+        "startLine": 158,
+        "startChar": 40,
+        "endLine": 158,
+        "endChar": 46
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_25ad099d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-06T10:05:59Z",
+      "side": 1,
+      "message": "The `portRoutesObservable` method already accepts nulls.",
+      "parentUuid": "1ae5cdf2_63739180",
       "range": {
         "startLine": 158,
         "startChar": 40,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_45b055f4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PortMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-06T10:05:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae5cdf2_a3ae7983",
+      "range": {
+        "startLine": 313,
+        "startChar": 58,
+        "endLine": 313,
+        "endChar": 61
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_e3b7a1d6",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TraceRequestMapperTest.scala",
         "patchSetId": 4
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1ae5cdf2_85917d54",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TraceRequestMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-06T10:05:59Z",
+      "side": 1,
+      "message": "If I recall well, the changes made to either the port or router mapper removed a duplicate notification.",
+      "parentUuid": "1ae5cdf2_e3b7a1d6",
+      "range": {
+        "startLine": 180,
+        "startChar": 57,
+        "endLine": 180,
+        "endChar": 58
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_4303f572",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
         "patchSetId": 4
@@ -105,6 +201,30 @@
       "writtenOn": "2015-10-01T12:13:49Z",
       "side": 1,
       "message": "I saw in Midonetbackend that if true, this means the backend uses a unique host id. In which circumstance would we use multiple host ids?",
+      "range": {
+        "startLine": 79,
+        "startChar": 19,
+        "endLine": 79,
+        "endChar": 28
+      },
+      "revId": "88816a1e805f04e83e4218576299d6f584c2dd96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_6596314e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-06T10:05:59Z",
+      "side": 1,
+      "message": "This doesn\u0027t represent multiple host ids, but rather a deterministic host id (0L, 0L).\n\nThe reason is: that to read the state of a host, you need to know its host id. For the agents, this is easy, because they are all stored in zk, each port contains the host id where it is bound etc.\n\nFor the cluster, there is no way to determine the host id for a different cluster host. So if you have the API running in host A, and the VXGW service in host B, the API needs to know the host ID of host B in order to read any state written by it.\n\nBy keeping everything in the same namespace, simplifies the solution. Plus, the rational of namespaces is to secure ZK against hosts overwriting the topology. For now the assumption was that cluster nodes already have full access, so multiple namespaces are not needed.",
+      "parentUuid": "1ae5cdf2_4303f572",
       "range": {
         "startLine": 79,
         "startChar": 19,
