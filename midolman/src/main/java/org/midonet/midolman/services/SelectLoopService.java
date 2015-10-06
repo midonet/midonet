@@ -16,14 +16,20 @@
 package org.midonet.midolman.services;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 import com.google.common.util.concurrent.AbstractService;
+import com.google.inject.BindingAnnotation;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.cluster.MidolmanActorsModule;
 import org.midonet.util.eventloop.SelectLoop;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Service implementation that will initialize the SelectLoop select thread.
@@ -33,8 +39,11 @@ public class SelectLoopService extends AbstractService {
     private static final Logger log = LoggerFactory
         .getLogger(SelectLoopService.class);
 
+    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
+    public @interface ZEBRA_SERVER_LOOP { }
+
     @Inject
-    @MidolmanActorsModule.ZEBRA_SERVER_LOOP
+    @ZEBRA_SERVER_LOOP
     SelectLoop zebraLoop;
 
     private Thread startLoop(final SelectLoop loop, final String name) {

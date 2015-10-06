@@ -20,6 +20,8 @@ import java.util.{Collection, Set, UUID}
 
 import scala.reflect.ClassTag
 
+import com.google.inject.Inject
+
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald
 import org.midonet.midolman.NotYetException
@@ -33,7 +35,7 @@ object PeerResolver {
     private val portGroupCtag = implicitly[ClassTag[PortGroup]]
 }
 
-class PeerResolver(
+class PeerResolver @Inject() (
         hostIdProvider: HostIdProviderService,
         backend: MidonetBackend,
         virtualTopology: VirtualTopology) {
