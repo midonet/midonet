@@ -22,8 +22,8 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Network, Route}
-import org.midonet.cluster.services.c3po.midonet.{Create, Update, MidoOp}
+import org.midonet.cluster.models.Topology.{Port, Chain, Network, Route}
+import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update, MidoOp}
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -31,7 +31,9 @@ import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.util.concurrent.toFutureOps
 
 class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
-    extends NeutronTranslator[NeutronRouterInterface] with PortManager {
+    extends NeutronTranslator[NeutronRouterInterface]
+            with ChainManager
+            with PortManager {
 
     /* NeutronRouterInterface is a binding information and has no unique ID.
      * We don't persist it in Storage. */
@@ -51,12 +53,80 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         // is bound to a host interface.
         val isUplink = isOnUplinkNetwork(nPort)
 
-        // The router id is given as the router interface id
+        val ns = storage.get(classOf[NeutronSubnet], ri.getSubnetId).await()
+
+        val rtrPort = buildRouterPort(nPort, isUplink, ri, ns)
+
+        // Add a route to the Interface subnet.
+        val routerInterfaceRouteId =
+            RouteManager.routerInterfaceRouteId(rtrPort.getId)
+        val rifRoute = newNextHopPortRoute(nextHopPortId = rtrPort.getId,
+                                           id = routerInterfaceRouteId,
+                                           srcSubnet = univSubnet4,
+                                           dstSubnet = ns.getCidr)
+        val localRoute = newLocalRoute(rtrPort.getId, rtrPort.getPortAddress)
+
+        val midoOps = new MidoOpListBuffer
+
+        // Convert Neutron/network port to router interface port if it isn't
+        // already one.
+        if (nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE)
+            midoOps ++= convertPortOps(nPort, isUplink)
+
+        midoOps += Create(rtrPort)
+
+        if (isUplink) {
+            midoOps ++= bindPortOps(rtrPort,
+                                    getHostIdByName(nPort.getHostId),
+                                    nPort.getProfile.getInterfaceName)
+        } else {
+            midoOps ++= createMetadataServiceRoute(
+                rtrPort.getId, nPort.getNetworkId, ns.getCidr)
+            midoOps ++= updateGatewayRoutesOps(rtrPort.getPortAddress, ns.getId)
+        }
+
+        // Need to do these after the update returned by bindPortOps(), since
+        // these creates add route IDs to the port's routeIds list, which would
+        // be overwritten by the update.
+        midoOps += Create(rifRoute)
+        midoOps += Create(localRoute)
+
+        midoOps.toList
+    }
+
+    // Returns operations needed to convert non RIF port to RIF port.
+    private def convertPortOps(nPort: NeutronPort,
+                               isUplink: Boolean): MidoOpList = {
+        assert(nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE)
+
+        val midoOps = new MidoOpListBuffer
+        midoOps += Update(nPort.toBuilder
+                              .setDeviceOwner(DeviceOwner.ROUTER_INTERFACE)
+                              .build())
+
+        // If it's a VIF port, remove chains from the Midonet port. Unless it's
+        // on an uplink network, in which case there's no Midonet port.
+        if (!isUplink && nPort.getDeviceOwner == DeviceOwner.COMPUTE) {
+            midoOps += Delete(classOf[Chain], inChainId(nPort.getId))
+            midoOps += Delete(classOf[Chain], outChainId(nPort.getId))
+
+            val mPort = storage.get(classOf[Port], nPort.getId).await()
+            midoOps += Update(mPort.toBuilder
+                                  .clearInboundFilterId()
+                                  .clearOutboundFilterId()
+                                  .build())
+        }
+
+        midoOps.toList
+    }
+
+    private def buildRouterPort(nPort: NeutronPort, isUplink: Boolean,
+                                ri: NeutronRouterInterface,
+                                ns: NeutronSubnet): Port = {
+        // Router ID is given as the router interface's id.
         val routerId = ri.getId
 
-        // ID of the router port.
         val routerPortId = routerInterfacePortPeerId(nPort.getId)
-
         val routerPortBldr = newRouterPortBldr(routerPortId, routerId)
 
         if (isUplink) {
@@ -69,12 +139,10 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
             // backreference from the DHCP to the edge router port, allowing us
             // to find it easily when creating a tenant router gateway.
             routerPortBldr.setDhcpId(ri.getSubnetId)
-                          .setPeerId(nPort.getId)
+                .setPeerId(nPort.getId)
         }
 
-        val ns = storage.get(classOf[NeutronSubnet], ri.getSubnetId).await()
-        val portSubnet = ns.getCidr
-        routerPortBldr.setPortSubnet(portSubnet)
+        routerPortBldr.setPortSubnet(ns.getCidr)
 
         // Set the router port address. The port should have at most one IP
         // address. If it has none, use the subnet's default gateway.
@@ -87,43 +155,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         routerPortBldr.setPortAddress(gatewayIp)
         routerPortBldr.setPortMac(nPort.getMacAddress)
 
-        // Add a route to the Interface subnet.
-        val routerInterfaceRouteId =
-            RouteManager.routerInterfaceRouteId(routerPortId)
-        val rifRoute = newNextHopPortRoute(nextHopPortId = routerPortId,
-                                           id = routerInterfaceRouteId,
-                                           srcSubnet = univSubnet4,
-                                           dstSubnet = portSubnet)
-        val localRoute = newLocalRoute(routerPortId, gatewayIp)
-
-        val midoOps = new MidoOpListBuffer
-        val routerPort = routerPortBldr.build()
-        midoOps += Create(routerPort)
-
-        if (isUplink) {
-            midoOps ++= bindPortOps(routerPort,
-                                    getHostIdByName(nPort.getHostId),
-                                    nPort.getProfile.getInterfaceName)
-        } else {
-            midoOps ++= createMetadataServiceRoute(
-                routerPortId, nPort.getNetworkId, portSubnet)
-            midoOps ++= updateGatewayRoutesOps(gatewayIp, ns.getId)
-        }
-
-        // Need to do these after the update returned by bindPortOps(), since
-        // these creates add route IDs to the port's routeIds list, which would
-        // be overwritten by the update.
-        midoOps += Create(rifRoute)
-        midoOps += Create(localRoute)
-
-        // Convert Neutron Port to router interface port if it isn't already.
-        if (nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE) {
-            midoOps += Update(nPort.toBuilder
-                                  .setDeviceOwner(DeviceOwner.ROUTER_INTERFACE)
-                                  .build())
-        }
-
-        midoOps.toList
+        routerPortBldr.build()
     }
 
     private def createMetadataServiceRoute(routerPortId: UUID,
