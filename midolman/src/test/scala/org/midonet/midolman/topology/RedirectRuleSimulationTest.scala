@@ -25,7 +25,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons.{Condition, UUID => PUUID}
-import org.midonet.cluster.models.Topology.{Network => TopoBridge, Host}
+import org.midonet.cluster.models.Topology.{Network => TopoBridge}
 import org.midonet.cluster.models.Topology.{Port => TopoPort, L2Insertion, Rule}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.services.MidonetBackend
@@ -38,7 +38,6 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
