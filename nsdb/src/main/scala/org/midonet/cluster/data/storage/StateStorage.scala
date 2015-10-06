@@ -89,9 +89,6 @@ object StateStorage {
     /** Encoding used for string conversion to byte array. */
     final val StringEncoding = "UTF-8"
 
-    /** A single instance to return as an empty value set. */
-    final val EmptyValueSet = Set.empty[String]
-
 }
 
 /**

@@ -213,7 +213,7 @@ class InMemoryStorage extends Storage with StateStorage {
                 case None if keyType.isSingle =>
                     asObservable { SingleValueKey(key, None, NoOwnerId) }
                 case None =>
-                    asObservable { MultiValueKey(key, EmptyValueSet) }
+                    asObservable { MultiValueKey(key, Set()) }
             }
         }
 
@@ -237,7 +237,7 @@ class InMemoryStorage extends Storage with StateStorage {
             if (keyType.isSingle)
                 Observable.just(SingleValueKey(key, None, NoOwnerId))
             else
-                Observable.just(MultiValueKey(key, EmptyValueSet))
+                Observable.just(MultiValueKey(key, Set()))
         }
     }
 
@@ -655,7 +655,7 @@ class InMemoryStorage extends Storage with StateStorage {
             if (getKeyType(clazz, key).isSingle)
                 Observable.just[StateKey](SingleValueKey(key, None, NoOwnerId))
             else
-                Observable.just[StateKey](MultiValueKey(key, EmptyValueSet))
+                Observable.just[StateKey](MultiValueKey(key, Set()))
 
         Observable.switchOnNext(namespace map makeFunc1 { namespace =>
             if (namespace ne null) keyObservable(namespace, clazz, id, key)
