@@ -26,6 +26,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
 import rx.subjects.PublishSubject
 
