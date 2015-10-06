@@ -22,6 +22,30 @@
       "revId": "4d975a571a0eb13ce8727569c7d7ef163b6c6968",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fab399f4_6941110b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-06T08:00:33Z",
+      "side": 1,
+      "message": "That\u0027s a good idea, but what about doing that in another patch?",
+      "parentUuid": "fab399f4_c3e3dc03",
+      "range": {
+        "startLine": 116,
+        "startChar": 8,
+        "endLine": 116,
+        "endChar": 67
+      },
+      "revId": "4d975a571a0eb13ce8727569c7d7ef163b6c6968",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
