@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fab399f4_690f51e2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RedirectRuleSimulationTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-06T08:18:41Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 211,
+        "startChar": 12,
+        "endLine": 211,
+        "endChar": 65
+      },
+      "revId": "31d80357782baaba05f1faf9ea9fb3e7db041bf6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
