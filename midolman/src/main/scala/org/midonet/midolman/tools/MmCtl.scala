@@ -19,6 +19,8 @@ package org.midonet.midolman.tools
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import com.codahale.metrics.MetricRegistry
+
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 

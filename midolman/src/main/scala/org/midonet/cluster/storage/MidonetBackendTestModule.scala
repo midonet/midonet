@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.storage
 
+import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.Config
 import org.apache.curator.framework.CuratorFramework
 

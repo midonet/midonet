@@ -18,11 +18,12 @@ package org.midonet.cluster.services.topology
 
 import java.util.concurrent.CountDownLatch
 
+import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.Service.{State, Listener}
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.{ClusterConfig, ClusterConfig$, ClusterNode}
+import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule

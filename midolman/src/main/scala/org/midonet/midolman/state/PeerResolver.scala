@@ -18,6 +18,8 @@ package org.midonet.midolman.state
 
 import java.util.{Collection, Set, UUID}
 
+import com.google.inject.Inject
+
 import scala.reflect.ClassTag
 
 import org.midonet.cluster.services.MidonetBackend
@@ -33,7 +35,7 @@ object PeerResolver {
     private val portGroupCtag = implicitly[ClassTag[PortGroup]]
 }
 
-class PeerResolver(
+class PeerResolver @Inject() (
         hostIdProvider: HostIdProviderService,
         backend: MidonetBackend,
         virtualTopology: VirtualTopology) {
