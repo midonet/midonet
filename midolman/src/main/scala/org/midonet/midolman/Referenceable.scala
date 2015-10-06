@@ -15,6 +15,9 @@
  */
 package org.midonet.midolman
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 import akka.actor.{ActorRef, ActorSystem, ScalaActorRef}
 import akka.pattern.AskableActorRef
 
@@ -40,8 +43,10 @@ object Referenceable {
 
 trait Referenceable {
 
-    def getRef()(implicit system: ActorSystem): ActorRef =
-        system.actorFor(path)
+    def getRef()(implicit system: ActorSystem): ActorRef = {
+        val sel = system.actorSelection(path)
+        Await.result(sel.resolveOne(1 second), 1 second)
+    }
 
     val Name: String
 
