@@ -20,26 +20,21 @@ import java.util.UUID
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-import com.typesafe.config.{Config, ConfigValueFactory}
-
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
+import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.{Seconds, Span}
 
-
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.services.c3po.translators.L2InsertionTranslation._
-import org.midonet.cluster.models.Topology.{Port, L2Insertion, Network}
+import org.midonet.cluster.models.Topology.{L2Insertion, Network, Port}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.services.c3po.translators.L2InsertionTranslation._
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.NotYetException
-import org.midonet.midolman.simulation.{Bridge, Chain => SimChain}
-import org.midonet.midolman.simulation.{Port => SimPort}
-import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.rules.L2TransformRule
+import org.midonet.midolman.simulation.{Chain => SimChain, Port => SimPort}
+import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.Ethernet
 import org.midonet.util.concurrent.FutureOps
 import org.midonet.util.reactivex._
@@ -76,7 +71,7 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
                 payload(UUID.randomUUID().toString)
             case Some(v) =>
                 {
-                    eth addr srcMac -> dstMac vlan (v)
+                    eth addr srcMac -> dstMac vlan v
                 } << {
                     ip4 addr "10.0.0.10" --> "10.0.0.11"
                 } << {
@@ -99,7 +94,6 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             case None =>
                 result._2.wcmatch.getVlanIds.size() should be(0)
             case Some(vlan) =>
-                //result should be(hasPushVlan())
                 result._2.wcmatch.getVlanIds.get(0) should be(vlan)
         }
     }
@@ -170,8 +164,7 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             val mac3 = "02:00:00:00:ee:22"
             val mac4 = "02:00:00:00:ee:33"
 
-            val host = createHost()
-            store.create(host)
+            store create createHost(id = hostId)
 
             val vmBridge1 = createBridge(name = Some("vmBridge1"),
                                          adminStateUp = true)
@@ -186,7 +179,7 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             def bridgePort(id: UUID, interface: String, bridge: Network) = {
                 val port = createBridgePort(
                     id=id,
-                    hostId = Some(host.getId),
+                    hostId = Some(hostId),
                     interfaceName = Some(interface),
                     adminStateUp = true,
                     bridgeId = Some(bridge.getId))
@@ -210,10 +203,10 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             fetchBridges(vmBridge1.getId, vmBridge2.getId, srvBridge.getId)
 
             // Set all the ports to "Active"
-            val hostIdString = fromProto(host.getId).toString
+            val hostIdString = fromProto(hostId).toString
             for (port <- List(vm1Port, vm2Port, vm3Port, vm4Port,
                               srv1Port, srv2Port)) {
-                stateStore.addValue(classOf[Port], port.getId, HostsKey,
+                stateStore.addValue(classOf[Port], port.getId, ActiveKey,
                                     hostIdString).await(3 seconds)
             }
 
@@ -324,7 +317,7 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
 
             // Now set srv1Port to down. Verify traffic still flows thanks to
             // fail_open=true.
-            stateStore.removeValue(classOf[Port], srv1Port.getId, HostsKey,
+            stateStore.removeValue(classOf[Port], srv1Port.getId, ActiveKey,
                                 hostIdString).await(3 seconds)
 
             checkRoundTrip(vm3Port.getId, vm4Port.getId,

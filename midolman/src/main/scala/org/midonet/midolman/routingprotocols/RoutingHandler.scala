@@ -30,7 +30,6 @@ import akka.actor.ActorRef
 import org.apache.zookeeper.KeeperException
 import rx.Subscription
 
-import org.midonet.cluster.Client
 import org.midonet.cluster.data.Route
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
@@ -421,7 +420,8 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     private def syncPeerRoutes()(implicit cbf: CbfRouteSeq): Unit = {
         handleLearnedRouteError {
-            routingStorage.learnedRoutes(rport.deviceId, rport.id).flatMap {
+            routingStorage.learnedRoutes(rport.deviceId, rport.id, rport.hostId)
+                          .flatMap {
                 learnedRoutes =>
                 val futures = new ArrayBuffer[Future[Route]]()
                 // Delete routes we don't have anymore

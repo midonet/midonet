@@ -31,7 +31,7 @@ import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 import org.slf4j.LoggerFactory
 
-import rx.Observer
+import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage.{StateResult, ZookeeperObjectMapper}
@@ -57,7 +57,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
 
     private final val zkServer = "127.0.0.1:2181"
     private final val zkRoot = "/midonet/benchmark"
-    private final val hostId = UUID.randomUUID().toString
+    private final val hostId = UUID.randomUUID()
 
     private var curator: CuratorFramework = _
     private var storage: ZookeeperObjectMapper = _
@@ -102,7 +102,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
                                                     cnxnTimeoutMs,
                                                     retryPolicy)
         curator.start()
-        storage = new ZookeeperObjectMapper(zkRoot, hostId, curator)
+        storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator)
         storage.registerClass(classOf[Port])
         storage.registerKey(classOf[Port], RoutesKey, Multiple)
         storage.build()
@@ -205,7 +205,8 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
         storage.create(port)
 
         val obs = new RoutesObserver(count)
-        storage.portRoutesObservable(port.getId).subscribe(obs)
+        storage.portRoutesObservable(port.getId, Observable.just(hostId))
+               .subscribe(obs)
 
         for (index <- 1 to count) {
             val route = createPortRoute(portId = port.getId)

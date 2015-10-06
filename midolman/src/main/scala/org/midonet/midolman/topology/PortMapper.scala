@@ -20,12 +20,11 @@ import java.util.{ArrayList => JArrayList, UUID}
 import scala.collection.mutable
 
 import rx.Observable
-import rx.subjects.Subject
+import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
-import org.midonet.cluster.services.MidonetBackend.HostsKey
+import org.midonet.cluster.services.MidonetBackend.ActiveKey
 import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc3}
 
@@ -65,12 +64,15 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
         _traceChainMap
 
+    private val portStateSubject = PublishSubject.create[String]
+    private var portStateReady = false
+
     private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
     private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
 
     private lazy val combinator =
-        makeFunc3[TopologyPort, Boolean, Option[UUID], SimulationPort](
-            (port: TopologyPort, active: Boolean, traceChain: Option[UUID]) => {
+        makeFunc3[Boolean, Option[UUID], TopologyPort, SimulationPort](
+            (active: Boolean, traceChain: Option[UUID], port: TopologyPort) => {
                 val infilters = new JArrayList[UUID](1)
                 val outfilters = new JArrayList[UUID](1)
                 traceChain.foreach(infilters.add)
@@ -86,24 +88,24 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                 if (port.hasOutboundFilterId) {
                     outfilters.add(port.getOutboundFilterId)
                 }
-                SimulationPort(port, infilters, outfilters).toggleActive(active)
+                SimulationPort(port, infilters, outfilters)
+                    .toggleActive(active && portStateReady)
             })
 
     private lazy val portObservable = Observable
-        .combineLatest[TopologyPort, Boolean, Option[UUID], SimulationPort](
+        .combineLatest[Boolean, Option[UUID], TopologyPort, SimulationPort](
+            vt.stateStore.keyObservable(portStateSubject, classOf[TopologyPort],
+                                        id, ActiveKey)
+                .observeOn(vt.vtScheduler)
+                .map[Boolean](makeFunc1(v => { portStateReady = true; v.nonEmpty }))
+                .onErrorResumeNext(Observable.empty()),
+            Observable.merge(traceChainObservable, Observable.just(None)),
             vt.store.observable(classOf[TopologyPort], id)
                 .observeOn(vt.vtScheduler)
                 .doOnNext(makeAction1(topologyPortUpdated))
                 .doOnCompleted(makeAction0(topologyPortDeleted()))
                 .distinctUntilChanged,
-            vt.stateStore.keyObservable(classOf[TopologyPort], id, HostsKey)
-                .observeOn(vt.vtScheduler)
-                .map[Boolean](makeFunc1(_.nonEmpty))
-                .distinctUntilChanged
-                .onErrorResumeNext(Observable.empty()),
-            Observable.merge(traceChainObservable, Observable.just(None)),
             combinator)
-        .observeOn(vt.vtScheduler)
         .doOnCompleted(makeAction0(portDeleted()))
 
     protected override val observable = Observable
@@ -111,7 +113,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                mirrorsTracker.refsObservable.map[SimulationPort](makeFunc1(refUpdated)),
                portObservable.map[SimulationPort](makeFunc1(portUpdated)))
         .filter(makeFunc1(isPortReady))
-        .doOnNext(makeAction1(maybeInvalidateFlowState(_)))
+        .doOnNext(makeAction1(maybeInvalidateFlowState))
 
     private def topologyPortUpdated(port: TopologyPort): Unit = {
         // Request the chains for this port.
@@ -122,6 +124,15 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             if (port.hasL2InsertionInfilter) port.getL2InsertionInfilter else null,
             if (port.hasL2InsertionOutfilter) port.getL2InsertionOutfilter else null)
 
+        // If the port host has changed request the port state from the new
+        // host and invalidate the port host.
+        val hostId = if (port.hasHostId) port.getHostId.asJava else null
+        if ((currentPort eq null) || (currentPort.hostId != hostId)) {
+            log.debug("Monitoring port state for host: {}", hostId)
+            portStateReady = false
+            portStateSubject onNext hostId.asNullableString
+        }
+
         mirrorsTracker.requestRefs(port.getInboundMirrorsList :_*)
         mirrorsTracker.requestRefs(port.getOutboundMirrorsList :_*)
 
@@ -130,6 +141,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
     private def topologyPortDeleted(): Unit = {
         log.debug("Port deleted in topology")
+        portStateSubject.onCompleted()
         completeTraceChain()
     }
 
@@ -173,6 +185,6 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         (currentPort ne null) &&
             chainsTracker.areRefsReady &&
                 mirrorsTracker.areRefsReady &&
-                    isTracingReady
+                    isTracingReady && portStateReady
     }
 }

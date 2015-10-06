@@ -17,15 +17,15 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
-import org.midonet.midolman.state.Directory
-
 import scala.collection.JavaConverters._
 
 import com.google.inject._
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
+
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.data.storage.InMemoryStorage
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
@@ -38,6 +38,7 @@ import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
 import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.state.Directory
 import org.midonet.midolman.util.guice.MockMidolmanModule
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.util.concurrent.NanoClock
@@ -87,6 +88,9 @@ trait MidolmanSpec extends FeatureSpecLike
             injector.getInstance(classOf[MidolmanService])
                 .startAsync()
                 .awaitRunning()
+
+            InMemoryStorage.NamespaceId =
+                injector.getInstance(classOf[HostIdProviderService]).hostId
 
             beforeTest()
         } catch {

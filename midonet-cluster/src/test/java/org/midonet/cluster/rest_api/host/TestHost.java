@@ -171,7 +171,7 @@ public class TestHost extends JerseyTest {
 
     @Test
     public void testAliveHost() throws Exception {
-        UUID hostId = UUID.randomUUID();
+        UUID hostId = UUID.fromString(topologyBackdoor.getNamespace());
 
         ResourceCollection<Host> hosts = api.getHosts();
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
@@ -492,7 +492,7 @@ public class TestHost extends JerseyTest {
 
     @Test
     public void testDeleteAliveHost() throws Exception {
-        UUID hostId = UUID.randomUUID();
+        UUID hostId = UUID.fromString(topologyBackdoor.getNamespace());
 
         topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
         topologyBackdoor.makeHostAlive(hostId);
@@ -523,7 +523,7 @@ public class TestHost extends JerseyTest {
 
     @Test
     public void testHostWithoutInterface() throws Exception {
-        UUID hostId = UUID.randomUUID();
+        UUID hostId = UUID.fromString(topologyBackdoor.getNamespace());
 
         topologyBackdoor.createHost(hostId, "test", new InetAddress[]{
             InetAddress.getByAddress(
@@ -549,7 +549,7 @@ public class TestHost extends JerseyTest {
 
     @Test
     public void testHostWithOneInterface() throws Exception {
-        UUID hostId = UUID.randomUUID();
+        UUID hostId = UUID.fromString(topologyBackdoor.getNamespace());
 
         topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{
             InetAddress.getByAddress(
@@ -604,7 +604,7 @@ public class TestHost extends JerseyTest {
 
     @Test
     public void testInterfaceUriIsValid() throws Exception {
-        UUID hostId = UUID.randomUUID();
+        UUID hostId = UUID.fromString(topologyBackdoor.getNamespace());
 
         topologyBackdoor.createHost(hostId, "host1", new InetAddress[]{});
 
