@@ -17,6 +17,8 @@ package org.midonet.midolman.routingprotocols
 
 import java.util.UUID
 
+import org.midonet.midolman.services.SelectLoopService.ZEBRA_SERVER_LOOP
+
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,7 +35,6 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.BgpKey
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.state.RoutingTableStorage._
-import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath

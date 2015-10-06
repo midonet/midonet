@@ -20,6 +20,8 @@ import java.nio.file.{Files, Paths}
 import java.util.UUID
 import javax.sql.DataSource
 
+import com.codahale
+
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 

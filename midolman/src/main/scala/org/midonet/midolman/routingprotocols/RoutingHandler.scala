@@ -160,7 +160,13 @@ object RoutingHandler {
                 connWatcher,
                 config.router.bgpZookeeperHoldtime seconds,
                 UnixClock.DEFAULT,
-                (d, r) => system.scheduler.scheduleOnce(d, r)(context.dispatcher))
+                (d, r) => {
+                    log.debug("Scheduling r " + (r ne null))
+                    log.debug("After  " + d)
+                    log.debug("On context " + (context ne null))
+                    log.debug("On dispatcher " + (context.dispatcher ne null))
+                    system.scheduler.scheduleOnce(d, r)(context.dispatcher)
+                })
 
             private val zebraHandler = new ZebraProtocolHandler {
                 def addRoute(ribType: RIBType.Value, destination: IPv4Subnet,
