@@ -28,8 +28,6 @@ import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException.ConnectionLossException
 import org.scalatest.{Matchers, GivenWhenThen, BeforeAndAfterAll, FlatSpec}
 
-import org.midonet.midolman.guice.config.MidolmanConfigModule
-
 class MidonetBackendBufferTest extends FlatSpec with BeforeAndAfterAll
                                with Matchers with GivenWhenThen {
 
@@ -58,8 +56,7 @@ class MidonetBackendBufferTest extends FlatSpec with BeforeAndAfterAll
 
     "Reading 1 MB of data" should "fail with a 512 KB buffer" in {
         Given("A ZooKeeper client with a 512 KB buffer")
-        val injector = Guice.createInjector(new MidolmanConfigModule(config),
-                                            new MidonetBackendModule(config))
+        val injector = Guice.createInjector(new MidonetBackendTestModule(config))
 
         And("A curator instance connecting to the ZooKeeper server")
         val curator = injector.getInstance(classOf[CuratorFramework])
@@ -99,8 +96,7 @@ class MidonetBackendBufferTest extends FlatSpec with BeforeAndAfterAll
                |zookeeper.max_retries : 10
                |zookeeper.root_key : "$rootPath"
             """.stripMargin)
-        val injector = Guice.createInjector(new MidolmanConfigModule(config),
-                                            new MidonetBackendModule(config))
+        val injector = Guice.createInjector(new MidonetBackendTestModule(config))
 
         And("A curator instance connecting to the ZooKeeper server")
         val curator = injector.getInstance(classOf[CuratorFramework])
