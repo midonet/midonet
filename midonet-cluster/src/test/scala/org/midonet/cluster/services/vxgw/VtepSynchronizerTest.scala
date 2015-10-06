@@ -22,7 +22,7 @@ import scala.concurrent.ExecutionContext._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-import com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import org.junit.runner.RunWith
 import org.mockito.Matchers.{any, eq => Eq}
 import org.mockito.Mockito
@@ -53,7 +53,7 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
                                                with MockitoSugar
                                                with MidonetEventually {
 
-    implicit val ec = fromExecutor(sameThreadExecutor())
+    implicit val ec = fromExecutor(directExecutor())
 
     type MapNotificationSubscriber = Subscriber[MapNotification[MAC, UUID]]
 
