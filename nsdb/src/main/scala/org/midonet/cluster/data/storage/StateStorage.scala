@@ -89,6 +89,9 @@ object StateStorage {
     /** Encoding used for string conversion to byte array. */
     final val StringEncoding = "UTF-8"
 
+    /** A single instance to return as an empty value set. */
+    final val EmptyValueSet = Set.empty[String]
+
 }
 
 /**
@@ -122,6 +125,8 @@ object StateStorage {
 trait StateStorage {
 
     protected[this] val stateInfo = new TrieMap[Class[_], StateInfo]
+
+    protected def namespace: String
 
     /** Registers a new key for a class using the specified key type. */
     @throws[IllegalStateException]
@@ -184,6 +189,7 @@ trait StateStorage {
 
     /** The same as the previous `keyObservable` method, except that this method
       * returns an observable for the state of the specified host.*/
+    @throws[IllegalArgumentException]
     @throws[ServiceUnavailableException]
     def keyObservable(host: String, clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey]
@@ -200,7 +206,7 @@ trait StateStorage {
       * state.
       */
     @throws[ServiceUnavailableException]
-    def keyObservable(host: Observable[String], clazz: Class[_], id: ObjId,
+    def keyObservable(hosts: Observable[String], clazz: Class[_], id: ObjId,
                       key: String): Observable[StateKey]
 
     /** Returns a number uniquely identifying the current owner.  Note that
