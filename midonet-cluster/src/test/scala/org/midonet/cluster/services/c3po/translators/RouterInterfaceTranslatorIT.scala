@@ -32,7 +32,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.services.c3po.translators.RouteManager.{gatewayRouteId, localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
-import org.midonet.cluster.util.IPSubnetUtil
+import org.midonet.cluster.util.{UUIDUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil.RichJavaUuid
 import org.midonet.util.concurrent.toFutureOps
 
@@ -218,20 +218,28 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         checkRouterAndPeerPort(rifPortId, "10.0.0.3", "ab:cd:ef:01:02:03")
     }
 
-    it should "convert non-RIF port on tenant network to RIF ports on " +
-              "create" in {
+    it should "convert VIF port on tenant network to RIF port on create" in {
         createTenantNetwork(2, tenantNetworkId)
         createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24")
         createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
         createRouter(5, routerId)
 
+        // Create VIF port.
         val json = portJson(rifPortId, tenantNetworkId, name = null,
-                            deviceOwner = null, macAddr = "ab:cd:ef:01:02:03",
+                            deviceOwner = DeviceOwner.COMPUTE,
+                            macAddr = "ab:cd:ef:01:02:03",
                             fixedIps = List(IPAlloc("10.0.0.3", subnetId)))
         insertCreateTask(6, PortType, json, rifPortId)
-        eventually {
-            val nPort = storage.get(classOf[NeutronPort], rifPortId).await()
-            nPort.hasDeviceOwner shouldBe false
+        val (inFilterId, outFilterId) = eventually {
+            val nPortF = storage.get(classOf[NeutronPort], rifPortId)
+            val mPort = storage.get(classOf[Port], rifPortId).await()
+
+            val nPort = nPortF.await()
+            nPort.hasDeviceOwner shouldBe true
+            nPort.getDeviceOwner shouldBe DeviceOwner.COMPUTE
+
+            (UUIDUtil.fromProto(mPort.getInboundFilterId),
+                UUIDUtil.fromProto(mPort.getOutboundFilterId))
         }
 
         createRouterInterface(7, routerId, rifPortId, subnetId)
@@ -241,6 +249,14 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
             nPort.getDeviceOwner shouldBe DeviceOwner.ROUTER_INTERFACE
 
             checkRouterAndPeerPort(rifPortId, "10.0.0.3", "ab:cd:ef:01:02:03")
+
+            // Conversion from VIF to RIF port should delete chains.
+            val mPort = storage.get(classOf[Port], rifPortId).await()
+            mPort.hasInboundFilterId shouldBe false
+            mPort.hasOutboundFilterId shouldBe false
+            List(storage.exists(classOf[Chain], inFilterId),
+                 storage.exists(classOf[Chain], outFilterId))
+                .map(_.await()) shouldBe List(false, false)
         }
 
         // Should be able to delete the port with no error (MNA-766)
@@ -253,7 +269,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         }
     }
 
-    it should "Update convert non-RIF port on uplink network to RIF ports " +
+    it should "convert non-RIF port on uplink network to RIF ports " +
               "on create" in {
         createUplinkNetwork(2, tenantNetworkId)
         createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24")
