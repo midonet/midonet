@@ -29,12 +29,14 @@ import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
   * are exposed to MidoNet components that need to access the various storage
   * backends that exist within a deployment.  It should not include any
   * dependencies linked to any specific service or component. */
-class MidonetBackendModule(val conf: MidonetBackendConfig)
+class MidonetBackendModule(val conf: MidonetBackendConfig,
+                           metricRegistry: MetricRegistry = new MetricRegistry)
     extends PrivateModule {
 
     System.setProperty("jute.maxbuffer", Integer.toString(conf.bufferSize))
 
-    def this(config: Config) = this(new MidonetBackendConfig(config))
+    def this(config: Config, metricRegistry: MetricRegistry) =
+        this(new MidonetBackendConfig(config), metricRegistry)
 
     override def configure(): Unit = {
         bindCurator()
@@ -72,4 +74,3 @@ class CuratorFrameworkProvider @Inject()(cfg: MidonetBackendConfig)
         cfg.hosts, new ExponentialBackoffRetry(cfg.retryMs.toInt,
                                                cfg.maxRetries))
 }
-

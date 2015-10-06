@@ -18,9 +18,9 @@ package org.midonet.midolman
 
 import java.util.ArrayList
 
+import akka.actor.ActorSystem
 import org.jctools.queues.MpscArrayQueue
 
-import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
 object SimulationBackChannel {
@@ -35,11 +35,9 @@ trait SimulationBackChannel {
 }
 
 object ShardedSimulationBackChannel {
-    // TODO: having to pass the actorsService here, ugly as it
-    //       may be, is an artifact of our bootstrap process
-    def apply(as: MidolmanActorsService): ShardedSimulationBackChannel = {
+    def apply(as: ActorSystem): ShardedSimulationBackChannel = {
         new ShardedSimulationBackChannel(
-            () => PacketsEntryPoint.getRef()(as.system) ! CheckBackchannels
+            () => PacketsEntryPoint.getRef()(as) ! CheckBackchannels
         )
     }
 }
