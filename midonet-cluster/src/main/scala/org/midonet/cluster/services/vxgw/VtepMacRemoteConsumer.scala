@@ -24,7 +24,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
-import com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import org.slf4j.LoggerFactory.getLogger
 import rx.Observer
 import rx.functions.Action1
@@ -61,7 +61,7 @@ class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
                             store: Storage,
                             macRemoteConsumer: Observer[MacLocation]) {
 
-    private implicit val ec = fromExecutor(sameThreadExecutor())
+    private implicit val ec = fromExecutor(directExecutor())
     private val log = getLogger(vxgwVtepControlLog(fromProto(nsdbVtep.getId)))
 
     /** Build a handler to process changes that may need propagation from the
