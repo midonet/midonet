@@ -58,11 +58,10 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     private val log = LoggerFactory.getLogger("org.midonet.rest_api.neutron")
 
-    private implicit val ec = fromExecutor(MoreExecutors.sameThreadExecutor())
+    private implicit val ec = fromExecutor(MoreExecutors.directExecutor())
 
     private val timeout = 10.seconds
     private val store = resourceContext.backend.store
-    private val seqDispenser = resourceContext.seqDispenser
 
     private val lockOpNumber = new AtomicInteger(0)
 
