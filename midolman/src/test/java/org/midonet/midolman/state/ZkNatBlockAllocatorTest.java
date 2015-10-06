@@ -22,6 +22,8 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.util.concurrent.AbstractService;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,12 +71,21 @@ public class ZkNatBlockAllocatorTest {
         zk.open();
         paths = new PathBuilder("/midolman");
         clock = new MockUnixClock();
-        p = new HostIdProviderService() {
+        class HostIdService extends AbstractService implements HostIdProviderService {
             @Override
             public UUID hostId() {
                 return UUID.randomUUID();
             }
-        };
+
+            @Override
+            protected void doStart() {
+            }
+
+            @Override
+            protected void doStop() {
+            }
+        }
+        p = new HostIdService();
         allocator = new ZkNatBlockAllocator(zk, paths, new CallingThreadReactor(),
                                             p, clock);
         recycler = new ZkNatBlockRecycler(zk.getZooKeeper(), paths,

@@ -23,17 +23,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import com.google.common.annotations.VisibleForTesting;
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
 
+import com.codahale.metrics.MetricRegistry;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.jna.LastErrorException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigRenderOptions;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -47,17 +47,9 @@ import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.LoggerLevelWatcher;
 import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.midolman.cluster.LegacyClusterModule;
-import org.midonet.midolman.cluster.MetricsModule;
-import org.midonet.midolman.cluster.MidolmanActorsModule;
-import org.midonet.midolman.cluster.MidolmanModule;
-import org.midonet.midolman.cluster.ResourceProtectionModule;
-import org.midonet.midolman.cluster.datapath.DatapathModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
-import org.midonet.midolman.cluster.state.FlowStateStorageModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.guice.config.MidolmanConfigModule;
-import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
@@ -190,21 +182,15 @@ public class Midolman {
         if (configurator.deployBundledConfig())
             log.info("Deployed new configuration schema into NSDB");
 
-        MidolmanConfig config = MidolmanConfigModule.createConfig(configurator);
+        MidolmanConfig config = createConfig(configurator);
+        MetricRegistry metricRegistry = new MetricRegistry();
 
         injector = Guice.createInjector(
-            new MidolmanConfigModule(config),
-            new MidonetBackendModule(config.zookeeper()),
+            new MidonetBackendModule(config.zookeeper(), metricRegistry),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
-            new HostModule(),
-            new MetricsModule(),
-            new DatapathModule(),
             new LegacyClusterModule(),
-            new MidolmanActorsModule(),
-            new ResourceProtectionModule(),
-            new MidolmanModule(),
-            new FlowStateStorageModule()
+            new MidolmanModule(config, metricRegistry)
         );
 
         // start the services
@@ -286,6 +272,16 @@ public class Midolman {
                     + " not enabled. Logger is of type {},"
                     +" LoggerFactory is of type {}",
                     logger.getClass(), loggerFactory.getClass());
+        }
+    }
+
+    private static MidolmanConfig createConfig(MidoNodeConfigurator configurator) {
+        try {
+            return new MidolmanConfig(
+                configurator.runtimeConfig(HostIdGenerator.getHostId()),
+                configurator.mergedSchemas());
+        } catch (HostIdGenerator.PropertiesFileNotWritableException e) {
+            throw new RuntimeException(e);
         }
     }
 

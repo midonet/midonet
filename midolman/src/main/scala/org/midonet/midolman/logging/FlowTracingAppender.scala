@@ -19,19 +19,16 @@ package org.midonet.midolman.logging
 import java.util.UUID
 import java.util.concurrent.Executor
 
-import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 import com.google.common.util.concurrent.MoreExecutors
-import com.datastax.driver.core.{BoundStatement, PreparedStatement, ResultSet, ResultSetFuture, Session}
-
-import ch.qos.logback.classic.Logger
+import com.datastax.driver.core.ResultSetFuture
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
-import org.slf4j.{LoggerFactory}
+import com.datastax.driver.core.Session
+import org.slf4j.LoggerFactory
 
 import org.midonet.conf.HostIdGenerator
-import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 class FlowTracingAppender(sessionFuture: Future[Session])
@@ -41,10 +38,9 @@ class FlowTracingAppender(sessionFuture: Future[Session])
     val hostId = try {
         HostIdGenerator.getHostId
     } catch {
-        case t: HostIdGenerator.PropertiesFileNotWritableException => {
+        case t: HostIdGenerator.PropertiesFileNotWritableException =>
             log.warn("Couldn't get host id, using random uuid")
             UUID.randomUUID()
-        }
     }
 
     @volatile

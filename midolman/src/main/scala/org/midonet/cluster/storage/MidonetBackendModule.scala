@@ -17,7 +17,7 @@
 package org.midonet.cluster.storage
 
 import com.codahale.metrics.MetricRegistry
-import com.google.inject.{Inject, PrivateModule, Provider, Singleton}
+import com.google.inject.AbstractModule
 import com.typesafe.config.Config
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -29,47 +29,36 @@ import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
   * are exposed to MidoNet components that need to access the various storage
   * backends that exist within a deployment.  It should not include any
   * dependencies linked to any specific service or component. */
-class MidonetBackendModule(val conf: MidonetBackendConfig)
-    extends PrivateModule {
+class MidonetBackendModule(val conf: MidonetBackendConfig,
+                           metricRegistry: MetricRegistry = new MetricRegistry)
+    extends AbstractModule {
 
     System.setProperty("jute.maxbuffer", Integer.toString(conf.bufferSize))
 
-    def this(config: Config) = this(new MidonetBackendConfig(config))
+    def this(config: Config, metricRegistry: MetricRegistry) =
+        this(new MidonetBackendConfig(config), metricRegistry)
 
     override def configure(): Unit = {
-        bindCurator()
-        bindStorage()
+        val curator =  bindCuratorFramework()
+        val storage = backend(curator)
+        bind(classOf[MidonetBackend]).toInstance(storage)
         bindLockFactory()
-
         bind(classOf[MidonetBackendConfig]).toInstance(conf)
-        expose(classOf[MidonetBackendConfig])
     }
 
     protected def bindLockFactory(): Unit = {
         bind(classOf[ZookeeperLockFactory]).asEagerSingleton()
-        expose(classOf[ZookeeperLockFactory])
     }
 
-    protected def bindStorage(): Unit = {
-        requireBinding(classOf[MetricRegistry])
-        bind(classOf[MidonetBackend])
-            .to(classOf[MidonetBackendService])
-            .in(classOf[Singleton])
-        expose(classOf[MidonetBackend])
-    }
+    protected def backend(curatorFramework: CuratorFramework): MidonetBackend =
+        new MidonetBackendService(conf, curatorFramework, metricRegistry)
 
-    protected def bindCurator(): Unit = {
-        bind(classOf[CuratorFramework])
-            .toProvider(classOf[CuratorFrameworkProvider])
-            .asEagerSingleton()
-        expose(classOf[CuratorFramework])
+    protected def bindCuratorFramework() = {
+        val curator = CuratorFrameworkFactory.newClient(
+            conf.hosts,
+            new ExponentialBackoffRetry(
+                conf.retryMs.toInt, conf.maxRetries))
+        bind(classOf[CuratorFramework]).toInstance(curator)
+        curator
     }
 }
-
-class CuratorFrameworkProvider @Inject()(cfg: MidonetBackendConfig)
-    extends Provider[CuratorFramework] {
-    override def get(): CuratorFramework = CuratorFrameworkFactory.newClient(
-        cfg.hosts, new ExponentialBackoffRetry(cfg.retryMs.toInt,
-                                               cfg.maxRetries))
-}
-
