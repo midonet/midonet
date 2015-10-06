@@ -19,7 +19,7 @@ package org.midonet.cluster.services.vxgw
 import java.util.UUID
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
-import com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import org.apache.curator.framework.CuratorFramework
 import org.junit.runner.RunWith
 import org.mockito.Matchers.{anyObject, eq => Eq, same}
@@ -109,7 +109,7 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             ).thenReturn(tzsObservable.asObservable())
 
             val herald = new WritableFloodingProxyHerald(backend,
-                                                         sameThreadExecutor())
+                                                         directExecutor())
 
             tzsObservable.onNext(Observable.just(vtepTz))
             herald.lookup(tzId) shouldBe None
@@ -161,7 +161,7 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             )
 
             val herald = new WritableFloodingProxyHerald(backend,
-                                                         sameThreadExecutor())
+                                                         directExecutor())
             herald.lookup(tzId) shouldBe None
 
             val fp = FloodingProxy(tunnelZoneId = randId(), h2Id,

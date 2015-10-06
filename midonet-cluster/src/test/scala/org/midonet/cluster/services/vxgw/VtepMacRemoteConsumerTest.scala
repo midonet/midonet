@@ -47,7 +47,7 @@ class VtepMacRemoteConsumerTest extends FeatureSpec with Matchers
                                                     with MockitoSugar {
 
     implicit val ec = ExecutionContext.fromExecutor(
-        MoreExecutors.sameThreadExecutor())
+        MoreExecutors.directExecutor())
 
     var vu: VtepMacRemoteConsumer = _
     var nwInfos: java.util.Map[UUID, NetworkInfo] = _
