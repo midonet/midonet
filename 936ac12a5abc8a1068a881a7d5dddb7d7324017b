@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fab399f4_4ee293d6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HaproxyTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-06T01:08:27Z",
+      "side": 1,
+      "message": "You deleted the code to create a host on startup but keep the code to delete it?",
+      "range": {
+        "startLine": 131,
+        "startChar": 8,
+        "endLine": 131,
+        "endChar": 69
+      },
+      "revId": "936ac12a5abc8a1068a881a7d5dddb7d7324017b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fab399f4_8eecabc9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 536,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-06T01:08:27Z",
+      "side": 1,
+      "message": "You might want to keep the part on the API, i.e. \"- this is a problem in the API\". Maybe useful for debugging?",
+      "range": {
+        "startLine": 535,
+        "startChar": 20,
+        "endLine": 536,
+        "endChar": 47
+      },
+      "revId": "936ac12a5abc8a1068a881a7d5dddb7d7324017b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
