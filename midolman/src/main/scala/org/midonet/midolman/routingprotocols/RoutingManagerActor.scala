@@ -21,9 +21,7 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor._
-
 import com.google.inject.Inject
-
 import rx.Subscription
 
 import org.midonet.cluster.data.storage.StateStorage
@@ -33,11 +31,11 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.BgpKey
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.state.RoutingTableStorage._
-import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
+import org.midonet.midolman.services.SelectLoopService.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.topology.{Converter, LocalPortActive, VirtualToPhysicalMapper, VirtualTopology}
