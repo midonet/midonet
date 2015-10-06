@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fab399f4_a925e90b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-06T10:02:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fab399f4_00030a10",
+      "range": {
+        "startLine": 207,
+        "startChar": 7,
+        "endLine": 208,
+        "endChar": 16
+      },
+      "revId": "c05429f6c031ea76c36addd9ce8c514d100b6cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fab399f4_dd573f25",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 13
@@ -36,6 +60,30 @@
       "writtenOn": "2015-10-05T11:29:16Z",
       "side": 1,
       "message": "What is this for? Given that we always emit the same result when namespace is null, there doesn\u0027t seem to be much point to calling it at all. Should it be an error to specify a null namespace?",
+      "range": {
+        "startLine": 219,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 9
+      },
+      "revId": "c05429f6c031ea76c36addd9ce8c514d100b6cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fab399f4_091df5bd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-06T10:02:22Z",
+      "side": 1,
+      "message": "This was intended to remove these null checks on the client side. Normally, the state store returns an empty state if the object, key or value don\u0027t exists. The same check is added here for the namespace, so we don\u0027t have to repeat this check when calling this method.\n\nThe namespace normally comes from storage as the hostId of a port, etc. All these cases, if the host is not set (null), are handled as if the state value does not exist.",
+      "parentUuid": "fab399f4_dd573f25",
       "range": {
         "startLine": 219,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fab399f4_497e0de6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-06T10:02:22Z",
+      "side": 1,
+      "message": "Correct, removed.",
+      "parentUuid": "fab399f4_1d31b70b",
+      "range": {
+        "startLine": 311,
+        "startChar": 12,
+        "endLine": 311,
+        "endChar": 31
+      },
+      "revId": "c05429f6c031ea76c36addd9ce8c514d100b6cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fab399f4_a0409e36",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 13
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "fab399f4_898825e9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 669,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-06T10:02:22Z",
+      "side": 1,
+      "message": "This is because asResult returns either a Notification.onNext or Notification.onError. Throwing the exception could have the same effect, but then the exception will be wrapped.",
+      "parentUuid": "fab399f4_a0409e36",
+      "range": {
+        "startLine": 667,
+        "startChar": 9,
+        "endLine": 669,
+        "endChar": 36
+      },
+      "revId": "c05429f6c031ea76c36addd9ce8c514d100b6cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fab399f4_00486a5a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 13
@@ -105,6 +201,30 @@
       "writtenOn": "2015-10-05T11:29:16Z",
       "side": 1,
       "message": "There\u0027s nothing about this that\u0027s specific to state. You can rename this to onPathExists(), and then recycle it in onObjectExists().",
+      "range": {
+        "startLine": 676,
+        "startChar": 0,
+        "endLine": 680,
+        "endChar": 5
+      },
+      "revId": "c05429f6c031ea76c36addd9ce8c514d100b6cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fab399f4_a96c0938",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 680,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-06T10:02:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fab399f4_00486a5a",
       "range": {
         "startLine": 676,
         "startChar": 0,
