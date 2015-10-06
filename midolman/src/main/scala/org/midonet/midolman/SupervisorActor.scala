@@ -15,8 +15,13 @@
  */
 package org.midonet.midolman
 
-import akka.actor.{Props, SupervisorStrategy, Actor, Status}
+import akka.actor._
 import com.google.inject.Inject
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
+import akka.pattern.ask
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
 
@@ -47,7 +52,8 @@ class SupervisorActor extends Actor with ActorLogWithoutPath {
     def receive = {
         case StartChild(props, name) =>
             val result = try {
-                context.actorOf(props, name)
+                val actor = context.actorOf(props, name)
+                Await.result(actor ? Identify(null), 10 seconds)
             } catch {
                 case t: Throwable =>
                     log.error(s"could not start actor $name", t)
