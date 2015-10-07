@@ -30,11 +30,11 @@ import com.sun.jersey.api.client.ClientResponse.Status
 import com.sun.jersey.test.framework.JerseyTest
 
 import org.midonet.client.dto.{DtoBridge, DtoBridgePort}
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.rest_api.rest_api.{DtoWebResource, FuncTest, Topology}
 import org.midonet.cluster.models.{Topology => PbTopo, Commons => PbCommons}
-import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.rest_api.models.L2Insertion
+import org.midonet.cluster.rest_api.ResourceUris
+import org.midonet.cluster.rest_api.models.{L2Insertion,Port}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.util.UUIDUtil._
@@ -248,6 +248,116 @@ class TestL2Insertion extends FeatureSpec
             srvPort0.hasL2InsertionOutfilter shouldBe true
             ensureRuleCount(srvPort0.getL2InsertionInfilter, 0)
             ensureRuleCount(srvPort0.getL2InsertionOutfilter, 0)
+        }
+
+        scenario("Deleting port deletes insertion") {
+            val portId0 = topology.getBridgePort(Port0).getId
+            val srvPortId0 = topology.getBridgePort(ServicePort0).getId
+            val insertion = createInsertion(portId0, srvPortId0)
+            var response = l2Resource.`type`(APPLICATION_L2INSERTION_JSON)
+                .post(classOf[ClientResponse], insertion)
+            response.getStatusInfo
+                .getStatusCode shouldBe Status.CREATED.getStatusCode
+
+            val insertionObj = fetchDevice(classOf[PbTopo.L2Insertion],
+                                        insertion.id)
+
+
+            var srvPort0 = fetchDevice(classOf[PbTopo.Port], srvPortId0)
+            srvPort0.getSrvInsertionsCount shouldBe 1
+
+            response = jerseyTest.resource().path(
+                ResourceUris.PORTS + "/" + portId0)
+                .delete(classOf[ClientResponse])
+            response.getStatusInfo
+                .getStatusCode shouldBe Status.NO_CONTENT.getStatusCode
+
+            intercept[NotFoundException] {
+                fetchDevice(classOf[PbTopo.L2Insertion],
+                            insertion.id)
+            }
+
+            srvPort0 = fetchDevice(classOf[PbTopo.Port], srvPortId0)
+            srvPort0.getSrvInsertionsCount shouldBe 0
+        }
+
+        scenario("Deleting service port deletes insertion") {
+            val portId0 = topology.getBridgePort(Port0).getId
+            val srvPortId0 = topology.getBridgePort(ServicePort0).getId
+            val insertion = createInsertion(portId0, srvPortId0)
+            var response = l2Resource.`type`(APPLICATION_L2INSERTION_JSON)
+                .post(classOf[ClientResponse], insertion)
+            response.getStatusInfo
+                .getStatusCode shouldBe Status.CREATED.getStatusCode
+
+            var port0 = fetchDevice(classOf[PbTopo.Port], portId0)
+            port0.getInsertionsCount shouldBe 1
+
+            val insertionObj = fetchDevice(classOf[PbTopo.L2Insertion],
+                                        insertion.id)
+            response = jerseyTest.resource().path(
+                ResourceUris.PORTS + "/" + srvPortId0)
+                .delete(classOf[ClientResponse])
+            response.getStatusInfo
+                .getStatusCode shouldBe Status.NO_CONTENT.getStatusCode
+
+            intercept[NotFoundException] {
+                fetchDevice(classOf[PbTopo.L2Insertion],
+                            insertion.id)
+            }
+
+            port0 = fetchDevice(classOf[PbTopo.Port], portId0)
+            port0.getInsertionsCount shouldBe 0
+        }
+
+        scenario("Updating port doesn't clear l2insertion fields") {
+            val portId0 = topology.getBridgePort(Port0).getId
+            val srvPortId0 = topology.getBridgePort(ServicePort0).getId
+            val insertion = createInsertion(portId0, srvPortId0)
+            var response = l2Resource.`type`(APPLICATION_L2INSERTION_JSON)
+                .post(classOf[ClientResponse], insertion)
+            response.getStatusInfo
+                .getStatusCode shouldBe Status.CREATED.getStatusCode
+
+            var port0dev = fetchDevice(classOf[PbTopo.Port], portId0)
+            port0dev.hasL2InsertionInfilter shouldBe true
+            port0dev.hasL2InsertionOutfilter shouldBe true
+            port0dev.getInsertionsCount shouldBe 1
+
+            val portResource = jerseyTest.resource().path(
+                ResourceUris.PORTS + "/" + portId0)
+            val port0 = portResource.accept(APPLICATION_PORT_V2_JSON)
+                .get(classOf[Port])
+            port0.setBaseUri(jerseyTest.resource()
+                                 .path(ResourceUris.PORTS).getURI())
+            port0.interfaceName = "foobar"
+            portResource.`type`(APPLICATION_PORT_V2_JSON)
+                .put(port0)
+
+            port0dev = fetchDevice(classOf[PbTopo.Port], portId0)
+            port0dev.hasL2InsertionInfilter shouldBe true
+            port0dev.hasL2InsertionOutfilter shouldBe true
+            port0dev.getInsertionsCount shouldBe 1
+
+            var srvPort0dev = fetchDevice(classOf[PbTopo.Port], srvPortId0)
+            srvPort0dev.hasL2InsertionInfilter shouldBe true
+            srvPort0dev.hasL2InsertionOutfilter shouldBe true
+            srvPort0dev.getSrvInsertionsCount shouldBe 1
+
+            val srvPortResource = jerseyTest.resource().path(
+                ResourceUris.PORTS + "/" + srvPortId0)
+            val srvPort0 = srvPortResource.accept(APPLICATION_PORT_V2_JSON)
+                .get(classOf[Port])
+            srvPort0.setBaseUri(jerseyTest.resource()
+                                    .path(ResourceUris.PORTS).getURI())
+            srvPort0.interfaceName = "srvfoobar"
+            srvPortResource.`type`(APPLICATION_PORT_V2_JSON)
+                .put(srvPort0)
+
+            srvPort0dev = fetchDevice(classOf[PbTopo.Port], srvPortId0)
+            srvPort0dev.hasL2InsertionInfilter shouldBe true
+            srvPort0dev.hasL2InsertionOutfilter shouldBe true
+            srvPort0dev.getSrvInsertionsCount shouldBe 1
         }
     }
 
