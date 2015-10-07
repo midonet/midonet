@@ -22,6 +22,30 @@
       "revId": "1ab31862792931318bb74a941e84f43d717b4c01",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dab895d6_5cd171cc",
+        "filename": "gradlew",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-10-07T12:47:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dab895d6_1c79b9fc",
+      "range": {
+        "startLine": 71,
+        "startChar": 1,
+        "endLine": 72,
+        "endChar": 19
+      },
+      "revId": "1ab31862792931318bb74a941e84f43d717b4c01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
