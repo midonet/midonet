@@ -19,6 +19,8 @@ package org.midonet.midolman.state
 import java.util.{ArrayList, UUID}
 import java.util.concurrent.{ThreadLocalRandom, TimeUnit, Executors}
 
+import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
+
 import scala.concurrent.{ExecutionContext, Promise, Future}
 
 import com.google.inject.Inject
@@ -104,7 +106,7 @@ class ZkNatBlockAllocator @Inject()(
         val endBlock = natRange.tpPortEnd / NatBlock.BLOCK_SIZE
         val blocks = (startBlock to endBlock).toIndexedSeq
         val blockPaths = blocks map (blockPath(natRange.deviceId, natRange.ip, _))
-        Future.traverse(blockPaths)(fetchOrCreateBlock) flatMap { results =>
+        Future.traverse(blockPaths)(fetchBlock) flatMap { results =>
             val block = chooseBlock(results, blocks)
             if (block >= 0) {
                 claimBlock(block, natRange)
@@ -114,6 +116,9 @@ class ZkNatBlockAllocator @Inject()(
         } recoverWith {
             case ex: KeeperException.NodeExistsException =>
                 // We raced with another node and lost. Retry.
+                allocateBlockInRange(natRange)
+            case ex: KeeperException.NoNodeException =>
+                createBlocksStructure(blockPaths)
                 allocateBlockInRange(natRange)
         }
     }
@@ -154,24 +159,24 @@ class ZkNatBlockAllocator @Inject()(
         }
     }
 
-    private def fetchOrCreateBlock(path: String): Future[CuratorEvent] = {
+    private def fetchBlock(path: String): Future[CuratorEvent] = {
         val getPromise = Promise[CuratorEvent]()
         zk.getData()
           .inBackground(backgroundCallbackToFuture, getPromise, executor)
           .forPath(path)
-        getPromise.future recoverWith {
-            case ex: KeeperException.NoNodeException =>
-                val createPromise = Promise[CuratorEvent]()
-                zk.create()
-                  .creatingParentsIfNeeded()
-                  .inBackground(backgroundCallbackToFuture, createPromise, executor)
-                  .forPath(path)
-                createPromise.future flatMap { _ =>
-                    // Fetch the ZK stat of the created block
-                    fetchOrCreateBlock(path)
-                }
-        }
+        getPromise.future
     }
+
+    private def createBlocksStructure(paths: Seq[String]): Unit = try {
+        // Create any missing parents
+        zk.create().creatingParentsIfNeeded().forPath(paths.head)
+        // Create other blocks
+        if (paths.tail.nonEmpty) {
+            paths.tail.foldLeft(zk.inTransaction)((acc, p) => acc.create().forPath(p).and())
+                .asInstanceOf[CuratorTransactionFinal]
+                .commit()
+        }
+    } catch { case ignored: KeeperException.NodeExistsException => }
 
     private def claimBlock(block: Int, natRange: NatRange): Future[NatBlock] = {
         log.debug(s"Trying to claim block $block for $natRange")
