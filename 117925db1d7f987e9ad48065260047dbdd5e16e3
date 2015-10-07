@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dab895d6_590fc3e1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/SupervisorActor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-10-07T08:39:14Z",
+      "side": 1,
+      "message": "what\u0027s this? looks like a ternary operator",
+      "revId": "117925db1d7f987e9ad48065260047dbdd5e16e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
