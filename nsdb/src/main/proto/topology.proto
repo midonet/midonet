@@ -304,8 +304,6 @@ message Port {
     repeated UUID inbound_mirrors = 20;
     repeated UUID outbound_mirrors = 21;
 
-    // l2 insertions
-    repeated UUID l2insertions = 22;
     // l2 insertion filters (should only be set by translation)
     optional UUID l2insertion_infilter = 23;
     optional UUID l2insertion_outfilter = 24;

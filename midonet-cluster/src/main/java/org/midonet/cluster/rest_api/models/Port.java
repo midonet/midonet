@@ -98,6 +98,23 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "mirror_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> mirrorIds;
 
+    @ZoomField(name = "insertions", converter = UUIDUtil.Converter.class)
+    public List<UUID> insertions;
+
+    @JsonIgnore
+    @ZoomField(name = "l2insertion_infilter",
+               converter = UUIDUtil.Converter.class)
+    public UUID l2insertionInfilter;
+
+    @JsonIgnore
+    @ZoomField(name = "l2insertion_outfilter",
+               converter = UUIDUtil.Converter.class)
+    public UUID l2insertionOutfilter;
+
+    @JsonIgnore
+    @ZoomField(name = "srv_insertions", converter = UUIDUtil.Converter.class)
+    public List<UUID> serviceInsertions;
+
     public boolean active;
 
     public Port() {
@@ -159,5 +176,9 @@ public abstract class Port extends UriResource {
         portGroupIds = from.portGroupIds;
         traceRequestIds = from.traceRequestIds;
         mirrorIds = from.mirrorIds;
+        insertions = from.insertions;
+        l2insertionInfilter = from.l2insertionInfilter;
+        l2insertionOutfilter = from.l2insertionOutfilter;
+        serviceInsertions = from.serviceInsertions;
     }
 }
