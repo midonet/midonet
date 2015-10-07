@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dab895d6_1c79b9fc",
+        "filename": "gradlew",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-10-07T12:38:02Z",
+      "side": 1,
+      "message": "You are not setting things if JAVA_HOME is not set...\n\nWhat about \n\nif [ -n \"$JAVA_HOME\" ]; then\n    check_for_java8 \"$JAVA_HOME/bin/java\"\n    if [ $? -ne 0 ]; then\n        JAVA_HOME\u003d\"\"\n    fi\nfi\n\nif [ -z \"$JAVA_HOME\" ]; then\n    for jdir in $JVM_SEARCH_DIRS; do\n        ...\n    done\nfi",
+      "range": {
+        "startLine": 71,
+        "startChar": 1,
+        "endLine": 72,
+        "endChar": 19
+      },
+      "revId": "1ab31862792931318bb74a941e84f43d717b4c01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
