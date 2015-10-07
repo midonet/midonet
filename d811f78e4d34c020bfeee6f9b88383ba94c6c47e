@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dab895d6_dc2e61a5",
+        "filename": "gradlew",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-10-07T13:40:03Z",
+      "side": 1,
+      "message": "You can replace \u0027! -z\u0027 with \u0027-n\u0027:\nif [ -n \"$JAVA_HOME\" ]; then ...",
+      "range": {
+        "startLine": 71,
+        "startChar": 5,
+        "endLine": 71,
+        "endChar": 9
+      },
+      "revId": "d811f78e4d34c020bfeee6f9b88383ba94c6c47e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dab895d6_9c24e9c7",
+        "filename": "gradlew",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-10-07T13:40:03Z",
+      "side": 1,
+      "message": "nitpick: why not simply:\ncheck_for_java8 \"$JAVA_HOME\"",
+      "range": {
+        "startLine": 72,
+        "startChar": 4,
+        "endLine": 73,
+        "endChar": 36
+      },
+      "revId": "d811f78e4d34c020bfeee6f9b88383ba94c6c47e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
