@@ -16,6 +16,24 @@
       "revId": "117925db1d7f987e9ad48065260047dbdd5e16e3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dab895d6_dc6101d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/SupervisorActor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-07T10:49:10Z",
+      "side": 1,
+      "message": "this is akka\u0027s ask operator. it sends a message to an actor, creates a temporary actor, and returns a future that will be completed when the target actor replies to `sender`. in this particular case, Identify is a system message that will be handled by the akka infrastructure. \n\nbasically, we\u0027re waiting for the child actor to start before continuing.",
+      "parentUuid": "dab895d6_590fc3e1",
+      "revId": "117925db1d7f987e9ad48065260047dbdd5e16e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
