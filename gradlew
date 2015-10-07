@@ -68,23 +68,29 @@ if [ -n "`which java`" ]; then
     JVM_SEARCH_DIRS="$(basename $JDK_DIR) $JVM_SEARCH_DIRS"
 fi
 
-if [ ! -z "$JAVA_HOME" ]; then
-    JVM_SEARCH_DIRS="$JAVA_HOME $JVM_SEARCH_DIRS"
+if [ -n "$JAVA_HOME" ]; then
+    jdir=$JAVA_HOME
+    check_for_java8 "$jdir/bin/java"
+    if [ $? -ne 0 ]; then
+        JAVA_HOME=""
+    fi
 fi
 
-JAVA_HOME=
-for jdir in $JVM_SEARCH_DIRS; do
-    if $darwin ; then
-	jdir="/Library/Java/JavaVirtualMachines/$jdir/Contents/Home"
-    else
-        jdir="/usr/lib/jvm/$jdir"
-    fi
-    check_for_java8 "$jdir/bin/java"
-    if [ $? -eq 0 ]; then
-        JAVA_HOME="$jdir"
-        break
-    fi
-done
+if [ -z "$JAVA_HOME" ]; then
+    for jdir in $JVM_SEARCH_DIRS; do
+        if $darwin ; then
+            jdir="/Library/Java/JavaVirtualMachines/$jdir/Contents/Home"
+        else
+            jdir="/usr/lib/jvm/$jdir"
+        fi
+        check_for_java8 "$jdir/bin/java"
+        if [ $? -eq 0 ]; then
+            JAVA_HOME="$jdir"
+            break
+        fi
+    done
+fi
+
 
 if [ -z "$JAVA_HOME" ] ; then
     echo "No suitable JVM found (at least v1.8.0 required)"
