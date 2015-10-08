@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dab895d6_62e84c7d",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/resources/TestL2Insertion.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-08T02:20:48Z",
+      "side": 1,
+      "message": "Insert white space after the comma.",
+      "range": {
+        "startLine": 37,
+        "startChar": 56,
+        "endLine": 37,
+        "endChar": 60
+      },
+      "revId": "ee7eabf41cfecaa3cd9f6d8c62d11d5b4b76abc5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

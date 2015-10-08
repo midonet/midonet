@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dab895d6_42f34873",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-08T02:20:48Z",
+      "side": 0,
+      "message": "In practice this won\u0027t be a problem, but you might want to consider specifying \"[deprecated\u003dtrue]\" and/or reserve 22 instead of deleting the field.\n\nhttps://developers.google.com/protocol-buffers/docs/proto#options",
+      "revId": "5109a1abd9e479a6f9c9b8e4152d01c25327da42",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
