@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_7bb0fbf4",
+        "filename": "gradlew",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-10-08T16:18:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dab895d6_dc2e61a5",
+      "range": {
+        "startLine": 71,
+        "startChar": 5,
+        "endLine": 71,
+        "endChar": 9
+      },
+      "revId": "d811f78e4d34c020bfeee6f9b88383ba94c6c47e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dab895d6_9c24e9c7",
         "filename": "gradlew",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_dbdae716",
+        "filename": "gradlew",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-10-08T16:18:46Z",
+      "side": 1,
+      "message": "I have to add the /bin/java anyway.",
+      "parentUuid": "dab895d6_9c24e9c7",
+      "range": {
+        "startLine": 72,
+        "startChar": 4,
+        "endLine": 73,
+        "endChar": 36
+      },
+      "revId": "d811f78e4d34c020bfeee6f9b88383ba94c6c47e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dab895d6_c2d758be",
         "filename": "gradlew",
         "patchSetId": 2
@@ -59,6 +107,24 @@
       "writtenOn": "2015-10-08T01:53:52Z",
       "side": 1,
       "message": "Why are you resetting JAVA_HOME here?",
+      "revId": "d811f78e4d34c020bfeee6f9b88383ba94c6c47e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_bbcd3360",
+        "filename": "gradlew",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-10-08T16:18:46Z",
+      "side": 1,
+      "message": "That\u0027s the case where JAVA_HOME is not properly set we reset it so we correctly form it later on",
+      "parentUuid": "dab895d6_c2d758be",
       "revId": "d811f78e4d34c020bfeee6f9b88383ba94c6c47e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
