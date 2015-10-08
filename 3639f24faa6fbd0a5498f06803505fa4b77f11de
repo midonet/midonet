@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "dab895d6_029070eb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-08T03:47:12Z",
+      "side": 1,
+      "message": "That\u0027s why it\u0027s just an assert.",
+      "parentUuid": "dab895d6_a253446b",
+      "revId": "3639f24faa6fbd0a5498f06803505fa4b77f11de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dab895d6_024b10b1",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslatorIT.scala",
         "patchSetId": 1
