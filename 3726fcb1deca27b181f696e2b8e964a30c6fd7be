@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_5e3b25eb",
+        "filename": "gradlew",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T03:09:12Z",
+      "side": 1,
+      "message": "Doesn\u0027t this mean that JAVA_HOME has been properly set? Please see line 86-87.",
+      "range": {
+        "startLine": 73,
+        "startChar": 4,
+        "endLine": 74,
+        "endChar": 20
+      },
+      "revId": "3726fcb1deca27b181f696e2b8e964a30c6fd7be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
