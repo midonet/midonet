@@ -38,6 +38,8 @@ import org.apache.zookeeper.KeeperException
 import org.slf4j.LoggerFactory
 import rx.Observable
 
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.MidoConf._
 import org.midonet.util.functors.makeFunc1
 import org.midonet.util.functors.makeFunc2
@@ -116,6 +118,8 @@ trait WritableConf extends MidoConf {
 object MidoNodeConfigurator {
     private val enumPattern = Pattern.compile("enum\\[([\\w, ]+)\\]")
 
+    private val log = LoggerFactory.getLogger(getClass)
+
     def bootstrapConfig(inifile: Option[String] = None): Config = {
         val MIDONET_CONF_LOCATIONS = List("~/.midonetrc", "/etc/midonet/midonet.conf",
             "/etc/midolman/midolman.conf")
@@ -124,7 +128,7 @@ object MidoNodeConfigurator {
             """
             |zookeeper {
             |    zookeeper_hosts = "127.0.0.1:2181"
-            |    root_key : "/midonet/v2"
+            |    root_key : "/midonet"
             |    midolman_root_key = ${zookeeper.root_key}
             |    bootstrap_timeout = 30s
             |}
@@ -146,13 +150,32 @@ object MidoNodeConfigurator {
             withFallback(DEFAULTS)).resolve()
     }
 
+    private[conf] final val defaultZkRootKey = "/midonet"
+
+    /**
+     * Returns the ZooKeeper root key. This method returns the configuration
+     * parameter zookeeper.root_key. If we detect the legacy root key in the
+     * configuration, namely "/midonet/v1", the method returns
+     * [[defaultZkRootKey]].
+     */
+    def zkRootKey(cfg: Config): String = {
+        cfg.getString("zookeeper.root_key") match {
+            case legacyPath if legacyPath == "/midonet/v1" =>
+                log.warn("!!WARNING!! Detected legacy ZooKeeper root key {}, " +
+                         "falling back to the default root key {}.",
+                         Array(legacyPath, defaultZkRootKey): _*)
+                defaultZkRootKey
+            case key => key
+        }
+    }
+
     def zkBootstrap(inifile: Option[String] = None): CuratorFramework =
         zkBootstrap(bootstrapConfig(inifile))
 
     def zkBootstrap(cfg: Config): CuratorFramework = {
         val serverString = cfg.getString("zookeeper.zookeeper_hosts")
 
-        val namespace = cfg.getString("zookeeper.root_key").stripPrefix("/")
+        val namespace = zkRootKey(cfg).stripPrefix("/")
         val timeoutMillis = cfg.getDuration("zookeeper.bootstrap_timeout",
                                             TimeUnit.MILLISECONDS)
         val zk = CuratorFrameworkFactory.builder().
