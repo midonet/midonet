@@ -59,22 +59,35 @@ _msg_with_ext_fields.update(dict(
     Extensions = {test_pb2.number: 11, test_pb2.name: 'abiko'}))
 
 
+# NOTE(yamamoto): This class provides __name__ attribute to make ddt
+# use consistent names.  It's important especially when test enumuration
+# and execution are done in separate processes.
+class _Case(object):
+    def __init__(self, name, values):
+        self.__name__ = name
+        self.values = values
+
+
 @ddt.ddt
 class TestProtobuf(unittest.TestCase):
     @ddt.data(
-        (test_pb2.Exhaustive(**_msg_with_req_fields), _req_fields),
-        (test_pb2.Exhaustive(**_msg_with_rep_fields), _rep_fields),
+        _Case("req",
+              (test_pb2.Exhaustive(**_msg_with_req_fields), _req_fields)),
+        _Case("rep",
+              (test_pb2.Exhaustive(**_msg_with_rep_fields), _rep_fields)),
     )
     def test_proto_dict(self, data):
-        msg, expected_dict = data
+        msg, expected_dict = data.values
         self.assertEqual(expected_dict, utils.proto_to_dict(msg))
 
     @ddt.data(
-        (test_pb2.Exhaustive(**_msg_with_req_fields), _req_fields),
-        (test_pb2.Exhaustive(**_msg_with_rep_fields), _rep_fields),
+        _Case("req",
+              (test_pb2.Exhaustive(**_msg_with_req_fields), _req_fields)),
+        _Case("rep",
+              (test_pb2.Exhaustive(**_msg_with_rep_fields), _rep_fields)),
     )
     def test_proto_dict_with_exts(self, data):
-        msg, expected_dict = data
+        msg, expected_dict = data.values
 
         msg.Extensions[test_pb2.number] = 11
         msg.Extensions[test_pb2.name] = 'abiko'
