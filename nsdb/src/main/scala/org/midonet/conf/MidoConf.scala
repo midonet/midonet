@@ -38,6 +38,8 @@ import org.apache.zookeeper.KeeperException
 import org.slf4j.LoggerFactory
 import rx.Observable
 
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.MidoConf._
 import org.midonet.util.functors.makeFunc1
 import org.midonet.util.functors.makeFunc2
@@ -116,6 +118,8 @@ trait WritableConf extends MidoConf {
 object MidoNodeConfigurator {
     private val enumPattern = Pattern.compile("enum\\[([\\w, ]+)\\]")
 
+    private val log = LoggerFactory.getLogger(getClass)
+
     def bootstrapConfig(inifile: Option[String] = None): Config = {
         val MIDONET_CONF_LOCATIONS = List("~/.midonetrc", "/etc/midonet/midonet.conf",
             "/etc/midolman/midolman.conf")
@@ -124,7 +128,8 @@ object MidoNodeConfigurator {
             """
             |zookeeper {
             |    zookeeper_hosts = "127.0.0.1:2181"
-            |    root_key : "/midonet/v2"
+            |    root_key : "/midonet/v5"
+            |    use_my_own_zk_root_path : false
             |    midolman_root_key = ${zookeeper.root_key}
             |    bootstrap_timeout = 30s
             |}
@@ -134,6 +139,7 @@ object MidoNodeConfigurator {
             """
               |zookeeper.zookeeper_hosts = ${?MIDO_ZOOKEEPER_HOSTS}
               |zookeeper.root_key = ${?MIDO_ZOOKEEPER_ROOT_KEY}
+              |zookeeper.use_my_own_zk_root_path = false
             """.stripMargin)
 
         val locations = (inifile map ( List(_) ) getOrElse Nil) ::: MIDONET_CONF_LOCATIONS
@@ -146,13 +152,41 @@ object MidoNodeConfigurator {
             withFallback(DEFAULTS)).resolve()
     }
 
+    private[conf] final val defaultZkRootPath = "/midonet/v5"
+
+    /**
+     * Returns the ZooKeeper root path. If configuration property
+     * zookeeper.use_my_own_zk_root_path is set to true, this method returns
+     * zookeeper.root_key. Otherwise, it returns the default root path
+     * [[defaultZkRootPath]].
+     */
+    def zkRootPath(cfg: Config): String = {
+        val zkRoot = cfg.getString("zookeeper.root_key")
+        val overridePath =
+            if (cfg.hasPath("zookeeper.use_my_own_zk_root_path")) {
+                cfg.getBoolean("zookeeper.use_my_own_zk_root_path")
+            } else {
+                false
+            }
+
+        if (overridePath) {
+            zkRoot
+        } else {
+            log.warn(
+                "!!WARNING!! ZooKeeper root key set to {}, changing " +
+                "the path to {}.",
+                Array(zkRoot, defaultZkRootPath): _*)
+            defaultZkRootPath
+        }
+    }
+
     def zkBootstrap(inifile: Option[String] = None): CuratorFramework =
         zkBootstrap(bootstrapConfig(inifile))
 
     def zkBootstrap(cfg: Config): CuratorFramework = {
         val serverString = cfg.getString("zookeeper.zookeeper_hosts")
 
-        val namespace = cfg.getString("zookeeper.root_key").stripPrefix("/")
+        val namespace = zkRootPath(cfg).stripPrefix("/")
         val timeoutMillis = cfg.getDuration("zookeeper.bootstrap_timeout",
                                             TimeUnit.MILLISECONDS)
         val zk = CuratorFrameworkFactory.builder().

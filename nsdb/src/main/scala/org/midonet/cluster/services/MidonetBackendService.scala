@@ -33,7 +33,7 @@ import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.conf.HostIdGenerator
+import org.midonet.conf.{MidoNodeConfigurator, HostIdGenerator}
 
 object MidonetBackend {
 
@@ -217,7 +217,6 @@ object MidonetBackend {
 
         store.build()
     }
-
 }
 
 /** The trait that models the new Midonet Backend, managing all relevant
@@ -246,8 +245,10 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
         if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
         else HostIdGenerator.getHostId
 
+    private val zkRoot = MidoNodeConfigurator.zkRootPath(cfg.conf)
+
     private val zoom =
-        new ZookeeperObjectMapper(s"${cfg.rootKey}/zoom", namespaceId.toString,
+        new ZookeeperObjectMapper(s"$zkRoot/zoom", namespaceId.toString,
                                   curator, metricRegistry)
 
     override def store: Storage = zoom
