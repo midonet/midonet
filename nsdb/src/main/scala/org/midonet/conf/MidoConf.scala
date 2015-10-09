@@ -116,19 +116,23 @@ trait WritableConf extends MidoConf {
 object MidoNodeConfigurator {
     private val enumPattern = Pattern.compile("enum\\[([\\w, ]+)\\]")
 
+    private val log = LoggerFactory.getLogger("org.midonet.conf")
+
     def bootstrapConfig(inifile: Option[String] = None): Config = {
         val MIDONET_CONF_LOCATIONS = List("~/.midonetrc", "/etc/midonet/midonet.conf",
             "/etc/midolman/midolman.conf")
 
+        val defaultZkRootConfig =
+            ConfigFactory.parseString(s"zk_default_root = ${defaultZkRootKey}")
         val DEFAULTS = ConfigFactory.parseString(
             """
             |zookeeper {
             |    zookeeper_hosts = "127.0.0.1:2181"
-            |    root_key : "/midonet/v2"
-            |    midolman_root_key = ${zookeeper.root_key}
+            |    root_key = ${zk_default_root}
+            |    midolman_root_key = ${zk_default_root}
             |    bootstrap_timeout = 30s
             |}
-            """.stripMargin)
+            """.stripMargin).resolveWith(defaultZkRootConfig)
 
         val ENVIRONMENT = ConfigFactory.parseString(
             """
@@ -144,6 +148,25 @@ object MidoNodeConfigurator {
         } reduce((a, b) => a.withFallback(b))
             withFallback(ConfigFactory.systemProperties)
             withFallback(DEFAULTS)).resolve()
+    }
+
+    final val defaultZkRootKey = "/midonet"
+
+    /**
+     * Returns the ZooKeeper root key. This method returns the configuration
+     * parameter zookeeper.root_key. If we detect the legacy root key in the
+     * configuration, namely "/midonet/v1", the method returns
+     * [[defaultZkRootKey]].
+     */
+    def zkRootKey(cfg: Config): String = {
+        cfg.getString("zookeeper.root_key") match {
+            case legacyPath if legacyPath == "/midonet/v1" =>
+                log.warn("!!WARNING!! Detected legacy ZooKeeper root key {}, " +
+                         "falling back to the default root key {}.",
+                         Array(legacyPath, defaultZkRootKey): _*)
+                defaultZkRootKey
+            case key => key
+        }
     }
 
     def zkBootstrap(inifile: Option[String] = None): CuratorFramework =
