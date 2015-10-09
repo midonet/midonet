@@ -17,13 +17,11 @@
 package org.midonet.conf
 
 import java.io._
-import java.net.{URL, URI}
+import java.net.{URI, URL}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import java.util.zip.ZipInputStream
-
-import org.slf4j.helpers.NOPLogger
 
 import scala.collection.JavaConversions._
 import scala.util.Try
@@ -31,17 +29,18 @@ import scala.util.Try
 import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
 import org.apache.commons.configuration.{ConfigurationException, HierarchicalINIConfiguration}
-import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
 import org.apache.curator.framework.recipes.cache.ChildData
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.RetryOneTime
 import org.apache.zookeeper.KeeperException
 import org.slf4j.LoggerFactory
+import org.slf4j.helpers.NOPLogger
 import rx.Observable
 
-import org.midonet.conf.MidoConf._
-import org.midonet.util.functors.makeFunc1
-import org.midonet.util.functors.makeFunc2
 import org.midonet.cluster.util.ObservableNodeCache
+import org.midonet.conf.MidoConf._
+import org.midonet.util.cLibrary._
+import org.midonet.util.functors.{makeFunc1, makeFunc2}
 
 /**
  * A configuration source capable of producing an immutable Config object.
@@ -116,19 +115,27 @@ trait WritableConf extends MidoConf {
 object MidoNodeConfigurator {
     private val enumPattern = Pattern.compile("enum\\[([\\w, ]+)\\]")
 
-    def bootstrapConfig(inifile: Option[String] = None): Config = {
-        val MIDONET_CONF_LOCATIONS = List("~/.midonetrc", "/etc/midonet/midonet.conf",
-            "/etc/midolman/midolman.conf")
+    private val MIDOLMAN_CONF_LOCATION = "/etc/midolman/midolman.conf"
+    private val MIDONET_CONF_LOCATIONS = List("~/.midonetrc",
+                                              "/etc/midonet/midonet.conf",
+                                              s"${MIDOLMAN_CONF_LOCATION}")
 
+    private val log = LoggerFactory.getLogger("org.midonet.conf")
+
+    final val defaultZkRootKey = "/midonet"
+
+    def bootstrapConfig(inifile: Option[String] = None): Config = {
+        val defaultZkRootConfig =
+            ConfigFactory.parseString(s"zk_default_root = ${defaultZkRootKey}")
         val DEFAULTS = ConfigFactory.parseString(
             """
             |zookeeper {
             |    zookeeper_hosts = "127.0.0.1:2181"
-            |    root_key : "/midonet/v2"
-            |    midolman_root_key = ${zookeeper.root_key}
+            |    root_key = ${zk_default_root}
+            |    midolman_root_key = ${zk_default_root}
             |    bootstrap_timeout = 30s
             |}
-            """.stripMargin)
+            """.stripMargin).resolveWith(defaultZkRootConfig)
 
         val ENVIRONMENT = ConfigFactory.parseString(
             """
@@ -146,13 +153,67 @@ object MidoNodeConfigurator {
             withFallback(DEFAULTS)).resolve()
     }
 
+    /**
+     * This method returns the configuration parameter zookeeper.root_key if it
+     * exists in the configuration passed as parameter, or [[defaultZkRootKey]]
+     * otherwise. In addition, if we detect the legacy root key in the
+     * configuration, namely "/midonet/v1", the method returns
+     * [[defaultZkRootKey]].
+     */
+    def zkRootKey(cfg: Config): String = {
+        if (!cfg.hasPath("zookeeper.root_key")) {
+            defaultZkRootKey
+        } else {
+            cfg.getString("zookeeper.root_key") match {
+                case "/midonet/v1" if lib.isatty(STD_OUT_FD) == 1 =>
+                    /* Interactive mode */
+                    System.err.println("WARNING:\n" +
+                        "A configuration was read that contains a\n" +
+                        "deprecated zookeeper root path (/midonet/v1).\n" +
+                        "This version of MidoNet does not read information\n" +
+                        "stored in the old root path and will now\n" +
+                        "fall back to the new default root: /midonet.\n\n" +
+                        "Please make sure that you used the MidoNet v5.0\n" +
+                        "upgrade scripts, and check the MidoNet v5.0\n" +
+                        "release notes for further information.\n\n" +
+                        "To remove this warning, please remove the \n" +
+                        "'zookeeper.root_key' configuration key from \n" +
+                        "these configuration files, should they exist:\n " +
+                        s"${MIDONET_CONF_LOCATIONS.mkString("\n")}\n" +
+                        "Also remove the configuration key from any \n" +
+                        "scripts that set the MIDO_ZOOKEEPER_ROOT_KEY\n" +
+                        "environment variable.\n")
+                    defaultZkRootKey
+
+                case "/midonet/v1" =>
+                    /* Non-interactive mode */
+                    log.warn("WARNING:\n" +
+                        "A configuration was read that contains a\n" +
+                        "deprecated zookeeper root path (/midonet/v1).\n" +
+                        "This version of MidoNet does not read information\n" +
+                        "stored in the old root path and will now\n" +
+                        "fall back to the new default root: /midonet.\n\n" +
+                        "Please make sure that you used the MidoNet v5.0\n" +
+                        "upgrade scripts, and check the MidoNet v5.0\n" +
+                        "release notes for further information.\n\n" +
+                        "To remove this warning, please remove the \n" +
+                        "'zookeeper.root_key' configuration key from \n" +
+                        "this configuration file, should it exist:\n " +
+                        s"${MIDOLMAN_CONF_LOCATION}.\n")
+                    defaultZkRootKey
+
+                case key => key
+            }
+        }
+    }
+
     def zkBootstrap(inifile: Option[String] = None): CuratorFramework =
         zkBootstrap(bootstrapConfig(inifile))
 
     def zkBootstrap(cfg: Config): CuratorFramework = {
         val serverString = cfg.getString("zookeeper.zookeeper_hosts")
 
-        val namespace = cfg.getString("zookeeper.root_key").stripPrefix("/")
+        val namespace = zkRootKey(cfg).stripPrefix("/")
         val timeoutMillis = cfg.getDuration("zookeeper.bootstrap_timeout",
                                             TimeUnit.MILLISECONDS)
         val zk = CuratorFrameworkFactory.builder().
