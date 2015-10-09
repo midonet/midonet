@@ -30,12 +30,8 @@ import org.midonet.quagga.ZebraProtocol.RIBType
 case object ProcessMessage
 
 object ZebraConnection {
-
     // The mtu size 1300 to avoid ovs dropping packets.
     private final val MidolmanMTU = 1300
-
-    case class NextHop(ribType: RIBType.Value, destination: IPv4Subnet,
-                       gateway: IPv4Addr)
 }
 
 class ZebraConnection(val dispatcher: ActorRef,
@@ -184,6 +180,17 @@ class ZebraConnection(val dispatcher: ActorRef,
         log.debug("ZebraRouterIdUpdate: %s".format(ia.getHostAddress))
     }
 
+    private def readPrefix(): IPv4Subnet = {
+        val prefixLen = in.readByte
+        log.trace(s"prefixLen: $prefixLen")
+        val prefix = new Array[Byte](Ipv4MaxBytelen)
+        // Protocol daemons only send network part.
+        in.read(prefix, 0, ((prefixLen + 7) / 8))
+        log.trace("prefix: {}", prefix.map(_.toInt))
+
+        new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen)
+    }
+
     def ipv4RouteAdd() {
         log.trace("adding ipv4 route")
 
@@ -195,33 +202,23 @@ class ZebraConnection(val dispatcher: ActorRef,
         log.trace(s"message: ${ZebraMessageTable(message)}($message)")
 
         val safi = in.readShort
-        val prefixLen = in.readByte
-        log.trace(s"safi: $safi prefixLen: $prefixLen")
-
-        val prefix = new Array[Byte](Ipv4MaxBytelen)
-        // Protocol daemons only send network part.
-        in.read(prefix, 0, ((prefixLen + 7) / 8))
-        log.trace("prefix: {}", prefix.map(_.toInt))
+        val prefix = readPrefix()
 
         if (!ZebraRouteTypeTable.contains(ribType)) {
             log.error(s"Wrong RIB type: $ribType")
             return
         }
 
-        val advertised = "%s/%d".format(
-            InetAddress.getByAddress(prefix).getHostAddress, prefixLen)
         log.debug("ZebraIpv4RouteAdd: ribType %s flags %d prefix %s".format(
-            ZebraRouteTypeTable(ribType), flags, advertised))
+            ZebraRouteTypeTable(ribType), flags, prefix))
 
-        val (nextHops, distance) = readRoutes(message, ribType, prefix, prefixLen)
+        val (nextHops, distance) = readRoutes(message)
 
-        var i = 0
-        while (i < nextHops.length) {
-            val nextHop = nextHops(i)
-            handler.addRoute(nextHop.ribType, nextHop.destination,
-                             nextHop.gateway, distance)
-            i += 1
+        val paths = nextHops map {
+            case hop => ZebraPath(RIBType.fromInteger(ribType), hop, distance)
         }
+
+        handler.addRoutes(prefix, paths.toSet)
 
         if ((message & ZAPIMessageMetric) != 0) {
             // droping for now.
@@ -236,31 +233,20 @@ class ZebraConnection(val dispatcher: ActorRef,
         val flags = in.readByte
         val message = in.readByte
         val safi = in.readShort
-        val prefixLen = in.readByte
-        val prefix = new Array[Byte](Ipv4MaxBytelen)
-        // Protocol daemons only send network part.
-        in.read(prefix, 0, ((prefixLen + 7) / 8))
+        val prefix = readPrefix()
 
         assert(ZebraRouteTypeTable.contains(ribType))
 
-        val advertised = "%s/%d".format(
-            InetAddress.getByAddress(prefix).getHostAddress, prefixLen)
         log.debug(
-            s"ZebraIpv4RouteDelete: ribType ${ZebraRouteTypeTable(ribType)} flags $flags prefix $advertised")
+            s"ZebraIpv4RouteDelete: ribType ${ZebraRouteTypeTable(ribType)} flags $flags prefix $prefix")
+        val (nextHops, _) = readRoutes(message)
 
-        val (nextHops, _) = readRoutes(message, ribType, prefix, prefixLen)
-
-        var i = 0
-        while (i < nextHops.length) {
-            val nextHop = nextHops(i)
-            handler.removeRoute(nextHop.ribType, nextHop.destination, nextHop.gateway)
-            i += 1
+        for (hop <- nextHops) {
+            handler.removeRoute(RIBType.fromInteger(ribType), prefix, hop)
         }
 
-
         if ((message & ZAPIMessageMetric) != 0) {
-            // droping for now.
-            val metric = in.readInt
+            val metric = in.readInt // droping for now.
         }
     }
 
@@ -288,25 +274,22 @@ class ZebraConnection(val dispatcher: ActorRef,
         }
     }
 
-    private def readRoutes(message: Byte, ribType: Byte, prefix: Array[Byte],
-                           prefixLen: Byte): (Array[NextHop], Byte) = {
+    private def readRoutes(message: Byte): (Array[IPv4Addr], Byte) = {
         val nextHops =
             if ((message & ZAPIMessageNextHop) != 0) {
                 val nextHopNum = in.readByte
-                val hops = new Array[NextHop](nextHopNum)
+                val hops = new Array[IPv4Addr](nextHopNum)
                 for (i <- 0 until nextHopNum) {
                     val nextHopType = in.readByte
                     if (nextHopType == ZebraNextHopIpv4) {
                         val addr = in.readInt
                         log.info(s"received route: nextHopType $nextHopType addr $addr")
-                        hops(i) = NextHop(RIBType.fromInteger(ribType),
-                            new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
-                            IPv4Addr.fromInt(addr))
+                        hops(i) = IPv4Addr.fromInt(addr)
                     }
                 }
                 hops
             } else {
-                Array[NextHop]()
+                Array[IPv4Addr]()
             }
 
         val distance =

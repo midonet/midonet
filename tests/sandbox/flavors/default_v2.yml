@@ -124,28 +124,76 @@ midolman3:
   - "zookeeper3:zk3"
   - "cassandra1:cs1"
 
-
-
-quagga:
+quagga0:
   extends:
     file: $BASE/quagga.yml
     service: quagga
   image: sandbox/quagga:0.99.22
-  hostname: quagga
+  hostname: quagga0
+  labels:
+    interface: mdts.services.quagga.QuaggaHost
+    type: quagga
+  environment:
+  - BGP_ROUTER_ID=1.1.1.1
+  # Interface to the other quagga peers
+  - BGP0_IFACE=bgp0
+  # Neighbors
+  - BGPPEER1_IP_AS=10.10.0.2:64511
+  - BGPPEER2_IP_AS=10.10.0.3:64512
+  # AS numbers
+  - BGP_AS=64510
+  # Advertise "inet" network
+  - ADVERTISED_NETWORK=1.1.1.1/32
+
+quagga1:
+  extends:
+    file: $BASE/quagga.yml
+    service: quagga
+  image: sandbox/quagga:0.99.22
+  hostname: quagga1
   labels:
       interface: mdts.services.quagga.QuaggaHost
       type: quagga
   environment:
-  - ADVERTISED_NETWORK=1.1.1.1/32
-  # Edge1 interface peering midolman1, 10.1.0.240/24
+  - BGP_ROUTER_ID=2.2.2.2
+  # Interface to bgpmaster
   - BGP0_IFACE=bgp0
-  # Edge2 interface peering midolman2, 10.2.0.240/24
+  # Neighbors
+  - BGPPEER1_IP_AS=10.10.0.1:64510
+  # Edge1 interface peering midolman1 at 10.1.0.240/24
   - BGP1_IFACE=bgp1
+  # Edge2 interface peering midolman2 at 10.2.0.241/24
+  - BGP2_IFACE=bgp2
+  # AS number
+  - BGP_AS=64511
+  links:
+  - "midolman1:bgppeer1"
+  - "midolman2:bgppeer2"
+
+quagga2:
+  extends:
+    file: $BASE/quagga.yml
+    service: quagga
+  image: sandbox/quagga:0.99.22
+  hostname: quagga2
+  labels:
+      interface: mdts.services.quagga.QuaggaHost
+      type: quagga
+  environment:
+  - BGP_ROUTER_ID=3.3.3.3
+  # Interface to bgpmaster
+  - BGP0_IFACE=bgp0
+  # Neighbors
+  - BGPPEER1_IP_AS=10.10.0.1:64510
+  # Edge1 interface peering midolman1 at 10.2.0.240/24
+  - BGP1_IFACE=bgp1
+  # Edge2 interface peering midolman2 at 10.1.0.241/24
+  - BGP2_IFACE=bgp2
   # AS number
   - BGP_AS=64512
   links:
-  - "midolman1:midolman1"
-  - "midolman2:midolman2"
+  - "midolman1:bgppeer1"
+  - "midolman2:bgppeer2"
 
 externalhost1:
   image: sandbox/externalhost:master
