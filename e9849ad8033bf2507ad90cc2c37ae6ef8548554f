@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_67ddbc42",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VtpmRedirector.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-09T15:54:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_07bb200f",
+      "range": {
+        "startLine": 99,
+        "startChar": 47,
+        "endLine": 99,
+        "endChar": 74
+      },
+      "revId": "e9849ad8033bf2507ad90cc2c37ae6ef8548554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_273744b2",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-10-09T14:51:45Z",
       "side": 1,
       "message": "Maybe this is no longer true.",
+      "range": {
+        "startLine": 98,
+        "startChar": 12,
+        "endLine": 98,
+        "endChar": 67
+      },
+      "revId": "e9849ad8033bf2507ad90cc2c37ae6ef8548554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_c76e8896",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-09T15:54:47Z",
+      "side": 1,
+      "message": "I agree but this makes the tests more robust if we end up changing the VT again.",
+      "parentUuid": "baada198_273744b2",
       "range": {
         "startLine": 98,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_e76b8c83",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-09T15:54:47Z",
+      "side": 1,
+      "message": "Yes, it allows to do obs.awaitOnNext(1...) at line 151 instead of keeping track of the number of events to be expecting.",
+      "parentUuid": "baada198_a74a7425",
+      "range": {
+        "startLine": 144,
+        "startChar": 12,
+        "endLine": 144,
+        "endChar": 23
+      },
+      "revId": "e9849ad8033bf2507ad90cc2c37ae6ef8548554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_67413c0b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
         "patchSetId": 3
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_272ca44a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-09T15:54:47Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "baada198_67413c0b",
+      "range": {
+        "startLine": 296,
+        "startChar": 12,
+        "endLine": 296,
+        "endChar": 63
+      },
+      "revId": "e9849ad8033bf2507ad90cc2c37ae6ef8548554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_87465022",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VtpmRedirectorTest.scala",
         "patchSetId": 3
@@ -105,6 +201,30 @@
       "writtenOn": "2015-10-09T14:51:45Z",
       "side": 1,
       "message": "Todo?",
+      "range": {
+        "startLine": 449,
+        "startChar": 8,
+        "endLine": 449,
+        "endChar": 63
+      },
+      "revId": "e9849ad8033bf2507ad90cc2c37ae6ef8548554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_a7719479",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VtpmRedirectorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-09T15:54:47Z",
+      "side": 1,
+      "message": "In fact the recoverableObservable is already tested in:\nDeleting the host after sending a host request. I thus removed this TODO.",
+      "parentUuid": "baada198_87465022",
       "range": {
         "startLine": 449,
         "startChar": 8,
