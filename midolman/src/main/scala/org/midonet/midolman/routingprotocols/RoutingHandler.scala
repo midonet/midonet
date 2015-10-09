@@ -118,8 +118,7 @@ object RoutingHandler {
 
     case class ZookeeperConnected(connected: Boolean)
 
-    case class AddPeerRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                                    gateway: IPv4Addr, distance: Byte)
+    case class AddPeerRoutes(destination: IPv4Subnet, paths: Set[ZebraPath])
 
     case class RemovePeerRoute(ribType: RIBType.Value,
                                        destination: IPv4Subnet,
@@ -159,12 +158,11 @@ object RoutingHandler {
                 connWatcher,
                 config.router.bgpZookeeperHoldtime seconds,
                 UnixClock.DEFAULT,
-                (d, r) => system.scheduler.scheduleOnce(d, r)(context.dispatcher))
+                (d, r) => system.scheduler.scheduleOnce(d, r)(system.dispatcher))
 
             private val zebraHandler = new ZebraProtocolHandler {
-                def addRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                             gateway: IPv4Addr, distance: Byte) {
-                    self ! AddPeerRoute(ribType, destination, gateway, distance)
+                def addRoutes(destination: IPv4Subnet, paths: Set[ZebraPath]) {
+                    self ! AddPeerRoutes(destination, paths)
                 }
 
                 def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet,
@@ -301,26 +299,8 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             syncPeerRoutes()
             Future.successful(true)
 
-        case AddPeerRoute(ribType, destination, gateway, distance) =>
-            if (peerRoutes.size < config.router.maxBgpPeerRoutes) {
-                log.info(s"Learning route: $ribType, $destination, $gateway, $distance")
-                val route = new Route()
-                route.setRouterId(rport.deviceId)
-                route.setDstNetworkAddr(destination.getAddress.toString)
-                route.setDstNetworkLength(destination.getPrefixLen)
-                route.setNextHopGateway(gateway.toString)
-                route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
-                route.setNextHopPort(rport.id)
-                route.setWeight(distance)
-                route.setLearned(true)
-                handleLearnedRouteError {
-                    publishLearnedRoute(route)
-                }
-            } else {
-                log.warn(s"Max number of peer routes reached " +
-                         s"(${config.router.maxBgpPeerRoutes}), please check " +
-                         s"the max_bgp_peer_routes config option.")
-            }
+        case AddPeerRoutes(destination, paths) =>
+            publishLearnedRoutes(destination, paths)
             Future.successful(true)
 
         case RemovePeerRoute(ribType, destination, gateway) =>
@@ -404,6 +384,81 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             s"${route.getDstNetworkAddr}/${route.getDstNetworkLength} " +
             s"via ${route.getNextHopGateway}")
         routingStorage.removeRoute(route)
+    }
+
+    private def makeRoute(destination: IPv4Subnet, path: ZebraPath): Route = {
+        val route = new Route()
+        route.setRouterId(rport.deviceId)
+        route.setDstNetworkAddr(destination.getAddress.toString)
+        route.setDstNetworkLength(destination.getPrefixLen)
+        route.setNextHopGateway(path.gateway.toString)
+        route.setNextHop(org.midonet.midolman.layer3.Route.NextHop.PORT)
+        route.setNextHopPort(rport.id)
+        route.setWeight(path.distance)
+        route.setLearned(true)
+        route
+    }
+
+    /*
+     * Publishes routes to a prefix.
+     *
+     * Note that what we get from bgpd via ZebraConnection is the set
+     * of currently active routes to the particular prefix. This means
+     * that the actual event being handled is a path being deleted.
+     *
+     * In other words, here we get the set of currently active paths and
+     * that set could differ with the previously active set in any ways.
+     *
+     * An additional requirement here is to handle zookeeper disconnections
+     * gracefully. Thus, here's what this method needs to do:
+     *
+     *   * Calculate which paths are new, by comparing the received set of
+     *     paths with the authoritative 'peerRoutes' variable.
+     *   * Likewise, calculate which routes were previously known hand have
+     *     to be forgotten.
+     *   * Save the new set of routes to this prefix in 'peerRoutes'. At this
+     *     point it's safe to try to commit the changes to storage. A failure
+     *     will be handled by resynchronizing storage with 'peerRoutes'.
+     *   * Commit the new paths to storage, delete the forgotten paths from
+     *     storge.
+     */
+    private def publishLearnedRoutes(destination: IPv4Subnet, paths: Set[ZebraPath])(implicit cbf: CbfRouteSeq): Unit = {
+        val newRoutes = paths map (makeRoute(destination, _))
+
+        val lostRoutes = mutable.Buffer[Route]()
+        for (route <- peerRoutes.keys
+             if route.getDstNetworkAddr == destination.getAddress.toString &&
+                 route.getDstNetworkLength == destination.getPrefixLen &&
+                 !newRoutes.contains(route) &&
+                 (peerRoutes(route) ne null)) {
+            lostRoutes.append(peerRoutes(route))
+            peerRoutes.remove(route)
+        }
+
+        val gainedRoutes = mutable.Buffer[Route]()
+        for (gained <- newRoutes if !peerRoutes.contains(gained)) {
+            if (peerRoutes.size < config.router.maxBgpPeerRoutes) {
+                gainedRoutes.append(gained)
+                peerRoutes.put(gained, null)
+            } else {
+                log.warn(s"Max number of peer routes reached " +
+                    s"(${config.router.maxBgpPeerRoutes}), please check " +
+                    s"the max_bgp_peer_routes config option.")
+            }
+        }
+
+        handleLearnedRouteError {
+            val futures = new ArrayBuffer[Future[Route]]()
+            for (gained <- gainedRoutes) {
+                futures += publishLearnedRoute(gained)
+            }
+            for (lost <- lostRoutes) {
+                futures += forgetLearnedRoute(lost)
+            }
+            Future.sequence(futures.toSeq)(cbf, singleThreadExecutionContext)
+        }
+
+
     }
 
     private def publishLearnedRoute(route: Route): Future[Route] = {
@@ -516,9 +571,10 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             log.info(s"Set up BGP session with AS ${peer.as} at ${peer.address}")
         }
 
-        if (newPeers.isEmpty) {
+        if (newPeers.isEmpty)
             stopBgpd()
-        }
+        else
+            bgpd.vty.setMaximumPaths(bgpConfig.as, newPeers.size)
 
         if (lost.nonEmpty || gained.nonEmpty)
             invalidateFlows()
@@ -529,6 +585,9 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         bgpd.vty.setAs(bgpConfig.as)
         bgpd.vty.setRouterId(bgpConfig.as, bgpConfig.id)
+
+        if (bgpConfig.neighbors.nonEmpty)
+            bgpd.vty.setMaximumPaths(bgpConfig.as, bgpConfig.neighbors.size)
 
         for (neigh <- bgpConfig.neighbors.values) {
             bgpd.vty.addPeer(bgpConfig.as, neigh.address, neigh.as,
