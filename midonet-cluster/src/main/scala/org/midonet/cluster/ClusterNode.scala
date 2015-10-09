@@ -84,6 +84,7 @@ object ClusterNode extends App {
     }
     configurator.centralPerNodeConfig(nodeId)
 
+    // TODO: This picks up the old root key without filtering, why???
     val clusterConf = new ClusterConfig(configurator.runtimeConfig)
 
     log.info("Scanning classpath for Cluster Minions..")
