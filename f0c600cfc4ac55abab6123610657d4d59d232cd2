@@ -140,6 +140,24 @@
     },
     {
       "key": {
+        "uuid": "baada198_3e6831f5",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "+1.",
+      "parentUuid": "1ae5cdf2_94d1c8fd",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ae5cdf2_f4d68cf0",
         "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
         "patchSetId": 1
@@ -187,6 +205,24 @@
       "side": 1,
       "message": "I think it\u0027s enough. To ensure that the existing topology is updated, you could just set the admin state up again, and assert that the ping works. Adding @cluster and @agent for awareness.",
       "parentUuid": "1ae5cdf2_743fdcd6",
+      "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_5e6de503",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "1ae5cdf2_3ae1bbd0",
       "revId": "f0c600cfc4ac55abab6123610657d4d59d232cd2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
