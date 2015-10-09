@@ -77,7 +77,7 @@ import static org.junit.Assert.assertTrue;
 public class HostServiceTest {
     final static byte MAX_ATTEMPTS = 100;
     final static int WAIT_MILLIS = 500;
-    final static String basePath = "/midolman";
+    final static String basePath = "/midonet/v5";
 
     Injector injector;
     Storage store;

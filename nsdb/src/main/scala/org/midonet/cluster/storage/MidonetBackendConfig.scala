@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.Config
 
+import org.midonet.conf.MidoNodeConfigurator
+
 /**
  * This file defines configuration parameters required to bootstrap a connection
  * to the MidoNet backend services, such as ZooKeeper, etc.
@@ -28,7 +30,11 @@ class MidonetBackendConfig(val conf: Config) {
     def hosts = conf.getString("zookeeper.zookeeper_hosts")
     def sessionTimeout = conf.getDuration("zookeeper.session_timeout", TimeUnit.MILLISECONDS).toInt
     def graceTime = conf.getDuration("zookeeper.session_gracetime", TimeUnit.MILLISECONDS).toInt
-    def rootKey = conf.getString("zookeeper.root_key")
+    def rootKey = MidoNodeConfigurator.zkRootPath(conf)
+    /* When set to true, this parameter allows any root keys to be
+       used. Otherwise, the root key will be overridden with /midonet appended with
+       MidoNet's current version number. */
+    def yesUseMyOwnZKRootPath = conf.getBoolean("zookeeper.use_my_own_zk_root_path")
     def maxRetries = conf.getInt("zookeeper.max_retries")
     def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
     @Deprecated // TODO: waiting for RoutingHandlerTest to be refactored
