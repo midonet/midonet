@@ -247,7 +247,7 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
         else HostIdGenerator.getHostId
 
     private val zoom =
-        new ZookeeperObjectMapper(s"${cfg.rootKey}/zoom", namespaceId.toString,
+        new  ZookeeperObjectMapper(s"${cfg.rootKey}/zoom", namespaceId.toString,
                                   curator, metricRegistry)
 
     override def store: Storage = zoom
