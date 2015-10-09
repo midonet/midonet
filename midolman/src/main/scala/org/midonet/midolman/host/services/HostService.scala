@@ -376,7 +376,15 @@ class HostService @Inject()(config: MidolmanConfig,
      * Updates the host with the current set of interfaces in V2.x storage.
      */
     private def updateInterfaces(): Unit = {
-        log.debug("Updating host interfaces {}: {}", hostId, currentInterfaces)
+        def upOrDown(iface: InterfaceDescription) =
+                if (iface.isUp) "UP" else "DOWN"
+        def pluggedOrNot(iface: InterfaceDescription) =
+                if (iface.isUp) "LINK" else "NO_LINK"
+
+        val ifdescs = currentInterfaces map { i =>
+            s"${i.getName}<${upOrDown(i)},${pluggedOrNot(i)},${i.getMtu}>"
+        }
+        log.debug("Updating network interfaces: {}", ifdescs.mkString(", "))
 
         try {
             stateStore.addValue(classOf[Host], hostId, HostKey, getInterfaces)
