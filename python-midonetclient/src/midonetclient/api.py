@@ -578,13 +578,13 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.add_vtep()
 
-    def get_vtep(self, mgmt_ip):
+    def get_vtep(self, id):
         self._ensure_application()
-        return self.app.get_vtep(mgmt_ip)
+        return self.app.get_vtep(id)
 
-    def delete_vtep(self, mgmt_ip):
+    def delete_vtep(self, id):
         self._ensure_application()
-        return self.app.delete_vtep(mgmt_ip)
+        return self.app.delete_vtep(id)
 
     def get_tracerequests(self, query):
         self._ensure_application()
