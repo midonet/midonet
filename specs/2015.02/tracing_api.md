@@ -88,7 +88,7 @@ request that already exists in the system.
 ## Implementation details
 
 Trace resources in the REST API map to trace znodes in
-ZooKeeper. These are stored under /midonet/v2/traces.
+ZooKeeper. These are stored under /midonet/v5/traces.
 
 When a trace request is created a UUID is generated, which is used to
 refer to the trace request for its lifetime. The trace request znode
