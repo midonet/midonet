@@ -16,6 +16,288 @@
       "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_fe7dd9b2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "FYI: Huub, also refer to this for general style guidelines:\n\nhttps://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project",
+      "parentUuid": "fab399f4_63f3f00a",
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_5ee8857c",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_3e9af114",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "Unused?",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 36
+      },
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_be8521af",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "Unused?",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 50
+      },
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_7ea46957",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "Unused?",
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_9eaf7d2b",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "I don\u0027t see the point of using 2 different bridges. I think you can reuse the same bridge.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 5
+      },
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_de92d5f5",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "- Instead of returning futures, perhaps it\u0027s simper if assert_ping_from_to_succeeds/fails also wait on futures within.\n\n- Consider renaming those to just assert_ping_succeeds/fails for conciseness.",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 48
+      },
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_1e636d1b",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "The first line should be a brief summary of this function.",
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_fee1599b",
+        "filename": "tests/mdts/tests/topologies/mmm_physical_test_zoom_connection_loss.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_bed7e1be",
+        "filename": "tests/mdts/tests/topologies/mmm_physical_test_zoom_connection_loss.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be \"172.16.2.254\"?",
+      "range": {
+        "startLine": 41,
+        "startChar": 23,
+        "endLine": 41,
+        "endChar": 35
+      },
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_dee495ae",
+        "filename": "tests/mdts/tests/topologies/mmm_physical_test_zoom_connection_loss.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be \"172.16.2.254\"?",
+      "range": {
+        "startLine": 69,
+        "startChar": 23,
+        "endLine": 69,
+        "endChar": 35
+      },
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_1eee0d8c",
+        "filename": "tests/mdts/tests/topologies/mmm_virtual_test_zoom_connection_loss.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_3ef3d174",
+        "filename": "tests/mdts/tests/topologies/mmm_virtual_test_zoom_connection_loss.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-09T02:41:18Z",
+      "side": 1,
+      "message": "I think you can omit the mention on hosts as hosts are not specified in virtual topology.",
+      "range": {
+        "startLine": 20,
+        "startChar": 52,
+        "endLine": 20,
+        "endChar": 67
+      },
+      "revId": "350f4335d518b8b639578345f19a336e1e8b6df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
