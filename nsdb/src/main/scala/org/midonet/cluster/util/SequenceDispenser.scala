@@ -25,7 +25,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.shared.{SharedCount, VersionedValue}
 
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.SequenceDispenser.{VxgwVni, SequenceType}
+import org.midonet.cluster.util.SequenceDispenser.SequenceType
 
 object SequenceDispenser {
     abstract class SequenceType(val tag: String, val seed: Int)

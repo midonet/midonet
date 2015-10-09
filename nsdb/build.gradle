@@ -56,7 +56,8 @@ dependencies {
             libraries.scala_async,
             libraries.scala_logging,
             libraries.scallop,
-            libraries.typesafeconf
+            libraries.typesafeconf,
+            libraries.java_posix
 
     testCompile project(path: ':midonet-util', configuration: 'tests')
 
