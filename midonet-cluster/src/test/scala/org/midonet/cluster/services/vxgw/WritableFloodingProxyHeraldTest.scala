@@ -19,7 +19,6 @@ package org.midonet.cluster.services.vxgw
 import java.util.UUID
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 
-import com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor
 import org.apache.curator.framework.CuratorFramework
 import org.junit.runner.RunWith
 import org.mockito.Matchers.{anyObject, eq => Eq, same}
@@ -108,8 +107,7 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
                 _store.observable(anyObject[Class[TunnelZone]]())
             ).thenReturn(tzsObservable.asObservable())
 
-            val herald = new WritableFloodingProxyHerald(backend,
-                                                         sameThreadExecutor())
+            val (wherald, herald) = heralds()
 
             tzsObservable.onNext(Observable.just(vtepTz))
             herald.lookup(tzId) shouldBe None
@@ -117,7 +115,7 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             stateInjector.onNext(initialState)
 
             val fp = FloodingProxy(tzId, h2Id, IPv4Addr.random)
-            herald.announce(fp, inocuousRetrier)
+            wherald.announce(fp, inocuousRetrier)
             // mock the NSDB notifying back
             stateInjector.onNext(SingleValueKey(FloodingProxyKey,
                                                 Some(fp.toString), 0))
@@ -160,18 +158,25 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
                 Observable.error[Observable[TunnelZone]](new NullPointerException)
             )
 
-            val herald = new WritableFloodingProxyHerald(backend,
-                                                         sameThreadExecutor())
+            val (wherald, herald) = heralds()
+
             herald.lookup(tzId) shouldBe None
 
             val fp = FloodingProxy(tunnelZoneId = randId(), h2Id,
                                    IPv4Addr.random)
-            herald.announce(fp, retry)
+            wherald.announce(fp, retry)
 
             latch.await(1, TimeUnit.SECONDS) shouldBe true
 
             // The change wasn't applied
             herald.lookup(tzId) shouldBe None
         }
+    }
+
+    private def heralds(): (WritableFloodingProxyHerald, FloodingProxyHerald) = {
+        val wherald = new WritableFloodingProxyHerald(backend)
+        val herald = new FloodingProxyHerald(backend, None)
+        herald.start()
+        (wherald, herald)
     }
 }

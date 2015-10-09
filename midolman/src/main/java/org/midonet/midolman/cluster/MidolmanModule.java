@@ -30,8 +30,8 @@ import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 
-import org.midonet.cluster.Client;
 import org.midonet.cluster.backend.cassandra.CassandraClient;
+import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.midolman.ShardedSimulationBackChannel;
 import org.midonet.midolman.ShardedSimulationBackChannel$;
 import org.midonet.midolman.SimulationBackChannel;
@@ -40,11 +40,13 @@ import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.logging.FlowTracingSchema$;
 import org.midonet.midolman.monitoring.FlowRecorderFactory;
 import org.midonet.midolman.services.DatapathConnectionService;
+import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.services.SelectLoopService;
 import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.state.NatBlockAllocator;
+import org.midonet.midolman.state.PeerResolver;
 import org.midonet.midolman.state.ZkNatBlockAllocator;
 import org.midonet.midolman.topology.VirtualTopology;
 import org.midonet.midolman.topology.VirtualTopology$;
@@ -62,6 +64,9 @@ public class MidolmanModule extends PrivateModule {
         requireBinding(DatapathConnectionService.class);
         requireBinding(MidolmanActorsService.class);
         requireBinding(MetricRegistry.class);
+        requireBinding(HostIdProviderService.class);
+        requireBinding(MidonetBackend.class);
+        requireBinding(VirtualTopology.class);
 
         bind(MidolmanService.class).asEagerSingleton();
         expose(MidolmanService.class);
@@ -82,12 +87,33 @@ public class MidolmanModule extends PrivateModule {
         bindZebraSelectLoop();
         expose(SelectLoopService.class);
 
+        bindPeerResolver();
+        expose(PeerResolver.class);
+
         requestStaticInjection(Chain.class);
     }
 
     protected void bindZebraSelectLoop() {
         bind(SelectLoopService.class)
             .asEagerSingleton();
+    }
+
+    protected void bindPeerResolver() {
+        bind(PeerResolver.class).toProvider(new Provider<PeerResolver>() {
+            @Inject
+            private HostIdProviderService hostIdProvider;
+
+            @Inject
+            private MidonetBackend backend;
+
+            @Inject
+            private VirtualTopology virtualTopology;
+
+            @Override
+            public PeerResolver get() {
+                return new PeerResolver(hostIdProvider, backend, virtualTopology);
+            }
+        }).asEagerSingleton();
     }
 
     protected void bindSimulationBackChannel() {
