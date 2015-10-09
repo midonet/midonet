@@ -80,8 +80,8 @@ trait MidolmanSpec extends FeatureSpecLike
             injector = Guice.createInjector(getModules)
 
             val dir = injector.getInstance(classOf[Directory])
-            ensurePath(dir, "/midonet/v2/routers")
-            ensurePath(dir, "/midonet/v2/bridges")
+            ensurePath(dir, "/midonet/routers")
+            ensurePath(dir, "/midonet/bridges")
             injector.getInstance(classOf[MidonetBackend])
                 .startAsync()
                 .awaitRunning()
