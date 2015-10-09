@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_07bb200f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VtpmRedirector.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-09T14:51:45Z",
+      "side": 1,
+      "message": "The nfe.id is an ObjId, which can be any of UUID, Proto UUID or String. If you want, add a method getIdString to the NotFoundException class to return the id as string, then you can compare the strings.",
+      "range": {
+        "startLine": 99,
+        "startChar": 47,
+        "endLine": 99,
+        "endChar": 74
+      },
+      "revId": "e9849ad8033bf2507ad90cc2c37ae6ef8548554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_273744b2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-09T14:51:45Z",
+      "side": 1,
+      "message": "Maybe this is no longer true.",
+      "range": {
+        "startLine": 98,
+        "startChar": 12,
+        "endLine": 98,
+        "endChar": 67
+      },
+      "revId": "e9849ad8033bf2507ad90cc2c37ae6ef8548554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_a74a7425",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-09T14:51:45Z",
+      "side": 1,
+      "message": "Is this needed now?",
+      "range": {
+        "startLine": 144,
+        "startChar": 12,
+        "endLine": 144,
+        "endChar": 23
+      },
+      "revId": "e9849ad8033bf2507ad90cc2c37ae6ef8548554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_67413c0b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/PoolHealthMonitorMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-09T14:51:45Z",
+      "side": 1,
+      "message": "Why this? Doesn\u0027t this actually test a pool update?",
+      "range": {
+        "startLine": 296,
+        "startChar": 12,
+        "endLine": 296,
+        "endChar": 63
+      },
+      "revId": "e9849ad8033bf2507ad90cc2c37ae6ef8548554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_87465022",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VtpmRedirectorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 449,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-09T14:51:45Z",
+      "side": 1,
+      "message": "Todo?",
+      "range": {
+        "startLine": 449,
+        "startChar": 8,
+        "endLine": 449,
+        "endChar": 63
+      },
+      "revId": "e9849ad8033bf2507ad90cc2c37ae6ef8548554f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
