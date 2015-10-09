@@ -141,4 +141,6 @@ public interface cLibrary extends Library {
     int close(long l);
 
     String strerror(int errno);
+
+    int isatty(int fd);
 }
