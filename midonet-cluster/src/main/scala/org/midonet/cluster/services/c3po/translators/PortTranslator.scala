@@ -31,6 +31,7 @@ import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util._
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
@@ -43,6 +44,12 @@ object PortTranslator {
 
     private def ingressChainName(portId: UUID) =
         "OS_PORT_" + UUIDUtil.fromProto(portId) + "_OUTBOUND"
+
+    private def antiSpoofChainName(portId: UUID) =
+        "OS_PORT_" + UUIDUtil.fromProto(portId) + "_ANTI_SPOOF"
+
+    private[c3po] def antiSpoofChainJumpRuleId(portId: UUID) =
+        portId.xorWith(0x4bcef582eeae45acL, 0xb0304fc7e7b3ba0dL)
 }
 
 class PortTranslator(protected val storage: ReadOnlyStorage,
@@ -362,7 +369,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val mac = nPort.getMacAddress
         val spoofChainId = antiSpoofChainId(portId)
 
-        portCtx.inRules += Create(jumpRule(inChainId, spoofChainId))
+        portCtx.inRules += Create(
+            jumpRuleWithId(antiSpoofChainJumpRuleId(portId),
+                           inChainId, spoofChainId))
 
         // Don't filter ARP
         portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
@@ -466,7 +475,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         // Create in/outbound chains.
         val inChain = newChain(inChainId, egressChainName(portId))
         val outChain = newChain(outChainId, ingressChainName(portId))
-        val antiSpoofChain = newChain(antiSpfChainId, "Anti-Spoof Chain")
+        val antiSpoofChain = newChain(
+            antiSpfChainId, antiSpoofChainName(portId),
+            jumpRuleIds = Seq(antiSpoofChainJumpRuleId(portId)))
 
         // If this is an update, clear the chains. Ideally we would be a bit
         // smarter about this and only delete rules that actually need deleting,

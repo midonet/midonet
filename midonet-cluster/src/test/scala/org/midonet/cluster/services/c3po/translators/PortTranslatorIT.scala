@@ -52,6 +52,26 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
         insertCreateTask(3, PortType, nw1p1Json, nw1p1Id)
         insertCreateTask(4, PortType, nw1p2Json, nw1p2Id)
 
+        // Check jump chain references.
+        eventually {
+            val inChain =
+                storage.get(classOf[Chain], inChainId(nw1p1Id)).await()
+
+            // Rule 0 is accept forward flow, and rule 2 is drop non-ARP
+            // traffic. We want rule 1, the jump to the anti-spoof chain.
+            val antiSpoofJumpRule =
+                storage.get(classOf[Rule], inChain.getRuleIds(1)).await()
+
+            antiSpoofJumpRule.hasJumpRuleData shouldBe true
+
+            // Get the anti-spoof chain and verify that it has the jump rule's
+            // ID in its jumpRuleIds list.
+            val ascId = antiSpoofJumpRule.getJumpRuleData.getJumpChainId
+            val antiSpoofChain = storage.get(classOf[Chain], ascId).await()
+            antiSpoofChain.getJumpRuleIdsList.asScala should
+                contain only antiSpoofJumpRule.getId
+        }
+
         // Create the host.
         val h1Id = UUID.randomUUID()
         createHost(h1Id)
