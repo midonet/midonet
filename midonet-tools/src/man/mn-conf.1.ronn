@@ -55,7 +55,7 @@ This cannot be managed with `mn-conf`, because it doesn't know if its running on
 the same host.
 
 `mn-conf` is capable of importing the non-default values in a legacy
-configuation file into one of the central repository config sources described
+configuration file into one of the central repository config sources described
 above. While the `mn-conf` configuration system is fully backwards compatible
 with legacy configuration files, the `import` command is a seamless mechanism to
 transition to the new configuration system. See below, under `import`, for a
@@ -125,7 +125,7 @@ Print the value assigned to a particular configuration key. See the above, in
 `set [-h` <HOST_ID> `| -t` <TEMPLATE_NAME>`] [-c]` <CONFIG_STRING>
 
 Reads configuration string in its trailing argument, or from STDIN if no
-argumenti given. It will then store it in the selected configuration source.
+argument is given. It will then store it in the selected configuration source.
 The input will be merged on top of the existing configuration, unless `--clear`
 is given, in that case the input will replace the existing configuration. See
 above, in `dump`, the options for selecting the configuration source to write to.
@@ -240,12 +240,10 @@ sources, in order of preference:
   * `/etc/midonet/midonet.conf`
   * `/etc/midolman/midolman.conf`
 
-These files are expected to be in .ini format, and contain the following keys:
+These files are expected to be in .ini format, and contain the following key:
 
     [zookeeper]
     zookeeper_hosts = 127.0.0.1:2181
-    root_key = /midonet/v2
-
 
 ## ENVIRONMENT
 
@@ -253,7 +251,7 @@ These files are expected to be in .ini format, and contain the following keys:
   The ZooKeeper connect string.
 
   * `MIDO_ZOOKEEPER_ROOT_KEY`:
-  Root path in the ZooKeeper server where configuation is stored.
+  Root path in the ZooKeeper server where configuration is stored.
 
 ## COPYRIGHT
 
