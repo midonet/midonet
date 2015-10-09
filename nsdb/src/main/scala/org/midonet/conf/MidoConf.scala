@@ -116,19 +116,24 @@ trait WritableConf extends MidoConf {
 object MidoNodeConfigurator {
     private val enumPattern = Pattern.compile("enum\\[([\\w, ]+)\\]")
 
-    def bootstrapConfig(inifile: Option[String] = None): Config = {
-        val MIDONET_CONF_LOCATIONS = List("~/.midonetrc", "/etc/midonet/midonet.conf",
-            "/etc/midolman/midolman.conf")
+    private val log = LoggerFactory.getLogger("org.midonet.conf")
 
+    private val MIDONET_CONF_LOCATIONS = List("~/.midonetrc",
+                                              "/etc/midonet/midonet.conf",
+                                              "/etc/midolman/midolman.conf")
+
+    def bootstrapConfig(inifile: Option[String] = None): Config = {
+        val defaultZkRootConfig =
+            ConfigFactory.parseString(s"zk_default_root = ${defaultZkRootKey}")
         val DEFAULTS = ConfigFactory.parseString(
             """
             |zookeeper {
             |    zookeeper_hosts = "127.0.0.1:2181"
-            |    root_key : "/midonet/v2"
-            |    midolman_root_key = ${zookeeper.root_key}
+            |    root_key = ${zk_default_root}
+            |    midolman_root_key = ${zk_default_root}
             |    bootstrap_timeout = 30s
             |}
-            """.stripMargin)
+            """.stripMargin).resolveWith(defaultZkRootConfig)
 
         val ENVIRONMENT = ConfigFactory.parseString(
             """
@@ -144,6 +149,42 @@ object MidoNodeConfigurator {
         } reduce((a, b) => a.withFallback(b))
             withFallback(ConfigFactory.systemProperties)
             withFallback(DEFAULTS)).resolve()
+    }
+
+    final val defaultZkRootKey = "/midonet"
+
+    /**
+     * This method returns the configuration parameter zookeeper.root_key if it
+     * exists in the configuration passed as parameter, or [[defaultZkRootKey]]
+     * otherwise. In addition, if we detect the legacy root key in the
+     * configuration, namely "/midonet/v1", the method returns
+     * [[defaultZkRootKey]].
+     */
+    def zkRootKey(cfg: Config): String = {
+        if (!cfg.hasPath("zookeeper.root_key")) {
+            defaultZkRootKey
+        } else {
+            cfg.getString("zookeeper.root_key") match {
+                case "/midonet/v1" =>
+                    log.warn("WARNING: mn-conf is set up to use the deprecated " +
+                             "default zookeeper root path (/midonet/v1). This " +
+                             "version of MidoNet does not read information " +
+                             "stored in the old root path and will now " +
+                             "fall back to the old default root: /midonet. " +
+                             "Please make sure you used the MidoNet v5 upgrade " +
+                             "scripts, and check the MidoNet v5.0 release " +
+                             "notes for further information. To remove this " +
+                             "warning, please remove the 'zookeeper.root_key' " +
+                             "configuration key from these configuration files, " +
+                             "should they exist: {}. Also remove the " +
+                             "configuration key from any scripts that set the " +
+                             "MIDO_ZOOKEEPER_ROOT_KEY environment variable. ",
+                             MIDONET_CONF_LOCATIONS.mkString(", "))
+                    defaultZkRootKey
+
+                case key => key
+            }
+        }
     }
 
     def zkBootstrap(inifile: Option[String] = None): CuratorFramework =
