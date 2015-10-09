@@ -19,4 +19,3 @@
 (cd cassandra && bash -xe init)
 (cd midolman && bash -xe init)
 (cd quagga && bash -xe init)
-(cd vtep && bash -xe init)
