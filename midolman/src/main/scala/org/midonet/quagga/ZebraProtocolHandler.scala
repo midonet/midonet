@@ -16,13 +16,13 @@
 
 package org.midonet.quagga
 
-import org.midonet.packets.{IPv4Subnet, IPv4Addr, IPAddr, IPSubnet}
+import org.midonet.packets.{IPv4Subnet, IPv4Addr}
 import org.midonet.quagga.ZebraProtocol.RIBType
 
-trait ZebraProtocolHandler {
+case class ZebraPath(ribType: RIBType.Value, gateway: IPv4Addr, distance: Byte)
 
-    def addRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                 gateway: IPv4Addr, distance: Byte)
+trait ZebraProtocolHandler {
+    def addRoutes(destination: IPv4Subnet, routes: Set[ZebraPath])
 
     def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet,
                     gateway: IPv4Addr)

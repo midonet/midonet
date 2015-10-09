@@ -260,12 +260,16 @@ class Service(object):
     def inject_packet_loss(self, iface_name, wait_time=0):
         cmdline = "iptables -i %s -A INPUT -j DROP" % iface_name
         result = self.exec_command(cmdline, stream=False)
+        cmdline = "iptables -i %s -A OUTPUT -j DROP" % iface_name
+        result = self.exec_command(cmdline, stream=False)
         LOG.debug('[%s] Dropping packets coming from %s. %s' \
                   % (self.get_hostname(), iface_name, result))
         time.sleep(wait_time)
 
     def eject_packet_loss(self, iface_name, wait_time=0):
         cmdline = "iptables -i %s -D INPUT -j DROP" % iface_name
+        result = self.exec_command(cmdline, stream=False)
+        cmdline = "iptables -i %s -D OUTPUT -j DROP" % iface_name
         result = self.exec_command(cmdline, stream=False)
         LOG.debug('[%s] Receiving packets coming from %s. %s' \
                   % (self.get_hostname(), iface_name, result))
