@@ -585,7 +585,7 @@ class Application(resource_base.ResourceBase):
 
     def delete_vtep(self, id):
         return self._delete_resource_by_id(self.get_vtep_template(),
-                                           mgmt_ip)
+                                           id)
 
     def get_tracerequests(self, query):
         headers = {'Accept':
