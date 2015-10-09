@@ -39,6 +39,8 @@ object DisruptorDatapathChannel {
     val FLOW_CREATE: Byte = 1
     val SKIP: Byte = 2
 
+    private val MAX_BUF_CAPACITY = 4 * 1024 * 1024
+
     sealed class DatapathEvent(var bb: ByteBuffer, var op: Byte)
 
     def eventFactory(config: MidolmanConfig): EventFactory[DatapathEvent] =
@@ -93,7 +95,7 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
         event.bb.clear()
 
         try {
-            protocol.preparePacketExecute(datapathId, packet, actions, event.bb)
+            preparePacketExecute(event, packet, actions)
             event.op = PACKET_EXECUTION
         } catch { case t: Throwable =>
             event.op = SKIP
@@ -104,6 +106,19 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
         seq
     }
 
+    private def preparePacketExecute(event: DatapathEvent,
+                                     packet: Packet,
+                                     actions: JList[FlowAction]): Unit =
+        try {
+            protocol.preparePacketExecute(datapathId, packet, actions, event.bb)
+        } catch { case t: IndexOutOfBoundsException =>
+            if (maybeGrow(event)) {
+                preparePacketExecute(event, packet, actions)
+            } else {
+                throw t
+            }
+        }
+
     def createFlow(flow: Flow): Long = {
         val seq = ringBuffer.next()
 
@@ -111,7 +126,7 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
         event.bb.clear()
 
         try {
-            protocol.prepareFlowCreate(datapathId, supportsMegaflow, flow, event.bb)
+            prepareFlow(event, flow)
             event.op = FLOW_CREATE
         } catch { case t: Throwable =>
             event.op = SKIP
@@ -120,5 +135,25 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
             ringBuffer.publish(seq)
         }
         seq
+    }
+
+    private def prepareFlow(event: DatapathEvent, flow: Flow): Unit =
+        try {
+            protocol.prepareFlowCreate(datapathId, supportsMegaflow, flow, event.bb)
+        } catch { case t: IndexOutOfBoundsException =>
+            if (maybeGrow(event)) {
+                prepareFlow(event, flow)
+            } else {
+                throw t
+            }
+        }
+
+    private def maybeGrow(event: DatapathEvent): Boolean = {
+        val capacity = event.bb.capacity()
+        if (capacity >= MAX_BUF_CAPACITY)
+            return false
+        val newCapacity = capacity * 2
+        event.bb = BytesUtil.instance.allocateDirect(newCapacity)
+        true
     }
 }
