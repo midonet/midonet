@@ -98,7 +98,8 @@ class VxlanGatewayService @Inject()(
         }
     }
 
-    private val fpLatch = new LeaderLatch(backend.curator, backendCfg.rootKey +
+    private val fpLatch = new LeaderLatch(backend.curator,
+                                          MidonetBackend.zkRootPath(backendCfg) +
                                           "/vxgw/fp-latch")
     fpLatch.addListener(fpLatchListener)
 

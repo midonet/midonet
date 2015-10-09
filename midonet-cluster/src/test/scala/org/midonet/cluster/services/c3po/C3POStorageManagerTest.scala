@@ -58,7 +58,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     val portId = randomUuidProto
     val tenantId = "neutron tenant"
     val networkName = "neutron test"
-    val zkRoot = "/midonet/v2"
+    val zkRoot = "/midonet/v5"
     val adminStateUp = true
     val neutronNetwork = NeutronNetwork.newBuilder
                                        .setId(networkId)

@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
@@ -53,6 +54,8 @@ object MidonetBackend {
     final val VtepConfig = "config"
     final val VtepConnState = "connection_state"
     final val VtepVxgwManager = "vxgw_manager"
+
+    private[services] final val log = getLogger("org.midonet.nsdb")
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
@@ -218,6 +221,23 @@ object MidonetBackend {
         store.build()
     }
 
+    private final val defaultZkRootPath = "/midonet/v5"
+
+    /**
+     * Returns the ZooKeeper root path. When the configuration parameter
+     * yesUseMyOwnZkRootPath is false, we return /midonet/v5. Otherwise, we
+     * return the root path specified in the configuration.
+     */
+    final def zkRootPath(cfg: MidonetBackendConfig): String = cfg.rootKey match {
+        case path: String if path != defaultZkRootPath &&
+                             !cfg.yesUseMyOwnZKRootPath =>
+            log.warn("!!WARNING!! ZooKeeper root path set to {}, changing " +
+                       "the path to {}.",
+                     Array(cfg.rootKey, defaultZkRootPath): _*)
+            defaultZkRootPath
+
+        case _ => cfg.rootKey
+    }
 }
 
 /** The trait that models the new Midonet Backend, managing all relevant
@@ -240,14 +260,16 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
                                        metricRegistry: MetricRegistry)
     extends MidonetBackend {
 
-    private val log = getLogger("org.midonet.nsdb")
+    import MidonetBackend._
 
     private val namespaceId =
         if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
         else HostIdGenerator.getHostId
 
+    private[services] val zkRoot = zkRootPath(cfg)
+
     private val zoom =
-        new ZookeeperObjectMapper(s"${cfg.rootKey}/zoom", namespaceId.toString,
+        new ZookeeperObjectMapper(s"$zkRoot/zoom", namespaceId.toString,
                                   curator, metricRegistry)
 
     override def store: Storage = zoom

@@ -29,6 +29,10 @@ class MidonetBackendConfig(val conf: Config) {
     def sessionTimeout = conf.getDuration("zookeeper.session_timeout", TimeUnit.MILLISECONDS).toInt
     def graceTime = conf.getDuration("zookeeper.session_gracetime", TimeUnit.MILLISECONDS).toInt
     def rootKey = conf.getString("zookeeper.root_key")
+    /* When set to true, this parameter allows any ZooKeeper root path to be
+       used. Otherwise, ZooKeeper root paths /midonet/v1 and /midonet/v2 will
+       be replaced with /midonet/v5. */
+    def yesUseMyOwnZKRootPath = conf.getBoolean("zookeeper.use_my_own_zk_root_path")
     def maxRetries = conf.getInt("zookeeper.max_retries")
     def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
     @Deprecated // TODO: waiting for RoutingHandlerTest to be refactored
