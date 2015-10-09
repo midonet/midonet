@@ -213,7 +213,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
     }
 
     private val hmLatch = new LeaderLatch(curator,
-                                          config.zookeeper.rootKey + "/lb/hm-latch")
+        MidonetBackend.zkRootPath(config.zookeeper) + "/lb/hm-latch")
     override def preStart(): Unit = {
         if (config.healthMonitor.namespaceCleanup) {
             cleanupNamespaces()

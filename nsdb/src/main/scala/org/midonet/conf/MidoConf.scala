@@ -38,6 +38,8 @@ import org.apache.zookeeper.KeeperException
 import org.slf4j.LoggerFactory
 import rx.Observable
 
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.MidoConf._
 import org.midonet.util.functors.makeFunc1
 import org.midonet.util.functors.makeFunc2
@@ -124,7 +126,8 @@ object MidoNodeConfigurator {
             """
             |zookeeper {
             |    zookeeper_hosts = "127.0.0.1:2181"
-            |    root_key : "/midonet/v2"
+            |    root_key : "/midonet/v5"
+            |    use_my_own_zk_root_path : false
             |    midolman_root_key = ${zookeeper.root_key}
             |    bootstrap_timeout = 30s
             |}
@@ -134,6 +137,7 @@ object MidoNodeConfigurator {
             """
               |zookeeper.zookeeper_hosts = ${?MIDO_ZOOKEEPER_HOSTS}
               |zookeeper.root_key = ${?MIDO_ZOOKEEPER_ROOT_KEY}
+              |zookeeper.use_my_own_zk_root_path = false
             """.stripMargin)
 
         val locations = (inifile map ( List(_) ) getOrElse Nil) ::: MIDONET_CONF_LOCATIONS
@@ -152,7 +156,8 @@ object MidoNodeConfigurator {
     def zkBootstrap(cfg: Config): CuratorFramework = {
         val serverString = cfg.getString("zookeeper.zookeeper_hosts")
 
-        val namespace = cfg.getString("zookeeper.root_key").stripPrefix("/")
+        val backendCfg = new MidonetBackendConfig(cfg)
+        val namespace = MidonetBackend.zkRootPath(backendCfg).stripPrefix("/")
         val timeoutMillis = cfg.getDuration("zookeeper.bootstrap_timeout",
                                             TimeUnit.MILLISECONDS)
         val zk = CuratorFrameworkFactory.builder().

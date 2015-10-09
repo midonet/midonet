@@ -78,7 +78,7 @@ object Vladimir {
 
             install(new AuthModule(config.auth, log))
 
-            val paths = new PathBuilder(config.backend.rootKey)
+            val paths = new PathBuilder(MidonetBackend.zkRootPath(config.backend))
 
             bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
             bind(classOf[CorsFilter])
@@ -91,7 +91,7 @@ object Vladimir {
             bind(classOf[SequenceDispenser]).toInstance(sequenceDispenser)
             bind(classOf[MidoNodeConfigurator])
                 .toInstance(MidoNodeConfigurator(
-                curator.usingNamespace(config.backend.rootKey.stripPrefix("/")),
+                curator.usingNamespace(MidonetBackend.zkRootPath(config.backend).stripPrefix("/")),
                 None))
             bind(classOf[C3POStorageManager])
                 .toInstance(C3POMinion.initDataManager(backend.store,

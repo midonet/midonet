@@ -24,8 +24,9 @@ import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.shared.{SharedCount, VersionedValue}
 
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.SequenceDispenser.{VxgwVni, SequenceType}
+import org.midonet.cluster.util.SequenceDispenser.SequenceType
 
 object SequenceDispenser {
     abstract class SequenceType(val tag: String, val seed: Int)
@@ -61,7 +62,7 @@ class SequenceDispenser @Inject()(curator: CuratorFramework,
 
     // This gets added to the root path of the Curator instance.
 
-    private val root = backendCfg.rootKey + "/sequences"
+    private val root = MidonetBackend.zkRootPath(backendCfg) + "/sequences"
 
     private def pathFor(which: SequenceType) =
         s"$root/${which.tag.toLowerCase}"
