@@ -55,6 +55,7 @@ import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.conf.HostIdGenerator;
+import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
@@ -77,7 +78,7 @@ import static org.junit.Assert.assertTrue;
 public class HostServiceTest {
     final static byte MAX_ATTEMPTS = 100;
     final static int WAIT_MILLIS = 500;
-    final static String basePath = "/midolman";
+    final static String basePath = MidoNodeConfigurator.defaultZkRootKey();
 
     Injector injector;
     Storage store;
@@ -433,7 +434,9 @@ public class HostServiceTest {
     }
 
     public String getAlivePath(UUID hostId) {
-        return basePath + "/zoom/0/state/" + stateStore.namespace() + "/Host/" +
-               hostId + "/alive";
+        MidonetBackendConfig backendConfig =
+            injector.getInstance(MidonetBackendConfig.class);
+        return backendConfig.rootKey() + "/zoom/0/state/"
+               + stateStore.namespace() + "/Host/" + hostId + "/alive";
     }
 }
