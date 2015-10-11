@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_7f09c02b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-11T18:38:07Z",
+      "side": 1,
+      "message": "Use the method getIdString(clazz, id) that already exists (see above).",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 55,
+        "endChar": 5
+      },
+      "revId": "f58826c483d8fee0f7565f6f40f35db58142707f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
