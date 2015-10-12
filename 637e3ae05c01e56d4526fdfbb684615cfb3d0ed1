@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_953af334",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-12T22:14:47Z",
+      "side": 1,
+      "message": "Couldn\u0027t be the presence of this key as a confirmation that the user wants to change the root_key? The MidoConf already sets a default if this key is not present.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 22
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_f5488fce",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-12T22:14:47Z",
+      "side": 1,
+      "message": "Is it then confirmed that the store version is matched to the MidoNet version? Do we plan to update this with every major release?",
+      "range": {
+        "startLine": 37,
+        "startChar": 20,
+        "endLine": 37,
+        "endChar": 22
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_b53e1728",
+        "filename": "midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-12T22:14:47Z",
+      "side": 1,
+      "message": "Same comments here.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 31
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_75355f45",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-12T22:14:47Z",
+      "side": 1,
+      "message": "Why not using MidoConf as the only place where we\u0027re hardcoding this configuration variables?",
+      "range": {
+        "startLine": 224,
+        "startChar": 4,
+        "endLine": 224,
+        "endChar": 55
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_d53b8b36",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-12T22:14:47Z",
+      "side": 1,
+      "message": "I think this should be handled by the configuration class.",
+      "range": {
+        "startLine": 226,
+        "startChar": 0,
+        "endLine": 240,
+        "endChar": 5
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
