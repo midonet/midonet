@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_95b913ec",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-12T19:57:24Z",
+      "side": 0,
+      "message": "Accessor methods in scala usually don\u0027t have `get` or parentheses.",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 50,
+        "endChar": 21
+      },
+      "revId": "765fb29f6de8f57a9c2e6e53b994d5001fd0c5be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
