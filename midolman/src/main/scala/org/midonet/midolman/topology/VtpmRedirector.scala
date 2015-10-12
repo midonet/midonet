@@ -24,7 +24,7 @@ import akka.actor.{Actor, ActorRef}
 import com.google.inject.Inject
 import rx.{Observable, Subscriber}
 
-import org.midonet.cluster.data.storage.NotFoundException
+import org.midonet.cluster.data.storage.{TransactionManager, NotFoundException}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe, TunnelZoneRequest, TunnelZoneUnsubscribe}
@@ -96,8 +96,9 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
             .observable[D](deviceId)
             .onErrorResumeNext(makeFunc1 { e: Throwable => e match {
                 case nfe: NotFoundException
-                    if nfe.getIdString() == deviceId.toString =>
-                        log.warn("Device {}/{} not found", t.runtimeClass,
+                    if TransactionManager.getIdString(nfe.id.getClass, nfe.id) ==
+                       deviceId.toString =>
+                    log.warn("Device {}/{} not found", t.runtimeClass,
                                  deviceId, e)
                         Observable.error(e)
                 case _ =>
