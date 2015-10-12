@@ -240,10 +240,12 @@ class PacketWorkflow(
                 metrics.packetsOnHold.dec()
                 pktCtx.log.debug("Restarting workflow")
                 MDC.put("cookie", pktCtx.cookieStr)
-                if (error eq null)
+                if (error eq null) {
                     runWorkflow(pktCtx)
-                else
+                    process()
+                } else {
                     handleErrorOn(pktCtx, error)
+                }
                 MDC.remove("cookie")
                 FlowTracingContext.clearContext()
             }
