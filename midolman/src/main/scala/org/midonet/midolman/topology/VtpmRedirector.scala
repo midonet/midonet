@@ -96,7 +96,7 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
             .observable[D](deviceId)
             .onErrorResumeNext(makeFunc1 { e: Throwable => e match {
                 case nfe: NotFoundException
-                    if nfe.getIdString() == deviceId.toString =>
+                    if nfe.getIdString == deviceId.toString =>
                         log.warn("Device {}/{} not found", t.runtimeClass,
                                  deviceId, e)
                         Observable.error(e)
