@@ -16,6 +16,24 @@
       "revId": "69179b17d1da6edf7830d9e5d4c19550896cb0c4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_55bf7bd0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VtpmRedirector.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-12T19:56:20Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "baada198_75f39f0a",
+      "revId": "69179b17d1da6edf7830d9e5d4c19550896cb0c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
