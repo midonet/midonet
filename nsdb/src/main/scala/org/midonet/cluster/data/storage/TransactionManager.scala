@@ -52,7 +52,7 @@ object TransactionManager {
     private final val NewObjectVersion = -1
 
     @inline
-    private[storage] def getIdString(clazz: Class[_], id: ObjId): String = {
+    def getIdString(clazz: Class[_], id: ObjId): String = {
         if (classOf[Message].isAssignableFrom(clazz)) {
             ProtoFieldBinding.getIdString(id)
         } else {
