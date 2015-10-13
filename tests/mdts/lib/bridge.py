@@ -75,6 +75,9 @@ class Bridge(ResourceBase):
     def destroy(self):
         self._mn_resource.delete()
 
+    def get_id(self):
+        return self._mn_resource.get_id()
+
     def get_port(self, port_id):
         return self._ports.get(port_id)
 
