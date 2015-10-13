@@ -19,6 +19,9 @@ package org.midonet.midolman.host.scanner
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.channels.{ClosedChannelException, AsynchronousCloseException, ClosedByInterruptException}
+import java.util
+
+import org.midonet.packets.MAC
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -155,14 +158,15 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
 
     private def linkToDesc(link: Link,
                            desc: InterfaceDescription): InterfaceDescription = {
-        desc.setName(link.ifname)
-        desc.setType(linkType(link))
-        desc.setMac(link.mac)
-        desc.setUp((link.ifi.flags & Link.Flag.IFF_UP) == 1)
-        desc.setHasLink(link.link != link.ifi.index)
-        desc.setMtu(link.mtu)
-        desc.setEndpoint(linkEndpoint(link))
-        desc
+        val clone = cloneIfDesc(desc)
+        clone.setName(link.ifname)
+        clone.setType(linkType(link))
+        clone.setMac(link.mac)
+        clone.setUp((link.ifi.flags & Link.Flag.IFF_UP) == 1)
+        clone.setHasLink(link.link != link.ifi.index)
+        clone.setMtu(link.mtu)
+        clone.setEndpoint(linkEndpoint(link))
+        clone
     }
 
     private def linkToIntefaceDescription(link: Link): InterfaceDescription = {
@@ -174,20 +178,21 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
 
     private def addrToDesc(addr: Addr,
                            desc: InterfaceDescription): InterfaceDescription = {
-        val existingInetAddresses = desc.getInetAddresses
+        val clone = cloneIfDesc(desc)
+        val existingInetAddresses = clone.getInetAddresses
         addr.ipv4.foreach { ipv4 =>
             val inetAddr = InetAddress.getByAddress(ipv4.toBytes)
             if (!existingInetAddresses.contains(inetAddr)) {
-                desc.setInetAddress(inetAddr)
+                clone.setInetAddress(inetAddr)
             }
         }
         addr.ipv6.foreach { ipv6 =>
             val inetAddr = InetAddress.getByName(ipv6.toString)
             if (!existingInetAddresses.contains(inetAddr)) {
-                desc.setInetAddress(inetAddr)
+                clone.setInetAddress(inetAddr)
             }
         }
-        desc
+        clone
     }
 
     private def addAddr(addr: Addr): InterfaceDescription = {
@@ -196,20 +201,19 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
         val desc = descOption.getOrElse(
             new InterfaceDescription(addr.ifa.index.toString))
         addrToDesc(addr, desc)
-        desc
     }
 
     private
     def removeAddr(addr: Addr): Option[InterfaceDescription] = {
-        for (desc <- interfaceDescriptions.get(addr.ifa.index))
-        yield {
+        interfaceDescriptions.get(addr.ifa.index) map { ifdesc =>
+            val clone = cloneIfDesc(ifdesc)
             addr.ipv4.foreach(ipv4 =>
-                desc.getInetAddresses.remove(
+                clone.getInetAddresses.remove(
                     InetAddress.getByAddress(ipv4.toBytes)))
             addr.ipv6.foreach(ipv6 =>
-                desc.getInetAddresses.remove(
+                clone.getInetAddresses.remove(
                     InetAddress.getByName(ipv6.toString)))
-            desc
+            clone
         }
     }
 
@@ -369,6 +373,20 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                 this.addrs.getOrElse(addr.ifa.index, mutable.Set.empty) + addr
         }
         interfaceDescriptions.values.toSet
+    }
+
+    private def cloneIfDesc(ifdesc: InterfaceDescription): InterfaceDescription = {
+        val clone = new InterfaceDescription(ifdesc.getName)
+        clone.setEndpoint(ifdesc.getEndpoint)
+        ifdesc.getInetAddresses foreach clone.setInetAddress
+        clone.setHasLink(ifdesc.hasLink)
+        clone.setMac(MAC.fromAddress(ifdesc.getMac))
+        clone.setMtu(ifdesc.getMtu)
+        clone.setPortType(ifdesc.getPortType)
+        clone.setType(ifdesc.getType)
+        clone.setProperties(new util.HashMap(ifdesc.getProperties))
+        clone.setUp(ifdesc.isUp)
+        clone
     }
 
     /**
