@@ -166,7 +166,6 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
     val conntrackDevice = UUID.randomUUID()
 
     override def beforeTest(): Unit = {
-        val ingressHost = makeHost(hostId)
         ingressPortNoGroup = makePort(hostId)
         egressPortNoGroup = makePort(hostId)
 
@@ -175,7 +174,6 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         senderUnderlay = new MockUnderlayResolver(hostId, senderIp, peers)
 
         val store = injector.getInstance(classOf[VirtualTopology]).store
-        store.create(ingressHost)
         store.create(ingressGroupMemberHost)
         store.create(egressHost1)
         store.create(egressHost2)
