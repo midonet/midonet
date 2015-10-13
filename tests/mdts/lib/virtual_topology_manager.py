@@ -29,6 +29,7 @@ from mdts.lib.mirror import Mirror
 from mdts.lib.tenants import get_or_create_tenant
 from mdts.lib.topology_manager import TopologyManager
 from mdts.lib.tracerequest import TraceRequest
+from mdts.lib.vtep import Vtep
 from mdts.tests.utils.utils import clear_virtual_topology_for_tenants
 
 from midonetclient.api import MidonetApi
@@ -87,6 +88,8 @@ class VirtualTopologyManager(TopologyManager):
         self._load_balancers = {}
 
         self._port_groups = {}
+
+        self._vteps = {}
 
     def build(self):
         """ Generates virtual topology resources (bridges, routers, chains, etc.
@@ -222,6 +225,9 @@ class VirtualTopologyManager(TopologyManager):
 
         for port_group in self._port_groups.values(): port_group.destroy()
         self._port_groups.clear()
+
+        for vtep in self._vteps.values(): vtep.destroy()
+        self._vteps.clear()
 
         # Missing clearing these
         self._resource_references = []
@@ -378,4 +384,15 @@ class VirtualTopologyManager(TopologyManager):
     def get_port_group(self, name):
         return self._port_groups.get(name)
 
+    def add_vtep(self, vtep_data):
+        vtep = Vtep(self._api, self, vtep_data)
+        vtep.build()
+        self._vteps[vtep_data['name']] = vtep
+        return vtep
+
+    def get_vtep(self, name):
+        return self._vteps.get(name)
+
+    def delete_vtep(self, name):
+        self._vteps.pop(name).destroy()
 
