@@ -16,6 +16,29 @@
       "revId": "33421378846cebabb12175976b6695ba3fa79b37",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_93992b71",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/ConfResourceTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-10-13T13:02:39Z",
+      "side": 1,
+      "message": "extra white space",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 8
+      },
+      "revId": "33421378846cebabb12175976b6695ba3fa79b37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
