@@ -13,7 +13,7 @@
 # limitations under the License.
 
 virtual_topology:
-  description: simple vxgw
+  description: Basic tests for the L2 VXLAN gateway
 
   tenant_name: MMM-TEST-000-001
 
@@ -29,4 +29,16 @@ virtual_topology:
               type: exterior
           - port:
               id: 3
+              type: exterior
+          - port:
+              id: 4
+              type: exterior
+    - bridge:
+        name: bridge-000-002
+        ports:
+          - port:
+              id: 1
+              type: exterior
+          - port:
+              id: 2
               type: exterior
