@@ -97,7 +97,7 @@ virtual_topology:
               ipv6_addr: null
               links_to:
                   device: bridge-000-001
-                  port_id: 4
+                  port_id: 5
           - port:
               id: 2
               type: interior
@@ -105,7 +105,7 @@ virtual_topology:
               ipv6_addr: null
               links_to:
                   device: bridge-000-002
-                  port_id: 4
+                  port_id: 5
           - port:
               id: 3
               type: interior
@@ -155,6 +155,9 @@ virtual_topology:
               type: exterior
           - port:
               id: 4
+              type: exterior
+          - port:
+              id: 5
               type: interior
     - bridge:
         name: bridge-000-002
@@ -170,6 +173,9 @@ virtual_topology:
               type: exterior
           - port:
               id: 4
+              type: exterior
+          - port:
+              id: 5
               type: interior
     - bridge:
         name: bridge-000-003
@@ -180,3 +186,41 @@ virtual_topology:
           - port:
               id: 2
               type: interior
+
+  chains:
+    - chain:
+        id: 1
+        name: snat
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              type: snat
+              flow_action: accept
+              in_ports:
+                - device_name: router-000-001
+                  port_id: 2
+              out_ports:
+                - device_name: router-000-001
+                  port_id: 2
+              nat_targets:
+                - addressFrom: 10.0.2.254
+                  addressTo: 10.0.2.254
+                  portFrom: 1
+                  portTo: 65535
+    - chain:
+        id: 2
+        name: rev_snat
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              type: rev_snat
+              flow_action: accept
+              in_ports:
+                - device_name: router-000-001
+                  port_id: 2
+              nat_targets:
+                - addressTo: 10.0.2.254
+                  portFrom: 1
+                  portTo: 65535
