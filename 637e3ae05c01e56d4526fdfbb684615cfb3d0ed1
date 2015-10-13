@@ -48,6 +48,47 @@
     },
     {
       "key": {
+        "uuid": "baada198_538f9323",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-13T13:11:13Z",
+      "side": 1,
+      "message": "We should force a move every time the store changes are incompatible.\n\nIdeally, it should never happen again.\n\nBut just in case, I like Nicolas\u0027 approach of making this key a prefix to which we append \u0027v5\u0027.\n\nAlso, note that there are two instances of \"root_key\":\n\n  * One sits in this config file (which, BTW, is incorrectly named in the case of the cluster) it bootstraps mido-conf.\n  * One sits inside mido-conf, all of the rest of midonet uses that one.\n\n\nWRT mido-conf. We could indeed that key from here and let midonet fall back to the default. But in the case of midolman we need to ensure backwards compatibility.\n\nAlso, if we are moving configuration around as part of the upgrade. A users\u0027 configuration files could be affected. He could have local config files or startup scripts that set env vars that point to the old path. MidoConf should detect that and, should it find nothing in the configured path, print a big warning and try to fall back to the new default.",
+      "parentUuid": "baada198_f5488fce",
+      "range": {
+        "startLine": 37,
+        "startChar": 20,
+        "endLine": 37,
+        "endChar": 22
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_d3a2c399",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-13T13:11:13Z",
+      "side": 1,
+      "message": "this is awkward, why pass \"config.zookeeper\" to MidonetBackend when config is a class we control and whose purpose is precisely to mangle configuration. I\u0027d place the zkRootPath() method there, and not in MidonetBackend.",
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_b53e1728",
         "filename": "midonet-cluster/conf/midonet-cluster.conf",
         "patchSetId": 3
@@ -59,6 +100,30 @@
       "writtenOn": "2015-10-12T22:14:47Z",
       "side": 1,
       "message": "Same comments here.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 31
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_7309f794",
+        "filename": "midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-13T13:11:13Z",
+      "side": 1,
+      "message": "My other comment applies here too.",
+      "parentUuid": "baada198_b53e1728",
       "range": {
         "startLine": 17,
         "startChar": 0,
