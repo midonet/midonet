@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{List => JList, UUID}
+import java.util.{ArrayList, List => JList, UUID}
 
 import akka.actor.ActorSystem
 
@@ -26,7 +26,7 @@ import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
-import org.midonet.util.concurrent.{InstanceStash1, InstanceStash2}
+import org.midonet.util.concurrent.{InstanceStash0, InstanceStash1, InstanceStash2}
 
 import scala.annotation.tailrec
 
@@ -60,10 +60,14 @@ object Simulator {
     }
 
     private def reUpStashes(): Unit = {
+        Stack.reUp()
         Fork.reUp()
         PooledMatches.reUp()
         Continuations.reUp()
     }
+
+    val Stack = new InstanceStash0[ArrayList[Result]](
+            () => new ArrayList[Result])
 
     val Fork = new InstanceStash2[ForkAction, Result, Result](
             () => ForkAction(null, null),
@@ -143,17 +147,40 @@ trait SimDevice {
         }
     }
 
+    private def flattenContinue(context: PacketContext, initial: Result): Result = {
+        val stack = Stack()
+        var popIdx = -1
+        var res: Result = NoOp
+        var cur: Result = initial
+        do {
+            cur match {
+                case ForkAction(first, second) =>
+                    stack.add(second)
+                    popIdx += 1
+                    cur = first
+                case _ =>
+                    res = merge(context, res, branch(context, cur))
+                    if (popIdx < 0)
+                        return res
+                    cur = stack.remove(popIdx)
+                    popIdx -= 1
+            }
+        } while (true)
+        res
+    }
+
     @tailrec
     final def continue(context: PacketContext, simRes: Result): Result =
         simRes match {
-            case ForkAction(first, second) => merge(context,
-                                                    branch(context, first),
-                                                    branch(context, second))
-            case ToPortAction(port) => continue(context,
-                                                tryGet[Port](port).egress(context))
-            case ContinueWith(step) => continue(context, step(context))
-            case res => res
-    }
+            case ToPortAction(port) =>
+                continue(context, tryGet[Port](port).egress(context))
+            case ContinueWith(step) =>
+                continue(context, step(context))
+            case f: ForkAction =>
+                flattenContinue(context, f)
+            case res =>
+                res
+        }
 }
 
 trait InAndOutFilters extends SimDevice {
