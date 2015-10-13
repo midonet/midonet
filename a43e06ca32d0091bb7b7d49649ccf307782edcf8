@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_ae81684c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-13T15:38:08Z",
+      "side": 1,
+      "message": "could we takeFirst and map?",
+      "revId": "a43e06ca32d0091bb7b7d49649ccf307782edcf8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
