@@ -35,7 +35,7 @@ BM = BindingManager(PTM, VTM)
 
 
 binding_onehost = {
-    'description': 'on single MM (equal weight)',
+    'description': 'on single MM (equal weight, sender on different subnet)',
     'bindings': [
         {'binding':
              {'device_name': 'bridge-000-002', 'port_id': 1,
@@ -54,8 +54,34 @@ binding_onehost = {
         'non_sticky_vip': '100.100.2.8',
         'sticky_vip': '100.100.2.9'
     },
+    'sender': ('bridge-000-003', 1),
     'weighted': False
 }
+
+binding_onehost_same_subnet = {
+    'description': 'on single MM (equal weight, sender on same subnet)',
+    'bindings': [
+        {'binding':
+             {'device_name': 'bridge-000-002', 'port_id': 1,
+              'host_id': 1, 'interface_id': 4}},
+        {'binding':
+             {'device_name': 'bridge-000-002', 'port_id': 2,
+              'host_id': 1, 'interface_id': 5}},
+        {'binding':
+             {'device_name': 'bridge-000-002', 'port_id': 3,
+              'host_id': 1, 'interface_id': 6}},
+        {'binding':
+             {'device_name': 'bridge-000-002', 'port_id': 4,
+              'host_id': 1, 'interface_id': 8}}
+    ],
+    'vips': {
+        'non_sticky_vip': '100.100.2.8',
+        'sticky_vip': '100.100.2.9'
+    },
+    'sender': ('bridge-000-002', 4),
+    'weighted': False
+}
+
 
 binding_onehost_weighted = {
     'description': 'on single MM (different weights)',
@@ -77,11 +103,12 @@ binding_onehost_weighted = {
         'non_sticky_vip': '100.100.1.8',
         'sticky_vip': '100.100.1.9'
     },
+    'sender': ('bridge-000-003', 1),
     'weighted': True
 }
 
 binding_multihost = {
-    'description': 'spanning across multiple MMs (equal weight)',
+    'description': 'spanning across multiple MMs (equal weight, sender on different subnet)',
     'bindings': [
         {'binding':
              {'device_name': 'bridge-000-002', 'port_id': 1,
@@ -100,6 +127,31 @@ binding_multihost = {
         'non_sticky_vip': '100.100.2.8',
         'sticky_vip': '100.100.2.9'
     },
+    'sender': ('bridge-000-003', 1),
+    'weighted': False
+}
+
+binding_multihost_same_subnet = {
+    'description': 'spanning across multiple MMs (equal weight, sender on same subnet)',
+    'bindings': [
+        {'binding':
+             {'device_name': 'bridge-000-002', 'port_id': 1,
+              'host_id': 1, 'interface_id': 4}},
+        {'binding':
+             {'device_name': 'bridge-000-002', 'port_id': 2,
+              'host_id': 2, 'interface_id': 2}},
+        {'binding':
+             {'device_name': 'bridge-000-002', 'port_id': 3,
+              'host_id': 3, 'interface_id': 2}},
+        {'binding':
+             {'device_name': 'bridge-000-002', 'port_id': 4,
+              'host_id': 1, 'interface_id': 8}}
+    ],
+    'vips': {
+        'non_sticky_vip': '100.100.2.8',
+        'sticky_vip': '100.100.2.9'
+    },
+    'sender': ('bridge-000-002', 4),
     'weighted': False
 }
 
@@ -123,6 +175,7 @@ binding_multihost_weighted = {
         'non_sticky_vip': '100.100.1.8',
         'sticky_vip': '100.100.1.9'
     },
+    'sender': ('bridge-000-003', 1),
     'weighted': True
 }
 
@@ -218,13 +271,14 @@ def stop_server(backend_num):
 def start_servers():
     for backend_num in range(1, NUM_BACKENDS + 1):
         start_server(backend_num)
-
+    set_filters('router-000-001', 'rev_snat', 'snat')
 
 def stop_servers():
     global SERVERS
     for backend_num in range(1, NUM_BACKENDS + 1):
         stop_server(backend_num)
     SERVERS = dict()
+    unset_filters('router-000-001')
 
 def make_request_to(sender, dest, timeout=10, src_port=None):
         cmd_line = 'ncat --recv-only %s %s %d' % (
@@ -234,6 +288,8 @@ def make_request_to(sender, dest, timeout=10, src_port=None):
         )
         result = sender.execute(cmd_line, timeout, sync=True)
         LOG.debug("L4LB: request to %s. Response: %s" % (sender, result))
+        # Let netcat recover from previous requests
+        time.sleep(0.5)
         return result
 
 def assert_request_succeeds_to(sender, dest, timeout=10, src_port=None):
@@ -253,11 +309,36 @@ def make_n_requests_to(sender, num_reqs, dest, timeout=10, src_port=None):
         results.append(result)
     return results
 
+# TODO: this function is replicated in several tests
+# Move to the utils package in a refactor patch
+def set_filters(router_name, inbound_filter_name, outbound_filter_name):
+    """Sets in-/out-bound filters to a router."""
+    router = VTM.get_router(router_name)
+
+    inbound_filter = None
+    if inbound_filter_name:
+        inbound_filter = VTM.get_chain(inbound_filter_name)
+    outbound_filter = None
+    if outbound_filter_name:
+        outbound_filter = VTM.get_chain(outbound_filter_name)
+
+    router.set_inbound_filter(inbound_filter)
+    router.set_outbound_filter(outbound_filter)
+    # Sleep here to make sure that the settings have been propagated.
+    time.sleep(5)
+
+def unset_filters(router_name):
+    """Unsets in-/out-bound filters from a router."""
+    set_filters(router_name, None, None)
+
+
 @attr(version="v1.3.0", slow=False)
 @bindings(binding_onehost,
           binding_onehost_weighted,
+          binding_onehost_same_subnet,
           binding_multihost,
-          binding_multihost_weighted)
+          binding_multihost_weighted,
+          binding_multihost_same_subnet)
 @with_setup(start_servers, stop_servers)
 def test_multi_member_loadbalancing():
     """
@@ -299,8 +380,11 @@ def test_multi_member_loadbalancing():
     binding = BM.get_binding_data()
     vips = binding['vips']
     weighted = binding['weighted']
+    sender_bridge, sender_port = binding['sender']
 
-    sender = BM.get_iface_for_port('bridge-000-003', 1)
+    LOG.debug("L4LB: sending from bridge %s at port %s" % (
+        sender_bridge, sender_port))
+    sender = BM.get_iface_for_port(sender_bridge, sender_port)
 
     # Make many requests to the non sticky loadbalancer IP, hits all 3 backends
     LOG.debug("L4LB: make requests to NON_STICKY_VIP")
@@ -373,7 +457,8 @@ def test_disabling_topology_loadbalancing():
           (admin state up) and connections fail when elements are disabled.
     """
     vips = BM.get_binding_data()['vips']
-    sender = BM.get_iface_for_port('bridge-000-003', 1)
+    sender_bridge, sender_port = BM.get_binding_data()['sender']
+    sender = BM.get_iface_for_port(sender_bridge, sender_port)
 
     # For each device in the L4LB topology:
     # - Disable the device, test hitting VIP fails
@@ -408,7 +493,8 @@ def test_long_connection_loadbalancing():
           When other devices are disabled during connection, non-sticky connections should break
     """
     vips = BM.get_binding_data()['vips']
-    sender = BM.get_iface_for_port('bridge-000-003', 1)
+    sender_bridge, sender_port = BM.get_binding_data()['sender']
+    sender = BM.get_iface_for_port(sender_bridge, sender_port)
 
     pool_member_1 = VTM.find_pool_member(backend_ip_port(1))
     pool_member_2 = VTM.find_pool_member(backend_ip_port(2))
