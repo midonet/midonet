@@ -17,15 +17,14 @@
 package org.midonet.cluster.services.vxgw
 
 import java.util.Objects
-import java.util.{ArrayList, UUID}
+import java.util.{ArrayList => JArrayList, UUID}
 
 import scala.collection.JavaConverters._
 
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory.getLogger
 import rx.subjects.PublishSubject
-import rx.observables.GroupedObservable
-import rx.subscriptions.Subscriptions
+import rx.subscriptions.{CompositeSubscription, Subscriptions}
 import rx.{Subscription, Subscriber, Observable, Observer}
 
 import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
@@ -34,9 +33,10 @@ import org.midonet.cluster.models.Topology.TunnelZone.Type.VTEP
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.FloodingProxyKey
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
-import org.midonet.cluster.util.{UUIDUtil, selfHealingEntityObservable, selfHealingTypeObservable}
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.{selfHealingEntityObservable, selfHealingTypeObservable}
 import org.midonet.packets.IPv4Addr
-import org.midonet.util.functors.{makeAction0, makeFunc1}
+import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
 object FloodingProxyHerald {
 
@@ -75,8 +75,8 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
 
     protected val log = Logger(getLogger("org.midonet.cluster.flooding-proxies"))
     @volatile private var fpIndex = Map[UUID, FloodingProxy]()
-    @volatile private var floodingProxies = new ArrayList[FloodingProxy]
-    private var tzones = Map[UUID, Subscription]()
+    @volatile private var floodingProxies = new JArrayList[FloodingProxy]
+    private var tunnelZones = Map[UUID, Subscription]()
 
     private val updateStream = PublishSubject.create[FloodingProxy]()
 
@@ -91,10 +91,10 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
       */
     def lookup(tzId: UUID): Option[FloodingProxy] = fpIndex.get(tzId)
 
-    def all: ArrayList[FloodingProxy] = floodingProxies
+    def all: JArrayList[FloodingProxy] = floodingProxies
 
     private def updateFps(): Unit = {
-        val newFps = new ArrayList[FloodingProxy](fpIndex.values.asJavaCollection)
+        val newFps = new JArrayList[FloodingProxy](fpIndex.values.asJavaCollection)
         floodingProxies = newFps
     }
 
@@ -105,7 +105,7 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
         updateStream.onNext(fp)
     }
 
-    private def removeFp(tzId: UUID): Unit =
+    private def removeFp(tzId: UUID): Unit = {
         fpIndex.get(tzId) match {
             case Some(oldFp) =>
                 fpIndex -= tzId
@@ -114,6 +114,7 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
                 updateStream.onNext(new FloodingProxy(tzId, null, null))
             case None =>
         }
+    }
 
     private def tzSubscriber(tzId: UUID) = {
         val s = new Subscriber[StateKey] {
@@ -147,23 +148,22 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
         }
         override def onNext(t: Host): Unit = {
             val newTunnelZones = t.getTunnelZoneIdsList
-            var remainingTunnelZones = tzones.keySet
+            var remainingTunnelZones = tunnelZones.keySet
             val newZonesIt = newTunnelZones.iterator()
             while (newZonesIt.hasNext) {
-                val tzId = UUIDUtil.fromProto(newZonesIt.next())
+                val tzId = newZonesIt.next().asJava
                 if (!remainingTunnelZones.contains(tzId)) {
                     val s = subscribeToTunnelZone(
-                        tzId,
                         selfHealingEntityObservable[TunnelZone](backend.store, tzId))
-                    tzones += tzId -> s
+                    tunnelZones += tzId -> s
                 } else {
                     remainingTunnelZones -= tzId
                 }
             }
 
             remainingTunnelZones foreach { tzId =>
-                tzones.get(tzId).get.unsubscribe()
-                tzones -= tzId
+                tunnelZones.get(tzId).get.unsubscribe()
+                tunnelZones -= tzId
             }
         }
     }
@@ -182,17 +182,14 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
          */
         hostFilter match {
             case None =>
-                Observable.merge(selfHealingTypeObservable[TunnelZone](backend.store))
-                    .groupBy[UUID](makeFunc1 { case t =>
-                        UUIDUtil.fromProto(t.getId)
-                    })
-                    .subscribe(new Observer[GroupedObservable[UUID, TunnelZone]] {
+                selfHealingTypeObservable[TunnelZone](backend.store)
+                    .subscribe(new Observer[Observable[TunnelZone]] {
                         override def onCompleted(): Unit = { }
                         override def onError(e: Throwable): Unit =
                             log.warn("Unexpected error", e)
-                        override def onNext(t: GroupedObservable[UUID, TunnelZone]): Unit =
-                            subscribeToTunnelZone(t.getKey, t)
-                })
+                        override def onNext(obs: Observable[TunnelZone]): Unit =
+                            subscribeToTunnelZone(obs)
+                    })
             case Some(hostId) =>
                 selfHealingEntityObservable[Host](backend.store, hostId)
                     .subscribe(hostObserver)
@@ -200,22 +197,31 @@ class FloodingProxyHerald(backend: MidonetBackend, hostFilter: Option[UUID]) {
     }
 
     private def clear(): Unit = {
-        tzones.values foreach (_.unsubscribe())
-        tzones = Map()
+        tunnelZones.values foreach (_.unsubscribe())
+        tunnelZones = Map()
     }
 
     /**
      * Given an Observable[TunnelZone], this method will subscribe to it and
-     * filter out non-VTEP tunnel zones. We use switchOnNext to stop receiving
-     * state updates from previous versions of the tunnel zone.
+     * filter out non-VTEP tunnel zones. Upon receiving the first tunnel-zone
+     * notification on the specified observable, the method subscribes to the
+     * flooding proxy key for the given tunnel-zone state, and returns the
+     * subscription.
      */
-    private def subscribeToTunnelZone(tzId: UUID, obs: Observable[TunnelZone]) =
-        Observable.switchOnNext(
-            obs.filter(makeFunc1 { t: TunnelZone => t.getType == VTEP })
-               .map(makeFunc1 { t: TunnelZone =>
-                   log.debug(s"Mapping to flooding proxy for $tzId")
-                   backend.stateStore.keyObservable(
-                       classOf[TunnelZone], tzId, FloodingProxyKey)
-               })
-        ).subscribe(tzSubscriber(tzId))
+    private def subscribeToTunnelZone(observable: Observable[TunnelZone])
+    : Subscription = {
+        val subscription = new CompositeSubscription()
+        observable.takeFirst(makeFunc1(_.getType == VTEP))
+                  .subscribe(makeAction1[TunnelZone] { tunnelZone =>
+                      // Subscribe to the state of this tunnel zone.
+                      val tzId = tunnelZone.getId.asJava
+                      val subscriber = tzSubscriber(tzId)
+                      log.debug("Mapping flooding proxy for {}", tzId)
+                      subscription.add(subscriber)
+                      backend.stateStore.keyObservable(classOf[TunnelZone], tzId,
+                                                       FloodingProxyKey)
+                             .subscribe(subscriber)
+                  })
+        subscription
+    }
 }
