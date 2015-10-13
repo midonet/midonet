@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import org.apache.commons.collections4.ListUtils;
@@ -158,7 +159,7 @@ public class Pool extends ZoomObject {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
             .add("adminStateUp", adminStateUp)
             .add("description", description)
             .add("healthMonitors", healthMonitors)

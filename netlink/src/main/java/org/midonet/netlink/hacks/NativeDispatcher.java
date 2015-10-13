@@ -33,7 +33,7 @@ public class NativeDispatcher {
     private static final Logger log = LoggerFactory
         .getLogger(NativeDispatcher.class);
 
-    public static Class nativeDispatcherClass;
+    public static Class<?> nativeDispatcherClass;
     public static Method preCloseRef;
 
     Object dispatcher;

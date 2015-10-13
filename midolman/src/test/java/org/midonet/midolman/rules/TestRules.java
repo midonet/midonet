@@ -128,7 +128,7 @@ public class TestRules {
                     Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         conntrackTx = new FlowStateTransaction<>(conntrackTable);
         natTx = new FlowStateTransaction<>(natTable);
-        traceTx = new FlowStateTransaction(traceTable);
+        traceTx = new FlowStateTransaction<>(traceTable);
         pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$,
                           traceTx);
         pktCtx.currentDevice_$eq(ownerId);

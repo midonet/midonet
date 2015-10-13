@@ -198,7 +198,6 @@ allprojects {
 
         tasks.withType(ScalaCompile) {
             scalaCompileOptions.fork = true
-            scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=1024m']
             scalaCompileOptions.useAnt = false
             scalaCompileOptions.deprecation = true
             scalaCompileOptions.unchecked = true
@@ -263,6 +262,12 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
 
     tasks.withType(JavaCompile) {
         options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        options.compilerArgs << "-XDignore.symbol.file"
+    }
+
+    tasks.withType(ScalaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        options.compilerArgs << "-XDignore.symbol.file"
     }
 
     configurations {

@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import org.apache.commons.collections4.ListUtils;
@@ -105,7 +106,7 @@ public class Router extends ZoomObject {
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("id", id)
                 .add("name", name)
                 .add("status", status)

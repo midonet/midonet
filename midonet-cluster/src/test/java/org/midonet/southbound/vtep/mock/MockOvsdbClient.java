@@ -236,8 +236,7 @@ public class MockOvsdbClient implements OvsdbClient {
     }
     @Override public <T extends TypedBaseTable<?>> T createTypedRowWrapper(
         DatabaseSchema dbSchema, Class<T> clazz) {
-        return TyperUtils.getTypedRowWrapper(dbSchema, clazz,
-                                             new Row<GenericTableSchema>());
+        return TyperUtils.getTypedRowWrapper(dbSchema, clazz, new Row<>());
     }
 
     // Vtep operation locking
@@ -262,7 +261,7 @@ public class MockOvsdbClient implements OvsdbClient {
         throw new NotImplemented();
     }
 
-    @SuppressWarnings(value = "unckecked")
+    @SuppressWarnings(value = "unchecked")
     public TableUpdates tableUpdates(List<OperationResult> results) {
         Map<String, TableUpdate> map = new HashMap<>();
         for (OperationResult r: results) {
