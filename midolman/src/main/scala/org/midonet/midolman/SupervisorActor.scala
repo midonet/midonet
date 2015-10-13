@@ -15,14 +15,8 @@
  */
 package org.midonet.midolman
 
-import akka.actor._
-import akka.util.Timeout
+import akka.actor.{Props, SupervisorStrategy, Actor, Status}
 import com.google.inject.Inject
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
-
-import akka.pattern.ask
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
 
@@ -53,10 +47,7 @@ class SupervisorActor extends Actor with ActorLogWithoutPath {
     def receive = {
         case StartChild(props, name) =>
             val result = try {
-                val actor = context.actorOf(props, name)
-                implicit val timeout = new Timeout(10 seconds)
-                Await.result(actor ? Identify(null), timeout.duration)
-                actor
+                context.actorOf(props, name)
             } catch {
                 case t: Throwable =>
                     log.error(s"could not start actor $name", t)
