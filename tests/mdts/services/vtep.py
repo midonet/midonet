@@ -27,4 +27,5 @@ class VtepHost(Service):
 
     def get_service_logs(self):
         return ['/var/log/openvswitch/ovsdb-server.log',
-                '/var/log/openvswitch/ovs-vswitchd.log']
+                '/var/log/openvswitch/ovs-vswitchd.log',
+                '/var/log/openvswitch/ovs-vtep.log']
