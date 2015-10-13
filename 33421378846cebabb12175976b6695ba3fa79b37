@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_f3e34703",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-13T12:50:20Z",
+      "side": 1,
+      "message": "IMHO we can\u0027t assume this, users sometimes decide to keep their old versions around, it\u0027s assumed that keeping old versions of config files will not completely break a system.\n\nIMHO the upgrade should work in both cases (keep file vs use new) as long as the user isn\u0027t using a custom root_key value.",
+      "revId": "33421378846cebabb12175976b6695ba3fa79b37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
