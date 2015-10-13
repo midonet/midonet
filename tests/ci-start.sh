@@ -28,6 +28,6 @@ sudo sandbox-manage -c sandbox.conf \
 					run default_v2 \
 					--name=mdts \
                     --override=sandbox/override_v2 \
-                    --provision=sandbox/provisioning/bgp-l2gw-provisioning.sh
+                    --provision=sandbox/provisioning/all-provisioning.sh
 
 popd
