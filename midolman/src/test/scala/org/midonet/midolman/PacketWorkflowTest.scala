@@ -156,7 +156,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                       GeneratedLogicalPacket(id, frame))
 
             Then("the generated packet should be simulated")
-            packetsSeen map { _.ethernet } should be (List(frame))
+            packetsSeen map { _.ethernet } should be (List(pkt.getEthernet, frame))
 
             And("packetsOut should not be called for the generated packet")
             packetsOut should be (1)
@@ -173,7 +173,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                       GeneratedPhysicalPacket(2, frame))
 
             Then("the generated packet should be seen")
-            packetsSeen map { _.ethernet } should be (List(frame))
+            packetsSeen map { _.ethernet } should be (List(pkt.getEthernet, frame))
 
             And("packetsOut should not be called for the generated packet")
             packetsOut should be (1)
