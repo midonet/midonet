@@ -118,4 +118,28 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
         }
     }
 
+    feature ("A huge bridge is flooded") {
+        ignore ("When a MAC hasn't been learned") {
+        scenario ("When a MAC hasn't been learned") {
+            val bridge = newBridge("mega-bridge")
+            val ports = (1 to 2000) map { idx =>
+                val port = newBridgePort(bridge)
+                materializePort(port, hostId, "mega-port" + idx)
+                port
+            }
+            val ethPkt = Packets.udp(mac2, mac3, ip2, ip3, 10, 12, "Test".getBytes)
+            val (simRes, pktCtx) = simulate(packetContextFor(ethPkt, ports.head))
+
+            simRes should be (AddVirtualWildcardFlow)
+            pktCtx.virtualFlowActions should have size (ports.size - 1)
+
+            val outputActions: List[ToPortAction] =
+                pktCtx.virtualFlowActions.
+                    filter(_.isInstanceOf[ToPortAction]).
+                    map(_.asInstanceOf[ToPortAction]).toList
+
+            outputActions.size should be (ports.size - 1)
+        }
+        }
+    }
 }
