@@ -220,3 +220,35 @@ externalhost2:
   - L2GWETH0_IFACE=l2gw0
   # VLAN 1 interface, 172.16.0.225/24
   - L2GWETH0_IFACE=l2gw1
+
+vtep1:
+  extends:
+    file: $BASE/vtep.yml
+    service: vtep
+  image: sandbox/vtep:2.0
+  hostname: vtep1
+  privileged: true
+  labels:
+      interface: mdts.services.vtep.VtepHost
+      type: vtep
+  volumes:
+  - /lib/modules:/lib/modules
+  environment:
+  - VTEP_PORTS=4
+  - VTEP_HOST_SUBNET=10.0.1.0
+
+vtep2:
+  extends:
+    file: $BASE/vtep.yml
+    service: vtep
+  image: sandbox/vtep:2.0
+  hostname: vtep2
+  privileged: true
+  labels:
+      interface: mdts.services.vtep.VtepHost
+      type: vtep
+  volumes:
+  - /lib/modules:/lib/modules
+  environment:
+  - VTEP_PORTS=4
+  - VTEP_HOST_SUBNET=10.0.2.0
