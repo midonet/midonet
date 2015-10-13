@@ -66,9 +66,9 @@ class MidolmanActorsService extends AbstractService {
             (propsFor(classOf[VirtualToPhysicalMapper]).
                 withDispatcher("actors.stash-dispatcher"),
                 VirtualToPhysicalMapper.Name),
-            (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
             (propsFor(classOf[DatapathController]), DatapathController.Name),
             (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name),
+            (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
             (propsFor(classOf[NetlinkCallbackDispatcher]),
                 NetlinkCallbackDispatcher.Name))
         if (config.healthMonitor.enable)
