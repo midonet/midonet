@@ -22,6 +22,30 @@
       "revId": "765fb29f6de8f57a9c2e6e53b994d5001fd0c5be",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_b32b8f2f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-13T12:47:23Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "baada198_95b913ec",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 50,
+        "endChar": 21
+      },
+      "revId": "765fb29f6de8f57a9c2e6e53b994d5001fd0c5be",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
