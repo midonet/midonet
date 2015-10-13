@@ -124,7 +124,7 @@ object MidoNodeConfigurator {
             """
             |zookeeper {
             |    zookeeper_hosts = "127.0.0.1:2181"
-            |    root_key : "/midonet/v2"
+            |    root_key : "/midonet"
             |    midolman_root_key = ${zookeeper.root_key}
             |    bootstrap_timeout = 30s
             |}
@@ -146,13 +146,16 @@ object MidoNodeConfigurator {
             withFallback(DEFAULTS)).resolve()
     }
 
+    def zkRootPath(cfg: Config): String =
+        cfg.getString("zookeeper.root_key") + "/v5"
+
     def zkBootstrap(inifile: Option[String] = None): CuratorFramework =
         zkBootstrap(bootstrapConfig(inifile))
 
     def zkBootstrap(cfg: Config): CuratorFramework = {
         val serverString = cfg.getString("zookeeper.zookeeper_hosts")
 
-        val namespace = cfg.getString("zookeeper.root_key").stripPrefix("/")
+        val namespace = zkRootPath(cfg).stripPrefix("/")
         val timeoutMillis = cfg.getDuration("zookeeper.bootstrap_timeout",
                                             TimeUnit.MILLISECONDS)
         val zk = CuratorFrameworkFactory.builder().
