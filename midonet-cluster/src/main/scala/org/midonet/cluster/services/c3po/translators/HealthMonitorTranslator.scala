@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.collection.JavaConverters._
+
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
@@ -31,9 +33,6 @@ class HealthMonitorTranslator(storage: ReadOnlyStorage)
 
     private def translate(nhm: NeutronHealthMonitor, setPoolId: Boolean = false)
     : HealthMonitor = {
-        if (nhm.getPoolsCount != 1) throw new IllegalArgumentException(
-            "Health monitor must have exactly one pool association.")
-
         // Health Monitor status cannot be modified from the API. It is set by
         // Health Monitor directly.
         val bldr = HealthMonitor.newBuilder
@@ -43,8 +42,10 @@ class HealthMonitorTranslator(storage: ReadOnlyStorage)
             .setMaxRetries(nhm.getMaxRetries)
             .setTimeout(nhm.getTimeout)
 
-        if (setPoolId)
-            bldr.setPoolId(nhm.getPools(0).getPoolId)
+        if (setPoolId) {
+            bldr.clearPoolIds()
+            bldr.addAllPoolIds(nhm.getPoolsList.asScala.map(_.getPoolId).asJava)
+        }
 
         bldr.build()
     }
@@ -53,14 +54,14 @@ class HealthMonitorTranslator(storage: ReadOnlyStorage)
     : MidoOpList = {
         val hm = translate(nhm)
 
-        // Initialize associated pool's mapping status.
-        val poolId = nhm.getPools(0).getPoolId
-        val pb = storage.get(classOf[Pool], poolId).await().toBuilder
-        val pool = pb.setMappingStatus(PENDING_CREATE)
-            .setHealthMonitorId(hm.getId)
-            .build()
+        val pools = for (pool <- nhm.getPoolsList.asScala) yield {
+            val pb = storage.get(classOf[Pool], pool.getPoolId).await().toBuilder
+            pb.setMappingStatus(PENDING_CREATE)
+                .setHealthMonitorId(hm.getId)
+                .build()
+        }
 
-        List(Create(hm), Update(pool))
+        List(Create(hm)) ++ pools.map(Update(_))
     }
 
     override protected def translateDelete(id: UUID)
@@ -77,7 +78,7 @@ private[translators] object HealthMonitorUpdateValidator
         extends UpdateValidator[HealthMonitor] {
     override def validate(oldHm: HealthMonitor, newHm: HealthMonitor)
     : HealthMonitor = {
-        if (oldHm.getPoolId != newHm.getPoolId)
+        if (oldHm.getPoolIdsList != newHm.getPoolIdsList)
             throw new IllegalStateException(
                 "A health monitor's pool association cannot be changed.")
 
