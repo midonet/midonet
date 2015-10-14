@@ -113,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "baada198_6ae9f919",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/HostServiceTest.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T10:35:46Z",
+      "side": 1,
+      "message": "Not really needed. I was trying to make the code more uniform.",
+      "parentUuid": "baada198_4a48b55b",
+      "revId": "d8a1b92b1b7d9764c2c993b7952ab662d89b783e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_caf845e8",
         "filename": "midonet-cluster/conf/midonet-cluster.conf",
         "patchSetId": 6
@@ -148,6 +166,30 @@
       "side": 1,
       "message": "Actually, didn\u0027t we agree to remove this file and instead use midonet.conf?",
       "parentUuid": "baada198_caf845e8",
+      "range": {
+        "startLine": 17,
+        "startChar": 12,
+        "endLine": 17,
+        "endChar": 19
+      },
+      "revId": "d8a1b92b1b7d9764c2c993b7952ab662d89b783e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_8ad56d45",
+        "filename": "midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T10:35:46Z",
+      "side": 1,
+      "message": "Why not doing that in another patch?",
+      "parentUuid": "baada198_0ada3d78",
       "range": {
         "startLine": 17,
         "startChar": 12,
