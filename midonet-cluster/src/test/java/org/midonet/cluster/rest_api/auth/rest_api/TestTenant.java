@@ -69,7 +69,7 @@ public class TestTenant extends JerseyTest {
     }
 
     private static Tenant getExpectedTenant(URI baseUri, String id) {
-        return new Tenant(baseUri, id, id);
+        return new Tenant(baseUri, id, id, id, true);
     }
 
     private static List<Tenant> getExpectedTenants(URI baseUri,
@@ -95,7 +95,7 @@ public class TestTenant extends JerseyTest {
     public void testDtoGeneratesUris() throws Exception {
         String id = "sometenant";
         Tenant t = new Tenant(topology.getApplication().getUri(),
-                              id, id + "-name");
+                              id, id + "-name", id + "-description", true);
         assertEquals(t.getUri().toString(),
                      topology.getApplication().getUri() +
                      ResourceUris.TENANTS + "/" + id);
@@ -110,7 +110,7 @@ public class TestTenant extends JerseyTest {
 
         // Get the actual Tenant objects
         Tenant[] actualRaw = dtoResource.getAndVerifyOk(app.getTenants(),
-                MidonetMediaTypes.APPLICATION_TENANT_COLLECTION_JSON(),
+                MidonetMediaTypes.APPLICATION_TENANT_COLLECTION_JSON_V2(),
                 Tenant[].class);
         // Fill in because the URI won't get deserialized
         for (Tenant t : actualRaw) {
@@ -127,7 +127,7 @@ public class TestTenant extends JerseyTest {
 
             // Get the actual object
             Tenant actualTenant = dtoResource.getAndVerifyOk(t.getUri(),
-                    MidonetMediaTypes.APPLICATION_TENANT_JSON(),
+                    MidonetMediaTypes.APPLICATION_TENANT_JSON_V2(),
                     Tenant.class);
 
             // Compare

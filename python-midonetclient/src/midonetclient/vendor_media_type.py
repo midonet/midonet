@@ -18,9 +18,9 @@
 APPLICATION_OCTET_STREAM = "application/octet-stream"
 APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"
 APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json"
-APPLICATION_TENANT_JSON = "application/vnd.org.midonet.Tenant-v1+json"
+APPLICATION_TENANT_JSON = "application/vnd.org.midonet.Tenant-v2+json"
 APPLICATION_TENANT_COLLECTION_JSON = \
-    "application/vnd.org.midonet.collection.Tenant-v1+json"
+    "application/vnd.org.midonet.collection.Tenant-v2+json"
 APPLICATION_ROUTER_JSON = "application/vnd.org.midonet.Router-v3+json"
 APPLICATION_ROUTER_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Router-v3+json"

@@ -28,14 +28,14 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_COLLECTION_JSON_V3;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_JSON_V2;
 
 public class Tenant extends ResourceBase<Tenant,
     org.midonet.cluster.rest_api.models.Tenant> {
 
     public Tenant(WebResource resource, URI uriForCreation,
                   org.midonet.cluster.rest_api.models.Tenant t) {
-        super(resource, uriForCreation, t, APPLICATION_TENANT_JSON());
+        super(resource, uriForCreation, t, APPLICATION_TENANT_JSON_V2());
     }
 
     @Override
