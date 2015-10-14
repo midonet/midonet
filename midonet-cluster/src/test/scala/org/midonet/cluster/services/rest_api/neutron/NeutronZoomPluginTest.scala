@@ -62,6 +62,7 @@ class NeutronZoomPluginTest extends FeatureSpec
            |zookeeper.root_key : "$zkRoot"
         """.stripMargin)
         )
+        MidonetBackend.isCluster = true
         backend = new MidonetBackendService(cfg, curator, metricRegistry = null)
         backend.startAsync().awaitRunning()
 
