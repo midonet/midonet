@@ -72,6 +72,54 @@
     },
     {
       "key": {
+        "uuid": "baada198_78b0f6dd",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "My understanding of this is that when upgrading the agents to v5.0, users may not want to override midolman.conf. Hence, they may still have /midonet/v1 as the ZK root key even though I changed the default root key here (and midolman.conf override the defaults in MidoConf).",
+      "parentUuid": "baada198_953af334",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 22
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_98b5cacf",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "I have asked this question to the cluster team.",
+      "parentUuid": "baada198_f5488fce",
+      "range": {
+        "startLine": 37,
+        "startChar": 20,
+        "endLine": 37,
+        "endChar": 22
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_d3a2c399",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 3
@@ -83,6 +131,24 @@
       "writtenOn": "2015-10-13T13:11:13Z",
       "side": 1,
       "message": "this is awkward, why pass \"config.zookeeper\" to MidonetBackend when config is a class we control and whose purpose is precisely to mangle configuration. I\u0027d place the zkRootPath() method there, and not in MidonetBackend.",
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_6e52f014",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_d3a2c399",
       "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -136,6 +202,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_b8c9ae5c",
+        "filename": "midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "Same answer.",
+      "parentUuid": "baada198_b53e1728",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 31
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_75355f45",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 3
@@ -159,6 +249,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_aef888e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_75355f45",
+      "range": {
+        "startLine": 224,
+        "startChar": 4,
+        "endLine": 224,
+        "endChar": 55
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_d53b8b36",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 3
@@ -170,6 +284,30 @@
       "writtenOn": "2015-10-12T22:14:47Z",
       "side": 1,
       "message": "I think this should be handled by the configuration class.",
+      "range": {
+        "startLine": 226,
+        "startChar": 0,
+        "endLine": 240,
+        "endChar": 5
+      },
+      "revId": "637e3ae05c01e56d4526fdfbb684615cfb3d0ed1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_8ef3c409",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_d53b8b36",
       "range": {
         "startLine": 226,
         "startChar": 0,
