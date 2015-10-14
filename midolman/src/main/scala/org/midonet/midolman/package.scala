@@ -20,7 +20,7 @@ import java.util.ArrayList
 import scala.concurrent.{ExecutionContext, Future, Await}
 import scala.concurrent.duration.FiniteDuration
 
-import akka.actor.{Identify, ActorSystem, ActorRef}
+import akka.actor.{ActorIdentity, Identify, ActorSystem, ActorRef}
 import akka.pattern.ask
 import akka.util.Timeout
 
@@ -37,6 +37,16 @@ package object midolman extends ReferenceableSupport {
                 i += 1
             }
             callbacks.clear()
+        }
+    }
+
+    implicit class ActorEx(val actor: ActorRef) extends AnyVal {
+        def awaitStart(duration: FiniteDuration)
+                      (implicit actorSystem: ActorSystem,
+                                ec: ExecutionContext): ActorRef = {
+            implicit val timeout: Timeout = duration
+            Await.result(actor ? Identify(null), duration)
+                 .asInstanceOf[ActorIdentity].getRef
         }
     }
 
