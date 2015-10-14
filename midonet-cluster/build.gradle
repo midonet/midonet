@@ -151,7 +151,6 @@ packaging {
     description = "MidoNet's control cluster"
     dependencies = ['midonet-tools']
     confFiles = ['/etc/midonet-cluster/logback.xml',
-                 '/etc/midonet-cluster/midonet-cluster.conf',
                  '/etc/midonet-cluster/midonet-cluster-env.sh']
     fpmOpts = ['-a', 'all',
                '--category', 'network',
@@ -215,9 +214,9 @@ mainClassName = "org.midonet.cluster.ClusterNode"
 // EXECUTION TASKS //
 /////////////////////
 
-// Runs the cluster daemon, locally. use -Pconf=conf/midonet-cluster.conf to
-// start it up pointing at the sample config file in cluster/midonet-cluster/conf -
-// Note that the path is relative to the midonet-cluster submodule.
+// Runs the cluster daemon locally. Use -Pconf=<path_to_config_file> to specify
+// a custom configuration file. Note that the path is relative to the
+// midonet-cluster submodule.
 run {
     mainClassName = "org.midonet.cluster.ClusterNode"
     systemProperties System.getProperties()
@@ -229,8 +228,6 @@ run {
     }
     if (project.hasProperty("conf")) {
         args = [conf]
-    } else {
-        args = ["conf/midonet-cluster.conf"]
     }
 
     jvmArgs += '-Dcom.sun.management.jmxremote.local.only=true'
@@ -240,8 +237,7 @@ run {
 }
 
 // Runs the Topology API service in stand-alone mode.
-// Use -Pconf=conf/midonet-cluster.conf to start it pointing at the sample config file
-// in cluster/midonet-cluster/conf
+// Use -Pconf=<path_to_config_file> to start it pointing at a custom config file.
 // Note that the path is relative to the midonet-cluster submodule.
 task runTopologyApi(type: JavaExec) {
     description = 'Run the Topology API Service - standalone'
@@ -249,8 +245,6 @@ task runTopologyApi(type: JavaExec) {
     main = "org.midonet.cluster.services.topology.TopologyApiServiceApp"
     if (project.hasProperty("conf")) {
         args = [conf]
-    } else {
-        args = ["conf/midonet-cluster.conf"]
     }
 }
 
