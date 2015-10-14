@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_8a680df7",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-14T12:49:21Z",
+      "side": 1,
+      "message": "Sorry it fallsback to the default in MidoConf.scala",
+      "parentUuid": "baada198_8af3ad72",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 19
+      },
+      "revId": "ae6c59ee106aa785086bf269c37fc1424359a1bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_ca5da5eb",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
         "patchSetId": 7
