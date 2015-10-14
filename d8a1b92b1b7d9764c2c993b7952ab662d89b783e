@@ -96,6 +96,23 @@
     },
     {
       "key": {
+        "uuid": "baada198_4a48b55b",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/HostServiceTest.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-14T10:03:19Z",
+      "side": 1,
+      "message": "Is this change required? These are all tests, so I guess it\u0027s no problem keeping whatever they want to use. If anything, I\u0027d remove the path and let it fallback to the default.",
+      "revId": "d8a1b92b1b7d9764c2c993b7952ab662d89b783e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_c4dafbe8",
         "filename": "midonet-tools/src/man/mn-conf.1.ronn",
         "patchSetId": 6
