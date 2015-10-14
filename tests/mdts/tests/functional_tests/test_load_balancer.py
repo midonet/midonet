@@ -21,6 +21,7 @@ from nose.tools import with_setup, nottest
 from mdts.lib.binding_manager import BindingManager
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
+from mdts.services import service
 from mdts.tests.utils.utils import bindings
 from mdts.tests.utils.asserts import async_assert_that, receives, should_NOT_receive, within_sec
 from mdts.tests.utils.utils import wait_on_futures
@@ -278,6 +279,7 @@ def stop_servers():
     for backend_num in range(1, NUM_BACKENDS + 1):
         stop_server(backend_num)
     SERVERS = dict()
+
     unset_filters('router-000-001')
 
 def make_request_to(sender, dest, timeout=10, src_port=None):
@@ -331,6 +333,51 @@ def unset_filters(router_name):
     """Unsets in-/out-bound filters from a router."""
     set_filters(router_name, None, None)
 
+def check_weighted_results(results):
+    # check that the # of requests is higher according to the backend weight
+    # list of tuples (ip, hits)
+    ordered_results = Counter(results).most_common()
+    weights = [(member_ip,
+                VTM.find_pool_member((member_ip, DST_PORT)).get_weight())
+               for member_ip, _ in ordered_results]
+    # list of tuples (ip, weight)
+    ordered_weights = sorted(weights, key=lambda x: x[1], reverse=True)
+    LOG.debug("L4LB: checking weighted results -> %s weights -> %s" %
+              (ordered_results, ordered_weights))
+    return zip(*ordered_results)[0] == zip(*ordered_weights)[0]
+
+def check_num_backends_hit(results, num_backends):
+    LOG.debug("L4LB: checking %s contains %s backends",
+              results,
+              num_backends)
+    return len(set(results)) == num_backends
+
+def get_current_leader(lb_pools, timeout = 60, wait_time=5):
+    agents = service.get_all_containers('midolman')
+    current_leader = None
+    num_leaders = 0
+    while timeout > 0:
+        for agent in agents:
+            # Check that we have an haproxy running for each pool to be
+            # considered a full leader
+            is_running = True
+            for lb_pool in lb_pools:
+                if not agent.is_haproxy_running(lb_pool.get_id()):
+                    is_running = False
+
+            if is_running:
+                current_leader = agent
+                num_leaders += 1
+        if num_leaders != 1:
+            LOG.debug('L4LB: No leaders (or more than one) '
+                      'running haproxy found! Retrying...')
+            time.sleep(wait_time)
+            timeout -= wait_time
+        else:
+            LOG.debug('L4LB: current leader is %s' % current_leader.get_hostname())
+            return current_leader
+
+    raise RuntimeError('No haproxy instances found!')
 
 @attr(version="v1.3.0", slow=False)
 @bindings(binding_onehost,
@@ -352,25 +399,6 @@ def test_multi_member_loadbalancing():
     Then: The loadbalancer sends some traffic to each backend when sticky
           source IP disabled, all to one backend if enabled.
     """
-    # Test auxiliary methods
-    def check_weighted_results(results):
-        # check that the # of requests is higher according to the backend weight
-        # list of tuples (ip, hits)
-        ordered_results = Counter(non_sticky_results).most_common()
-        weights = [(member_ip,
-                    VTM.find_pool_member((member_ip, DST_PORT)).get_weight())
-                   for member_ip, _ in ordered_results]
-        # list of tuples (ip, weight)
-        ordered_weights = sorted(weights, key=lambda x: x[1], reverse=True)
-        LOG.debug("L4LB: checking weighted results -> %s weights -> %s" %
-                  (ordered_results, ordered_weights))
-        return zip(*ordered_results)[0] == zip(*ordered_weights)[0]
-
-    def check_num_backends_hit(results, num_backends):
-        LOG.debug("L4LB: checking %s contains %s backends",
-                  results,
-                  num_backends)
-        return len(set(results)) == num_backends
 
     # With 3 backends of equal weight and 35 reqs, ~1/1m chance of not hitting all 3 backends
     # >>> 1/((2/3.0)**(35-1))
@@ -477,6 +505,138 @@ def test_disabling_topology_loadbalancing():
     disable_and_assert_traffic_fails(sender, action_loadbalancer, vips=vips)
     enable_and_assert_traffic_succeeds(sender, action_loadbalancer, vips=vips)
 
+@bindings(binding_multihost)
+@with_setup(start_servers, stop_servers)
+def test_haproxy_failback():
+    """
+    Title: HAProxy instance resilience test
+
+    Scenario:
+    When: A load balancer is configured with a pool of three backends
+    And: A health monitor in a distributed setting (one agent acting as the
+         haproxy leader)
+    And: we induce failures on the leader
+    Then: haproxy instance should have been moved to another alive agent,
+    jumping until the first agent is used
+          again
+    :return:
+    """
+
+
+    def check_haproxy_down(agent, lb_pools, timeout=30, wait_time=5):
+        while timeout > 0:
+            is_running = False
+            for lb_pool in lb_pools:
+                if agent.is_haproxy_running(lb_pool.get_id()):
+                    is_running = True
+
+            if is_running:
+                timeout -= wait_time
+                time.sleep(wait_time)
+            else:
+                return
+
+        raise RuntimeError("HAProxy instance and namespaces still "
+                           "show up upon restart.")
+    # Get all pool ids
+    lb_pools = VTM.get_load_balancer('lb-000-001').get_pools()
+
+    # Induce failure on the first haproxy leader
+    first = get_current_leader(lb_pools)
+    LOG.debug("L4LB: first leader is %s" % first.get_hostname())
+    first.restart(wait=True)
+    check_haproxy_down(first, lb_pools)
+
+    second = get_current_leader(lb_pools)
+    LOG.debug("L4LB: second leader is %s" % second.get_hostname())
+    assert_that(first.get_hostname() != second.get_hostname(),
+                True,
+               'L4LB: haproxy instance did not move to the next agent')
+
+    # Induce failure on the second haproxy leader and wait for it to be down
+    second.restart(wait=True)
+    check_haproxy_down(second, lb_pools)
+
+    third = get_current_leader(lb_pools)
+    LOG.debug("L4LB: third leader is %s" % third.get_hostname())
+    assert_that(
+        first.get_hostname() != second.get_hostname() != third.get_hostname(),
+        True,
+       'L4LB: haproxy instance did not move to the next agent')
+
+    # Induce failure on the third haproxy leader and wait for it to be down
+    third.restart(wait=True)
+    check_haproxy_down(third, lb_pools)
+
+    fourth = get_current_leader(lb_pools)
+    LOG.debug("L4LB: fourth leader is %s" % fourth.get_hostname())
+    assert_that(
+        first.get_hostname() == fourth.get_hostname(),
+        True,
+        'L4LB: haproxy instance did not get back to the first agent (%s != %s)' % (
+            first.get_hostname(), fourth.get_hostname()
+        )
+    )
+
+@bindings(binding_multihost)
+@with_setup(start_servers, stop_servers)
+def test_health_monitoring_backend_failback():
+    """
+    Title: Health monitoring backend failure resilience test
+
+    Scenario:
+    When: A load balancer is configured with a pool of three backends
+    And: A health monitor in a distributed setting (one agent acting as the
+         haproxy leader)
+    And: we induce failures on the backends
+    Then: haproxy instance detects the failed backend and requests to the VIP
+          should only go to the alive backends
+    :return:
+    """
+
+    vips = BM.get_binding_data()['vips']
+    sender_bridge, sender_port = BM.get_binding_data()['sender']
+    sender = BM.get_iface_for_port(sender_bridge, sender_port)
+
+    non_sticky_results = make_n_requests_to(sender,
+                                            50,
+                                            vips['non_sticky_vip'])
+    LOG.debug("L4LB: non_sticky results %s" % non_sticky_results)
+    # Check that the three backends are alive
+    assert_that(check_num_backends_hit(non_sticky_results, 3), True)
+
+    # Fail one backend
+    stop_server(1)
+    # Let health monitor find out that the backend has failed
+    time.sleep(10)
+    non_sticky_results = make_n_requests_to(sender,
+                                            25,
+                                            vips['non_sticky_vip'])
+    LOG.debug("L4LB: non_sticky results %s" % non_sticky_results)
+    # Check that the three backends are alive
+    assert_that(check_num_backends_hit(non_sticky_results, 2), True)
+
+    # Fail second backend
+    stop_server(2)
+    time.sleep(10)
+    non_sticky_results = make_n_requests_to(sender,
+                                            10,
+                                            vips['non_sticky_vip'])
+    LOG.debug("L4LB: non_sticky results %s" % non_sticky_results)
+    # Check that the three backends are alive
+    assert_that(check_num_backends_hit(non_sticky_results, 1), True)
+
+    # Recover failed backends
+    start_server(1)
+    start_server(2)
+    # Let health monitor find out that the backends are on track again
+    time.sleep(10)
+    non_sticky_results = make_n_requests_to(sender,
+                                            50,
+                                            vips['non_sticky_vip'])
+    LOG.debug("L4LB: non_sticky results %s" % non_sticky_results)
+    # Check that the three backends are alive
+    assert_that(check_num_backends_hit(non_sticky_results, 2), True)
 
 @nottest
 @attr(version="v1.3.0", slow=False)
