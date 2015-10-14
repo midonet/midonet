@@ -82,15 +82,20 @@ abstract class UpcallDatapathConnectionManagerBase(
     protected def makeBufferPool() = new BufferPool(1, 8, 8*1024)
 
     def askForWorkers()
-                     (implicit ec: ExecutionContext, as: ActorSystem) =
-        if (workers.isCompleted) {
-           workers.future
-        } else {
-            implicit val tout = Timeout(3, TimeUnit.SECONDS)
-            (PacketsEntryPoint ? GetWorkers).mapTo[Workers].andThen {
-                case Success(ws) => workers.trySuccess(ws)
-            }
+                     (implicit ec: ExecutionContext, as: ActorSystem) = {
+        if (!workers.isCompleted)
+           workers.completeWith(doAskForWorkers())
+        workers.future
+    }
+
+    private def doAskForWorkers()
+                               (implicit ec: ExecutionContext, as: ActorSystem)
+    : Future[Workers] = {
+        implicit val tout = Timeout(3, TimeUnit.SECONDS)
+        (PacketsEntryPoint ? GetWorkers).mapTo[Workers].recoverWith { case e =>
+            doAskForWorkers()
         }
+    }
 
     def getDispatcher()(implicit as: ActorSystem) =
         NetlinkCallbackDispatcher.makeBatchCollector()
