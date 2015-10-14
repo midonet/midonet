@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "baada198_e4f45f89",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "Removed. Where would be a good place to document that? Do we have a place where we document configuration parameters?",
+      "parentUuid": "baada198_448fcb23",
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_c47bdb27",
         "filename": "midonet-cluster/conf/midonet-cluster.conf",
         "patchSetId": 4
@@ -82,6 +100,48 @@
     },
     {
       "key": {
+        "uuid": "baada198_84356348",
+        "filename": "midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_c47bdb27",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 31
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_a43a6734",
+        "filename": "midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "What would be a correct path for this file?",
+      "parentUuid": "baada198_a49ee754",
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_c4d03bfa",
         "filename": "midonet-tools/src/man/mn-conf.1.ronn",
         "patchSetId": 4
@@ -93,6 +153,24 @@
       "writtenOn": "2015-10-14T08:16:54Z",
       "side": 1,
       "message": "manual page needs update.",
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_c46cbb39",
+        "filename": "midonet-tools/src/man/mn-conf.1.ronn",
+        "patchSetId": 4
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "I added information about parameter override_zk_root_key. Did you have anything else in mind?",
+      "parentUuid": "baada198_c4d03bfa",
       "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -122,6 +200,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_44126bb5",
+        "filename": "misc/perf/profiles.d/default/midolman/midolman.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_0476b33e",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 29
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_84b003df",
         "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
         "patchSetId": 4
@@ -139,6 +241,24 @@
     },
     {
       "key": {
+        "uuid": "baada198_e469bf26",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "I don\u0027t understand your suggestion. Do you mean to get rid of this parameter? What would be the logic to correct the root key? Always return /midonet/v5?",
+      "parentUuid": "baada198_84b003df",
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_c4c91b5c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
         "patchSetId": 4
@@ -150,6 +270,24 @@
       "writtenOn": "2015-10-14T08:16:54Z",
       "side": 1,
       "message": "can we rename this method name (if it stays)? for example: overrideZkRootPath, useCustomRootPath, ....",
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_e4229f00",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_c4c91b5c",
       "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -179,6 +317,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_840c8396",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_8499e370",
+      "range": {
+        "startLine": 131,
+        "startChar": 17,
+        "endLine": 131,
+        "endChar": 41
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_04add388",
         "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
         "patchSetId": 4
@@ -190,6 +352,30 @@
       "writtenOn": "2015-10-14T08:12:53Z",
       "side": 1,
       "message": "Nit: this is a bit redundant for a log message that is already a warning.",
+      "range": {
+        "startLine": 176,
+        "startChar": 17,
+        "endLine": 176,
+        "endChar": 29
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_04779303",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T08:59:56Z",
+      "side": 1,
+      "message": "This is to make sure that users see this.",
+      "parentUuid": "baada198_04add388",
       "range": {
         "startLine": 176,
         "startChar": 17,
