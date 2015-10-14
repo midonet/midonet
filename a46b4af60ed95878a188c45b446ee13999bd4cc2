@@ -65,6 +65,40 @@
     },
     {
       "key": {
+        "uuid": "baada198_a49ee754",
+        "filename": "midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T08:16:54Z",
+      "side": 1,
+      "message": "ditto. Also, remember this file path is not really correct (cc: alex).",
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_c4d03bfa",
+        "filename": "midonet-tools/src/man/mn-conf.1.ronn",
+        "patchSetId": 4
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T08:16:54Z",
+      "side": 1,
+      "message": "manual page needs update.",
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_0476b33e",
         "filename": "misc/perf/profiles.d/default/midolman/midolman.conf",
         "patchSetId": 4
@@ -82,6 +116,40 @@
         "endLine": 25,
         "endChar": 29
       },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_84b003df",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T08:16:54Z",
+      "side": 1,
+      "message": "this is a bit more annoying than the mn-conf configuration files case, because this key will show up in all the config dumps and the UI. It\u0027s going to be in plain sight forever. Why not just test for \"/midonet/v1\" since we know nobody really touches this key ever?",
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_c4c91b5c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T08:16:54Z",
+      "side": 1,
+      "message": "can we rename this method name (if it stays)? for example: overrideZkRootPath, useCustomRootPath, ....",
       "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -145,6 +213,30 @@
       "writtenOn": "2015-10-14T08:12:53Z",
       "side": 1,
       "message": "Why not use the default mechanism already provided? If the path is set the configuration file or ZK conf, use that one. Otherwise use the default.",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 181,
+        "endChar": 5
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_a4ec27c9",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T08:16:54Z",
+      "side": 1,
+      "message": "Alex we can\u0027t do *that*, because all legacy files do contain a root_key path.\n\nHowever we can detect it an do know its exact value...",
+      "parentUuid": "baada198_c4a2fb99",
       "range": {
         "startLine": 155,
         "startChar": 0,
