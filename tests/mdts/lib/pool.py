@@ -78,3 +78,5 @@ class Pool(ResourceBase, AdminStateUpMixin):
     def get_vips(self):
         return self._vips
 
+    def get_id(self):
+        return self._mn_resource.get_id()
