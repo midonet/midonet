@@ -50,8 +50,7 @@ public class ZkOpLock {
         StopWatch timeToAcquire = new StopWatch();
         timeToAcquire.start();
         try {
-            LOGGER.debug("Attempting to acquire lock for operation " +
-                         opNumber);
+            LOGGER.debug("Attempting to acquire lock for operation " + opNumber);
             if (!lock.acquire(LOCK_WAIT_SEC, TimeUnit.SECONDS)) {
                 throw new RuntimeException("Could not acquire lock in time");
             }
