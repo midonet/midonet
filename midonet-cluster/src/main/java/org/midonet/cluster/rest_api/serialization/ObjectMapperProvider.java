@@ -17,18 +17,16 @@ package org.midonet.cluster.rest_api.serialization;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.ws.rs.core.MediaType;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
 import org.midonet.util.version.VersionCheckAnnotationIntrospector;
+
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 /**
  * Class that providers ObjectMapper construction.
@@ -47,10 +45,8 @@ public class ObjectMapperProvider {
      */
     private static ConcurrentHashMap<Integer, ObjectMapper> mapperMap =
             new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<Integer, ObjectMapper> viewMapperMap =
-            new ConcurrentHashMap<>();
 
-    private ObjectMapper getMapper(int version, MediaType mediaType) {
+    private ObjectMapper getMapper(int version) {
 
         ObjectMapper mapper = new MidonetObjectMapper();
         JacksonAnnotationIntrospector jackIntr =
@@ -66,49 +62,22 @@ public class ObjectMapperProvider {
         AnnotationIntrospector versionPair =
                 AnnotationIntrospector.pair(defPair, introspector);
 
-        if (ViewMixinProvider.isRegisteredMediaType(mediaType)) {
-
-            // For this media type, 'View' is implemented, which means we need
-            // to construct an ObjectMapper with View configuration.  Once all
-            // models are separated from Views, this block becomes the only
-            // way to configure ObjectMapper.
-            mapper.writerWithView(Views.Public.class);
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-                             false)
-                  .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false)
-                  .setAnnotationIntrospector(versionPair)
-                  .setVisibilityChecker(mapper.getVisibilityChecker()
-                      .withFieldVisibility(JsonAutoDetect.Visibility.ANY));
-            ViewMixinProvider.setViewMixins(mapper);
-        } else {
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-                             false)
-                  .setAnnotationIntrospector(versionPair)
-                  .setVisibilityChecker(mapper.getVisibilityChecker()
-                      .withFieldVisibility(JsonAutoDetect.Visibility.ANY));
-        }
+        mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .setAnnotationIntrospector(versionPair)
+            .setVisibilityChecker(mapper.getVisibilityChecker()
+                                        .withFieldVisibility(ANY));
 
         return mapper;
-    }
-
-    private ConcurrentHashMap<Integer, ObjectMapper> getMapperMap(
-            MediaType mediaType) {
-
-        if (ViewMixinProvider.isRegisteredMediaType(mediaType)) {
-            return viewMapperMap;
-        } else {
-            return mapperMap;
-        }
     }
 
     /**
      * Construct ObjectMapper object given the media type and version.
      */
-    public ObjectMapper get(int version, MediaType mediaType) {
-        ObjectMapper mapper = getMapperMap(mediaType).get(version);
+    public ObjectMapper get(int version) {
+        ObjectMapper mapper = mapperMap.get(version);
         if (mapper == null) {
-            mapper = getMapper(version, mediaType);
-            getMapperMap(mediaType).putIfAbsent(version, mapper);
+            mapper = getMapper(version);
+            mapperMap.putIfAbsent(version, mapper);
         }
         return mapper;
     }

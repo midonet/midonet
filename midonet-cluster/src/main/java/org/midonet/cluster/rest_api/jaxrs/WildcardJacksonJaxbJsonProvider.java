@@ -80,8 +80,7 @@ public class WildcardJacksonJaxbJsonProvider
      */
     @Override
     public ObjectMapper locateMapper(Class<?> type, MediaType mediaType) {
-        log.debug("WildCardJacksonJaxbJsonProvider.locateMapper entered: " +
-                  "media type=" + mediaType);
+        log.debug("locateMapper entered: media type=" + mediaType);
 
         if (this.objectMapperProvider == null) {
             log.debug("No object mapper available");
@@ -97,9 +96,8 @@ public class WildcardJacksonJaxbJsonProvider
             version = 1;
         }
 
-        log.debug("WildCardJacksonJaxbJsonProvider.locateMapper exiting:" +
-                  " version=" + version);
-        return objectMapperProvider.get(version, mediaType);
+        log.debug("locateMapper exiting: version=" + version);
+        return objectMapperProvider.get(version);
     }
 
     /**
