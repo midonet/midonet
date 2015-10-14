@@ -107,8 +107,19 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("${buildDir}/installShadow/${project.name}/lib/${project.name}-${midonetVersion}-all.jar") {
         into "/usr/share/midonet-cluster"
     }
-    from("conf") {
+    from("conf/") {
         into "etc/midonet-cluster"
+        exclude {
+            "logback.xml.dev"
+            "midonet-cluster-env.sh"
+            "topology-client.conf"
+        }
+    }
+    from("conf/midonet-cluster-env.sh") {
+        into "etc/midonet-cluster"
+    }
+    from("../nsdb/conf/midonet.conf") {
+        into "etc/midonet"
     }
     from("src/deb/init/midonet-cluster.conf") {
         into "etc/init"
@@ -136,16 +147,6 @@ task rhel7Prepare(type: Copy, dependsOn: installShadowApp) {
     into "${pkgDestDir}"
 }
 
-task rhel6Prepare(type: Copy, dependsOn: installShadowApp) {
-    from("src/rhel6/init.d/midonet-brain") {
-        into "etc/init.d"
-    }
-    from("src/rhel6/init/midonet-brain.conf") {
-        into "etc/init"
-    }
-    into "${pkgDestDir}"
-}
-
 packaging {
     version = project.debVersion
     maintainer = project.maintainer
@@ -154,8 +155,8 @@ packaging {
     description = "MidoNet's control cluster"
     dependencies = ['midonet-tools']
     confFiles = ['/etc/midonet-cluster/logback.xml',
-                 '/etc/midonet-cluster/midonet-cluster.conf',
-                 '/etc/midonet-cluster/midonet-cluster-env.sh']
+                 '/etc/midonet/midonet.conf',
+                 '/usr/share/midonet-cluster/midonet-cluster-env.sh']
     fpmOpts = ['-a', 'all',
                '--category', 'network',
                '--url', 'http://www.midonet.org',
@@ -205,9 +206,10 @@ mainClassName = "org.midonet.cluster.ClusterNode"
 // EXECUTION TASKS //
 /////////////////////
 
-// Runs the cluster daemon, locally. use -Pconf=conf/midonet-cluster.conf to
-// start it up pointing at the sample config file in cluster/midonet-cluster/conf -
-// Note that the path is relative to the midonet-cluster submodule.
+// Runs the cluster daemon locally. Use -Pconf=<path_to_config_file> to specify
+// a custom configuration file. Note that the configuration file path is
+// relative to the midonet-cluster submodule, i.e.,
+// -Pconf=midonet-cluster/conf/<config_file>.
 run {
     mainClassName = "org.midonet.cluster.ClusterNode"
     systemProperties System.getProperties()
@@ -219,8 +221,6 @@ run {
     }
     if (project.hasProperty("conf")) {
         args = [conf]
-    } else {
-        args = ["conf/midonet-cluster.conf"]
     }
 
     jvmArgs += '-Dcom.sun.management.jmxremote.local.only=true'
@@ -230,17 +230,15 @@ run {
 }
 
 // Runs the Topology API service in stand-alone mode.
-// Use -Pconf=conf/midonet-cluster.conf to start it pointing at the sample config file
-// in cluster/midonet-cluster/conf
-// Note that the path is relative to the midonet-cluster submodule.
+// Use -Pconf=<path_to_config_file> to start it pointing at a custom config file.
+// Note that the configuration file path is relative to the midonet-cluster
+// submodule, i.e., -Pconf=midonet-cluster/conf/<config_file>.
 task runTopologyApi(type: JavaExec) {
     description = 'Run the Topology API Service - standalone'
     classpath sourceSets.main.runtimeClasspath
     main = "org.midonet.cluster.services.topology.TopologyApiServiceApp"
     if (project.hasProperty("conf")) {
         args = [conf]
-    } else {
-        args = ["conf/midonet-cluster.conf"]
     }
 }
 
