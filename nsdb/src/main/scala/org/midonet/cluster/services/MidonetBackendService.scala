@@ -151,7 +151,7 @@ object MidonetBackend {
         store.declareBinding(classOf[Pool], "pool_member_ids", CASCADE,
                              classOf[PoolMember], "pool_id", CLEAR)
         store.declareBinding(classOf[Pool], "health_monitor_id", CLEAR,
-                             classOf[HealthMonitor], "pool_id", CLEAR)
+                             classOf[HealthMonitor], "pool_ids", CLEAR)
 
 
         // Mirroring references
