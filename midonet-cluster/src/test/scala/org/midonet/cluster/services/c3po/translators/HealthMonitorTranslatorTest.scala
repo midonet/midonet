@@ -34,7 +34,8 @@ class HealthMonitorTranslatorTestBase extends TranslatorTestBase {
     }
 
     protected val hmId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")
-    protected val poolId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 2")
+    protected val poolId1 = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 2")
+    protected val poolId2 = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 3")
     private val healthMonitorCommonFlds = s"""
             id { $hmId }
             admin_state_up: true
@@ -48,16 +49,30 @@ class HealthMonitorTranslatorTestBase extends TranslatorTestBase {
         mHealthMonitorFromTxt(healthMonitorCommonFlds)
     protected val midoHealthMonitorWithPool = mHealthMonitorFromTxt(
         healthMonitorCommonFlds + s"""
-            pool_id { $poolId }
+            pool_ids { $poolId1 }
             """)
     protected val neutronHealthMonitorWithPool = nHealthMonitorFromTxt(
-            healthMonitorCommonFlds + s"""
+        healthMonitorCommonFlds + s"""
             pools {
-                pool_id { $poolId }
+                pool_id { $poolId1 }
             }
             """)
-    protected val poolWithHmId = mPoolFromTxt(s"""
-            id { $poolId }
+    protected val neutronHealthMonitorWithPools = nHealthMonitorFromTxt(
+        healthMonitorCommonFlds + s"""
+            pools {
+                pool_id { $poolId1 }
+            }
+            pools {
+                pool_id { $poolId2 }
+            }
+            """)
+    protected val poolWithHmId1 = mPoolFromTxt(s"""
+            id { $poolId1 }
+            health_monitor_id: { $hmId }
+            mapping_status: PENDING_CREATE
+            """)
+    protected val poolWithHmId2 = mPoolFromTxt(s"""
+            id { $poolId2 }
             health_monitor_id: { $hmId }
             mapping_status: PENDING_CREATE
             """)
@@ -72,20 +87,33 @@ class HealthMonitorTranslatorCreateTest
 
     val nHealthMonitor = neutronHealthMonitor
 
-    "Neutron Health Monitor CREATE with no pool ID" should "fail" in {
-        val ex = the [TranslationException] thrownBy
-            translator.translate(neutron.Create(nHealthMonitor))
-        ex.getMessage should include("Health monitor must have exactly one")
+    "CREATE for Neutron Health Monitor with no pool associated" should
+    "create a HealthMonitor" in {
+        val midoOps = translator.translate(
+            neutron.Create(neutronHealthMonitor))
+        midoOps should contain only midonet.Create(midoHealthMonitorNoPool)
     }
 
     "CREATE for Neutron Health Monitor with a pool associated" should
     "create a HealthMonitor" in {
-        bind(poolId, poolWithHmId)
+        bind(poolId1, poolWithHmId1)
         val midoOps = translator.translate(
             neutron.Create(neutronHealthMonitorWithPool))
         midoOps should contain inOrderOnly(
             midonet.Create(midoHealthMonitorNoPool),
-            midonet.Update(poolWithHmId))
+            midonet.Update(poolWithHmId1))
+    }
+
+    "CREATE for Neutron Health Monitor with two pools associated" should
+    "create a HealthMonitor" in {
+        bind(poolId1, poolWithHmId1)
+        bind(poolId2, poolWithHmId2)
+        val midoOps = translator.translate(
+            neutron.Create(neutronHealthMonitorWithPools))
+        midoOps should contain inOrderOnly(
+            midonet.Create(midoHealthMonitorNoPool),
+            midonet.Update(poolWithHmId1),
+            midonet.Update(poolWithHmId2))
     }
 }
 
@@ -106,14 +134,14 @@ class HealthMonitorTranslatorUpdateTest
     private val nHealthMonitor =
             nHealthMonitorFromTxt(updatedHealthMonitorCommonFlds + s"""
                 pools {
-                    pool_id { $poolId }
+                    pool_id { $poolId1 }
                     status: "status"
                     status_description: "desc"
                 }
                 """)
     private val mHealthMonitor =
             mHealthMonitorFromTxt(updatedHealthMonitorCommonFlds + s"""
-                pool_id { $poolId }
+                pool_ids { $poolId1 }
             """)
 
     "Neutron Health Monitor UPDATE" should "update a Midonet Health Monitor " +

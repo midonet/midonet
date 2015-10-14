@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList}
+import java.util.{List => JList, UUID}
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
@@ -58,6 +58,11 @@ class HealthMonitorResource @Inject()(resContext: ResourceContext)
                 if e.getResponse.getStatus == Status.NOT_FOUND.getStatusCode =>
                     MidonetResource.OkNoContentResponse
         }
+    }
+
+    @Path("{id}/pools")
+    def pools(@PathParam("id") id: UUID): HealthMonitorPoolResource = {
+        new HealthMonitorPoolResource(id, resContext)
     }
 
     protected override def updateFilter(to: HealthMonitor,

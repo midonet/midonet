@@ -28,8 +28,8 @@ import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.{Pool => TopPool}
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{LoadBalancer, Pool}
-import org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_STATUS_IS_PENDING
+import org.midonet.cluster.rest_api.models.{HealthMonitor, LoadBalancer, Pool}
+import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
@@ -66,12 +66,12 @@ class PoolResource @Inject()(resContext: ResourceContext)
 
     def checkMappingStatus(p: TopPool): Unit = {
         val s = p.getMappingStatus
-        if (s == PENDING_UPDATE ||
+        /*if (s == PENDING_UPDATE ||
             s == PENDING_DELETE ||
             s == PENDING_CREATE) {
             throw new ServiceUnavailableHttpException(
-                MAPPING_STATUS_IS_PENDING)
-        }
+                getMessage(MAPPING_STATUS_IS_PENDING, s))
+        }*/
     }
 
     protected override def updateFilter(to: Pool, from: Pool): Ops = {
@@ -129,4 +129,19 @@ class LoadBalancerPoolResource @Inject()(loadBalancerId: UUID,
         pool.create(loadBalancerId)
         NoOps
     }
+}
+
+@RequestScoped
+@AllowList(Array(APPLICATION_POOL_COLLECTION_JSON,
+                 APPLICATION_JSON))
+class HealthMonitorPoolResource @Inject()(healthMonitorId: UUID,
+                                          resContext: ResourceContext)
+    extends MidonetResource[Pool](resContext) {
+
+    protected override def listIds: Ids = {
+        getResource(classOf[HealthMonitor], healthMonitorId) map {
+            _.poolIds.asScala
+        }
+    }
+
 }
