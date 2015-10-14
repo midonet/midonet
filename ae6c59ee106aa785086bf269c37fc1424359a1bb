@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_8af3ad72",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-14T12:36:23Z",
+      "side": 1,
+      "message": "No, the default in the schema",
+      "parentUuid": "baada198_2a20e1f6",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 19
+      },
+      "revId": "ae6c59ee106aa785086bf269c37fc1424359a1bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_ca5da5eb",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanSpec.scala",
         "patchSetId": 7
@@ -125,6 +149,24 @@
       "side": 1,
       "message": "If we want to do this, shouldn\u0027t we do it in another patch. It\u0027s not really the purpose of this patch to clean-up the midonet-cluster config.",
       "parentUuid": "baada198_0a6f9d93",
+      "revId": "ae6c59ee106aa785086bf269c37fc1424359a1bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_4a90b5ec",
+        "filename": "midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-14T12:36:23Z",
+      "side": 1,
+      "message": "I\u0027m ok either way. Since this patch is updating v5 defaults the midonet-cluster removal doesn\u0027t seem inappropriate. \n\nEither way, if you chose to do it in a separate patch pls. log a JIRA issue so we don\u0027t forget it\u0027s pending.",
+      "parentUuid": "baada198_cad685c5",
       "revId": "ae6c59ee106aa785086bf269c37fc1424359a1bb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -212,6 +254,30 @@
       "side": 1,
       "message": "There\u0027s disagreement on this. Personally I feel it makes more sense to have it in MidoConf so that the configuration logic is centralized.",
       "parentUuid": "baada198_0a1ddd0f",
+      "range": {
+        "startLine": 33,
+        "startChar": 18,
+        "endLine": 33,
+        "endChar": 54
+      },
+      "revId": "ae6c59ee106aa785086bf269c37fc1424359a1bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_6a9579e3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-14T12:36:23Z",
+      "side": 1,
+      "message": "Centralization can be achieved both ways: either centralize in MidoConf, or centralize in MidonetBackendConfig.\n\nIt makes more sense IMO to do the latter, based on Encapsulation + Single Responsibility principles: MidoConf\u0027s responsibility is to construct Config objects from different sources. In this solution, zkRootKey is applying property-private semantics for a specific category (zookeeper). There is a class responsible for that category (MidonetBackendconfig), so it makes sense that those semantics are encapsulated there.\n\nFurthermore, it\u0027s error prone: nothing prevents an unsuspecting developer to take a MidonetBackendConfig.getRootKey, ignoring that they must apply the midonet/v1 overrides.",
+      "parentUuid": "baada198_eada69e8",
       "range": {
         "startLine": 33,
         "startChar": 18,
