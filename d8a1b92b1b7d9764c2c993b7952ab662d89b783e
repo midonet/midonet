@@ -86,6 +86,23 @@
       "revId": "d8a1b92b1b7d9764c2c993b7952ab662d89b783e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_2455771d",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T09:31:10Z",
+      "side": 1,
+      "message": "This does not make sense at all. \n\nI suggested we print a warning if we override the content of the config file due to it being the old default. \n\nHowever, this case doesn\u0027t need any sort of warning. You are skipping the behaviour of \"ignoring the config file\" because the user went through the trouble of adding an obscure option to the config file \"override_zk_root_path\", he surely already knows what\u0027s going on.",
+      "revId": "d8a1b92b1b7d9764c2c993b7952ab662d89b783e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
