@@ -60,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "baada198_c453db6a",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T09:08:58Z",
+      "side": 1,
+      "message": "The manual page.",
+      "parentUuid": "baada198_e4f45f89",
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_c47bdb27",
         "filename": "midonet-cluster/conf/midonet-cluster.conf",
         "patchSetId": 4
@@ -253,6 +271,24 @@
       "side": 1,
       "message": "I don\u0027t understand your suggestion. Do you mean to get rid of this parameter? What would be the logic to correct the root key? Always return /midonet/v5?",
       "parentUuid": "baada198_84b003df",
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_044eb3c1",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T09:08:58Z",
+      "side": 1,
+      "message": "No, compare to the old default, if the value equals \"/midonet/v1\", you know it\u0027s a leftover from a previous install. If the value does not equal the old default, you know it\u0027s a custom root.",
+      "parentUuid": "baada198_e469bf26",
       "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
