@@ -201,7 +201,12 @@ On ubuntu this requires the rpm tools which you can install with
 
 Simply execute the following command from the root directory of the clone:
 
-    ./gradlew midonet-cluster:run -Pconf=`pwd`/midonet-cluster/conf/midonet-cluster.conf
+    ./gradlew midonet-cluster:run
+    
+You can specify a custom configuration file by adding:
+"-Pconf=<path_to_config_file>". Note that the configuration file path is
+relative to the midonet-cluster submodule, i.e., 
+-Pconf=midonet-cluster/conf/<config_file>.
 
 The Cluster will try to write on /etc/midonet_host_id.properties.  If
 this path is not writable you can either make it so, or override adding:
