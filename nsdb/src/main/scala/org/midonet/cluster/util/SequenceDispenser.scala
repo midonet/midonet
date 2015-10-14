@@ -19,13 +19,14 @@ package org.midonet.cluster.util
 import scala.concurrent.ExecutionContext.fromExecutor
 import scala.concurrent.Future
 
-import com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.google.inject.Inject
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.shared.{SharedCount, VersionedValue}
 
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.SequenceDispenser.{VxgwVni, SequenceType}
+import org.midonet.cluster.util.SequenceDispenser.SequenceType
 
 object SequenceDispenser {
     abstract class SequenceType(val tag: String, val seed: Int)
@@ -57,7 +58,7 @@ class SequenceDispenser @Inject()(curator: CuratorFramework,
     class SequenceException(t: SequenceType)
         extends Exception("Can't write counter for type " + t)
 
-    private implicit val ec = fromExecutor(sameThreadExecutor())
+    private implicit val ec = fromExecutor(directExecutor())
 
     // This gets added to the root path of the Curator instance.
 
