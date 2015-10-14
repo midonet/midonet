@@ -16,6 +16,144 @@
       "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_8482c3fe",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-14T08:12:53Z",
+      "side": 1,
+      "message": "See my previous comment on this.",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 31
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_c47bdb27",
+        "filename": "midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-14T08:12:53Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 31
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_0476b33e",
+        "filename": "misc/perf/profiles.d/default/midolman/midolman.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-14T08:12:53Z",
+      "side": 1,
+      "message": "Same.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 29
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_8499e370",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-14T08:12:53Z",
+      "side": 1,
+      "message": "The nsdb.conf defaults this to midonet, yet this is /midonet/v5.",
+      "range": {
+        "startLine": 131,
+        "startChar": 17,
+        "endLine": 131,
+        "endChar": 41
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_04add388",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-14T08:12:53Z",
+      "side": 1,
+      "message": "Nit: this is a bit redundant for a log message that is already a warning.",
+      "range": {
+        "startLine": 176,
+        "startChar": 17,
+        "endLine": 176,
+        "endChar": 29
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_c4a2fb99",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-14T08:12:53Z",
+      "side": 1,
+      "message": "Why not use the default mechanism already provided? If the path is set the configuration file or ZK conf, use that one. Otherwise use the default.",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 181,
+        "endChar": 5
+      },
+      "revId": "a46b4af60ed95878a188c45b446ee13999bd4cc2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
