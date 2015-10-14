@@ -88,6 +88,17 @@ class MidonetAgentHost(Service):
             'cat /var/log/midolman/upstart-stderr.log')
         return debug_logs
 
+    def hm_resources_exist(self, pool_id):
+        # Pre: assume pool_id is a valid UUID
+        result_ha = self.exec_command("sh -c \"pgrep -a haproxy | grep %s\"" %
+            pool_id
+        )
+        result_ns = self.exec_command("sh -c \"ip netns | grep %s_hm\"" %
+            pool_id.split('-')[0])
+        if result_ha != '' and result_ns != '':
+            return True
+        return False
+
     def create_vmguest(self, **iface_kwargs):
         """
 
