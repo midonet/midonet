@@ -69,8 +69,9 @@ object OpType extends Enumeration {
 
 
 /** C3PO that translates an operation on an external model into corresponding
-  * storage operations on internal Mido models. */
-final class C3POStorageManager(storage: Storage) {
+  * storage operations on internal Mido models.
+  */
+class C3POStorageManager(storage: Storage) {
     import org.midonet.cluster.services.c3po.C3POStorageManager._
 
     private val log = LoggerFactory.getLogger(classOf[C3POStorageManager])
