@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_44c7cb12",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T09:12:45Z",
+      "side": 1,
+      "message": "why leave root_key if it\u0027s not followed unless overriden??",
+      "revId": "d8a1b92b1b7d9764c2c993b7952ab662d89b783e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_c4dafbe8",
+        "filename": "midonet-tools/src/man/mn-conf.1.ronn",
+        "patchSetId": 6
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T09:12:45Z",
+      "side": 1,
+      "message": "it\u0027s not a parameter it\u0027s set in the config file next to root_key, i\u0027d show it there in the config file example.",
+      "revId": "d8a1b92b1b7d9764c2c993b7952ab662d89b783e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_84d1e3cf",
+        "filename": "midonet-tools/src/man/mn-conf.1.ronn",
+        "patchSetId": 6
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T09:12:45Z",
+      "side": 1,
+      "message": "it\u0027s now impossible to provide a root_key via env variables because you didn\u0027t provide a mechanism to override.",
+      "revId": "d8a1b92b1b7d9764c2c993b7952ab662d89b783e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
