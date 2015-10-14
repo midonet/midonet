@@ -113,6 +113,29 @@
     },
     {
       "key": {
+        "uuid": "baada198_caf845e8",
+        "filename": "midonet-cluster/conf/midonet-cluster.conf",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-14T10:27:37Z",
+      "side": 1,
+      "message": "ditto, if equals the default, just remove",
+      "range": {
+        "startLine": 17,
+        "startChar": 12,
+        "endLine": 17,
+        "endChar": 19
+      },
+      "revId": "d8a1b92b1b7d9764c2c993b7952ab662d89b783e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_c4dafbe8",
         "filename": "midonet-tools/src/man/mn-conf.1.ronn",
         "patchSetId": 6
