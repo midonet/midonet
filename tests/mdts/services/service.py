@@ -168,8 +168,6 @@ class Service(object):
                  if stream: a stream generator with the output
                  else: the result of the command
         """
-        # Use raw representation to account for " and ' inside the cmd
-        #cmd = "sh -c \"%s\"" % cmd
 
         LOG.debug('[%s] executing command: %s',
                   self.get_name(),
@@ -183,10 +181,8 @@ class Service(object):
 
         result = cli.exec_start(exec_id, detach=detach, stream=stream)
         if stream:
-            #self._ensure_command_running(exec_id) # TODO
             # Result is a data blocking stream, exec_id for future checks
             return result, exec_id
-
         result = result.rstrip()
         # FIXME: different return result depending on params might be confusing
         # Awful pattern

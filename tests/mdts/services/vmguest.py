@@ -69,7 +69,8 @@ class VMGuest(Interface):
                                                 detach=False,
                                                 stream=stream)
         # Extra timeout to account for docker exec warmup
-        time.sleep(extra_timeout)
+        if stream:
+            time.sleep(extra_timeout)
         return result
 
 
