@@ -43,6 +43,9 @@ class PortGroup(resource_base.ResourceBase):
     def get_id(self):
         return self.dto['id']
 
+    def get_tenant_id(self):
+        return self.dto['tenantId']
+
     def is_stateful(self):
         return self.dto['stateful']
 

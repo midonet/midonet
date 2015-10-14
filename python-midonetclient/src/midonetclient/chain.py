@@ -42,6 +42,9 @@ class Chain(resource_base.ResourceBase):
     def get_id(self):
         return self.dto['id']
 
+    def get_tenant_id(self):
+        return self.dto['tenantId']
+
     def get_rules(self):
         query = {}
         headers = {'Accept':
