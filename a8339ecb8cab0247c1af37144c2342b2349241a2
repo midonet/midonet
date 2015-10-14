@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baada198_90311aa5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T18:21:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_1048aa2c",
+      "revId": "a8339ecb8cab0247c1af37144c2342b2349241a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_3055aec6",
         "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
         "patchSetId": 9
@@ -30,6 +48,30 @@
       "writtenOn": "2015-10-14T16:51:20Z",
       "side": 1,
       "message": "org.midonet.conf",
+      "range": {
+        "startLine": 121,
+        "startChar": 46,
+        "endLine": 121,
+        "endChar": 54
+      },
+      "revId": "a8339ecb8cab0247c1af37144c2342b2349241a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_5069428a",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T18:21:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_3055aec6",
       "range": {
         "startLine": 121,
         "startChar": 46,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "baada198_900afad0",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T18:21:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_505222de",
+      "range": {
+        "startLine": 153,
+        "startChar": 3,
+        "endLine": 153,
+        "endChar": 57
+      },
+      "revId": "a8339ecb8cab0247c1af37144c2342b2349241a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_903cba95",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 9
@@ -76,6 +142,30 @@
       "writtenOn": "2015-10-14T16:51:20Z",
       "side": 1,
       "message": "maybe \"by the ZOOM library\" would make this more change-proof.",
+      "range": {
+        "startLine": 91,
+        "startChar": 11,
+        "endLine": 91,
+        "endChar": 52
+      },
+      "revId": "a8339ecb8cab0247c1af37144c2342b2349241a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baada198_3003eeb9",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 9
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-14T18:21:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baada198_903cba95",
       "range": {
         "startLine": 91,
         "startChar": 11,
