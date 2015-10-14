@@ -30,8 +30,8 @@ class VtepUrlProviderMixin(port.PortUrlProviderMixin):
     This mixin provides URLs for vteps.
     """
 
-    def vtep_url(self, ip_addr):
-        return self.template_url("vtepTemplate", ip_addr)
+    def vtep_url(self, id):
+        return self.template_url("vtepTemplate", id)
 
     def vteps_url(self):
         return self.resource_url("vteps")
@@ -60,17 +60,17 @@ class VtepClientMixin(VtepUrlProviderMixin):
     @util.convert_case
     def create_vtep(self, vtep):
         LOG.info("create_vtep %r", vtep)
-        return self.client.post(self.vtep_url(),
+        return self.client.post(self.vteps_url(),
                                 mt.APPLICATION_VTEP_JSON_V2, body=vtep)
 
-    def delete_vtep(self, ip_addr):
-        LOG.info("delete_vtep %r", ip_addr)
-        self.client.delete(self.vtep_url(ip_addr))
+    def delete_vtep(self, id):
+        LOG.info("delete_vtep %r", id)
+        self.client.delete(self.vtep_url(id))
 
     @util.convert_case
-    def get_vtep(self, ip_addr, fields=None):
-        LOG.info("get_vtep %r", ip_addr)
-        return self.client.get(self.vtep_url(ip_addr),
+    def get_vtep(self, id, fields=None):
+        LOG.info("get_vtep %r", id)
+        return self.client.get(self.vtep_url(id),
                                mt.APPLICATION_VTEP_JSON_V2)
 
     @util.convert_case
