@@ -83,15 +83,21 @@ abstract class UpcallDatapathConnectionManagerBase(
     protected def makeBufferPool() = new BufferPool(1, 8, 8*1024)
 
     def askForWorkers()
-                     (implicit ec: ExecutionContext, as: ActorSystem) =
-        if (workers.isCompleted) {
-           workers.future
-        } else {
-            implicit val tout = Timeout(3, TimeUnit.SECONDS)
-            (PacketsEntryPoint ? GetWorkers).mapTo[Workers].andThen {
-                case Success(ws) => workers.trySuccess(ws)
-            }
+                     (implicit ec: ExecutionContext, as: ActorSystem) = {
+        if (!workers.isCompleted) {
+            workers.tryCompleteWith(doAskForWorkers())
         }
+        workers.future
+    }
+
+    private def doAskForWorkers()
+                               (implicit ec: ExecutionContext, as: ActorSystem)
+    : Future[Workers] = {
+        implicit val tout = Timeout(3, TimeUnit.SECONDS)
+        (PacketsEntryPoint ? GetWorkers).mapTo[Workers].recoverWith { case e =>
+            doAskForWorkers()
+        }
+    }
 
     def getDispatcher()(implicit as: ActorSystem) =
         NetlinkCallbackDispatcher.makeBatchCollector()
@@ -132,7 +138,7 @@ abstract class UpcallDatapathConnectionManagerBase(
     def ensurePortPid(port: DpPort, dp: Datapath, con: OvsDatapathConnection)(
                       implicit ec: ExecutionContext) = {
         val dpConnOps = new OvsConnectionOps(con)
-        log.info("creating datapath {}", port)
+        log.info("creating datapath port {}", port)
         dpConnOps.createPort(port, dp) recoverWith {
             // Error code changed in OVS in May-2013 from EBUSY to EEXIST
             // http://openvswitch.org/pipermail/dev/2013-May/027947.html

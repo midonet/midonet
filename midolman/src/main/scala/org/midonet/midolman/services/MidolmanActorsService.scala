@@ -63,16 +63,16 @@ class MidolmanActorsService extends AbstractService {
     protected def actorSpecs = {
         val actors = List(
             (propsFor(classOf[VirtualTopologyActor]), VirtualTopologyActor.Name),
+            (propsFor(classOf[NetlinkCallbackDispatcher]),
+                NetlinkCallbackDispatcher.Name),
             (propsFor(classOf[VirtualToPhysicalMapper]).
                 withDispatcher("actors.stash-dispatcher"),
                 VirtualToPhysicalMapper.Name),
-            (propsFor(classOf[DatapathController]), DatapathController.Name),
-            (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name),
             (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
-            (propsFor(classOf[NetlinkCallbackDispatcher]),
-                NetlinkCallbackDispatcher.Name),
             (propsFor(classOf[MtuIncreaser]).
-                withDispatcher("actors.pinned-dispatcher"), MtuIncreaser.Name))
+                withDispatcher("actors.pinned-dispatcher"), MtuIncreaser.Name),
+            (propsFor(classOf[DatapathController]), DatapathController.Name),
+            (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name))
         if (config.healthMonitor.enable)
             actors :+ (propsFor(classOf[HealthMonitor])
                 .withDispatcher("actors.pinned-dispatcher"), HealthMonitor.Name)
