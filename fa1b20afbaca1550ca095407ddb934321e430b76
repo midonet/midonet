@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_09c88e73",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-14T00:13:55Z",
+      "side": 1,
+      "message": "s/midolman/MidoNet/",
+      "range": {
+        "startLine": 260,
+        "startChar": 40,
+        "endLine": 260,
+        "endChar": 48
+      },
+      "revId": "fa1b20afbaca1550ca095407ddb934321e430b76",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
