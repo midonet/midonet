@@ -54,8 +54,8 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTE_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_RULE_JSON_V2;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_SYSTEM_STATE_JSON_V2;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_COLLECTION_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_COLLECTION_JSON_V2;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_JSON_V2;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_JSON;
@@ -93,7 +93,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             MultivaluedMap<String,String> queryParams) {
         return getChildResources(principalDto.getTenants(),
                 queryParams,
-                APPLICATION_TENANT_COLLECTION_JSON(),
+                APPLICATION_TENANT_COLLECTION_JSON_V2(),
                 Tenant.class, Tenant.class);
     }
 
@@ -250,7 +250,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
             resource, null,
             resource.get(uri, null,
                          org.midonet.cluster.rest_api.models.Tenant.class,
-                         APPLICATION_TENANT_JSON())
+                         APPLICATION_TENANT_JSON_V2())
         );
     }
 

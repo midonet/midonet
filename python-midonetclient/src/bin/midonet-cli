@@ -903,6 +903,38 @@ class AdminStateAttr(SingleAttr):
         val = AdminStateAttr.get_val.get(value, None)
         super(AdminStateAttr, self).set(obj, val)
 
+
+class EnabledAttr(SingleAttr):
+    get_val = {'yes': True, 'no': False}
+
+    def __init__(self, name,
+                 getter,
+                 setter = None,
+                 writeable = True,
+                 show = True,
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
+        super(EnabledAttr, self).__init__(name, BooleanType(),
+                                         getter = getter,
+                                         setter = setter,
+                                         writeable = writeable,
+                                         show = show,
+                                         optional = optional,
+                                         inv_getter = inv_getter,
+                                         inv_setter = inv_setter)
+
+    def fetch(self, obj):
+        try:
+            func = obj.reflect(self.getter)
+            return "yes" if func() else "no"
+        except KeyError:
+            return None
+
+    def set(self, obj, value):
+        val = EnabledAttr.get_val.get(value, None)
+        super(EnabledAttr, self).set(obj, val)
+
 class Collection(Attr):
     def __init__(self, name, element_type, list_method,
                  list_with_tenant = False,
@@ -1710,10 +1742,20 @@ class Tenant(ObjectType):
         # and rename the actual id field of the tenant model so that its
         # actual id is printed out instead of alias.
         self.clear_attrs()
-        self.put_attr(SingleAttr(name = 'tenant_id',
+        self.put_attr(SingleAttr(name = 'tenant-id',
                                  value_type = StringType(),
-                                 getter = 'get_id',
-                                 setter = 'id'))
+                                 getter = 'get_id'))
+        self.put_attr(SingleAttr(name = 'name',
+                                 value_type = StringType(),
+                                 getter = 'get_name',
+                                 setter = 'name'))
+        self.put_attr(SingleAttr(name = 'description',
+                                 value_type = StringType(),
+                                 getter = 'get_description',
+                                 setter = 'description'))
+        self.put_attr(EnabledAttr(name = 'enabled',
+                                  getter = 'get_enabled',
+                                  setter = 'enabled'))
     def type_name(self):
         return "tenant"
 

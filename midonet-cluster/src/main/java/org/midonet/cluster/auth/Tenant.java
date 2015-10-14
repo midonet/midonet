@@ -25,4 +25,9 @@ public interface Tenant {
     String getId();
 
     String getName();
+
+    String getDescription();
+
+    boolean isEnabled();
+
 }

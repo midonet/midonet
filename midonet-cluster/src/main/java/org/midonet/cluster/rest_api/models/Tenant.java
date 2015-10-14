@@ -37,13 +37,18 @@ public class Tenant extends UriResource {
 
     public String id;
     public String name;
+    public String description;
+    public boolean enabled;
 
     public Tenant(){
     }
 
-    public Tenant(URI baseUri, String id, String name) {
+    public Tenant(URI baseUri, String id, String name, String description,
+                  boolean enabled) {
         this.id = id;
         this.name = name;
+        this.description = description;
+        this.enabled = enabled;
         this.setBaseUri(baseUri);
     }
 
@@ -84,12 +89,14 @@ public class Tenant extends UriResource {
     public String toString() {
         return "Tenant { id = " + id +
                ", name = " + name +
+               ", description = " + description +
+               ", enabled = " + enabled +
                ", uri = " + getUri() + "}";
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, name);
+        return Objects.hashCode(id, name, description, enabled);
     }
 
     @Override
@@ -104,6 +111,8 @@ public class Tenant extends UriResource {
 
         Tenant that = (Tenant) other;
         return Objects.equal(this.id, that.id) &&
-               Objects.equal(this.name, that.name);
+               Objects.equal(this.name, that.name) &&
+               Objects.equal(this.description, that.description) &&
+               this.enabled == that.enabled;
     }
 }

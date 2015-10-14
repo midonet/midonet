@@ -40,7 +40,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_LINK_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_COLLECTION_JSON_V2;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:
@@ -320,7 +320,7 @@ public class Topology {
 
             // Tenants are created behind the scene.  Get all tenants
             Tenant[] tenantList = resource.getAndVerifyOk(app.getTenants(),
-                APPLICATION_TENANT_COLLECTION_JSON(), Tenant[].class);
+                APPLICATION_TENANT_COLLECTION_JSON_V2(), Tenant[].class);
             if (tenantList != null) {
                 for (Tenant t : tenantList) {
                     tenants.put(t.id, t);
