@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "baada198_a47267e3",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-14T09:27:30Z",
+      "side": 1,
+      "message": "No because it\u0027s *ignored* under the current version of the patch.\n\nIf we base the override on the old \"default* and not make it unconditional, then it could make sense.\n\nI\u0027d like that we do that. However I\u0027d still leave it out, it should be a very obscure option.",
+      "parentUuid": "baada198_04aa3319",
+      "revId": "d8a1b92b1b7d9764c2c993b7952ab662d89b783e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baada198_c4dafbe8",
         "filename": "midonet-tools/src/man/mn-conf.1.ronn",
         "patchSetId": 6
