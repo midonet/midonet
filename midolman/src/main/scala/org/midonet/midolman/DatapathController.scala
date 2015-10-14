@@ -205,18 +205,21 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         makeTunnelPort(OverlayTunnel) { () =>
             GreTunnelPort make "tngre-overlay"
         } flatMap { gre =>
+            log.info("Made gre")
             driver.tunnelOverlayGre = gre
             makeTunnelPort(OverlayTunnel) { () =>
                 val overlayUdpPort = config.datapath.vxlanOverlayUdpPort
                 VxLanTunnelPort make("tnvxlan-overlay", overlayUdpPort)
             }
         } flatMap { vxlan =>
+            log.info("Made vxlan")
             driver.tunnelOverlayVxLan = vxlan
             makeTunnelPort(VtepTunnel) { () =>
                 val vtepUdpPort = config.datapath.vxlanVtepUdpPort
                 VxLanTunnelPort make("tnvxlan-vtep", vtepUdpPort)
            }
         } map { vtep =>
+            log.info("Made vtep")
             driver.tunnelVtepVxLan = vtep
             TunnelPortsCreated_
         } pipeTo self
