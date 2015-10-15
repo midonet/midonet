@@ -221,7 +221,7 @@ class TraceRequestMapperTest extends MidolmanSpec {
             vt.store.update(tr.toBuilder.setEnabled(true).build)
             bridgeSubscriber.getOnNextEvents.size shouldBe 2
             bridge = bridgeSubscriber.getOnNextEvents.get(1)
-            bridge.infilters.get(0) should not be (chain)
+            bridge.infilters.get(0) should not be chain
             var chainObj = chainMap.get(bridge.infilters.get(0))
                 .get.toBlocking.first
             chainObj.rules.size shouldBe 1
@@ -510,10 +510,9 @@ class TraceRequestMapperTest extends MidolmanSpec {
             var expected = mutable.Set(tr0.getId.asJava, tr1.getId.asJava, tr2.getId.asJava)
             for (rule <- chainObj.rules.asScala) {
                 rule match {
-                    case r: TraceRule => {
+                    case r: TraceRule =>
                         expected should contain (r.getRequestId)
                         expected -= r.getRequestId
-                    }
                     case _ => fail("Unexpected")
                 }
             }
@@ -529,10 +528,9 @@ class TraceRequestMapperTest extends MidolmanSpec {
             expected = mutable.Set(tr0.getId.asJava, tr2.getId.asJava)
             for (rule <- chainObj.rules.asScala) {
                 rule match {
-                    case r: TraceRule => {
+                    case r: TraceRule =>
                         expected should contain (r.getRequestId)
                         expected -= r.getRequestId
-                    }
                     case _ => fail("Unexpected")
                 }
             }

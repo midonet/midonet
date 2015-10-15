@@ -38,6 +38,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
@@ -52,12 +53,12 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
-    def makePort(id: UUID, host: Host, ifName: String, bridge: TopoBridge,
+    def makePort(id: UUID, ifName: String, bridge: TopoBridge,
                  infilter: Option[UUID] = None,
                  outfilter: Option[UUID] = None) = {
         createBridgePort(
             id = id,
-            hostId = Some(host.getId),
+            hostId = Some(hostId),
             interfaceName = Some(ifName),
             adminStateUp = true,
             inboundFilterId = infilter,
@@ -94,7 +95,7 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                 payload(UUID.randomUUID().toString)
             case Some(v) =>
                 {
-                    eth addr srcMac -> dstMac vlan (v)
+                    eth addr srcMac -> dstMac vlan v
                 } << {
                     ip4 addr "10.0.0.10" --> "10.0.0.11"
                 } << {
@@ -173,18 +174,15 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
 
     feature("Test redirect rules") {
         scenario("Test redirect without vlans") {
-            val host = createHost()
-
             val leftBridge = createBridge(name = Some("LeftBridge"))
             val rightBridge = createBridge(name = Some("RightBridge"))
 
             var leftPortInFilter = createChain(name = Some("LeftInFilter"))
 
-            val leftPort = makePort(new UUID(0,1), host, "left_if",
+            val leftPort = makePort(new UUID(0,1), "left_if",
                                     leftBridge, Some(leftPortInFilter.getId))
-            val rightPort = makePort(new UUID(0,2), host, "right_if", rightBridge)
+            val rightPort = makePort(new UUID(0,2), "right_if", rightBridge)
 
-            store.create(host)
             store.create(leftBridge)
             store.create(rightBridge)
             store.create(leftPortInFilter)
@@ -210,7 +208,7 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("Test redirect with vlans") {
-            val host = createHost()
+            //val host = store.get(classOf[Host], hostId).await()
 
             val vmBridge = createBridge(name = Some("vmBridge"),
                                         adminStateUp = true)
@@ -229,22 +227,22 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             var svc2In = createChain(name = Some("svc2In"))
             var svc2Out = createChain(name = Some("svc2Out"))
 
-            val vm1Port = makePort(new UUID(0,1), host, "if_vm1", vmBridge,
+            val vm1Port = makePort(new UUID(0,1), "if_vm1", vmBridge,
                                    Some(vm1In.getId), Some(vm1Out.getId))
-            val vm2Port = makePort(new UUID(0,2), host, "if_vm2", vmBridge,
+            val vm2Port = makePort(new UUID(0,2), "if_vm2", vmBridge,
                                    Some(vm2In.getId), Some(vm2Out.getId))
-            var svc1Port = makePort(new UUID(1,1), host,
+            var svc1Port = makePort(new UUID(1,1),
                                     "if_svc1", svcBridge,
                                     Some(svc1In.getId),
                                     Some(svc1Out.getId))
             val ins1 = addServiceToPort(svc1Port.getId)
-            val svc2Port = makePort(new UUID(1,2), host,
+            val svc2Port = makePort(new UUID(1,2),
                                     "if_svc2", svcBridge,
                                     Some(svc2In.getId),
                                     Some(svc2Out.getId))
             val ins2 = addServiceToPort(svc2Port.getId)
 
-            List(host, vmBridge, svcBridge,
+            List(vmBridge, svcBridge,
                  vm1In, vm1Out, vm2In, vm2Out,
                  svc1In, svc1Out, svc2In, svc2Out,
                  vm1Port, vm2Port, svc1Port, svc2Port,
@@ -252,10 +250,10 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             ).foreach {
                 store.create(_)
             }
-            materializePort(vm1Port.getId, host.getId, "if_vm1")
-            materializePort(vm2Port.getId, host.getId, "if_vm2")
-            materializePort(svc1Port.getId, host.getId, "if_svc1")
-            materializePort(svc2Port.getId, host.getId, "if_svc2")
+            materializePort(vm1Port.getId, hostId, "if_vm1")
+            materializePort(vm2Port.getId, hostId, "if_vm2")
+            materializePort(svc1Port.getId, hostId, "if_svc1")
+            materializePort(svc2Port.getId, hostId, "if_svc2")
 
             // vm1Port's ingress rules
             // Packets without vlan should go to service 1 with vlan 10
@@ -399,11 +397,11 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                             FlowTagger.tagForPort(vm1Port.getId)))
 
             var p = fetchDevice[Port](svc1Port.getId)
-            p.adminStateUp should be(true)
+            p.adminStateUp shouldBe true
 
             // Now set svc1Port down. Traffic from VM1 should be dropped because FAIL_OPEN is false.
             svc1Port = Await.result(store.get(classOf[TopoPort], svc1Port.getId), 5 seconds)
-            svc1Port = svc1Port.toBuilder().setAdminStateUp(false).build()
+            svc1Port = svc1Port.toBuilder.setAdminStateUp(false).build()
             store.update(svc1Port)
             fetchDevice[Port](svc1Port.getId).
                 asInstanceOf[ServicePort].realAdminStateUp shouldBe false

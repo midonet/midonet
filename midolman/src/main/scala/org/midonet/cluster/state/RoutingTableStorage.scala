@@ -28,6 +28,7 @@ import org.midonet.cluster.data.storage.{MultiValueKey, StateResult, StateStorag
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend.RoutesKey
 import org.midonet.cluster.state.RoutingTableStorage._
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.util.functors._
@@ -177,18 +178,23 @@ class RoutingTableStorage(val store: StateStorage) extends AnyVal {
         }
     }
 
-    /** Fetches the set of routes from the state key of the given port. */
-    def getPortRoutes(portId: UUID): Observable[Set[Route]] = {
-        store.getKey(classOf[Port], portId, RoutesKey) map makeFunc1 {
+    /** Fetches the set of routes from the state key of the given port using
+      * the state for the specified host. */
+    def getPortRoutes(portId: UUID, hostId: UUID): Observable[Set[Route]] = {
+        store.getKey(hostId.asNullableString, classOf[Port], portId,
+                     RoutesKey) map makeFunc1 {
             case MultiValueKey(_, values) =>
                 values.flatMap(deserializeForPort(portId, _))
             case _ => NoRoutes
         }
     }
 
-    /** Provides an observable for the set of routes for a given port. */
-    def portRoutesObservable(portId: UUID): Observable[Set[Route]] = {
-        store.keyObservable(classOf[Port], portId, RoutesKey) map makeFunc1 {
+    /** Provides an observable for the set of routes for a given port using
+      * the state for last host emitted by the `hostIds` observable. */
+    def portRoutesObservable(portId: UUID, hostIds: Observable[UUID])
+    : Observable[Set[Route]] = {
+        store.keyObservable(hostIds.map[String](makeFunc1 { _.asNullableString }),
+                            classOf[Port], portId, RoutesKey) map makeFunc1 {
             case MultiValueKey(_, values) =>
                 values.flatMap(deserializeForPort(portId, _))
             case _ => NoRoutes
