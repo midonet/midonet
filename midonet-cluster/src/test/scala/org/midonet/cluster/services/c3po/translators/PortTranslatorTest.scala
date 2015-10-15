@@ -561,7 +561,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
 
         val antiSpoofChain = findChainOp(midoOps, OpType.Create, spoofChainId)
         antiSpoofChain should not be null
-        antiSpoofChain.getName shouldBe s"Anti-Spoof Chain"
+        antiSpoofChain.getName shouldBe s"OS_PORT_${portJUuid}_ANTI_SPOOF"
         antiSpoofChain.getRuleIdsList.size shouldBe 0
     }
 
@@ -671,7 +671,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
 
         val antiSpoofChain = findChainOp(midoOps, OpType.Create, spoofChainId)
         antiSpoofChain should not be null
-        antiSpoofChain.getName shouldBe s"Anti-Spoof Chain"
+        antiSpoofChain.getName shouldBe s"OS_PORT_${portJUuid}_ANTI_SPOOF"
         antiSpoofChain.getRuleIdsList.size shouldBe 0
 
         midoOps should containOp[Message] (midonet.Create(revFlowRuleOutbound))

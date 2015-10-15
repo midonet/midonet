@@ -43,9 +43,11 @@ trait ChainManager {
         deviceId.xorWith(0xa7b611cfe7334feL, 0xbbac78cfe412ad35L)
 
     protected def newChain(id: UUID, name: String,
-                           ruleIds: Seq[UUID] = Seq()): Chain = {
+                           ruleIds: Seq[UUID] = Seq(),
+                           jumpRuleIds: Seq[UUID] = Seq()): Chain = {
         val bldr = Chain.newBuilder.setId(id).setName(name)
-        ruleIds.foreach(bldr.addRuleIds)
+        bldr.addAllRuleIds(ruleIds.asJava)
+        bldr.addAllJumpRuleIds(jumpRuleIds.asJava)
         bldr.build()
     }
 
