@@ -22,6 +22,30 @@
       "revId": "dc3fd1a3df242726d8b3f6235df88bfd5b1bee9b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_3d0af7d2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-15T16:25:42Z",
+      "side": 1,
+      "message": "This is a change related to how the status of the bgpd is reported by the agent. Initially this was reported for each bgp peer, but this is incorrect since the same bgp peer can  be connected to more than one agent. SO a tradeoff is to report the bgp status per port, and will contain the status for all peers connected to that port.",
+      "parentUuid": "9ab29df4_1d37f3b1",
+      "range": {
+        "startLine": 475,
+        "startChar": 11,
+        "endLine": 477,
+        "endChar": 43
+      },
+      "revId": "dc3fd1a3df242726d8b3f6235df88bfd5b1bee9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
