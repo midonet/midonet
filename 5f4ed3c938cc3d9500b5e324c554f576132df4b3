@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_1a1299b4",
+        "filename": "midonet-tools/src/man/mn-conf.1.ronn",
+        "patchSetId": 13
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-15T13:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_9a7b0929",
+      "revId": "5f4ed3c938cc3d9500b5e324c554f576132df4b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_ba9fed4f",
         "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
         "patchSetId": 13
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_fa45e5b3",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-15T13:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_ba9fed4f",
+      "revId": "5f4ed3c938cc3d9500b5e324c554f576132df4b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_7a9e3558",
         "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
         "patchSetId": 13
@@ -47,6 +83,24 @@
       "writtenOn": "2015-10-15T13:12:28Z",
       "side": 1,
       "message": "nitpicks.\n\nthe array is unnecessary: log.warn(\"foo {} bar {}\", variableA, variableB) should work.\n\nSo is the if clause, you could just use the constant: case \"/old-default\" \u003d\u003e",
+      "revId": "5f4ed3c938cc3d9500b5e324c554f576132df4b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_faeec5b3",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-15T13:53:24Z",
+      "side": 1,
+      "message": "Without the array, the compiler says that the call to log.warn is ambiguous. Also, I\u0027m naming the variable legacyPath so I can use it in the log later without having to retrieve it from the config.",
+      "parentUuid": "9ab29df4_7a9e3558",
       "revId": "5f4ed3c938cc3d9500b5e324c554f576132df4b3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
