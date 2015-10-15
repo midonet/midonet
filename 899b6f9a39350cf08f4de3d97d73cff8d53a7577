@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baada198_f3aee0e6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-15T01:00:39Z",
+      "side": 1,
+      "message": "This is out of order.",
+      "revId": "899b6f9a39350cf08f4de3d97d73cff8d53a7577",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
