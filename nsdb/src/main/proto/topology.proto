@@ -162,8 +162,8 @@ message HealthMonitor {
     optional int32 timeout = 6;
     optional int32 max_retries = 7;
 
-    // Backreference
-    optional UUID pool_id = 101;
+    // Backreferences
+    repeated UUID pool_ids = 101;
 }
 
 message Host {

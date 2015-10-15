@@ -16,6 +16,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
@@ -57,13 +58,16 @@ public class HealthMonitor extends UriResource {
     @ZoomField(name = "max_retries")
     public int maxRetries;
 
+    @JsonIgnore
+    @ZoomField(name = "pool_ids", converter = UUIDUtil.Converter.class)
+    public List<Pool> poolIds;
+
     public URI getUri() {
         return absoluteUri(ResourceUris.HEALTH_MONITORS, id);
     }
 
     public URI getPools() {
-        return UriBuilder.fromUri(getBaseUri()).segment(ResourceUris.POOLS)
-            .queryParam("hm_id", this.id).build();
+        return absoluteUri(ResourceUris.HEALTH_MONITORS, id, ResourceUris.POOLS);
     }
 
     @Override
@@ -80,5 +84,6 @@ public class HealthMonitor extends UriResource {
     public void update(HealthMonitor from) {
         id = from.id;
         status = from.status;
+        poolIds = from.poolIds;
     }
 }
