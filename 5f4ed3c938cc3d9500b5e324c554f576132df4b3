@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_9a7b0929",
+        "filename": "midonet-tools/src/man/mn-conf.1.ronn",
+        "patchSetId": 13
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-15T13:12:28Z",
+      "side": 1,
+      "message": "If we are not documenting the root_key config file entry, we should not document the environment variable either. Either we document both, or we document neither.",
+      "revId": "5f4ed3c938cc3d9500b5e324c554f576132df4b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_ba9fed4f",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-15T13:12:28Z",
+      "side": 1,
+      "message": "Please explain in the warning: where the \"detected\" value came from, how to get rid of the value (by removing root_key from your config files) and the motivation for this situation.",
+      "revId": "5f4ed3c938cc3d9500b5e324c554f576132df4b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_7a9e3558",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-15T13:12:28Z",
+      "side": 1,
+      "message": "nitpicks.\n\nthe array is unnecessary: log.warn(\"foo {} bar {}\", variableA, variableB) should work.\n\nSo is the if clause, you could just use the constant: case \"/old-default\" \u003d\u003e",
+      "revId": "5f4ed3c938cc3d9500b5e324c554f576132df4b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
