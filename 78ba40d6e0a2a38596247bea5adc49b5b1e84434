@@ -16,6 +16,24 @@
       "revId": "78ba40d6e0a2a38596247bea5adc49b5b1e84434",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_fa2b2592",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-15T14:41:36Z",
+      "side": 1,
+      "message": "Actually, this sentence:\n\n\"Falling back to the new default root (/midonet), if you used the MidoNet v5 upgrade scripts....\"\n\nIs not clear enough IMHO. I\u0027d make it more crystal clear:\n\n\"This program will now fall back to the old default root: /midonet. If you used...\"",
+      "parentUuid": "9ab29df4_fa540523",
+      "revId": "78ba40d6e0a2a38596247bea5adc49b5b1e84434",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
