@@ -1586,35 +1586,6 @@ class DhcpHost(ObjectType):
                                  getter = 'get_mac_addr',
                                  setter = 'mac_addr'))
 
-class Bgp(ObjectType):
-    def __init__(self, obj):
-        super(Bgp, self).__init__(obj)
-        self.put_attr(SingleAttr(name = 'local-AS',
-                                 value_type = StringType(),
-                                 getter = 'get_local_as',
-                                 setter = 'local_as'))
-        self.put_attr(SingleAttr(name = 'peer-AS',
-                                 value_type = StringType(),
-                                 getter = 'get_peer_as',
-                                 setter = 'peer_as'))
-        self.put_attr(SingleAttr(name = 'peer',
-                                 value_type = IPv4Address(),
-                                 getter = 'get_peer_addr',
-                                 setter = 'peer_addr'))
-        self.put_attr(SingleAttr(name = 'status',
-                                 value_type = StringType(),
-                                 getter = 'get_status',
-                                 show = False))
-        self.put_attr(Collection(name = 'route',
-                                 element_type = AdRoute,
-                                 list_method = 'get_ad_routes',
-                                 getter = 'get_ad_route',
-                                 factory_method = 'add_ad_route'))
-
-    def type_name(self):
-        return "bgp"
-
-
 class BgpNetwork(ObjectType):
     def __init__(self, obj):
         super(BgpNetwork, self).__init__(obj)
@@ -1659,19 +1630,6 @@ class BgpPeer(ObjectType):
     def type_name(self):
         return "peer"
 
-
-class AdRoute(ObjectType):
-    def type_name(self):
-        return "ad-route"
-
-    def __init__(self, obj):
-        super(AdRoute, self).__init__(obj)
-        self.put_attr(CidrPair(name = 'net',
-                               value_type = StringType(),
-                               addr_getter = 'get_nw_prefix',
-                               mask_getter = 'get_prefix_length',
-                               addr_setter = 'nw_prefix',
-                               mask_setter = 'nw_prefix_length'))
 
 class Router(ObjectType):
     def __init__(self, obj):
@@ -2311,11 +2269,10 @@ class RouterPort(ObjectType):
                                  setter = 'link',
                                  unsetter = 'unlink',
                                  optional = True))
-        self.put_attr(Collection(name = 'bgp',
-                                 element_type = Bgp,
-                                 list_method = 'get_bgps',
-                                 getter = 'get_bgp',
-                                 factory_method = 'add_bgp'))
+        self.put_attr(SingleAttr(name = 'bgp-status',
+                                 value_type = StringType(),
+                                 getter = 'get_bgp_status',
+                                 show = False))
         self.put_attr(ListAttr(name = 'in-mirrors',
                                  element_type = MirrorRef(),
                                  getter = 'get_inbound_mirrors',

@@ -15,7 +15,6 @@
 
 
 from midonetclient import admin_state_up_mixin
-from midonetclient import bgp
 from midonetclient import port_group_port
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
@@ -77,17 +76,14 @@ class Port(resource_base.ResourceBase,
     def get_port_mac(self):
         return self.dto['portMac']
 
-    def get_bgps(self):
-        query = {}
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_BGP_COLLECTION_JSON}
-        return self.get_children(self.dto['bgps'], query, headers, bgp.Bgp)
-
     def get_vtep(self):
         return self.dto['vtepId']
 
     def get_vni(self):
         return self.dto['vni']
+
+    def get_bgp_status(self):
+        return self.dto['bgpStatus']
 
     def id(self, id):
         self.dto['id'] = id
@@ -128,9 +124,6 @@ class Port(resource_base.ResourceBase,
     def type(self, type_):
         self.dto['type'] = type_
         return self
-
-    def add_bgp(self):
-        return bgp.Bgp(self.dto['bgps'], {}, self.auth)
 
     def link(self, peer_uuid):
         self.dto['peerId'] = peer_uuid

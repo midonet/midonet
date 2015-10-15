@@ -66,6 +66,8 @@ public class RouterPort extends Port {
     @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> routeIds;
 
+    public String bgpStatus;
+
     @Override
     public UUID getDeviceId() {
         return routerId;

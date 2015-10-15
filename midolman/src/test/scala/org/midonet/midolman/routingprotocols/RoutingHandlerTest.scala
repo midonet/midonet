@@ -290,11 +290,11 @@ class MockRoutingStorage extends RoutingStorage {
     def break(): Unit = { broken = true }
     def unbreak(): Unit = { broken = false }
 
-    override def setStatus(bgpId: UUID, status: String): Future[UUID] = {
+    override def setStatus(portId: UUID, status: String): Future[UUID] = {
         if (broken) {
             Promise.failed(new StateAccessException("whatever")).future
         } else {
-            Promise.successful(bgpId).future
+            Promise.successful(portId).future
         }
     }
 
