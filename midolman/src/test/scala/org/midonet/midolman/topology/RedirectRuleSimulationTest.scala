@@ -208,8 +208,6 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
         }
 
         scenario("Test redirect with vlans") {
-            //val host = store.get(classOf[Host], hostId).await()
-
             val vmBridge = createBridge(name = Some("vmBridge"),
                                         adminStateUp = true)
             val svcBridge = createBridge(name = Some("svcBridge"),

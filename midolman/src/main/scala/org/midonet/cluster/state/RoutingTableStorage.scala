@@ -190,7 +190,7 @@ class RoutingTableStorage(val store: StateStorage) extends AnyVal {
     }
 
     /** Provides an observable for the set of routes for a given port using
-      * the state for last host emitted by the `hostIds` observable. */
+      * the state for the last host emitted by the `hostIds` observable. */
     def portRoutesObservable(portId: UUID, hostIds: Observable[UUID])
     : Observable[Set[Route]] = {
         store.keyObservable(hostIds.map[String](makeFunc1 { _.asNullableString }),

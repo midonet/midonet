@@ -33,7 +33,7 @@ import rx.{Notification, Observable}
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.CuratorUtil.asObservable
 import org.midonet.cluster.data.storage.KeyType.KeyType
-import org.midonet.cluster.data.storage.StateStorage.{EmptyValueSet, NoOwnerId, StringEncoding}
+import org.midonet.cluster.data.storage.StateStorage.{NoOwnerId, StringEncoding}
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.ZookeeperObjectState.{KeyIndex, makeThrowable}
 import org.midonet.cluster.util.{DirectoryObservableClosedException, NodeObservable, NodeObservableClosedException, PathDirectoryObservable}
@@ -209,6 +209,9 @@ trait ZookeeperObjectState extends StateStorage with Storage {
      * [[SingleValueKey]] or [[MultiValueKey]] depending on the key type.
      * If there are no values for the key, the returned [[StateKey]] will
      * contain an empty [[Option]] or an empty [[Set]].
+     *
+     * If the `namespace` is null, the returned observable completes immediately
+     * with an empty state, the same as if the state value does not exist.
      */
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
@@ -220,7 +223,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
             if (getKeyType(clazz, key).isSingle)
                 return Observable.just(SingleValueKey(key, None, NoOwnerId))
             else
-                return Observable.just(MultiValueKey(key, EmptyValueSet))
+                return Observable.just(MultiValueKey(key, Set()))
         }
 
         if (getKeyType(clazz, key).isSingle) {
@@ -255,7 +258,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
                     metrics.zkNoNodeTriggered()
                     Notification.createOnNext[StateKey](
-                        MultiValueKey(key, EmptyValueSet))
+                        MultiValueKey(key, Set()))
                 } else {
                     Notification.createOnError[StateKey](makeThrowable(
                         clazz.getSimpleName, getIdString(clazz, id),
@@ -300,15 +303,8 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     override def keyObservable(namespaces: Observable[String], clazz: Class[_],
                                id: ObjId, key: String): Observable[StateKey] = {
         assertBuilt()
-        val noneObservable =
-            if (getKeyType(clazz, key).isSingle)
-                Observable.just[StateKey](SingleValueKey(key, None, NoOwnerId))
-            else
-                Observable.just[StateKey](MultiValueKey(key, EmptyValueSet))
-
         Observable.switchOnNext(namespaces map makeFunc1 { namespace =>
-            if (namespace ne null) keyObservable(namespace, clazz, id, key)
-            else noneObservable
+            keyObservable(namespace, clazz, id, key)
         })
     }
 
@@ -626,7 +622,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         val key = index.key
 
         if (namespace eq null) {
-            return Observable.just(MultiValueKey(index.key, EmptyValueSet))
+            return Observable.just(MultiValueKey(index.key, Set()))
         }
 
         val path = keyPath(namespace, clazz, getIdString(clazz, id), key,
@@ -669,18 +665,18 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         }.dematerialize[StateResult]
     }
 
-    /** Verifies that the specified state path exists. The method returns an
+    /** Verifies that the specified path exists. The method returns an
       * observable, which when subscribed to asynchronously verifies that the
       * path exists and emits a notification with the result. */
     @inline
-    private def onStateExists(path: String): Observable[CuratorEvent] = {
+    private def onPathExists(path: String): Observable[CuratorEvent] = {
         asObservable {
             curator.checkExists().inBackground(_).forPath(path)
         }
     }
 
     /** Verifies that the specified object and state path exist. The method
-      * returns an observable, which when subscribed to asynchronously verifies
+      * returns an observable, which when subscribed to, asynchronously verifies
       * that the object and path exists and emits a notification with the
       * result. */
     @inline
@@ -688,7 +684,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                                       value: String, path: String)
     : Observable[CuratorEvent] = {
         onObjectExists(clazz, id, key, value) flatMap makeFunc1 { _ =>
-            onStateExists(path)
+            onPathExists(path)
         }
     }
 
