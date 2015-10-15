@@ -33,6 +33,7 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.data.ZoomConvert.fromProto
+import org.midonet.cluster.data.storage.SingleValueKey
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api.annotation._
@@ -40,7 +41,7 @@ import org.midonet.cluster.rest_api.models.Route.NextHop
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErrorHttpException, NotFoundHttpException, ConflictHttpException}
-import org.midonet.cluster.services.MidonetBackend.ActiveKey
+import org.midonet.cluster.services.MidonetBackend.{ActiveKey, BgpKey}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
@@ -51,11 +52,13 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
     extends MidonetResource[P](resContext)(tag) {
 
     protected override def getFilter(port: P): Future[P] = {
-        Future.successful(setActive(port))
+        setActive(port)
+        setBgpStatus(port)
+        Future.successful(port)
     }
 
     protected override def listFilter(ports: Seq[P]): Future[Seq[P]] = {
-        ports foreach setActive
+        ports foreach { port => setActive(port); setBgpStatus(port) }
         Future.successful(ports)
     }
 
@@ -64,9 +67,23 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                          port.id.toString, ActiveKey).getOrThrow.nonEmpty
     }
 
-    private def setActive(port: P): P = {
+    private def setActive(port: P): Unit = {
         port.active = isActive(port)
         port
+    }
+
+    private def setBgpStatus(port: P): Unit = {
+        port match {
+            case routerPort: RouterPort =>
+                getResourceState(port.hostId.asNullableString, classOf[Port],
+                                 port.id.toString, BgpKey).getOrThrow match {
+                    case SingleValueKey(_, Some(status), _) =>
+                        routerPort.bgpStatus = status
+                    case _ =>
+                        routerPort.bgpStatus = null
+                }
+            case _ =>
+        }
     }
 
     protected def ensureTunnelKey(port: P): Future[P] = {

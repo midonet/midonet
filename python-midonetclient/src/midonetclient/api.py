@@ -277,22 +277,6 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_host(id_)
 
-    def delete_ad_route(self, id_):
-        self._ensure_application()
-        return self.app.delete_ad_route(id_)
-
-    def get_ad_route(self, id_):
-        self._ensure_application()
-        return self.app.get_ad_route(id_)
-
-    def delete_bgp(self, id_):
-        self._ensure_application()
-        return self.app.delete_bgp(id_)
-
-    def get_bgp(self, id_):
-        self._ensure_application()
-        return self.app.get_bgp(id_)
-
     def delete_bgp_network(self, id_):
         self._ensure_application()
         return self.app.delete_bgp_network(id_)
@@ -719,24 +703,6 @@ if __name__ == '__main__':
     print router1.get_routes()
 
     rp2.link(rp3.get_id())
-
-    bgp1 = rp1.add_bgp().local_as(1234).peer_as(5678)\
-              .peer_addr('3.3.3.3').create()
-
-    ar1 = bgp1.add_ad_route().nw_prefix('4.4.4.0')\
-                             .nw_prefix_length(24)\
-                             .create()
-    ar2 = bgp1.add_ad_route().nw_prefix('5.5.5.0')\
-                             .nw_prefix_length(24)\
-                             .create()
-
-    for ar in bgp1.get_ad_routes():
-        print 'advertised route--------'
-        print '\t', ar.get_id()
-        print '\t', ar.get_nw_prefix()
-        print '\t', ar.get_prefix_length()
-
-    print rp1.get_bgps()
 
     # Remove all the existing IP addr groups and their addresses
     ip_addr_groups = api.get_ip_addr_groups()

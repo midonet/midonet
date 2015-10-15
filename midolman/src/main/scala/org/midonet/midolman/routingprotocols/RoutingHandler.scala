@@ -473,11 +473,9 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 case e: Exception => log.warn("Failed to check bgpd status", e)
             }
 
-            for (id <- bgpPeerIds) {
-                routingStorage.setStatus(id, status).onFailure { case e =>
-                    log.warn("Failed to set bgpd status", e)
-                }(singleThreadExecutionContext)
-            }
+            routingStorage.setStatus(rport.id, status).onFailure { case e =>
+                log.warn("Failed to set bgpd status", e)
+            }(singleThreadExecutionContext)
         }(singleThreadExecutionContext)
     }
 

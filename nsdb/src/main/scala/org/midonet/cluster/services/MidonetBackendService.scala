@@ -205,10 +205,10 @@ object MidonetBackend {
         store.declareBinding(classOf[Port], "trace_request_ids", CASCADE,
                              classOf[TraceRequest], "port_id", CLEAR)
 
-        stateStore.registerKey(classOf[BgpPeer], BgpKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Host], AliveKey, SingleFirstWriteWins)
         stateStore.registerKey(classOf[Host], HostKey, SingleFirstWriteWins)
         stateStore.registerKey(classOf[Port], ActiveKey, SingleLastWriteWins)
+        stateStore.registerKey(classOf[Port], BgpKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
         stateStore.registerKey(classOf[TunnelZone], FloodingProxyKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepConfig, SingleLastWriteWins)

@@ -28,7 +28,7 @@ import rx.Subscription
 
 import org.midonet.cluster.data.storage.StateStorage
 import org.midonet.cluster.data.Route
-import org.midonet.cluster.models.Topology.BgpPeer
+import org.midonet.cluster.models.Topology.{Port, BgpPeer}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.BgpKey
 import org.midonet.cluster.state.LegacyStorage
@@ -55,7 +55,7 @@ object RoutingManagerActor extends Referenceable {
     case class BgpStatus(status : Array[String])
 
     private[routingprotocols] trait RoutingStorage {
-        def setStatus(bgpId: UUID, status: String): Future[UUID]
+        def setStatus(portId: UUID, status: String): Future[UUID]
         def addRoute(route: Route): Future[Route]
         def removeRoute(route: Route): Future[Route]
         def learnedRoutes(routerId: UUID, portId: UUID, hostId: UUID)
@@ -64,9 +64,9 @@ object RoutingManagerActor extends Referenceable {
 
     private[routingprotocols] class RoutingStorageImpl(storage: StateStorage)
         extends RoutingStorage {
-        override def setStatus(bgpId: UUID, status: String): Future[UUID] = {
-            storage.addValue(classOf[BgpPeer], bgpId, BgpKey, status)
-                   .map[UUID](makeFunc1(_ => bgpId))
+        override def setStatus(portId: UUID, status: String): Future[UUID] = {
+            storage.addValue(classOf[Port], portId, BgpKey, status)
+                   .map[UUID](makeFunc1(_ => portId))
                    .asFuture
         }
         override def addRoute(route: Route): Future[Route] = {
