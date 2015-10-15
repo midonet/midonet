@@ -438,19 +438,19 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         // Get routes on router gateway port.
         val trLocalRtId = RouteManager.localRouteId(trGwPortId)
-        val trNetRtId = RouteManager.networkRouteId(trGwPortId)
         val trGwRtId = RouteManager.gatewayRouteId(trGwPortId)
 
-        val List(trLocalRt, trNetRt, trGwRt) =
-            List(trLocalRtId, trNetRtId, trGwRtId)
+        val List(trLocalRt, trGwRt) =
+            List(trLocalRtId, trGwRtId)
                 .map(storage.get(classOf[Route], _)).map(_.await())
 
         val List(nwGwPort, trGwPort) = portFs.await()
 
-        // Check router port has correct router and route IDs.
+        // Check router port has correct router and route IDs.  This also
+        // validates that there is no network route created for the gw port.
         trGwPort.getRouterId shouldBe UUIDUtil.toProto(rtrId)
         trGwPort.getRouteIdsList.asScala should
-            contain only (trGwRtId, trNetRtId, trLocalRtId)
+            contain only (trGwRtId, trLocalRtId)
 
         // Network port has no routes.
         nwGwPort.getRouteIdsCount shouldBe 0
@@ -464,8 +464,6 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         validateLocalRoute(trLocalRt, trGwPort)
 
-        validateNetworkRoute(trNetRt, trGwPort, extSubnetCidr)
-
         trGwRt.getNextHop shouldBe NextHop.PORT
         trGwRt.getNextHopPortId shouldBe trGwPort.getId
         trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
@@ -475,16 +473,6 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         if (snatEnabled)
             validateGatewayNatRules(tr, gatewayIp, trGwPortId)
-    }
-
-    private def validateNetworkRoute(rt: Route, nextHopPort: Port,
-                                     cidr: String): Unit = {
-        rt.getNextHop shouldBe NextHop.PORT
-        rt.getNextHopPortId shouldBe nextHopPort.getId
-        rt.getDstSubnet shouldBe IPSubnetUtil.toProto(cidr)
-        rt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
-        rt.hasNextHopGateway shouldBe false
-        rt.getWeight shouldBe RouteManager.DEFAULT_WEIGHT
     }
 
     private def validateLocalRoute(rt: Route, nextHopPort: Port): Unit = {

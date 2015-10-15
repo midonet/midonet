@@ -126,6 +126,12 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         val dhcp = storage.get(classOf[Dhcp], subnetId).await()
 
         // Create port on tenant router and link to the external network port.
+        // Do not create a network route for floating IP because we want the
+        // FIP traffic to go to the uplink router.  The reason is that midolman
+        // agent has a safe-guard mechanism in which the traffic that ingresses
+        // and egresses on the same network port gets dropped.  Thus, we cannot
+        // rely on the ARP/MAC tables of the external network to bounce the
+        // traffic back to the tenant router.
         val trPortId = tenantGwPortId(nr.getGwPortId)
         val gwMac = if (nGwPort.hasMacAddress) Some(nGwPort.getMacAddress)
                     else None
@@ -134,9 +140,6 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                                            mac = gwMac)
         val linkOps = linkPortOps(trPort, extNwPort)
 
-        val netRoute = newNextHopPortRoute(trPortId,
-                                           id = networkRouteId(trPortId),
-                                           dstSubnet = dhcp.getSubnetAddress)
         val defaultRoute = defaultGwRoute(dhcp, trPortId)
 
         val snatOps = snatRuleCreateOps(nr, r, gwIpAddr, trPortId)
@@ -144,7 +147,6 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         val ops = new MidoOpListBuffer
         ops += Create(trPort)
         ops ++= linkOps
-        ops += Create(netRoute)
         ops += Create(defaultRoute)
         ops ++= snatOps
 

@@ -255,6 +255,14 @@ If the router has 'gw_port_id' specified, the gateway must be configured:
   * Add a default route on the midonet router with the next hop gateway IP
     address set to the gateway IP of the subnet (fixed_ips[0].subnet)
 
+Do not add a network route for the external network's subnet.  All the floating
+IP traffic is expected to be handled by the uplink router (forwarded by the
+default route).  The reason is that the MidoNet agent does not allow packets
+to ingress and egress on the same bridge port in the bridge simulation, so
+when two VMs with floating IP associated try to connect to each other, such
+traffic must egress out of the external network into the uplink router first
+before coming back to the network.
+
 For each router, create a port group.  These port groups are used to group
 ports on each edge router. The ports on the same port group on the edge router
 shares flow states required for connection tracking and dynamic NAT.
