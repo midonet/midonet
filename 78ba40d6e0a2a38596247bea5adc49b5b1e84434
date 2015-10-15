@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_fa540523",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-15T14:38:41Z",
+      "side": 1,
+      "message": "\"WARNING. mn-conf is set up to use the deprecated default zookeeper root path (/midonet/v1). This version of MidoNet does not read information stored in the old root path.\n\nFalling back to the new default root (/midonet), if you used the MidoNet v5 upgrade scripts, everything should just work. If, however, you haven\u0027t converted your storage, this version of MidoNet cannot use your old data. Please check the MidoNet v5.0 Release notes for further information.\n\nTo remove this warning, please remove the \"zookeeper.root_key\" configuration key from your these configuration files, should they exist:\n\n  bla\n  bla\n  bla\n\n...and from any scripts that set the BLA_BLA environment variable.\n\nMidoNet will use the new default automatically.\"",
+      "revId": "78ba40d6e0a2a38596247bea5adc49b5b1e84434",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
