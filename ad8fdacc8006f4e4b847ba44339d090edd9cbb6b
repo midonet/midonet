@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_faa9657c",
+        "filename": "build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-15T13:14:05Z",
+      "side": 1,
+      "message": "uh oh, hard tabs, trailing space...",
+      "revId": "ad8fdacc8006f4e4b847ba44339d090edd9cbb6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
