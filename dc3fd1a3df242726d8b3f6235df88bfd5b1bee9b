@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_1d37f3b1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-15T16:18:15Z",
+      "side": 1,
+      "message": "This is because in V5, only a single bgp peering is supported per router?",
+      "range": {
+        "startLine": 475,
+        "startChar": 11,
+        "endLine": 477,
+        "endChar": 43
+      },
+      "revId": "dc3fd1a3df242726d8b3f6235df88bfd5b1bee9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
