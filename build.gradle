@@ -20,9 +20,11 @@ project.ext {
     maintainer = "MidoNet user list <midonet-user@midonet.org>"
     url = "http://midonet.org"
 
-    if (!rootProject.hasProperty('rhelTarget')) {
-        rhelTarget = "7"
+    if (rootProject.hasProperty('rhelTarget')) {
+        println("Only RHEL7 is supported: rhelTarget property will be ignored")
     }
+
+    rhelTarget = "7"
 
     scalaLangLevel = 'Scala 2.11.7'
 
