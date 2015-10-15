@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_77465025",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-15T08:46:47Z",
+      "side": 1,
+      "message": "Oh, yes!",
+      "parentUuid": "9ab29df4_97ae84e6",
+      "revId": "0a9da9ce207df0137d1aa548d0af645dc307bf0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_57a5cc02",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslatorTest.scala",
         "patchSetId": 2
@@ -30,6 +48,30 @@
       "writtenOn": "2015-10-15T08:23:11Z",
       "side": 1,
       "message": "This is equivalent to \n\npools {\n  pool_id ...\n  pool_id ...\n}\n\nright?",
+      "range": {
+        "startLine": 62,
+        "startChar": 12,
+        "endLine": 68,
+        "endChar": 16
+      },
+      "revId": "0a9da9ce207df0137d1aa548d0af645dc307bf0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_974a0426",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-15T08:46:47Z",
+      "side": 1,
+      "message": "I think I tried that but failed because the `pools` is the repeated field. I think the other way it understands it as a single `pools` with repeated `pool_id`",
+      "parentUuid": "9ab29df4_57a5cc02",
       "range": {
         "startLine": 62,
         "startChar": 12,
