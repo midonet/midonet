@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_9d01433c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-15T19:10:14Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we provide an /etc/midonet/midonet.conf file with the cluster, where the user can set the bootstrap config?",
+      "range": {
+        "startLine": 83,
+        "startChar": 8,
+        "endLine": 83,
+        "endChar": 59
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
