@@ -168,7 +168,6 @@ project.ext {
                                 replaceAll(/^.*SNAPSHOT$/, "0.0.${timestamp}.${gitrev}").
                                 replaceAll(/^.*-(.*)$/, "0.1.\$1")
     rpmRelease = "${rpmRelease}.el${project.rhelTarget}"
-
 }
 
 buildscript {
@@ -308,7 +307,11 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         }
 
         forkEvery = 10
-    }
+
+		testLogging {
+			events "started", "passed", "skipped", "failed"
+		}
+	}
 
     dependencies {
         compile libraries.slf4j
