@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.datapath
 
-import java.nio.ByteBuffer
+import java.nio.{BufferOverflowException, ByteBuffer}
 import java.util.{List => JList}
 
 import com.lmax.disruptor._
@@ -111,7 +111,7 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
                                      actions: JList[FlowAction]): Unit =
         try {
             protocol.preparePacketExecute(datapathId, packet, actions, event.bb)
-        } catch { case t: IndexOutOfBoundsException =>
+        } catch { case t: BufferOverflowException =>
             if (maybeGrow(event)) {
                 preparePacketExecute(event, packet, actions)
             } else {
@@ -140,7 +140,7 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
     private def prepareFlow(event: DatapathEvent, flow: Flow): Unit =
         try {
             protocol.prepareFlowCreate(datapathId, supportsMegaflow, flow, event.bb)
-        } catch { case t: IndexOutOfBoundsException =>
+        } catch { case t: BufferOverflowException =>
             if (maybeGrow(event)) {
                 prepareFlow(event, flow)
             } else {
