@@ -103,11 +103,6 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
         return self();
     }
 
-    public Boolean isReplyReady() {
-        return (getData().defaultGateway != null) &&
-               (getData().serverAddr != null);
-    }
-
     public static class Data {
 
         public IPv4Subnet subnetAddr;
