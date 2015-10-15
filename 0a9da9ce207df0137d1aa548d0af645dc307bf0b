@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_97ae84e6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-15T08:23:11Z",
+      "side": 1,
+      "message": "Should we prefer a getAll with the list of IDs? (if so, i\u0027m fine addressing this later and merge now to unblock the RC), provided we don\u0027t find any other issues in the review.",
+      "revId": "0a9da9ce207df0137d1aa548d0af645dc307bf0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_57a5cc02",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-15T08:23:11Z",
+      "side": 1,
+      "message": "This is equivalent to \n\npools {\n  pool_id ...\n  pool_id ...\n}\n\nright?",
+      "range": {
+        "startLine": 62,
+        "startChar": 12,
+        "endLine": 68,
+        "endChar": 16
+      },
+      "revId": "0a9da9ce207df0137d1aa548d0af645dc307bf0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
