@@ -177,7 +177,6 @@ is_package_installed git || install_package git
 is_package_installed libreadline-dev || install_package libreadline-dev
 is_package_installed ncurses-dev || install_package ncurses-dev
 is_package_installed openjdk-7-jdk || install_package openjdk-7-jdk
-is_package_installed python-pip || install_package python-pip
 is_package_installed wget || install_package wget
 is_package_installed ruby-ronn || install_package ruby-ronn
 
