@@ -15,8 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from midonetclient import ad_route
-from midonetclient import bgp
 from midonetclient import bgp_network
 from midonetclient import bgp_peer
 from midonetclient import bridge
@@ -57,12 +55,6 @@ class Application(resource_base.ResourceBase):
 
     def __init__(self, uri, dto, auth):
         super(Application, self).__init__(uri, dto, auth)
-
-    def get_ad_route_template(self):
-        return self.dto['adRouteTemplate']
-
-    def get_bgp_template(self):
-        return self.dto['bgpTemplate']
 
     def get_bgp_network_template(self):
         return self.dto['bgpNetworkTemplate']
@@ -230,20 +222,6 @@ class Application(resource_base.ResourceBase):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_HOST_COLLECTION_JSON}
         return self.get_children(self.dto['hosts'], query, headers, host.Host)
-
-    def delete_ad_route(self, id_):
-        return self._delete_resource_by_id(self.get_ad_route_template(), id_)
-
-    def get_ad_route(self, id_):
-        return self._get_resource_by_id(ad_route.AdRoute, self.dto['adRoutes'],
-                                        self.get_ad_route_template(), id_)
-
-    def delete_bgp(self, id_):
-        return self._delete_resource_by_id(self.get_bgp_template(), id_)
-
-    def get_bgp(self, id_):
-        return self._get_resource_by_id(bgp.Bgp, None, self.get_bgp_template(),
-                                        id_)
 
     def delete_bgp_network(self, id_):
         return self._delete_resource_by_id(self.get_bgp_network_template(), id_)

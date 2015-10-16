@@ -68,8 +68,6 @@ public class BgpPeer extends UriResource {
     @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     public UUID routerId;
 
-    public String status;
-
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.BGP_PEERS, id);

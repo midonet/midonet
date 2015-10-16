@@ -22,9 +22,7 @@ import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.midonet.client.WebResource;
-import org.midonet.client.dto.DtoAdRoute;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBgp;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoHost;
@@ -40,8 +38,6 @@ import org.midonet.client.dto.DtoSystemState;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoWriteVersion;
 
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_AD_ROUTE_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BGP_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_COLLECTION_JSON_V4;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_COLLECTION_JSON;
@@ -174,22 +170,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                 new DtoTunnelZone(),
                 APPLICATION_TUNNEL_ZONE_HOST_JSON(),
                 APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON());
-    }
-
-    public AdRoute getAdRoute(UUID id) {
-        URI uri = createUriFromTemplate(
-                app.getAdRouteTemplate(), ID_TOKEN, id);
-        DtoAdRoute adRoute = resource.get(uri, null, DtoAdRoute.class,
-                APPLICATION_AD_ROUTE_JSON());
-        return new AdRoute(resource, null, adRoute);
-    }
-
-    public Bgp getBgp(UUID id) {
-        URI uri = createUriFromTemplate(
-                principalDto.getBgpTemplate(), ID_TOKEN, id);
-        DtoBgp bgp = resource.get(uri, null, DtoBgp.class,
-                APPLICATION_BGP_JSON());
-        return new Bgp(resource, null, bgp);
     }
 
     public Bridge getBridge(UUID id) {
