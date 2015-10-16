@@ -55,10 +55,10 @@ object PoolHealthMonitorMapper {
  *     includes all members (without active/disabled differentiation)
  *
  * Mappings for pools with incomplete or invalid health monitor or load
- * balancer ids are filtered out.
+ * balancer IDs are filtered out.
  *
  * This mapper assumes the following relations:
- *   LoadBalancer (1 <-> *) VIP (1 <-> 1) Pool (1 <-> *) PoolMember
+ *   LoadBalancer (1 <-> *) Pool (1 <-> *) VIP (1 <-> *) PoolMember
  */
 class PoolHealthMonitorMapper(vt: VirtualTopology)
     extends DeviceMapper[PoolHealthMonitorMap](

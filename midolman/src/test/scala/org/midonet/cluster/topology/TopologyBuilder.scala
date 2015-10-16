@@ -1135,8 +1135,8 @@ object TopologyBuilder {
             healthMonitor.toBuilder.setTimeout(timeout).build()
         def setMaxRetries(maxRetries: Int): HealthMonitor =
             healthMonitor.toBuilder.setMaxRetries(maxRetries).build()
-        def setPoolId(poolId: UUID): HealthMonitor =
-            healthMonitor.toBuilder.setPoolId(poolId.asProto).build()
+        def addPoolId(poolId: UUID): HealthMonitor =
+            healthMonitor.toBuilder.addPoolIds(poolId.asProto).build()
     }
 
     final class RichBgpNetwork(val bgpNetwork: BgpNetwork) extends AnyVal {

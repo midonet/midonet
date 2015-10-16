@@ -186,7 +186,7 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
         hm.getTimeout shouldBe 30
         hm.getType shouldBe TCP
         hm.getStatus shouldBe LBStatus.ACTIVE
-        hm.hasPoolId shouldBe true
+        hm.getPoolIdsList should not be empty
 
         eventually {
             val pool = storage.get(classOf[Pool], poolId).await()
@@ -213,7 +213,7 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
             updatedHm.getTimeout shouldBe 20
             updatedHm.getType shouldBe TCP
             updatedHm.getStatus shouldBe LBStatus.ACTIVE
-            updatedHm.getPoolId shouldBe toProto(poolId)
+            updatedHm.getPoolIds(0) shouldBe toProto(poolId)
         }
 
         // Create a VIP.
