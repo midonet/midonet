@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_cb5a1550",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-16T10:16:54Z",
+      "side": 1,
+      "message": "oh btw do you mind removing this? we\u0027ve already removed rhel6 from master, but this leftover seems to have been forgotten for a while",
+      "range": {
+        "startLine": 136,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 1
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_0ba7ad50",
         "filename": "midonet-cluster/build.gradle",
         "patchSetId": 2
