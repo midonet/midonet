@@ -33,7 +33,7 @@ import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import com.google.inject.Inject
-import com.google.protobuf.Message
+import com.google.protobuf.{TextFormat, Message}
 import com.lmax.disruptor.util.DaemonThreadFactory
 import com.typesafe.scalalogging.Logger
 
@@ -51,6 +51,8 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.midolman.state._
+import org.midonet.cluster.util.logging.ProtoTextPrettifier
+import org.midonet.cluster.util.logging.ProtoTextPrettifier.makeReadable
 import org.midonet.util.reactivex._
 
 object MidonetResource {
@@ -388,11 +390,11 @@ abstract class MidonetResource[T >: Null <: UriResource]
         val zoomOps = ops.map {
             case Create(resource) =>
                 val msg = toProto(resource)
-                log.debug("CREATE: {}\n{}", msg.getClass, msg)
+                log.debug("CREATE: {}", makeReadable(msg))
                 CreateOp(msg)
             case Update(resource) =>
                 val msg = toProto(resource)
-                log.debug("UPDATE: {}\n{}", msg.getClass, msg)
+                log.debug("UPDATE: {}", makeReadable(msg))
                 UpdateOp(msg)
             case Delete(clazz, id) =>
                 log.debug("DELETE: {}:{}", UriResource.getZoomClass(clazz),
