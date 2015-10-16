@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_0648845a",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-16T14:19:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_6b358945",
+      "range": {
+        "startLine": 132,
+        "startChar": 30,
+        "endLine": 132,
+        "endChar": 45
+      },
+      "revId": "2b6299c40ba8fe279ae717976c2a93d16d8c430b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_cbfe9538",
         "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
         "patchSetId": 16
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_2674a89b",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-16T14:19:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_cbfe9538",
+      "range": {
+        "startLine": 169,
+        "startChar": 20,
+        "endLine": 182,
+        "endChar": 67
+      },
+      "revId": "2b6299c40ba8fe279ae717976c2a93d16d8c430b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_c66e8c96",
         "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
         "patchSetId": 16
@@ -59,6 +107,24 @@
       "writtenOn": "2015-10-16T12:55:56Z",
       "side": 1,
       "message": "all users of the library are going through this code path, where the library bootstraps its zk connection implicitly, and thus will not see the warning above.",
+      "revId": "2b6299c40ba8fe279ae717976c2a93d16d8c430b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e648f0ce",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-16T14:19:04Z",
+      "side": 1,
+      "message": "I call zkRootKey here to override the root key.",
+      "parentUuid": "9ab29df4_c66e8c96",
       "revId": "2b6299c40ba8fe279ae717976c2a93d16d8c430b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
