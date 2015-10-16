@@ -63,6 +63,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val pg = eventually(storage.get(classOf[PortGroup], pgId).await())
         pg.getName shouldBe RouterTranslator.portGroupName(pgId)
         pg.getTenantId shouldBe r1.getTenantId
+        pg.getStateful shouldBe true
 
         val r2Id = UUID.randomUUID()
         val r2Json = routerJson(r2Id, name = "router2", adminStateUp = false)

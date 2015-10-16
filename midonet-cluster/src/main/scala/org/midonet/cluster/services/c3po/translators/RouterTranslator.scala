@@ -55,6 +55,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         val portGroup = PortGroup.newBuilder.setId(pgId)
                                             .setName(portGroupName(pgId))
                                             .setTenantId(nr.getTenantId)
+                                            .setStateful(true)
                                             .build()
 
         val gwPortOps = gatewayPortCreateOps(nr, r)
