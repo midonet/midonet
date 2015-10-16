@@ -101,15 +101,22 @@ public class CassandraClient {
     }
 
     public Future<Session> connect() {
-        theReactor.submit(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (CLUSTERS) {
-                    if (session == null)
-                        _connect(10);
+        if (serversStr == null || serversStr.isEmpty()) {
+            sessionPromise.tryFailure(
+                    new Exception("Cassandra is not configured. MidoNet will "+
+                            "function fine without it, except that flow state "+
+                            "will be lost across agent reboots and port migrations."));
+        } else {
+            theReactor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (CLUSTERS) {
+                        if (session == null)
+                            _connect(10);
+                    }
                 }
-            }
-        });
+            });
+        }
         return sessionPromise.future();
     }
 
