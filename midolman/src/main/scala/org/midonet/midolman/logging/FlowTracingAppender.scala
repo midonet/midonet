@@ -54,7 +54,7 @@ class FlowTracingAppender(sessionFuture: Future[Session])
     var lastAppendErrored = false
 
     var schema: FlowTracingSchema = null
-    val errorListenerExecutor: Executor = MoreExecutors.sameThreadExecutor()
+    val errorListenerExecutor: Executor = MoreExecutors.directExecutor()
 
     override def start(): Unit = {
         sessionFuture.onSuccess {
