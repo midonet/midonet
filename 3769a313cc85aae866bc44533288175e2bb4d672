@@ -46,6 +46,30 @@
       "revId": "3769a313cc85aae866bc44533288175e2bb4d672",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_11e27c9f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-16T18:19:50Z",
+      "side": 1,
+      "message": "I think this name is fine - it\u0027s consistent with others.",
+      "parentUuid": "9ab29df4_265e68ea",
+      "range": {
+        "startLine": 326,
+        "startChar": 35,
+        "endLine": 326,
+        "endChar": 48
+      },
+      "revId": "3769a313cc85aae866bc44533288175e2bb4d672",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
