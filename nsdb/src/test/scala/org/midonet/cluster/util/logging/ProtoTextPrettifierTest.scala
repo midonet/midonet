@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.util.logging
 
+import java.util.UUID
 import java.util.UUID.randomUUID
 
 import scala.collection.JavaConversions._
@@ -26,9 +27,9 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FunSuite, ShouldMatchers}
 
 import org.midonet.cluster.models.Commons.Int32Range
-import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.models.Topology.{Dhcp, Network}
 import org.midonet.cluster.util.logging.ProtoTextPrettifier._
-import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.packets.{IPv4Addr, IPv6Addr}
 
 @RunWith(classOf[JUnitRunner])
@@ -68,7 +69,6 @@ class ProtoTextPrettifierTest extends FunSuite with ShouldMatchers {
     test("Repeated fields that are messages") {
         val r = Network.newBuilder().setName("test")
         1 to 3 foreach { _ => r.addPortIds(UUIDUtil.toProto(randomUUID())) }
-        println(makeReadable(r.build()))
 
         val serialized = makeReadable(r.build())
 
@@ -77,6 +77,22 @@ class ProtoTextPrettifierTest extends FunSuite with ShouldMatchers {
         r.getPortIdsList.map { UUIDUtil.fromProto } foreach { id =>
             serialized.contains(id.toString) shouldBe true
         }
+    }
+
+    test("A more complex proto with nested objects") {
+        val dhcpSubnet = IPSubnetUtil.toProto("10.0.0.0/18")
+        val gw = IPAddressUtil.toProto("10.0.0.1")
+        val id = UUID.randomUUID()
+        val dhcp = Dhcp.newBuilder()
+                       .setId(UUIDUtil.toProto(id))
+
+        val opt121 = dhcp.addOpt121RoutesBuilder()
+                         .setDstSubnet(dhcpSubnet)
+                         .setGateway(gw)
+
+        val serialized = makeReadable(dhcp.build())
+        serialized.contains(makeReadable(opt121.build())) shouldBe true
+        serialized.startsWith(classOf[Dhcp].getName) shouldBe true
     }
 
 }
