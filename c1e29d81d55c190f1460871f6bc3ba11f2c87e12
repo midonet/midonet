@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_e048d8ce",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-16T04:34:59Z",
+      "side": 1,
+      "message": "Is \"This program\" the same as \"This version of MidoNet\" above? If so, it\u0027s repetitious and confusing; please replace it with \"It\".",
+      "range": {
+        "startLine": 168,
+        "startChar": 55,
+        "endLine": 168,
+        "endChar": 67
+      },
+      "revId": "c1e29d81d55c190f1460871f6bc3ba11f2c87e12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
