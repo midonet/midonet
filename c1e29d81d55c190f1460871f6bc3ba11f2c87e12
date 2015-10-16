@@ -70,6 +70,30 @@
       "revId": "c1e29d81d55c190f1460871f6bc3ba11f2c87e12",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_a63ef827",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-16T14:19:04Z",
+      "side": 1,
+      "message": "zkBootStrap(cfg) now calls zkRootKey(cfg) to override the zookeeper root key. I also better formatted the warning message so that it\u0027s easily readable with mn-conf (and I have tested that it works fine).",
+      "parentUuid": "9ab29df4_ebfb5945",
+      "range": {
+        "startLine": 168,
+        "startChar": 55,
+        "endLine": 168,
+        "endChar": 67
+      },
+      "revId": "c1e29d81d55c190f1460871f6bc3ba11f2c87e12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
