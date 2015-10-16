@@ -70,6 +70,7 @@ object MidonetResource {
     case class Create[T <: UriResource](resource: T) extends Multi
     case class Update[T <: UriResource](resource: T) extends Multi
     case class Delete(clazz: Class[_ <: UriResource], id: Any) extends Multi
+    case class CreateNode(path: String) extends Multi
 
     final val DefaultHandler: PartialFunction[Response, Response] = {
         case r => r
@@ -396,6 +397,9 @@ abstract class MidonetResource[T >: Null <: UriResource]
                 log.debug("DELETE: {}:{}", UriResource.getZoomClass(clazz),
                          id.asInstanceOf[AnyRef])
                 DeleteOp(UriResource.getZoomClass(clazz), id)
+            case CreateNode(path) =>
+                log.debug("CREATE NODE: {}", path)
+                CreateNodeOp(path, null)
         }
         tryWrite {
             backend.store.multi(zoomOps)
