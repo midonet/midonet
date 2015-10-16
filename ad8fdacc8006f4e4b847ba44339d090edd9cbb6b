@@ -52,6 +52,24 @@
       "revId": "ad8fdacc8006f4e4b847ba44339d090edd9cbb6b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_6ba58903",
+        "filename": "build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-16T07:53:07Z",
+      "side": 1,
+      "message": "ohh, i did this in vim with my linux kernel settings :)",
+      "parentUuid": "9ab29df4_cb64d5e7",
+      "revId": "ad8fdacc8006f4e4b847ba44339d090edd9cbb6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
