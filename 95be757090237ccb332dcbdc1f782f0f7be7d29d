@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_86a49458",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-16T14:57:37Z",
+      "side": 1,
+      "message": "\"it will fall back to the old default\"\n\nshould be:\n\n\"it will fall back to the new default\"",
+      "revId": "95be757090237ccb332dcbdc1f782f0f7be7d29d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
