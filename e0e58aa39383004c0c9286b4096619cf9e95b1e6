@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_202bb0ec",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/DhcpImpl.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-16T04:21:35Z",
+      "side": 1,
+      "message": "Delete isReplyReady method",
+      "revId": "e0e58aa39383004c0c9286b4096619cf9e95b1e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
