@@ -23,8 +23,8 @@ object MidonetMediaTypes {
     final val APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"
 
     final val APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json"
-    final val APPLICATION_TENANT_JSON = "application/vnd.org.midonet.Tenant-v1+json"
-    final val APPLICATION_TENANT_COLLECTION_JSON = "application/vnd.org.midonet.collection.Tenant-v1+json"
+    final val APPLICATION_TENANT_JSON_V2 = "application/vnd.org.midonet.Tenant-v2+json"
+    final val APPLICATION_TENANT_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.Tenant-v2+json"
     final val APPLICATION_ROUTER_JSON_V3 = "application/vnd.org.midonet.Router-v3+json"
     final val APPLICATION_ROUTER_COLLECTION_JSON_V3 = "application/vnd.org.midonet.collection.Router-v3+json"
     final val APPLICATION_BRIDGE_JSON_V4 = "application/vnd.org.midonet.Bridge-v4+json"

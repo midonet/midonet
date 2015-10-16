@@ -37,12 +37,22 @@ class Tenant(resource_base.ResourceBase):
     def get_id(self):
         return self.dto['id']
 
-    def id(self, id):
-        self.dto['id'] = id
-        return self
+    def get_description(self):
+        return self.dto['description']
+
+    def get_enabled(self):
+        return self.dto['enabled']
 
     def name(self, name):
         self.dto['name'] = name
+        return self
+
+    def description(self, description):
+        self.dto['description'] = description
+        return self
+
+    def enabled(self, enabled):
+        self.dto['enabled'] = enabled
         return self
 
     def get_bridges(self, query=None):

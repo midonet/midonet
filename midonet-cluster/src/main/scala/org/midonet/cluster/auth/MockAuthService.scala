@@ -33,6 +33,8 @@ class MockAuthService @Inject()(conf: Config) extends AuthService {
     val mockAdminTenant = new Tenant {
         override def getName: String = "admin"
         override def getId: String = "admin"
+        override def getDescription: String = "Admin Tenant"
+        override def isEnabled: Boolean = true
     }
 
     val adminToken = "00000000"
@@ -45,6 +47,8 @@ class MockAuthService @Inject()(conf: Config) extends AuthService {
         new Tenant {
             override def getName: String = id
             override def getId: String = name
+            override def getDescription: String = name
+            override def isEnabled: Boolean = true
         }
     )
 
@@ -66,6 +70,8 @@ class MockAuthService @Inject()(conf: Config) extends AuthService {
     override def getTenant(id: String): Tenant = new Tenant {
         override def getName: String = id
         override def getId: String = id
+        override def getDescription: String = id
+        override def isEnabled: Boolean = true
     }
 
     override def login(username: String, password: String,

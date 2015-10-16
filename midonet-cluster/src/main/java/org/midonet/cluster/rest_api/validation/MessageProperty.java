@@ -96,6 +96,8 @@ public class MessageProperty {
             "{midokura.javarx.RouteNextHopPortInvalid.message}";
     public static final String ROUTER_ID_IS_INVALID =
             "{midokura.javarx.RouterIdIsInvalid.message}";
+    public static final String TENANT_UNMODIFIABLE =
+        "{midokura.javarx.TenantUnmodifiable.message}";
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
             "{midokura.javarx.TunnelZoneIdIsInvalid.message}";
     public static final String TUNNEL_ZONE_NOT_VTEP =
