@@ -66,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_cb3db5bd",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/BgpPeer.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-16T07:45:33Z",
+      "side": 1,
+      "message": "Yes, this is part of the new BGP model: we replaced Bgp and AdRoute with BgpPeer and BgpNetwork.\n\nBgpPeer - the peer IP address, AS number, BGP conn params etc\nBgpNetwork - the local routes advertised to BGP peers",
+      "parentUuid": "9ab29df4_00aa2c70",
+      "revId": "dc3fd1a3df242726d8b3f6235df88bfd5b1bee9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_e0ac588f",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
         "patchSetId": 2
@@ -77,6 +95,30 @@
       "writtenOn": "2015-10-16T03:01:23Z",
       "side": 1,
       "message": "I\u0027m just curious why you\u0027re changing the return type to Unit. If the return type is P, we can compose the functions as setBgpStatus(setActive(port)). If you change it to Unit, then we don\u0027t need to return port at line 72.",
+      "range": {
+        "startLine": 70,
+        "startChar": 36,
+        "endLine": 70,
+        "endChar": 40
+      },
+      "revId": "dc3fd1a3df242726d8b3f6235df88bfd5b1bee9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_6b6e69cb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-16T07:45:33Z",
+      "side": 1,
+      "message": "Oh yes, that was the alternative but I though it would be uglier. I will change on the master patch.",
+      "parentUuid": "9ab29df4_e0ac588f",
       "range": {
         "startLine": 70,
         "startChar": 36,
