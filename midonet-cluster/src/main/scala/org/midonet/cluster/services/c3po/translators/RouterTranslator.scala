@@ -52,7 +52,10 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         // create or delete the port group when a router becomes or ceases to
         // be an edge router as interfaces are created and deleted.
         val pgId = PortManager.portGroupId(nr.getId)
-        val portGroup = PortGroup.newBuilder.setId(pgId).build()
+        val portGroup = PortGroup.newBuilder.setId(pgId)
+                                            .setName(portGroupName(pgId))
+                                            .setTenantId(nr.getTenantId)
+                                            .build()
 
         val gwPortOps = gatewayPortCreateOps(nr, r)
 
@@ -319,6 +322,8 @@ object RouterTranslator {
     def preRouteChainName(id: UUID) = "OS_PRE_ROUTING_" + id.asJava
 
     def postRouteChainName(id: UUID) = "OS_PORT_ROUTING_" + id.asJava
+
+    def portGroupName(id: UUID) = "OS_PORT_GROUP_" + id.asJava
 
     /** ID of tenant router port that connects to external network port. */
     def tenantGwPortId(providerGwPortId: UUID) =
