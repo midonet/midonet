@@ -22,6 +22,30 @@
       "revId": "5b4beeb8e3518e7c1bfae3b44910d6918620676e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e680f08d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-16T15:21:49Z",
+      "side": 1,
+      "message": "Oh, true. A buggy language that tolerates such ambiguities!",
+      "parentUuid": "9ab29df4_863ad434",
+      "range": {
+        "startLine": 391,
+        "startChar": 40,
+        "endLine": 391,
+        "endChar": 46
+      },
+      "revId": "5b4beeb8e3518e7c1bfae3b44910d6918620676e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
