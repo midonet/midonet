@@ -17,9 +17,9 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
+
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.Response
 
 import scala.concurrent.Future
 
@@ -27,8 +27,6 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.data.ZoomConvert.{toProto => zoomToProto}
-import org.midonet.cluster.data.storage.{CreateOp, CreateNodeOp}
-import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -76,29 +74,6 @@ class RouterResource @Inject()(resContext: ResourceContext,
         new RouterBgpPeerResource(id, resContext)
     }
 
-    @POST
-    @Consumes(Array(APPLICATION_ROUTER_JSON_V3,
-                    APPLICATION_JSON))
-    override def create(router: Router,
-                        @HeaderParam("Content-Type") contentType: String)
-    : Response = {
-
-        throwIfViolationsOn(router)
-
-        router.create()
-
-        val pathOps = Seq (
-            pathBuilder.getRouterArpTablePath(router.id),
-            pathBuilder.getRouterRoutingTablePath(router.id)) map { path =>
-                CreateNodeOp(path, null)
-            }
-        val routerOp = CreateOp(zoomToProto(router, classOf[Topology.Router]))
-        resContext.backend.store.multi(pathOps :+ routerOp)
-        router.setBaseUri(resContext.uriInfo.getBaseUri)
-
-        OkCreated(router.getUri)
-    }
-
     protected override def listFilter(routers: Seq[Router]): Future[Seq[Router]] = {
         val tenantId = resContext.uriInfo.getQueryParameters
                                          .getFirst("tenant_id")
@@ -108,7 +83,9 @@ class RouterResource @Inject()(resContext: ResourceContext,
 
     protected override def createFilter(router: Router): Ops = {
         router.create()
-        NoOps
+        Future.successful(Seq(
+            CreateNode(pathBuilder.getRouterArpTablePath(router.id)),
+            CreateNode(pathBuilder.getRouterRoutingTablePath(router.id))))
     }
 
     protected override def updateFilter(to: Router, from: Router): Ops = {

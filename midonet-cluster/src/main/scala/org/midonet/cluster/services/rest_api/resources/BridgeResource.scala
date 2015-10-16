@@ -18,6 +18,7 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util
 import java.util.UUID
+
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.{MediaType, Response}
@@ -29,19 +30,18 @@ import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException}
 
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
-import org.midonet.cluster.data.ZoomConvert.{toProto => zoomToProto}
-import org.midonet.cluster.data.storage.{CreateNodeOp, CreateOp}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.ResourceUris.{macPortUriToMac, macPortUriToPort}
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException, ConflictHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.midolman.state.MacPortMap.encodePersistentPath
 import org.midonet.midolman.state.PathBuilder
@@ -55,6 +55,8 @@ import org.midonet.packets.{IPv4Addr, MAC}
                 APPLICATION_JSON))
 @AllowList(Array(APPLICATION_BRIDGE_COLLECTION_JSON_V4,
                  APPLICATION_JSON))
+@AllowCreate(Array(APPLICATION_BRIDGE_JSON_V4,
+                   APPLICATION_JSON))
 @AllowUpdate(Array(APPLICATION_BRIDGE_JSON_V4,
                    APPLICATION_JSON))
 @AllowDelete
@@ -88,35 +90,6 @@ class BridgeResource @Inject()(resContext: ResourceContext,
     @Path("{id}/dhcpV6")
     def dhcpsv6(@PathParam("id") id: UUID): DhcpV6SubnetResource = {
         new DhcpV6SubnetResource(id, resContext)
-    }
-
-    @POST
-    @Consumes(Array(APPLICATION_BRIDGE_JSON_V4,
-                    APPLICATION_JSON))
-    override def create(bridge: Bridge,
-                        @HeaderParam("Content-Type") contentType: String)
-    : Response = {
-
-        if (bridge.vxLanPortIds != null) {
-            throw new BadRequestHttpException(
-                getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
-        }
-
-        throwIfViolationsOn(bridge)
-
-        bridge.create()
-
-        val pathOps = Seq (
-            pathBuilder.getBridgeIP4MacMapPath(bridge.id),
-            pathBuilder.getBridgeMacPortsPath(bridge.id),
-            pathBuilder.getBridgeVlansPath(bridge.id)) map { path =>
-                CreateNodeOp(path, null)
-            }
-        val bridgeOp = CreateOp(zoomToProto(bridge, classOf[Topology.Network]))
-        store.multi(pathOps :+ bridgeOp)
-        bridge.setBaseUri(resContext.uriInfo.getBaseUri)
-
-        OkCreated(bridge.getUri)
     }
 
     @GET
@@ -304,13 +277,19 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                           else bridges filter { _.tenantId == tenantId })
     }
 
-    protected override def createFilter(bridge: Bridge): Ops = {
+    protected override def createFilter(bridge: Bridge)
+    : Ops = {
         if (bridge.vxLanPortIds != null) {
             return Future.failed(new BadRequestHttpException(
                 getMessage(VXLAN_PORT_ID_NOT_SETTABLE)))
         }
         bridge.create()
-        NoOps
+
+        // Create replicated map nodes.
+        Future.successful(Seq(
+            CreateNode(pathBuilder.getBridgeIP4MacMapPath(bridge.id)),
+            CreateNode(pathBuilder.getBridgeMacPortsPath(bridge.id)),
+            CreateNode(pathBuilder.getBridgeVlansPath(bridge.id))))
     }
 
     protected override def updateFilter(to: Bridge, from: Bridge): Ops = {
