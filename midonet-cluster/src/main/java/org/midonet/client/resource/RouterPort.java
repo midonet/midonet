@@ -19,13 +19,9 @@ package org.midonet.client.resource;
 import java.net.URI;
 import java.util.UUID;
 
-import javax.ws.rs.core.MultivaluedMap;
-
 import org.midonet.client.WebResource;
-import org.midonet.client.dto.DtoBgp;
 import org.midonet.client.dto.DtoRouterPort;
 
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BGP_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_LINK_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
 
@@ -133,21 +129,6 @@ public class RouterPort extends Port<RouterPort, DtoRouterPort> {
     public RouterPort peerId(UUID id) {
         principalDto.setPeerId(id);
         return this;
-    }
-
-    public ResourceCollection<Bgp> getBgps(
-            MultivaluedMap<String,String> queryParams) {
-        return getChildResources(
-            principalDto.getBgps(),
-            queryParams,
-            APPLICATION_BGP_COLLECTION_JSON(),
-            Bgp.class, DtoBgp.class);
-    }
-
-    public Bgp addBgp() {
-        return new Bgp(resource,
-                       principalDto.getBgps(),
-                       new DtoBgp());
     }
 
     public RouterPort link(UUID id) {
