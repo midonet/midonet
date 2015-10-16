@@ -18,17 +18,17 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.lang.annotation.Annotation
 import java.net.URI
-import java.util.concurrent.Executors
 import java.util.concurrent.Executors.newCachedThreadPool
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
+
 import javax.validation.{ConstraintViolation, Validator}
 import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core._
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration._
 import scala.concurrent._
+import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -36,16 +36,17 @@ import com.google.inject.Inject
 import com.google.protobuf.Message
 import com.lmax.disruptor.util.DaemonThreadFactory
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
+import org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse
+import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowGet, AllowList, AllowUpdate}
 import org.midonet.cluster.rest_api.models.UriResource
-import org.midonet.cluster.rest_api._
-import org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser
@@ -70,6 +71,7 @@ object MidonetResource {
     case class Create[T <: UriResource](resource: T) extends Multi
     case class Update[T <: UriResource](resource: T) extends Multi
     case class Delete(clazz: Class[_ <: UriResource], id: Any) extends Multi
+    case class CreateNode(path: String) extends Multi
 
     final val DefaultHandler: PartialFunction[Response, Response] = {
         case r => r
@@ -396,6 +398,9 @@ abstract class MidonetResource[T >: Null <: UriResource]
                 log.debug("DELETE: {}:{}", UriResource.getZoomClass(clazz),
                          id.asInstanceOf[AnyRef])
                 DeleteOp(UriResource.getZoomClass(clazz), id)
+            case CreateNode(path) =>
+                log.debug("CREATE NODE: {}", path)
+                CreateNodeOp(path, null)
         }
         tryWrite {
             backend.store.multi(zoomOps)
