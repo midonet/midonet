@@ -2,6 +2,92 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ab29df4_cbacd538",
+        "filename": "DEVELOPMENT.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-16T10:10:01Z",
+      "side": 1,
+      "message": "why?",
+      "range": {
+        "startLine": 207,
+        "startChar": 32,
+        "endLine": 208,
+        "endChar": 17
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0ba7ad50",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-16T10:10:01Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 218,
+        "startChar": 32,
+        "endLine": 219,
+        "endChar": 12
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_ab76c1d6",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-16T10:10:01Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 241,
+        "startChar": 3,
+        "endLine": 241,
+        "endChar": 53
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_4b4fe592",
+        "filename": "midonet-cluster/src/deb/control/conffiles",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-16T10:10:01Z",
+      "side": 1,
+      "message": "missing midonet.conf\n\ndoes any rpm spec also need an update?",
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_9d01433c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
         "patchSetId": 2
@@ -18,6 +104,53 @@
         "startChar": 8,
         "endLine": 83,
         "endChar": 59
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_eb80b98d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-16T10:10:01Z",
+      "side": 1,
+      "message": "It should be installed with the package.\n\nIn fact, both agent and cluster should install the midonet.conf file and declare it as shared in the packages.\n\nBut for this patch I think it\u0027s sufficient if midonet-cluster debian/rpm scripts install it. We can adapt the agent later.",
+      "parentUuid": "9ab29df4_9d01433c",
+      "range": {
+        "startLine": 83,
+        "startChar": 8,
+        "endLine": 83,
+        "endChar": 59
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0b7ecdae",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-16T10:10:01Z",
+      "side": 1,
+      "message": "nit: debug, or nothing.",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 84,
+        "endChar": 48
       },
       "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
