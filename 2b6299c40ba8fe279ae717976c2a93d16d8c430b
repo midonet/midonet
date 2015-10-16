@@ -45,6 +45,23 @@
       "revId": "2b6299c40ba8fe279ae717976c2a93d16d8c430b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c66e8c96",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-16T12:55:56Z",
+      "side": 1,
+      "message": "all users of the library are going through this code path, where the library bootstraps its zk connection implicitly, and thus will not see the warning above.",
+      "revId": "2b6299c40ba8fe279ae717976c2a93d16d8c430b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
