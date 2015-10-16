@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_6b358945",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-16T09:55:56Z",
+      "side": 1,
+      "message": "defaultZkRootKey should be above",
+      "range": {
+        "startLine": 132,
+        "startChar": 30,
+        "endLine": 132,
+        "endChar": 45
+      },
+      "revId": "2b6299c40ba8fe279ae717976c2a93d16d8c430b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_cbfe9538",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-16T09:55:56Z",
+      "side": 1,
+      "message": "This will output a very long line in the console, it\u0027s probably worth splitting in individual messages to make it more readable to the user? I\u0027d suggest:\n\nWARNING ... default root: /midonet.\n\nPlease make sure.. information.\n\nTo remove this warning, ..",
+      "range": {
+        "startLine": 169,
+        "startChar": 20,
+        "endLine": 182,
+        "endChar": 67
+      },
+      "revId": "2b6299c40ba8fe279ae717976c2a93d16d8c430b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
