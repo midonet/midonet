@@ -46,6 +46,46 @@
       "revId": "dc3fd1a3df242726d8b3f6235df88bfd5b1bee9b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_00aa2c70",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/BgpPeer.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-16T03:01:23Z",
+      "side": 1,
+      "message": "I\u0027m just curious if this class is still used.",
+      "revId": "dc3fd1a3df242726d8b3f6235df88bfd5b1bee9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e0ac588f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-16T03:01:23Z",
+      "side": 1,
+      "message": "I\u0027m just curious why you\u0027re changing the return type to Unit. If the return type is P, we can compose the functions as setBgpStatus(setActive(port)). If you change it to Unit, then we don\u0027t need to return port at line 72.",
+      "range": {
+        "startLine": 70,
+        "startChar": 36,
+        "endLine": 70,
+        "endChar": 40
+      },
+      "revId": "dc3fd1a3df242726d8b3f6235df88bfd5b1bee9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
