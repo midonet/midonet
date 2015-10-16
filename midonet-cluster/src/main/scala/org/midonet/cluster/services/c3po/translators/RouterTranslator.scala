@@ -52,7 +52,10 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         // create or delete the port group when a router becomes or ceases to
         // be an edge router as interfaces are created and deleted.
         val pgId = PortManager.portGroupId(nr.getId)
-        val portGroup = PortGroup.newBuilder.setId(pgId).build()
+        val portGroup = PortGroup.newBuilder
+                                 .setId(pgId)
+                                 .setStateful(true)
+                                 .build()
 
         val gwPortOps = gatewayPortCreateOps(nr, r)
 
