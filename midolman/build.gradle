@@ -235,13 +235,8 @@ packaging {
 preparePkg.dependsOn cleanPkg
 debian.dependsOn preparePkg
 
-if (project.rhelTarget == "7") {
-    rpm.dependsOn rhel7Prepare
-    rhel7Prepare.dependsOn preparePkg
-} else {
-    rpm.dependsOn rhel6Prepare
-    rhel6Prepare.dependsOn preparePkg
-}
+rpm.dependsOn rhel7Prepare
+rhel7Prepare.dependsOn preparePkg
 
 debian.doFirst {
     project.packaging.version = project.debVersion
@@ -270,21 +265,13 @@ rpm.doFirst {
         '-d', 'quagga >= 0.99.21',
         '-d', 'iproute',
         '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
-    if (project.rhelTarget == "7") {
-        project.packaging.fpmOpts.addAll([
-            '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
-            '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
-            '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
-            '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
-            '--depends', 'python-setproctitle',
-            '--depends', 'java-1.8.0-openjdk-headless'])
-    } else {
-        project.packaging.fpmOpts.addAll([
-            '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
-            '--before-install', "${project.projectDir}/src/rhel6/control/preinst",
-            '--before-remove', "${project.projectDir}/src/rhel6/control/prerm",
-            '--depends', 'java-1.8.0-openjdk-headless'])
-    }
+    project.packaging.fpmOpts.addAll([
+        '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
+        '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
+        '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
+        '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
+        '--depends', 'python-setproctitle',
+        '--depends', 'java-1.8.0-openjdk-headless'])
 }
 
 debian.doLast {
