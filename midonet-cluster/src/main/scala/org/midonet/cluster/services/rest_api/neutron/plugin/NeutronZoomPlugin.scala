@@ -19,7 +19,6 @@ package org.midonet.cluster.services.rest_api.neutron.plugin
 import java.util
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
-
 import javax.ws.rs.WebApplicationException
 
 import scala.collection.JavaConversions._
@@ -31,7 +30,6 @@ import scala.util.control.NonFatal
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.inject.Inject
 import com.google.protobuf.Message
-
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ZookeeperLockFactory
@@ -120,12 +118,13 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     }
 
     def create[T >: Null <: ZoomObject](dto: T)(implicit ct: ClassTag[T]): T = {
-        log.info(s"Create: $dto")
+        log.debug(s"Create: $dto")
         val protoClass = protoClassOf(dto)
         val neutronOp = neutron.Create(toProto(dto, protoClass))
-        val persistenceOps = toPersistenceOps(neutronOp)
         val id = idOf(neutronOp.model)
-        tryWrite(store.multi(persistenceOps))
+        tryWrite {
+            store.multi(toPersistenceOps(neutronOp))
+        }
         log.debug(s"Create ${dto.getClass.getSimpleName} $id succeeded.")
         dto
     }
@@ -133,7 +132,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     def bulkCreate[T >: Null <: ZoomObject](dtos: util.List[T])
                                            (implicit ct: ClassTag[T])
     : util.List[T] = {
-        log.info(s"Bulk create: " + dtos)
+        log.debug(s"Bulk create: " + dtos)
         if (dtos.isEmpty) {
             return List.empty[T]
         }
@@ -141,9 +140,10 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val dtoClass = dtos.head.getClass
         val protoClass = protoClassOf(dtoClass)
         val creates = dtos.map { d => neutron.Create(toProto(d, protoClass)) }
-        val ops: Seq[PersistenceOp] = creates.flatMap(toPersistenceOps)
-
-        tryWrite(store.multi(ops))
+        tryWrite {
+            val ops: Seq[PersistenceOp] = creates.flatMap(toPersistenceOps)
+            store.multi(ops)
+        }
         val ids = list[T](creates.map(c => idOf(c.model)))
         log.debug(s"Bulk create ${dtoClass.getSimpleName} succeeded: $ids")
         ids
@@ -151,7 +151,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     def get[T >: Null <: ZoomObject](id: UUID)(implicit ct: ClassTag[T]): T = {
         val dtoClass = ct.runtimeClass.asInstanceOf[Class[T]]
-        log.info(s"Get ${dtoClass.getSimpleName}: $id")
+        log.debug(s"Get ${dtoClass.getSimpleName}: $id")
         val proto = tryRead(
             store.get(protoClassOf(dtoClass), id).await(timeout))
         val dto = fromProto(proto, dtoClass)
@@ -161,22 +161,24 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
 
     def update[T >: Null <: ZoomObject](dto: T)(implicit ct: ClassTag[T]): T = {
-        log.info("Update: " + dto)
+        log.debug("Update: " + dto)
         val protoClass = protoClassOf(dto)
         val neutronOp = neutron.Update(toProto(dto, protoClass))
-        val persistenceOps = toPersistenceOps(neutronOp)
         val id = idOf(neutronOp.model)
-        tryWrite(store.multi(persistenceOps))
+        tryWrite{
+            store.multi(toPersistenceOps(neutronOp))
+        }
         log.debug(s"Update ${dto.getClass.getSimpleName} $id succeeded")
         dto
     }
 
     def delete[T >: Null <: ZoomObject](id: UUID, dtoClass: Class[T]): Unit = {
+        log.debug(s"Delete ${dtoClass.getSimpleName}: $id")
         val protoClass = protoClassOf(dtoClass)
-        log.info(s"Delete ${dtoClass.getSimpleName}: $id")
         val neutronOp = neutron.Delete(protoClass, UUIDUtil.toProto(id))
-        val persistenceOps = toPersistenceOps(neutronOp)
-        tryWrite(store.multi(persistenceOps))
+        tryWrite{
+            store.multi(toPersistenceOps(neutronOp))
+        }
         log.debug(s"Delete ${dtoClass.getSimpleName} $id succeeded")
     }
 
@@ -185,7 +187,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val dtoClass = ct.runtimeClass.asInstanceOf[Class[T]]
         val protoClass = protoClassOf(dtoClass)
 
-        log.info(s"List ${dtoClass.getSimpleName}: $ids")
+        log.debug(s"List ${dtoClass.getSimpleName}: $ids")
 
         val dtos = tryRead {
             store.getAll(protoClass, ids).await(timeout)
@@ -198,7 +200,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     def listAll[T >: Null <: ZoomObject](dtoClass: Class[T]): util.List[T] = {
         val protoClass = protoClassOf(dtoClass)
-        log.info(s"List all ${dtoClass.getSimpleName}")
+        log.debug(s"List all ${dtoClass.getSimpleName}")
 
         val dtos = tryRead {
             store.getAll(protoClass).await(timeout)
