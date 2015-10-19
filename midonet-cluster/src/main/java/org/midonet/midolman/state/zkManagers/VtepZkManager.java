@@ -36,8 +36,6 @@ public class VtepZkManager
         extends AbstractZkManager<IPv4Addr, VtepZkManager.VtepConfig>
         implements WatchableZkManager<IPv4Addr, VtepZkManager.VtepConfig> {
 
-    public static final int MIN_VNI = 10000;
-
     public static class VtepConfig {
         public int mgmtPort;
         public UUID tunnelZone;
@@ -57,19 +55,6 @@ public class VtepZkManager
     @Override
     protected Class<VtepConfig> getConfigClass() {
         return VtepConfig.class;
-    }
-
-    public VtepBinding getBinding(IPv4Addr ipAddr, String portName,
-                                  short vlanId) throws StateAccessException {
-        List<VtepBinding> bindings = getBindings(ipAddr);
-        for (VtepBinding binding : bindings) {
-            if (vlanId == binding.getVlanId() &&
-                portName.equals(binding.getPortName())) {
-                return binding;
-            }
-        }
-
-        return null;
     }
 
     public List<VtepBinding> getBindings(IPv4Addr ipAddr)

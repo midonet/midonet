@@ -28,8 +28,6 @@ import com.google.inject.Inject;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.data.dhcp.ExtraDhcpOpt;
 import org.midonet.cluster.rest_api.neutron.models.Route;
@@ -45,9 +43,6 @@ import org.midonet.packets.MAC;
 import org.midonet.util.version.Since;
 
 public class BridgeDhcpZkManager extends BaseZkManager {
-
-    private static final Logger log = LoggerFactory
-        .getLogger(BridgeDhcpZkManager.class);
 
     public static class Subnet {
         IPv4Subnet subnetAddr;
@@ -355,13 +350,6 @@ public class BridgeDhcpZkManager extends BaseZkManager {
     /**
      * Initializes a BridgeDhcpZkManager object with a ZooKeeper client and the
      * root path of the ZooKeeper directory.
-     *
-     * @param zk
-     *         Zk data access class
-     * @param paths
-     *         PathBuilder class to construct ZK paths
-     * @param serializer
-     *         ZK data serialization class
      */
     @Inject
     public BridgeDhcpZkManager(ZkManager zk, PathBuilder paths,
@@ -382,20 +370,6 @@ public class BridgeDhcpZkManager extends BaseZkManager {
                           CreateMode.PERSISTENT));
     }
 
-    public void createSubnet(UUID bridgeId, Subnet subnet)
-            throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<>();
-        prepareCreateSubnet(ops, bridgeId, subnet);
-        zk.multi(ops);
-    }
-
-    public void prepareUpdateSubnet(List<Op> ops, UUID bridgeId, Subnet subnet)
-            throws StateAccessException, SerializationException {
-        String path =
-            paths.getBridgeDhcpSubnetPath(bridgeId, subnet.getSubnetAddr());
-        ops.add(zk.getSetDataOp(path, serializer.serialize(subnet)));
-    }
-
     public Subnet getSubnet(UUID bridgeId, IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException {
         String path = paths.getBridgeDhcpSubnetPath(bridgeId, subnetAddr);
@@ -407,24 +381,6 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             throws StateAccessException {
         String path = paths.getBridgeDhcpSubnetPath(bridgeId, subnetAddr);
         return zk.exists(path);
-    }
-
-    public void prepareDeleteSubnet(List<Op> ops, UUID bridgeId,
-                                    IPv4Subnet subnetAddr)
-            throws StateAccessException {
-
-        // Delete the hostAssignments
-        for (MAC mac : listHosts(bridgeId, subnetAddr)) {
-            String path = paths.getBridgeDhcpHostPath(bridgeId, subnetAddr,
-                                                      mac);
-            ops.add(Op.delete(path, -1));
-        }
-
-        // Delete the 'hosts' subdirectory.
-        ops.add(Op.delete(paths.getBridgeDhcpHostsPath(bridgeId, subnetAddr), -1));
-
-        // Delete the subnet's root directory.
-        ops.add(Op.delete(paths.getBridgeDhcpSubnetPath(bridgeId, subnetAddr), -1));
     }
 
     public List<IPv4Subnet> listSubnets(UUID bridgeId)
@@ -447,34 +403,12 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         return subnets;
     }
 
-    public List<Subnet> getEnabledSubnets(UUID bridgeId)
-            throws StateAccessException, SerializationException {
-        List<Subnet> subnets = getSubnets(bridgeId);
-        List<Subnet> enabledSubnets = new ArrayList<>(subnets.size());
-        for (Subnet subnet : subnets) {
-            // This check is because of backward-compatibility with data
-            // created in v1.3 or earlier where 'enabled' could be null.
-            // Null enabled field, which could only exist in the old data, is
-            // treated as true.
-            if (subnet.enabled == null || subnet.enabled) {
-                enabledSubnets.add(subnet);
-            }
-        }
-        return enabledSubnets;
-    }
-
     public Host getHost(UUID bridgeId, IPv4Subnet subnetAddr, String mac)
             throws StateAccessException, SerializationException {
         String path = paths.getBridgeDhcpHostPath(bridgeId, subnetAddr,
                                                   MAC.fromString(mac));
         byte[] data = zk.get(path, null);
         return serializer.deserialize(data, Host.class);
-    }
-    public boolean existsHost(UUID bridgeId, IPv4Subnet subnetAddr, String mac)
-            throws StateAccessException {
-        String path = paths.getBridgeDhcpHostPath(bridgeId, subnetAddr,
-                                                  MAC.fromString(mac));
-        return zk.exists(path);
     }
 
     public List<MAC> listHosts(UUID bridgeId, IPv4Subnet subnetAddr)

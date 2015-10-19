@@ -15,18 +15,13 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
 
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
@@ -52,10 +47,6 @@ public class PoolHealthMonitorZkManager
             public LoadBalancerConfigWithId() {
             } // Needed for serialization.
 
-            public LoadBalancerConfigWithId(LoadBalancerConfig config) {
-                this.config = config;
-                this.persistedId = config.id;
-            }
         }
 
         public static class VipConfigWithId {
@@ -66,10 +57,6 @@ public class PoolHealthMonitorZkManager
             public VipConfigWithId() {
             } // Needed for serialization.
 
-            public VipConfigWithId(VipConfig config) {
-                this.config = config;
-                this.persistedId = config.id;
-            }
         }
 
         public static class PoolMemberConfigWithId {
@@ -80,10 +67,6 @@ public class PoolHealthMonitorZkManager
             public PoolMemberConfigWithId() {
             } // Needed for serialization.
 
-            public PoolMemberConfigWithId(PoolMemberConfig config) {
-                this.config = config;
-                this.persistedId = config.id;
-            }
         }
 
         public static class HealthMonitorConfigWithId {
@@ -94,10 +77,6 @@ public class PoolHealthMonitorZkManager
             public HealthMonitorConfigWithId() {
             } // Needed for serialization.
 
-            public HealthMonitorConfigWithId(HealthMonitorConfig config) {
-                this.config = config;
-                this.persistedId = config.id;
-            }
         }
 
         public LoadBalancerConfigWithId loadBalancerConfig;
@@ -107,17 +86,6 @@ public class PoolHealthMonitorZkManager
 
         public PoolHealthMonitorConfig() {
         } // Needed for serialization.
-
-        public PoolHealthMonitorConfig(
-            LoadBalancerConfigWithId loadBalancerConfig,
-            List<VipConfigWithId> vipConfigs,
-            List<PoolMemberConfigWithId> poolMemberConfigs,
-            HealthMonitorConfigWithId healthMonitorConfig) {
-            this.loadBalancerConfig = loadBalancerConfig;
-            this.vipConfigs = vipConfigs;
-            this.poolMemberConfigs = poolMemberConfigs;
-            this.healthMonitorConfig = healthMonitorConfig;
-        }
 
         @Override
         public boolean equals(Object o) {
@@ -146,23 +114,6 @@ public class PoolHealthMonitorZkManager
     public PoolHealthMonitorZkManager(ZkManager zk, PathBuilder paths,
                                       Serializer serializer) {
         super(zk, paths, serializer);
-    }
-
-    public void getPoolHealthMonitorMappingsAsync(
-        final DirectoryCallback<Map<UUID, UUID>> cb,
-        Directory.TypedWatcher watcher) {
-        String path = paths.getPoolHealthMonitorMappingsPath();
-        zk.asyncGetChildren(path,
-                            DirectoryCallbackFactory.transform(cb,
-                                                               splitStrSetToUuidUuidMap),
-                            watcher);
-    }
-
-    public void getPoolHealthMonitorConfDataAsync(UUID poolId, final UUID hmId,
-        final DirectoryCallback<PoolHealthMonitorConfig> cb,
-        Directory.TypedWatcher watcher) {
-        getAsync(paths.getPoolHealthMonitorMappingsPath(poolId, hmId),
-                 PoolHealthMonitorConfig.class, cb, watcher);
     }
 
     @Override

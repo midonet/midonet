@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 
 /**
@@ -102,15 +101,6 @@ public abstract class BaseZkManager {
      * Gets the children of the specified node and converts them
      * to a set of UUIDs. Logs an error for, but otherwise ignores,
      * any children which are not valid UUIDs.
-     */
-    protected Set<UUID> getUuidSet(String path) throws StateAccessException {
-        return getUuidSet(path, null);
-    }
-
-    /**
-     * Gets the children of the specified node and converts them
-     * to a set of UUIDs. Logs an error for, but otherwise ignores,
-     * any children which are not valid UUIDs.
      *
      * @param watcher Optional watcher, to be notified of a future update.
      */
@@ -160,13 +150,4 @@ public abstract class BaseZkManager {
                 watcher);
     }
 
-    protected void getUUIDSetAsync(String path,
-                                   DirectoryCallback<Set<UUID>> callback,
-                                   Directory.TypedWatcher watcher) {
-        zk.asyncGetChildren(
-                path,
-                DirectoryCallbackFactory.transform(
-                        callback, CollectionFunctors.strSetToUUIDSet),
-                watcher);
-    }
 }

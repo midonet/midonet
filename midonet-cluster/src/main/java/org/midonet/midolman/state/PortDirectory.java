@@ -17,7 +17,6 @@
 package org.midonet.midolman.state;
 
 import java.util.Objects;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,23 +31,12 @@ import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.MAC;
 
 public class PortDirectory {
-    public static Random rand = new Random(System.currentTimeMillis());
 
     public static class BridgePortConfig extends PortConfig {
         public Short vlanId;
 
         public BridgePortConfig(UUID device_id) {
             super(device_id);
-        }
-
-        public BridgePortConfig(UUID device_id, boolean adminStateUp) {
-            super(device_id, adminStateUp);
-        }
-
-        public BridgePortConfig(UUID deviceId, UUID peerId, Short vlanId) {
-            this.device_id = deviceId;
-            this.peerId = peerId;
-            this.vlanId = vlanId;
         }
 
         // Default constructor for the Jackson deserialization.
