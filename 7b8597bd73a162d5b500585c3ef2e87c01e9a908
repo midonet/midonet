@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_a653586b",
+        "filename": "DEVELOPMENT.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-19T09:27:29Z",
+      "side": 1,
+      "message": "That\u0027s what I observed. If you just give /conf/midonet-cluster.conf (assuming that the file is there) it does not work.",
+      "parentUuid": "9ab29df4_cbacd538",
+      "range": {
+        "startLine": 207,
+        "startChar": 32,
+        "endLine": 208,
+        "endChar": 17
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_cb5a1550",
         "filename": "midonet-cluster/build.gradle",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-10-16T10:16:54Z",
       "side": 1,
       "message": "oh btw do you mind removing this? we\u0027ve already removed rhel6 from master, but this leftover seems to have been forgotten for a while",
+      "range": {
+        "startLine": 136,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 1
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_23c1f52e",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-19T09:27:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_cb5a1550",
       "range": {
         "startLine": 136,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_e64d50c6",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-19T09:27:29Z",
+      "side": 1,
+      "message": "same comment.",
+      "parentUuid": "9ab29df4_0ba7ad50",
+      "range": {
+        "startLine": 218,
+        "startChar": 32,
+        "endLine": 219,
+        "endChar": 12
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_ab76c1d6",
         "filename": "midonet-cluster/build.gradle",
         "patchSetId": 2
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_43dd0914",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-19T09:27:29Z",
+      "side": 1,
+      "message": "same comment.",
+      "parentUuid": "9ab29df4_ab76c1d6",
+      "range": {
+        "startLine": 241,
+        "startChar": 3,
+        "endLine": 241,
+        "endChar": 53
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_4b4fe592",
         "filename": "midonet-cluster/src/deb/control/conffiles",
         "patchSetId": 2
@@ -105,6 +201,24 @@
       "writtenOn": "2015-10-16T10:10:01Z",
       "side": 1,
       "message": "missing midonet.conf\n\ndoes any rpm spec also need an update?",
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_63e20dd7",
+        "filename": "midonet-cluster/src/deb/control/conffiles",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-19T09:27:29Z",
+      "side": 1,
+      "message": "Added the conf file. Regarding the rpm specs, they seemed ok to me.",
+      "parentUuid": "9ab29df4_4b4fe592",
       "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -158,6 +272,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_03c4f13e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-19T09:27:29Z",
+      "side": 1,
+      "message": "I placed a new file named midonet.conf into nsdb/conf (in the git repo).",
+      "parentUuid": "9ab29df4_eb80b98d",
+      "range": {
+        "startLine": 83,
+        "startChar": 8,
+        "endLine": 83,
+        "endChar": 59
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_0b7ecdae",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
         "patchSetId": 2
@@ -169,6 +307,30 @@
       "writtenOn": "2015-10-16T10:10:01Z",
       "side": 1,
       "message": "nit: debug, or nothing.",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 84,
+        "endChar": 48
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_63bbedc4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-19T09:27:29Z",
+      "side": 1,
+      "message": "Isn\u0027t it better that this message gets logged at the same level as when it\u0027s loading the provided configuration file (line 76)?",
+      "parentUuid": "9ab29df4_0b7ecdae",
       "range": {
         "startLine": 84,
         "startChar": 8,
