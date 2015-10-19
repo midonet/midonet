@@ -17,6 +17,7 @@
 package org.midonet.cluster.rest_api.dhcp;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -26,13 +27,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.cluster.rest_api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoDhcpHost;
 import org.midonet.client.dto.DtoDhcpOption121;
 import org.midonet.client.dto.DtoDhcpSubnet;
 import org.midonet.client.dto.DtoExtraDhcpOpt;
+import org.midonet.cluster.rest_api.rest_api.FuncTest;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -103,12 +104,12 @@ public class TestDHCP extends JerseyTest {
         assertEquals(false, subnet1.isEnabled());
     }
 
-    //@Test
+    @Test
     public void testBadRequests() {
         // Test some bad network lengths
         DtoDhcpSubnet subnet1 = new DtoDhcpSubnet();
         subnet1.setSubnetPrefix("172.31.0.0");
-        subnet1.setSubnetLength(-3);
+        subnet1.setSubnetLength(33);
         subnet1.setDefaultGateway("172.31.0.1");
         subnet1.setServerAddr("172.31.0.118");
         ClientResponse response = resource().uri(bridge.getDhcpSubnets())
@@ -148,7 +149,7 @@ public class TestDHCP extends JerseyTest {
         assertEquals(400, response.getStatus());
     }
 
-    //@Test
+    @Test
     public void testGatewaySetting() throws Exception {
         ClientResponse response;
 
@@ -170,7 +171,7 @@ public class TestDHCP extends JerseyTest {
         Assert.assertNotNull(subnets);
     }
 
-    //@Test
+    @Test
     public void testSubnetCreateGetListDelete() {
         ClientResponse response;
 
@@ -236,7 +237,7 @@ public class TestDHCP extends JerseyTest {
         assertEquals(404, response.getStatus());
     }
 
-    //@Test
+    @Test
     public void testSubnetCascadingDelete() {
         // Create a subnet with several configuration pieces: option 3,
         // option 121, and a host assignment. Then delete it.
@@ -258,6 +259,7 @@ public class TestDHCP extends JerseyTest {
         host1.setMacAddr("02:33:44:55:00:00");
         host1.setIpAddr("172.31.0.11");
         host1.setName("saturn");
+        host1.setExtraDhcpOpts(Collections.<DtoExtraDhcpOpt>emptyList());
         response =resource().uri(subnet.getHosts())
                 .type(APPLICATION_DHCP_HOST_JSON_V2())
                 .post(ClientResponse.class, host1);

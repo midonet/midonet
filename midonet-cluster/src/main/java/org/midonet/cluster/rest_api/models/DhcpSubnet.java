@@ -33,6 +33,7 @@ import com.google.protobuf.Message;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
@@ -123,7 +124,13 @@ public class DhcpSubnet extends UriResource {
             id = UUID.randomUUID();
         }
         this.bridgeId = bridgeId;
-        subnetAddress = IPSubnet.fromString(subnetPrefix + "/" + subnetLength);
+
+        try {
+            subnetAddress =
+                IPSubnet.fromString(subnetPrefix + "/" + subnetLength);
+        } catch (IllegalArgumentException ex){
+            throw new BadRequestHttpException(ex, ex.getMessage());
+        }
     }
 
     @JsonIgnore
