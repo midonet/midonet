@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_0f6250d8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VxLanPortMappingServiceTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-19T23:56:51Z",
+      "side": 1,
+      "message": "Not related to this patch, but if `NamespaceId` is a var, it should be camel-cased.",
+      "range": {
+        "startLine": 57,
+        "startChar": 24,
+        "endLine": 57,
+        "endChar": 35
+      },
+      "revId": "39a44d4d4a3e3c6d3b3cb50114e1fbbe7204f1fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_cf121858",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-19T23:56:51Z",
+      "side": 1,
+      "message": "Just pointing out the type as the same sentence is being modified:\n\ns/it\u0027s/its/",
+      "range": {
+        "startLine": 105,
+        "startChar": 54,
+        "endLine": 105,
+        "endChar": 58
+      },
+      "revId": "39a44d4d4a3e3c6d3b3cb50114e1fbbe7204f1fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_8f20209d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-19T23:56:51Z",
+      "side": 1,
+      "message": "\"the state of the (current) namespace\" sounds a bit strange.",
+      "range": {
+        "startLine": 135,
+        "startChar": 22,
+        "endLine": 135,
+        "endChar": 56
+      },
+      "revId": "39a44d4d4a3e3c6d3b3cb50114e1fbbe7204f1fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_cf405838",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/vxgw/data/VtepStateStorageTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-19T23:56:51Z",
+      "side": 1,
+      "message": "This should be renamed to \"namespace\" or \"clusterNamespace\".",
+      "range": {
+        "startLine": 46,
+        "startChar": 16,
+        "endLine": 46,
+        "endChar": 22
+      },
+      "revId": "39a44d4d4a3e3c6d3b3cb50114e1fbbe7204f1fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
