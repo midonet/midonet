@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_79b63a8c",
+        "filename": "DEVELOPMENT.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T17:02:47Z",
+      "side": 1,
+      "message": "I believe you need midonet-cluster/conf/.. It does work with a relative path, you just need to make sure it\u0027s relative to the execution environment.",
+      "parentUuid": "9ab29df4_a653586b",
+      "range": {
+        "startLine": 207,
+        "startChar": 32,
+        "endLine": 208,
+        "endChar": 17
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_cb5a1550",
         "filename": "midonet-cluster/build.gradle",
         "patchSetId": 2
@@ -331,6 +355,30 @@
       "side": 1,
       "message": "Isn\u0027t it better that this message gets logged at the same level as when it\u0027s loading the provided configuration file (line 76)?",
       "parentUuid": "9ab29df4_0b7ecdae",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 84,
+        "endChar": 48
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_19a7fe50",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T17:02:47Z",
+      "side": 1,
+      "message": "But the other message has some informational value (a non-default important action is executed).  In this case, the action is just a default, so the value the user gets from this message is little or none, hence my suggestion to just remove, or contextualize only in debug where you want to verify that this is in fact happening).",
+      "parentUuid": "9ab29df4_63bbedc4",
       "range": {
         "startLine": 84,
         "startChar": 8,
