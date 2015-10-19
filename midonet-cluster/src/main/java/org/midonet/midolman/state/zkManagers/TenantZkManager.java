@@ -15,20 +15,16 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.google.inject.Inject;
+
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.BaseZkManager;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
 
 /**
  * Zk DAO for tenants.  This class used purely by the REST API.
@@ -38,36 +34,14 @@ public class TenantZkManager extends BaseZkManager {
     /**
      * Constructor to set ZooKeeper and base path.
      *
-     * @param zk
-     *         Zk data access class
-     * @param paths
-     *         PathBuilder class to construct ZK paths
-     * @param serializer
-     *         ZK data serialization class
+     * @param zk Zk data access class
+     * @param paths PathBuilder class to construct ZK paths
+     * @param serializer ZK data serialization class
      */
     @Inject
     public TenantZkManager(ZkManager zk, PathBuilder paths,
                            Serializer serializer) {
         super(zk, paths, serializer);
-    }
-
-    public List<Op> prepareCreate(String tenantId) throws StateAccessException {
-
-        List<Op> ops = new ArrayList<Op>();
-
-        String tenantsPath = paths.getTenantsPath();
-        if (!zk.exists(tenantsPath)) {
-            ops.add(Op.create(tenantsPath, null, ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        }
-
-        String tenantPath = paths.getTenantPath(tenantId);
-        if (!zk.exists(tenantPath)) {
-            ops.add(Op.create(tenantPath, null, ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT));
-        }
-
-        return ops;
     }
 
     /**
@@ -82,7 +56,7 @@ public class TenantZkManager extends BaseZkManager {
         if (zk.exists(tenantsPath)) {
             return zk.getChildren(tenantsPath);
         } else {
-            return new HashSet<String>();
+            return new HashSet<>();
         }
     }
 }
