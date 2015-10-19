@@ -15,20 +15,11 @@
  */
 package org.midonet.odp;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.AttributeHandler;
-import org.midonet.odp.OpenVSwitch.Packet.Attr;
-import org.midonet.odp.flows.FlowAction;
-import org.midonet.odp.flows.FlowActions;
-import org.midonet.odp.flows.FlowKey;
-import org.midonet.odp.flows.FlowKeys;
 import org.midonet.packets.Ethernet;
 
 /**
@@ -51,14 +42,20 @@ public class Packet {
     private Long userData;
     private Reason reason;
     private Ethernet eth;
+    public final int packetLen;
 
     // user field used by midolman packet pipeline to track time statistics,
     // ignored in equals() and hashCode()
     public long startTimeNanos = 0;
 
-    public Packet(Ethernet eth, FlowMatch match) {
+    public Packet(Ethernet eth, FlowMatch match, int len) {
         this.eth = eth;
         this.match = match;
+        this.packetLen = len;
+    }
+
+    public Packet(Ethernet eth, FlowMatch match) {
+        this(eth, match, (eth != null) ? eth.length() : 0);
     }
 
     public Ethernet getEthernet() {

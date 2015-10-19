@@ -388,7 +388,7 @@ class Router(override val id: UUID,
                     // Apply post-routing (egress) chain.
                     val egrMatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
                     val egrPktContext = new PacketContext(0,
-                        new Packet(eth, egrMatch), egrMatch, outPort.id)
+                        new Packet(eth, egrMatch, eth.length), egrMatch, outPort.id)
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter

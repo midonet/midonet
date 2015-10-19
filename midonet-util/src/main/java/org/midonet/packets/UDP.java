@@ -58,6 +58,11 @@ public class UDP extends BasePacket implements Transport {
     protected short checksum;
 
     @Override
+    public int length() {
+        return HEADER_LEN + childLength();
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("UDP [sport=").append(sourcePort);
