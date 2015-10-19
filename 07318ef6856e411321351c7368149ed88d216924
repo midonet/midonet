@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_79263a6a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-19T14:52:59Z",
+      "side": 1,
+      "message": "why are we not making the conversion when reading from mn-conf??\n\nThis answers your TO-DO, in the other file: you are not making the \"old default check\" for stuff that is stored ****inside***** mn-conf. So, mn-conf itself will work, but ***midonet**** which stores its configuration *******inside****** mn-conf will not.",
+      "revId": "07318ef6856e411321351c7368149ed88d216924",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
