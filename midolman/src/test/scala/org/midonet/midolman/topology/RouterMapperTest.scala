@@ -66,7 +66,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
         stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
         threadId = Thread.currentThread.getId
 
-        store create createHost(id = InMemoryStorage.NamespaceId)
+        store create createHost(id = InMemoryStorage.namespaceId)
     }
 
     implicit def asIPSubnet(str: String): IPSubnet[_] = IPSubnet.fromString(str)
@@ -93,7 +93,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
     : TopologyPort = {
         createRouterPort(routerId = Some(routerId),
                          adminStateUp = adminStateUp,
-                         hostId = Some(InMemoryStorage.NamespaceId),
+                         hostId = Some(InMemoryStorage.namespaceId),
                          interfaceName = Some("iface0"))
     }
 

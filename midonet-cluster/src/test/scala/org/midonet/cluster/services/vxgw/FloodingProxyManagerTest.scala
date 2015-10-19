@@ -70,6 +70,8 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         """.stripMargin))
 
     before {
+        MidonetBackend.isCluster = true
+
         zkClient.create().creatingParentsIfNeeded().forPath(backendCfg.rootKey)
         backend = new MidonetBackendService(backendCfg, zkClient,
                                             metricRegistry = null)
