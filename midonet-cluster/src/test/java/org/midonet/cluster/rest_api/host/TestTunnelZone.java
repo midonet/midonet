@@ -18,6 +18,7 @@ package org.midonet.cluster.rest_api.host;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -45,6 +46,8 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
+import static javax.ws.rs.core.Response.Status.*;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.UNIQUE_TUNNEL_ZONE_NAME_TYPE;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_JSON_V2;
@@ -94,10 +97,9 @@ public class TestTunnelZone {
             // Do not allow duplicates
             DtoTunnelZone tunnelZone2 = new DtoTunnelZone();
             tunnelZone2.setName("tz1-name");
-            DtoError error = dtoResource.postAndVerifyBadRequest(tunnelZonesUri,
-                APPLICATION_TUNNEL_ZONE_JSON(), tunnelZone2);
-            assertErrorMatches(error,
-                               MessageProperty.UNIQUE_TUNNEL_ZONE_NAME_TYPE);
+            DtoError error = dtoResource.postAndVerifyError(tunnelZonesUri,
+                APPLICATION_TUNNEL_ZONE_JSON(), tunnelZone2, CONFLICT);
+            assertErrorMatches(error, UNIQUE_TUNNEL_ZONE_NAME_TYPE);
 
             // There should only be one
             DtoTunnelZone[] tunnelZones = dtoResource.getAndVerifyOk(
