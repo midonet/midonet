@@ -24,6 +24,13 @@ public abstract class BasePacket implements IPacket {
     protected IPacket parent;
     protected IPacket payload;
 
+    protected int childLength() {
+        if (payload == null)
+            return 0;
+        else
+            return payload.length();
+    }
+
     /**
      * @return the parent
      */
