@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_002067f6",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/backend/cassandra/CassandraClient.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-19T03:57:03Z",
+      "side": 1,
+      "message": "I wonder if it will end up in an injection failure for FlowStateStorageFactory and the module fails to build...",
+      "range": {
+        "startLine": 105,
+        "startChar": 12,
+        "endLine": 108,
+        "endChar": 87
+      },
+      "revId": "b4d67f9aec2cf11b3084296b228cc1b7132a00df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
