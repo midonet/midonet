@@ -16,7 +16,6 @@
 package org.midonet.cluster;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,29 +41,24 @@ import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
-import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.data.l4lb.HealthMonitor;
 import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
-import org.midonet.cluster.data.ports.BridgePort;
-import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
-import org.midonet.packets.MAC;
 
 public interface DataClient {
 
     /* BGP advertising routes related methods */
-    @CheckForNull AdRoute adRoutesGet(UUID id)
+    @CheckForNull
+    AdRoute adRoutesGet(UUID id)
             throws StateAccessException, SerializationException;
 
     List<AdRoute> adRoutesFindByBgp(UUID bgpId)
@@ -76,24 +70,11 @@ public interface DataClient {
     List<BGP> bgpFindByPort(UUID portId)
             throws StateAccessException, SerializationException;
 
-    /* Bridges related methods */
-    boolean bridgeExists(UUID id)
-            throws StateAccessException;
-
     @CheckForNull Bridge bridgesGet(UUID id)
             throws StateAccessException, SerializationException;
 
     List<Bridge> bridgesGetAll() throws StateAccessException,
             SerializationException;
-
-    List<Bridge> bridgesFindByTenant(String tenantId)
-            throws StateAccessException, SerializationException;
-
-    void ensureBridgeHasVlanDirectory(@Nonnull UUID bridgeId)
-            throws StateAccessException;
-
-    boolean bridgeHasMacTable(@Nonnull UUID bridgeId, short vlanId)
-            throws StateAccessException;
 
     /**
      * Returns a MAC-port table for the specified bridge / VLAN IDs that are
@@ -109,29 +90,6 @@ public interface DataClient {
             @Nonnull UUID bridgeId, short vlanId, boolean ephemeral)
             throws StateAccessException;
 
-    boolean bridgeHasMacPort(@Nonnull UUID bridgeId, Short vlanId,
-                             @Nonnull MAC mac, @Nonnull UUID portId)
-        throws StateAccessException;
-
-    List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId)
-        throws StateAccessException;
-
-    List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId, short vlanId)
-        throws StateAccessException;
-
-    /**
-     * Checks if a persistent or learned IP->MAC mapping exists.
-     */
-    boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
-                                @Nonnull IPv4Addr ip, @Nonnull MAC mac)
-        throws StateAccessException;
-
-    /**
-     * Gets all IP->MAC mappings ('hints' and regular mappings).
-     */
-    Map<IPv4Addr, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
-        throws StateAccessException;
-
     /* Chains related methods */
     @CheckForNull Chain chainsGet(UUID id)
             throws StateAccessException, SerializationException;
@@ -139,20 +97,10 @@ public interface DataClient {
     List<Chain> chainsGetAll() throws StateAccessException,
             SerializationException;
 
-    List<Chain> chainsFindByTenant(String tenantId)
-            throws StateAccessException, SerializationException;
-
     @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId, IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException;
 
     List<Subnet> dhcpSubnetsGetByBridge(UUID bridgeId)
-            throws StateAccessException, SerializationException;
-
-    List<Subnet> dhcpSubnetsGetByBridgeEnabled(UUID bridgeId)
-            throws StateAccessException, SerializationException;
-
-    @CheckForNull org.midonet.cluster.data.dhcp.Host dhcpHostsGet(
-            UUID bridgeId, IPv4Subnet subnet, String mac)
             throws StateAccessException, SerializationException;
 
     List<org.midonet.cluster.data.dhcp.Host> dhcpHostsGetBySubnet(
@@ -165,15 +113,9 @@ public interface DataClient {
     List<Subnet6> dhcpSubnet6sGetByBridge(UUID bridgeId)
             throws StateAccessException, SerializationException;
 
-    @CheckForNull V6Host dhcpV6HostGet(
-            UUID bridgeId, IPv6Subnet prefix, String clientId)
-            throws StateAccessException, SerializationException;
-
     List<V6Host> dhcpV6HostsGetByPrefix(
             UUID bridgeId, IPv6Subnet prefix)
             throws StateAccessException, SerializationException;
-
-    boolean tunnelZonesExists(UUID uuid) throws StateAccessException;
 
     @CheckForNull TunnelZone tunnelZonesGet(UUID uuid)
             throws StateAccessException, SerializationException;
@@ -181,14 +123,8 @@ public interface DataClient {
     List<TunnelZone> tunnelZonesGetAll()
             throws StateAccessException, SerializationException;
 
-    Set<TunnelZone.HostConfig> tunnelZonesGetMemberships(UUID uuid)
-        throws StateAccessException;
-
     @CheckForNull TunnelZone.HostConfig tunnelZonesGetMembership(
             UUID uuid, UUID hostId)
-            throws StateAccessException, SerializationException;
-
-    boolean tunnelZonesContainHost(UUID hostId)
             throws StateAccessException, SerializationException;
 
     /* load balancers related methods */
@@ -200,30 +136,11 @@ public interface DataClient {
     List<LoadBalancer> loadBalancersGetAll()
             throws StateAccessException, SerializationException;
 
-    List<Pool> loadBalancerGetPools(UUID id)
-            throws StateAccessException, SerializationException;
-
-    List<VIP> loadBalancerGetVips(UUID id)
-            throws StateAccessException, SerializationException;
-
     @CheckForNull
     HealthMonitor healthMonitorGet(UUID id)
             throws StateAccessException, SerializationException;
 
     List<HealthMonitor> healthMonitorsGetAll() throws StateAccessException,
-            SerializationException;
-
-    List<Pool> healthMonitorGetPools(UUID id)
-            throws StateAccessException, SerializationException;
-
-    /* pool member related methods */
-    boolean poolMemberExists(UUID id) throws StateAccessException;
-
-    @CheckForNull
-    PoolMember poolMemberGet(UUID id)
-            throws StateAccessException, SerializationException;
-
-    List<PoolMember> poolMembersGetAll() throws StateAccessException,
             SerializationException;
 
     /* pool related methods */
@@ -236,9 +153,6 @@ public interface DataClient {
             SerializationException;
 
     List<PoolMember> poolGetMembers(UUID id)
-            throws StateAccessException, SerializationException;
-
-    List<VIP> poolGetVips(UUID id)
             throws StateAccessException, SerializationException;
 
     /* VIP related methods */
@@ -258,8 +172,6 @@ public interface DataClient {
 
     boolean hostsIsAlive(UUID hostId) throws StateAccessException;
 
-    boolean hostsHasPortBindings(UUID hostId) throws StateAccessException;
-
     List<Host> hostsGetAll()
             throws StateAccessException;
 
@@ -269,30 +181,8 @@ public interface DataClient {
     @CheckForNull Interface interfacesGet(UUID hostId, String interfaceName)
             throws StateAccessException, SerializationException;
 
-    List<VirtualPortMapping> hostsGetVirtualPortMappingsByHost(UUID hostId)
-            throws StateAccessException, SerializationException;
-
-    boolean hostsVirtualPortMappingExists(UUID hostId, UUID portId)
-        throws StateAccessException;
-
-    @CheckForNull VirtualPortMapping hostsGetVirtualPortMapping(
-            UUID hostId, UUID portId)
-            throws StateAccessException, SerializationException;
-
-    /* Ports related methods */
-    boolean portsExists(UUID id) throws StateAccessException;
-
-    List<BridgePort> portsFindByBridge(UUID bridgeId) throws
-            StateAccessException, SerializationException;
-
-    List<Port<?, ?>> portsFindPeersByBridge(UUID bridgeId)
-            throws StateAccessException, SerializationException;
-
     List<Port<?, ?>> portsFindByRouter(UUID routerId) throws
             StateAccessException, SerializationException;
-
-    List<Port<?, ?>> portsFindPeersByRouter(UUID routerId)
-            throws StateAccessException, SerializationException;
 
     /**
      * Gets all ports in the topology.
@@ -309,27 +199,6 @@ public interface DataClient {
     @CheckForNull Port<?, ?> portsGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    List<Port<?, ?>> portsFindByPortGroup(UUID portGroupId)
-            throws StateAccessException, SerializationException;
-
-    /**
-     * Gets the definition of an IP address group.
-     *
-     * @param id ID of IP address group to get.
-     *
-     * @return IP address group. Never null.
-     *
-     * @throws org.midonet.midolman.state.NoStatePathException
-     *      If no IP address group with the specified ID exists
-     */
-    @CheckForNull IpAddrGroup ipAddrGroupsGet(UUID id)
-            throws StateAccessException, SerializationException;
-
-    /**
-     * Returns true if an IP Address group with the specified ID exists.
-     */
-    boolean ipAddrGroupsExists(UUID id) throws StateAccessException;
-
     /**
      * Get a list of all IP Address Groups.
      *
@@ -337,22 +206,6 @@ public interface DataClient {
      */
     List<IpAddrGroup> ipAddrGroupsGetAll() throws StateAccessException,
             SerializationException;
-
-    /**
-     * Checks an IP address group for the specified address.
-     *
-     * @param id IP address group's ID
-     * @param addr IP address. May be IPv4 or IPv6. No canonicalization
-     *             is performed, so only an address with an identical
-     *             string representation will be found.
-     *
-     * @return True if the address is a member of the specified group.
-     *
-     * @throws org.midonet.midolman.state.NoStatePathException
-     *      If no IP address group with the specified ID exists.
-     */
-    boolean ipAddrGroupHasAddr(UUID id, String addr)
-            throws StateAccessException;
 
     /**
      * Gets all IP addresses in an IP address group.
@@ -372,19 +225,8 @@ public interface DataClient {
     @CheckForNull PortGroup portGroupsGet(UUID id)
             throws StateAccessException, SerializationException;
 
-    boolean portGroupsExists(UUID id) throws StateAccessException;
-
     List<PortGroup> portGroupsGetAll() throws StateAccessException,
             SerializationException;
-
-    List<PortGroup> portGroupsFindByPort(UUID portId)
-            throws StateAccessException, SerializationException;
-
-    List<PortGroup> portGroupsFindByTenant(String tenantId)
-            throws StateAccessException, SerializationException;
-
-    boolean portGroupsIsPortMember(UUID id, UUID portId)
-        throws StateAccessException;
 
     /* Routes related methods */
     @CheckForNull Route routesGet(UUID id)
@@ -393,19 +235,11 @@ public interface DataClient {
     List<Route> routesFindByRouter(UUID routerId)
             throws StateAccessException, SerializationException;
 
-
-    /* Routers related methods */
-    boolean routerExists(UUID id) throws StateAccessException;
-
     @CheckForNull Router routersGet(UUID id)
             throws StateAccessException, SerializationException;
 
     List<Router> routersGetAll() throws StateAccessException,
             SerializationException;
-
-    List<Router> routersFindByTenant(String tenantId)
-            throws StateAccessException, SerializationException;
-
 
     /* Rules related methods */
     @CheckForNull Rule<?, ?> rulesGet(UUID id)
@@ -421,21 +255,6 @@ public interface DataClient {
 
     List<TraceRequest> traceRequestGetAll()
             throws StateAccessException, SerializationException;
-
-    List<TraceRequest> traceRequestFindByTenant(String tenantId)
-            throws StateAccessException, SerializationException;
-
-    /**
-     * Get the node id that is in line right before the given myNode for
-     * health monitoring. Returns null if there is none. This is used
-     * in health monitor leader election.
-     *
-     * @return The id of the node in front
-     * @param myNode the node
-     * @throws StateAccessException
-     */
-    Integer getPrecedingHealthMonitorLeader(Integer myNode)
-            throws StateAccessException;
 
     VTEP vtepGet(IPv4Addr ipAddr)
             throws StateAccessException, SerializationException;
@@ -453,21 +272,6 @@ public interface DataClient {
      */
     List<VtepBinding> vtepGetBindings(@Nonnull IPv4Addr ipAddr)
             throws StateAccessException;
-
-    VtepBinding vtepGetBinding(@Nonnull IPv4Addr ipAddr,
-                                      @Nonnull String portName, short vlanId)
-            throws StateAccessException;
-
-    /**
-     * Get all the vtep bindings for this bridge and vtep.
-     */
-    List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID id,
-                                                   IPv4Addr mgmtIp)
-        throws StateAccessException, SerializationException;
-
-    void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
-                                     Directory.TypedWatcher watcher)
-        throws StateAccessException;
 
     Ip4ToMacReplicatedMap getIp4MacMap(UUID bridgeId)
         throws StateAccessException;
