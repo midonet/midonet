@@ -55,36 +55,6 @@ public class VipZkManager
             super();
         }
 
-        public VipConfig(UUID loadBalancerId,
-                         UUID poolId,
-                         String address,
-                         int protocolPort,
-                         VipSessionPersistence sessionPersistence,
-                         boolean adminStateUp) {
-            this.loadBalancerId = loadBalancerId;
-            this.poolId = poolId;
-            this.address = address;
-            this.protocolPort = protocolPort;
-            this.sessionPersistence = sessionPersistence;
-            this.adminStateUp = adminStateUp;
-        }
-
-        public VipConfig(VIP vip, UUID loadBalancerId) {
-            this.id = vip.id;
-            this.loadBalancerId = loadBalancerId;
-            this.poolId = vip.poolId;
-            this.address = vip.address;
-            this.protocolPort = vip.protocolPort;
-            if (vip.sessionPersistence != null &&
-                Objects.equal(vip.sessionPersistence.type,
-                              SessionPersistenceType.SOURCE_IP)) {
-                this.sessionPersistence = VipSessionPersistence.SOURCE_IP;
-            } else {
-                this.sessionPersistence = null;
-            }
-            this.adminStateUp = vip.adminStateUp;
-        }
-
         @Override
         public int hashCode() {
             return Objects.hashCode(loadBalancerId, poolId, address,

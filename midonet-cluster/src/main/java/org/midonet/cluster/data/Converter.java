@@ -17,18 +17,16 @@ package org.midonet.cluster.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
 
 import org.midonet.cluster.Client;
+import org.midonet.cluster.data.dhcp.ExtraDhcpOpt;
 import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
-import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.data.l4lb.HealthMonitor;
 import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.Pool;
@@ -42,12 +40,12 @@ import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.data.rules.LiteralRule;
 import org.midonet.cluster.data.rules.ReverseNatRule;
 import org.midonet.cluster.data.rules.TraceRule;
-import org.midonet.cluster.rest_api.neutron.models.ExtraDhcpOpt;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
+import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
 import org.midonet.midolman.state.zkManagers.AdRouteZkManager.AdRouteConfig;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
@@ -65,27 +63,12 @@ import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.packets.IPv4Addr;
 
-import static org.midonet.midolman.layer3.Route.NO_GATEWAY;
-
 
 /**
  * Temporary class that defines methods to convert to/from DTOs used in
  * ZkManager classes and those in cluster.
  */
 public class Converter {
-
-    public static List<org.midonet.cluster.data.dhcp.ExtraDhcpOpt>
-        toExtraDhcpOptsList(List<ExtraDhcpOpt> opts) {
-
-        List<org.midonet.cluster.data.dhcp.ExtraDhcpOpt> retOpts =
-            new ArrayList<>();
-        for (ExtraDhcpOpt opt : opts) {
-            retOpts.add(new org.midonet.cluster.data.dhcp.ExtraDhcpOpt(
-                opt.optName, opt.optValue));
-        }
-
-        return retOpts;
-    }
 
     public static AdRouteConfig toAdRouteConfig(
             AdRoute adRoute) {
@@ -134,14 +117,6 @@ public class Converter {
                 .setProperties(bridge.properties);
     }
 
-    public static ChainConfig toChainConfig(Chain chain) {
-        ChainConfig chainConfig = new ChainConfig(chain.getName());
-        chainConfig.properties = new HashMap<>(
-                chain.getProperties());
-
-        return chainConfig;
-    }
-
     public static Chain fromChainConfig(ChainConfig chain) {
         if (chain == null)
             return null;
@@ -149,17 +124,6 @@ public class Converter {
         return new Chain()
                 .setName(chain.name)
                 .setProperties(chain.properties);
-    }
-
-    public static PortGroupConfig toPortGroupConfig(PortGroup portGroup) {
-        PortGroupConfig portGroupConfig = new PortGroupConfig();
-
-        portGroupConfig.name = portGroup.getData().name;
-        portGroupConfig.stateful = portGroup.getData().stateful;
-        portGroupConfig.properties = new HashMap<>(
-                portGroup.getData().properties);
-
-        return portGroupConfig;
     }
 
     public static PortGroup fromPortGroupConfig(PortGroupConfig portGroup) {
@@ -172,17 +136,6 @@ public class Converter {
                 .setStateful(portGroup.stateful);
     }
 
-    public static IpAddrGroupConfig toIpAddrGroupConfig(IpAddrGroup group) {
-        IpAddrGroupConfig config = new IpAddrGroupConfig();
-
-        config.name = group.getData().name;
-        config.id = group.getId();
-        config.properties = new HashMap<>(
-                group.getData().properties);
-
-        return config;
-    }
-
     public static IpAddrGroup fromIpAddrGroupConfig(IpAddrGroupConfig group) {
         if (group == null)
             return null;
@@ -192,31 +145,11 @@ public class Converter {
                 .setProperties(group.properties);
     }
 
-    public static LoadBalancerConfig toLoadBalancerConfig(
-            LoadBalancer loadBalancer) {
-        LoadBalancerConfig loadBalancerConfig = new LoadBalancerConfig();
-        loadBalancerConfig.routerId = loadBalancer.getRouterId();
-        loadBalancerConfig.adminStateUp = loadBalancer.isAdminStateUp();
-        return loadBalancerConfig;
-    }
-
     public static LoadBalancer fromLoadBalancerConfig(
             LoadBalancerConfig loadBalancerConfig) {
         return new LoadBalancer()
                 .setRouterId(loadBalancerConfig.routerId)
                 .setAdminStateUp(loadBalancerConfig.adminStateUp);
-    }
-
-    public static HealthMonitorConfig toHealthMonitorConfig(
-            HealthMonitor healthMonitor) {
-        HealthMonitorConfig healthMonitorConfig = new HealthMonitorConfig();
-        healthMonitorConfig.type = healthMonitor.getType();
-        healthMonitorConfig.delay = healthMonitor.getDelay();
-        healthMonitorConfig.adminStateUp = healthMonitor.isAdminStateUp();
-        healthMonitorConfig.maxRetries = healthMonitor.getMaxRetries();
-        healthMonitorConfig.timeout = healthMonitor.getTimeout();
-        healthMonitorConfig.status = healthMonitor.getStatus();
-        return healthMonitorConfig;
     }
 
     public static HealthMonitor fromHealthMonitorConfig(
@@ -230,17 +163,6 @@ public class Converter {
                 .setStatus(healthMonitorConfig.status);
     }
 
-    public static PoolMemberConfig toPoolMemberConfig(PoolMember poolMember) {
-        PoolMemberConfig poolMemberConfig = new PoolMemberConfig();
-        poolMemberConfig.poolId = poolMember.getPoolId();
-        poolMemberConfig.address = poolMember.getAddress();
-        poolMemberConfig.protocolPort = poolMember.getProtocolPort();
-        poolMemberConfig.weight = poolMember.getWeight();
-        poolMemberConfig.adminStateUp = poolMember.getAdminStateUp();
-        poolMemberConfig.status = poolMember.getStatus();
-        return poolMemberConfig;
-    }
-
     public static PoolMember fromPoolMemberConfig(PoolMemberConfig poolMemberConfig) {
         return new PoolMember().setPoolId(poolMemberConfig.poolId)
                                .setAddress(poolMemberConfig.address)
@@ -248,18 +170,6 @@ public class Converter {
                                .setWeight(poolMemberConfig.weight)
                                .setAdminStateUp(poolMemberConfig.adminStateUp)
                                .setStatus(poolMemberConfig.status);
-    }
-
-    public static PoolConfig toPoolConfig(Pool pool) {
-        PoolConfig poolConfig = new PoolConfig();
-        poolConfig.loadBalancerId = pool.getLoadBalancerId();
-        poolConfig.healthMonitorId = pool.getHealthMonitorId();
-        poolConfig.protocol = pool.getProtocol();
-        poolConfig.lbMethod = pool.getLbMethod();
-        poolConfig.adminStateUp = pool.isAdminStateUp();
-        poolConfig.status = pool.getStatus();
-        poolConfig.mappingStatus = pool.getMappingStatus();
-        return poolConfig;
     }
 
     public static Pool fromPoolConfig(PoolConfig poolConfig) {
@@ -272,18 +182,6 @@ public class Converter {
                          .setMappingStatus(poolConfig.mappingStatus);
     }
 
-    public static VipConfig toVipConfig(VIP vip) {
-        VipConfig vipConfig = new VipConfig();
-        vipConfig.loadBalancerId = vip.getLoadBalancerId();
-        vipConfig.poolId = vip.getPoolId();
-        vipConfig.address = vip.getAddress();
-        vipConfig.protocolPort = vip.getProtocolPort();
-        vipConfig.sessionPersistence = vip.getSessionPersistence();
-        vipConfig.adminStateUp = vip.getAdminStateUp();
-
-        return vipConfig;
-    }
-
     public static VIP fromVipConfig(VipConfig vipConfig) {
         return new VIP().setLoadBalancerId(vipConfig.loadBalancerId)
                         .setPoolId(vipConfig.poolId)
@@ -291,73 +189,6 @@ public class Converter {
                         .setProtocolPort(vipConfig.protocolPort)
                         .setSessionPersistence(vipConfig.sessionPersistence)
                         .setAdminStateUp(vipConfig.adminStateUp);
-    }
-
-    public static PortConfig toPortConfig(Port<?,?> port) {
-
-        PortConfig portConfig = null;
-        if (port instanceof BridgePort) {
-            BridgePort typedPort = (BridgePort) port;
-            BridgePortConfig typedPortConfig = new BridgePortConfig();
-            typedPortConfig.setVlanId(typedPort.getVlanId());
-
-            if(typedPort.getProperty(Port.Property.v1PortType) != null) {
-                if(typedPort.getProperty(Port.Property.v1PortType)
-                        .equals(Client.PortType.ExteriorBridge.toString())) {
-                    typedPortConfig.setV1ApiType("ExteriorBridgePort");
-                } else if (typedPort.getProperty(Port.Property.v1PortType)
-                        .equals(Client.PortType.InteriorBridge.toString())) {
-                    typedPortConfig.setV1ApiType("InteriorBridgePort");
-                }
-            }
-            portConfig = typedPortConfig;
-        } else if (port instanceof RouterPort) {
-            RouterPort typedPort = (RouterPort) port;
-            RouterPortConfig routerPortConfig = new RouterPortConfig();
-            routerPortConfig.setBgps(typedPort.getBgps());
-            routerPortConfig.setHwAddr(typedPort.getHwAddr());
-            routerPortConfig.setPortAddr(typedPort.getPortAddr());
-            routerPortConfig.setNwAddr(typedPort.getNwAddr());
-            routerPortConfig.nwLength = typedPort.getNwLength();
-
-            if(typedPort.getProperty(Port.Property.v1PortType) != null) {
-                if(typedPort.getProperty(Port.Property.v1PortType)
-                        .equals(Client.PortType.ExteriorRouter.toString())) {
-                    routerPortConfig.setV1ApiType("ExteriorRouterPort");
-                } else if (typedPort.getProperty(Port.Property.v1PortType)
-                        .equals(Client.PortType.InteriorRouter.toString())) {
-                    routerPortConfig.setV1ApiType("InteriorRouterPort");
-                }
-            }
-
-            portConfig = routerPortConfig;
-        } else if (port instanceof VxLanPort) {
-            VxLanPort typedPort = (VxLanPort)port;
-            VxLanPortConfig typedConfig = new VxLanPortConfig();
-            typedConfig.setMgmtIpAddr(typedPort.getMgmtIpAddr().toString());
-            typedConfig.setMgmtPort(typedPort.getMgmtPort());
-            typedConfig.setVni(typedPort.getVni());
-            typedConfig.setTunIpAddr(typedPort.getTunnelIp().toString());
-            typedConfig.setTunnelZoneId(typedPort.getTunnelZoneId());
-            portConfig = typedConfig;
-        }
-
-        if (portConfig == null)
-            return null;
-
-        portConfig.id = port.getId();
-        portConfig.device_id = port.getDeviceId();
-        portConfig.adminStateUp = port.isAdminStateUp();
-        portConfig.peerId = port.getPeerId();
-        portConfig.hostId = port.getHostId();
-        portConfig.interfaceName = port.getInterfaceName();
-        portConfig.inboundFilter = port.getInboundFilter();
-        portConfig.outboundFilter = port.getOutboundFilter();
-        portConfig.tunnelKey = port.getTunnelKey();
-        portConfig.properties = port.getProperties();
-        portConfig.portGroupIDs = port.getPortGroups();
-
-        return portConfig;
     }
 
     public static Port<?,?> fromPortConfig(PortConfig portConfig) {
@@ -431,19 +262,6 @@ public class Converter {
                 .setPortGroups(portConfig.portGroupIDs);
     }
 
-    public static RouterConfig toRouterConfig(Router router) {
-        RouterConfig routerConfig = new RouterConfig();
-
-        routerConfig.name = router.getName();
-        routerConfig.adminStateUp = router.isAdminStateUp();
-        routerConfig.inboundFilter = router.getInboundFilter();
-        routerConfig.outboundFilter = router.getOutboundFilter();
-        routerConfig.loadBalancer = router.getLoadBalancer();
-        routerConfig.properties = new HashMap<>(router.getProperties());
-
-        return routerConfig;
-    }
-
     public static Router fromRouterConfig(RouterConfig router) {
         if (router == null)
             return null;
@@ -455,26 +273,6 @@ public class Converter {
                 .setOutboundFilter(router.outboundFilter)
                 .setLoadBalancer(router.loadBalancer)
                 .setProperties(router.properties);
-    }
-
-    public static org.midonet.midolman.layer3.Route toRouteConfig(
-            Route route) {
-
-        int gateway = route.getNextHopGateway() == null ? NO_GATEWAY :
-                      IPv4Addr.stringToInt(route.getNextHopGateway());
-        return new org.midonet.midolman.layer3.Route(
-            IPv4Addr.stringToInt(route.getSrcNetworkAddr()),
-            route.getSrcNetworkLength(),
-            IPv4Addr.stringToInt(route.getDstNetworkAddr()),
-            route.getDstNetworkLength(),
-            route.getNextHop(),
-            route.getNextHopPort(),
-            gateway,
-            route.getWeight(),
-            route.getAttributes(),
-            route.getRouterId(),
-            route.isLearned()
-        );
     }
 
     public static Route fromRouteConfig(
@@ -496,67 +294,6 @@ public class Converter {
                 .setRouterId(route.routerId)
                 .setLearned(route.isLearned())
         ;
-    }
-
-    public static org.midonet.midolman.rules.Rule toRuleConfig(Rule<?,?> rule) {
-
-        org.midonet.midolman.rules.Rule ruleConfig = null;
-        if (rule instanceof LiteralRule) {
-            LiteralRule typedRule = (LiteralRule) rule;
-
-            ruleConfig = new org.midonet.midolman.rules.LiteralRule(
-                    typedRule.getCondition(),
-                    typedRule.getAction()
-            );
-        }
-
-        if (rule instanceof TraceRule) {
-            TraceRule typedRule = (TraceRule) rule;
-            ruleConfig = new org.midonet.midolman.rules.TraceRule(
-                    typedRule.getRequestId(), typedRule.getCondition(),
-                    typedRule.getLimit());
-        }
-
-        if (rule instanceof JumpRule) {
-            JumpRule typedRule = (JumpRule) rule;
-
-            ruleConfig = new org.midonet.midolman.rules.JumpRule(
-                    typedRule.getCondition(),
-                    typedRule.getJumpToChainId(),
-                    typedRule.getJumpToChainName()
-            );
-        }
-
-        if (rule instanceof ForwardNatRule) {
-            ForwardNatRule typedRule = (ForwardNatRule) rule;
-
-            ruleConfig = new org.midonet.midolman.rules.ForwardNatRule(
-                    typedRule.getCondition(),
-                    typedRule.getAction(),
-                    typedRule.getChainId(),
-                    typedRule.isDnat(),
-                    typedRule.getTargets()
-            );
-        }
-
-        if (rule instanceof ReverseNatRule) {
-            ReverseNatRule typedRule = (ReverseNatRule) rule;
-
-            ruleConfig = new org.midonet.midolman.rules.ReverseNatRule(
-                    typedRule.getCondition(),
-                    typedRule.getAction(),
-                    typedRule.isDnat()
-            );
-
-        }
-
-        if (ruleConfig != null) {
-            ruleConfig.chainId = rule.getChainId();
-            ruleConfig.setMeterName(rule.getMeterName());
-            ruleConfig.setProperties(rule.getProperties());
-        }
-
-        return ruleConfig;
     }
 
     public static Rule<?,?> fromRuleConfig(
@@ -616,14 +353,6 @@ public class Converter {
                 .setMeterName(ruleConfig.getMeterName());
     }
 
-    public static BridgeDhcpZkManager.Host toDhcpHostConfig(
-            org.midonet.cluster.data.dhcp.Host host) {
-
-        return new BridgeDhcpZkManager.Host(host.getMAC(), host.getIp(),
-                host.getName(), host.getExtraDhcpOpts());
-
-    }
-
     public static org.midonet.cluster.data.dhcp.Host fromDhcpHostConfig
             (BridgeDhcpZkManager.Host hostConfig) {
         return new org.midonet.cluster.data.dhcp.Host()
@@ -631,28 +360,6 @@ public class Converter {
                 .setMAC(hostConfig.getMac())
                 .setName(hostConfig.getName())
                 .setExtraDhcpOpts(hostConfig.getExtraDhcpOpts());
-    }
-
-    public static BridgeDhcpZkManager.Subnet toDhcpSubnetConfig(
-            Subnet subnet) {
-
-        List<BridgeDhcpZkManager.Opt121> opt121Configs = new ArrayList<>();
-        if (subnet.getOpt121Routes() != null) {
-            for (Opt121 opt121 : subnet.getOpt121Routes()) {
-                opt121Configs.add(toDhcpOpt121Config(opt121));
-            }
-        }
-
-        // If isEnabled is not set, default to enabled
-        boolean enabled = (subnet.isEnabled() == null || subnet.isEnabled());
-
-        return new BridgeDhcpZkManager.Subnet(
-                      subnet.getSubnetAddr(),
-                      subnet.getDefaultGateway(),
-                      subnet.getServerAddr(),
-                      subnet.getDnsServerAddrs(),
-                      subnet.getInterfaceMTU(),
-                      opt121Configs, enabled);
     }
 
     public static Subnet fromDhcpSubnetConfig(
@@ -674,23 +381,10 @@ public class Converter {
                 .setEnabled(subnetConfig.isEnabled());
     }
 
-    public static BridgeDhcpZkManager.Opt121 toDhcpOpt121Config(Opt121 opt121) {
-        return new BridgeDhcpZkManager.Opt121(opt121.getRtDstSubnet(),
-                                              opt121.getGateway());
-    }
-
     public static Opt121 fromDhcpOpt121Config(BridgeDhcpZkManager.Opt121
                                               opt121Config) {
         return new Opt121().setGateway(opt121Config.getGateway())
                            .setRtDstSubnet(opt121Config.getRtDstSubnet());
-    }
-
-    public static BridgeDhcpV6ZkManager.Host toDhcpV6HostConfig(
-            V6Host host) {
-
-        return new BridgeDhcpV6ZkManager.Host(host.getClientId(),
-                                              host.getFixedAddress(),
-                                              host.getName());
     }
 
     public static V6Host fromDhcpV6HostConfig
@@ -699,12 +393,6 @@ public class Converter {
                 .setFixedAddress(hostConfig.getFixedAddress())
                 .setClientId(hostConfig.getClientId())
                 .setName(hostConfig.getName());
-    }
-
-    public static BridgeDhcpV6ZkManager.Subnet6 toDhcpSubnet6Config(
-            Subnet6 subnet) {
-
-        return new BridgeDhcpV6ZkManager.Subnet6(subnet.getPrefix());
     }
 
     public static Subnet6 fromDhcpSubnet6Config(
@@ -734,38 +422,12 @@ public class Converter {
                 .setName(metadataConfig.getName());
     }
 
-    public static HostDirectory.Metadata toHostConfig(Host host) {
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-
-        metadata.setName(host.getName());
-        metadata.setAddresses(host.getAddresses());
-        metadata.setTunnelZones(new HashSet<UUID>(host.getTunnelZones()));
-
-        return metadata;
-    }
-
-    public static VirtualPortMapping fromHostVirtPortMappingConfig(
-            HostDirectory.VirtualPortMapping mappingConfig) {
-
-        return new VirtualPortMapping()
-                .setLocalDeviceName(mappingConfig.getLocalDeviceName())
-                .setVirtualPortId(mappingConfig.getVirtualPortId());
-    }
-
     public static VTEP fromVtepConfig(VtepZkManager.VtepConfig config) {
         VTEP vtep = new VTEP();
         vtep.setMgmtPort(config.mgmtPort);
         vtep.setTunnelZone(config.tunnelZone);
         return vtep;
     }
-
-    public static VtepZkManager.VtepConfig toVtepConfig(VTEP vtep) {
-        VtepZkManager.VtepConfig vtepConfig = new VtepZkManager.VtepConfig();
-        vtepConfig.mgmtPort = vtep.getMgmtPort();
-        vtepConfig.tunnelZone = vtep.getTunnelZoneId();
-        return vtepConfig;
-    }
-
 
     public static TraceRequest fromTraceRequestConfig(
             TraceRequestConfig traceRequestConfig) {
@@ -779,16 +441,4 @@ public class Converter {
             .setEnabledRule(traceRequestConfig.enabledRule);
     }
 
-    public static TraceRequestConfig toTraceRequestConfig(
-            TraceRequest traceRequest) {
-        TraceRequestConfig config = new TraceRequestConfig();
-        config.name = traceRequest.getName();
-        config.deviceType = traceRequest.getDeviceType();
-        config.deviceId = traceRequest.getDeviceId();
-        config.condition = traceRequest.getCondition();
-        config.creationTimestampMs = traceRequest.getCreationTimestampMs();
-        config.limit = traceRequest.getLimit();
-        config.enabledRule = traceRequest.getEnabledRule();
-        return config;
-    }
 }
