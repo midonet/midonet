@@ -20,6 +20,5 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 public interface ConfigGetter<K, CFG> {
-    public CFG get(K key)
-            throws StateAccessException, SerializationException;
+    CFG get(K key) throws StateAccessException, SerializationException;
 }
