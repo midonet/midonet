@@ -60,6 +60,12 @@ public class IPv6 extends BasePacket {
     protected IPv6Addr sourceAddress;
     protected IPv6Addr destinationAddress;
 
+    @Override
+    public int length() {
+        // XXX - extension headers not implemented.
+        return 40 + childLength();
+    }
+
     /**
      * Default constructor that sets the version to 6
      */

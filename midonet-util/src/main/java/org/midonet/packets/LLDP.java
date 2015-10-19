@@ -94,16 +94,20 @@ public class LLDP extends BasePacket {
     }
 
     @Override
-    public byte[] serialize() {
-        int length = 2+this.chassisId.getLength() + 2+this.portId.getLength() +
-            2+this.ttl.getLength() + 2;
+    public int length() {
+        int len =  2+this.chassisId.getLength() + 2+this.portId.getLength() +
+                   2+this.ttl.getLength() + 2;
         if (this.optionalTLVList != null) {
             for (LLDPTLV tlv : this.optionalTLVList) {
-                length += 2 + tlv.getLength();
+                len += 2 + tlv.getLength();
             }
         }
+        return len;
+    }
 
-        byte[] data = new byte[length];
+    @Override
+    public byte[] serialize() {
+        byte[] data = new byte[length()];
         ByteBuffer bb = ByteBuffer.wrap(data);
         bb.put(this.chassisId.serialize());
         bb.put(this.portId.serialize());

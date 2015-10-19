@@ -39,6 +39,11 @@ public class ElasticData extends Data {
         this.currentLength = length;
     }
 
+    @Override
+    public int length() {
+        return getLength();
+    }
+
     public int getLength() {
         return this.currentLength;
     }

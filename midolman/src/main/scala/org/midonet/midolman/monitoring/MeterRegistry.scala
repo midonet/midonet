@@ -26,7 +26,6 @@ import org.midonet.odp.flows.FlowStats
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, MeterTag}
 import org.midonet.util.collection.ArrayObjectPool
 
-
 class MeterRegistry(val maxFlows: Int) {
     val log = Logger(LoggerFactory.getLogger("org.midonet.metering"))
 
@@ -79,6 +78,27 @@ class MeterRegistry(val maxFlows: Int) {
             trackedFlows.put(flowMatch, metadata)
         else
             metadataPool.offer(metadata)
+    }
+
+    def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit = {
+        DELTA.packets = 1
+        DELTA.bytes = packetLen
+
+        var i = 0
+        while (i < tags.size()) {
+            tags.get(i) match {
+                case meter: MeterTag =>
+                    if (meters.containsKey(meter.meterName)) {
+                        log.debug(s"adding a packet to meter: ${meter.meterName}")
+                        meters.get(meter.meterName).add(DELTA.packets, DELTA.bytes)
+                    } else {
+                        meters.put(meter.meterName, new FlowStats(DELTA.packets, DELTA.bytes))
+                        log.debug(s"discovered a new meter: ${meter.meterName}")
+                    }
+                case _ => // Do nothing
+            }
+            i += 1
+        }
     }
 
     def updateFlow(flowMatch: FlowMatch, stats: FlowStats): Unit = {

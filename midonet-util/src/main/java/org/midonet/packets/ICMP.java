@@ -200,6 +200,11 @@ public class ICMP extends BasePacket {
     }
 
     @Override
+    public int length() {
+        return HEADER_LEN + getPayloadLength();
+    }
+
+    @Override
     public int getPayloadLength() {
         return data != null ? data.length : 0;
     }
@@ -210,8 +215,7 @@ public class ICMP extends BasePacket {
      */
     @Override
     public byte[] serialize() {
-        int length = HEADER_LEN + getPayloadLength();
-        byte[] bytes = new byte[length];
+        byte[] bytes = new byte[length()];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
         bb.put(type);
         bb.put(code);

@@ -40,6 +40,11 @@ public class FlowStats extends NetlinkSerializable {
         this.bytes = bytes;
     }
 
+    public void add(long deltaPackets, long deltaBytes) {
+        packets += deltaPackets;
+        bytes += deltaBytes;
+    }
+
     public void updateAndGetDelta(FlowStats newStats, FlowStats delta) {
         delta.packets = newStats.packets - packets;
         delta.bytes = newStats.bytes - bytes;

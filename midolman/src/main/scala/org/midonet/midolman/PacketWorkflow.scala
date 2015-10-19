@@ -272,7 +272,7 @@ class PacketWorkflow(
 
     protected def generatedPacketContext(egressPort: UUID, eth: Ethernet) = {
         val fmatch = FlowMatches.fromEthernetPacket(eth)
-        val packet = new Packet(eth, fmatch)
+        val packet = new Packet(eth, fmatch, eth.length())
         initialize(packet, fmatch, egressPort)
     }
 
@@ -345,6 +345,7 @@ class PacketWorkflow(
             }
         }
 
+        meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
         flowRecorder.record(pktCtx, simRes)
     }
 
