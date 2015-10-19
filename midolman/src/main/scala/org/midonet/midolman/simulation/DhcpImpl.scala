@@ -547,17 +547,12 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
         val assignment = subnets.find { subnet =>
             log.debug("Looking up assignment for MAC {} on subnet {} ",
                       sourceMac, subnet.getId)
-            if (subnet.isReplyReady) {
-                // TODO(pino): make this asynchronous?
-                host = dhcpConfig.dhcpHost(port.deviceId, subnet,
-                                           sourceMac.toString)
-                host.isDefined && (host.get.getIp != null)
-            } else {
-                log.warn("Can not create DHCP reply because the subnet" +
-                         s" ${subnet.getId} does not have all necessary " +
-                         "information.")
-                false
+            if (subnet.getServerAddr == null) {
+                subnet.setServerAddr(IPv4Addr.fromString("0.0.0.0"))
             }
+            host = dhcpConfig.dhcpHost(port.deviceId, subnet,
+                                       sourceMac.toString)
+            host.isDefined && (host.get.getIp != null)
         }
         (host, assignment)
     }
