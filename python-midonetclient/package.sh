@@ -10,7 +10,7 @@
 #   In short, do the following on Ubuntu based distribution to install
 #   build dependencies.
 #
-#   $ sudo apt-get install -y rubygems rpm ruby-ronn && sudo gem install fpm
+#   $ sudo apt-get install -y rubygems-integration rpm ruby-ronn ruby-dev && sudo gem install fpm
 #
 #   Here's list of dependencies:
 #
