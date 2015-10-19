@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_59525614",
+        "filename": "cluster/midonet-cluster/src/deb/tools/mn-migrate",
+        "patchSetId": 13
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T13:42:55Z",
+      "side": 1,
+      "message": "is /midonet-tools more appropriate? Unless we want it to be only in cluster nodes (which doesn\u0027t sound crazy either)",
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_79571a03",
+        "filename": "cluster/midonet-cluster/src/deb/tools/mn-migrate",
+        "patchSetId": 13
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T13:42:55Z",
+      "side": 1,
+      "message": "additional info here?",
+      "range": {
+        "startLine": 30,
+        "startChar": 18,
+        "endLine": 30,
+        "endChar": 21
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_f94a4a54",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 13
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T13:42:55Z",
+      "side": 1,
+      "message": "maybe into /usr/share/midonet-cluster? So that it doesn\u0027t look like a standalone tool?",
+      "range": {
+        "startLine": 123,
+        "startChar": 18,
+        "endLine": 123,
+        "endChar": 21
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_b967f2e9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T13:42:55Z",
+      "side": 1,
+      "message": "the new root_key is /midonet, Nicolas is on this and should be merged soon",
+      "range": {
+        "startLine": 135,
+        "startChar": 11,
+        "endLine": 135,
+        "endChar": 54
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d964a6e7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T13:42:55Z",
+      "side": 1,
+      "message": "we have JIRAs for these?",
+      "range": {
+        "startLine": 264,
+        "startChar": 0,
+        "endLine": 267,
+        "endChar": 62
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
