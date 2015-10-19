@@ -18,10 +18,14 @@ package org.midonet.cluster.auth.keystone.v2_0;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -46,8 +50,16 @@ public class KeystoneClient {
     public static final String MARKER_QUERY = "marker";
     public static final String LIMIT_QUERY = "limit";
 
+    private final DefaultClientConfig clientConfig = new DefaultClientConfig();
+
     public KeystoneClient(KeystoneConfig config) {
         this.config = config;
+
+        JacksonJsonProvider jsonProvider = new JacksonJaxbJsonProvider();
+        jsonProvider.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                               false);
+
+        this.clientConfig.getSingletons().add(jsonProvider);
     }
 
     public String getServiceUrl() {
@@ -93,7 +105,7 @@ public class KeystoneClient {
             throws KeystoneServerException, KeystoneConnectionException,
                    KeystoneUnauthorizedException {
 
-        Client client = Client.create();
+        Client client = Client.create(clientConfig);
         WebResource resource = client.resource(getTokensUrl());
 
         try {
@@ -127,7 +139,7 @@ public class KeystoneClient {
     public KeystoneAccess getToken(String token) throws KeystoneServerException,
             KeystoneConnectionException {
 
-        Client client = Client.create();
+        Client client = Client.create(clientConfig);
         WebResource resource = client.resource(getTokensUrl(token));
 
         try {
@@ -156,7 +168,7 @@ public class KeystoneClient {
             KeystoneConnectionException {
         log.debug("Keystone v2 get tenant {}", id);
 
-        Client client = Client.create();
+        Client client = Client.create(clientConfig);
         WebResource resource = client.resource(getTenantUrl(id));
 
         try {
@@ -195,7 +207,7 @@ public class KeystoneClient {
         log.debug("KeystoneClient.getTenants: entered marker=" + marker +
                 ", limit=" + limit);
 
-        Client client = Client.create();
+        Client client = Client.create(clientConfig);
         WebResource resource = client.resource(getTenantsUrl());
 
         if (!StringUtils.isEmpty(marker)) {
