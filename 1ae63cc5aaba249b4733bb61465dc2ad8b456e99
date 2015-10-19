@@ -251,6 +251,24 @@
       "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_969e7d55",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/logging/ProtoTextPrettifierTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T11:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_d61c7516",
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
