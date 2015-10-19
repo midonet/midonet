@@ -94,7 +94,7 @@ trait MidolmanSpec extends FeatureSpecLike
                 .startAsync()
                 .awaitRunning()
 
-            InMemoryStorage.NamespaceId =
+            InMemoryStorage.namespaceId =
                 injector.getInstance(classOf[HostIdProviderService]).hostId
 
             beforeTest()

@@ -26,7 +26,7 @@ import rx.Observable
 import org.midonet.cluster.data.storage.{SingleValueKey, StateResult, StateStorage, StorageException}
 import org.midonet.cluster.models.State.{VtepConfiguration, VtepConnectionState}
 import org.midonet.cluster.models.Topology.Vtep
-import org.midonet.cluster.services.MidonetBackend.{VtepConfig, VtepConnState}
+import org.midonet.cluster.services.MidonetBackend.{ClusterNamespaceId, VtepConfig, VtepConnState}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.packets.IPAddr
@@ -59,11 +59,12 @@ object VtepStateStorage {
  */
 class VtepStateStorage(val store: StateStorage) extends AnyVal {
 
-    /** Gets the configuration for the specified VTEP from the state store. The
-      * method returns an observable, which when subscribed to, emits one
-      * notification with the VTEP configuration. */
+    /** Gets the configuration for the specified VTEP from the state store of
+      * the cluster. The method returns an observable, which when subscribed to,
+      * emits one notification with the VTEP configuration. */
     def getVtepConfig(vtepId: UUID): Observable[VtepConfiguration] = {
-        store.getKey(classOf[Vtep], vtepId, VtepConfig) map makeFunc1 {
+        store.getKey(ClusterNamespaceId.toString, classOf[Vtep], vtepId,
+                     VtepConfig) map makeFunc1 {
             case SingleValueKey(_, Some(config), _) =>
                 deserializeConfig(config)
             case SingleValueKey(_, None, _) =>
@@ -73,11 +74,12 @@ class VtepStateStorage(val store: StateStorage) extends AnyVal {
         }
     }
 
-    /** Gets the connection state for the specified VTEP from the state store.
-      * The method returns an observable, which when subscribed to, emits one
-      * notification with the VTEP connection state. */
+    /** Gets the connection state for the specified VTEP from the state store of
+      * the cluster. The method returns an observable, which when subscribed to,
+      * emits one notification with the VTEP connection state. */
     def getVtepConnectionState(vtepId: UUID): Observable[VtepConnectionState] = {
-        store.getKey(classOf[Vtep], vtepId, VtepConnState) map makeFunc1 {
+        store.getKey(ClusterNamespaceId.toString, classOf[Vtep], vtepId,
+                     VtepConnState) map makeFunc1 {
             case SingleValueKey(_, Some(state), _) =>
                 VtepConnectionState.valueOf(state)
             case SingleValueKey(_, None, _) =>
@@ -118,9 +120,11 @@ class VtepStateStorage(val store: StateStorage) extends AnyVal {
     }
 
     /** An observable that emits notifications when the configuration of the
-      * specified VTEP changes. */
+      * specified VTEP changes. The observable reads from the cluster
+      * namespace. */
     def vtepConfigObservable(vtepId: UUID): Observable[VtepConfiguration] = {
-        store.keyObservable(classOf[Vtep], vtepId, VtepConfig) map makeFunc1 {
+        store.keyObservable(ClusterNamespaceId.toString, classOf[Vtep], vtepId,
+                            VtepConfig) map makeFunc1 {
             case SingleValueKey(_, Some(config), _) =>
                 deserializeConfig(config)
             case SingleValueKey(_, None, _) =>
@@ -131,9 +135,11 @@ class VtepStateStorage(val store: StateStorage) extends AnyVal {
     }
 
     /** An observable that emits notifications when the connection state of the
-      * specified VTEP changes. */
+      * specified VTEP changes. The observable reads from the cluster
+      * namespace. */
     def vtepConnectionStateObservable(vtepId: UUID): Observable[VtepConnectionState] = {
-        store.keyObservable(classOf[Vtep], vtepId, VtepConnState) map makeFunc1 {
+        store.keyObservable(ClusterNamespaceId.toString, classOf[Vtep], vtepId,
+                            VtepConnState) map makeFunc1 {
             case SingleValueKey(_, Some(state), _) =>
                 VtepConnectionState.valueOf(state)
             case SingleValueKey(_, None, _) =>

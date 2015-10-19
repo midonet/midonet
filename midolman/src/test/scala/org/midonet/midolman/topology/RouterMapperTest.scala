@@ -95,7 +95,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
     : TopologyPort = {
         createRouterPort(routerId = Some(routerId),
                          adminStateUp = adminStateUp,
-                         hostId = Some(InMemoryStorage.NamespaceId),
+                         hostId = Some(InMemoryStorage.namespaceId),
                          interfaceName = Some("iface0"))
     }
 

@@ -31,7 +31,7 @@ import rx.Observable.OnSubscribe
 import rx._
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.InMemoryStorage.{DefaultOwnerId, NamespaceId, PrimedSubject, asObservable, copyObj}
+import org.midonet.cluster.data.storage.InMemoryStorage.{DefaultOwnerId, namespaceId, PrimedSubject, asObservable, copyObj}
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage._
 import org.midonet.cluster.data.storage.TransactionManager._
@@ -493,7 +493,7 @@ class InMemoryStorage extends Storage with StateStorage {
 
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
 
-    override def namespace = NamespaceId.toString
+    override def namespace = namespaceId.toString
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
@@ -670,7 +670,7 @@ object InMemoryStorage {
 
     final val IOTimeout = 5 seconds
     final val DefaultOwnerId = 1L
-    var NamespaceId = new UUID(0L, 0L)
+    var namespaceId = new UUID(0L, 0L)
 
     private def copyObj[T](obj: T): T =
         deserialize(serialize(obj.asInstanceOf[Obj]), obj.getClass)
