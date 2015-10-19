@@ -76,6 +76,12 @@ public class Ethernet extends BasePacket {
     protected boolean pad = false;
 
     @Override
+    public int length() {
+        int len = MIN_HEADER_LEN + vlanIDs.size() * 4 + childLength();
+        return pad ? Math.max(len, 60) : len;
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Ethernet [dlSrc=");

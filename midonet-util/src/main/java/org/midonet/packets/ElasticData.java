@@ -37,6 +37,11 @@ public class ElasticData extends Data {
         limit(limit);
     }
 
+    @Override
+    public int length() {
+        return limit;
+    }
+
     public int capacity() {
         return data.length;
     }

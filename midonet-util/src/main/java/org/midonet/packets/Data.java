@@ -32,6 +32,11 @@ public class Data extends BasePacket {
     public Data() {
     }
 
+    @Override
+    public int length() {
+        return getPayloadLength();
+    }
+
     /**
      * @param data
      */

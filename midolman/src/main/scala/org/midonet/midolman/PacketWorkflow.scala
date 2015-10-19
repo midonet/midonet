@@ -292,7 +292,7 @@ class PacketWorkflow(
     protected def generatedPacketContext(p: GeneratedPacket) = {
         log.debug(s"Executing generated packet $p")
         val fmatch = FlowMatches.fromEthernetPacket(p.eth)
-        val packet = new Packet(p.eth, fmatch)
+        val packet = new Packet(p.eth, fmatch, p.eth.length())
         p match {
             case GeneratedLogicalPacket(portId, _, _) =>
                 initialize(p.cookie, packet, fmatch, portId, null)
@@ -380,6 +380,7 @@ class PacketWorkflow(
             }
         }
 
+        meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
         flowRecorder.record(pktCtx, simRes)
     }
 
