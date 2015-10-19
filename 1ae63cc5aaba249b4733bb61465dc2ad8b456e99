@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_76dd6942",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T11:10:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_566305b1",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 13
+      },
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_1600ada9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-10-19T10:57:42Z",
       "side": 1,
       "message": "Consider making a private version of this method that takes a StringBuilder as an argument, to make makeReadable a bit more efficient.",
+      "range": {
+        "startLine": 57,
+        "startChar": 58,
+        "endLine": 57,
+        "endChar": 64
+      },
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_96e2fd01",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T11:10:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_1600ada9",
       "range": {
         "startLine": 57,
         "startChar": 58,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_b6e62115",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T11:10:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_d6f555cc",
+      "range": {
+        "startLine": 61,
+        "startChar": 48,
+        "endLine": 61,
+        "endChar": 49
+      },
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_563145a1",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_56d86553",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T11:10:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_563145a1",
+      "range": {
+        "startLine": 79,
+        "startChar": 36,
+        "endLine": 79,
+        "endChar": 52
+      },
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_962bdd2f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2015-10-19T10:57:42Z",
       "side": 1,
       "message": "Space.",
+      "range": {
+        "startLine": 84,
+        "startChar": 14,
+        "endLine": 84,
+        "endChar": 15
+      },
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_36d3f139",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T11:10:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_962bdd2f",
       "range": {
         "startLine": 84,
         "startChar": 14,
