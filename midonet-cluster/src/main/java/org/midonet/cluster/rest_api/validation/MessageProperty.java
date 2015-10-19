@@ -70,6 +70,8 @@ public class MessageProperty {
             "{midokura.javarx.MaxValue.message}";
     public static final String MIN_VALUE =
             "{midokura.javarx.MinValue.message}";
+    public static final String NETWORK_SUBNET_NOT_FOUND =
+            "{midokura.javarx.NetworkSubnetNotFound.message}";
     public static final String NON_NULL =
             "{midokura.javarx.NonNull.message}";
     public static final String POOL_MEMBER_WEIGHT_NEGATIVE =
@@ -96,6 +98,8 @@ public class MessageProperty {
             "{midokura.javarx.RouteNextHopPortInvalid.message}";
     public static final String ROUTER_ID_IS_INVALID =
             "{midokura.javarx.RouterIdIsInvalid.message}";
+    public static final String SUBNET_HAS_HOST =
+            "{midokura.javarx.SubnetHasHost.message}";
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
             "{midokura.javarx.TunnelZoneIdIsInvalid.message}";
     public static final String TUNNEL_ZONE_NOT_VTEP =
