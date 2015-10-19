@@ -17,7 +17,6 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
@@ -28,15 +27,11 @@ import org.apache.zookeeper.Op;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.nsdb.BaseConfig;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Arrays.asList;
 
 /**
@@ -90,29 +85,6 @@ public class LoadBalancerZkManager extends
     @Override
     protected Class<LoadBalancerConfig> getConfigClass() {
         return LoadBalancerConfig.class;
-    }
-
-    public Set<UUID> getPoolIds(UUID id) throws StateAccessException {
-        return getUuidSet(paths.getLoadBalancerPoolsPath(id));
-    }
-
-    public Set<UUID> getVipIds(UUID id) throws StateAccessException {
-        return getUuidSet(paths.getLoadBalancerVipsPath(id));
-    }
-
-    public List<Op> prepareSetRouterId(UUID id, UUID routerId)
-            throws SerializationException, StateAccessException {
-        LoadBalancerConfig config = get(id);
-        config.routerId = routerId;
-        return asList(simpleUpdateOp(id, config));
-    }
-
-    public void getVipIdListAsync(UUID loadBalancerId,
-                                  final DirectoryCallback<Set<UUID>>
-                                          vipContentsCallback,
-                                  Directory.TypedWatcher watcher) {
-        getUUIDSetAsync(paths.getLoadBalancerVipsPath(loadBalancerId),
-                        vipContentsCallback, watcher);
     }
 
 }
