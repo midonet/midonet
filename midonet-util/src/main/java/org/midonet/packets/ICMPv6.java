@@ -165,14 +165,17 @@ public class ICMPv6 extends BasePacket {
         return mtu;
     }
 
+    public int length() {
+        return HEADER_LEN + ((data == null) ? 0 : data.length);
+    }
+
     /**
      * Serializes the packet. Will compute and set the checksum if it's set to
      * 0 (zero) at the time serialize is called.
      */
     @Override
     public byte[] serialize() {
-        int length = HEADER_LEN + ((data == null) ? 0 : data.length);
-        byte[] bytes = new byte[length];
+        byte[] bytes = new byte[length()];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
         bb.put((byte)type);
         bb.put((byte)code);

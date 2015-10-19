@@ -75,6 +75,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         private ArrayList<FlowKey> keys = new ArrayList<>(16);
         private Ethernet eth;
         private Long userData;
+        private int packetLen = 0;
 
         public Packet buildFrom(ByteBuffer buf) {
             int datapathIndex = buf.getInt(); // ignored
@@ -84,7 +85,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 return null;
             }
             FlowKeys.addUserspaceKeys(eth, keys);
-            Packet p = new Packet(eth, new FlowMatch(keys));
+            Packet p = new Packet(eth, new FlowMatch(keys), packetLen);
             p.setUserData(userData);
             eth = null;
             keys.clear();
@@ -100,6 +101,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     try {
                         eth = new Ethernet();
                         eth.deserialize(buffer);
+                        packetLen = buffer.remaining();
                     } catch (Exception e) {
                         log.warn("Dropping malformed packet", e);
                         this.eth = null;

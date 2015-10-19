@@ -42,7 +42,7 @@ trait StatePacketExecutor {
      */
     private val stateBuf = new Array[Byte](FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
     private val udpShell: FlowStateEthernet = new FlowStateEthernet(stateBuf)
-    private val statePacket = new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
+    private val statePacket = new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell), udpShell.length)
 
     def prepareStatePacket(message: Array[Byte], length: Int): Packet = {
         try {

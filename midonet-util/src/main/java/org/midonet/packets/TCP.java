@@ -94,6 +94,10 @@ public class TCP extends BasePacket implements Transport {
     protected short urgent;
     byte[] options;
 
+    public int length() {
+        return 20 + (null == options ? 0 : options.length) + childLength();
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

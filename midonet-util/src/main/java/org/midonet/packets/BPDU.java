@@ -265,6 +265,11 @@ public class BPDU extends BasePacket {
     }
 
     @Override
+    public int length() {
+        return BPDU.FRAME_SIZE;
+    }
+
+    @Override
     public byte[] serialize() {
         ByteBuffer bb = ByteBuffer.allocate(BPDU.FRAME_SIZE);
         bb.putShort(protocolId);

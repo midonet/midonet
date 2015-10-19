@@ -57,6 +57,8 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
     val tagsA = new ArrayList((nonMeterRandomTag :: metersA).asJava)
     val tagsB = new ArrayList((nonMeterRandomTag :: metersB).asJava)
 
+    val FIRST_PKT_SIZE = 237
+
     feature("Meter registry") {
         scenario("registers new meters") {
             val registry = new MeterRegistry(10)
@@ -82,6 +84,7 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
         scenario("tracks stats for a single flow, N meters") {
             val registry = new MeterRegistry(10)
             registry.trackFlow(matchA, tagsA)
+            registry.recordPacket(FIRST_PKT_SIZE, tagsA)
 
             val stats = new FlowStats()
             for (i <- 1 to 10) {
@@ -90,8 +93,8 @@ class MeterRegistryTest extends FeatureSpec with Matchers {
                 registry.updateFlow(matchA, stats)
 
                 for (meter <- registry.meters.values.asScala) {
-                    meter.packets should === (i)
-                    meter.bytes should === (i * 100)
+                    meter.packets should === (i + 1)
+                    meter.bytes should === (i * 100 + FIRST_PKT_SIZE)
                 }
             }
         }
