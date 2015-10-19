@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ab29df4_59d89653",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-19T14:54:46Z",
+      "side": 1,
+      "message": "Because you are no longer reading root_key through the filtering code you wrote.",
+      "revId": "07318ef6856e411321351c7368149ed88d216924",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_79263a6a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
         "patchSetId": 20
