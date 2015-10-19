@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_b9aff22a",
+        "filename": "DEVELOPMENT.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T17:02:47Z",
+      "side": 1,
+      "message": "see comment on previous patch",
+      "revId": "5cf250c741bc7334ec293e4b9e229984927c8c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_99bb0e72",
+        "filename": "midonet-cluster/src/deb/control/conffiles",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-19T17:02:47Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "5cf250c741bc7334ec293e4b9e229984927c8c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
