@@ -131,6 +131,18 @@ public class TestTunnelZoneHost {
                     tzhCollectionMediaType,
                     DtoTunnelZoneHost[].class);
             Assert.assertEquals(1, tzHosts.length);
+            // MNA-921: ensure that the API is filling the tz id and URI in the
+            // TunnelZoneHost DTOs.
+            Assert.assertEquals(tz.getId(), tzHosts[0].getTunnelZoneId());
+            Assert.assertNotNull(tzHosts[0].getUri());
+
+            // Getting the tzhost object directly should also bring the URI
+            // and tunnel zone id
+            tzHost = dtoResource.getAndVerifyOk(tzHosts[0].getUri(),
+                                                tzhMediaType,
+                                                DtoTunnelZoneHost.class);
+            Assert.assertEquals(tzHosts[0].getUri(), tzHost.getUri());
+            Assert.assertEquals(tz.getId(), tzHost.getTunnelZoneId());
 
             // List the hosts using untyped tunnel zone media type.
             tzHosts = dtoResource.getAndVerifyOk(
@@ -147,6 +159,7 @@ public class TestTunnelZoneHost {
                 DtoTunnelZoneHost.class);
             Assert.assertEquals(tzHost.getIpAddress(), h.getIpAddress());
             Assert.assertEquals(tzHost.getTunnelZoneId(), h.getTunnelZoneId());
+            Assert.assertNotNull(tzHost.getUri());
 
             // Now get the single host using the untyped tz-host media type.
             h = dtoResource.getAndVerifyOk(
