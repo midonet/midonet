@@ -30,8 +30,7 @@ import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.cluster.util._
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
@@ -296,42 +295,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
              curPort.getProfile.getInterfaceName)
     }
 
-    /* Update DHCP configuration by applying the given updateFun. */
-    private def updateDhcpEntries(
-            nPort: NeutronPort,
-            subnetCache: mutable.Map[UUID, Dhcp.Builder],
-            updateFun: (Dhcp.Builder, String, IPAddress) => Unit,
-            ignoreNonExistingDhcp: Boolean = false) {
-        for (ipAlloc <- nPort.getFixedIpsList.asScala) {
-            try {
-                val subnet = subnetCache.getOrElseUpdate(
-                        ipAlloc.getSubnetId,
-                        storage.get(classOf[Dhcp],
-                                    ipAlloc.getSubnetId).await().toBuilder)
-                val mac = nPort.getMacAddress
-                val ipAddress = ipAlloc.getIpAddress
-                updateFun(subnet, mac, ipAddress)
-            } catch {
-                case nfe: NotFoundException if ignoreNonExistingDhcp =>
-                    // Ignores DHCPs already deleted.
-            }
-        }
-    }
-
     /* Adds a host entry with the given mac / IP address pair to DHCP. */
     private def addDhcpHost(
             dhcp: Dhcp.Builder, mac: String, ipAddr: IPAddress) {
         dhcp.addHostsBuilder()
             .setMac(mac)
             .setIpAddress(ipAddr)
-    }
-
-    /* Deletes a host entry with the given mac / IP address pair in DHCP. */
-    private def delDhcpHost(
-            dhcp: Dhcp.Builder, mac: String, ipAddr: IPAddress) {
-        val remove = dhcp.getHostsList.asScala.indexWhere(
-            h => h.getMac == mac && h.getIpAddress == ipAddr)
-        if (remove >= 0) dhcp.removeHosts(remove)
     }
 
     /* Configures the DHCP server and an OPT 121 route to it with the given IP

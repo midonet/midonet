@@ -16,11 +16,14 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
-import org.midonet.cluster.models.Topology.{Host, Port, PortOrBuilder}
+import org.midonet.cluster.models.Topology.{Dhcp, Host, Port, PortOrBuilder}
 import org.midonet.cluster.services.c3po.midonet.Update
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.MAC
@@ -114,6 +117,36 @@ trait PortManager extends RouteManager {
         }
 
         host.getId
+    }
+
+    /* Update DHCP configuration by applying the given updateFun. */
+    protected def updateDhcpEntries(
+            nPort: NeutronPort,
+            subnetCache: mutable.Map[UUID, Dhcp.Builder],
+            updateFun: (Dhcp.Builder, String, IPAddress) => Unit,
+            ignoreNonExistingDhcp: Boolean = false): Unit = {
+        for (ipAlloc <- nPort.getFixedIpsList.asScala) {
+            try {
+                val subnet = subnetCache.getOrElseUpdate(
+                    ipAlloc.getSubnetId,
+                    storage.get(classOf[Dhcp],
+                                ipAlloc.getSubnetId).await().toBuilder)
+                val mac = nPort.getMacAddress
+                val ipAddress = ipAlloc.getIpAddress
+                updateFun(subnet, mac, ipAddress)
+            } catch {
+                case nfe: NotFoundException if ignoreNonExistingDhcp =>
+                // Ignores DHCPs already deleted.
+            }
+        }
+    }
+
+    /* Deletes a host entry with the given mac / IP address pair in DHCP. */
+    protected def delDhcpHost(dhcp: Dhcp.Builder, mac: String,
+                              ipAddr: IPAddress): Unit = {
+        val remove = dhcp.getHostsList.asScala.indexWhere(
+            h => h.getMac == mac && h.getIpAddress == ipAddr)
+        if (remove >= 0) dhcp.removeHosts(remove)
     }
 }
 
