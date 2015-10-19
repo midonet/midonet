@@ -30,7 +30,7 @@ import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage.{StateResult, UnmodifiableStateException, ZookeeperObjectMapper}
 import org.midonet.cluster.models.State.{VtepConfiguration, VtepConnectionState}
 import org.midonet.cluster.models.Topology.Vtep
-import org.midonet.cluster.services.MidonetBackend.{VtepConfig, VtepConnState}
+import org.midonet.cluster.services.MidonetBackend.{ClusterNamespaceId, VtepConfig, VtepConnState}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.cluster.util.IPAddressUtil._
@@ -43,7 +43,7 @@ class VtepStateStorageTest extends FlatSpec with CuratorTestFramework
                                    with Matchers with GivenWhenThen {
 
     private var storage: ZookeeperObjectMapper = _
-    private val hostId = UUID.randomUUID().toString
+    private val hostId = ClusterNamespaceId.toString
     private var ownerId: Long = _
     private val random = new Random
     private final val timeout = 5 seconds

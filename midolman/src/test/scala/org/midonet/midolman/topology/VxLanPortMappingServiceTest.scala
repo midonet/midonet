@@ -54,6 +54,8 @@ class VxLanPortMappingServiceTest extends MidolmanSpec
     private val random = new Random()
 
     protected override def beforeTest(): Unit = {
+        InMemoryStorage.NamespaceId = MidonetBackend.ClusterNamespaceId
+
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).store
         stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
