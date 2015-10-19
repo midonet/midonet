@@ -44,14 +44,13 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     @Path("{id}")
     override def get(@PathParam("id") id: String,
                      @HeaderParam("Accept") accept: String): TunnelZoneHost = {
+        // Go via the resource so that it populates the TunnelZoneHosts inner
+        // fields (tunnel zone id and uri)
         val hostId = UUID.fromString(id)
-        val tzh = getResource(classOf[TunnelZone], tunnelZoneId)
-            .map(_.tzHosts.asScala.find(_.hostId == hostId))
-            .getOrThrow
+        new TunnelZoneResource(resContext)
+            .get(tunnelZoneId.toString, APPLICATION_TUNNEL_ZONE_JSON)
+            .tzHosts.find(_.hostId == hostId)
             .getOrElse(throw new NotFoundHttpException("Resource not found"))
-        tzh.tunnelZoneId = tunnelZoneId
-        tzh.setBaseUri(resContext.uriInfo.getBaseUri)
-        tzh
     }
 
     @GET
@@ -59,9 +58,11 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
                     APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[TunnelZoneHost] = {
-        getResource(classOf[TunnelZone], tunnelZoneId)
-            .map(_.tzHosts)
-            .getOrThrow
+        // Go via the resource so that it populates the TunnelZoneHosts inner
+        // fields (tunnel zone id and uri)
+        new TunnelZoneResource(resContext)
+            .get(tunnelZoneId.toString, APPLICATION_TUNNEL_ZONE_JSON)
+            .tzHosts
     }
 
     @POST
