@@ -193,7 +193,8 @@ class FloodingProxyManager(backend: MidonetBackend) {
 
     private def trackHost(id: UUID, onTz: UUID): Unit  = {
         val obs = selfHealingEntityObservable[Host](store, id)
-        val stateObs = stateStore.keyObservable(classOf[Host], id, AliveKey)
+        val stateObs = stateStore.keyObservable(id.toString, classOf[Host], id,
+                                                AliveKey)
         val sub = new CompositeSubscription
         val combiner = makeFunc2[Host, StateKey, HostFpState] { (h, s) =>
             HostFpState(h, onTz, s.nonEmpty, sub)

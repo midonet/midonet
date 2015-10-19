@@ -26,7 +26,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.storage.SingleValueKey
+import org.midonet.cluster.data.storage.{ZookeeperObjectMapper, SingleValueKey}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend.{AliveKey, FloodingProxyKey}
@@ -70,6 +70,8 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         """.stripMargin))
 
     before {
+        MidonetBackend.isCluster = true
+
         zkClient.create().creatingParentsIfNeeded().forPath(backendCfg.rootKey)
         backend = new MidonetBackendService(backendCfg, zkClient,
                                             metricRegistry = null)
@@ -333,12 +335,17 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
     }
 
     private def toggleAlive(id: UUID, isAlive: Boolean = true) = {
+        // Create a private store with the host ID as namespace.
+        val hostStore =
+            new ZookeeperObjectMapper(backendCfg.rootKey + "/zoom", id.toString,
+                                      backend.curator)
+        MidonetBackend.setupBindings(hostStore, hostStore)
         if (isAlive) {
-            backend.stateStore.addValue(classOf[Host], id, AliveKey, AliveKey)
-                              .toBlocking.first()
+            hostStore.addValue(classOf[Host], id, AliveKey, AliveKey)
+                     .toBlocking.first()
         } else {
-            backend.stateStore.removeValue(classOf[Host], id, AliveKey, AliveKey)
-                              .toBlocking.first()
+            hostStore.removeValue(classOf[Host], id, AliveKey, AliveKey)
+                     .toBlocking.first()
         }
     }
 
