@@ -22,6 +22,30 @@
       "revId": "b4d67f9aec2cf11b3084296b228cc1b7132a00df",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_a35d05ec",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/backend/cassandra/CassandraClient.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-19T07:35:50Z",
+      "side": 1,
+      "message": "This doesn\u0027t throw an exception, it returns a failed future, which is a legit result.",
+      "parentUuid": "9ab29df4_002067f6",
+      "range": {
+        "startLine": 105,
+        "startChar": 12,
+        "endLine": 108,
+        "endChar": 87
+      },
+      "revId": "b4d67f9aec2cf11b3084296b228cc1b7132a00df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
