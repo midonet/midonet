@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_566305b1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-19T10:57:42Z",
+      "side": 1,
+      "message": "This will leave a trailing comma if the last value is null. Instead, declare var printedField \u003d false outside the loop, and change this to:\n\n  if (fVal !\u003d null) {\n      if (printedField) sb.append(\", \") else printedField \u003d true\n      sb.append(printField(fDesc, fVal))\n  }",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 13
+      },
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_1600ada9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-19T10:57:42Z",
+      "side": 1,
+      "message": "Consider making a private version of this method that takes a StringBuilder as an argument, to make makeReadable a bit more efficient.",
+      "range": {
+        "startLine": 57,
+        "startChar": 58,
+        "endLine": 57,
+        "endChar": 64
+      },
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d6f555cc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-19T10:57:42Z",
+      "side": 1,
+      "message": "There\u0027s no corresponding space before the closing bracket. For consistency, either delete this one or add one there.",
+      "range": {
+        "startLine": 61,
+        "startChar": 48,
+        "endLine": 61,
+        "endChar": 49
+      },
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_563145a1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-19T10:57:42Z",
+      "side": 1,
+      "message": "Should this call makeReadable() instead? I don\u0027t think this will correctly handle messages like Topology.Dhcp, which contains nested messages that themselves contain IPSubnet and IPAddress messages.",
+      "range": {
+        "startLine": 79,
+        "startChar": 36,
+        "endLine": 79,
+        "endChar": 52
+      },
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_962bdd2f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-19T10:57:42Z",
+      "side": 1,
+      "message": "Space.",
+      "range": {
+        "startLine": 84,
+        "startChar": 14,
+        "endLine": 84,
+        "endChar": 15
+      },
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d61c7516",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/logging/ProtoTextPrettifierTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-19T10:57:42Z",
+      "side": 1,
+      "message": "Try something more complicated, like a Topology.Dhcp that contains nested Opt121Route messages to verify the potential issue I mentioned in the other file.",
+      "revId": "1ae63cc5aaba249b4733bb61465dc2ad8b456e99",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
