@@ -16,6 +16,23 @@
       "revId": "07318ef6856e411321351c7368149ed88d216924",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_f9196a23",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-19T14:53:57Z",
+      "side": 1,
+      "message": "This is:\n\nRight, if we are running the mn-conf command line tool.\n\nWrong, if the library is being used by an application such as midolman.",
+      "revId": "07318ef6856e411321351c7368149ed88d216924",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
