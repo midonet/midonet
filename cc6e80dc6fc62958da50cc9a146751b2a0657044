@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_6fe2ecd6",
+        "filename": "cluster/midonet-cluster/src/deb/tools/mn-migrate",
+        "patchSetId": 13
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T08:17:10Z",
+      "side": 1,
+      "message": "Not sure. It needs the cluster binaries, so it seemed reasonable to package it with the cluster. I\u0027m open to alternative packaging suggestions, though.",
+      "parentUuid": "9ab29df4_59525614",
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_79571a03",
         "filename": "cluster/midonet-cluster/src/deb/tools/mn-migrate",
         "patchSetId": 13
@@ -53,6 +71,30 @@
       "writtenOn": "2015-10-19T13:42:55Z",
       "side": 1,
       "message": "maybe into /usr/share/midonet-cluster? So that it doesn\u0027t look like a standalone tool?",
+      "range": {
+        "startLine": 123,
+        "startChar": 18,
+        "endLine": 123,
+        "endChar": 21
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_efcd1c5f",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 13
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T08:17:10Z",
+      "side": 1,
+      "message": "I have no strong opinions on this issue. That directory\u0027s generally not going to be in the path, though, so the user will have to give it the fully-qualified path to execute it, right?",
+      "parentUuid": "9ab29df4_f94a4a54",
       "range": {
         "startLine": 123,
         "startChar": 18,
@@ -312,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_0fdb301c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T08:17:10Z",
+      "side": 1,
+      "message": "Right. I figured I\u0027d wait for him to merge it.",
+      "parentUuid": "9ab29df4_b967f2e9",
+      "range": {
+        "startLine": 135,
+        "startChar": 11,
+        "endLine": 135,
+        "endChar": 54
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_2fee34ed",
         "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
         "patchSetId": 13
@@ -335,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_2fef14b2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T08:17:10Z",
+      "side": 1,
+      "message": "The dependencies don\u0027t allow it. Routes need to be migrated after both ports and routers have been migrated. Ports need to be migrated after routers.",
+      "parentUuid": "9ab29df4_2fee34ed",
+      "range": {
+        "startLine": 240,
+        "startChar": 12,
+        "endLine": 241,
+        "endChar": 31
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_d964a6e7",
         "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
         "patchSetId": 13
@@ -346,6 +436,30 @@
       "writtenOn": "2015-10-19T13:42:55Z",
       "side": 1,
       "message": "we have JIRAs for these?",
+      "range": {
+        "startLine": 264,
+        "startChar": 0,
+        "endLine": 267,
+        "endChar": 62
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0f9330fb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T08:17:10Z",
+      "side": 1,
+      "message": "We have comments in the Jira issue for the migrator.",
+      "parentUuid": "9ab29df4_d964a6e7",
       "range": {
         "startLine": 264,
         "startChar": 0,
@@ -404,6 +518,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_af3a4434",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T08:17:10Z",
+      "side": 1,
+      "message": "The other router with the same ID may or may not be tenantless.",
+      "parentUuid": "9ab29df4_efe35c03",
+      "range": {
+        "startLine": 432,
+        "startChar": 27,
+        "endLine": 432,
+        "endChar": 35
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_0ff170cd",
         "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
         "patchSetId": 13
@@ -427,6 +565,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_cf3e9829",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 479,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T08:17:10Z",
+      "side": 1,
+      "message": "Now that it\u0027s not used for anything else, I guess that makes sense.",
+      "parentUuid": "9ab29df4_0ff170cd",
+      "range": {
+        "startLine": 471,
+        "startChar": 16,
+        "endLine": 479,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_4fba88e2",
         "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
         "patchSetId": 13
@@ -438,6 +600,30 @@
       "writtenOn": "2015-10-20T03:00:01Z",
       "side": 1,
       "message": "s/Network/Bridge/ for consistency.",
+      "range": {
+        "startLine": 573,
+        "startChar": 39,
+        "endLine": 573,
+        "endChar": 46
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_afbb2471",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T08:17:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_4fba88e2",
       "range": {
         "startLine": 573,
         "startChar": 39,
