@@ -76,6 +76,11 @@ def add_mirror_outbound(mirror_name, device):
 def get_source_port_number():
     return random.randint(50000, 60000)
 
+def warmup(sender, receiver):
+    tries = 15
+    ip_dst = receiver.get_ip()
+    return sender.ping_ipv4_addr(ip_dst, count = tries, interval = 1,
+                                 sync = True, should_succeed = True)
 
 def send_udp(sender, receiver, hw_dst, dst_p, src_p, mirror = None):
     hw_src = sender.get_mac_addr()
@@ -106,6 +111,7 @@ def test_mirroring_router_in():
     sender = BM.get_iface_for_port('left-vm-bridge', 2)
     receiver = BM.get_iface_for_port('right-vm-bridge', 2)
     mirror_port = BM.get_iface_for_port('mirroring-bridge', 1)
+    warmup(sender, receiver)
 
     router = VTM.get_router('router-1')
     add_mirror_inbound("mirror-1", router)
@@ -124,6 +130,7 @@ def test_mirroring_bridge_in():
     sender = BM.get_iface_for_port('left-vm-bridge', 2)
     receiver = BM.get_iface_for_port('right-vm-bridge', 2)
     mirror_port = BM.get_iface_for_port('mirroring-bridge', 1)
+    warmup(sender, receiver)
 
     bridge = VTM.get_bridge('left-vm-bridge')
     add_mirror_inbound("mirror-1", bridge)
@@ -142,6 +149,7 @@ def test_mirroring_bridge_out():
     sender = BM.get_iface_for_port('left-vm-bridge', 2)
     receiver = BM.get_iface_for_port('right-vm-bridge', 2)
     mirror_port = BM.get_iface_for_port('mirroring-bridge', 1)
+    warmup(sender, receiver)
 
     bridge = VTM.get_bridge('left-vm-bridge')
     add_mirror_outbound("mirror-1", bridge)
@@ -160,6 +168,7 @@ def test_mirroring_port():
     sender = BM.get_iface_for_port('left-vm-bridge', 2)
     receiver = BM.get_iface_for_port('right-vm-bridge', 2)
     mirror_port = BM.get_iface_for_port('mirroring-bridge', 2)
+    warmup(sender, receiver)
 
     sender_port = VTM.get_device_port('left-vm-bridge', 2)
     add_mirror_inbound("mirror-2-forward", sender_port)
