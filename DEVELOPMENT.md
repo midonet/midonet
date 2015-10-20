@@ -57,15 +57,15 @@ Feel free to join other MidoNet developers on our public
 [Slack chat channel][slack], or our Development
 [mailing list][dev-mail]. We'll be happy to help you get set up.
 
-[jira]: http://midonet.atlassian.net
+[jira]: https://midonet.atlassian.net
     "MidoNet Issue tracking"
 [gerrithub]: https://review.gerrithub.io/#/q/project:midonet/midonet
     "GerritHub"
-[dev-guide]: http://wiki.midonet.org/Developer%27s%20Guide
+[dev-guide]: https://wiki.midonet.org/Developer%27s%20Guide
     "MidoNet developers guide"
-[slack]: http://slack.midonet.org
+[slack]: https://slack.midonet.org
     "MidoNet Public Slack"
-[dev-mail]: http://lists.midonet.org/listinfo/midonet-dev
+[dev-mail]: https://lists.midonet.org/listinfo/midonet-dev
     "MidoNet developers mailing list"
 
 ## Organization of the project
@@ -130,7 +130,7 @@ these commands:
 MDTS (Midonet Distributed Testing System), which can be found in the
 midonet repository at
 
-http://github.com/midonet/midonet/tree/master/tests
+https://github.com/midonet/midonet/tree/master/tests
 
 ## Building the project
 

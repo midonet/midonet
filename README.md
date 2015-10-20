@@ -10,20 +10,20 @@ Mesos, etc.
 
 You do not need special hardware for using MidoNet, it is all based on software.
 
-![MidoNet in Neutron](http://blog.midonet.org/wp-content/uploads/2014/12/MidoNetNeutronOverlay.png "MidoNet in Neutron")
+![MidoNet in Neutron](https://blog.midonet.org/wp-content/uploads/2014/12/MidoNetNeutronOverlay.png "MidoNet in Neutron")
 
 Network virtualization technology is used at cloud service providers and in
 private clouds to encourage more dynamic and faster network usage and thus
 allowing faster time to market for the applications of your customers running in
 containers and/or virtual machines.
 
-![Tenant Router Model](http://blog.midonet.org/wp-content/uploads/2014/12/MNProviderRouter.jpg "Tenant Router Model")
+![Tenant Router Model](https://blog.midonet.org/wp-content/uploads/2014/12/MNProviderRouter.jpg "Tenant Router Model")
 
 MidoNet allows you to directly connect to existing physical networks using
 either special switch hardware containing an L2 hardware gateway software
 (VTEP), or an L2 software gateway in MidoNet, which also support VLAN IDs.
 
-![MidoNet L2 Gateway](http://blog.midonet.org/wp-content/uploads/2014/12/Blog-L2-Gateways-2.png "MidoNet L2 Gateway")
+![MidoNet L2 Gateway](https://blog.midonet.org/wp-content/uploads/2014/12/Blog-L2-Gateways-2.png "MidoNet L2 Gateway")
 
 The most interesting side effect of using a scalable, distributed system is the
 economical savings in electricity and air conditioning.
@@ -56,30 +56,30 @@ network virtualization technology.
 
 For a quick installation using a simple downloadable script, refer to this
 website:
-http://www.midonet.org/#quickstart
+https://www.midonet.org/#quickstart
 
 If you want to see how everything works together, this website will show you
 how to build a simple dev environment on your machine with MidoNet and
 OpenStack:
-http://wiki.midonet.org/MidoNet-allinone
+https://wiki.midonet.org/MidoNet-allinone
 
 ## Find out more
 
 You can find out more about the MidoNet community at the following websites:
 
-* The main community project website: http://www.midonet.org/
-* A blog of our developers: http://blog.midonet.org/
+* The main community project website: https://www.midonet.org/
+* A blog of our developers: https://blog.midonet.org/
 
 If you are completely new to Neutron and network virtualization, this blog
 article is a good start:
-http://blog.midonet.org/introduction-mns-overlay-network-models-part-1-provider-router/
+https://blog.midonet.org/introduction-mns-overlay-network-models-part-1-provider-router/
 
 It's a series of articles, they are all recommended for reading to learn more
 about the architecture of MidoNet.
 
 * Here you find all the technical documentation about MidoNet and OpenStack: https://docs.midonet.org/
 * Learn more about MidoNet from a developers point of view: https://github.com/midonet/midonet/blob/master/DEVELOPMENT.md
-* If you want to contribute, there is an excellent starter guide: http://wiki.midonet.org/HowToContribute
+* If you want to contribute, there is an excellent starter guide: https://wiki.midonet.org/HowToContribute
 
 ## Get in touch with us
 
@@ -91,6 +91,6 @@ future of the solution and new features.
 Your input is appreciated and welcome, we are very glad to learn about new
 innovations and ideas from our community!
 
-* http://slack.midonet.org/
+* https://slack.midonet.org/
 
-* http://lists.midonet.org/listinfo/midonet-dev
+* https://lists.midonet.org/listinfo/midonet-dev
