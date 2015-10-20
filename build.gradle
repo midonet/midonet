@@ -18,7 +18,7 @@ project.ext {
     midonetVersion = "5.1-SNAPSHOT"
     vendor = 'MidoNet'
     maintainer = "MidoNet user list <midonet-user@midonet.org>"
-    url = "http://midonet.org"
+    url = "https://midonet.org"
 
     if (rootProject.hasProperty('rhelTarget')) {
         println("Only RHEL7 is supported: rhelTarget property will be ignored")

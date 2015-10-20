@@ -160,7 +160,7 @@ packaging {
                  '/etc/midonet-cluster/midonet-cluster-env.sh']
     fpmOpts = ['-a', 'all',
                '--category', 'network',
-               '--url', 'http://www.midonet.org',
+               '--url', 'https://www.midonet.org',
                '--epoch', '2']
 }
 
