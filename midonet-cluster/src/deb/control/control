@@ -6,6 +6,6 @@ Architecture: all
 Depends: java7-runtime-headless
 Conflicts:
 Recommends: java7-jdk
-Maintainer: MidoNet <midonet-user@midonet.org>
+Maintainer: MidoNet <midonet-dev@lists.midonet.org>
 Description: midonet-cluster is MidoNet's Control cluster
 Distribution: development
