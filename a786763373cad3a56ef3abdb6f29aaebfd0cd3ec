@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_6a3c9a94",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T07:44:52Z",
+      "side": 1,
+      "message": "Extra space here.",
+      "range": {
+        "startLine": 64,
+        "startChar": 48,
+        "endLine": 64,
+        "endChar": 49
+      },
+      "revId": "a786763373cad3a56ef3abdb6f29aaebfd0cd3ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_8a41ee0d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T07:44:52Z",
+      "side": 1,
+      "message": "I don\u0027t think this space should be here, since it will be followed by a comma.",
+      "range": {
+        "startLine": 84,
+        "startChar": 64,
+        "endLine": 84,
+        "endChar": 65
+      },
+      "revId": "a786763373cad3a56ef3abdb6f29aaebfd0cd3ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
