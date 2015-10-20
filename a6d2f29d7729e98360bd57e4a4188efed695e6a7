@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_375c6c7e",
+        "filename": "cluster/midonet-cluster/src/deb/tools/mn-migrate",
+        "patchSetId": 10
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-20T15:23:16Z",
+      "side": 1,
+      "message": "intended?",
+      "range": {
+        "startLine": 20,
+        "startChar": 5,
+        "endLine": 20,
+        "endChar": 6
+      },
+      "revId": "a6d2f29d7729e98360bd57e4a4188efed695e6a7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
