@@ -178,6 +178,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_05c4f13e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-20T13:05:46Z",
+      "side": 1,
+      "message": "actually, the stuff in this block is not related enough to be moved together. i prefer to leave it like this.",
+      "parentUuid": "9ab29df4_aabb1271",
+      "revId": "8030ed9ddf60b0b6c35ecdb9ab65acb03db1b8c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_ca53e66a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
         "patchSetId": 4
@@ -207,6 +225,24 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "9ab29df4_ca53e66a",
+      "revId": "8030ed9ddf60b0b6c35ecdb9ab65acb03db1b8c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_65e20dd7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MidolmanModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-20T13:05:46Z",
+      "side": 1,
+      "message": "actually, this is going to change significantly, so i prefer to organize it later.",
+      "parentUuid": "9ab29df4_caaf662a",
       "revId": "8030ed9ddf60b0b6c35ecdb9ab65acb03db1b8c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
