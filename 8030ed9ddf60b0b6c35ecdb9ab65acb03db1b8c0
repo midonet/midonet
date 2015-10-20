@@ -16,6 +16,24 @@
       "revId": "8030ed9ddf60b0b6c35ecdb9ab65acb03db1b8c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_4a60b635",
+        "filename": "midolman/src/main/java/org/midonet/midolman/services/MidolmanService.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-20T09:09:24Z",
+      "side": 1,
+      "message": ":D That does have a nicer ring to it.",
+      "parentUuid": "9ab29df4_ea698a26",
+      "revId": "8030ed9ddf60b0b6c35ecdb9ab65acb03db1b8c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
