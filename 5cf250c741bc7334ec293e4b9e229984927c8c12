@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_a5b0a5f5",
+        "filename": "DEVELOPMENT.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-20T12:49:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_b9aff22a",
+      "revId": "5cf250c741bc7334ec293e4b9e229984927c8c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_99bb0e72",
         "filename": "midonet-cluster/src/deb/control/conffiles",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2015-10-19T17:02:47Z",
       "side": 1,
       "message": "remove",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "5cf250c741bc7334ec293e4b9e229984927c8c12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_85aba188",
+        "filename": "midonet-cluster/src/deb/control/conffiles",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-20T12:49:29Z",
+      "side": 1,
+      "message": "replaced this with /etc/midonet/midonet.conf",
+      "parentUuid": "9ab29df4_99bb0e72",
       "range": {
         "startLine": 1,
         "startChar": 12,
