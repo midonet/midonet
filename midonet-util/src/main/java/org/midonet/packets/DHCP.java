@@ -300,10 +300,9 @@ public class DHCP extends BasePacket {
     }
 
     @Override
-    public byte[] serialize() {
-        // minimum size 240 including magic cookie, options generally padded to 300
+    public int length() {
         int optionsLength = 0;
-        for (DHCPOption option : this.options) {
+        for (DHCPOption option: this.options) {
             if (option.getCode() == 0 ||
                     option.getCode() == DHCPOption.Code.END.value()) {
                 optionsLength += 1;
@@ -315,7 +314,12 @@ public class DHCP extends BasePacket {
         if (optionsLength < 60)
             optionsPadLength = 60 - optionsLength;
 
-        byte[] data = new byte[MIN_HEADER_LENGTH+optionsLength+optionsPadLength];
+        return MIN_HEADER_LENGTH + optionsLength + optionsPadLength;
+    }
+
+    @Override
+    public byte[] serialize() {
+        byte[] data = new byte[length()];
         ByteBuffer bb = ByteBuffer.wrap(data);
         bb.put(this.opCode);
         bb.put(this.hardwareType);

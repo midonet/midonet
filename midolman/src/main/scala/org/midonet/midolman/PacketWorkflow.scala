@@ -304,11 +304,11 @@ class PacketWorkflow(
         p match {
             case GeneratedLogicalPacket(portId, eth) =>
                 val fmatch = FlowMatches.fromEthernetPacket(eth)
-                val packet = new Packet(eth, fmatch)
+                val packet = new Packet(eth, fmatch, eth.length())
                 initialize(packet, fmatch, portId, null)
             case GeneratedPhysicalPacket(portNo, eth) =>
                 val fmatch = FlowMatches.fromEthernetPacket(eth)
-                val packet = new Packet(eth, fmatch)
+                val packet = new Packet(eth, fmatch, eth.length())
                 initialize(packet, fmatch, null, portNo)
         }
     }
@@ -379,6 +379,7 @@ class PacketWorkflow(
             }
         }
 
+        meters.recordPacket(pktCtx.packet.packetLen, pktCtx.flowTags)
         flowRecorder.record(pktCtx, simRes)
     }
 
