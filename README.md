@@ -61,7 +61,7 @@ https://www.midonet.org/#quickstart
 If you want to see how everything works together, this website will show you
 how to build a simple dev environment on your machine with MidoNet and
 OpenStack:
-https://wiki.midonet.org/MidoNet-allinone
+https://github.com/midonet/midonet/wiki/OpenStack-All-in-One
 
 ## Find out more
 
@@ -79,7 +79,7 @@ about the architecture of MidoNet.
 
 * Here you find all the technical documentation about MidoNet and OpenStack: https://docs.midonet.org/
 * Learn more about MidoNet from a developers point of view: https://github.com/midonet/midonet/blob/master/DEVELOPMENT.md
-* If you want to contribute, there is an excellent starter guide: https://wiki.midonet.org/HowToContribute
+* If you want to contribute, there is an excellent starter guide: https://github.com/midonet/midonet/wiki/Contributing-to-MidoNet
 
 ## Get in touch with us
 

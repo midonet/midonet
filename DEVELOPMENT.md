@@ -61,7 +61,7 @@ Feel free to join other MidoNet developers on our public
     "MidoNet Issue tracking"
 [gerrithub]: https://review.gerrithub.io/#/q/project:midonet/midonet
     "GerritHub"
-[dev-guide]: https://wiki.midonet.org/Developer%27s%20Guide
+[dev-guide]: https://github.com/midonet/midonet/wiki/Developer's-Guide
     "MidoNet developers guide"
 [slack]: https://slack.midonet.org
     "MidoNet Public Slack"
