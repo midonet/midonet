@@ -38,38 +38,43 @@ object ProtoTextPrettifier {
         if (isCommons(m)) {
             return printValue(m)
         }
-        val sb = new StringBuilder(nameOf(m))
+        val sb = new StringBuilder(nameOf(m)).append(": { ")
         val allFields = m.getAllFields.entrySet().iterator()
+        var printedField = false
         while(allFields.hasNext) {
             val e = allFields.next
             val fDesc = e.getKey
             val fVal = e.getValue
             if (fVal != null) {
-                sb.append(printField(fDesc, fVal))
-                if (allFields.hasNext) {
+                if (printedField) {
                     sb.append(", ")
+                } else {
+                    printedField = true
                 }
+                printField(fDesc, fVal, sb)
             }
         }
+        sb.append("}")
         sb.toString()
     }
 
-    def printField(fDesc: FieldDescriptor, fVal: AnyRef): String = {
-        val sb = new StringBuilder
+    def printField(fDesc: FieldDescriptor, fVal: AnyRef, sb: StringBuilder): Unit = {
         if (fDesc.isRepeated) {
             val vals = fVal.asInstanceOf[java.lang.Iterable[_]].iterator
-            sb.append(fDesc.getName).append(": [ ")
+            sb.append(fDesc.getName).append(": [")
+            var printedField = false
             while (vals.hasNext) {
-                printSingleField(fDesc, vals.next(), sb)
-                if (vals.hasNext) {
+                if (printedField) {
                     sb.append(", ")
+                } else {
+                    printedField = true
                 }
+                printSingleField(fDesc, vals.next(), sb)
             }
             sb.append("] ")
         } else {
             printSingleField(fDesc, fVal, sb)
         }
-        sb.toString()
     }
 
     def printSingleField(fDesc: FieldDescriptor, fVal: Any,
@@ -81,7 +86,7 @@ object ProtoTextPrettifier {
             sb.append(fDesc.getName).append(": ")
             if (fDesc.getJavaType == JavaType.STRING) {
                 sb.append("\"").append(fVal).append("\"")
-            }  else {
+            } else {
                 sb.append(fVal.toString)
             }
         }
@@ -103,6 +108,7 @@ object ProtoTextPrettifier {
         case net: Commons.IPSubnet => IPSubnetUtil.fromProto(net).toString
         case range: Commons.Int32Range =>
             "[" + range.getStart + ", " + range.getEnd + "]"
+        case m: Message => makeReadable(m)
         case v => v.toString
     }
 
