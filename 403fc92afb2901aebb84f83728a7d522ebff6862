@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_aa25d2ac",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/logging/ProtoTextPrettifier.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T07:25:22Z",
+      "side": 1,
+      "message": "This still has the extra space.",
+      "range": {
+        "startLine": 64,
+        "startChar": 48,
+        "endLine": 64,
+        "endChar": 49
+      },
+      "revId": "403fc92afb2901aebb84f83728a7d522ebff6862",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0a4b1e5a",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/logging/ProtoTextPrettifierTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-20T07:25:22Z",
+      "side": 1,
+      "message": "I would have just run this, visually verified the output, and that copied and pasted it in here. This is okay too, though.",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 66
+      },
+      "revId": "403fc92afb2901aebb84f83728a7d522ebff6862",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
