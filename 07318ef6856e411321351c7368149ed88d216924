@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_79355a45",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-20T10:36:37Z",
+      "side": 1,
+      "message": "I forgot to remove this TODO.",
+      "parentUuid": "9ab29df4_59d89653",
+      "revId": "07318ef6856e411321351c7368149ed88d216924",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_79263a6a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
         "patchSetId": 20
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_2a038210",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-20T10:36:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_79263a6a",
+      "revId": "07318ef6856e411321351c7368149ed88d216924",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_f9196a23",
         "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
         "patchSetId": 20
@@ -47,6 +83,24 @@
       "writtenOn": "2015-10-19T14:53:57Z",
       "side": 1,
       "message": "This is:\n\nRight, if we are running the mn-conf command line tool.\n\nWrong, if the library is being used by an application such as midolman.",
+      "revId": "07318ef6856e411321351c7368149ed88d216924",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_ca0be629",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConf.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-20T10:36:37Z",
+      "side": 1,
+      "message": "Changed this to log.warn if we are in non-interactive mode and System.err.println when we use it with mn-conf (in interactive mode). The error message is also slightly different in the two cases.",
+      "parentUuid": "9ab29df4_f9196a23",
       "revId": "07318ef6856e411321351c7368149ed88d216924",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
