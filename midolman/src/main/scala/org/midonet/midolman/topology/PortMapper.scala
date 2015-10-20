@@ -81,12 +81,13 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                 if (port.hasInboundFilterId) {
                     infilters.add(port.getInboundFilterId)
                 }
-                if (port.hasL2InsertionOutfilter) {
-                    outfilters.add(port.getL2InsertionOutfilter)
-                }
                 if (port.hasOutboundFilterId) {
                     outfilters.add(port.getOutboundFilterId)
                 }
+                if (port.hasL2InsertionOutfilter) {
+                    outfilters.add(port.getL2InsertionOutfilter)
+                }
+
                 SimulationPort(port, infilters, outfilters)
                     .toggleActive(active && portStateReady)
             })
