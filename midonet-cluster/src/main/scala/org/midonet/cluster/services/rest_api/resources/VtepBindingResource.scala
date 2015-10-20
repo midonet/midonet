@@ -63,7 +63,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                           binding.portName == portName &&
                           binding.vlanId == vlanId)
                 .getOrElse(throw new NotFoundHttpException(
-                    getMessage(VTEP_BINDING_NOT_FOUND)))
+                    getMessage(VTEP_BINDING_NOT_FOUND, vlanId, portName)))
             binding.setBaseUri(resContext.uriInfo.getBaseUri)
             binding.vtepId = vtepId
             binding
