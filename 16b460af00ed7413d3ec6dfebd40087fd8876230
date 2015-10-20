@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_af032472",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T04:22:09Z",
+      "side": 0,
+      "message": "Perhaps this, too, should also be moved to PortManager.",
+      "range": {
+        "startLine": 322,
+        "startChar": 4,
+        "endLine": 327,
+        "endChar": 5
+      },
+      "revId": "16b460af00ed7413d3ec6dfebd40087fd8876230",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
