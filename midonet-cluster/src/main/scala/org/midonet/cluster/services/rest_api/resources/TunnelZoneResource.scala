@@ -17,8 +17,12 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+
+import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -64,6 +68,30 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
         throwIfTunnelZoneNameUsed(to)
         to.update(from)
         NoOps
+    }
+
+    /** Make sure that tunnel zone host entries in this tunnel zone have the
+      * tunnel zone id and base uri populated.
+      */
+    private def fillTzDetails(tz: TunnelZone): TunnelZone = {
+        if (tz.tzHosts != null) {
+            tz.tzHosts.foreach { tzh =>
+                tzh.tunnelZoneId = tz.id
+                tzh.setBaseUri(uriInfo.getBaseUri)
+            }
+        }
+        tz
+    }
+
+    override protected def getFilter(tz: TunnelZone): Future[TunnelZone] = {
+        fillTzDetails(tz)
+        Future.successful(tz)
+    }
+
+    override protected def listFilter(list: Seq[TunnelZone])
+    : Future[Seq[TunnelZone]] = {
+        list.foreach(fillTzDetails)
+        Future.successful(list)
     }
 
     protected override def deleteFilter(id: String): Ops = {

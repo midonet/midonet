@@ -19,7 +19,7 @@ package org.midonet.cluster.services.rest_api.resources
 import java.lang.annotation.Annotation
 import java.net.URI
 import java.util.concurrent.Executors.newCachedThreadPool
-import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
+import java.util.{List => JList, Set => JSet, UUID, ConcurrentModificationException}
 
 import javax.validation.{ConstraintViolation, Validator}
 import javax.ws.rs._
