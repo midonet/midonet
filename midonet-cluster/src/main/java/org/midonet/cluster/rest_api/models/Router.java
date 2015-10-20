@@ -35,7 +35,6 @@ public class Router extends UriResource {
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @NotNull
     @ZoomField(name = "tenant_id")
     public String tenantId;
 
