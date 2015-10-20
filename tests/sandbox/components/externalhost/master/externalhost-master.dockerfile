@@ -1,5 +1,5 @@
 FROM ubuntu-upstart:14.04
-MAINTAINER MidoNet (https://midonet.org)
+MAINTAINER MidoNet (https://www.midonet.org)
 
 RUN apt-get -qy update
 RUN apt-get -qy install curl git mz tcpdump nmap vlan --no-install-recommends

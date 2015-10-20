@@ -31,7 +31,7 @@ FPM_BASE_ARGS=$(cat <<EOF
 --license 'Apache License, Version 2.0' \
 --vendor 'MidoNet' \
 --maintainer "Midokura" \
---url 'https://midonet.org' \
+--url 'https://www.midonet.org' \
 --description 'Python client library for MidoNet API' \
 -d 'python-webob' -d 'python-eventlet' -d 'python-httplib2' \
 -s dir
