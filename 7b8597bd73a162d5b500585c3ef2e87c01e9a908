@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_65a68dc3",
+        "filename": "DEVELOPMENT.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-20T12:49:29Z",
+      "side": 1,
+      "message": "Yes it does work like that.",
+      "parentUuid": "9ab29df4_79b63a8c",
+      "range": {
+        "startLine": 207,
+        "startChar": 32,
+        "endLine": 208,
+        "endChar": 17
+      },
+      "revId": "7b8597bd73a162d5b500585c3ef2e87c01e9a908",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_cb5a1550",
         "filename": "midonet-cluster/build.gradle",
         "patchSetId": 2
