@@ -114,7 +114,7 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
         val nameCollision = store.getAll(classOf[Topology.TunnelZone])
                                  .getOrThrow.find ( _.getName == tz.name )
         if (nameCollision.nonEmpty) {
-            throw new BadRequestHttpException(
+            throw new ConflictHttpException(
                 getMessage(UNIQUE_TUNNEL_ZONE_NAME_TYPE))
         }
     }
