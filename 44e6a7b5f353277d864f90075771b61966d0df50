@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_49c5235a",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/Ethernet.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-20T15:27:53Z",
+      "side": 1,
+      "message": "Math.max(..., 60) for ethernet padding",
+      "revId": "44e6a7b5f353277d864f90075771b61966d0df50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
