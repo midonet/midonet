@@ -100,6 +100,8 @@ public class MessageProperty {
             "{midokura.javarx.RouterIdIsInvalid.message}";
     public static final String SUBNET_HAS_HOST =
             "{midokura.javarx.SubnetHasHost.message}";
+    public static final String TENANT_UNMODIFIABLE =
+            "{midokura.javarx.TenantUnmodifiable.message}";
     public static final String TUNNEL_ZONE_ID_IS_INVALID =
             "{midokura.javarx.TunnelZoneIdIsInvalid.message}";
     public static final String TUNNEL_ZONE_NOT_VTEP =

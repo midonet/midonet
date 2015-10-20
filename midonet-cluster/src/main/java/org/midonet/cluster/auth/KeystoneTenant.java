@@ -66,6 +66,7 @@ public class KeystoneTenant {
             this.name = name;
         }
 
+        @Override
         public String getDescription() {
             return description;
         }
@@ -74,6 +75,7 @@ public class KeystoneTenant {
             this.description = description;
         }
 
+        @Override
         public boolean isEnabled() {
             return enabled;
         }
@@ -84,17 +86,10 @@ public class KeystoneTenant {
 
         @Override
         public String toString() {
-
-            StringBuilder sb = new StringBuilder();
-            sb.append("id=");
-            sb.append(this.getId());
-            sb.append(", name=");
-            sb.append(this.getName());
-            sb.append(", enabled=");
-            sb.append(this.isEnabled());
-            sb.append(", description=");
-            sb.append(this.getDescription());
-            return sb.toString();
+            return "id=" + this.id + ", " +
+                   "name=" + this.name + ", " +
+                   "description=" + this.description + ", " +
+                   "enabled=" + this.enabled;
         }
 
         @Override
@@ -114,23 +109,10 @@ public class KeystoneTenant {
             }
 
             KeystoneTenantEntity o = (KeystoneTenantEntity) other;
-            if (!Objects.equal(this.getId(), o.getId())) {
-                return false;
-            }
-
-            if (!Objects.equal(this.getName(), o.getName())) {
-                return false;
-            }
-
-            if (!Objects.equal(this.getDescription(), o.getDescription())) {
-                return false;
-            }
-
-            if (this.isEnabled() != o.isEnabled()) {
-                return false;
-            }
-
-            return true;
+            return  Objects.equal(this.getId(), o.getId()) &&
+                    Objects.equal(this.getName(), o.getName()) &&
+                    Objects.equal(this.getDescription(), o.getDescription()) &&
+                    this.isEnabled() == o.isEnabled();
         }
     }
 }
