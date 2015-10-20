@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_692ca74b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-20T15:23:16Z",
+      "side": 1,
+      "message": "FYI, it\u0027s now /midonet for v5.",
+      "range": {
+        "startLine": 135,
+        "startChar": 12,
+        "endLine": 135,
+        "endChar": 54
+      },
+      "revId": "160f4e43fbc0cc368a7db4110c848fe66c106c0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
