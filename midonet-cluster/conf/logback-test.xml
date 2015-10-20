@@ -1,0 +1,35 @@
+<configuration>
+
+    <appender name="LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${midonet-cluster.log.dir}midonet-cluster.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-4level [%thread] %logger{0} %m%n%rEx</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${midonet-cluster.log.dir}midonet-cluster.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-4level [%thread] %logger{0} %m%n%rEx</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Set com.sun.jersey to WARN if you want to remove logs of each
+         HTTP request/response -->
+    <logger name="com.sun.jersey" level="INFO"/>
+    <logger name="org.apache.cassandra" level="INFO"/>
+    <logger name="org.apache.zookeeper" level="INFO"/>
+    <logger name="org.eclipse.jetty" level="INFO"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.opendaylight" level="WARN"/>
+    <logger name="org.reflections" level="INFO"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

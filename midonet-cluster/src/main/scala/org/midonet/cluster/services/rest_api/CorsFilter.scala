@@ -55,7 +55,7 @@ class CorsFilter extends ContainerResponseFilter with Filter {
 
     import CorsFilter._
 
-    private val log = LoggerFactory.getLogger(classOf[CorsFilter])
+    private val log = LoggerFactory.getLogger("org.midonet.rest_api")
 
     override def filter(request: ContainerRequest,
                         response: ContainerResponse): ContainerResponse = {
@@ -77,8 +77,6 @@ class CorsFilter extends ContainerResponseFilter with Filter {
     override def doFilter(servletRequest: ServletRequest,
                           servletResponse: ServletResponse,
                           filterChain: FilterChain) = {
-        log.debug("CorsFilter.doFilter: entered.")
-
         val req = servletRequest.asInstanceOf[HttpServletRequest]
         val res = servletResponse.asInstanceOf[HttpServletResponse]
 
@@ -93,12 +91,10 @@ class CorsFilter extends ContainerResponseFilter with Filter {
             // allow origin header is not wild-carded.
             res.addHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS_KEY, null)
             res.addHeader(ACCESS_CONTROL_ALLOW_HEADERS_KEY, ALLOWED_HEADERS)
-            log.debug("Handled OPTION")
+            log.debug("CorsFilter handled OPTION request")
         } else {
             filterChain.doFilter(req, res)
         }
-
-        log.debug("CorsFilter.doFilter: exiting.")
     }
 
 }
