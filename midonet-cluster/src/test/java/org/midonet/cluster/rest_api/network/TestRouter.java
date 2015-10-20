@@ -37,7 +37,6 @@ import org.junit.runner.RunWith;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
@@ -301,20 +300,22 @@ public class TestRouter {
         @Test
         public void testRouterCreateWithNoTenant() throws Exception {
             DtoApplication app = topology.getApplication();
-            DtoError error = dtoResource.postAndVerifyBadRequest(
-                app.getRouters(), APPLICATION_ROUTER_JSON_V3(), new DtoRouter());
+            DtoRouter r = dtoResource.postAndVerifyCreated(app.getRouters(),
+                APPLICATION_ROUTER_JSON_V3(), new DtoRouter(), DtoRouter.class);
 
-            assertValidationProperties(error, "tenantId");
+            assertNull(r.getTenantId());
         }
 
         @Test
         public void testRouterUpdateWithNoTenant() throws Exception {
             DtoRouter router = createRouter("foo", "tenant1", false, false);
 
+            assertEquals("tenant1", router.getTenantId());
             router.setTenantId(null);
-            DtoError error = dtoResource.putAndVerifyBadRequest(
-                router.getUri(), APPLICATION_ROUTER_JSON_V3(), router);
-            assertValidationProperties(error, "tenantId");
+            router = dtoResource.putAndVerifyNoContent(router.getUri(),
+                APPLICATION_ROUTER_JSON_V3(), router, DtoRouter.class);
+
+            assertNull(router.getTenantId());
         }
 
         @Test
