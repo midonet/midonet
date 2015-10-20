@@ -32,8 +32,8 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.services.c3po.translators.RouteManager.{gatewayRouteId, localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
-import org.midonet.cluster.util.{UUIDUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil.RichJavaUuid
+import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
@@ -224,19 +224,27 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
         createRouter(5, routerId)
 
+        val rifMac = "ab:cd:ef:01:02:03"
+        val rifIp = "10.0.0.3"
+
         // Create VIF port.
         val json = portJson(rifPortId, tenantNetworkId, name = null,
-                            deviceOwner = DeviceOwner.COMPUTE,
-                            macAddr = "ab:cd:ef:01:02:03",
-                            fixedIps = List(IPAlloc("10.0.0.3", subnetId)))
+                            deviceOwner = DeviceOwner.COMPUTE, macAddr = rifMac,
+                            fixedIps = List(IPAlloc(rifIp, subnetId)))
         insertCreateTask(6, PortType, json, rifPortId)
         val (inFilterId, outFilterId) = eventually {
             val nPortF = storage.get(classOf[NeutronPort], rifPortId)
+            val dhcpF = storage.get(classOf[Dhcp], subnetId)
             val mPort = storage.get(classOf[Port], rifPortId).await()
 
             val nPort = nPortF.await()
             nPort.hasDeviceOwner shouldBe true
             nPort.getDeviceOwner shouldBe DeviceOwner.COMPUTE
+
+            val dhcp = dhcpF.await()
+            dhcp.getHostsCount shouldBe 1
+            dhcp.getHosts(0).getMac shouldBe rifMac
+            dhcp.getHosts(0).getIpAddress.getAddress shouldBe rifIp
 
             (UUIDUtil.fromProto(mPort.getInboundFilterId),
                 UUIDUtil.fromProto(mPort.getOutboundFilterId))
@@ -244,19 +252,25 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
 
         createRouterInterface(7, routerId, rifPortId, subnetId)
         eventually {
+            val mPortF = storage.get(classOf[Port], rifPortId)
+            val dhcpF = storage.get(classOf[Dhcp], subnetId)
             val nPort = storage.get(classOf[NeutronPort], rifPortId).await()
             nPort.hasDeviceOwner shouldBe true
             nPort.getDeviceOwner shouldBe DeviceOwner.ROUTER_INTERFACE
 
-            checkRouterAndPeerPort(rifPortId, "10.0.0.3", "ab:cd:ef:01:02:03")
+            checkRouterAndPeerPort(rifPortId, rifIp, rifMac)
 
             // Conversion from VIF to RIF port should delete chains.
-            val mPort = storage.get(classOf[Port], rifPortId).await()
+            val mPort = mPortF.await()
             mPort.hasInboundFilterId shouldBe false
             mPort.hasOutboundFilterId shouldBe false
             List(storage.exists(classOf[Chain], inFilterId),
                  storage.exists(classOf[Chain], outFilterId))
                 .map(_.await()) shouldBe List(false, false)
+
+            // Should also delete DHCP host for port's IP allocation.
+            val dhcp = dhcpF.await()
+            dhcp.getHostsCount shouldBe 0
         }
 
         // Should be able to delete the port with no error (MNA-766)

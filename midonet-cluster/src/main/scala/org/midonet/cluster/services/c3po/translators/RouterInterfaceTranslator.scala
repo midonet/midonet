@@ -17,13 +17,14 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Port, Chain, Network, Route}
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update, MidoOp}
+import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.midonet.{Create, Delete, MidoOp, Update}
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -115,6 +116,11 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
                                   .clearInboundFilterId()
                                   .clearOutboundFilterId()
                                   .build())
+
+            // Also need to delete DHCP hosts.
+            val dhcps = mutable.Map[UUID, Dhcp.Builder]()
+            updateDhcpEntries(nPort, dhcps, delDhcpHost)
+            midoOps ++= dhcps.values.map(bldr => Update(bldr.build()))
         }
 
         midoOps.toList
