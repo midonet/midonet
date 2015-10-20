@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_caf7668b",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/Ethernet.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-20T08:45:58Z",
+      "side": 1,
+      "message": "what about ethernet padding? :p",
+      "revId": "bb534003fd46f8f160e17c7290e3d34b811dc239",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
