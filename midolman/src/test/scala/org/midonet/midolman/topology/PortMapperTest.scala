@@ -50,7 +50,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
         store = injector.getInstance(classOf[MidonetBackend]).store
                         .asInstanceOf[InMemoryStorage]
 
-        store create createHost(id = InMemoryStorage.NamespaceId)
+        store create createHost(id = InMemoryStorage.namespaceId)
     }
 
     feature("The port mapper emits port devices") {
@@ -207,7 +207,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val bridge = createBridge()
             val port = createBridgePort(id = id,
                                         bridgeId = Some(bridge.getId.asJava),
-                                        hostId = Some(InMemoryStorage.NamespaceId))
+                                        hostId = Some(InMemoryStorage.namespaceId))
             store.multi(Seq(CreateOp(bridge), CreateOp(port)))
 
             And("A port mapper")
@@ -263,7 +263,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val bridge = createBridge()
             val port1 = createBridgePort(id = id,
                                          bridgeId = Some(bridge.getId.asJava),
-                                         hostId = Some(InMemoryStorage.NamespaceId))
+                                         hostId = Some(InMemoryStorage.namespaceId))
             store.multi(Seq(CreateOp(bridge), CreateOp(port1)))
 
             And("A port mapper")
