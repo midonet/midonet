@@ -65,6 +65,230 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_eff51ccc",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/ChainDataConverter.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0f0330b9",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/ConditionDataConverter.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_2f00f4a9",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/HostDataConverter.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_4f2c484b",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/InterfaceDataConverter.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_6f310ca2",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/LoadBalancerDataConverter.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "s/2014/12015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_8f266067",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/PoolDataConverter.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_af2b242f",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/PoolMemberDataConverter.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_4fd36838",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/TunnelZoneDataConverter.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_6fd82c54",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/VipDataConverter.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_6f0aecd3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/LegacyImporter.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "I\u0027m just curious why you\u0027re not using map here like elsewhere. Is it because you\u0027d need a type spec with map?",
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_b967f2e9",
         "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
         "patchSetId": 13
@@ -88,6 +312,29 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_2fee34ed",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "Not mandatory and just wondering if it\u0027s better to call migrateRoutes() from within migrateRouters() just like we call migrateDhcpSubnet / Host from within migrateBridges in order to avoid special-casing router and routes.",
+      "range": {
+        "startLine": 240,
+        "startChar": 12,
+        "endLine": 241,
+        "endChar": 31
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_d964a6e7",
         "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
         "patchSetId": 13
@@ -104,6 +351,98 @@
         "startChar": 0,
         "endLine": 267,
         "endChar": 62
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_cfe69816",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "If we still create migrate the router with an unexpected name, should this be warn? An operator may fix the name later if necessary and that may be sufficient?",
+      "range": {
+        "startLine": 424,
+        "startChar": 16,
+        "endLine": 424,
+        "endChar": 21
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_efe35c03",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "Should it say \"tenantless\"?",
+      "range": {
+        "startLine": 432,
+        "startChar": 27,
+        "endLine": 432,
+        "endChar": 35
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0ff170cd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 479,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "Should we do this in RuleDataConverter?",
+      "range": {
+        "startLine": 471,
+        "startChar": 16,
+        "endLine": 479,
+        "endChar": 17
+      },
+      "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_4fba88e2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-20T03:00:01Z",
+      "side": 1,
+      "message": "s/Network/Bridge/ for consistency.",
+      "range": {
+        "startLine": 573,
+        "startChar": 39,
+        "endLine": 573,
+        "endChar": 46
       },
       "revId": "cc6e80dc6fc62958da50cc9a146751b2a0657044",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
