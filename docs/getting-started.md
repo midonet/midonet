@@ -44,7 +44,7 @@ And now, midolman and midonet-cluster:
 This environment won't have keystone, and we don't need any
 authentication.  This is the default in midonet-cluster, so you don't
 need to do anything.  To enable keystone authentication, refer to the
-MidoNet documentation at <http://docs.midonet.org>
+MidoNet documentation at <https://docs.midonet.org>
 
     $ sudo service midonet-cluster restart
 

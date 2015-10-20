@@ -77,7 +77,7 @@ http://blog.midonet.org/introduction-mns-overlay-network-models-part-1-provider-
 It's a series of articles, they are all recommended for reading to learn more
 about the architecture of MidoNet.
 
-* Here you find all the technical documentation about MidoNet and OpenStack: http://docs.midonet.org/
+* Here you find all the technical documentation about MidoNet and OpenStack: https://docs.midonet.org/
 * Learn more about MidoNet from a developers point of view: https://github.com/midonet/midonet/blob/master/DEVELOPMENT.md
 * If you want to contribute, there is an excellent starter guide: http://wiki.midonet.org/HowToContribute
 

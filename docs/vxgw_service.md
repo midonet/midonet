@@ -248,5 +248,5 @@ through the new VTEP.
 
 # References
 
-[1]: http://docs.midonet.org/docs/latest/operation-guide/content/vxlan_gateway.html "VxLAN Gateway"
+[1]: https://docs.midonet.org/docs/latest/operation-guide/content/vxlan_gateway.html "VxLAN Gateway"
 [2]: openvswitch.org/docs/vtep.5.pdf "OVSDB VTEP schema"
