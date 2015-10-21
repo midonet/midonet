@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.Token;
+import org.midonet.cluster.package$;
 import org.midonet.cluster.rest_api.ResponseUtils;
 import org.midonet.util.http.HttpSupport;
 
@@ -47,8 +48,8 @@ import org.midonet.util.http.HttpSupport;
 @Singleton
 public class LoginFilter implements Filter {
 
-    private final static Logger log = LoggerFactory.getLogger(
-            LoginFilter.class);
+    private final static Logger log = LoggerFactory
+        .getLogger(package$.MODULE$.authLog());
 
     protected ServletContext servletContext;
 
@@ -57,7 +58,6 @@ public class LoginFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        log.debug("LoginFilter.init: entered.");
         servletContext = filterConfig.getServletContext();
     }
 
@@ -66,7 +66,7 @@ public class LoginFilter implements Filter {
                          ServletResponse servletResponse,
                          FilterChain filterChain)
             throws IOException, ServletException {
-        log.debug("LoginFilter.doFilter: entered.");
+        log.debug("Processing login request");
 
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
@@ -112,10 +112,9 @@ public class LoginFilter implements Filter {
             ResponseUtils.setEntity(response, token);
         } catch (AuthException ex) {
             ResponseUtils.setAuthErrorResponse(response, ex.getMessage());
-            log.error("LoginFilter: auth error occurred. ", ex);
+            log.error("Login authorization error occurred for user {}",
+                      request.getRemoteUser(), ex);
         }
-
-        log.debug("LoginFilter.doFilter: exiting.");
     }
 
     @Override

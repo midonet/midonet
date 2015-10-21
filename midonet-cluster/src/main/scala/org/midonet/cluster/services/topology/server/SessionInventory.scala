@@ -34,6 +34,7 @@ import rx.schedulers.Schedulers
 import rx.subscriptions.BooleanSubscription
 import rx.{Observable, Observer, Subscriber, Subscription}
 
+import org.midonet.cluster.topologyApiSessionInventoryLog
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology._
@@ -346,7 +347,7 @@ protected class Buffer(minCapacity: Int, reader: ExecutorService)
 class SessionInventory(private val store: Storage,
     private val gracePeriod: Long = SessionInventory.SESSION_GRACE_PERIOD,
     private val bufferSize: Int = SessionInventory.SESSION_BUFFER_SIZE) {
-    private val log = LoggerFactory.getLogger(this.getClass)
+    private val log = LoggerFactory.getLogger(topologyApiSessionInventoryLog)
 
     /** A class that encapsulates the funnel of a bunch of individual low
       * level subscriptions into a single channel, anend exposes an observable

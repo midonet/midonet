@@ -163,8 +163,6 @@ class IpAddrGroupAddrResource @Inject()(protected[this] val ipAddrGroupId: UUID,
                                         resContext: ResourceContext)
     extends IpAddrGroupAddrSubResource {
 
-    private val log = getLogger(classOf[IpAddrGroupAddrResource])
-
     protected[this] val store = resContext.backend.store
     protected[this] val uriInfo = resContext.uriInfo
 
@@ -201,9 +199,7 @@ class IpAddrGroupAddrResource @Inject()(protected[this] val ipAddrGroupId: UUID,
                         .build()
                     ).build()
                 )
-            case Some(_) =>
-                log.debug("Trying to add address to IP Addr group that " +
-                          "already exists: " + addr.getAddr)
+            case Some(_) => // Ignore if the IP address group exists.
         }
 
         addr.setBaseUri(resContext.uriInfo.getBaseUri)

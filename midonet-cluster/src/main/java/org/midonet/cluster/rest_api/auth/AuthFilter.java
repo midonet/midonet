@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.UserIdentity;
+import org.midonet.cluster.package$;
 import org.midonet.cluster.rest_api.ResponseUtils;
 
 import static javax.servlet.http.HttpServletResponse.*;
@@ -42,7 +43,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Singleton
 public final class AuthFilter implements Filter {
 
-    private final static Logger log = getLogger("org.midonet.rest_api-auth");
+    private final static Logger log = getLogger(package$.MODULE$.authLog());
 
     public static final String USER_IDENTITY_ATTR_KEY =
             UserIdentity.class.getName();
