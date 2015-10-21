@@ -30,6 +30,7 @@ import rx.Observer
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.data.vtep.model.VtepEntry
+import org.midonet.southbound.vtepTableLog
 import org.midonet.southbound.vtep.OvsdbOperations.MaxBackpressureBuffer
 import org.midonet.southbound.vtep.OvsdbUtil._
 import org.midonet.southbound.vtep.schema.Table
@@ -46,7 +47,7 @@ class OvsdbCachedTable[E <: VtepEntry](val client: OvsdbClient,
 
 
     private val log = Logger(LoggerFactory.getLogger(
-        s"org.midonet.southbound.vtep.table-[${table.getSchema.getName}]"))
+        vtepTableLog(table.getSchema.getName)))
     private implicit val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
     private val vtepScheduler = Schedulers.from(vtepExecutor)
     private val filled = Promise[Boolean]()

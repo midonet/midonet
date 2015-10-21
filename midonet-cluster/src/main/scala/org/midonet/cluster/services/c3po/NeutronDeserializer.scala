@@ -27,6 +27,7 @@ import com.google.protobuf.Message
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.c3poNeutronDeserializerLog
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{SecurityGroupRule => NeutronSecurityGroupRule, _}
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
@@ -44,7 +45,7 @@ import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
  */
 object NeutronDeserializer {
 
-    private val log = LoggerFactory.getLogger(this.getClass)
+    private val log = LoggerFactory.getLogger(c3poNeutronDeserializerLog)
 
     private val jsonFactory = new JsonFactory(new ObjectMapper())
 

@@ -27,6 +27,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode, c3poLog}
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron._
@@ -35,7 +36,6 @@ import org.midonet.cluster.services.c3po.translators._
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, ScheduledMinion}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{SequenceDispenser, UUIDUtil}
-import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode}
 import org.midonet.midolman.state.PathBuilder
 
 /** The service that translates and imports neutron models into the MidoNet
@@ -57,7 +57,7 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                            backendCfg: MidonetBackendConfig)
     extends ScheduledMinion(nodeContext, config.c3po) {
 
-    private val log = LoggerFactory.getLogger(classOf[C3POMinion])
+    protected override val log = LoggerFactory.getLogger(c3poLog)
 
     private val neutronImporter = new SqlNeutronImporter(dataSrc)
     private val dataStateUpdater = new DataStateUpdater(dataSrc)
