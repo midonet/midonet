@@ -107,6 +107,7 @@ vm_on_vtep = '10.0.2.26'
 # At this point, the MMM host (whose IP we're setting below) will send straight
 # to the VTEP from its own IP, as if it was a real host in the 10.0.0.0/24
 # network
+<<<<<<< HEAD
 _host_ips = ['10.0.0.8', '10.0.0.9', '10.0.0.10']
 
 def setup():
