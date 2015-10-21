@@ -52,13 +52,13 @@ class TimedExpirationMapTest extends FeatureSpec
         }
 
         scenario("putIfAbsentAndRef") {
-            var prev = map.putIfAbsentAndRef("A", "X")
-            prev should be (null)
+            var count = map.putIfAbsentAndRef("A", "X")
+            count should be (1)
             map get "A" should be ("X")
             map refCount "A" should be (1)
 
-            prev = map.putIfAbsentAndRef("A", "Y")
-            prev should be ("X")
+            count = map.putIfAbsentAndRef("A", "Y")
+            count should be (2)
             map get "A" should be ("X")
             map refCount "A" should be (2)
         }
@@ -190,7 +190,7 @@ class TimedExpirationMapTest extends FeatureSpec
             threads foreach (_.join())
 
             val results = (refs, unrefs).zipped map (_ - _)
-            (0 until keys.length) foreach { i =>
+            keys.indices foreach { i =>
                 map.getRefCount(i.toString) should be (results(i))
             }
         }
