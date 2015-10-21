@@ -443,7 +443,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def sgJson(name: String, id: UUID,
                          desc: String = null,
                          tenantId: String = null,
-                         rules: List[JsonNode]): JsonNode = {
+                         rules: List[JsonNode] = List()): JsonNode = {
         val sg = nodeFactory.objectNode
         sg.put("name", name)
         sg.put("id", id.toString)

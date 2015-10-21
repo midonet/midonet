@@ -16,19 +16,20 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable.ListBuffer
-
 import com.google.protobuf.Message
-
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
 import org.midonet.cluster.services.c3po.midonet._
+import org.midonet.cluster.services.c3po.neutron
+import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.StringUtil.indent
 import org.midonet.util.concurrent.toFutureOps
+
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 
 class SecurityGroupTranslator(storage: ReadOnlyStorage)
     extends NeutronTranslator[SecurityGroup] with ChainManager
@@ -109,23 +110,30 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
 
     protected override def translateUpdate(newSg: SecurityGroup)
     : List[MidoOp[_ <: Message]] = {
-        // There's a one-to-many relationship between Neutron security groups
-        // and Midonet rules, so an update to a Neutron security group can
-        // correspond to creation, update, and/or deletion of Midonet rules.
-        // To determine which rules need to be created, updated, and deleted,
-        // we need to look at the old version of the SecurityGroup to determine
-        // which rules to create, update, delete, or leave alone.
-        val oldSg = storage.get(classOf[SecurityGroup], newSg.getId).await()
-        val xltOldSg = translate(oldSg)
-        val xltNewSg = translate(newSg)
+        // Neutron doesn't modify rules via SecurityGroup update, but instead
+        // always passes in an empty list of rules. The only property modifiable
+        // via a Neutron SecurityGroup update that gets copied to a Midonet
+        // object is the name, so we can just update that.
+        val oldIpAddrGroup =
+            storage.get(classOf[IPAddrGroup], newSg.getId).await()
+        List(Update(oldIpAddrGroup.toBuilder.setName(newSg.getName).build()))
+    }
 
-        val oldRules = xltOldSg.inboundRules ++ xltOldSg.outboundRules
-        val newRules = xltNewSg.inboundRules ++ xltNewSg.outboundRules
-        val (addedRules, updatedRules, removedIds) = getRuleChanges(oldRules,
-                                                                    newRules)
-        removedIds.map(Delete(classOf[Rule], _)) ++
-        updatedRules.map(Update(_)) ++
-        addedRules.map(Create(_))
+
+    /* Keep the original model as is by default. Override if the model does not
+     * need to be maintained, or need some special handling. */
+    override protected def retainNeutronModel(op: NeutronOp[SecurityGroup])
+    : List[MidoOp[SecurityGroup]] = op match {
+        case neutron.Update(newSg) =>
+            // Neutron doesn't specify rules in update. Name and description
+            // are the only properties that can actually be updated, so we can
+            // just update the old SecurityGroup with them.
+            val oldSg = storage.get(classOf[SecurityGroup], newSg.getId).await()
+            List(Update(oldSg.toBuilder
+                            .setName(newSg.getName)
+                            .setDescription(newSg.getDescription)
+                            .build()))
+        case _ => super.retainNeutronModel(op)
     }
 
     protected override def translateDelete(sgId: UUID)

@@ -15,20 +15,20 @@
  */
 package org.midonet.cluster.services.c3po.translators
 
-import org.scalatest.junit.JUnitRunner
-import scala.collection.JavaConverters._
-
 import java.util.UUID
-import org.junit.runner.RunWith
 
+import org.junit.runner.RunWith
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{SecurityGroup => SecurityGroupType, SecurityGroupRule => SecurityGroupRuleType}
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.packets.{IPv4Subnet, UDP}
+import org.midonet.packets.IPv4Subnet
 import org.midonet.util.concurrent.toFutureOps
+import org.scalatest.junit.JUnitRunner
+
+import scala.collection.JavaConverters._
 
 
 /**
@@ -134,36 +134,33 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         outChain1Rules(1).getCondition.getDlType should be(EtherType.IPV6_VALUE)
         outChain1Rules(1).getCondition.getIpAddrGroupIdSrc should be(toProto(sg2Id))
 
-        val rule1aJson = ruleJson(rule1Id, sg1Id,
-                                  direction = RuleDirection.EGRESS,
-                                  protocol = Protocol.UDP)
-        val rule3Id = UUID.randomUUID()
-        val rule3Json = ruleJson(rule3Id, sg1Id)
         val sg1aJson = sgJson(name = "sg1-updated", id = sg1Id,
-                              desc = "Security group", tenantId = "tenant",
-                              rules = List(rule1aJson, rule3Json))
+                              desc = "Security group", tenantId = "tenant")
         insertUpdateTask(4, SecurityGroupType, sg1aJson, sg1Id)
         insertDeleteTask(5, SecurityGroupType, sg2Id)
         eventually {
             val ipg1a = storage.get(classOf[IPAddrGroup], sg1Id).await()
+            ipg1a.getName shouldBe "sg1-updated"
+
+            // Neutron doesn't include the rules on update, so update should not
+            // delete the rules just because the rule list in the update request
+            // is empty.
             val ChainPair(inChain1a, outChain1a) = getChains(ipg1a)
+            inChain1a.getRuleIdsCount shouldBe 0
 
-            inChain1a.getRuleIdsCount should be(1)
-            inChain1a.getRuleIds(0) should be(toProto(rule1Id))
+            outChain1a.getRuleIdsCount shouldBe 2
+            outChain1a.getRuleIds(0) shouldBe toProto(rule1Id)
+            outChain1a.getRuleIds(1) shouldBe toProto(rule2Id)
 
-            outChain1a.getRuleIdsCount should be(1)
-            outChain1a.getRuleIds(0) should be(toProto(rule3Id))
+            // The Neutron security group should also keep its rules.
+            val nsg = storage.get(classOf[SecurityGroup], sg1Id).await()
+            nsg.getSecurityGroupRulesCount shouldBe 2
+
+            // SG2 should deleted.
+            List(storage.exists(classOf[SecurityGroup], sg2Id),
+                 storage.exists(classOf[IPAddrGroup], sg2Id))
+                .map(_.await()) shouldBe List(false, false)
         }
-
-        val ipg1aRules = storage.getAll(
-            classOf[Rule], List(rule1Id, rule3Id)).await()
-
-        val inChain1aRule1 = ipg1aRules(0)
-        inChain1aRule1.getId should be(toProto(rule1Id))
-        inChain1aRule1.getCondition.getNwProto should be(UDP.PROTOCOL_NUMBER)
-
-        val outChain1aRule1 = ipg1aRules(1)
-        outChain1aRule1.getId should be(toProto(rule3Id))
 
         insertDeleteTask(6, SecurityGroupType, sg1Id)
 
