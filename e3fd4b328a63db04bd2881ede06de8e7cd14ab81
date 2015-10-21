@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_3803d310",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/package.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-21T17:59:53Z",
+      "side": 1,
+      "message": "maybe for customer consumption neutron-importer is clearer",
+      "range": {
+        "startLine": 31,
+        "startChar": 38,
+        "endLine": 31,
+        "endChar": 42
+      },
+      "revId": "e3fd4b328a63db04bd2881ede06de8e7cd14ab81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_231d6867",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/southbound/package.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-21T17:59:53Z",
+      "side": 1,
+      "message": "given our current appenders this will print only \n\ntable-whatever\n\nMaybe it\u0027s better to have ovsdb-table-..",
+      "range": {
+        "startLine": 27,
+        "startChar": 40,
+        "endLine": 27,
+        "endChar": 46
+      },
+      "revId": "e3fd4b328a63db04bd2881ede06de8e7cd14ab81",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
