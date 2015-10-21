@@ -63,7 +63,7 @@ public class FlowMatch {
         },
         TunnelSrc {
             public String toString(FlowMatch wcmatch) {
-                return toString() + "=" + wcmatch.tunnelSrc;
+                return toString() + "=" + IPv4Addr.intToString(wcmatch.tunnelSrc);
             }
             public int hashCode(FlowMatch  wcmatch) {
                 return wcmatch.tunnelSrc;
@@ -75,7 +75,7 @@ public class FlowMatch {
         },
         TunnelDst {
             public String toString(FlowMatch  wcmatch) {
-                return toString() + "=" + wcmatch.tunnelDst;
+                return toString() + "=" + IPv4Addr.intToString(wcmatch.tunnelDst);
             }
             public int hashCode(FlowMatch  wcmatch) {
                 return wcmatch.tunnelDst;
