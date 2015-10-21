@@ -42,6 +42,7 @@ import org.midonet.cluster.auth.KeystoneTenantList;
 import org.midonet.cluster.auth.Tenant;
 import org.midonet.cluster.auth.Token;
 import org.midonet.cluster.auth.UserIdentity;
+import org.midonet.cluster.package$;
 
 /**
  * Keystone Service.
@@ -49,7 +50,7 @@ import org.midonet.cluster.auth.UserIdentity;
 public class KeystoneService implements AuthService {
 
     private final static Logger log =
-        LoggerFactory.getLogger("org.midonet.cluster.auth.keystone");
+        LoggerFactory.getLogger(package$.MODULE$.keystoneLog());
 
     public final static String HEADER_X_AUTH_PROJECT = "X-Auth-Project";
     public final static String KEYSTONE_TOKEN_EXPIRED_FORMAT =

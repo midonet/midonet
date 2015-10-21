@@ -22,7 +22,7 @@ import com.google.common.util.concurrent.Service.{State, Listener}
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.cluster.{ClusterConfig, ClusterNode, topologyApiLog}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendModule
@@ -30,7 +30,7 @@ import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 /** Stand-alone application to start the TopologyApiService */
 object TopologyApiServiceApp extends App {
-    private val log = LoggerFactory.getLogger(this.getClass)
+    private val log = LoggerFactory.getLogger(topologyApiLog)
 
     private val nodeContext = new ClusterNode.Context(HostIdGenerator.getHostId)
     private val config = if (args.length > 0) {

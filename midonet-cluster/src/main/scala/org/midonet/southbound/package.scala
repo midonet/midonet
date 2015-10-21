@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services
-
-import java.util.UUID
+package org.midonet
 
 import org.midonet.packets.IPv4Addr
 
-package object vxgw {
+package object southbound {
 
-    // Top level logger
-    val vxgwLog = "org.midonet.cluster.vxgw"
-    def vxgwVtepControlLog(vtepId: UUID)
-        = s"org.midonet.cluster.vxgw.vxgw-vtep-$vtepId"
-    def vxgwMidonetLog(networkId: UUID)
-        = s"org.midonet.cluster.vxgw.vxgw-midonet-$networkId"
+    def vtepLog(mgmtIp: IPv4Addr, mgmtPort: Int): String
+        = s"org.midonet.southbound.vtep.vtep-" +
+          s"${mgmtIp.toString.replaceAll("\\.", "_")}:$mgmtPort"
+    def vtepTableLog(schemaName: String): String
+        = s"org.midonet.southbound.vtep.ovsdb-table-[$schemaName]"
 
 }
