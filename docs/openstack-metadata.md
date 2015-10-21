@@ -83,11 +83,12 @@ the request came, to the request and forwards it to Nova Metadata Api.
 
 MetadataServiceWorkflow replies to ARP requests from the Metadata Proxy.
 
-On the other hand, it currently doesn't care ARP requests from VMs.
-With typical configurations, 169.254.169.254 is handled by the default
-route in VM's operating system.  MetadataServiceWorkflow intercepts
-packets from VM to 169.254.169.254 even if its L2 destination is the
-default router.
+It also replies to ARP requests for 169.254.169.254 from VMs.
+
+Depending VM's networking stack and its configuration,
+169.254.169.254 might be handled by the default route in the VM.
+MetadataServiceWorkflow intercepts packets from VM to 169.254.169.254
+ignoring L2 destination.
 
 ### References
 
