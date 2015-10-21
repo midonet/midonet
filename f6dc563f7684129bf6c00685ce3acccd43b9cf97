@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_8379d495",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/TimedExpirationMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-21T18:17:33Z",
+      "side": 1,
+      "message": "this should be oldCount rather than oldValue, no?",
+      "range": {
+        "startLine": 147,
+        "startChar": 20,
+        "endLine": 147,
+        "endChar": 28
+      },
+      "revId": "f6dc563f7684129bf6c00685ce3acccd43b9cf97",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
