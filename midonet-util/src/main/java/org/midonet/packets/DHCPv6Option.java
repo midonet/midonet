@@ -71,6 +71,11 @@ public class DHCPv6Option implements DHCPv6OptPacket {
 
     public DHCPv6Option() {}
 
+    @Override
+    public int length() {
+        return OPTION_CODE_LEN + OPTION_LEN_LEN + this.length;
+    }
+
     public IPacket getParent() {
         return parent;
     }
@@ -168,7 +173,7 @@ public class DHCPv6Option implements DHCPv6OptPacket {
     }
 
     public byte[] serialize() {
-        int totalLen = OPTION_CODE_LEN + OPTION_LEN_LEN + this.length;
+        int totalLen = length();
         byte[] data = new byte[totalLen];
         ByteBuffer bb = ByteBuffer.wrap(data);
 
@@ -248,7 +253,7 @@ public class DHCPv6Option implements DHCPv6OptPacket {
         }
 
         public byte[] serialize() {
-            int totalLen = OPTION_CODE_LEN + OPTION_LEN_LEN + this.length;
+            int totalLen = length();
             byte[] data = new byte[totalLen];
             ByteBuffer bb = ByteBuffer.wrap(data);
 
@@ -346,7 +351,7 @@ public class DHCPv6Option implements DHCPv6OptPacket {
         }
 
         public byte[] serialize() {
-            int totalLen = OPTION_CODE_LEN + OPTION_LEN_LEN + this.length;
+            int totalLen = length();
             byte[] data = new byte[totalLen];
             ByteBuffer bb = ByteBuffer.wrap(data);
 
@@ -417,7 +422,7 @@ public class DHCPv6Option implements DHCPv6OptPacket {
         }
 
         public byte[] serialize() {
-            int totalLen = OPTION_CODE_LEN + OPTION_LEN_LEN + this.length;
+            int totalLen = length();
             byte[] data = new byte[totalLen];
             ByteBuffer bb = ByteBuffer.wrap(data);
             bb.putShort(this.code);
@@ -480,7 +485,7 @@ public class DHCPv6Option implements DHCPv6OptPacket {
         }
 
         public byte[] serialize() {
-            int totalLen = OPTION_CODE_LEN + OPTION_LEN_LEN + this.length;
+            int totalLen = length();
             byte[] data = new byte[totalLen];
             ByteBuffer bb = ByteBuffer.wrap(data);
 
@@ -583,7 +588,7 @@ public class DHCPv6Option implements DHCPv6OptPacket {
         }
 
         public byte[] serialize() {
-            int totalLen = OPTION_CODE_LEN + OPTION_LEN_LEN + this.length;
+            int totalLen = length();
             byte[] data = new byte[totalLen];
             ByteBuffer bb = ByteBuffer.wrap(data);
             bb.putShort(this.code);
@@ -721,7 +726,7 @@ public class DHCPv6Option implements DHCPv6OptPacket {
         }
 
         public byte[] serialize() {
-            int totalLen = OPTION_CODE_LEN + OPTION_LEN_LEN + this.length;
+            int totalLen = length();
             byte[] data = new byte[totalLen];
             ByteBuffer bb = ByteBuffer.wrap(data);
             bb.putShort(this.code);

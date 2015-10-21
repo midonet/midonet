@@ -82,6 +82,27 @@ class MeterRegistry(val maxFlows: Int) {
             metadataPool.offer(metadata)
     }
 
+    def recordPacket(packetLen: Int, tags: ArrayList[FlowTag]): Unit = {
+        DELTA.packets = 1
+        DELTA.bytes = packetLen
+
+        var i = 0
+        while (i < tags.size()) {
+            tags.get(i) match {
+                case meter: MeterTag =>
+                    if (meters.containsKey(meter.meterName)) {
+                        log.debug(s"adding a packet to meter: ${meter.meterName}")
+                        meters.get(meter.meterName).add(DELTA.packets, DELTA.bytes)
+                    } else {
+                        meters.put(meter.meterName, new JmxFlowStats(DELTA.packets, DELTA.bytes))
+                        log.debug(s"discovered a new meter: ${meter.meterName}")
+                    }
+                case _ => // Do nothing
+            }
+            i += 1
+        }
+    }
+
     def updateFlow(flowMatch: FlowMatch, stats: FlowStats): Unit = {
         val metadata = trackedFlows.get(flowMatch)
         if (metadata ne null) {

@@ -61,6 +61,12 @@ public class ARP extends BasePacket {
     protected byte[] targetProtocolAddress;
 
     @Override
+    public int length() {
+        return 8 + (2 * (0xff & this.hardwareAddressLength))
+                 + (2 * (0xff & this.protocolAddressLength));
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("ARP [opcode=").append(opCode);
@@ -221,9 +227,7 @@ public class ARP extends BasePacket {
 
     @Override
     public byte[] serialize() {
-        int length = 8 + (2 * (0xff & this.hardwareAddressLength))
-                + (2 * (0xff & this.protocolAddressLength));
-        byte[] data = new byte[length];
+        byte[] data = new byte[length()];
         ByteBuffer bb = ByteBuffer.wrap(data);
         bb.putShort(this.hardwareType);
         bb.putShort(this.protocolType);

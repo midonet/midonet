@@ -135,8 +135,7 @@ public class DHCPv6 extends BasePacket {
     }
 
     @Override
-    public byte[] serialize() {
-
+    public int length() {
         // start with the header length, then add the length of each option.
         int totalLen = MSG_TYPE_LEN + TRANSACTION_ID_LEN;
 
@@ -145,8 +144,12 @@ public class DHCPv6 extends BasePacket {
             totalLen += OPTION_LEN_LEN;
             totalLen += (int)option.getLength();
         }
+        return totalLen;
+    }
 
-        byte[] data = new byte[totalLen];
+    @Override
+    public byte[] serialize() {
+        byte[] data = new byte[length()];
 
         /*
          * put the header in first. Most of the content of a DHCPv6 packet

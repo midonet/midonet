@@ -53,27 +53,34 @@ public class GRE extends BasePacket {
     }
 
     @Override
+    public int length() {
+        int len = 4 + childLength();
+        if (hasCksum)
+            len += 4;
+        if (hasKey)
+            len += 4;
+        if (hasSeqnum)
+            len += 4;
+        return len;
+    }
+
+    @Override
     public byte[] serialize() {
         byte[] payloadData = null;
         if (payload != null) {
             payload.setParent(this);
             payloadData = payload.serialize();
         }
-        int length = 4 + ((payloadData == null) ? 0 : payloadData.length);
+
         byte tmp = 0;
-        if (hasCksum) {
+        if (hasCksum)
             tmp |= CKSUM_PRESENT;
-            length += 4;
-        }
-        if (hasKey) {
+        if (hasKey)
             tmp |= KEY_PRESENT;
-            length += 4;
-        }
-        if (hasSeqnum) {
+        if (hasSeqnum)
             tmp |= SEQNUM_PRESENT;
-            length += 4;
-        }
-        byte[] bytes = new byte[length];
+
+        byte[] bytes = new byte[length()];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
         bb.put(tmp);
         bb.put((byte)(version & 0x7));

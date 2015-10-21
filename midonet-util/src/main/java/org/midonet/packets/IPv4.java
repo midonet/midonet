@@ -71,6 +71,14 @@ public class IPv4 extends BasePacket {
     protected int destinationAddress;
     protected byte[] options;
 
+    @Override
+    public int length() {
+        int optionsLen = 0;
+        if (this.options != null)
+            optionsLen = this.options.length;
+        return 20 + optionsLen + childLength();
+    }
+
     /**
      * Default constructor that sets the version to 4.
      */
