@@ -21,7 +21,7 @@ public class KeystoneInvalidFormatException extends AuthException {
 
     private static final long serialVersionUID = 1L;
 
-    public KeystoneInvalidFormatException(String message, Throwable e) {
-        super(message, e);
+    public KeystoneInvalidFormatException(String message) {
+        super(message);
     }
 }
