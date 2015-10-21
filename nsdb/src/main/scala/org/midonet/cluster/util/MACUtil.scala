@@ -19,15 +19,17 @@ import java.lang.reflect.Type
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.packets.MAC
+import org.midonet.packets.MAC.InvalidMacException
 
 object MACUtil {
     sealed class Converter extends ZoomConvert.Converter[MAC, String] {
 
         override def toProto(value: MAC, clazz: Type): String =
-            value.toString
+            if (value ne null) value.toString else ""
 
         override def fromProto(value: String, clazz: Type): MAC =
-            MAC.fromString(value)
+            try { MAC.fromString(value) }
+            catch { case _: InvalidMacException => null }
     }
 }
 
