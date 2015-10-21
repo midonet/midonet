@@ -16,6 +16,24 @@
       "revId": "ef13be023dbfae21bf92f99ff34ce422e1a1682e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_f85a3b4f",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-21T17:44:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_98b69f89",
+      "revId": "ef13be023dbfae21bf92f99ff34ce422e1a1682e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
