@@ -22,6 +22,30 @@
       "revId": "c4efad41a559528cd9ea50ee700485438c16d9f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_afb6bf88",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-21T08:13:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_cc2b012f",
+      "range": {
+        "startLine": 67,
+        "startChar": 54,
+        "endLine": 67,
+        "endChar": 62
+      },
+      "revId": "c4efad41a559528cd9ea50ee700485438c16d9f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
