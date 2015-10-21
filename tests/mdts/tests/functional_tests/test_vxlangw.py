@@ -138,9 +138,6 @@ bindings_multi_mm = {
 #   - MNA-1006 : multi-MM testing of a single bridge, with traffic from MN, is
 #                disabled because the emulator bounces broadcast L2 traffic back
 #                to MN (to the flooding proxy)
-#   - MNA-1003 : binding more than one physical port of a VTEP to a bridge is
-#                not supported (fix pending)
-#
 
 _tunnel_zones = { }
 
@@ -264,7 +261,6 @@ def clear_multi_vtep_multi_tz():
 def test_to_single_vtep_single_bridge():
     """Tests if VMs can ping a host connected to a VTEP from a single host
     with a single bridge."""
-    # TODO: Multiple MM test is disabled for the VTEP emulator due to MNA-1006
     add_member("midolman1", "tz1")
 
     add_binding("vtep1", "swp1", "bridge-000-001", 0)
@@ -272,10 +268,8 @@ def test_to_single_vtep_single_bridge():
     ping_to_vtep("bridge-000-001", 2, "10.0.1.1")
 
     add_binding("vtep1", "swp2", "bridge-000-001", 0)
-    # import ipdb; ipdb.set_trace()
-    # TODO: This fails (see MNA-1003)
-    # ping_to_vtep("bridge-000-001", 1, "10.0.1.2")
-    # ping_to_vtep("bridge-000-001", 1, "10.0.1.2")
+    ping_to_vtep("bridge-000-001", 1, "10.0.1.2")
+    ping_to_vtep("bridge-000-001", 1, "10.0.1.2")
 
 @bindings(bindings_single_mm_multi_bridge_same_subnet)
 @with_setup(setup_single_vtep, clear_single_vtep)
