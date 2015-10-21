@@ -198,11 +198,13 @@ mainClassName = "org.midonet.cluster.ClusterNode"
 // EXECUTION TASKS //
 /////////////////////
 
-// Runs the cluster daemon locally. Use -Pconf=<path_to_config_file> to specify
-// a custom configuration file. Note that the configuration file path is
-// relative to the midonet-cluster submodule, i.e.,
-// -Pconf=midonet-cluster/conf/<config_file>.
+// Runs the cluster daemon, locally. use
+//    -Pconf=$PATH_TO_MIDONET_CLUSTER_CONF
 run {
+
+    // so that it picks up build.gradle
+    classpath += files('conf/')
+
     mainClassName = "org.midonet.cluster.ClusterNode"
     systemProperties System.getProperties()
     if (project.hasProperty("keystore_path")) {
