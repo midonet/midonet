@@ -42,7 +42,7 @@ import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor, Network}
 import org.midonet.quagga.ZebraProtocol.RIBType
-import org.midonet.quagga.{BgpConnection, BgpdProcess}
+import org.midonet.quagga.{ZebraPath, BgpConnection, BgpdProcess}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 @RunWith(classOf[JUnitRunner])
@@ -182,23 +182,47 @@ class RoutingHandlerTest extends FeatureSpecLike
         }
     }
 
+    def pushRoute(dst: String, gws: String*): Unit = {
+        val addrs = (gws map (gw => IPv4Addr.fromString(gw))).toSet
+        routingHandler ! RoutingHandler.AddPeerRoutes(
+            IPv4Subnet.fromCidr(dst),
+            addrs map (gw => ZebraPath(RIBType.BGP, gw, 100)))
+    }
+
     feature("learns routes") {
         scenario("peer announces a new route") {
             val dst = "10.10.10.0/24"
             val gw = "192.168.80.254"
 
-            routingHandler ! RoutingHandler.AddPeerRoute(RIBType.BGP,
-                IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw), 100)
-
+            pushRoute(dst, gw)
             verify(routingStorage).addRoute(argThat(matchRoute(dst, gw)))
+        }
+
+        scenario("multipath routes") {
+            val dst = "10.10.10.0/24"
+            val gw1 = "192.168.80.254"
+            val gw2 = "192.168.80.253"
+            val order = org.mockito.Mockito.inOrder(routingStorage)
+
+            pushRoute(dst, gw1)
+            order.verify(routingStorage).addRoute(argThat(matchRoute(dst, gw1)))
+
+            pushRoute(dst, gw2)
+            order.verify(routingStorage).addRoute(argThat(matchRoute(dst, gw2)))
+            order.verify(routingStorage).removeRoute(argThat(matchRoute(dst, gw1)))
+
+            pushRoute(dst, gw1, gw2)
+            order.verify(routingStorage).addRoute(argThat(matchRoute(dst, gw1)))
+
+            pushRoute(dst, gw1)
+            order.verify(routingStorage).removeRoute(argThat(matchRoute(dst, gw2)))
         }
 
         scenario("peer stops announcing a route") {
             val dst = "10.10.10.0/24"
             val gw = "192.168.80.254"
 
-            routingHandler ! RoutingHandler.AddPeerRoute(RIBType.BGP,
-                IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw), 100)
+            pushRoute(dst, gw)
             routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst), IPv4Addr.fromString(gw))
 
@@ -214,12 +238,9 @@ class RoutingHandlerTest extends FeatureSpecLike
 
             routingStorage.break()
 
-            routingHandler ! RoutingHandler.AddPeerRoute(RIBType.BGP,
-                IPv4Subnet.fromCidr(dst1), IPv4Addr.fromString(gw), 100)
-            routingHandler ! RoutingHandler.AddPeerRoute(RIBType.BGP,
-                IPv4Subnet.fromCidr(dst2), IPv4Addr.fromString(gw), 100)
-            routingHandler ! RoutingHandler.AddPeerRoute(RIBType.BGP,
-                IPv4Subnet.fromCidr(dst3), IPv4Addr.fromString(gw), 100)
+            pushRoute(dst1, gw)
+            pushRoute(dst2, gw)
+            pushRoute(dst3, gw)
             routingHandler ! RoutingHandler.RemovePeerRoute(RIBType.BGP,
                 IPv4Subnet.fromCidr(dst3), IPv4Addr.fromString(gw))
 

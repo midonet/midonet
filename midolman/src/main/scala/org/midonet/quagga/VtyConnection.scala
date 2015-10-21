@@ -188,6 +188,8 @@ trait BgpConnection {
     def showGeneric(cmd: String) : Seq[String]
 
     def showConfig(): BgpdRunningConfig
+
+    def setMaximumPaths(as: Int, paths: Int)
 }
 
 class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port)
@@ -206,7 +208,18 @@ class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port
     private def SetAs(as: Int, subcommand: String): Script = SetAs(as)(List(subcommand))
 
     override def setAs(as: Int) {
-        exec(SetAs(as)(Nil))
+        exec(SetAs(as){ List(
+            s"bgp bestpath as-path multipath-relax")
+        })
+        exec(ConfigureScript(
+                FlatScript(
+                    List("ip as-path access-list 1 permit ^$"))))
+    }
+
+    override def setMaximumPaths(as: Int, paths: Int): Unit = {
+        exec(SetAs(as){ List(
+            s"maximum-paths $paths")
+        })
     }
 
     override def setRouterId(as: Int, localAddr: IPAddr) {
@@ -218,7 +231,8 @@ class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port
         exec(SetAs(as){ List(
             s"neighbor $peer remote-as $peerAs",
             s"neighbor $peer timers $keepAliveSecs $holdTimeSecs",
-            s"neighbor $peer timers connect $connectRetrySecs")
+            s"neighbor $peer timers connect $connectRetrySecs",
+            s"neighbor $peer filter-list 1 out")
         })
     }
 
