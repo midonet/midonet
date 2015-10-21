@@ -31,6 +31,7 @@ import scala.util.control.NonFatal
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import com.google.inject.name.Named
+import com.google.protobuf.TextFormat
 import rx.{Observer, Subscription}
 
 import org.midonet.cluster.data.ZoomConvert
@@ -273,12 +274,13 @@ class HostService @Inject()(config: MidolmanConfig,
         try {
             // Get the current host if it exists.
             val currentHost = getCurrentHost
-            // If the host entry exists.
+            val currentState = getCurrentState
+            // If the host or state entries exist.
             if (currentHost ne null) {
-                if (currentHost.getName != hostName) {
+                if (!isSameHost(currentHost, currentState)) {
                     log.error("Failed to create host {} with name {} because " +
-                        "the host exists with name {}", hostId,
-                        hostName, currentHost.getName)
+                              "the host already exists with different name, " +
+                              "tunnel-zones or  interfaces {}", hostId, hostName)
                     aliveState.set(OwnershipState.Released)
                     return false
                 }
@@ -292,7 +294,7 @@ class HostService @Inject()(config: MidolmanConfig,
             }
 
             // Set the alive state and update the interfaces.
-            stateStore.addValue(classOf[Host], hostId, AliveKey,AliveKey)
+            stateStore.addValue(classOf[Host], hostId, AliveKey, AliveKey)
                 .await(timeout)
             updateInterfaces()
 
@@ -406,6 +408,20 @@ class HostService @Inject()(config: MidolmanConfig,
         }
     }
 
+    @Nullable
+    @throws[TimeoutException]
+    @throws[InterruptedException]
+    private def getCurrentState: State.HostState = {
+        Await.ready(stateStore.getKey(classOf[Host], hostId, HostKey).asFuture,
+                    timeout).value match {
+            case Some(Success(SingleValueKey(_,Some(value),_))) =>
+                val builder = State.HostState.newBuilder()
+                TextFormat.merge(value, builder)
+                builder.build()
+            case _ => null
+        }
+    }
+
     /** Returns the current set of interfaces for this host as a set of protocol
       * buffers messages. */
     private def getInterfaces: String = {
@@ -417,6 +433,28 @@ class HostService @Inject()(config: MidolmanConfig,
                     .asJava)
             .build()
             .toString
+    }
+
+    /** Verifies that the current host and state read from storage belong to
+      * this host. The function compares the host name, and if the state exists
+      * the set of interfaces. */
+    private def isSameHost(currentHost: Host, currentState: State.HostState)
+    : Boolean = {
+        if (currentHost.getName != hostName) {
+            log.debug("Hostname {} different from stored value {}", hostName,
+                      currentHost.getName)
+            return false
+        }
+        if (currentState ne null) {
+            val interfaces = currentState.getInterfacesList.asScala.map(
+                ZoomConvert.fromProto(_, classOf[InterfaceDescription])).toSet
+            if (currentInterfaces != interfaces) {
+                log.debug("Host interfaces ({}) different from stored value " +
+                          "({})", Int.box(currentInterfaces.size),
+                          Int.box(interfaces.size))
+                false
+            } else true
+        } else true
     }
 
 }
