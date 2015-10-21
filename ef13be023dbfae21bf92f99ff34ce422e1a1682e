@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_98b69f89",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-21T17:24:58Z",
+      "side": 1,
+      "message": "just a nit, but this format is actually not specific to fernet, as some token providers will add microsec and others don\u0027t (fernet always does).  Consider making this more generic:\n\nprivate final static SimpleDateFormat VALID_EXPIRED_FORMATS[] \u003d {\"yyyy-MM-dd\u0027T\u0027HH:mm:ss\u0027Z\u0027\", \"yyyy-MM-dd\u0027T\u0027HH:mm:ss.S\u0027Z\u0027\";\n\u0027}\n\nand then:\n\nfor (SimpleDateFormat fmt : VALID_EXPIRED_FORMATS) {\n    try {\n        return fmt.parse(s);\n    } catch (ParseException ex) {\n        // Continue\n    }\n}\n\nthrow new KeystoneInvalidFormatException(\"Bad Format\");",
+      "revId": "ef13be023dbfae21bf92f99ff34ce422e1a1682e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
