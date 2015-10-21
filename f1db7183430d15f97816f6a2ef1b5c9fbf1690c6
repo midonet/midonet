@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_32aa141a",
+        "filename": "midolman/conf/logback-disabled.xml",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-21T12:37:02Z",
+      "side": 1,
+      "message": "why this one? This wouldn\u0027t hurt inside a JAR and it\u0027s already in nsdb.",
+      "revId": "f1db7183430d15f97816f6a2ef1b5c9fbf1690c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
