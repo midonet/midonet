@@ -49,8 +49,8 @@ class ResourceProvider(log: Logger) {
         } map { clazz =>
             val apiAnnotation = clazz.getAnnotation(classOf[ApiResource])
             val pathAnnotation = clazz.getAnnotation(classOf[Path])
-            log info s"API resource found for path '${pathAnnotation.value}' " +
-                     s"version ${apiAnnotation.version}"
+            log info s"API endpoint found: /${pathAnnotation.value} version  " +
+                     apiAnnotation.version
             (pathAnnotation.value, apiAnnotation.version, clazz)
         }
     private val currentResources =
@@ -66,7 +66,7 @@ class ResourceProvider(log: Logger) {
     def get(name: String): Class[_] = {
         currentResources get name match {
             case Some((version, clazz)) =>
-                log.debug("Request for {} handled by class {} version {}",
+                log.debug("Request for {} handled by {} version {}",
                           name, clazz, Int.box(version))
                 clazz
             case None =>
