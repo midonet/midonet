@@ -47,11 +47,21 @@ trait MetadataServiceWorkflow {
             return null  // disabled
         }
         val fmatch = context.wcmatch
-        if (!matchIngress(fmatch)) {
-            return null  // not ours; fallback to other handlers
+        if (matchIngressTcp(fmatch)) {
+            handleMetadataIngressTcp(context)
+        } else if (matchIngressArp(fmatch)) {
+            handleMetadataIngressArp(context)
+        } else {
+            null  // not ours; fallback to other handlers
         }
+    }
+
+    private def handleMetadataIngressTcp(context: PacketContext)
+            (implicit as: ActorSystem): SimulationResult = {
+        val fmatch = context.wcmatch
         val remoteAddr =
             AddressManager dpPortToRemoteAddress fmatch.getInputPortNumber
+
         context.log debug s"MetadataIngress: remoteAddr ${remoteAddr}"
         // Do not wildcard src address
         fmatch.fieldSeen(FlowMatch.Field.NetworkSrc)
@@ -64,11 +74,29 @@ trait MetadataServiceWorkflow {
         AddVirtualWildcardFlow
     }
 
-    private def matchIngress(fmatch: FlowMatch) = {
+    private def handleMetadataIngressArp(context: PacketContext)
+            (implicit as: ActorSystem): SimulationResult = {
+        val remoteAddr = MetadataApi.address
+        val mac = MAC fromString "94:e7:ac:7a:c5:13"  // random
+
+        context.log debug "MetadataIngress: " +
+                          s"Replying ARP: ${remoteAddr}/${mac}"
+        context.addGeneratedPacket(context.inputPort,
+                                   makeArpReply(context, mac))
+        NoOp
+    }
+
+    private def matchIngressTcp(fmatch: FlowMatch) = {
         fmatch.getEtherType == IPv4.ETHERTYPE &&
         fmatch.getNetworkDstIP == IPv4Addr(MetadataApi.address) &&
         fmatch.getNetworkProto == TCP.PROTOCOL_NUMBER &&
         fmatch.getDstPort == MetadataApi.port
+    }
+
+    private def matchIngressArp(fmatch: FlowMatch) = {
+        fmatch.getEtherType == ARP.ETHERTYPE &&
+        fmatch.getNetworkProto == ARP.OP_REQUEST &&
+        fmatch.getNetworkDstIP.toString == MetadataApi.address
     }
 
     def handleMetadataEgress(context: PacketContext)
@@ -138,14 +166,8 @@ trait MetadataServiceWorkflow {
                 context.log debug "MetadataEgress: " +
                                   s"Replying ARP: ${remoteAddr}/${vmInfo.mac}"
                 val mac = MAC fromString vmInfo.mac
-                val arpReq = context.ethernet.getPayload.asInstanceOf[ARP]
-                val tpa = arpReq.getTargetProtocolAddress
-                assert(IPv4Addr.bytesToString(tpa) == remoteAddr)
-                val arpRep = ARP.makeArpReply(mac,
-                                              arpReq.getSenderHardwareAddress,
-                                              tpa,
-                                              arpReq.getSenderProtocolAddress)
-                context.addGeneratedPhysicalPacket(mdInfo.dpPortNo, arpRep)
+                context.addGeneratedPhysicalPacket(mdInfo.dpPortNo,
+                                                   makeArpReply(context, mac))
                 NoOp
             case None =>
                 context.log warn "MetadataEgress: " +
@@ -164,5 +186,12 @@ trait MetadataServiceWorkflow {
     private def matchEgressArp(fmatch: FlowMatch) = {
         fmatch.getEtherType == ARP.ETHERTYPE &&
         fmatch.getNetworkProto == ARP.OP_REQUEST
+    }
+
+    private def makeArpReply(context: PacketContext, mac: MAC) = {
+        val arpReq = context.ethernet.getPayload.asInstanceOf[ARP]
+        val tpa = arpReq.getTargetProtocolAddress
+        ARP.makeArpReply(mac, arpReq.getSenderHardwareAddress, tpa,
+                         arpReq.getSenderProtocolAddress)
     }
 }
