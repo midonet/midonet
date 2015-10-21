@@ -23,6 +23,7 @@ import com.google.protobuf.Message
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.c3poNeutronTranslatorLog
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
 import org.midonet.cluster.services.c3po.midonet.MidoOp
@@ -36,7 +37,8 @@ trait NeutronTranslator[NeutronModel <: Message] {
     protected type MidoOpList = List[MidoOp[_ <: Message]]
     protected type MidoOpListBuffer = ListBuffer[MidoOp[_ <: Message]]
 
-    protected val log = LoggerFactory.getLogger(this.getClass)
+    protected val log =
+        LoggerFactory.getLogger(c3poNeutronTranslatorLog(getClass))
 
     /**
      * Translate the Neutron operation on NeutronModel to a list of MidoNet

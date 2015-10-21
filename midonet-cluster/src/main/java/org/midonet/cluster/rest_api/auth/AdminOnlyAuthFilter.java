@@ -16,7 +16,6 @@
 package org.midonet.cluster.rest_api.auth;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -33,6 +32,7 @@ import org.slf4j.Logger;
 
 import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.auth.UserIdentity;
+import org.midonet.cluster.package$;
 import org.midonet.cluster.rest_api.ResponseUtils;
 
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
@@ -43,7 +43,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Singleton
 public final class AdminOnlyAuthFilter implements Filter {
 
-    private final static Logger log = getLogger("org.midonet.rest_api-auth");
+    private final static Logger log = getLogger(package$.MODULE$.authLog());
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -66,10 +66,10 @@ public final class AdminOnlyAuthFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request; // Assume HTTP.
         UserIdentity uid = (UserIdentity)req.getAttribute(USER_IDENTITY_ATTR_KEY);
         if (uid.hasRole(AuthRole.ADMIN)) {
-            log.info("User authorised as admin: " + uid.userId);
+            log.info("User authenticated as admin: " + uid.userId);
             chain.doFilter(request, response);
         } else {
-            log.info("User was authenticated, but not an Admin: " + uid.userId);
+            log.info("User was authenticated, but not an admin: " + uid.userId);
             ResponseUtils.setErrorResponse((HttpServletResponse) response,
                                            SC_UNAUTHORIZED, null);
         }

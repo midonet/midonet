@@ -22,8 +22,10 @@ import javax.validation.ConstraintValidatorContext;
 
 import org.slf4j.Logger;
 
-import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
+import org.midonet.cluster.package$;
+
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 /**
  * Implementation for the user-defined constraint annotation @VerifyValue
@@ -40,7 +42,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class VerifyEnumValueValidator
         implements ConstraintValidator<VerifyEnumValue, Object> {
 
-    private static Logger log = getLogger("org.midonet.api.validation");
+    private static Logger log = getLogger(package$.MODULE$.restApiValidationLog());
 
     Class<? extends Enum<?>> enumClass;
 

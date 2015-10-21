@@ -18,9 +18,10 @@ package org.midonet.cluster.services.topology
 
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.midonet.cluster.services.topology.server._
-import org.midonet.cluster.{TopologyApiConfig, ClusterConfig, ClusterNode}
+
+import org.midonet.cluster.{ClusterConfig, ClusterNode, TopologyApiConfig, topologyApiLog}
 import org.midonet.cluster.rpc.Commands
+import org.midonet.cluster.services.topology.server._
 import org.midonet.cluster.services.{ClusterService, Minion, MidonetBackend}
 import org.midonet.cluster.services.topology.common.{ApiServerHandler, ConnectionManager}
 import org.midonet.cluster.services.topology.server.RequestHandler
@@ -34,7 +35,7 @@ class TopologyApiService @Inject()(val nodeContext: ClusterNode.Context,
                                    val backend: MidonetBackend,
                                    val cfg: ClusterConfig)
     extends Minion(nodeContext) {
-    private val log = LoggerFactory.getLogger(classOf[TopologyApiService])
+    private val log = LoggerFactory.getLogger(topologyApiLog)
 
     // Frontend frameworks
     private var plainSrv: ServerFrontEnd = null

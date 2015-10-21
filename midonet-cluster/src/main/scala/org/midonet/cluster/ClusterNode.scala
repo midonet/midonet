@@ -59,7 +59,7 @@ object ClusterNode extends App {
       */
     case class Context(nodeId: UUID)
 
-    private val log = LoggerFactory.getLogger(this.getClass)
+    private val log = LoggerFactory.getLogger(clusterLog)
 
     private val metrics = new MetricRegistry()
     private val jmxReporter = JmxReporter.forRegistry(metrics).build()

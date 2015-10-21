@@ -27,6 +27,7 @@ import com.google.protobuf.Message
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.c3poStorageManagerLog
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.{NeutronTranslator, TranslationException}
@@ -74,7 +75,7 @@ object OpType extends Enumeration {
 class C3POStorageManager(storage: Storage) {
     import org.midonet.cluster.services.c3po.C3POStorageManager._
 
-    private val log = LoggerFactory.getLogger(classOf[C3POStorageManager])
+    private val log = LoggerFactory.getLogger(c3poStorageManagerLog)
 
     private val apiTranslators = new JHashMap[Class[_], NeutronTranslator[_]]()
     private var initialized = false
