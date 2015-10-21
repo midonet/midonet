@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_3873d34e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-21T15:58:11Z",
+      "side": 1,
+      "message": "don\u0027t agree with this. if a compute restarted, it may not have the same interfaces. i think hostname is sufficient.",
+      "revId": "7851f2791c2dd357a50e24047356f76778eac0e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
