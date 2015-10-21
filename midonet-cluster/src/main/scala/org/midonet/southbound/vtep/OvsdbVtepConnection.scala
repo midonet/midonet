@@ -54,6 +54,7 @@ import rx.{Observable, Subscription}
 import org.midonet.cluster.data.vtep.model.VtepEndPoint
 import org.midonet.cluster.data.vtep.{VtepNotConnectedException, VtepStateException}
 import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtepLog
 import org.midonet.southbound.vtep.ConnectionState.State
 import org.midonet.southbound.vtep.OvsdbVtepConnection._
 import org.midonet.util.functors.{makeAction1, makeFunc1}
@@ -67,7 +68,7 @@ object OvsdbVtepConnection {
 
     // Connection states
     abstract class ConnectionStatus(val state: State) {
-        override def toString = state.toString
+        override def toString = state.toString()
     }
 
     // - Disconnected: The state when:
@@ -130,9 +131,7 @@ class OvsdbVtepConnection(mgmtIp: IPv4Addr, mgmtPort: Int,
     private type Handler = PartialFunction[ConnectionStatus, Future[Unit]]
 
     // Do this or it'll interfere with appender config
-    private val loggerName = mgmtIp.toString().replaceAll("\\.", "_") +
-                             ":" + mgmtPort
-    private val log = Logger(getLogger(s"org.midonet.southbound.vtep-$loggerName"))
+    private val log = Logger(getLogger(vtepLog(mgmtIp, mgmtPort)))
 
     // We must have 1 thread per VTEP
     private val executor = newSingleThreadExecutor(DaemonThreadFactory.INSTANCE)
