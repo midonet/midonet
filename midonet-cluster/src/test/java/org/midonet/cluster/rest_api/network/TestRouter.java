@@ -44,6 +44,7 @@ import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
+import org.midonet.cluster.rest_api.models.Router;
 import org.midonet.cluster.rest_api.models.Tenant;
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
@@ -53,6 +54,8 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -301,20 +304,22 @@ public class TestRouter {
         @Test
         public void testRouterCreateWithNoTenant() throws Exception {
             DtoApplication app = topology.getApplication();
-            DtoError error = dtoResource.postAndVerifyBadRequest(
-                app.getRouters(), APPLICATION_ROUTER_JSON_V3(), new DtoRouter());
+            DtoRouter r = dtoResource.postAndVerifyCreated(app.getRouters(),
+                APPLICATION_ROUTER_JSON_V3(), new DtoRouter(), DtoRouter.class);
 
-            assertValidationProperties(error, "tenantId");
+            assertNull(r.getTenantId());
         }
 
         @Test
         public void testRouterUpdateWithNoTenant() throws Exception {
             DtoRouter router = createRouter("foo", "tenant1", false, false);
 
+            assertEquals("tenant1", router.getTenantId());
             router.setTenantId(null);
-            DtoError error = dtoResource.putAndVerifyBadRequest(
-                router.getUri(), APPLICATION_ROUTER_JSON_V3(), router);
-            assertValidationProperties(error, "tenantId");
+            router = dtoResource.putAndVerifyNoContent(router.getUri(),
+                APPLICATION_ROUTER_JSON_V3(), router, DtoRouter.class);
+
+            assertNull(router.getTenantId());
         }
 
         @Test
