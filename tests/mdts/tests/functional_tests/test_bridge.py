@@ -274,8 +274,13 @@ def test_flow_invalidation_on_mac_update():
     f2 = async_assert_that(intruder,
                            should_NOT_receive('icmp', within_sec(5)))
 
-    f3 = sender.ping4(receiver, do_arp=True)
+    f3 = sender.ping4(receiver)
     wait_on_futures([f1, f2, f3])
+
+    # Have the receiver ARP now for the sender before we migrate the mac,
+    # because the kernel stack might decide to do so later at a bad time.
+    f1 = receiver.ping4(sender)
+    wait_on_futures([f1])
 
     # Second: intruder claims to be receiver
     receiver_MAC = receiver.get_mac_addr()
@@ -290,7 +295,7 @@ def test_flow_invalidation_on_mac_update():
                            receives('icmp', within_sec(5)))
     # Do NOT send ARP request: broadcasting it makes receiver to
     # generate ARP reply and updates MAC learning table
-    f3 = sender.ping4(receiver, do_arp=False)
+    f3 = sender.ping4(receiver)
     wait_on_futures([f1, f2, f3])
 
 
