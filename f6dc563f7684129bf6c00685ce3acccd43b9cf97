@@ -22,6 +22,30 @@
       "revId": "f6dc563f7684129bf6c00685ce3acccd43b9cf97",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c3b90ceb",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/TimedExpirationMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-21T20:00:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_8379d495",
+      "range": {
+        "startLine": 147,
+        "startChar": 20,
+        "endLine": 147,
+        "endChar": 28
+      },
+      "revId": "f6dc563f7684129bf6c00685ce3acccd43b9cf97",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
