@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_b817e350",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-21T17:51:47Z",
+      "side": 1,
+      "message": "To avoid flakiness, is there any more reliable way to ensure that traffic is indeed interrupted? I assume inject_packet_loss_for_ip is not vulnerable to environment slowness, but just in case.",
+      "range": {
+        "startLine": 113,
+        "startChar": 3,
+        "endLine": 113,
+        "endChar": 17
+      },
+      "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
