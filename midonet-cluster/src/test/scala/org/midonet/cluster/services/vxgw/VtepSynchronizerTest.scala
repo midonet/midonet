@@ -35,7 +35,7 @@ import rx.subjects.PublishSubject
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.InMemoryStorage
-import org.midonet.cluster.data.vtep.model.MacLocation
+import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.topology.TopologyBuilder
@@ -107,6 +107,10 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
             val lsId = UUID.randomUUID()
             Mockito.when(vtep1Fix.ovsdb.createLogicalSwitch(any(), any()))
                    .thenReturn(Future.successful(lsId))
+            Mockito.when(vtep1Fix.ovsdb.logicalSwitch(any()))
+                   .thenReturn(Future.successful(
+                       Some(new LogicalSwitch(lsId, "meh", 10, "moh")))
+                   )
 
             // Preseed table
             val mac1 = MAC.random
@@ -176,6 +180,11 @@ class VtepSynchronizerTest extends FeatureSpec with Matchers
             val lsId = UUID.randomUUID()
             Mockito.when(vtep1Fix.ovsdb.createLogicalSwitch(any(), any()))
                    .thenReturn(Future.successful(lsId))
+
+            Mockito.when(vtep1Fix.ovsdb.logicalSwitch(any()))
+                   .thenReturn(Future.successful(
+                       Some(new LogicalSwitch(lsId, "meh", 10, "moh")))
+                   )
 
             vtep1Fix.addBinding(vxgw.nwId, "swp1_1", 11)
 
