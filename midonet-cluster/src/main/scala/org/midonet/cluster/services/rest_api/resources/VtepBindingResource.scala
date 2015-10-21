@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
+import java.lang.{Short => JShort}
 import java.util
 import java.util.{List => JList, UUID}
 import javax.ws.rs._
@@ -55,7 +56,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
     @Produces(Array(APPLICATION_VTEP_BINDING_JSON_V2,
                     APPLICATION_JSON))
     def get(@PathParam("portName") portName: String,
-            @PathParam("vlanId") vlanId: Short): VtepBinding = {
+            @PathParam("vlanId") vlanId: JShort): VtepBinding = {
 
         getResource(classOf[Vtep], vtepId) map { vtep =>
             val binding = vtep.bindings.asScala
@@ -63,7 +64,8 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                           binding.portName == portName &&
                           binding.vlanId == vlanId)
                 .getOrElse(throw new NotFoundHttpException(
-                    getMessage(VTEP_BINDING_NOT_FOUND)))
+                    getMessage(VTEP_BINDING_NOT_FOUND, vtep.managementIp,
+                               vlanId, portName)))
             binding.setBaseUri(resContext.uriInfo.getBaseUri)
             binding.vtepId = vtepId
             binding
