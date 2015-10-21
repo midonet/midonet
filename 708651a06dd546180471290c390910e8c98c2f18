@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_6395a0e3",
+        "filename": "tests/mdts/lib/vtep.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-21T22:04:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_23ad6889",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 19
+      },
+      "revId": "708651a06dd546180471290c390910e8c98c2f18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_03c78446",
         "filename": "tests/mdts/tests/topologies/mmm_physical_test_vxlangw.yaml",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-10-21T20:47:14Z",
       "side": 1,
       "message": "current test will work but if we are going to test with large packets the mtu of the namespaces should be lower that the mtu of the ethernet network of the vtep less the vxlan headers, otherwise packet will be dropped because of MTU size",
+      "range": {
+        "startLine": 34,
+        "startChar": 14,
+        "endLine": 34,
+        "endChar": 23
+      },
+      "revId": "708651a06dd546180471290c390910e8c98c2f18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c3a4ac59",
+        "filename": "tests/mdts/tests/topologies/mmm_physical_test_vxlangw.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-21T22:04:06Z",
+      "side": 1,
+      "message": "I agree, however this is the same mtu instances will get in practice, isn\u0027t it?",
+      "parentUuid": "9ab29df4_03c78446",
       "range": {
         "startLine": 34,
         "startChar": 14,
