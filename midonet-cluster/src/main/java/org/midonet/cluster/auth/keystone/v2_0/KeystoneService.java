@@ -15,14 +15,15 @@
  */
 package org.midonet.cluster.auth.keystone.v2_0;
 
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.typesafe.config.Config;
 
@@ -53,6 +54,23 @@ public class KeystoneService implements AuthService {
     public final static String HEADER_X_AUTH_PROJECT = "X-Auth-Project";
     public final static String KEYSTONE_TOKEN_EXPIRED_FORMAT =
             "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    public final static String KEYSTONE_FERNET_TOKEN_EXPIRED_FORMAT =
+        "yyyy-MM-dd'T'HH:mm:ss.S'Z'";
+
+    // The JDK8 APIs supposedly allow parsing formats with optional bits such as
+    // "yyyy-MM-dd'T'HH:mm:ss[.S]'Z'" which is what we really want.  I
+    // (Galo) have unfortunately had to give up on figuring out how to use those
+    // APIs.
+    private final static SimpleDateFormat df =
+        new SimpleDateFormat(KEYSTONE_TOKEN_EXPIRED_FORMAT);
+
+    private final static SimpleDateFormat dfFernet =
+        new SimpleDateFormat(KEYSTONE_FERNET_TOKEN_EXPIRED_FORMAT);
+
+    static {
+        df.setTimeZone(TimeZone.getTimeZone("UTC"));
+        dfFernet.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
 
     private final KeystoneClient client;
     private final KeystoneConfig config;
@@ -63,6 +81,23 @@ public class KeystoneService implements AuthService {
         this.client = new KeystoneClient(this.config);
     }
 
+    @VisibleForTesting
+    static Date parseExpirationDate(String s)
+        throws KeystoneInvalidFormatException {
+        try {
+            return df.parse(s);
+        } catch (ParseException ex1) {
+            try {
+                return dfFernet.parse(s);
+            } catch (ParseException ex2) {
+                throw new KeystoneInvalidFormatException(
+                    "Unrecognizable keystone expired date format.");
+
+            }
+        }
+    }
+
+    @VisibleForTesting
     private String convertToAuthRole(String role) {
         String roleLowerCase = role.toLowerCase();
         if (roleLowerCase.equals(config.adminRole())) {
@@ -119,14 +154,8 @@ public class KeystoneService implements AuthService {
         // Make sure the expired is converted to Date
         String expiredSrc = access.getAccess().getToken().getExpires();
         if (expiredSrc != null) {
-            DateFormat df = new SimpleDateFormat(KEYSTONE_TOKEN_EXPIRED_FORMAT);
-            df.setTimeZone(TimeZone.getTimeZone("GMT"));
-            try {
-                token.setExpires(df.parse(expiredSrc));
-            } catch (ParseException e) {
-                throw new KeystoneInvalidFormatException(
-                    "Unrecognizable keystone expired date format.", e);
-            }
+            Date expiration = parseExpirationDate(expiredSrc);
+            token.setExpires(expiration);
         }
 
         return token;
