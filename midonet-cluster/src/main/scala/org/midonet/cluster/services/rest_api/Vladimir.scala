@@ -39,6 +39,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
 
+import org.midonet.cluster.restApiLog
 import org.midonet.cluster.auth.{AuthModule, AuthService}
 import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter, LoginFilter}
@@ -129,7 +130,7 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
     import Vladimir._
 
     private var server: Server = _
-    private val log = Logger(LoggerFactory.getLogger("org.midonet.rest-api"))
+    private val log = Logger(LoggerFactory.getLogger(restApiLog))
 
     override def isEnabled = config.restApi.isEnabled
 

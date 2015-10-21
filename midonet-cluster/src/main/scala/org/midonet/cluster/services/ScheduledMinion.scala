@@ -22,7 +22,7 @@ import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
 import com.lmax.disruptor.util.DaemonThreadFactory
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 
 import org.midonet.cluster.ClusterNode.Context
 
@@ -30,7 +30,7 @@ abstract class ScheduledMinion(nodeContext: Context,
                                       config: ScheduledMinionConfig[_])
     extends Minion(nodeContext) {
 
-    private val log = LoggerFactory.getLogger(this.getClass)
+    protected def log: Logger
 
     protected val pool = newScheduledThreadPool(config.numThreads,
                                                 DaemonThreadFactory.INSTANCE)

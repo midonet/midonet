@@ -36,6 +36,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.package$;
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.rest_api.version.VersionParser;
 
@@ -55,7 +56,7 @@ public class WildcardJacksonJaxbJsonProvider
     }
 
     private final static Logger log =
-        LoggerFactory.getLogger(WildcardJacksonJaxbJsonProvider.class);
+        LoggerFactory.getLogger(package$.MODULE$.restApiJaxrsLog());
 
     private final VersionParser versionParser = new VersionParser();
     private final ObjectMapperProvider objectMapperProvider;

@@ -37,6 +37,7 @@ import rx.{Observable, Observer, Subscriber}
 import org.midonet.cluster.data.vtep.model._
 import org.midonet.cluster.data.vtep.{VtepConfigException, VtepStateException}
 import org.midonet.packets.IPv4Addr
+import org.midonet.southbound.vtepLog
 import org.midonet.southbound.vtep.OvsdbOperations._
 import org.midonet.southbound.vtep.OvsdbUtil.panicAlert
 import org.midonet.southbound.vtep.OvsdbVtepData.{NamedLocatorId, NamedLocatorSetId}
@@ -60,13 +61,11 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
     extends VtepData {
 
     private val endPoint = OvsdbTools.endPointFromOvsdbClient(client)
-    // required so that it doesn't mess with the appender config
-    private val sEndPoint = endPoint.toString.replaceAll("\\.", "_")
 
     private val MaxBackpressureBuffer = 100000
 
     private val log =
-        Logger(LoggerFactory.getLogger(s"org.midonet.vtep.vtep-$sEndPoint"))
+        Logger(LoggerFactory.getLogger(vtepLog(endPoint.mgmtIp, endPoint.mgmtPort)))
     private implicit val vtepContext = ExecutionContext.fromExecutor(vtepExecutor)
     private val vtepScheduler = Schedulers.from(vtepExecutor)
 
