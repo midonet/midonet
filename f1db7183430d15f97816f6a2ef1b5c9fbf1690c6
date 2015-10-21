@@ -16,6 +16,24 @@
       "revId": "f1db7183430d15f97816f6a2ef1b5c9fbf1690c6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_18e52fa8",
+        "filename": "midolman/conf/logback-disabled.xml",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-21T16:55:34Z",
+      "side": 1,
+      "message": "Oh I forgot to revert the move.",
+      "parentUuid": "9ab29df4_32aa141a",
+      "revId": "f1db7183430d15f97816f6a2ef1b5c9fbf1690c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
