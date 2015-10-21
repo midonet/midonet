@@ -21,12 +21,11 @@ import scala.Option.option2Iterable
 import scala.collection.JavaConversions.asJavaIterable
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext
 import scala.sys.process.Process
 
 import rx.Observable
 import rx.subjects.ReplaySubject
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.Logger
 
 import org.midonet.midolman.DatapathState
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -46,7 +45,7 @@ class DatapathInterface(private val scanner: InterfaceScanner,
 
     private def run(command: String) = {
         if (Process(command).! != 0) {
-            throw new RuntimeException(s"command failed: ${command}")
+            throw new RuntimeException(s"command failed: $command")
         }
     }
 
@@ -74,9 +73,9 @@ class DatapathInterface(private val scanner: InterfaceScanner,
             }))
         }
         val port = portObs.toBlocking.first
-        subscription.unsubscribe
+        subscription.unsubscribe()
         val mdInfo = ProxyInfo(dpPort.getPortNo, MetadataApi.address,
-                               MAC.bytesToString(port.getMac))
+                               MAC.bytesToString(port.getMac.getAddress))
 
         /*
          * Assign the IP address which our metadata proxy will listen on.
@@ -84,10 +83,10 @@ class DatapathInterface(private val scanner: InterfaceScanner,
          *
          * REVISIT(yamamoto): better to use rtnetlink
          */
-        run(s"ip addr add ${MetadataApi.address}/16 dev ${ifName}")
-        run(s"ip link set ${ifName} up")
+        run(s"ip addr add ${MetadataApi.address}/16 dev $ifName")
+        run(s"ip link set $ifName up")
 
-        log debug s"mdInfo ${mdInfo}"
+        log debug s"mdInfo $mdInfo"
         mdInfo
     }
 }

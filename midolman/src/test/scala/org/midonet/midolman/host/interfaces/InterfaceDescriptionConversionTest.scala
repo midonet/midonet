@@ -110,7 +110,7 @@ class InterfaceDescriptionConversionTest extends FlatSpec with Matchers {
     : Unit = {
         pojo.getName shouldBe proto.getName
         pojo.getType shouldBe typeToPojo(proto.getType)
-        MAC.fromAddress(pojo.getMac).toString shouldBe proto.getMac
+        pojo.getMac.toString shouldBe proto.getMac
         pojo.isUp shouldBe proto.getUp
         pojo.hasLink shouldBe proto.getHasLink
         pojo.getMtu shouldBe proto.getMtu
