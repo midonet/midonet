@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory.getLogger
 import rx.Observer
 import rx.functions.Action1
 
+import org.midonet.cluster.vxgwVtepControlLog
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.data.vtep.model.MacLocation
 import org.midonet.cluster.models.Topology.{Port, TunnelZone}
@@ -39,7 +40,7 @@ import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state.MapNotification
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.southbound.vtep.VtepConstants._
-import org.midonet.util.concurrent.toFutureOps
+import org.midonet.util.concurrent._
 import org.midonet.util.functors._
 
 /** This class is used by the VtepSynchronizer when updates are detected
