@@ -141,17 +141,17 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
         }
 
     @tailrec
-    def putIfAbsentAndRef(key: K, value: V): V =
+    def putIfAbsentAndRef(key: K, value: V): Int =
         refCountMap.get(key) match {
             case m: Metadata =>
-                val oldValue = ref(key)
-                if (oldValue != null) {
-                    oldValue
+                val count = refAndGetCount(key)
+                if (count != 0) {
+                    count
                 } else {
                     /* Retry, a deletion raced with us and won */
                     putIfAbsentAndRef(key, value)
                 }
-            case _ if insert(key, value) eq null => null
+            case _ if insert(key, value) eq null => 1
             case _ => putIfAbsentAndRef(key, value)
         }
 
@@ -190,6 +190,21 @@ final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
                 }
 
             case _ => null
+        }
+
+    def refAndGetCount(key: K): Int =
+        refCountMap.get(key) match {
+            case m@Metadata(oldValue, count, _) =>
+                val newCount = tryIncIfGreaterThan(count, -1)
+                if (newCount == -1) {
+                    0
+                } else {
+                    log.debug(s"Incrementing ref count of $key to $newCount")
+                    if (newCount == 1)
+                        log.debug(s"Unscheduling removal of $key")
+                    newCount
+                }
+            case _ => 0
         }
 
     def refCount(key: K) = {

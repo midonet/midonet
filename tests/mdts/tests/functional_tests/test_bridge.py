@@ -277,6 +277,11 @@ def test_flow_invalidation_on_mac_update():
     f3 = sender.ping4(receiver, do_arp=True)
     wait_on_futures([f1, f2, f3])
 
+    # Have the receiver ARP now for the sender before we migrate the mac,
+    # because the kernel stack might decide to do so later at a bad time.
+    f1 = receiver.ping4(sender)
+    wait_on_futures([f1])
+
     # Second: intruder claims to be receiver
     receiver_MAC = receiver.get_mac_addr()
     frame = '%s-%s-aa:bb' % (receiver_MAC, receiver_MAC)
