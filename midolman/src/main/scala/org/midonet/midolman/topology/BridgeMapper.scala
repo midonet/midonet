@@ -195,9 +195,9 @@ object BridgeMapper {
             }
         }
 
-        /** Adds a mapping if does not exist, and increases its reference count */
+        /** Adds a mapping if it does not exist, and increases its reference count */
         def incrementRefCount(mapping: MacPortMapping): Unit = {
-            if (map.putIfAbsentAndRef(mapping, mapping) eq null) {
+            if (map.putIfAbsentAndRef(mapping, mapping) == 1) {
                 doOnMap(mapping.vlanId, _.add(mapping.mac, mapping.portId))
             }
         }
