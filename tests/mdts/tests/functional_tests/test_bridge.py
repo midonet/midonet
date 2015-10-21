@@ -263,10 +263,15 @@ def test_flow_invalidation_on_mac_update():
     send traffic only to that port.
     """
 
-    # First: packets go from sender to receiver
     sender = BM.get_iface_for_port('bridge-000-001', 1)
     receiver = BM.get_iface_for_port('bridge-000-001', 2)
     intruder = BM.get_iface_for_port('bridge-000-001', 3)
+
+    # Populate ARP table
+    sender.execute('arp -s %s %s' % (receiver.get_ip(), receiver.get_mac_addr()))
+    receiver.execute('arp -s %s %s' % (sender.get_ip(), sender.get_mac_addr()))
+
+    # First: packets go from sender to receiver
 
     f1 = async_assert_that(receiver,
                            receives('icmp', within_sec(5)))
@@ -274,7 +279,7 @@ def test_flow_invalidation_on_mac_update():
     f2 = async_assert_that(intruder,
                            should_NOT_receive('icmp', within_sec(5)))
 
-    f3 = sender.ping4(receiver, do_arp=True)
+    f3 = sender.ping4(receiver)
     wait_on_futures([f1, f2, f3])
 
     # Second: intruder claims to be receiver
@@ -288,9 +293,7 @@ def test_flow_invalidation_on_mac_update():
 
     f2 = async_assert_that(intruder,
                            receives('icmp', within_sec(5)))
-    # Do NOT send ARP request: broadcasting it makes receiver to
-    # generate ARP reply and updates MAC learning table
-    f3 = sender.ping4(receiver, do_arp=False)
+    f3 = sender.ping4(receiver)
     wait_on_futures([f1, f2, f3])
 
 
