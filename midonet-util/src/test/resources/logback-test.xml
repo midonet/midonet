@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Midokura SARL
+  ~ Copyright 2015 Midokura SARL
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,24 +24,12 @@
     </appender>
 
     <appender name="LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>build/midolman.log</file>
+        <file>build/midonet.log</file>
         <append>true</append>
         <encoder>
             <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
         </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <fileNamePattern>${midolman.log.dir}midolman.%d{yyyy-MM-dd}.log</fileNamePattern>
-                <maxHistory>7</maxHistory>
-        </rollingPolicy>
-
     </appender>
-
-    <!-- Fine grained settings for specific classes -->
-    <!-- Third party libraries -->
-    <logger name="org.apache.zookeeper" level="INFO" />
-    <logger name="org.apache.cassandra" level="INFO" />
-    <logger name="me.prettyprint.cassandra" level="INFO" />
-    <logger name="org.eclipse.jetty" level="INFO" />
 
     <!-- Adjust this level to set the logging used for all packets processed -->
     <logger name="org.midonet.packets.default.packet-processor" level="TRACE" />
@@ -88,10 +76,12 @@
     <!-- <logger name="org.midonet.io.select-loop" level="DEBUG" /> -->
     <!-- <logger name="org.midonet.io.htb" level="DEBUG" /> -->
 
-
-    <logger name="org.midonet.event" level="INFO">
-         <appender-ref ref="STDOUT"/>
-    </logger>
+    <!-- Fine grained settings for specific classes -->
+    <!-- Third party libraries -->
+    <logger name="org.apache.zookeeper" level="INFO" />
+    <logger name="org.apache.cassandra" level="INFO" />
+    <logger name="me.prettyprint.cassandra" level="INFO" />
+    <logger name="org.eclipse.jetty" level="INFO" />
 
     <root level="DEBUG">
         <appender-ref ref="LOG-FILE" />
