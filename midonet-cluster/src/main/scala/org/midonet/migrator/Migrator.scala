@@ -30,6 +30,7 @@ import javax.ws.rs.core._
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.io.StdIn
 import scala.util.control.NonFatal
 
 import com.google.inject.name.Names
@@ -38,6 +39,7 @@ import com.google.inject.{AbstractModule, Guice, Key}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 
+import org.apache.commons.lang3.StringUtils
 import org.eclipse.jetty.server.Request
 import org.rogach.scallop.ScallopConf
 import org.slf4j.LoggerFactory
@@ -60,7 +62,7 @@ import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
 import org.midonet.midolman.cluster.zookeeper.{DirectoryProvider, ZkConnectionProvider}
 import org.midonet.midolman.state.{Directory, ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Subnet}
+import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet, IPv6Subnet}
 import org.midonet.util.eventloop.Reactor
 
 object Migrator extends App {
@@ -261,9 +263,9 @@ object Migrator extends App {
             migrateHealthMonitors()
             migratePools()
             migrateVips()
+            migrateBgp()
 
             // TODO: Migrate tunnel zone memberships.
-            // TODO: Migrate BGP.
             // TODO: Initialize tunnel key sequence generator.
 
             log.info("Finished migrating topology data.")
@@ -585,6 +587,99 @@ object Migrator extends App {
         }
     }
 
+    /** Migrates BGP. Prerequisites: Routers. */
+    private def migrateBgp(): Unit = {
+        for (r <- legacyImporter.listRouters) {
+            migrateBgpRouter(r.id)
+        }
+    }
+
+    private def migrateBgpRouter(routerId: UUID): Unit = {
+        // Step 1: Check if the router has BGP entries, otherwise ignore.
+        val bgps = legacyImporter.listBgps(routerId)
+        if (bgps.isEmpty) {
+            return
+        }
+
+        // Step 2: Determine whether an upgrade is possible for this router:
+        // this is true when all BGP entries have the same local AS number
+        // and the set of advertised routes for each BGP entry is the same.
+        val localAs = bgps.head.localAs
+        if (!bgps.forall(_.localAs == localAs)) {
+            println(s"WARNING: BGP data for router $routerId cannot be " +
+                    s"migrated automatically because there are at least two " +
+                    s"BGP entries with different local AS numbers. MidoNet " +
+                    s"v5 supports a single AS number per router.\n")
+            return
+        }
+
+        var bgpNetworks =
+            legacyImporter.listAdRoutes(bgps.head.id).map(_.subnet).toSet
+        for (bgp <- bgps) {
+            val routes = legacyImporter.listAdRoutes(bgp.id)
+            val networks = routes.map(_.subnet).toSet
+            if (bgpNetworks != networks) {
+                println(s"WARNING: BGP-enabled port ${bgp.portId} for router " +
+                        s"$routerId has advertised routes that are different " +
+                        s"from the routes advertised for the previous ports " +
+                        s"of the same router. MidoNet v5 supports a single " +
+                        s"set of routes per router, which are advertised to " +
+                        s"all BGP peers of that router.\n")
+                println(s"Previous routes for router $routerId:")
+                printNetworks(bgpNetworks)
+                println(s"New routes for port ${bgp.portId}:")
+                printNetworks(networks)
+                println(
+                    s"""Choose option to continue:
+                      |[1] Skip migrating BGP for router $routerId
+                      |[2] Skip advertised BGP routes for port ${bgp.portId}
+                      |[3] Include advertised BGP routes for port ${bgp.portId}
+                    """.stripMargin)
+                readOptionKey(Set('1', '2', '3')) match {
+                    case '1' => return
+                    case '2' => // continue
+                    case '3' => bgpNetworks = bgpNetworks ++ networks
+                }
+            }
+        }
+
+        // Step 3: Upgrade path is possible for current router: set the local
+        // AS number.
+        val router = resources.routers.get(routerId.toString,
+                                           APPLICATION_ROUTER_JSON_V3)
+        router.asNumber = localAs
+        resources.routers.update(routerId.toString,
+                                 router, APPLICATION_ROUTER_JSON_V3)
+
+        // Step 4: Create the BGP peers.
+        for (bgp <- bgps) {
+            val bgpPeer = new BgpPeer
+            bgpPeer.id = bgp.id
+            bgpPeer.asNumber = bgp.peerAs
+            bgpPeer.address = bgp.peerAddress.toString
+            resources.routers.bgpPeers(routerId)
+                             .create(bgpPeer, APPLICATION_BGP_PEER_JSON)
+        }
+
+        // Step 5: Create the BGP networks.
+        for (network <- bgpNetworks) {
+            val bgpNetwork = new BgpNetwork
+            bgpNetwork.subnetAddress = network.getAddress.toString
+            bgpNetwork.subnetPrefix = network.getPrefixLen.toByte
+            resources.routers.bgpNetworks(routerId)
+                             .create(bgpNetwork, APPLICATION_BGP_NETWORK_JSON)
+        }
+    }
+
+    private def printNetworks(networks: Set[IPSubnet[_]]): Unit = {
+        val width = networks.map(_.toString.length).max
+        println(s"+${StringUtils.repeat('-', width)}+")
+        for (network <- networks) {
+            println(s"|${StringUtils.rightPad(network.toString, width)}|")
+        }
+        println(s"+${StringUtils.repeat('-', width)}+")
+    }
+
     private def getWebAppExErrorMsg(ex: WebApplicationException): String = {
         if (ex.getMessage != null) return ex.getMessage
 
@@ -613,6 +708,17 @@ object Migrator extends App {
         case e =>
             log.error("Unexpected response entity: " + e)
             System.err.println("Internal error. See log for details.")
+    }
+
+    private def readOptionKey(options: Set[Char]): Char = {
+        do {
+            val ch = StdIn.readChar()
+            if (options.contains(ch)) {
+                return ch
+            }
+            println("Option not available, try again.")
+        } while (true)
+        0
     }
 }
 

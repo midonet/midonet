@@ -69,7 +69,6 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
 
     private def setActive(port: P): Unit = {
         port.active = isActive(port)
-        port
     }
 
     private def setBgpStatus(port: P): Unit = {
