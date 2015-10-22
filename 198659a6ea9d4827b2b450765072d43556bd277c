@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_f29ed755",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/DataClient.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-22T11:28:38Z",
+      "side": 0,
+      "message": "I need some of these method for BGP migration.",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 64
+      },
+      "revId": "198659a6ea9d4827b2b450765072d43556bd277c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
