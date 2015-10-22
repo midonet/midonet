@@ -100,8 +100,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     ByteOrder originalOrder = buffer.order();
                     try {
                         eth = new Ethernet();
-                        eth.deserialize(buffer);
                         packetLen = buffer.remaining();
+                        eth.deserialize(buffer);
                     } catch (Exception e) {
                         log.warn("Dropping malformed packet", e);
                         this.eth = null;
