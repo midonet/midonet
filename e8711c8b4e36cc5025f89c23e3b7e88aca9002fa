@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_6b1ad26f",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 3
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-22T19:53:20Z",
+      "side": 1,
+      "message": "should this be /usr/share/midonet-cluster/midonet-cluster-env.sh as per line 123?",
+      "revId": "e8711c8b4e36cc5025f89c23e3b7e88aca9002fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
