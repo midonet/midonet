@@ -84,12 +84,12 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public PortZkManager(ZkManager zk, PathBuilder paths,
                          Serializer serializer) {
         super(zk, paths, serializer);
     }
 
-    @Inject
     public PortZkManager(Directory zk, String basePath, Serializer serializer) {
         this(new ZkManager(zk, basePath), new PathBuilder(basePath), serializer);
     }
