@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_ab9a2a12",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-22T23:02:21Z",
+      "side": 1,
+      "message": "not worth it just for \"buildChange\" just fallback to L84",
+      "range": {
+        "startLine": 75,
+        "startChar": 6,
+        "endLine": 79,
+        "endChar": 12
+      },
+      "revId": "8b4a958eea29097ce260f997838650117dd07106",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
