@@ -165,7 +165,7 @@ object MidoNodeConfigurator {
             defaultZkRootKey
         } else {
             cfg.getString("zookeeper.root_key") match {
-                case "/midonet/v1" if lib.isatty(STD_OUT_FD) == 1 =>
+                case "/midonet/v1" if lib.isatty(STDOUT_FILENO) == 1 =>
                     /* Interactive mode */
                     System.err.println("WARNING:\n" +
                         "A configuration was read that contains a\n" +
