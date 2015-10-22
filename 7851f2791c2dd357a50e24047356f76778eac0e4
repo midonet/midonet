@@ -16,6 +16,24 @@
       "revId": "7851f2791c2dd357a50e24047356f76778eac0e4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_5eddcf13",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-22T07:57:51Z",
+      "side": 1,
+      "message": "I agree with you too, previously I removed the interface check from v1 and left only the hostname. However, Guillermo suggested to include the interface check if a current ephemeral node for them is present.\n\nShall we use only the hostname then? Btw, the changes here don\u0027t prevent now 2 agents running on the same compute. Are there other mechanisms to prevent this?",
+      "parentUuid": "9ab29df4_3873d34e",
+      "revId": "7851f2791c2dd357a50e24047356f76778eac0e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
