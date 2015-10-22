@@ -45,6 +45,75 @@
       "revId": "395de4d5dfd9a2195da472d58d53203567610a39",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_5e4a2f84",
+        "filename": "tests/mdts/tests/functional_tests/test_vxlangw.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-22T09:25:24Z",
+      "side": 1,
+      "message": "I forgot these here and they may allow the second host to be selected as FP. Can you remove them?",
+      "range": {
+        "startLine": 280,
+        "startChar": 4,
+        "endLine": 280,
+        "endChar": 34
+      },
+      "revId": "395de4d5dfd9a2195da472d58d53203567610a39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_7e4ff392",
+        "filename": "tests/mdts/tests/functional_tests/test_vxlangw.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-22T09:25:24Z",
+      "side": 1,
+      "message": "And here",
+      "range": {
+        "startLine": 295,
+        "startChar": 4,
+        "endLine": 295,
+        "endChar": 34
+      },
+      "revId": "395de4d5dfd9a2195da472d58d53203567610a39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_9e44c775",
+        "filename": "tests/mdts/tests/functional_tests/test_vxlangw.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-22T09:25:24Z",
+      "side": 1,
+      "message": "And here",
+      "range": {
+        "startLine": 311,
+        "startChar": 3,
+        "endLine": 311,
+        "endChar": 34
+      },
+      "revId": "395de4d5dfd9a2195da472d58d53203567610a39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
