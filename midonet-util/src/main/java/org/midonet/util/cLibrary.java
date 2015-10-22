@@ -106,7 +106,7 @@ public interface cLibrary extends Library {
     public static final int MCL_CURRENT = 1;
     public static final int MCL_FUTURE = 2;
 
-    public static final int STD_OUT_FD = 1;
+    public static final int STDOUT_FILENO = 1;
 
     int mlockall(int flags) throws LastErrorException;
 
