@@ -32,6 +32,7 @@ import com.google.inject.Inject
 import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.restApiNeutronLog
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, PersistenceOp, _}
@@ -54,7 +55,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi
             with FirewallApi {
 
-    private val log = LoggerFactory.getLogger("org.midonet.rest_api.neutron")
+    private val log = LoggerFactory.getLogger(restApiNeutronLog)
 
     private implicit val ec = fromExecutor(MoreExecutors.directExecutor())
 

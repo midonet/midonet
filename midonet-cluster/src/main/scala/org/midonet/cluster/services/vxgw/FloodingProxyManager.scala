@@ -32,6 +32,7 @@ import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer, Subscription}
 
+import org.midonet.cluster.vxgwLog
 import org.midonet.cluster.data.storage.{NotFoundException, StateKey}
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend

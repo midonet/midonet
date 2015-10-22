@@ -35,6 +35,7 @@ import org.midonet.cluster.auth.KeystoneAccess;
 import org.midonet.cluster.auth.KeystoneAuthCredentials;
 import org.midonet.cluster.auth.KeystoneTenant;
 import org.midonet.cluster.auth.KeystoneTenantList;
+import org.midonet.cluster.package$;
 
 /**
  * Keystone Client V2.0
@@ -42,7 +43,7 @@ import org.midonet.cluster.auth.KeystoneTenantList;
 public class KeystoneClient {
 
     private final static Logger log = LoggerFactory
-            .getLogger(KeystoneClient.class);
+            .getLogger(package$.MODULE$.keystoneLog());
 
     private final KeystoneConfig config;
 

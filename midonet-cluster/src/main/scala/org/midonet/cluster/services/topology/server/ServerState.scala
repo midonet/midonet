@@ -22,12 +22,13 @@ import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 import rx.{Observer, Subscription}
 
-import org.midonet.cluster.services.topology.server.ServerState.SessionInfo
+import org.midonet.cluster.topologyApiServerProtocolFactoryLog
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rpc.Commands._
 import org.midonet.cluster.services.topology.common.{ProtocolFactory, Interruption}
 import org.midonet.cluster.services.topology.common.ProtocolFactory.State
 import org.midonet.cluster.services.topology.common.TopologyMappings.klassOf
+import org.midonet.cluster.services.topology.server.ServerState.SessionInfo
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.util.functors.makeAction0
 
@@ -171,7 +172,7 @@ final case class Closed(s: SessionInfo) extends State {
  */
 class ServerProtocolFactory(private val sMgr: SessionInventory)
     extends ProtocolFactory {
-    private val log = LoggerFactory.getLogger(classOf[ServerProtocolFactory])
+    private val log = LoggerFactory.getLogger(topologyApiServerProtocolFactoryLog)
 
     /**
      * Return the initial state and the future subscription to the client's

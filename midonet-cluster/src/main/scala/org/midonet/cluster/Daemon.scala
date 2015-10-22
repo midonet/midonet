@@ -38,7 +38,7 @@ final protected class Daemon(val nodeId: UUID,
                              val minionDefs: List[MinionDef[_ <: Minion]])
     extends AbstractService {
 
-    private val log = LoggerFactory.getLogger("org.midonet.cluster")
+    private val log = LoggerFactory.getLogger(clusterLog)
 
     private implicit val executionCtx = ExecutionContext.global
 

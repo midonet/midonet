@@ -19,7 +19,7 @@ package org.midonet.cluster.services.rest_api.resources
 import java.lang.annotation.Annotation
 import java.net.URI
 import java.util.concurrent.Executors.newCachedThreadPool
-import java.util.{List => JList, Set => JSet, UUID, ConcurrentModificationException}
+import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
 
 import javax.validation.{ConstraintViolation, Validator}
 import javax.ws.rs._
@@ -33,13 +33,14 @@ import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import com.google.inject.Inject
-import com.google.protobuf.{TextFormat, Message}
+import com.google.protobuf.Message
 import com.lmax.disruptor.util.DaemonThreadFactory
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
 
+import org.midonet.cluster.{restApiLog, restApiResourceLog}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
@@ -50,14 +51,13 @@ import org.midonet.cluster.rest_api.models.UriResource
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser
-import org.midonet.midolman.state._
-import org.midonet.cluster.util.logging.ProtoTextPrettifier
 import org.midonet.cluster.util.logging.ProtoTextPrettifier.makeReadable
+import org.midonet.midolman.state._
 import org.midonet.util.reactivex._
 
 object MidonetResource {
 
-    private final val log = getLogger("org.midonet.cluster.rest_api")
+    private final val log = getLogger(restApiLog)
     private final val StorageAttempts = 3
 
     type Ids = Future[Seq[Any]]
@@ -185,7 +185,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         ExecutionContext.fromExecutor(
             newCachedThreadPool(DaemonThreadFactory.INSTANCE))
     protected final implicit val log =
-        Logger(LoggerFactory.getLogger(getClass))
+        Logger(LoggerFactory.getLogger(restApiResourceLog(getClass)))
 
     private val validator = resContext.validator
     protected val backend = resContext.backend
@@ -197,7 +197,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
             @HeaderParam("Accept") accept: String): T = {
         val produces = getAnnotation(classOf[AllowGet])
         if ((produces eq null) || !produces.value().contains(accept)) {
-            log.info(s"Media type {} not acceptable", accept)
+            log.info("Media type {} not acceptable", accept)
             throw new WebApplicationException(Status.NOT_ACCEPTABLE)
         }
         getResource(tag.runtimeClass.asInstanceOf[Class[T]], id)
@@ -209,7 +209,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     def list(@HeaderParam("Accept") accept: String): JList[T] = {
         val produces = getAnnotation(classOf[AllowList])
         if ((produces eq null) || !produces.value().contains(accept)) {
-            log.info(s"Media type {} not acceptable", accept)
+            log.info("Media type {} not acceptable", accept)
             throw new WebApplicationException(Status.NOT_ACCEPTABLE)
         }
         val list = listIds flatMap { ids =>
@@ -230,7 +230,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     : Response = {
         val consumes = getAnnotation(classOf[AllowCreate])
         if ((consumes eq null) || !consumes.value().contains(contentType)) {
-            log.info(s"Media type {} not supported", contentType)
+            log.info("Media type {} not supported", contentType)
             throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
         }
 
@@ -250,7 +250,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
                @HeaderParam("Content-Type") contentType: String): Response = {
         val consumes = getAnnotation(classOf[AllowUpdate])
         if ((consumes eq null) || !consumes.value().contains(contentType)) {
-            log.info(s"Media type {} not supported", contentType)
+            log.info("Media type {} not supported", contentType)
             throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
         }
 

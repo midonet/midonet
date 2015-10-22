@@ -28,6 +28,7 @@ import rx.Observable
 import rx.observables.ConnectableObservable
 import rx.subjects.{PublishSubject, Subject}
 
+import org.midonet.cluster.topologyApiAggregatorLog
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /**
@@ -46,7 +47,7 @@ import org.midonet.util.functors.{makeAction0, makeFunc1}
  * @tparam TYPE is the type of the elements emitted by the observables
  */
 class Aggregator[KEY,TYPE] {
-    private val log = LoggerFactory.getLogger(classOf[Aggregator[KEY, TYPE]])
+    private val log = LoggerFactory.getLogger(topologyApiAggregatorLog)
 
     /* The collector channel where all observables appear */
     private val collector: Subject[Observable[TYPE], Observable[TYPE]] =
