@@ -22,12 +22,12 @@ import java.util.List;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.util.concurrent.AbstractService;
+import com.google.common.util.concurrent.Service;
 import com.google.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.state.PeerResolver;
 
 /**
@@ -54,7 +54,7 @@ public class MidolmanService extends AbstractService {
     MetricRegistry metrics;
 
     @Inject(optional = true)
-    HostService hostService;
+    HostIdProviderService hostService;
 
     @Inject
     PeerResolver resolver;
@@ -63,7 +63,7 @@ public class MidolmanService extends AbstractService {
 
     @Override
     protected void doStart() {
-        for (AbstractService service : services()) {
+        for (Service service : services()) {
             log.info("Starting service: {}", service);
             try {
                 service.startAsync().awaitRunning();
@@ -108,10 +108,10 @@ public class MidolmanService extends AbstractService {
             notifyFailed(e);
         }
 
-        List<AbstractService> services = services();
+        List<Service> services = services();
         Collections.reverse(services);
         log.info("Stopping services");
-        for (AbstractService service : services) {
+        for (Service service : services) {
             boolean running = service.state() == State.RUNNING;
             try {
                 if (running) {
@@ -129,8 +129,8 @@ public class MidolmanService extends AbstractService {
             notifyStopped();
     }
 
-    private List<AbstractService> services() {
-        ArrayList<AbstractService> services = new ArrayList<>(6);
+    private List<Service> services() {
+        ArrayList<Service> services = new ArrayList<>(6);
         services.add(datapathConnectionService);
         services.add(selectLoopService);
         if (hostService != null)

@@ -16,29 +16,23 @@
 
 package org.midonet.midolman
 
-import java.util.UUID
+import org.midonet.midolman.config.MidolmanConfig
 
 import scala.collection.JavaConversions._
 
-import com.google.inject.{AbstractModule, Guice, Injector, PrivateModule}
+import com.google.inject.{AbstractModule, Guice, Injector}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
-import org.midonet.midolman.cluster.datapath.MockDatapathModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
-import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.cluster.{LegacyClusterModule, MetricsModule, MidolmanActorsModule, ResourceProtectionModule}
-import org.midonet.midolman.guice.config.MidolmanConfigModule
-import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
+import org.midonet.midolman.cluster.LegacyClusterModule
+import org.midonet.midolman.services.MidolmanService
 import org.midonet.midolman.util._
-import org.midonet.midolman.util.guice.MockMidolmanModule
-import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
-import org.midonet.util.concurrent.NanoClock
+import org.midonet.midolman.util.mock.MockMidolmanActors
 
 trait MidolmanBenchmark extends MockMidolmanActors
                         with MidolmanServices
@@ -74,40 +68,12 @@ trait MidolmanBenchmark extends MockMidolmanActors
 
     protected def getModules = {
         val conf = MidoTestConfigurator.forAgents(fillConfig())
+        val midolmanConf = new MidolmanConfig(conf, ConfigFactory.empty())
         List(
             new SerializationModule(),
-            new MidolmanConfigModule(conf),
-            new MetricsModule(),
-            new MockDatapathModule(),
-            new MockFlowStateStorageModule(),
             new MidonetBackendTestModule(conf),
             new MockZookeeperConnectionModule(),
-            new AbstractModule {
-                def configure() {
-                    bind(classOf[HostIdProviderService])
-                            .toInstance(new HostIdProviderService() {
-                        val hostId = UUID.randomUUID()
-                        def getHostId: UUID = hostId
-                    })
-                }
-            },
-            new MockMidolmanModule(),
-            new MidolmanActorsModule {
-                override def configure() {
-                    bind(classOf[MidolmanActorsService])
-                            .toInstance(actorsService)
-                    expose(classOf[MidolmanActorsService])
-                    bind(classOf[NanoClock]).toInstance(clock)
-                }
-            },
-            new ResourceProtectionModule(),
-            new PrivateModule {
-                override def configure() {
-                    bind(classOf[InterfaceScanner])
-                            .to(classOf[MockInterfaceScanner]).asEagerSingleton()
-                    expose(classOf[InterfaceScanner])
-                }
-            },
+            new MockMidolmanModule(midolmanConf, actorsService),
             new LegacyClusterModule(),
             new AbstractModule {
                 override def configure() {
