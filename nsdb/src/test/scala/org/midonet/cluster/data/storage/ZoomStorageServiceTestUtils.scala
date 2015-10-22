@@ -15,13 +15,11 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.util.{List => JList}
-
 import scala.concurrent.Future
 
-import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
 import org.scalatest.Suite
+
 import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
@@ -53,10 +51,10 @@ trait ZoomStorageTester extends StorageTester
     val bindings = Array(
             new ZoomBinding(
                     classOf[Network], "inbound_filter_id", DeleteAction.CLEAR,
-                    classOf[Chain], "network_ids", DeleteAction.CLEAR),
+                    classOf[Chain], "network_inbound_ids", DeleteAction.CLEAR),
             new ZoomBinding(
                     classOf[Network], "outbound_filter_id", DeleteAction.CLEAR,
-                    classOf[Chain], "network_ids", DeleteAction.CLEAR),
+                    classOf[Chain], "network_outbound_ids", DeleteAction.CLEAR),
             new ZoomBinding(
                     classOf[Router], "port_ids", DeleteAction.CASCADE,
                     classOf[Port], "router_id", DeleteAction.CLEAR),
@@ -64,8 +62,8 @@ trait ZoomStorageTester extends StorageTester
                     classOf[Network], "port_ids", DeleteAction.CASCADE,
                     classOf[Port], "network_id", DeleteAction.CLEAR),
             new ZoomBinding(
-                    classOf[Port], "peer_uuid", DeleteAction.CLEAR,
-                    classOf[Port], "peer_uuid", DeleteAction.CLEAR),
+                    classOf[Port], "peer_id", DeleteAction.CLEAR,
+                    classOf[Port], "peer_id", DeleteAction.CLEAR),
             new ZoomBinding(
                     classOf[Chain], "rule_ids", DeleteAction.CASCADE,
                     classOf[Rule], "chain_id", DeleteAction.CLEAR)
@@ -165,8 +163,7 @@ trait ZoomStorageTester extends StorageTester
                     // Node may not exist yet.
             }
 
-            val ensurePath = new EnsurePath(zoom.classPath(device))
-            ensurePath.ensure(curator.getZookeeperClient)
+            curator.createContainers(zoom.classPath(device))
         }
     }
 
