@@ -34,7 +34,7 @@ import scala.util.control.NonFatal
 
 import com.google.inject.name.Names
 import com.google.inject.servlet.{ServletModule, ServletScopes}
-import com.google.inject.{AbstractModule, Guice, Key}
+import com.google.inject.{AbstractModule, Guice, Injector, Key}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 
@@ -42,7 +42,6 @@ import org.eclipse.jetty.server.Request
 import org.rogach.scallop.ScallopConf
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.{LocalDataClientImpl, DataClient}
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.{ObjectExistsException, StateTableStorage}
@@ -55,11 +54,12 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.ResourceProvider
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.storage.{LegacyStateTableStorage, MidonetBackendConfig, MidonetBackendModule}
+import org.midonet.cluster.{DataClient, LocalDataClientImpl}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
 import org.midonet.midolman.cluster.zookeeper.{DirectoryProvider, ZkConnectionProvider}
-import org.midonet.midolman.state.{Directory, ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
+import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Subnet}
 import org.midonet.util.eventloop.Reactor
 
@@ -69,93 +69,58 @@ object Migrator extends App {
 
     log.info("Starting Midonet data migration tool.")
 
-    private val config = loadConfig(args)
+    private val opts = new ScallopConf(args) {
+        banner("Upgrades Midonet 1.9.x topology to Midonet 5.0 topology.")
 
-    // Settings for services depending on the DataClient (1.X) storage module
-    private val dataClientDependencies = new AbstractModule {
-        override def configure(): Unit = {
-            bind(classOf[ZkConnection])
-                .toProvider(classOf[ZkConnectionProvider])
-                .asEagerSingleton()
-            bind(classOf[Directory])
-                .toProvider(classOf[DirectoryProvider])
-                .asEagerSingleton()
-            bind(classOf[Reactor]).annotatedWith(
-                Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
-                .toProvider(classOf[ZookeeperReactorProvider])
-                .asEagerSingleton()
-            bind(classOf[ZkConnectionAwareWatcher])
-                .to(classOf[ZookeeperConnectionWatcher])
-                .asEagerSingleton()
-
-            install(new SerializationModule)
-            install(new LegacyClusterModule)
-        }
+        val zkHost = opt[String](
+            "zk-host", 'z', "Zookeeper IP address and port",
+            default = Some("127.0.0.1:2181"))
+        val timeout = opt[Int](
+            "zk-timeout", 't', "Zookeeper connection timeout in seconds",
+            default = Some(30))
+        val legacyZkRoot = opt[String](
+            "legacy-zk-root", 'l',
+            "Root Zookeeper path for old (v1.9.x) topology",
+            default = Some("/midonet/v1"))
+        val zkRoot = opt[String](
+            "zk-root", 'r', "Root Zookeeper path for new (v5.0) topology",
+            default = Some("/midonet"))
+        val maxRetries = opt[Int](
+            "max-retries", 'm',
+            "Max number of retries for zookeeper operations",
+            default = Some(10), noshort = true)
+        val baseRetryTime = opt[Int](
+            "base-retry-time", 'b',
+            "Base retry time in seconds (increases exponentially)",
+            default = Some(1))
+        val bufferSize = opt[Int](
+            "buffer-size", 'B', "Zookeeper buffer size in kilobytes",
+            default = Some(4096))
+        val suppressExistsWarning = opt[Boolean](
+            "suppress-exists-warning", 'e',
+            "Suppress warning when attempting to migrate an object that " +
+            "already exists in the new topology store. Consider specifying " +
+            "this option when reattempting a partially successful migration.",
+            default = Some(false))
     }
 
-    private val newApiModule = new AbstractModule {
-        override def configure(): Unit = {
-            bind(classOf[AuthService])
-                .toInstance(new MockAuthService(ConfigFactory.defaultReference()))
-            bind(classOf[DataClient])
-                .to(classOf[LocalDataClientImpl]).asEagerSingleton()
-            bind(classOf[ResourceProvider])
-                .toInstance(new ResourceProvider(log))
-            bind(classOf[StateTableStorage])
-                .to(classOf[LegacyStateTableStorage]).asEagerSingleton()
-            bind(classOf[UriInfo]).toInstance(MockUriInfo)
-            bind(classOf[Validator])
-                .toProvider(classOf[ValidatorProvider])
-                .asEagerSingleton()
+    private val legacyInjector = makeInjector(legacy = true)
+    private val v5Injector = makeInjector(legacy = false)
 
-            install(new ServletModule)
-            install(new MidonetBackendModule(config))
-        }
-    }
+    private val legacyImporter =
+        legacyInjector.getInstance(classOf[LegacyImporter])
 
-    protected[migrator] val injector = Guice.createInjector(
-        newApiModule, dataClientDependencies)
-
-    private val legacyImporter = injector.getInstance(classOf[LegacyImporter])
-
-    private val backend = injector.getInstance(classOf[MidonetBackend])
+    private val backend = v5Injector.getInstance(classOf[MidonetBackend])
     backend.startAsync().awaitRunning()
 
-    private val resources = loadV2Resources()
+    private val resources = loadV5Resources()
 
     migrateData()
 
     System.exit(0)
 
-    private def loadConfig(args: Array[String]): MidonetBackendConfig = {
-
-        val opts = new ScallopConf(args) {
-            banner("Upgrades Midonet 1.9.x topology to 5.0 topology.")
-
-            // TODO: Different root path for v1 vs. v5
-
-            val zkHost = opt[String](
-                "zk-host", 'z', "Zookeeper IP address and port",
-                default = Some("127.0.0.1:2181"))
-            val timeout = opt[Int](
-                "zk-timeout", 't', "Zookeeper connection timeout in seconds",
-                default = Some(30))
-            val zkRoot = opt[String](
-                "zk-root", 'r', "Root Zookeeper path",
-                default = Some("/midonet/v1"))
-            val maxRetries = opt[Int](
-                "max-retries", 'm',
-                "Max number of retries for zookeeper operations",
-                default = Some(10), noshort = true)
-            val baseRetryTime = opt[Int](
-                "base-retry-time", 'b',
-                "Base retry time in seconds (increases exponentially)",
-                default = Some(1))
-            val bufferSize = opt[Int](
-                "buffer-size", 'B', "Zookeeper buffer size in kilobytes",
-                default = Some(4096))
-        }
-
+    private def makeConfig(legacy: Boolean): MidonetBackendConfig = {
+        val zkRoot = if (legacy) opts.legacyZkRoot() else opts.zkRoot()
         val conf = ConfigFactory.parseString(
             s"""
               |zookeeper {
@@ -166,7 +131,7 @@ object Migrator extends App {
               |    session_timeout_type: "duration"
               |    session_gracetime = ${opts.timeout()}s
               |    session_gracetime_type: "duration"
-              |    root_key = "${opts.zkRoot()}"
+              |    root_key = "$zkRoot"
               |    max_retries = ${opts.maxRetries()}
               |    base_retry = ${opts.baseRetryTime()}s
               |    base_retry_type = "duration"
@@ -175,6 +140,60 @@ object Migrator extends App {
             """.stripMargin)
 
         new MidonetBackendConfig(conf)
+    }
+
+    private def makeInjector(legacy: Boolean): Injector = {
+        val module = new AbstractModule {
+            override def configure(): Unit = {
+                bind(classOf[AuthService])
+                    .toInstance(new MockAuthService(ConfigFactory.defaultReference()))
+                bind(classOf[DataClient])
+                    .to(classOf[LocalDataClientImpl]).asEagerSingleton()
+                bind(classOf[Directory])
+                    .toProvider(classOf[DirectoryProvider])
+                    .asEagerSingleton()
+                bind(classOf[Reactor]).annotatedWith(
+                    Names.named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG))
+                    .toProvider(classOf[ZookeeperReactorProvider])
+                    .asEagerSingleton()
+                bind(classOf[ResourceProvider])
+                    .toInstance(new ResourceProvider(log))
+                bind(classOf[StateTableStorage])
+                    .to(classOf[LegacyStateTableStorage]).asEagerSingleton()
+                bind(classOf[UriInfo]).toInstance(MockUriInfo)
+                bind(classOf[Validator])
+                    .toProvider(classOf[ValidatorProvider])
+                    .asEagerSingleton()
+                bind(classOf[ZkConnection])
+                    .toProvider(classOf[ZkConnectionProvider])
+                    .asEagerSingleton()
+                bind(classOf[ZkConnectionAwareWatcher])
+                    .to(classOf[ZookeeperConnectionWatcher])
+                    .asEagerSingleton()
+
+                install(new LegacyClusterModule)
+                install(new MidonetBackendModule(makeConfig(legacy)))
+                install(new SerializationModule)
+
+                if (!legacy) {
+                    install(new ServletModule)
+                }
+            }
+        }
+
+        val injector = Guice.createInjector(module)
+
+        if (legacy) {
+            // There's a hack in MidonetBackendConfig that overwrites the ZK
+            // root path to midonet if it's /midonet/v1, in order to avoid
+            // problems caused by old configuration files being left around.
+            // This is fine for Midonet, but breaks the LegacyImporter, which
+            // acutally does (in most cases) need to read from /midonet/v1.
+            injector.getInstance(classOf[PathBuilder])
+                .setBasePath(opts.legacyZkRoot())
+        }
+
+        injector
     }
 
     private object MockUriInfo extends UriInfo {
@@ -198,27 +217,27 @@ object Migrator extends App {
     }
 
     /**
-     * Load the V2 ApplicationResource. Needs to be scoped inside a request
+     * Load the V5 ApplicationResource. Needs to be scoped inside a request
      * because the TenantResource injects an HttpServletRequest
      */
-    private def loadV2Resources(): Resources = {
+    private def loadV5Resources(): Resources = {
         val seedMap = new util.HashMap[Key[_], Object]()
         seedMap.put(Key.get(classOf[HttpServletRequest]), new Request(null, null))
         ServletScopes.scopeRequest(
             new Callable[Resources] {
                 override def call(): Resources = new Resources(
-                    injector.getInstance(classOf[BridgeResource]),
-                    injector.getInstance(classOf[ChainResource]),
-                    injector.getInstance(classOf[HealthMonitorResource]),
-                    injector.getInstance(classOf[IpAddrGroupResource]),
-                    injector.getInstance(classOf[LoadBalancerResource]),
-                    injector.getInstance(classOf[PoolResource]),
-                    injector.getInstance(classOf[PortGroupResource]),
-                    injector.getInstance(classOf[RouterResource]),
-                    injector.getInstance(classOf[TraceRequestResource]),
-                    injector.getInstance(classOf[TunnelZoneResource]),
-                    injector.getInstance(classOf[VipResource]),
-                    injector.getInstance(classOf[VtepResource]))
+                    v5Injector.getInstance(classOf[BridgeResource]),
+                    v5Injector.getInstance(classOf[ChainResource]),
+                    v5Injector.getInstance(classOf[HealthMonitorResource]),
+                    v5Injector.getInstance(classOf[IpAddrGroupResource]),
+                    v5Injector.getInstance(classOf[LoadBalancerResource]),
+                    v5Injector.getInstance(classOf[PoolResource]),
+                    v5Injector.getInstance(classOf[PortGroupResource]),
+                    v5Injector.getInstance(classOf[RouterResource]),
+                    v5Injector.getInstance(classOf[TraceRequestResource]),
+                    v5Injector.getInstance(classOf[TunnelZoneResource]),
+                    v5Injector.getInstance(classOf[VipResource]),
+                    v5Injector.getInstance(classOf[VtepResource]))
             }, seedMap).call()
     }
 
@@ -603,9 +622,9 @@ object Migrator extends App {
         case null if r.getStatus == CREATED.getStatusCode => // Success
         case e: ErrorEntity if e.getCode == Status.CONFLICT.getStatusCode =>
             // Probably just an object that's already been migrated. A warning
-            // is sufficient.
-            // TODO: Provide command-line option to hide these?
-            println("Warning: " + e.getMessage)
+            // is sufficient. User may opt to suppress this.
+            if (!opts.suppressExistsWarning())
+                println("Warning: " + e.getMessage)
         case e: ErrorEntity =>
             // Error will already have been logged by API code, so no need to
             // log again.
