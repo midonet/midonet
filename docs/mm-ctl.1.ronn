@@ -70,4 +70,4 @@ To list hosts in the system
 
 ## COPYRIGHT
 
-mm-ctl is Copyright (C) 2013 Midokura PTE LTD.
+mm-ctl is Copyright (C) 2015 Midokura SARL.
