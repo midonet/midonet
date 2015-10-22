@@ -19,19 +19,26 @@ import java.util.UUID;
 
 import org.midonet.cluster.rest_api.models.TunnelZone;
 import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneType;
+import org.midonet.cluster.rest_api.models.TunnelZoneHost;
 
 public class TunnelZoneDataConverter {
 
     public static TunnelZone fromData(
         org.midonet.cluster.data.TunnelZone tunnelZoneData) {
 
-        org.midonet.cluster.rest_api.models.TunnelZone
-            tz = new org.midonet.cluster.rest_api.models.TunnelZone();
-
+        TunnelZone tz = new TunnelZone();
         tz.id = UUID.fromString(tunnelZoneData.getId().toString());
         tz.name = tunnelZoneData.getName();
         tz.type = TunnelZoneType.valueOf(tunnelZoneData.getType().toString());
         return tz;
     }
 
+    public static TunnelZoneHost fromData(
+        org.midonet.cluster.data.TunnelZone.HostConfig hostData) {
+
+        TunnelZoneHost h = new TunnelZoneHost();
+        h.hostId = hostData.getId();
+        h.ipAddress = hostData.getIp().toString();
+        return h;
+    }
 }
