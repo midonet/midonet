@@ -16,6 +16,24 @@
       "revId": "0b6d7cd7daaa1d07e34244d3db5380a61c979077",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_529303fa",
+        "filename": "midonet-util/src/main/java/org/midonet/util/cLibrary.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-22T13:00:48Z",
+      "side": 1,
+      "message": "I\u0027ll fix this in another patch if it\u0027s fine with you.",
+      "parentUuid": "9ab29df4_f2edf78c",
+      "revId": "0b6d7cd7daaa1d07e34244d3db5380a61c979077",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
