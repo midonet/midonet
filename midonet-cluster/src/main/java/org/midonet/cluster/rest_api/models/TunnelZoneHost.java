@@ -22,6 +22,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -55,4 +56,13 @@ public class TunnelZoneHost extends UriResource {
         this.tunnelZoneId = tunnelZoneId;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("tunnelZoneId", tunnelZoneId)
+            .add("hostId", hostId)
+            .add("ipAddress", ipAddress)
+            .toString();
+    }
 }
