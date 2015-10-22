@@ -16,6 +16,24 @@
       "revId": "e8711c8b4e36cc5025f89c23e3b7e88aca9002fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0b415639",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 3
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-22T20:23:38Z",
+      "side": 1,
+      "message": "Agree, packaging fails because the file is no longer copied to etc.",
+      "parentUuid": "9ab29df4_6b1ad26f",
+      "revId": "e8711c8b4e36cc5025f89c23e3b7e88aca9002fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
