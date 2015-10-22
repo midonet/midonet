@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_f2edf78c",
+        "filename": "midonet-util/src/main/java/org/midonet/util/cLibrary.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-22T12:53:24Z",
+      "side": 1,
+      "message": "These are the correct symbol names (from unistd.h):\n\n#define  STDIN_FILENO   0   /* standard input file descriptor */\n#define STDOUT_FILENO   1   /* standard output file descriptor */\n#define STDERR_FILENO   2   /* standard error file descriptor */\n\nThis works of course, but all around this file we are using the original symbol names.",
+      "revId": "0b6d7cd7daaa1d07e34244d3db5380a61c979077",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
