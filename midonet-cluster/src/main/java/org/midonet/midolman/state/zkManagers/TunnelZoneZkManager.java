@@ -15,7 +15,10 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import com.google.inject.Inject;
@@ -66,6 +69,21 @@ public class TunnelZoneZkManager
         }
 
         return new TunnelZone(zoneId, super.get(zoneId, watcher));
+    }
+    
+    public Set<UUID> getZoneMemberships(UUID zoneId, Directory.TypedWatcher watcher)
+        throws StateAccessException {
+
+        String path = paths.getTunnelZoneMembershipsPath(zoneId);
+        if (!zk.exists(path))
+            return Collections.emptySet();
+
+        Set<String> idStrs = zk.getChildren(path, watcher);
+        Set<UUID> ids = new HashSet<>(idStrs.size());
+        for (String idStr : idStrs) {
+            ids.add(UUID.fromString(idStr));
+        }
+        return ids;
     }
 
     public TunnelZone.HostConfig getZoneMembership(UUID zoneId, UUID hostId, Directory.TypedWatcher watcher)

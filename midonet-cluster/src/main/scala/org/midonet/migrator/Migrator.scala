@@ -278,7 +278,6 @@ object Migrator extends App {
             migratePools()
             migrateVips()
 
-            // TODO: Migrate tunnel zone memberships.
             // TODO: Migrate BGP.
             // TODO: Initialize tunnel key sequence generator.
 
@@ -452,7 +451,17 @@ object Migrator extends App {
     /** Migrates tunnel zones. Prerequisites: None. */
     private def migrateTunnelZones(): Unit = {
         for (tz <- legacyImporter.listTunnelZones) {
+            val hosts = mutable.Map[UUID, TunnelZoneHost]()
+            for (h <- legacyImporter.listTunnelZoneHosts(tz.id)) {
+                h.tunnelZoneId = tz.id
+                hosts(h.hostId) = h
+            }
+
+            tz.hostIds = hosts.keys.toList
+            tz.tzHosts = hosts.values.toList
+
             log.info("Migrating " + tz)
+
             val resp = resources.tunnelZones.create(
                 tz, APPLICATION_TUNNEL_ZONE_JSON)
             handleResponse(resp)
