@@ -16,6 +16,7 @@
 
 package org.midonet.migrator
 
+import java.io.EOFException
 import java.net.URI
 import java.util
 import java.util.UUID
@@ -30,6 +31,7 @@ import javax.ws.rs.core._
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.io.StdIn
 import scala.util.control.NonFatal
 
 import com.google.inject.name.Names
@@ -38,13 +40,15 @@ import com.google.inject.{AbstractModule, Guice, Injector, Key}
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 
+import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.text.WordUtils
 import org.eclipse.jetty.server.Request
 import org.rogach.scallop.ScallopConf
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.data.storage.{ObjectExistsException, StateTableStorage}
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.neutron.models.ProviderRouter
@@ -59,8 +63,9 @@ import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
 import org.midonet.midolman.cluster.zookeeper.{DirectoryProvider, ZkConnectionProvider}
-import org.midonet.midolman.state._
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPv6Subnet}
+import org.midonet.midolman.state.{Directory, ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher, _}
+import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet, IPv6Subnet}
+import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.eventloop.Reactor
 
 object Migrator extends App {
@@ -87,8 +92,8 @@ object Migrator extends App {
             default = Some("/midonet"))
         val maxRetries = opt[Int](
             "max-retries", 'm',
-            "Max number of retries for zookeeper operations",
-            default = Some(10), noshort = true)
+            descr = "Max number of retries for zookeeper operations",
+            default = Some(5))
         val baseRetryTime = opt[Int](
             "base-retry-time", 'b',
             "Base retry time in seconds (increases exponentially)",
@@ -102,6 +107,37 @@ object Migrator extends App {
             "already exists in the new topology store. Consider specifying " +
             "this option when reattempting a partially successful migration.",
             default = Some(false))
+        val bgpOnly = opt[Boolean](
+            "bgp-only", default = Some(false), noshort = true,
+            descr = "Migrate only BGP data. Useful when reattempting " +
+                    "migration after failed conflict resolution.")
+
+        private val bgpResolutionValues =
+            Set("interactive", "merge-ad-routes", "skip-bgp")
+        private val bgpResolutionStr = opt[String](
+            "bgp-conflict-res", 'c', "See below.",
+            default = Some("interactive"),
+            validate = s => bgpResolutionValues(s.toLowerCase))
+        val bgpResolution = bgpResolutionStr.map {
+            _.toLowerCase match {
+                case "interactive" => Interactive
+                case "merge-ad-routes" => MergeAdRoutes
+                case "skip-bgp" => SkipBgp
+            }
+        }
+
+        footer(
+            """
+              |In 1.9.X, each port had its own set of advertised BGP routes, but in 2.0, all
+              |ports on a router share the same set of AdRoutes. When two or more ports on a
+              |1.9.X router have different AdRoutes, the conflict must be resolved in one of
+              |the following ways, which can be specified with the following values for the
+              |-c or --bgp-conflict-res option:
+              |
+              |   skip-bgp: Do not migrate BGP for routers with conflicts.
+              |   merge-ad-routes: A router inherits the AdRoutes from all of its ports.
+              |   interactive: Prompt for resolution as each conflict is detected.
+            """.stripMargin)
     }
 
     private val legacyInjector = makeInjector(legacy = true)
@@ -223,6 +259,7 @@ object Migrator extends App {
         ServletScopes.scopeRequest(
             new Callable[Resources] {
                 override def call(): Resources = new Resources(
+                    v5Injector.getInstance(classOf[BgpNetworkResource]),
                     v5Injector.getInstance(classOf[BridgeResource]),
                     v5Injector.getInstance(classOf[ChainResource]),
                     v5Injector.getInstance(classOf[HealthMonitorResource]),
@@ -238,7 +275,8 @@ object Migrator extends App {
             }, seedMap).call()
     }
 
-    case class Resources(bridges: BridgeResource,
+    case class Resources(bgpNetworks: BgpNetworkResource,
+                         bridges: BridgeResource,
                          chains: ChainResource,
                          healthMonitors: HealthMonitorResource,
                          ipAddrGroups: IpAddrGroupResource,
@@ -262,24 +300,26 @@ object Migrator extends App {
             // migrated until certain other types have been migrated. See method
             // JavaDoc comments for prerequisites.
 
-            migrateHosts()
-            migrateTunnelZones()
-            migrateIpAddrGroups()
-            migrateChains()
-            migrateLoadBalancers()
-            migrateBridges()
-            migrateRouters(routers)
-            migrateVteps()
-            migratePortGroups()
-            migratePorts()
-            migrateRoutes(routerIds)
-            migrateTraceRequests()
-            migrateHealthMonitors()
-            migratePools()
-            migrateVips()
-
-            // TODO: Migrate BGP.
-            // TODO: Initialize tunnel key sequence generator.
+            if (opts.bgpOnly()) {
+                migrateBgp()
+            } else {
+                migrateHosts()
+                migrateTunnelZones()
+                migrateIpAddrGroups()
+                migrateChains()
+                migrateLoadBalancers()
+                migrateBridges()
+                migrateRouters(routers)
+                migrateVteps()
+                migratePortGroups()
+                migratePorts()
+                migrateRoutes(routerIds)
+                migrateTraceRequests()
+                migrateHealthMonitors()
+                migratePools()
+                migrateVips()
+                migrateBgp()
+            }
 
             log.info("Finished migrating topology data.")
             System.exit(0)
@@ -610,6 +650,158 @@ object Migrator extends App {
         }
     }
 
+    /** Migrates BGP. Prerequisites: Routers. */
+    private def migrateBgp(): Unit = {
+        // AdRoute -> BgpNetwork migration is not idempotent, so we need to
+        // make sure there are no existing BgpNetworks. BgpNetworkResource
+        // doesn't support list, so use Storage.
+        val storage = v5Injector.getInstance(classOf[MidonetBackend]).store
+        val existingBgpNetworks =
+            storage.getAll(classOf[Topology.BgpNetwork]).await()
+        if (existingBgpNetworks.nonEmpty) {
+            if (!promptToDeleteBgpNetworks()) {
+                println("Skipping BGP migration.")
+                return
+            }
+
+            println("Deleting existing BGP networks...")
+            storage.multi(existingBgpNetworks.map(
+                nw => DeleteOp(classOf[Topology.BgpNetwork], nw.getId)))
+        }
+
+        for (r <- legacyImporter.listRouters) {
+            migrateBgpRouter(r.id)
+        }
+
+    }
+
+    private def promptToDeleteBgpNetworks(): Boolean = {
+        println(
+            """
+              |The Midonet 5.0 topology already contains BGP networks, likely as the result of
+              |a prior migration attempt. In order to proceed, the existing BGP networks must
+              |be deleted. Alternatively, you can skip BGP migration continue migrating BGP
+              |peers and networks using the Midonet API.
+              |
+              |Do you wish to delete existing BGP networks? y/n
+            """.stripMargin)
+        readOptionKey(Set('y', 'n')) == 'y'
+    }
+
+    private def migrateBgpRouter(rtrId: UUID): Unit = {
+        // Step 1: Check if the router has BGP entries, otherwise ignore.
+        val bgps = legacyImporter.listBgps(rtrId)
+        if (bgps.isEmpty) {
+            log.info("No BGPs to migrate for router " + rtrId)
+            return
+        }
+
+        log.info("Migrating BGPs for router " + rtrId)
+
+        // Step 2: Determine whether an upgrade is possible for this router:
+        // this is true when all BGP entries have the same local AS number
+        // and the set of advertised routes for each BGP entry is the same.
+        val localAs = bgps.head.getLocalAS
+        if (!bgps.forall(_.getLocalAS == localAs)) {
+            println(WordUtils.wrap(
+                s"WARNING: BGP data for router $rtrId cannot be migrated " +
+                s"automatically because there are at least two BGP " +
+                s"entries with different local AS numbers. MidoNet 5.0 " +
+                s"supports a single AS number per router.\n", 80))
+        }
+
+        var bgpNetworks =
+            legacyImporter.listAdRoutes(bgps.head.getId).map(_.subnet).toSet
+        for (bgp <- bgps) {
+            val routes = legacyImporter.listAdRoutes(bgp.getId)
+            val networks = routes.map(_.subnet).toSet
+            log.info("Migrating BGP: {} with advertised routes {}",
+                     bgp, networks)
+            if (bgpNetworks != networks) {
+                getBgpResolution(bgp.getPortId, rtrId,
+                                 bgpNetworks, networks) match {
+                    case SkipBgp => return
+                    case SkipAdRoutes => // continue
+                    case MergeAdRoutes => bgpNetworks = bgpNetworks ++ networks
+                    case Interactive =>
+                        // Unreachable, but needed to suppress warning.
+                }
+            }
+        }
+
+        // Step 3: Upgrade path is possible for current router: set the local
+        // AS number.
+        val v5Router = resources.routers.get(rtrId.toString,
+                                           APPLICATION_ROUTER_JSON_V3)
+        v5Router.asNumber = localAs
+        resources.routers.update(rtrId.toString, v5Router,
+                                 APPLICATION_ROUTER_JSON_V3)
+
+        // Step 4: Create the BGP peers.
+        for (bgp <- bgps) {
+            val bgpPeer = new BgpPeer
+            bgpPeer.id = bgp.getId
+            bgpPeer.asNumber = bgp.getPeerAS
+            bgpPeer.address = bgp.getPeerAddr.toString
+            val resp = resources.routers.bgpPeers(rtrId)
+                .create(bgpPeer, APPLICATION_BGP_PEER_JSON)
+            handleResponse(resp)
+        }
+
+        // Step 5: Create the BGP networks.
+        for (network <- bgpNetworks) {
+            val bgpNetwork = new BgpNetwork
+            bgpNetwork.subnetAddress = network.getAddress.toString
+            bgpNetwork.subnetPrefix = network.getPrefixLen.toByte
+            val resp = resources.routers.bgpNetworks(rtrId)
+                .create(bgpNetwork, APPLICATION_BGP_NETWORK_JSON)
+            handleResponse(resp)
+        }
+    }
+
+    private sealed trait BgpResolution
+    private case object Interactive extends BgpResolution
+    private case object SkipBgp extends BgpResolution
+    private case object SkipAdRoutes extends BgpResolution
+    private case object MergeAdRoutes extends BgpResolution
+
+    private def getBgpResolution(portId: UUID, routerId: UUID,
+                                 curNetworks: Set[IPSubnet[_]],
+                                 newNetworks: Set[IPSubnet[_]])
+    : BgpResolution = {
+        if (opts.bgpResolution() != Interactive) return opts.bgpResolution()
+
+        println(WordUtils.wrap(
+            s"WARNING: BGP-enabled port $portId for router $routerId " +
+            s"has advertised routes that are different from the routes " +
+            s"advertised for the previous ports of the same router. " +
+            s"MidoNet v5 supports a single set of routes per router, " +
+            s"which are advertised to all BGP peers of that router.\n", 80))
+        println(s"Previous routes for router $routerId:")
+        printNetworks(curNetworks)
+        println(s"New routes for port $portId:")
+        printNetworks(newNetworks)
+        println(s"""Choose option to continue:
+                   |[1] Skip migrating BGP for router $routerId
+                   |[2] Skip advertised BGP routes for port $portId
+                   |[3] Include advertised BGP routes for port $portId
+                """.stripMargin)
+        readOptionKey(Set('1', '2', '3')) match {
+            case '1' => SkipBgp
+            case '2' => SkipAdRoutes
+            case '3' => MergeAdRoutes
+        }
+    }
+
+    private def printNetworks(networks: Set[IPSubnet[_]]): Unit = {
+        val width = networks.map(_.toString.length).max
+        println(s"+${StringUtils.repeat('-', width)}+")
+        for (network <- networks) {
+            println(s"|${StringUtils.rightPad(network.toString, width)}|")
+        }
+        println(s"+${StringUtils.repeat('-', width)}+")
+    }
+
     private def getWebAppExErrorMsg(ex: WebApplicationException): String = {
         if (ex.getMessage != null) return ex.getMessage
 
@@ -638,6 +830,22 @@ object Migrator extends App {
         case e =>
             log.error("Unexpected response entity: " + e)
             System.err.println("Internal error. See log for details.")
+    }
+
+    private def readOptionKey(options: Set[Char]): Char = {
+        do {
+            try {
+                val ch = StdIn.readChar()
+                if (options.contains(ch)) {
+                    return ch
+                }
+                println(s"$ch is not a valid option. Please try again.")
+            } catch {
+                case _: StringIndexOutOfBoundsException => // Blank line.
+                case _: EOFException => // TODO: How to handle this?
+            }
+        } while (true)
+        0 // Unreachable but needed to satisfy compiler.
     }
 }
 
