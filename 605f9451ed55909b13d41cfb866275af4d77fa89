@@ -22,6 +22,30 @@
       "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_7ee293d6",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-10-22T07:57:44Z",
+      "side": 1,
+      "message": "I think the traffic is instantly interrupted on return of the inject_packet_loss_for_ip. It executes iptables inside the container and waits for it to return and i think once iptables returns the traffic is blocked. I forgot why I added this sleep, should I remove it?",
+      "parentUuid": "9ab29df4_b817e350",
+      "range": {
+        "startLine": 113,
+        "startChar": 3,
+        "endLine": 113,
+        "endChar": 17
+      },
+      "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
