@@ -25,9 +25,20 @@ import com.google.inject.Inject
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.rest_api.models._
 import org.midonet.migrator.converters._
+import org.midonet.migrator.models.{Bgp, AdRoute}
 import org.midonet.packets.{IPv6Subnet, IPv4Addr, IPv4Subnet}
 
 class LegacyImporter @Inject() (dataClient: DataClient) {
+
+    def listAdRoutes(bgpId: UUID): Seq[AdRoute] =
+        dataClient.adRoutesFindByBgp(bgpId).map(AdRouteDataConverter.fromData)
+
+    def listBgps(routerId: UUID): Seq[Bgp] =
+        dataClient.portsFindByRouter(routerId).toSeq.flatMap {
+            case routerPort: org.midonet.cluster.data.ports.RouterPort =>
+                routerPort.getBgps.map(BgpDataConverter.fromData).toSeq
+            case _ => Seq.empty[Bgp]
+        }
 
     def listBridges: Seq[Bridge] =
         dataClient.bridgesGetAll.map(BridgeDataConverter.fromData)
