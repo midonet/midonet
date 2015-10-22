@@ -34,6 +34,24 @@
       "revId": "7851f2791c2dd357a50e24047356f76778eac0e4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_12f98bc8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-22T10:50:04Z",
+      "side": 1,
+      "message": "I think we should take ownership of any interface ephemeral nodes, but not use them to detect whether we have to wait or not.\n\nI don\u0027t think there\u0027s another mechanism.",
+      "parentUuid": "9ab29df4_5eddcf13",
+      "revId": "7851f2791c2dd357a50e24047356f76778eac0e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
