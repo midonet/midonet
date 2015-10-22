@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_be726be3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-22T09:23:29Z",
+      "side": 1,
+      "message": "Maybe update the comment.",
+      "range": {
+        "startLine": 337,
+        "startChar": 8,
+        "endLine": 337,
+        "endChar": 65
+      },
+      "revId": "395de4d5dfd9a2195da472d58d53203567610a39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_fe7303e5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepSynchronizer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-22T09:23:29Z",
+      "side": 1,
+      "message": "I think this is a good approach for now. Maybe in a subsequent improvement we can also cache all previous bindings, and only update them for the networks that changed.",
+      "range": {
+        "startLine": 339,
+        "startChar": 12,
+        "endLine": 339,
+        "endChar": 39
+      },
+      "revId": "395de4d5dfd9a2195da472d58d53203567610a39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
