@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.NoStatePathException;
@@ -51,6 +53,7 @@ public class BgpZkManager extends AbstractZkManager<UUID, BGP.Data> {
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public BgpZkManager(ZkManager zk, PathBuilder paths,
                         Serializer serializer) {
         super(zk, paths, serializer);
