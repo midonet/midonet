@@ -331,13 +331,33 @@ class VtepSynchronizer(vtepId: UUID,
                             .map { b => fromProto(b.getNetworkId) }
                             .toSet
 
-        // Take those that are newly bound and bootstrap them
-        val nwsToFeedFp = nwIds -- boundNetworks.keySet()
-        nwsToFeedFp.foreach { watchNetwork(_) }
+        val newlyBoundNetworks = nwIds -- boundNetworks.keySet()
+        newlyBoundNetworks.foreach { watchNetwork(_) }
 
-        // Take those that are no longer bound and update MidoNet
-        boundNetworks.keySet().filterNot(nwIds.contains)
-                              .foreach(ignoreNetwork)
+        // Take those that are no longer bound and update MidoNet.  Also,
+        // propagate new bindings to the VTEP when relevant.
+        boundNetworks.keySet().foreach { nwId =>
+            if (nwIds.contains(nwId)) {
+                log.debug(s"Network $nwId updated its bindings")
+                val lsName = bridgeIdToLogicalSwitchName(nwId)
+                ovsdb.logicalSwitch(lsName).onComplete {
+                    case Success(Some(ls)) =>
+                        ensureBindings(ls.uuid, nwId, nsdbVtep.getBindingsList)
+                    case Success(None) =>
+                        log.warn("Failed to sync new bindings to VTEP: the " +
+                                 s"Logical_Switch with name $lsName was not " +
+                                 "found.  Recreate the binding to retry.")
+                    case Failure(f) =>
+                        log.warn("Failed to sync new bindings to VTEP: " +
+                                 "failure accessing OVDSB to load Logical " +
+                                 s"Switch $lsName.  Recreate binding to " +
+                                 s"retry", f)
+                }
+            } else {
+                log.debug(s"Network $nwId no longer in a VxGW")
+                ignoreNetwork(nwId)
+            }
+        }
     }
 
     private def ignoreNetwork(id: UUID): Unit = {
