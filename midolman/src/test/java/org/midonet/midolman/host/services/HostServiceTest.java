@@ -19,6 +19,10 @@ import java.net.InetAddress;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import scala.concurrent.Await;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -65,10 +69,6 @@ import org.midonet.midolman.util.mock.MockInterfaceScanner;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.reactivex.RichObservable;
 
-import scala.concurrent.Await;
-import scala.concurrent.Future;
-import scala.concurrent.duration.Duration;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -83,6 +83,7 @@ public class HostServiceTest {
     Injector injector;
     Storage store;
     StateStorage stateStore;
+    MidonetBackendConfig backendConfig;
     UUID hostId;
     String hostName;
 
@@ -166,6 +167,7 @@ public class HostServiceTest {
         store = injector.getInstance(MidonetBackend.class).store();
         stateStore = injector.getInstance(MidonetBackend.class).stateStore();
         hostName = InetAddress.getLocalHost().getHostName();
+        backendConfig = injector.getInstance(MidonetBackendConfig.class);
 
         curator.start();
         if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
@@ -176,10 +178,10 @@ public class HostServiceTest {
         store.registerClass(Topology.Host.class);
         stateStore.registerKey(Topology.Host.class,
                                MidonetBackend.AliveKey(),
-                               KeyType.SingleFirstWriteWins());
+                               KeyType.SingleLastWriteWins());
         stateStore.registerKey(Topology.Host.class,
                                MidonetBackend.HostKey(),
-                               KeyType.SingleFirstWriteWins());
+                               KeyType.SingleLastWriteWins());
         store.build();
     }
 
@@ -302,23 +304,79 @@ public class HostServiceTest {
     }
 
     @Test
-    public void hostServiceShutsdownAgentIfDifferentHost() throws Throwable {
+    public void hostServiceAcquiresOwnershipAfterFailure() throws Throwable {
         TestableHostService hostService = startService();
 
-        CuratorFramework curator =  CuratorFrameworkFactory
-            .newClient(server.getConnectString(), sessionTimeoutMs,
-                       cnxnTimeoutMs, retryPolicy);
-        curator.start();
-        if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
-            throw new Exception("Curator did not connect to the test ZK "
-                                + "server");
-        }
+        CuratorFramework curator = getNewCurator();
+        byte[] currentState = curator.getData().forPath(getStatePath(hostId));
+
+        stopService(hostService);
+
+        CuratorTransactionFinal txn =
+            (CuratorTransactionFinal) curator.inTransaction();
+        txn = txn.create().withMode(CreateMode.EPHEMERAL)
+            .forPath(getAlivePath(hostId)).and();
+        txn = txn.create().withMode(CreateMode.EPHEMERAL)
+            .forPath(getStatePath(hostId), currentState).and();
+        txn.commit();
+
+        hostService = startService();
+        assertHostState();
+        stopService(hostService);
+
+        curator.close();
+    }
+
+    @Test
+    public void hostServiceShutsdownAgentIfDifferentHostname() throws Throwable {
+        TestableHostService hostService = startService();
+
+        CuratorFramework curator = getNewCurator();
+
+        Topology.Host host = Topology.Host.newBuilder()
+            .setId(UUIDUtil.toProto(hostId))
+            .setName("different-hostname")
+            .build();
 
         CuratorTransactionFinal txn =
             (CuratorTransactionFinal) curator.inTransaction();
         txn = txn.delete().forPath(getAlivePath(hostId)).and();
         txn = txn.create().withMode(CreateMode.EPHEMERAL)
                           .forPath(getAlivePath(hostId)).and();
+        txn = txn.delete().forPath(getHostPath(hostId)).and();
+        txn = txn.create().withMode(CreateMode.PERSISTENT)
+                          .forPath(getHostPath(hostId),
+                                   host.toString().getBytes()).and();
+        txn.commit();
+
+        eventuallyAssertShutdown(hostService);
+
+        curator.close();
+    }
+
+    @Test
+    public void hostServiceShutsdownAgentIfDifferentInterfaceMacs() throws Throwable {
+        TestableHostService hostService = startService();
+
+        CuratorFramework curator = getNewCurator();
+
+        State.HostState hostState = State.HostState.newBuilder()
+            .setHostId(UUIDUtil.toProto(hostId))
+            .addInterfaces(State.HostState.Interface.newBuilder()
+                .setName("if")
+                .setMac("00:01:02:03:04:05")
+                .setType(State.HostState.Interface.Type.PHYSICAL))
+            .build();
+
+        CuratorTransactionFinal txn =
+            (CuratorTransactionFinal) curator.inTransaction();
+        txn = txn.delete().forPath(getAlivePath(hostId)).and();
+        txn = txn.create().withMode(CreateMode.EPHEMERAL)
+            .forPath(getAlivePath(hostId)).and();
+        txn = txn.delete().forPath(getStatePath(hostId)).and();
+        txn = txn.create().withMode(CreateMode.EPHEMERAL)
+            .forPath(getStatePath(hostId),
+                     hostState.toString().getBytes()).and();
         txn.commit();
 
         eventuallyAssertShutdown(hostService);
@@ -433,10 +491,29 @@ public class HostServiceTest {
         return injector.getInstance(CuratorFramework.class);
     }
 
+    public CuratorFramework getNewCurator() throws Exception {
+        CuratorFramework curator =  CuratorFrameworkFactory
+            .newClient(server.getConnectString(), sessionTimeoutMs,
+                       cnxnTimeoutMs, retryPolicy);
+        curator.start();
+        if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
+            throw new Exception("Curator did not connect to the test ZK "
+                                + "server");
+        }
+        return curator;
+    }
+
+    public String getHostPath(UUID hostId) {
+        return backendConfig.rootKey() + "/zoom/0/models/Host/" + hostId;
+    }
+
     public String getAlivePath(UUID hostId) {
-        MidonetBackendConfig backendConfig =
-            injector.getInstance(MidonetBackendConfig.class);
         return backendConfig.rootKey() + "/zoom/0/state/"
                + stateStore.namespace() + "/Host/" + hostId + "/alive";
+    }
+
+    public String getStatePath(UUID hostId) {
+        return backendConfig.rootKey() + "/zoom/0/state/"
+               + stateStore.namespace() + "/Host/" + hostId + "/host";
     }
 }
