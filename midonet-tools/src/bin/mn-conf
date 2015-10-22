@@ -33,6 +33,14 @@ fi
 
 MAIN_CLASS='org.midonet.conf.MidoConfTool'
 
+# OpenJDK uses the system jnidispatcher as default, since /usr/lib/jni is in
+# the java library path. We specify our jna.jar in the classpath, this leads
+# to incompatibility.  We should use either (1) the system jnidispatcher and
+# the system jna.jar or (2) the packaged jnidispatcher and the packaged
+# jna.jar.  Here we remove the /usr/lib/jni from the library path to use the
+# packaged jnidispatcher
+JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
+
 # Allow overriding the default jar location 
 if [ -z "$MIDO_JAR" ]; then
    CLASSPATH=$MIDO_HOME/midonet-tools.jar
@@ -46,4 +54,4 @@ if [ ! -e "$CLASSPATH" ]; then
 fi
 
 exec $JAVA -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xverify:none \
-    -cp $CLASSPATH $MAIN_CLASS $*
+    $JAVA_LIBRARY_PATH -cp $CLASSPATH $MAIN_CLASS $*
