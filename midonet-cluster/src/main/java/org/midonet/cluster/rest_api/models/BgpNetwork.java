@@ -24,6 +24,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -97,4 +98,15 @@ public class BgpNetwork extends UriResource {
         routerId = from.routerId;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("subnet", subnet)
+            .add("routerId", routerId)
+            .add("subnetAddress", subnetAddress)
+            .add("subnetPrefix", subnetPrefix)
+            .toString();
+    }
 }
