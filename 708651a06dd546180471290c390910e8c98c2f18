@@ -93,6 +93,30 @@
       "revId": "708651a06dd546180471290c390910e8c98c2f18",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_3e52dbdd",
+        "filename": "tests/mdts/tests/topologies/mmm_physical_test_vxlangw.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1005043
+      },
+      "writtenOn": "2015-10-22T04:59:57Z",
+      "side": 1,
+      "message": "Yes, instance should have this MTU. IMHO is the underlay who has to have a bigger MTU size to not discard this packets.",
+      "parentUuid": "9ab29df4_c3a4ac59",
+      "range": {
+        "startLine": 34,
+        "startChar": 14,
+        "endLine": 34,
+        "endChar": 23
+      },
+      "revId": "708651a06dd546180471290c390910e8c98c2f18",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
