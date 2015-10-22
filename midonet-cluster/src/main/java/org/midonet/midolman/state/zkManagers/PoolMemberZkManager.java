@@ -49,31 +49,6 @@ public class PoolMemberZkManager extends
             super();
         }
 
-        public PoolMemberConfig(UUID poolId,
-                                String address,
-                                int protocolPort,
-                                int weight,
-                                boolean adminStateUp,
-                                LBStatus status) {
-            this.poolId = poolId;
-            this.address = address;
-            this.protocolPort = protocolPort;
-            this.weight = weight;
-            this.adminStateUp = adminStateUp;
-            this.status = status;
-        }
-
-        public PoolMemberConfig(Member member) {
-            this.poolId = member.poolId;
-            this.address = member.address;
-            this.protocolPort = member.protocolPort;
-            this.weight = member.weight;
-            this.adminStateUp = member.adminStateUp;
-            // The default status is active. Only the health monitor can
-            // change this to INACTIVE.
-            this.status = LBStatus.ACTIVE;
-        }
-
         @Override
         public int hashCode() {
             return Objects.hashCode(poolId, address, protocolPort, weight,

@@ -15,27 +15,17 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs.Ids;
-
-import org.midonet.cluster.rest_api.neutron.models.HealthMonitor;
-import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.l4lb.HealthMonitorType;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.nsdb.BaseConfig;
-
-import static java.util.Arrays.asList;
 
 /**
  * Class to manage the HealthMonitor ZooKeeper data.
@@ -54,30 +44,6 @@ public class HealthMonitorZkManager extends
 
         public HealthMonitorConfig() {
             super();
-        }
-
-        public HealthMonitorConfig(HealthMonitorType type,
-                                   int delay,
-                                   int timeout,
-                                   int maxRetries,
-                                   boolean adminStateUp,
-                                   LBStatus status) {
-            this.type = type;
-            this.delay = delay;
-            this.timeout = timeout;
-            this.maxRetries = maxRetries;
-            this.adminStateUp = adminStateUp;
-            this.status = status;
-        }
-
-        public HealthMonitorConfig(HealthMonitor healthMonitor) {
-            this.type = HealthMonitorType.TCP;
-            this.delay = healthMonitor.delay;
-            this.timeout = healthMonitor.timeout;
-            this.maxRetries = healthMonitor.maxRetries;
-            this.adminStateUp = healthMonitor.adminStateUp;
-            this.status = LBStatus.ACTIVE;
-            this.id = healthMonitor.id;
         }
 
         @Override
@@ -119,20 +85,4 @@ public class HealthMonitorZkManager extends
         return HealthMonitorConfig.class;
     }
 
-    public List<Op> prepareCreate(UUID id, HealthMonitorConfig config)
-            throws SerializationException {
-        return asList(simpleCreateOp(id, config),
-                      Op.create(paths.getHealthMonitorPoolsPath(id), null,
-                                Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-    }
-
-    public List<Op> prepareDelete(UUID id) {
-        return asList(Op.delete(paths.getHealthMonitorPoolsPath(id), -1),
-                      Op.delete(paths.getHealthMonitorPath(id), -1));
-    }
-
-    public List<UUID> getPoolIds(UUID id)
-            throws StateAccessException, SerializationException {
-        return getUuidList(paths.getHealthMonitorPoolsPath(id));
-    }
 }
