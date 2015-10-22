@@ -118,7 +118,7 @@ object MidoNodeConfigurator {
     private val MIDOLMAN_CONF_LOCATION = "/etc/midolman/midolman.conf"
     private val MIDONET_CONF_LOCATIONS = List("~/.midonetrc",
                                               "/etc/midonet/midonet.conf",
-                                              s"${MIDOLMAN_CONF_LOCATION}")
+                                              MIDOLMAN_CONF_LOCATION)
 
     private val log = LoggerFactory.getLogger("org.midonet.conf")
 
@@ -126,7 +126,7 @@ object MidoNodeConfigurator {
 
     def bootstrapConfig(inifile: Option[String] = None): Config = {
         val defaultZkRootConfig =
-            ConfigFactory.parseString(s"zk_default_root = ${defaultZkRootKey}")
+            ConfigFactory.parseString(s"zk_default_root = $defaultZkRootKey")
         val DEFAULTS = ConfigFactory.parseString(
             """
             |zookeeper {
@@ -199,7 +199,7 @@ object MidoNodeConfigurator {
                         "To remove this warning, please remove the \n" +
                         "'zookeeper.root_key' configuration key from \n" +
                         "this configuration file, should it exist:\n " +
-                        s"${MIDOLMAN_CONF_LOCATION}.\n")
+                        s"$MIDOLMAN_CONF_LOCATION.\n")
                     defaultZkRootKey
 
                 case key => key
@@ -258,7 +258,7 @@ object MidoNodeConfigurator {
                 case "double" => conf.getDouble(key)
                 case "double[]" => conf.getDoubleList(key)
 
-                case t if enumPattern.matcher(t).matches => {
+                case t if enumPattern.matcher(t).matches =>
                     val m = enumPattern.matcher(t)
                     m.matches()
                     val options = m.group(1).split(",")
@@ -269,9 +269,8 @@ object MidoNodeConfigurator {
                         throw new ConfigException.WrongType(
                             newVal.origin,
                             s"Value for $key (${newVal.render}) " +
-                                s"should be one of ${options}")
+                                s"should be one of $options")
                     }
-                }
 
                 case t => throw new ConfigException.BugOrBroken(
                         s"Invalid validation type ($t) in schema")
@@ -327,11 +326,10 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     private val _templateMappings = new ZookeeperConf(zk, s"/config/template-mappings")
 
     {
-        val zkClient = zk.getZookeeperClient
-        zk.newNamespaceAwareEnsurePath(s"/config").ensure(zkClient)
-        zk.newNamespaceAwareEnsurePath(s"/config/nodes").ensure(zkClient)
-        zk.newNamespaceAwareEnsurePath(s"/config/templates").ensure(zkClient)
-        zk.newNamespaceAwareEnsurePath(s"/config/schemas").ensure(zkClient)
+        zk.createContainers("/config")
+        zk.createContainers("/config/nodes")
+        zk.createContainers("/config/templates")
+        zk.createContainers("/config/schemas")
     }
 
     def keyWithSuffix(key: String, suffix: String): String = {
@@ -672,8 +670,6 @@ class MidoNodeConfigurator(zk: CuratorFramework,
 
 /**
  * A MidoConf implmentation that reads from bundled Java resources.
- *
- * @param path
  */
 class ResourceConf(path: String) extends MidoConf {
     val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
@@ -695,8 +691,6 @@ class ResourceConf(path: String) extends MidoConf {
 
 /**
  * A MidoConf implementation that reads configuration from a file
- *
- * @param file
  */
 class FileConf(file: File) extends MidoConf {
     val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
@@ -717,9 +711,6 @@ class FileConf(file: File) extends MidoConf {
 
 /**
  * A WritableConf implementation backed by ZooKeeper.
- *
- * @param zk
- * @param path
  */
 class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
                                                                 WritableConf with
@@ -833,8 +824,6 @@ class ZookeeperSchema(zk: CuratorFramework, path: String,
 
 /**
  * A MidoConf implementation backed by a .ini configuration file.
- *
- * @param filename
  */
 class LegacyConf(val filename: String,
                  val logger: org.slf4j.Logger =
