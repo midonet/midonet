@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ab29df4_eb5fc270",
+        "filename": "midonet-cluster/conf/logback.xml",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-22T22:37:00Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 59,
+        "startChar": 4,
+        "endLine": 59,
+        "endChar": 62
+      },
+      "revId": "fa0cba35ddea8a199edf44ce5b3c0ef53613ae58",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_ab65ca46",
         "filename": "midonet-cluster/conf/logback.xml",
         "patchSetId": 6
