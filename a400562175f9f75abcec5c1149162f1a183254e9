@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_286540e1",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-22T16:17:22Z",
+      "side": 1,
+      "message": "this should only do logback.xml",
+      "range": {
+        "startLine": 111,
+        "startChar": 8,
+        "endLine": 111,
+        "endChar": 34
+      },
+      "revId": "a400562175f9f75abcec5c1149162f1a183254e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_08687cb9",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-22T16:17:22Z",
+      "side": 1,
+      "message": "this should to go /etc/midonet/",
+      "range": {
+        "startLine": 114,
+        "startChar": 13,
+        "endLine": 114,
+        "endChar": 32
+      },
+      "revId": "a400562175f9f75abcec5c1149162f1a183254e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_486274d9",
+        "filename": "midonet-cluster/src/deb/control/conffiles",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-22T16:17:22Z",
+      "side": 1,
+      "message": "/etc/midonet/midonet.conf",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 33
+      },
+      "revId": "a400562175f9f75abcec5c1149162f1a183254e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_484b5459",
+        "filename": "midonet-cluster/src/deb/init/midonet-cluster-env.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-22T16:17:22Z",
+      "side": 1,
+      "message": "this one is wrong, it should fetch config from /etc/midonet/midonet.conf",
+      "range": {
+        "startLine": 3,
+        "startChar": 9,
+        "endLine": 3,
+        "endChar": 29
+      },
+      "revId": "a400562175f9f75abcec5c1149162f1a183254e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
