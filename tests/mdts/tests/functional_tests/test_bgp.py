@@ -215,7 +215,7 @@ def clear_bgp_peer(peer, wait=0):
 def await_default_route(router, port, peerAddr):
     port_id = router.get_port(port)._mn_resource.get_id()
     router_id = router._mn_resource.get_id()
-    timeout = 30
+    timeout = 60
     while timeout > 0:
         routes = BM._api.get_router_routes(router_id)
         for r in routes:
@@ -408,8 +408,6 @@ def test_icmp_failback():
     failure.inject()
     try:
         ping_to_inet() # BGP #2 is lost but continues to work
-    except Exception as e:
-        raise e
     finally:
         failure.eject()
 
@@ -553,8 +551,6 @@ def test_multisession_icmp_failback():
     failure.inject()
     try:
         ping_to_inet() # BGP session #1 is lost but continues to work
-    except Exception as e:
-        raise e
     finally:
         failure.eject()
 
@@ -594,10 +590,10 @@ def test_multisession_icmp_with_redundancy():
     failure1.inject()
     try:
         ping_to_inet()
-    except RuntimeError as e:
+    except:
         for failure in failures:
             failure.eject()
-        raise e
+        raise
 
     failure2 = PktFailure('quagga2', 'bgp1', 5)
     failures.append(failure2)
