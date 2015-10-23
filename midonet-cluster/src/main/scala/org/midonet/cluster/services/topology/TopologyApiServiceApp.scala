@@ -32,12 +32,9 @@ import org.midonet.util.concurrent.CallingThreadExecutionContext
 object TopologyApiServiceApp extends App {
     private val log = LoggerFactory.getLogger(topologyApiLog)
 
+    private val cfgFile = args(0)
     private val nodeContext = new ClusterNode.Context(HostIdGenerator.getHostId)
-    private val config = if (args.length > 0) {
-        ClusterConfig(args(0))
-    } else {
-        ClusterConfig()
-    }
+    private val config = ClusterConfig(cfgFile)
 
     private val topologyApiServiceModule = new AbstractModule {
         override def configure(): Unit = {

@@ -66,25 +66,19 @@ object ClusterNode extends App {
 
     log info "Cluster node starting.." // TODO show build.properties
 
+    private val configFile = args(0)
+    log info s"Loading configuration: $configFile"
+    if (!Files.isReadable(Paths.get(configFile))) {
+        System.err.println(s"Configuration file is not readable $configFile")
+        System.exit(1)
+    }
+
     // Load cluster node configuration
     private val nodeId = HostIdGenerator.getHostId
     private val nodeContext = new Context(nodeId)
     MidonetBackend.isCluster = true
 
-    val configurator = if (args.length > 0) {
-        val configFile = args(0)
-        log info s"Loading configuration: $configFile"
-        if (!Files.isReadable(Paths.get(configFile))) {
-            System.err.println(s"Configuration file is not readable $configFile")
-            System.exit(1)
-        }
-        MidoNodeConfigurator(configFile)
-    } else {
-        val config = MidoNodeConfigurator.bootstrapConfig()
-        log info "Loading default configuration"
-        MidoNodeConfigurator(config)
-    }
-
+    val configurator = MidoNodeConfigurator(configFile)
     if (configurator.deployBundledConfig()) {
         log.info("Deployed new configuration schema into NSDB")
     }

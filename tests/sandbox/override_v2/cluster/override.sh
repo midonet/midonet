@@ -7,7 +7,7 @@ LATEST_TOOLS=$(ls override/midonet-tools*deb | tail -n1)
 dpkg -r midonet-cluster
 dpkg -r midonet-tools
 dpkg -r python-midonetclient
-dpkg -i --force-confnew --force-confmiss $LATEST_CLIENT $LATEST_CLUSTER $LATEST_TOOLS
+dpkg -i --force-confnew $LATEST_CLIENT $LATEST_CLUSTER $LATEST_TOOLS
 
 # TODO: remove this once the midonet-cluster points to port 8080 by default
 # Update midonet-cli to point to cluster
