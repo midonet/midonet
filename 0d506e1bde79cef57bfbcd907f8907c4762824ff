@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_66aa0972",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-23T08:24:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_c6abd587",
+      "revId": "0d506e1bde79cef57bfbcd907f8907c4762824ff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_e6b0d9f6",
         "filename": "midonet-cluster/build.gradle",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2015-10-23T07:55:26Z",
       "side": 1,
       "message": "/usr/share/midonet-cluster/midonet-cluster-env.sh as per line 123",
+      "revId": "0d506e1bde79cef57bfbcd907f8907c4762824ff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c6b035e0",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-23T08:24:25Z",
+      "side": 1,
+      "message": "Will do in PS 9",
+      "parentUuid": "9ab29df4_e6b0d9f6",
       "revId": "0d506e1bde79cef57bfbcd907f8907c4762824ff",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
