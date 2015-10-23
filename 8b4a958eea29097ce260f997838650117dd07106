@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ab29df4_06c4ed90",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-23T08:28:02Z",
+      "side": 1,
+      "message": "Consider exiting if a dist name unknown to gradle build is passed in.",
+      "revId": "8b4a958eea29097ce260f997838650117dd07106",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e6461923",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-23T08:28:02Z",
+      "side": 1,
+      "message": "python-midonetclient should not be here since it is used in MDTS.",
+      "revId": "8b4a958eea29097ce260f997838650117dd07106",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_ab9a2a12",
         "filename": "what_ci_targets.sh",
         "patchSetId": 2
