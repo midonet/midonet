@@ -19,13 +19,37 @@ You need to restart midolman to reload these configurations.
 
 This feature requires the v2 architecture. (ZOOM)
 
-### Limitations
+### Limitations and known problems
+
+#### Possible address conflicts with hypervisor network
 
 If enabled, this feature uses 169.254/64 link-local addresses on
 the hypervisor.  Also, it listens on TCP 169.254.169.254:9697 for
 incoming metadata requests.
 Please make sure that these addresses and ports are not used for
 other purposes on the hypervisor.
+
+#### Guest OS network stack requirement
+
+Unless either of the following is true, you might need to tweak
+guest OSes so that they can communicate with the metadata service
+address. (169.254.169.254)
+
+* The guest OS has embedded knowledge about IPv4 link-local addresses.
+  Many of modern operating systems, including Ubuntu 14.04 and OS X 10.10.5,
+  fall into this category.  In this case, no special configuration
+  is necessary.
+
+* The tenant network has the default gateway.
+  In this case, the address can be forwarded to the gateway.  This
+  implementation intercepts requests even if their L2 destination is
+  the gateway's one.
+
+Typically adding a link-local route covering 169.254.169.254 is enough.
+For example,
+<pre>
+    # route add -net 169.254.0.0 netmask 255.255.0.0 dev eth0
+</pre>
 
 ### How to configure
 
