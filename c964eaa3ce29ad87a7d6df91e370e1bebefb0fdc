@@ -16,6 +16,24 @@
       "revId": "c964eaa3ce29ad87a7d6df91e370e1bebefb0fdc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_41932ffa",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 9
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-23T14:27:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_c6e8357f",
+      "revId": "c964eaa3ce29ad87a7d6df91e370e1bebefb0fdc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
