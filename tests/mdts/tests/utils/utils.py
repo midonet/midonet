@@ -147,12 +147,12 @@ def update_with_setup(func, setup, teardown):
                         func.teardown_executed = False
                         setup()
                         _old_s()
-                except Exception as e:
+                except:
                     # Finish unbinding and cleaning topology
                     func.setup_executed = False
                     func.teardown_executed = True
                     teardown()
-                    raise e
+                    raise
 
             func.setup = _s
         else:
@@ -162,12 +162,12 @@ def update_with_setup(func, setup, teardown):
                         func.setup_executed = True
                         func.teardown_executed = False
                         setup()
-                except Exception as e:
+                except:
                     # Finish unbinding and cleaning topology
                     func.setup_executed = False
                     func.teardown_executed = True
                     teardown()
-                    raise e
+                    raise
             func.setup = _s
 
     if teardown:
@@ -180,10 +180,10 @@ def update_with_setup(func, setup, teardown):
                     func.teardown_executed = True
                     try:
                         _old_t()
-                    except Exception as e:
+                    except:
                         # Finish unbinding and cleaning topology
                         teardown()
-                        raise e
+                        raise
                     else:
                         teardown()
 

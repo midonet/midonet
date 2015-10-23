@@ -398,8 +398,6 @@ def test_icmp_failback():
     failure.inject()
     try:
         ping_to_inet() # BGP #1 is lost but continues to work
-    except Exception as e:
-        raise e
     finally:
         failure.eject()
 
@@ -442,8 +440,6 @@ def test_snat():
         for i in range(0, 10):
             # BGP #1 is working
             ping_to_inet()
-    except Exception as e:
-        raise e
     finally:
         unset_filters('router-000-001')
 
@@ -568,8 +564,6 @@ def test_multisession_icmp_failback():
     failure.inject()
     try:
         ping_to_inet() # BGP session #2 is lost but continues to work
-    except Exception as e:
-        raise e
     finally:
         failure.eject()
 
@@ -610,20 +604,20 @@ def test_multisession_icmp_with_redundancy():
     failure2.inject()
     try:
         ping_to_inet()
-    except RuntimeError as e:
+    except:
         for failure in failures:
             failure.eject()
-        raise e
+        raise
 
     failure3 = PktFailure('quagga1', 'bgp2', 5)
     failures.append(failure3)
     failure3.inject()
     try:
         ping_to_inet()
-    except RuntimeError as e:
+    except:
         for failure in failures:
             failure.eject()
-        raise e
+        raise
 
     failure4 = PktFailure('quagga2', 'bgp2', 5)
     failures.append(failure4)
