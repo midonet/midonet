@@ -119,7 +119,7 @@ task preparePkg(type: Copy, dependsOn: installShadowApp) {
     from("src/deb/init/midonet-cluster-env.sh") {
         into "usr/share/midonet-cluster"
     }
-    from("src/deb/tools/mn-migrate") {
+    from("src/deb/bin/mn-migrate") {
         into "usr/bin"
     }
     into "${pkgDestDir}"
