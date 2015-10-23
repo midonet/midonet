@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_bc098e2e",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 10
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-23T15:06:09Z",
+      "side": 1,
+      "message": "Simplify this.",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 120,
+        "endChar": 5
+      },
+      "revId": "7fb4e7fb38ab56f00865fd5c0c0fe4c91aac3bf8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_dc0e4234",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 10
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-23T15:06:09Z",
+      "side": 1,
+      "message": "incorrect",
+      "range": {
+        "startLine": 159,
+        "startChar": 18,
+        "endLine": 159,
+        "endChar": 29
+      },
+      "revId": "7fb4e7fb38ab56f00865fd5c0c0fe4c91aac3bf8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
