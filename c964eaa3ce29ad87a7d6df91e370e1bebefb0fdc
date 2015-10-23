@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_c6e8357f",
+        "filename": "midonet-cluster/build.gradle",
+        "patchSetId": 9
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-23T09:35:48Z",
+      "side": 1,
+      "message": "missing a file, check https://review.gerrithub.io/#/c/250519/4/midonet-cluster/build.gradle\n\nThere should be a nicer alternative like:\n\nfrom(\"conf/\") {\n   into \"etc/midonet-cluster\n   exclude { /* files you need to exclude */ }\n}",
+      "revId": "c964eaa3ce29ad87a7d6df91e370e1bebefb0fdc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
