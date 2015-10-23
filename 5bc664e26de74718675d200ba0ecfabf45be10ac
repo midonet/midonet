@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_0bb0768a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-10-23T00:30:23Z",
+      "side": 1,
+      "message": "Is this a fix for https://midonet.atlassian.net/browse/MNA-1013? \nIf so, can you add a ticket number here?",
+      "revId": "5bc664e26de74718675d200ba0ecfabf45be10ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
