@@ -215,7 +215,7 @@ def clear_bgp_peer(peer, wait=0):
 def await_default_route(router, port, peerAddr):
     port_id = router.get_port(port)._mn_resource.get_id()
     router_id = router._mn_resource.get_id()
-    timeout = 30
+    timeout = 60
     while timeout > 0:
         routes = BM._api.get_router_routes(router_id)
         for r in routes:
