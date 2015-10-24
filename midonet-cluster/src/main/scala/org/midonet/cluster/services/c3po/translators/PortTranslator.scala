@@ -30,7 +30,7 @@ import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
-import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.cluster.util._
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
@@ -58,6 +58,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         with ChainManager with PortManager with RouteManager with RuleManager
         with BridgeStateTableManager {
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
+    import RouterInterfaceTranslator._
 
     /* Neutron does not maintain the back reference to the Floating IP, so we
      * need to do that by ourselves. */
@@ -161,12 +162,19 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             val subnetId = nPort.getFixedIps(0).getSubnetId
             midoOps ++= updateGatewayRoutesOps(null, subnetId)
 
+            // Delete the SNAT rules on the tenant router referencing the port
+            val rtr = storage.get(classOf[Router],
+                                  toProto(nPort.getDeviceId)).await()
+            midoOps += Delete(classOf[Rule],
+                              sameSubnetSnatRuleId(rtr.getInboundFilterId,
+                                                   nPort.getId))
+            midoOps += Delete(classOf[Rule],
+                              sameSubnetSnatRuleId(rtr.getOutboundFilterId,
+                                                   nPort.getId))
+
             // Delete the peer router port.
             midoOps += Delete(classOf[Port],
                               routerInterfacePortPeerId(nPort.getId))
-            // Via Neutron API no chains are attached to those internal Network
-            // and Router Ports. We can assert that if needed, but it seems
-            // better to avoid extra ZK round trips.
         }
 
         val portContext = initPortContext
