@@ -33,11 +33,13 @@ import org.midonet.cluster.services.c3po.translators.PortManager.routerInterface
 import org.midonet.cluster.services.c3po.translators.RouteManager.{gatewayRouteId, localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil.RichJavaUuid
-import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
+    import RouterInterfaceTranslator._
+
     private val tenantNetworkId = UUID.randomUUID()
     private val uplinkNetworkId = UUID.randomUUID()
     private val subnetId = UUID.randomUUID()
@@ -313,6 +315,61 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         }
 
         checkEdgeRouterInterface(rifPortId, hostId, deleteTaskId = 8)
+    }
+
+    it should "create SNAT rules on router chains for same subnet traffic " +
+              "on create" in {
+        createTenantNetwork(2, tenantNetworkId)
+        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24",
+                     gatewayIp="10.0.0.1")
+        createRouter(4, routerId)
+        val json = portJson(rifPortId, tenantNetworkId, null,
+                            deviceOwner = DeviceOwner.ROUTER_INTERFACE,
+                            macAddr = "ab:cd:ef:01:02:03",
+                            fixedIps = List(IPAlloc("10.0.0.1", subnetId)))
+        insertCreateTask(5, PortType, json, rifPortId)
+        createRouterInterface(6, routerId, rifPortId, subnetId)
+
+        // Verify that SNAT rules are created correctly
+        eventually {
+            val rtr = storage.get(classOf[Router], routerId).await()
+            val snatRule = storage.get(
+                classOf[Rule],
+                sameSubnetSnatRuleId(rtr.getOutboundFilterId)).await()
+            val revSnatRule = storage.get(
+                classOf[Rule],
+                sameSubnetSnatRuleId(rtr.getInboundFilterId)).await()
+
+            val peerId = PortManager.routerInterfacePortPeerId(
+                UUIDUtil.toProto(rifPortId))
+            snatRule.getChainId shouldBe rtr.getOutboundFilterId
+            snatRule.getAction shouldBe Rule.Action.RETURN
+            snatRule.getType shouldBe Rule.Type.NAT_RULE
+            val snatCond = snatRule.getCondition
+            snatCond.getInPortIdsCount shouldBe 1
+            snatCond.getInPortIds(0) shouldBe peerId
+            snatCond.getOutPortIdsCount shouldBe 1
+            snatCond.getOutPortIds(0) shouldBe peerId
+            snatCond.getMatchForwardFlow shouldBe true
+            snatCond.getNwDstIp shouldBe RouteManager.META_DATA_SRVC
+            snatCond.getNwDstInv shouldBe true
+            val snatNat = snatRule.getNatRuleData
+            snatNat.getDnat shouldBe false
+            snatNat.getNatTargetsCount shouldBe 1
+            snatNat.getNatTargets(0).getNwStart.getAddress shouldBe "10.0.0.1"
+            snatNat.getNatTargets(0).getNwEnd.getAddress shouldBe "10.0.0.1"
+
+            revSnatRule.getChainId shouldBe rtr.getInboundFilterId
+            revSnatRule.getAction shouldBe Rule.Action.ACCEPT
+            revSnatRule.getType shouldBe Rule.Type.NAT_RULE
+            val revSnatCond = revSnatRule.getCondition
+            revSnatCond.getInPortIdsCount shouldBe 1
+            revSnatCond.getInPortIds(0) shouldBe peerId
+            revSnatCond.getMatchReturnFlow shouldBe true
+            revSnatCond.getNwDstIp.getAddress shouldBe "10.0.0.1"
+            val revSnatNat = revSnatRule.getNatRuleData
+            revSnatNat.getDnat shouldBe false
+        }
     }
 
     private def checkRouterAndPeerPort(nwPortId: UUID, ipAddr: String,
