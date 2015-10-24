@@ -2465,7 +2465,8 @@ class PoolMember(ObjectType):
                                      getter = 'get_admin_state_up',
                                      setter =  'admin_state_up'))
         self.put_attr(EnumAttr(name = 'status',
-                               mappings = {'UP': 'UP', 'DOWN': 'DOWN'},
+                               mappings = {'ACTIVE': 'ACTIVE',
+                                           'INACTIVE': 'INACTIVE'},
                                getter = 'get_status',
                                setter = 'status',
                                writeable = False))
