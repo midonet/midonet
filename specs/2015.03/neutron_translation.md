@@ -195,6 +195,12 @@ If the port is a DHCP port (device_owner == 'network:dhcp'):
  * Remove the metadata route to the DHCP port IP address from the tenant
    router.
 
+If the port is a Router Interface port (device_owner ==
+'network:router_interface'):
+
+ * Delete the SNAT rules created on the tenant router port that match on this
+   port.  These SNAT rules handle VIP/FIP traffic for VMs on the same subnet.
+
 If the port is a Router Gateway port (device_owner == 'network:router_gateway'):
 
  * Delete its peer tenant router port.
@@ -357,6 +363,15 @@ If the port is not on an uplink network:
  * Add a route to the DHCP port for the metadata service.  This route must
    match on the source coming from the provided subnet CIDR, and the
    destination going to the metadata service IP, 169.254.169.254.
+ * Add an SNAT rule with the target IP set to the router port IP address,
+   matching on traffic ingressing into and egressing out of the same router
+   port.  This is useful for VIP and FIP because they need the return flow to
+   come back to the router when the sender and the receiver exist on the same
+   subnet.  Make sure to also exclude metadata traffic since that is the one
+   exceptional case where we do not want this SNAT rule applied even if the
+   traffic ingresses into and egresses out of the same port.  Also add its
+   matching reverse SNAT rule.
+
 
 If the port is on an uplink network, bind the router port according to the
 binding information provided in the Neutron port data.  See the PORT CREATE

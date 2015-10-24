@@ -1260,16 +1260,40 @@ class VipPortTranslationTest extends PortTranslatorTest {
 }
 
 class RouterInterfacePortTranslationTest extends PortTranslatorTest {
+    import PortManager._
+
     protected val deviceId = java.util.UUID.randomUUID
     protected val routerId = UUIDUtil.toProto(deviceId)
+    protected val peerPortId = routerInterfacePortPeerId(portWithPeerId)
+    protected val routerIfPortBase = portBase(portId = portWithPeerId,
+                                              adminStateUp = true)
     protected val routerIfPortIp = IPAddressUtil.toProto("127.0.0.2")
-    protected val routerIfPortUp = nPortFromTxt(portBaseUp + s"""
+    protected val routerIfPort = nPortFromTxt(routerIfPortBase + s"""
         fixed_ips {
             ip_address { $routerIfPortIp }
             subnet_id { $nIpv4Subnet1Id }
         }
         device_owner: ROUTER_INTERFACE
         device_id: "$deviceId"
+        """)
+    protected val preRouteChainId = inChainId(peerPortId)
+    protected val postRouteChainId = outChainId(peerPortId)
+    protected val mTenantRouter = mRouterFromTxt(s"""
+        id { $routerId }
+        inbound_filter_id { $preRouteChainId }
+        outbound_filter_id { $postRouteChainId }
+        """)
+    protected val mBridgePortBaseWithPeer = mPortFromTxt(s"""
+        id { $portWithPeerId }
+        network_id { $networkId }
+        tunnel_key: 1
+        admin_state_up: true
+        """)
+    protected val mRouterPortWithPeer = mPortFromTxt(s"""
+        id { $peerPortId }
+        admin_state_up: true
+        peer_id { $portWithPeerId }
+        router_id: { $routerId }
         """)
 }
 
@@ -1285,24 +1309,27 @@ class RouterInterfacePortCreateTranslationTest
     "Router interface port CREATE" should "create a normal Network port" in {
         bind(networkId, nNetworkBase)
         bind(networkId, mNetworkWithIpv4Subnet)
-        val midoOps = translator.translate(neutron.Create(routerIfPortUp))
-        midoOps should contain only midonet.Create(midoPortBaseUp)
+        val midoOps = translator.translate(neutron.Create(routerIfPort))
+        midoOps should contain only midonet.Create(mBridgePortBaseWithPeer)
     }
 }
 
 @RunWith(classOf[JUnitRunner])
 class RouterInterfacePortUpdateDeleteTranslationTest
         extends RouterInterfacePortTranslationTest {
-    import org.midonet.cluster.services.c3po.translators.PortManager._
+    import RouterInterfaceTranslator._
+
     before {
         initMockStorage()
         translator = new PortTranslator(storage, pathBldr, seqDispenser)
 
         bind(networkId, nNetworkBase)
         bind(nIpv4Subnet1Id, mIpv4Dhcp)
-        bind(portId, midoPortBaseUp)
-        bind(portId, routerIfPortUp)
+        bind(portWithPeerId, midoPortBaseUp)
+        bind(portWithPeerId, routerIfPortUp)
         bind(networkId, midoNetwork)
+        bind(peerPortId, mRouterPortWithPeer)
+        bind(routerId, mTenantRouter)
     }
 
     "Router interface port UPDATE" should "NOT update Port" in {
@@ -1311,13 +1338,17 @@ class RouterInterfacePortUpdateDeleteTranslationTest
      }
 
     "Router interface port DELETE" should "delete both MidoNet Router " +
-    "Interface Network Port and its peer Router Port" in {
+    "Interface Network Port, its peer Router Port and SNAT rules" in {
         bind(portId, routerIfPortUp)
         val midoOps = translator.translate(
-                neutron.Delete(classOf[NeutronPort], portId))
+                neutron.Delete(classOf[NeutronPort], portWithPeerId))
         midoOps should contain only (
-                midonet.Delete(classOf[Port], portId),
-                midonet.Delete(classOf[Port], routerInterfacePortPeerId(portId))
+                midonet.Delete(classOf[Port], portWithPeerId),
+                midonet.Delete(classOf[Port], peerPortId),
+                midonet.Delete(classOf[Rule],
+                               sameSubnetSnatRuleId(preRouteChainId)),
+                midonet.Delete(classOf[Rule],
+                               sameSubnetSnatRuleId(postRouteChainId))
                 )
     }
 }
