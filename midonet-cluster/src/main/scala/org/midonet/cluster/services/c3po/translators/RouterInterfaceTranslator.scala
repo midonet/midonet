@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
 import org.midonet.cluster.models.Topology._
@@ -28,13 +28,27 @@ import org.midonet.cluster.services.c3po.midonet.{Create, Delete, MidoOp, Update
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
 import org.midonet.cluster.util.IPSubnetUtil._
+import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.util.concurrent.toFutureOps
+
+object RouterInterfaceTranslator {
+
+    /** Deterministically generate 'same subnet' SNAT rule ID from chain ID.
+      * 'Same subnet' SNAT is a rule applied to traffic that ingresses in from
+      * and egresses out of the same tenant router port, without ever going to
+      * the uplink.
+      * */
+    def sameSubnetSnatRuleId(chainId: UUID) =
+        chainId.xorWith(0x3bcf2eb64be211e5L, 0x84ae0242ac110003L)
+}
 
 class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
     extends NeutronTranslator[NeutronRouterInterface]
             with ChainManager
-            with PortManager {
+            with PortManager
+            with RuleManager {
+    import RouterInterfaceTranslator._
 
     /* NeutronRouterInterface is a binding information and has no unique ID.
      * We don't persist it in Storage. */
@@ -84,6 +98,16 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
             midoOps ++= createMetadataServiceRoute(
                 rtrPort.getId, nPort.getNetworkId, ns.getCidr)
             midoOps ++= updateGatewayRoutesOps(rtrPort.getPortAddress, ns.getId)
+
+            // Add dynamic SNAT rules and the reverse SNAT on the router chains
+            // so that for any traffic that was DNATed back to the same network
+            // would still work by forcing it to come back to the router.  One
+            // such case is VIP.
+            val rtr = storage.get(classOf[Router], rtrPort.getRouterId).await()
+            midoOps += Create(sameSubnetSnatRule(rtr.getOutboundFilterId,
+                                                 rtrPort))
+            midoOps += Create(sameSubnetRevSnatRule(rtr.getInboundFilterId,
+                                                    rtrPort))
         }
 
         // Need to do these after the update returned by bindPortOps(), since
@@ -93,6 +117,37 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         midoOps += Create(localRoute)
 
         midoOps.toList
+    }
+
+    private def sameSubnetSnatRule(chainId: UUID, port: Port): Rule = {
+        val cond = Condition.newBuilder()
+                .addInPortIds(port.getId)
+                .addOutPortIds(port.getId)
+                .setNwDstIp(RouteManager.META_DATA_SRVC)
+                .setNwDstInv(true)
+                .setMatchForwardFlow(true).build()
+        val natTarget = natRuleData(port.getPortAddress, dnat = false,
+                                    dynamic = true)
+        newRule(chainId)
+                .setId(sameSubnetSnatRuleId(chainId))
+                .setType(Rule.Type.NAT_RULE)
+                .setCondition(cond)
+                .setNatRuleData(natTarget)
+                .setAction(Rule.Action.RETURN).build()
+    }
+
+    private def sameSubnetRevSnatRule(chainId: UUID, port: Port): Rule = {
+        val cond = Condition.newBuilder()
+                .addInPortIds(port.getId)
+                .setNwDstIp(fromAddr(port.getPortAddress))
+                .setMatchReturnFlow(true).build()
+        val natTarget = revNatRuleData(dnat = false)
+        newRule(chainId)
+            .setId(sameSubnetSnatRuleId(chainId))
+            .setType(Rule.Type.NAT_RULE)
+            .setCondition(cond)
+            .setNatRuleData(natTarget)
+            .setAction(Rule.Action.ACCEPT).build()
     }
 
     // Returns operations needed to convert non RIF port to RIF port.
