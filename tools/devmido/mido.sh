@@ -310,6 +310,7 @@ fi
 # Midolman
 # --------
 
+configure_mn "agent.loggers.root" "DEBUG"
 run_process midolman "./gradlew -a :midolman:runWithSudo"
 
 # MidoNet Client
