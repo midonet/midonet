@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_d32b9080",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-25T08:23:13Z",
+      "side": 1,
+      "message": "You\u0027re right, I can use \u0027device_id\u0027 field of the neutron port.",
+      "parentUuid": "9ab29df4_d3047017",
+      "range": {
+        "startLine": 169,
+        "startChar": 34,
+        "endLine": 169,
+        "endChar": 54
+      },
+      "revId": "225376014aee2a17bec7d864c80c75e00aa98458",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_731d6466",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-10-25T08:00:57Z",
       "side": 1,
       "message": "Why is this one RETURN, and the other one ACCEPT?",
+      "range": {
+        "startLine": 136,
+        "startChar": 39,
+        "endLine": 136,
+        "endChar": 45
+      },
+      "revId": "225376014aee2a17bec7d864c80c75e00aa98458",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_f320949d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-25T08:23:13Z",
+      "side": 1,
+      "message": "I was seeking a way to accept but don\u0027t end the chain evaluation. I believe accept stops the evaluation.  But I am still not too sure about the differences between CONTINUE and RETURN. Will verify with agent folks.",
+      "parentUuid": "9ab29df4_731d6466",
       "range": {
         "startLine": 136,
         "startChar": 39,
