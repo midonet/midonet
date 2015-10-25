@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_d3047017",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-25T08:00:57Z",
+      "side": 1,
+      "message": "Doesn\u0027t the NeutronPort have the router ID?\n\nIf not, this is fine, but if so, you could use that instead of fetching the peer port just to get the router ID.",
+      "range": {
+        "startLine": 169,
+        "startChar": 34,
+        "endLine": 169,
+        "endChar": 54
+      },
+      "revId": "225376014aee2a17bec7d864c80c75e00aa98458",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_731d6466",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-25T08:00:57Z",
+      "side": 1,
+      "message": "Why is this one RETURN, and the other one ACCEPT?",
+      "range": {
+        "startLine": 136,
+        "startChar": 39,
+        "endLine": 136,
+        "endChar": 45
+      },
+      "revId": "225376014aee2a17bec7d864c80c75e00aa98458",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
