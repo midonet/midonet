@@ -240,6 +240,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
             val nPort = nPortF.await()
             nPort.hasDeviceOwner shouldBe true
             nPort.getDeviceOwner shouldBe DeviceOwner.COMPUTE
+            nPort.hasDeviceId shouldBe false
 
             val dhcp = dhcpF.await()
             dhcp.getHostsCount shouldBe 1
@@ -257,6 +258,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
             val nPort = storage.get(classOf[NeutronPort], rifPortId).await()
             nPort.hasDeviceOwner shouldBe true
             nPort.getDeviceOwner shouldBe DeviceOwner.ROUTER_INTERFACE
+            nPort.getDeviceId shouldBe UUIDUtil.toProto(routerId).toString
 
             checkRouterAndPeerPort(rifPortId, rifIp, rifMac)
 
@@ -298,6 +300,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         eventually {
             val nPort = storage.get(classOf[NeutronPort], rifPortId).await()
             nPort.hasDeviceOwner shouldBe false
+            nPort.hasDeviceId shouldBe false
         }
 
         createHost(hostId)
@@ -306,6 +309,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
             val nPort = storage.get(classOf[NeutronPort], rifPortId).await()
             nPort.hasDeviceOwner shouldBe true
             nPort.getDeviceOwner shouldBe DeviceOwner.ROUTER_INTERFACE
+            nPort.getDeviceId shouldBe UUIDUtil.toProto(routerId).toString
         }
 
         checkEdgeRouterInterface(rifPortId, hostId, deleteTaskId = 8)

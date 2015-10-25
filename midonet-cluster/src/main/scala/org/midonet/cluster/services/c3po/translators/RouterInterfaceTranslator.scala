@@ -72,7 +72,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         // Convert Neutron/network port to router interface port if it isn't
         // already one.
         if (nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE)
-            midoOps ++= convertPortOps(nPort, isUplink)
+            midoOps ++= convertPortOps(nPort, isUplink, ri.getId)
 
         midoOps += Create(rtrPort)
 
@@ -97,12 +97,14 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
 
     // Returns operations needed to convert non RIF port to RIF port.
     private def convertPortOps(nPort: NeutronPort,
-                               isUplink: Boolean): MidoOpList = {
+                               isUplink: Boolean,
+                               routerId: UUID): MidoOpList = {
         assert(nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE)
 
         val midoOps = new MidoOpListBuffer
         midoOps += Update(nPort.toBuilder
                               .setDeviceOwner(DeviceOwner.ROUTER_INTERFACE)
+                              .setDeviceId(routerId.toString)
                               .build())
 
         // If it's a VIF port, remove chains from the Midonet port. Unless it's
