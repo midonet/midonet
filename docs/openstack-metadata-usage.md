@@ -21,13 +21,38 @@ This feature requires the v2 architecture. (ZOOM)
 
 ### Limitations and known problems
 
-#### Possible address conflicts with hypervisor network
+#### Hypervisor network stack requirement
 
 If enabled, this feature uses 169.254/64 link-local addresses on
-the hypervisor.  Also, it listens on TCP 169.254.169.254:9697 for
-incoming metadata requests.
+the hypervisor.  midolman creates a pseudo network interface named
+"midonet", and assigns the metadata service address (169.254.169.254)
+on it.  Also, it listens on TCP 169.254.169.254:9697 for incoming
+metadata requests.
+
+<pre>
+      guest
+       | 169.254.x.x (NAT'ed)
+       |
+     +-+------+-------------------------+ 169.254.0.0/16
+              |
+              |      (virtual network provided by midolman)
+   - - - - - -|- - - - - - - - - - - - - - - - - - - - - - - - - -
+              |      (hypervisor network)
+              |
+          "metadata" interface
+              | 169.254.169.254
+              | port 9697
+          midolman internal http server
+</pre>
+
 Please make sure that these addresses and ports are not used for
 other purposes on the hypervisor.
+
+Also, please ensure that the above configuration is allowed by
+filtering rules.  For example,
+<pre>
+    # iptables -I INPUT 1 -i metadata -j ACCEPT
+</pre>
 
 #### Guest OS network stack requirement
 
