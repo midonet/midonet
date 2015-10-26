@@ -95,7 +95,8 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
             ) match {
                 case Some(conflictingPort) =>
                     throw new BadRequestHttpException(
-                        getMessage(HOST_INTERFACE_IS_USED))
+                        getMessage(HOST_INTERFACE_IS_USED,
+                                   binding.interfaceName))
                 case _ =>
             }
 
