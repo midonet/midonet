@@ -493,8 +493,15 @@ public class TunnelZoneState {
 
             try {
                 Host host = midoClient.hostsGet(hostConfig.getId());
-                if (!host.getIsAlive())
+                if (host == null) {
+                    log.info("Host {} doesn't exist - found while computing " +
+                             "flooding proxy for tunnel zone {}",
+                             hostConfig.getId(), id);
                     continue;
+                }
+                if (!host.getIsAlive()) {
+                    continue;
+                }
 
                 // TODO (alex): Should we check the host is in the members list?
 
