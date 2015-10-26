@@ -52,7 +52,7 @@ object L2InsertionTranslation {
         val inFilter = if (!port.hasL2InsertionInfilter()) {
             val chain: Chain = Chain.newBuilder()
                 .setId(UUID.randomUUID.asProto)
-                .setName("InboundRedirect" + port.getId.toString).build
+                .setName("InboundRedirect" + port.getId.asJava.toString).build
             ops = ops :+ CreateOp(chain)
             portBuilder.setL2InsertionInfilter(chain.getId)
             chain
@@ -61,7 +61,7 @@ object L2InsertionTranslation {
         val outFilter = if (!port.hasL2InsertionOutfilter()) {
             val chain = Chain.newBuilder()
                 .setId(UUID.randomUUID.asProto)
-                .setName("OutboundRedirect" + port.getId.toString).build
+                .setName("OutboundRedirect" + port.getId.asJava.toString).build
             ops = ops :+ CreateOp(chain)
             portBuilder.setL2InsertionOutfilter(chain.getId)
             chain
