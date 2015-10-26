@@ -90,16 +90,12 @@ extends ClusterMinion(nodeCtx) {
     // decide whether we need a new VxLAN Gateway manager.
     private var networkSub: Subscription = _
 
-    // Watch hosts and tunnel zones in order to discover flooding proxies
-    private val hostsState = new HostStatePublisher(dataClient, zkConnWatcher)
-    private val tzState = new TunnelZoneStatePublisher(dataClient,
-                                                       zkConnWatcher,
-                                                       hostsState,
-                                                       new Random())
-
-    // VTEP controllers
-    private val vteps = new VtepPool(nodeCtx.nodeId, dataClient, zkConnWatcher,
-                                     tzState, vtepDataClientFactory)
+    // VTEP controllers, lazy initialized when starting the service, not before.
+    // No need to make them volatile as the three points where they are used
+    // after assigning are single-threaded.
+    private var hostsState: HostStatePublisher = _
+    private var tzState: TunnelZoneStatePublisher = _
+    private var vteps: VtepPool = _
 
     // An observer that bootstraps a new VxLAN Gateway service whenever a
     // neutron network that has bindings to hardware VTEP(s) is created.
@@ -238,6 +234,14 @@ extends ClusterMinion(nodeCtx) {
 
     override def doStart(): Unit = {
         log.info("Starting service")
+
+        // Watch hosts and tunnel zones in order to discover flooding proxies
+        hostsState = new HostStatePublisher(dataClient, zkConnWatcher)
+        tzState = new TunnelZoneStatePublisher(dataClient, zkConnWatcher,
+                                               hostsState, new Random())
+        vteps = new VtepPool(nodeCtx.nodeId, dataClient, zkConnWatcher,
+                             tzState, vtepDataClientFactory)
+
         leaderLatch.addListener(latchListener)
         leaderLatch.start()
         notifyStarted()
@@ -250,6 +254,12 @@ extends ClusterMinion(nodeCtx) {
             networkSub.unsubscribe()
         }
         managers.values().foreach { _.terminate() }
+        if (hostsState != null) {
+            hostsState.dispose()
+        }
+        if (tzState != null) {
+            tzState.dispose()
+        }
     }
 
     override def doStop(): Unit = {

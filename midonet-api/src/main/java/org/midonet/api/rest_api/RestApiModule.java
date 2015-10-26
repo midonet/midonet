@@ -17,6 +17,7 @@ package org.midonet.api.rest_api;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ public class RestApiModule extends AbstractModule {
         install(new FactoryModuleBuilder().build(ResourceFactory.class));
 
         bind(RestApiService.class).asEagerSingleton();
-        bind(VxlanGatewayService.class).asEagerSingleton();
+        bind(VxlanGatewayService.class).in(Singleton.class);
 
         log.debug("configure: exiting.");
     }
