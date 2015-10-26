@@ -84,4 +84,4 @@ fi
 
 echo "$DESC_NORMAL with $FOR_UNIT changes relevant for unit tests and $FOR_MDTS for mdts"
 test "$FOR_UNIT" -gt 0 && echo "$FULL_BUILD"
-test "$FOR_UNIT" -gt 0 && echo "$FULL_MDTS"
+test "$FOR_MDTS" -gt 0 && echo "$FULL_MDTS"
