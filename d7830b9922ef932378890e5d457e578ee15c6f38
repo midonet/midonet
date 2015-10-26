@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_563e8eb9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-26T07:11:18Z",
+      "side": 1,
+      "message": "So, from the slack conversation, we have this rule setup in the router:\n\nJUMP to FWaaS chain -\u003e NAT rule1, -\u003e NAT rule2, -\u003e NAT rule3\n\n\nIf I understand correctly, the CONTINUE rule is wanted here because we want to apply DNAT and SNAT on the same packet.\n\nMy guess is this is going to be OK for our topology but I think it\u0027s a bit brittle.\n\nI\u0027ll explain myself: in general you do *not* want SNAT rules to be affected in their workflow by DNAT rules (except in that SNAT rules should match packets as they were modified by DNAT rules). Therefore, under the rule organization above, all DNAT rules should be CONTINUE and they should be placed *before* SNAT rules. (because, conceptually, DNAT must happen before routing while SNAT should get applied after routing, close to the router port that would appear to have the SNAT address.\n\nSo, in my opinion, this is somewhat brittle because:\n\n* While you want to do DNAT + SNAT on the same packet. You don\u0027t want to do SNAT twice or DNAT twice on the same packet (at least not on the same virtual device). Thus, all DNAT rules should be RETURN rules and be isolated in the same chain, and the same should apply to SNAT rules (and, likely, be done in post-routing). Since we are not doing that, it\u0027s too easy to add two SNAT or two DNAT rules that will both match the same packet.\n\n* It\u0027s not clear to me what view of traffic is the FWaaS chain supposed to see or which one it gets in reality. But I\u0027d double check that this view is actually consistent for all traffic directions. It looks like it\u0027s not seeing traffic as the routing table sees it, which is counter-intuitive.",
+      "revId": "d7830b9922ef932378890e5d457e578ee15c6f38",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
