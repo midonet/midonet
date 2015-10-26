@@ -46,6 +46,47 @@
       "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_5c922d58",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-26T17:59:00Z",
+      "side": 1,
+      "message": "Yes, traffic is blocked as soon as iptables returns so it is safe to remove this sleep.",
+      "parentUuid": "9ab29df4_7ee293d6",
+      "range": {
+        "startLine": 113,
+        "startChar": 3,
+        "endLine": 113,
+        "endChar": 17
+      },
+      "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_bc88a923",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-26T17:59:00Z",
+      "side": 1,
+      "message": "Isn\u0027t it easier to just do something like:\ntimeout \u003d 20\nwhile (timeout \u003e 0):\n    ....\n    timeout -\u003d 1\n    time.sleep(1)",
+      "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
