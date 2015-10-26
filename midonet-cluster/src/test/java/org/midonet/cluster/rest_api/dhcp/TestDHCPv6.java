@@ -24,11 +24,13 @@ import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.rest_api.models.ErrorEntity;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoDhcpSubnet6;
 import org.midonet.client.dto.DtoDhcpV6Host;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -100,7 +102,7 @@ public class TestDHCPv6 extends JerseyTest {
     }
 
     @Test
-    public void testSubnetCreateGetListDelete() {
+    public void testSubnetCreateUpdateGetListDelete() {
         ClientResponse response;
 
         // Create a subnet
@@ -161,6 +163,27 @@ public class TestDHCPv6 extends JerseyTest {
         response = resource().uri(subnet1.getUri())
                 .accept(APPLICATION_DHCPV6_SUBNET_JSON()).get(ClientResponse.class);
         assertEquals(404, response.getStatus());
+
+        // Delete a non-existing subnet
+        response = resource().uri(subnet1.getUri())
+            .delete(ClientResponse.class);
+        assertEquals(404, response.getStatus());
+        String expectedMsg = MessageProperty.getMessage(
+            MessageProperty.NETWORK_SUBNET_NOT_FOUND, bridge.getId(),
+            subnet1.getPrefix() + "_" + subnet1.getPrefixLength());
+        ErrorEntity error = response.getEntity(ErrorEntity.class);
+        assertEquals(expectedMsg, error.getMessage());
+
+        // Update a non-existing subnet
+        response = resource().uri(subnet1.getUri())
+            .type(APPLICATION_DHCPV6_SUBNET_JSON())
+            .put(ClientResponse.class, subnet1);
+        assertEquals(404, response.getStatus());
+        expectedMsg = MessageProperty.getMessage(
+            MessageProperty.NETWORK_SUBNET_NOT_FOUND, bridge.getId(),
+            subnet1.getPrefix() + "_" + subnet1.getPrefixLength());
+        error = response.getEntity(ErrorEntity.class);
+        assertEquals(expectedMsg, error.getMessage());
     }
 
     @Test
@@ -275,6 +298,12 @@ public class TestDHCPv6 extends JerseyTest {
                             .post(ClientResponse.class, host1);
         assertEquals(Response.Status.CONFLICT.getStatusCode(),
                      response.getStatus());
+        String expectedMsg = MessageProperty
+            .getMessage(MessageProperty.SUBNET_HAS_HOST, subnet.getPrefix() +
+                        "/" + subnet.getPrefixLength(), bridge.getId(),
+                        host1.getFixedAddress());
+        ErrorEntity error = response.getEntity(ErrorEntity.class);
+        assertEquals(expectedMsg, error.getMessage());
 
         // Try again, this time using an UPDATE operation.
         response =resource().uri(host1.getUri())
@@ -310,5 +339,23 @@ public class TestDHCPv6 extends JerseyTest {
                 hosts, arrayWithSize(1));
         assertThat("The listed hosts should be the one that wasn't deleted.",
                 hosts, arrayContainingInAnyOrder(host2));
+
+        // Delete a non-existing host.
+        response = resource().uri(host1.getUri()).delete(ClientResponse.class);
+        assertEquals(404, response.getStatus());
+        expectedMsg = MessageProperty
+            .getMessage(MessageProperty.NETWORK_SUBNET_NOT_FOUND,
+                        bridge.getId(),
+                        subnet.getPrefix() + "/" + subnet.getPrefixLength());
+        error = response.getEntity(ErrorEntity.class);
+        assertEquals(expectedMsg, error.getMessage());
+
+        // Update a non-existing host.
+        response = resource().uri(host1.getUri())
+            .type(APPLICATION_DHCPV6_HOST_JSON())
+            .put(ClientResponse.class, host1);
+        assertEquals(404, response.getStatus());
+        error = response.getEntity(ErrorEntity.class);
+        assertEquals(expectedMsg, error.getMessage());
     }
 }

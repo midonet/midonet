@@ -33,7 +33,9 @@ import org.midonet.client.dto.DtoDhcpHost;
 import org.midonet.client.dto.DtoDhcpOption121;
 import org.midonet.client.dto.DtoDhcpSubnet;
 import org.midonet.client.dto.DtoExtraDhcpOpt;
+import org.midonet.cluster.rest_api.models.ErrorEntity;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -172,7 +174,7 @@ public class TestDHCP extends JerseyTest {
     }
 
     @Test
-    public void testSubnetCreateGetListDelete() {
+    public void testSubnetCreateUpdateGetListDelete() {
         ClientResponse response;
 
         // Create a subnet
@@ -235,6 +237,26 @@ public class TestDHCP extends JerseyTest {
         response = resource().uri(subnet1.getUri())
                 .accept(APPLICATION_DHCP_SUBNET_JSON_V2()).get(ClientResponse.class);
         assertEquals(404, response.getStatus());
+
+        // Delete a non-existing subnet.
+        response = resource().uri(subnet1.getUri())
+            .delete(ClientResponse.class);
+        assertEquals(404, response.getStatus());
+        String expectedMsg = MessageProperty
+            .getMessage(MessageProperty.NETWORK_SUBNET_NOT_FOUND,
+                        bridge.getId(),
+                        subnet1.getSubnetPrefix() + "_" +
+                        subnet1.getSubnetLength());
+        ErrorEntity error = response.getEntity(ErrorEntity.class);
+        assertEquals(expectedMsg, error.getMessage());
+
+        // Update a non-existing subnet.
+        response = resource().uri(subnet1.getUri())
+            .type(APPLICATION_DHCP_SUBNET_JSON_V2())
+            .put(ClientResponse.class, subnet1);
+        assertEquals(404, response.getStatus());
+        error = response.getEntity(ErrorEntity.class);
+        assertEquals(expectedMsg, error.getMessage());
     }
 
     @Test
@@ -425,6 +447,11 @@ public class TestDHCP extends JerseyTest {
                 .type(APPLICATION_DHCP_HOST_JSON_V2())
                 .post(ClientResponse.class, host1);
         assertEquals(409, response.getStatus());
+        String expectedMsg = MessageProperty.getMessage(
+            MessageProperty.SUBNET_HAS_HOST, "172.31.0.0/24", bridge.getId(),
+            host1.getMacAddr());
+        ErrorEntity error = response.getEntity(ErrorEntity.class);
+        assertEquals(expectedMsg, error.getMessage());
 
         // Try again, this time using an UPDATE operation.
         response =resource().uri(host1.getUri())
@@ -461,5 +488,24 @@ public class TestDHCP extends JerseyTest {
                 hosts, arrayWithSize(1));
         assertThat("The listed hosts should be the one that wasn't deleted.",
                 hosts, arrayContainingInAnyOrder(host2));
+
+        // Delete a non-existing host.
+        response = resource().uri(host1.getUri()).delete(ClientResponse.class);
+        assertEquals(404, response.getStatus());
+        expectedMsg = MessageProperty
+            .getMessage(MessageProperty.NETWORK_SUBNET_NOT_FOUND,
+                        bridge.getId(),
+                        subnet.getSubnetPrefix() + "/" +
+                        subnet.getSubnetLength());
+        error = response.getEntity(ErrorEntity.class);
+        assertEquals(expectedMsg, error.getMessage());
+
+        // Update a non-existing host.
+        response = resource().uri(host1.getUri())
+            .type(APPLICATION_DHCP_HOST_JSON_V2())
+            .put(ClientResponse.class, host1);
+        assertEquals(404, response.getStatus());
+        error = response.getEntity(ErrorEntity.class);
+        assertEquals(expectedMsg, error.getMessage());
     }
 }
