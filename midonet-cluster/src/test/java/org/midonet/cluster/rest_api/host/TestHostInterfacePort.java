@@ -54,7 +54,9 @@ import org.midonet.midolman.state.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_INTERFACE_IS_USED;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_IS_NOT_IN_ANY_TUNNEL_ZONE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.PORT_ALREADY_BOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
@@ -231,10 +233,12 @@ public class TestHostInterfacePort {
             mapping = new DtoHostInterfacePort();
             mapping.setPortId(port2.getId());
             mapping.setInterfaceName("eth0");
-            dtoResource.postAndVerifyBadRequest(
-                    host.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_JSON(),
-                    mapping);
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                host.getPorts(),
+                APPLICATION_HOST_INTERFACE_PORT_JSON(),
+                mapping);
+            assertErrorMatchesLiteral(error,
+                getMessage(HOST_INTERFACE_IS_USED, "eth0"));
 
         }
 
@@ -265,11 +269,12 @@ public class TestHostInterfacePort {
             mapping = new DtoHostInterfacePort();
             mapping.setPortId(port1.getId());
             mapping.setInterfaceName("eth1");
-            dtoResource.postAndVerifyBadRequest(
+            DtoError error = dtoResource.postAndVerifyBadRequest(
                 host.getPorts(),
                 APPLICATION_HOST_INTERFACE_PORT_JSON(),
                 mapping);
-
+            assertErrorMatchesLiteral(error,
+                getMessage(PORT_ALREADY_BOUND, port1.getId()));
         }
 
         @Test
