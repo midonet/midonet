@@ -2,12 +2,13 @@
 #
 # Recommends targets for CI based on the last commit's contents.
 #
+# This script will examine the changes made by HEAD and, based on on
+# them, recommend a set of targets for Unit, MDTS and Tempest tests.
+# Note that the script will *not* verify correctness of the patch.
+#
 # Usage:
 #
 # ./what_ci_targets.sh (debian|rpm)
-#
-# Where:
-# - DIST is the target distribution when packaging, defaults to debian
 #
 # Outputs at most two lines explaning the right targets for unit and
 # MDTS tests.
@@ -28,8 +29,12 @@
 # When the :mdts line is ommitted, we don't consider MDTS tests
 # necessary for HEAD.
 #
-# Users may execute the script, drop the :gradle or :mdts tag, and pass
-# the remainder of each line to the ./gradlew or
+# A third tag :tempest will indicate whether Tempest tests are
+# recommended to verify HEAD.
+#
+# Users may execute the script, drop the :gradle / :mdts / :tempest tag,
+# and pass the remainder of each line to the ./gradlew or
+#
 # ./tests/mdts/functional_tests/run_tests.sh executables.
 
 DIST=$1
@@ -51,14 +56,15 @@ FAST_BUILD=":gradle clean assemble testClasses midonet-util:test $DIST"
 FULL_BUILD=":gradle clean build $DIST"
 FULL_MDTS=":mdts"
 FAST_MDTS=":mdts -t test_bridge:test_icmp"
+FULL_TEMPEST=":tempest"
 
 # Various regexes matching files that don't require unit/integration tests
-REGEX_FOR_UNIT='^(python-midonetclient|docs|misc|tools/devmido|specs|LICENSE|DEVELOPMENT.md|README.md|what_ci_targets.sh)'
-REGEX_FOR_MDTS='^(docs|misc|tools/devmido|specs|LICENSE|DEVELOPMENT.md|README.md|what_ci_targets.sh)'
+REGEX_FOR_UNIT='^(python-midonetclient|docs|misc|tools/devmido|specs|LICENSE|DEVELOPMENT.md|README.md|what_ci_targets)'
+REGEX_FOR_MDTS='^(docs|misc|tools/devmido|specs|LICENSE|DEVELOPMENT.md|README.md|what_ci_targets)'
 
 # How many unit-test relevant files are changed in this patch
-FOR_UNIT=`git diff-tree --no-commit-id --name-only -r HEAD | grep -v -E '$REGEX_FOR_UNIT' | wc -l | xargs`
-FOR_MDTS=`git diff-tree --no-commit-id --name-only -r HEAD | grep -v -E '$REGEX_FOR_MDTS' | wc -l | xargs`
+FOR_UNIT=`git diff-tree --no-commit-id --name-only -r HEAD | grep -Ev "$REGEX_FOR_UNIT" | wc -l | xargs`
+FOR_MDTS=`git diff-tree --no-commit-id --name-only -r HEAD | grep -Ev "$REGEX_FOR_MDTS" | wc -l | xargs`
 
 let TOTAL="$FOR_UNIT + $FOR_MDTS"
 if [ "$TOTAL" == 0 ]
@@ -68,12 +74,14 @@ then
     exit 0
 fi
 
-if [ "$TOTAL" == "1" ] && [ $(git diff-tree --no-commit-id --name-only -r HEAD build.gradle) ]
+if [ "$FOR_UNIT" == "1" ] && [ $(git diff-tree --no-commit-id --name-only -r HEAD build.gradle) ]
 then
   # Only 1 relevant file has changes, but it's build.gradle, let's ensure that
   # we're just doing a version bump
-  LINES_CHANGED=`git diff HEAD~1 build.gradle | grep -E "^\+ " | wc -l | xargs`
-  if [ "$LINES_CHANGED" == "1" ] && [ -z $(git diff HEAD~1 build.gradle | grep -E "^\+ " | grep -v midonetVersion) ]
+  LINES_REMOVED=`git diff HEAD~1 build.gradle | grep -E "^\- " | wc -l | xargs`
+  LINES_ADDED=`git diff HEAD~1 build.gradle | grep -E "^\+ " | wc -l | xargs`
+  CHANGE=`git diff HEAD~1 build.gradle | grep -E "^\+ " | grep -v midonetVersion`
+  if [ "$LINES_REMOVED" == "1" ] && [ "$LINES_CHANGED" == "1" ] && [ "x$CHANGE" == "x" ]
   then
     echo "$DESC_VER_BUMP"
     echo "$FAST_BUILD"
@@ -84,4 +92,5 @@ fi
 
 echo "$DESC_NORMAL with $FOR_UNIT changes relevant for unit tests and $FOR_MDTS for mdts"
 test "$FOR_UNIT" -gt 0 && echo "$FULL_BUILD"
-test "$FOR_UNIT" -gt 0 && echo "$FULL_MDTS"
+test "$FOR_MDTS" -gt 0 && echo "$FULL_MDTS"
+test "$FOR_MDTS" -gt 0 && echo "$FULL_TEMPEST"
