@@ -22,6 +22,30 @@
       "revId": "8f5809db2cbc7cffdbacf54c57479a86ef432206",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_566a0e1b",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/jaxrs/WildcardJacksonJaxbJsonProvider.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-26T11:29:38Z",
+      "side": 1,
+      "message": "I agree it\u0027s not a common path of exec, my main reasoning against info is that this is not a message that users would find any useful. Debug seems better for a support/dev audience. What do you think?",
+      "parentUuid": "9ab29df4_b65e0ae8",
+      "range": {
+        "startLine": 84,
+        "startChar": 16,
+        "endLine": 84,
+        "endChar": 21
+      },
+      "revId": "8f5809db2cbc7cffdbacf54c57479a86ef432206",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
