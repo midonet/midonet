@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_b98fdb22",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/L2InsertionTranslation.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-10-26T16:20:30Z",
+      "side": 1,
+      "message": "already been merged in master without. Better to keep them consistent between versions.",
+      "parentUuid": "9ab29df4_1604167a",
+      "range": {
+        "startLine": 55,
+        "startChar": 41,
+        "endLine": 55,
+        "endChar": 42
+      },
+      "revId": "9ef1cbb5c387e04966b9d54e24515526b391a913",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_36f83a7c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/L2InsertionTranslation.scala",
         "patchSetId": 1
