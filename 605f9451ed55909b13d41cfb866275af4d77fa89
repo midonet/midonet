@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ab29df4_9c74c5fe",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-26T19:01:19Z",
+      "side": 1,
+      "message": "Should we add another test that does exactly the same BUT also checking that agents stop working after the timeout expires? Something like:\n- check ping works\n- sabotage connection ZK\n- check ping works for 20s\n- wait 20 more seconds (just to be safe)\n- check ping does not work (meaning agents have been completely partitioned)\n- recover connection with ZK\n- check ping works again",
+      "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_b817e350",
         "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
         "patchSetId": 4
