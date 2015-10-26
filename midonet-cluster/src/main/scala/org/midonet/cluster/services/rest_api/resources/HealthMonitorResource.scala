@@ -16,14 +16,13 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.UUID
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.Response
-import javax.ws.rs.core.Response.Status
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
+
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.HealthMonitor
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -43,22 +42,6 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, O
 @AllowDelete
 class HealthMonitorResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[HealthMonitor](resContext) {
-
-    @DELETE
-    @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = {
-        try {
-            val response = super.delete(id)
-            if (response.getStatus == Status.NOT_FOUND.getStatusCode)
-                MidonetResource.OkNoContentResponse
-            else
-                response
-        } catch {
-            case e: WebApplicationException
-                if e.getResponse.getStatus == Status.NOT_FOUND.getStatusCode =>
-                    MidonetResource.OkNoContentResponse
-        }
-    }
 
     @Path("{id}/pools")
     def pools(@PathParam("id") id: UUID): HealthMonitorPoolResource = {
