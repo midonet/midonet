@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_b65e0ae8",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/jaxrs/WildcardJacksonJaxbJsonProvider.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-26T09:11:27Z",
+      "side": 1,
+      "message": "Is debug really appropriate for this? Do we expect to go through this branch in the course of normal execution?",
+      "range": {
+        "startLine": 84,
+        "startChar": 16,
+        "endLine": 84,
+        "endChar": 21
+      },
+      "revId": "8f5809db2cbc7cffdbacf54c57479a86ef432206",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
