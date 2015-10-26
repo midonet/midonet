@@ -170,21 +170,6 @@ class DatapathChannelTest extends MidolmanSpec {
                 nlChannel.packetsWritten.get() should be (3)
             }
         }
-
-        scenario ("Can recover from errors") {
-            val bigEthernet =
-                { eth src MAC.random() dst MAC.random() } <<
-                { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
-                payload(new Array[Byte](16 * 1024))
-            val bigPacket = new Packet(bigEthernet,
-                                       FlowMatches.fromEthernetPacket(bigEthernet))
-
-            intercept[BufferOverflowException] {
-                dpChannel.executePacket(bigPacket, actions)
-            }
-
-            ringBuffer.getCursor should be (0)
-        }
     }
 
     private def flowMatchParser(buf: ByteBuffer): FlowMatch = {
