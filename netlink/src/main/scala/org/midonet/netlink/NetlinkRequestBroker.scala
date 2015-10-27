@@ -226,9 +226,9 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
             val pos = position(seq)
             val buf = buffers(pos)
             try {
+                expirations(pos) = clock.tick + timeoutNanos
                 buf.putInt(buf.position() + NetlinkMessage.NLMSG_SEQ_OFFSET, pos)
                 nbytes += writer.write(buf)
-                expirations(pos) = clock.tick + timeoutNanos
             } catch { case e: Throwable =>
                 val obs = observers(pos)
                 freeObserver(pos)
@@ -321,7 +321,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
     }
 
     private def timedOut(pos: Int, currentTime: Long): Boolean =
-        if (currentTime > expirations(pos)) {
+        if (currentTime - expirations(pos) > 0) {
             val obs = observers(pos)
             freeObserver(pos)
             obs.onError(timeoutException)
