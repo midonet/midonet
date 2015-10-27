@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_2da54553",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HealthMonitorResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-27T14:40:37Z",
+      "side": 1,
+      "message": "this changes the API return code, it should return Ok to allow idempotent deletes",
+      "revId": "34a90405948cbe777a1658fdd6b9a81923e88e5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_edf34d71",
+        "filename": "midonet-cluster/src/test/java/org/midonet/cluster/rest_api/e2e/TestHealthMonitor.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-27T14:40:37Z",
+      "side": 1,
+      "message": "should be OK",
+      "range": {
+        "startLine": 111,
+        "startChar": 12,
+        "endLine": 111,
+        "endChar": 39
+      },
+      "revId": "34a90405948cbe777a1658fdd6b9a81923e88e5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
