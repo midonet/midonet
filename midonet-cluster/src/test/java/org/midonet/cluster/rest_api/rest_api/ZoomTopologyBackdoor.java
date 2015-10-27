@@ -197,6 +197,16 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
     }
 
     @Override
+    public Topology.Host getHost(UUID hostId) {
+        try {
+            return Await.result(backend.store().get(Topology.Host.class,
+                                                    hostId), TIMEOUT);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get host" + hostId);
+        }
+    }
+
+    @Override
     public void delVirtualPortMapping(UUID hostId, UUID portId) {
         try {
 
@@ -211,11 +221,6 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
         } catch (Exception e) {
             throw new RuntimeException("Failed to remove vrn port mapping");
         }
-    }
-
-    @Override
-    public void setHostVersion(UUID hostId) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

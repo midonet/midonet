@@ -65,6 +65,10 @@ public class Host extends UriResource {
     @JsonIgnore
     public List<UUID> portIds;
 
+    @ZoomField(name = "tunnel_zone_ids", converter = UUIDUtil.Converter.class)
+    @JsonIgnore
+    public List<UUID> tunnelZoneIds;
+
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.HOSTS, id);
