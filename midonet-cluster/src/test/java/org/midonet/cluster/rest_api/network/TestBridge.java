@@ -77,7 +77,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_MAC_PORT_COLLECTION_JSON_V2;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_MAC_PORT_JSON_V2;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 
 @RunWith(Enclosed.class)
 public class TestBridge {
@@ -242,7 +242,7 @@ public class TestBridge {
         private DtoBridgePort addTrunkPort(DtoBridge bridge) {
             DtoBridgePort port = new DtoBridgePort();
             port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
-                    APPLICATION_PORT_V2_JSON(), port, DtoBridgePort.class);
+                    APPLICATION_PORT_V3_JSON(), port, DtoBridgePort.class);
             assertNotNull(port.getId());
             return port;
         }
@@ -252,7 +252,7 @@ public class TestBridge {
             DtoBridgePort port = new DtoBridgePort();
             port.setVlanId(vlanId);
             port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
-                    APPLICATION_PORT_V2_JSON(), port, DtoBridgePort.class);
+                    APPLICATION_PORT_V3_JSON(), port, DtoBridgePort.class);
             assertNotNull(port.getId());
             return port;
         }

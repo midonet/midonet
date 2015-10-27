@@ -104,7 +104,7 @@ public class TestRoute {
                     .fromString("372b0040-12ae-11e1-be50-0800200c9a66"));
 
             response = resource().uri(router.getPorts())
-                    .type(APPLICATION_PORT_V2_JSON())
+                    .type(APPLICATION_PORT_V3_JSON())
                     .post(ClientResponse.class, port);
             assertEquals(201, response.getStatus());
             log.debug("location: {}", response.getLocation());

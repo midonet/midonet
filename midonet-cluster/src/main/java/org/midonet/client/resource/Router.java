@@ -29,7 +29,7 @@ import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTE_COLLECTION_JSON;
 
@@ -109,7 +109,7 @@ public class Router extends ResourceBase<Router, DtoRouter> {
         return getChildResources(
                 principalDto.getPorts(),
                 queryParams,
-                APPLICATION_PORT_V2_COLLECTION_JSON(),
+                APPLICATION_PORT_V3_COLLECTION_JSON(),
                 RouterPort.class,
                 DtoRouterPort.class);
     }
@@ -133,7 +133,7 @@ public class Router extends ResourceBase<Router, DtoRouter> {
                 .get(principalDto.getPeerPorts(),
                         queryParams,
                         DtoPort[].class,
-                        APPLICATION_PORT_V2_COLLECTION_JSON());
+                        APPLICATION_PORT_V3_COLLECTION_JSON());
 
         for (DtoPort pp : dtoPeerPorts) {
             if (pp instanceof DtoRouterPort) {

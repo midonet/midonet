@@ -15,7 +15,7 @@
  */
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.UUID;
+import java.util.UUID
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
@@ -197,7 +197,7 @@ class TestL2Insertion extends FeatureSpec
 
             insertion.failOpen = true
             response = l2Resource
-                .uri(response.getLocation())
+                .uri(response.getLocation)
                 .`type`(APPLICATION_L2INSERTION_JSON)
                 .put(classOf[ClientResponse], insertion)
             response.getStatusInfo
@@ -232,7 +232,7 @@ class TestL2Insertion extends FeatureSpec
                             PbTopo.Rule.Type.JUMP_RULE)
             ensureRuleCount(srvPort0.getL2InsertionOutfilter, 0)
 
-            response = l2Resource.uri(response.getLocation())
+            response = l2Resource.uri(response.getLocation)
                 .delete(classOf[ClientResponse])
             response.getStatusInfo
                 .getStatusCode shouldBe Status.NO_CONTENT.getStatusCode
@@ -314,7 +314,7 @@ class TestL2Insertion extends FeatureSpec
             val portId0 = topology.getBridgePort(Port0).getId
             val srvPortId0 = topology.getBridgePort(ServicePort0).getId
             val insertion = createInsertion(portId0, srvPortId0)
-            var response = l2Resource.`type`(APPLICATION_L2INSERTION_JSON)
+            val response = l2Resource.`type`(APPLICATION_L2INSERTION_JSON)
                 .post(classOf[ClientResponse], insertion)
             response.getStatusInfo
                 .getStatusCode shouldBe Status.CREATED.getStatusCode
@@ -326,12 +326,12 @@ class TestL2Insertion extends FeatureSpec
 
             val portResource = jerseyTest.resource().path(
                 ResourceUris.PORTS + "/" + portId0)
-            val port0 = portResource.accept(APPLICATION_PORT_V2_JSON)
+            val port0 = portResource.accept(APPLICATION_PORT_V3_JSON)
                 .get(classOf[Port])
             port0.setBaseUri(jerseyTest.resource()
-                                 .path(ResourceUris.PORTS).getURI())
+                                 .path(ResourceUris.PORTS).getURI)
             port0.interfaceName = "foobar"
-            portResource.`type`(APPLICATION_PORT_V2_JSON)
+            portResource.`type`(APPLICATION_PORT_V3_JSON)
                 .put(port0)
 
             port0dev = fetchDevice(classOf[PbTopo.Port], portId0)
@@ -346,12 +346,12 @@ class TestL2Insertion extends FeatureSpec
 
             val srvPortResource = jerseyTest.resource().path(
                 ResourceUris.PORTS + "/" + srvPortId0)
-            val srvPort0 = srvPortResource.accept(APPLICATION_PORT_V2_JSON)
+            val srvPort0 = srvPortResource.accept(APPLICATION_PORT_V3_JSON)
                 .get(classOf[Port])
             srvPort0.setBaseUri(jerseyTest.resource()
-                                    .path(ResourceUris.PORTS).getURI())
+                                    .path(ResourceUris.PORTS).getURI)
             srvPort0.interfaceName = "srvfoobar"
-            srvPortResource.`type`(APPLICATION_PORT_V2_JSON)
+            srvPortResource.`type`(APPLICATION_PORT_V3_JSON)
                 .put(srvPort0)
 
             srvPort0dev = fetchDevice(classOf[PbTopo.Port], srvPortId0)
@@ -363,6 +363,6 @@ class TestL2Insertion extends FeatureSpec
 
 }
 
-class FuncJerseyTest extends JerseyTest(FuncTest.getBuilder().build()) {
-    override def getBaseURI = super.getBaseURI()
+class FuncJerseyTest extends JerseyTest(FuncTest.getBuilder.build()) {
+    override def getBaseURI = super.getBaseURI
 }

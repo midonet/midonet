@@ -72,8 +72,8 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_HAS_B
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_COLLECTION_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_BINDING_JSON_V2;
@@ -368,9 +368,9 @@ public class TestVtep extends RestApiTestBase {
         assertEquals(1, bindings.length);
         assertThat(bindings, arrayContainingInAnyOrder(bdg2));
         dtoResource.getAndVerifyNotFound(vxlanPort1.getUri(),
-                                         APPLICATION_PORT_V2_JSON());
+                                         APPLICATION_PORT_V3_JSON());
         dtoResource.getAndVerifyOk(vxlanPort2.getUri(),
-                                   APPLICATION_PORT_V2_JSON(),
+                                   APPLICATION_PORT_V3_JSON(),
                                    DtoVxLanPort.class);
         br1 = getBridge(br1.getId());
         assertTrue(br1.getVxLanPortIds().isEmpty());
@@ -380,7 +380,7 @@ public class TestVtep extends RestApiTestBase {
 
         deleteBinding(bdg2.getUri());
         dtoResource.getAndVerifyNotFound(vxlanPort2.getUri(),
-                                         APPLICATION_PORT_V2_JSON());
+                                         APPLICATION_PORT_V3_JSON());
 
         br2 = getBridge(br2.getId());
         assertTrue(br2.getVxLanPortIds().isEmpty());
@@ -614,7 +614,7 @@ public class TestVtep extends RestApiTestBase {
         p.setBaseUri(app.getUri());
         p.id = bridge1.getVxLanPortIds().get(0);
         dtoResource.deleteAndVerifyError(p.getUri(),
-                                         APPLICATION_PORT_V2_JSON(),
+                                         APPLICATION_PORT_V3_JSON(),
                                          CONFLICT.getStatusCode());
         bindings = listBindings(vtep);
         assertThat(bindings, arrayContainingInAnyOrder(br1bi1, br1bi2,
@@ -634,7 +634,7 @@ public class TestVtep extends RestApiTestBase {
                                       0, bridge.getId()));
 
         DtoBridgePort[] bridgePorts = dtoResource.getAndVerifyOk(
-            bridge.getPorts(), APPLICATION_PORT_V2_COLLECTION_JSON(),
+            bridge.getPorts(), APPLICATION_PORT_V3_COLLECTION_JSON(),
             DtoBridgePort[].class);
         assertThat(bridgePorts, arrayContainingInAnyOrder(bridgePort));
     }
@@ -758,14 +758,14 @@ public class TestVtep extends RestApiTestBase {
         bindings = listBindings(vtep);
         assertThat(bindings, arrayContainingInAnyOrder(binding2));
         dtoResource.getAndVerifyOk(vxlanPort.getUri(),
-                                   APPLICATION_PORT_V2_JSON(),
+                                   APPLICATION_PORT_V3_JSON(),
                                    DtoVxLanPort.class);
 
         vxlanPort = getVxLanPort(vxlanPort.getId()); // should exist
 
         deleteBinding(binding2.getUri());
         dtoResource.getAndVerifyNotFound(vxlanPort.getUri(),
-                                         APPLICATION_PORT_V2_JSON());
+                                         APPLICATION_PORT_V3_JSON());
 
         bindings = listBindings(vtep);
         assertEquals(0, bindings.length);
