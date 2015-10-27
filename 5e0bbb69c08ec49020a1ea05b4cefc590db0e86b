@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_e8a09bf6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-27T16:05:05Z",
+      "side": 1,
+      "message": "rename to bindingExists?",
+      "range": {
+        "startLine": 213,
+        "startChar": 16,
+        "endLine": 213,
+        "endChar": 40
+      },
+      "revId": "5e0bbb69c08ec49020a1ea05b4cefc590db0e86b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_28ab73d9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-27T16:05:05Z",
+      "side": 1,
+      "message": "Should this exception really be thrown? The condition under which it is thrown differs from before (the network id may be different now).",
+      "range": {
+        "startLine": 224,
+        "startChar": 12,
+        "endLine": 229,
+        "endChar": 65
+      },
+      "revId": "5e0bbb69c08ec49020a1ea05b4cefc590db0e86b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
