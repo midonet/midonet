@@ -104,6 +104,24 @@
       "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c22658ba",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-10-27T07:34:44Z",
+      "side": 1,
+      "message": "Because we wait for the ping everytime and if in whatever circumstances the average delay of the ping is higher than 500 milliseconds (time.sleep should be accurate on linux) the total waiting time will be over 30 seconds and that makes it another test case.\n\nCan change it to a counter if you prefer that.",
+      "parentUuid": "9ab29df4_bc88a923",
+      "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
