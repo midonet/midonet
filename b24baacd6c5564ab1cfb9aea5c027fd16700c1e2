@@ -22,6 +22,52 @@
       "revId": "b24baacd6c5564ab1cfb9aea5c027fd16700c1e2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_42c40892",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-10-27T09:03:12Z",
+      "side": 1,
+      "message": "I might be wrong, but just thinking about it off the top of my head, I think a change to a different part of the build.gradle file that happened to have \"midonetVersion\" added would also count as a \"version bump only\" change with this grep.\n\nSo, \n\n  - \u0027rhelTarget \u003d \"7\"\n  + \u0027rhelTarget \u003d \"midonetVersion \u003d \"5.0.0-rc6\"\"\n\n(or anything similar) seems like it might still miss the full check.\n\nBasically we are checking that + and - are the same (so it\u0027s a single change, not an add or remove) and that the added portion has \"midonetVersion\" in it, but not checking that the removed portion also had midonetVersion in it.\n\nAgain, this is a very unhappy-path edge case, but I\u0027ve seen stranger things happen with vi and fat fingers before. :)  Should be caught in code review, sure, but just in the name of completeness...",
+      "range": {
+        "startLine": 83,
+        "startChar": 2,
+        "endLine": 83,
+        "endChar": 80
+      },
+      "revId": "b24baacd6c5564ab1cfb9aea5c027fd16700c1e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e2d51c44",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-10-27T09:03:12Z",
+      "side": 1,
+      "message": "Should this be LINES_ADDED?",
+      "range": {
+        "startLine": 84,
+        "startChar": 40,
+        "endLine": 84,
+        "endChar": 53
+      },
+      "revId": "b24baacd6c5564ab1cfb9aea5c027fd16700c1e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
