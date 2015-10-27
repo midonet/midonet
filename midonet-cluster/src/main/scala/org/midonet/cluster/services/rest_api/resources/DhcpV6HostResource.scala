@@ -28,7 +28,9 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet6, DhcpV6Host}
+import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.packets.IPv6Subnet
@@ -67,6 +69,11 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
             .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
     }
 
+    private def subnetNotFoundResp: Response =
+        buildErrorResponse(Status.NOT_FOUND,
+                           getMessage(NETWORK_SUBNET_NOT_FOUND, bridgeId,
+                                      subnetAddress))
+
     @POST
     @Consumes(Array(APPLICATION_DHCPV6_HOST_JSON,
                     APPLICATION_JSON))
@@ -75,7 +82,9 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
     : Response = {
         getSubnet(subnetAddress).map(_.map(subnet => {
             if (subnet.dhcpHosts.asScala.exists(_.clientId == host.clientId)) {
-                Response.status(Status.CONFLICT).build()
+                val msg = getMessage(SUBNET_HAS_HOST, subnetAddress,
+                                     bridgeId, host.fixedAddress)
+                buildErrorResponse(Status.CONFLICT, msg)
             } else {
                 host.setBaseUri(subnet.getUri)
                 subnet.dhcpHosts.add(host)
@@ -83,7 +92,7 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
             }
         }))
             .getOrThrow
-            .getOrElse(Response.status(Status.NOT_FOUND).build())
+            .getOrElse(subnetNotFoundResp)
     }
 
     @PUT
@@ -106,7 +115,7 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
                 })
         }))
             .getOrThrow
-            .getOrElse(Response.status(Status.NOT_FOUND).build())
+            .getOrElse(subnetNotFoundResp)
     }
 
     @DELETE
@@ -122,7 +131,7 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
 
         }))
             .getOrThrow
-            .getOrElse(Response.status(Status.NOT_FOUND).build())
+            .getOrElse(subnetNotFoundResp)
     }
 
     private def getSubnet(subnetAddress: IPv6Subnet)

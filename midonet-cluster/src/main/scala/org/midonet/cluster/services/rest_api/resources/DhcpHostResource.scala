@@ -119,7 +119,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
                 })
         }))
             .getOrThrow
-            .getOrElse(Response.status(Status.NOT_FOUND).build())
+            .getOrElse(subnetNotFoundResp)
     }
 
     @DELETE
@@ -135,7 +135,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
 
         }))
             .getOrThrow
-            .getOrElse(Response.status(Status.NOT_FOUND).build())
+            .getOrElse(subnetNotFoundResp)
     }
 
     private def getSubnet(subnetAddress: IPv4Subnet)

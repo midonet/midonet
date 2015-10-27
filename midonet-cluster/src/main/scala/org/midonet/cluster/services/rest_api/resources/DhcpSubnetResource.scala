@@ -28,8 +28,10 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api.annotation.AllowCreate
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet}
+import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 import org.midonet.packets.IPv4Subnet
@@ -63,6 +65,11 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
             .asJava
     }
 
+    private def subnetNotFoundResp(subnetAddr: String): Response =
+        buildErrorResponse(Status.NOT_FOUND,
+                           getMessage(NETWORK_SUBNET_NOT_FOUND, bridgeId,
+                                      subnetAddr))
+
     @PUT
     @Path("{subnetAddress}")
     @Consumes(Array(APPLICATION_DHCP_SUBNET_JSON_V2,
@@ -76,7 +83,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
             updateResource(subnet)
         }))
             .getOrThrow
-            .getOrElse(Response.status(Status.NOT_FOUND).build())
+            .getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
     @DELETE
@@ -87,7 +94,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
             deleteResource(classOf[DhcpSubnet], subnet.id)
         }))
             .getOrThrow
-            .getOrElse(Response.status(Status.NOT_FOUND).build())
+            .getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
     @Path("{subnetAddress}/hosts")
