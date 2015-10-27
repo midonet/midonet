@@ -32,7 +32,7 @@ object WakerUpper {
      * has conditions to be unparked.
      */
     trait Parkable {
-        private var thread: Thread = _
+        protected var thread: Thread = _
 
         final def park(retries: Int = 200): Int = {
             var remainingRetries = retries
@@ -64,11 +64,14 @@ object WakerUpper {
         protected def doPark(): Unit =
             LockSupport.park()
 
-        protected[WakerUpper] def doUnpark(): Unit = {
+        private[WakerUpper] def unpark(): Unit = {
             val t = thread
             if (t ne null)
                 LockSupport.unpark(t)
         }
+
+        protected[WakerUpper] def doUnpark(t: Thread): Unit =
+            LockSupport.unpark(t)
 
         /**
          * This function tells the WakerUpper whether the blocked thread should
@@ -83,7 +86,7 @@ object WakerUpper {
         override protected def doPark(): Unit =
             selector.select()
 
-        override protected[WakerUpper] def doUnpark(): Unit =
+        override protected[WakerUpper] def doUnpark(t: Thread): Unit =
             selector.wakeup()
     }
 
@@ -128,7 +131,7 @@ object WakerUpper {
                     //   3) We remove the WaitContext from the array, and
                     //      won't ever wake up the thread.
                     waiters.set(i, null)
-                    ctx.doUnpark()
+                    ctx.unpark()
                 }
             } catch { case ignored: Throwable => }
             i += 1
