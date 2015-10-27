@@ -338,6 +338,13 @@ abstract class MidonetResource[T >: Null <: UriResource]
         }
     }
 
+    protected def getResources[U >: Null <: UriResource](clazz: Class[U], ids: Seq[Any])
+    : Future[Seq[U]] = {
+        backend.store.getAll(UriResource.getZoomClass(clazz), ids).map { r =>
+            r.map(fromProto(_, clazz))
+        }
+    }
+
     protected def getResourceState[U >: Null <: UriResource](host: String,
                                                              clazz: Class[U],
                                                              id: Any, key: String)

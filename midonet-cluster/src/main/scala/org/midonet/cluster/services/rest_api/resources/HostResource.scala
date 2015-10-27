@@ -20,6 +20,7 @@ import java.util.UUID
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
+import javax.ws.rs.core.Response.Status
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -31,11 +32,13 @@ import com.google.protobuf.TextFormat
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.SingleValueKey
 import org.midonet.cluster.models.State
+import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api.annotation.{ApiResource, AllowGet, AllowList}
-import org.midonet.cluster.rest_api.models.{Host, HostState, Interface}
+import org.midonet.cluster.rest_api.models.{TunnelZone, Host, HostState, Interface}
+import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkResponse, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
 @ApiResource(version = 1)
 @Path("hosts")
@@ -51,13 +54,25 @@ class HostResource @Inject()(resContext: ResourceContext)
     @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = {
         if (isAlive(id)) {
-            return Response.status(Response.Status.FORBIDDEN).build()
+            return buildErrorResponse(
+                Status.FORBIDDEN,
+                getMessage(HOST_DELETION_NOT_ALLOWED_ACTIVE, id))
         }
         val host = getResource(classOf[Host], id).getOrThrow
         if ((host.portIds ne null) && !host.portIds.isEmpty) {
-            return Response.status(Response.Status.FORBIDDEN).build()
+            return buildErrorResponse(
+                Status.FORBIDDEN,
+                getMessage(HOST_DELETION_NOT_ALLOWED_BINDINGS,
+                           id, Integer.valueOf(host.portIds.size())))
         }
-        deleteResource(classOf[Host], id)
+        val tunnelZones = getResources(classOf[TunnelZone],
+                                       host.tunnelZoneIds.asScala).getOrThrow
+        var ops = for (tunnelZone <- tunnelZones) yield {
+            tunnelZone.removeHost(host.id)
+            Update(tunnelZone).asInstanceOf[Multi]
+        }
+        ops = ops :+ Delete(classOf[Host], id)
+        multiResource(ops)
     }
 
     @PUT
@@ -75,8 +90,9 @@ class HostResource @Inject()(resContext: ResourceContext)
                 current.floodingProxyWeight = host.floodingProxyWeight
                 updateResource(current, OkResponse)
             } else {
-                log.warn("Tried to set flooding proxy weight to null value")
-                Response.status(Response.Status.BAD_REQUEST).build()
+                buildErrorResponse(
+                    Status.BAD_REQUEST,
+                    getMessage(HOST_FLOODING_PROXY_WEIGHT_IS_NULL))
             }
         ).getOrThrow
     }
