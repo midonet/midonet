@@ -46,7 +46,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_PORT_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_RULE_JSON_V2;
 
 public class TestPortGroup extends JerseyTest {
@@ -132,7 +132,7 @@ public class TestPortGroup extends JerseyTest {
         // PortGroups
         DtoBridgePort port = new DtoBridgePort();
         port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
-                APPLICATION_PORT_V2_JSON(), port, DtoBridgePort.class);
+                APPLICATION_PORT_V3_JSON(), port, DtoBridgePort.class);
         assertEquals("Bridge1", bridge.
             getName());
         assertEquals(bridge.getId(), port.getDeviceId());

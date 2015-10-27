@@ -38,7 +38,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_LOAD_BALANCER_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TENANT_COLLECTION_JSON_V2;
 
@@ -271,7 +271,7 @@ public class Topology {
                 }
 
                 obj = resource.postAndVerifyCreated(r.getPorts(),
-                    APPLICATION_PORT_V2_JSON(), entry.getValue(),
+                    APPLICATION_PORT_V3_JSON(), entry.getValue(),
                     DtoRouterPort.class);
                 entry.setValue(obj);
             }
@@ -301,7 +301,7 @@ public class Topology {
                 }
 
                 obj = resource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_V2_JSON(), entry.getValue(),
+                    APPLICATION_PORT_V3_JSON(), entry.getValue(),
                     DtoBridgePort.class);
                 entry.setValue(obj);
             }

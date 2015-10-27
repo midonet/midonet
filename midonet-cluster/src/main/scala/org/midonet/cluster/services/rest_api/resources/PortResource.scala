@@ -69,7 +69,6 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
 
     private def setActive(port: P): Unit = {
         port.active = isActive(port)
-        port
     }
 
     private def setBgpStatus(port: P): Unit = {
@@ -102,11 +101,11 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
 @ApiResource(version = 1)
 @Path("ports")
 @RequestScoped
-@AllowGet(Array(APPLICATION_PORT_V2_JSON,
+@AllowGet(Array(APPLICATION_PORT_V3_JSON,
                 APPLICATION_JSON))
-@AllowList(Array(APPLICATION_PORT_V2_COLLECTION_JSON,
+@AllowList(Array(APPLICATION_PORT_V3_COLLECTION_JSON,
                  APPLICATION_JSON))
-@AllowUpdate(Array(APPLICATION_PORT_V2_JSON,
+@AllowUpdate(Array(APPLICATION_PORT_V3_JSON,
                    APPLICATION_JSON))
 @AllowDelete
 class PortResource @Inject()(resContext: ResourceContext)
@@ -162,9 +161,9 @@ class PortResource @Inject()(resContext: ResourceContext)
 }
 
 @RequestScoped
-@AllowList(Array(APPLICATION_PORT_V2_COLLECTION_JSON,
+@AllowList(Array(APPLICATION_PORT_V3_COLLECTION_JSON,
                  APPLICATION_JSON))
-@AllowCreate(Array(APPLICATION_PORT_V2_JSON,
+@AllowCreate(Array(APPLICATION_PORT_V3_JSON,
                    APPLICATION_JSON))
 class BridgePortResource @Inject()(bridgeId: UUID,
                                    resContext: ResourceContext)
@@ -225,9 +224,9 @@ class BridgePortResource @Inject()(bridgeId: UUID,
 }
 
 @RequestScoped
-@AllowList(Array(APPLICATION_PORT_V2_COLLECTION_JSON,
+@AllowList(Array(APPLICATION_PORT_V3_COLLECTION_JSON,
                  APPLICATION_JSON))
-@AllowCreate(Array(APPLICATION_PORT_V2_JSON,
+@AllowCreate(Array(APPLICATION_PORT_V3_JSON,
                    APPLICATION_JSON))
 class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
     extends AbstractPortResource[RouterPort](resContext) {
@@ -256,7 +255,7 @@ class BridgePeerPortResource @Inject()(bridgeId: UUID,
     extends AbstractPortResource[Port](resContext) {
 
     @GET
-    @Produces(Array(APPLICATION_PORT_V2_COLLECTION_JSON,
+    @Produces(Array(APPLICATION_PORT_V3_COLLECTION_JSON,
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String): JList[Port] = {
         val bridge = getResource(classOf[Bridge], bridgeId).getOrThrow
@@ -274,7 +273,7 @@ class BridgeVxlanPortResource @Inject()(bridgeId: UUID,
     extends AbstractPortResource[Port](resContext) {
 
     @GET
-    @Produces(Array(APPLICATION_PORT_V2_COLLECTION_JSON,
+    @Produces(Array(APPLICATION_PORT_V3_COLLECTION_JSON,
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String): JList[Port] = {
         val bridge = getResource(classOf[Bridge], bridgeId).getOrThrow
@@ -289,7 +288,7 @@ class RouterPeerPortResource @Inject()(routerId: UUID,
     extends AbstractPortResource[Port](resContext) {
 
     @GET
-    @Produces(Array(APPLICATION_PORT_V2_COLLECTION_JSON,
+    @Produces(Array(APPLICATION_PORT_V3_COLLECTION_JSON,
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String): JList[Port] = {
         val router = getResource(classOf[Router], routerId).getOrThrow
