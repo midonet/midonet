@@ -71,7 +71,15 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.TUNNEL_ZON
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_HAS_BINDINGS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.*;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_BINDING_JSON_V2;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_COLLECTION_JSON_V2;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_JSON_V2;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_PORT_COLLECTION_JSON;
 import static org.midonet.cluster.util.SequenceDispenser.VxgwVni$;
 import static org.midonet.southbound.vtep.mock.MockOvsdbVtep.physPortNames;
 
@@ -476,15 +484,18 @@ public class TestVtep extends RestApiTestBase {
                            vtep.getManagementPort(), "blah");
     }
 
-    // The same port/vlan pair on the same vtep should not be used by two
-    // midonet networks.
+    /* The same port/vlan pair on the same vtep should not be allowed.
+     * However, we do allow idempotent binding creation (the same
+     * binding can be POSTed twice and will result in a single binding)
+     */
     @Test
     public void testAddConflictingBinding() {
-        DtoBridge bridge = postBridge("network1");
+        DtoBridge bridge1 = postBridge("network1");
         DtoBridge bridge2 = postBridge("network2");
         DtoVtep vtep = postVtep();
-        postBinding(vtep, makeBinding(vtep.getId(), physPortNames().get(0),
-                                      3, bridge.getId()));
+        DtoVtepBinding b1 = addAndVerifyBinding(vtep, bridge1.getId(),
+                                                physPortNames().get(0), 3);
+
         DtoError err = postBindingWithError(vtep,
                                             makeBinding(vtep.getId(),
                                                         physPortNames().get(0),
@@ -492,11 +503,18 @@ public class TestVtep extends RestApiTestBase {
                                             CONFLICT);
         assertErrorMatches(err, VTEP_PORT_VLAN_PAIR_ALREADY_USED,
                            vtep.getManagementIp(), vtep.getManagementPort(),
-                           physPortNames().get(0), 3, bridge.getId());
+                           physPortNames().get(0), 3, bridge1.getId());
 
         // Ensure that the second bridge didn't keep a vxlan port
         bridge2 = getBridge(bridge2.getId());
         assertTrue((bridge2.getVxLanPortIds().isEmpty()));
+
+        DtoVtepBinding b2 = postBinding(vtep,
+                                        makeBinding(vtep.getId(),
+                                                    physPortNames().get(0), 3,
+                                                    bridge1.getId()));
+
+        assertEquals(b1, b2);
     }
 
     @Test
