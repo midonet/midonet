@@ -22,7 +22,7 @@ import scala.collection.mutable.ListBuffer
 
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{NeutronFirewall, FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
 import org.midonet.cluster.services.c3po.neutron
@@ -49,6 +49,12 @@ object PortTranslator {
 
     private[c3po] def antiSpoofChainJumpRuleId(portId: UUID) =
         portId.xorWith(0x4bcef582eeae45acL, 0xb0304fc7e7b3ba0dL)
+
+    private def egressGwChainName(portId: UUID) =
+        "OS_GW_PORT_" + UUIDUtil.fromProto(portId) + "_INBOUND"
+
+    private def ingressGwChainName(portId: UUID) =
+        "OS_GW_PORT_" + UUIDUtil.fromProto(portId) + "_OUTBOUND"
 }
 
 class PortTranslator(protected val storage: ReadOnlyStorage,
@@ -88,6 +94,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val portId = nPort.getId
         val midoOps = new MidoOpListBuffer
         val portContext = initPortContext
+
         if (isVifPort(nPort)) {
             // Generate in/outbound chain IDs from Port ID.
             midoPortBldr.setInboundFilterId(inChainId(portId))
@@ -116,6 +123,32 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                               portContext.midoDhcps,
                               addDhcpServer)
             midoOps ++= configureMetaDataService(nPort)
+        } else if (isRouterGatewayPort(nPort)) {
+            // Generate in/outbound chain IDs from Port ID.
+            midoPortBldr.setInboundFilterId(inChainId(portId))
+            midoPortBldr.setOutboundFilterId(outChainId(portId))
+
+            // Attach FW chains to the in/outbound chains if they exist
+            val rtrId = toProto(nPort.getDeviceId)
+            val inFwRuleId = FirewallTranslator.inChainFwJumpRuleId(rtrId)
+            val inJumpRuleIds = if (storage.exists(classOf[Rule],
+                                                   inFwRuleId).await())
+                Seq(inFwRuleId) else Seq()
+            val inChain = newChain(midoPortBldr.getInboundFilterId,
+                                   egressGwChainName(portId),
+                                   ruleIds = inJumpRuleIds,
+                                   jumpRuleIds = inJumpRuleIds)
+
+            val outFwRuleId = FirewallTranslator.outChainFwJumpRuleId(rtrId)
+            val outJumpRuleIds = if (storage.exists(classOf[Rule],
+                                                    outFwRuleId).await())
+                Seq(outFwRuleId) else Seq()
+            val outChain = newChain(midoPortBldr.getOutboundFilterId,
+                                    ingressGwChainName(portId),
+                                    ruleIds = outJumpRuleIds,
+                                    jumpRuleIds = outJumpRuleIds)
+
+            portContext.chains += (Create(inChain), Create(outChain))
         }
 
         addMidoOps(portContext, midoOps)

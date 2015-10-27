@@ -28,8 +28,11 @@ import org.midonet.cluster.util.UUIDUtil
  * Contains rule-related operations shared by multiple translators.
  */
 trait RuleManager {
-    protected def newRule(chainId: UUID): Rule.Builder =
-        Rule.newBuilder().setChainId(chainId).setId(UUIDUtil.randomUuidProto)
+    protected def newRule(chainId: UUID): Rule.Builder = {
+        val bldr = Rule.newBuilder()
+        if (chainId != null) bldr.setChainId(chainId)
+        bldr.setId(UUIDUtil.randomUuidProto)
+    }
 
     protected def returnFlowRule(chainId: UUID): Rule =
         newRule(chainId)

@@ -136,6 +136,10 @@ If the port is a DHCP port (device_owner == 'network:dhcp'):
  * Add a metadata route on the router that the network of this port is linked
    to where the next hop gateway IP is set to the first IP address of the port.
 
+If port is a gateway port (device_owner == 'network:router_gateway'):
+
+ * Create new outbound and inbound chains for the port
+
 For all port types, if there is a binding information included in the Neutron
 port data, perform the binding.  The binding information are as follows:
 
@@ -796,10 +800,11 @@ and the firewall rules are included.
 
 Create two MidoNet chains for the firewall with deterministic IDs generated
 from the firewall ID.  One chain will be used for the inbound (pre-routing) and
-the other for the outbound (post-routing) chains of the routers that the
+the other for the outbound (post-routing) chains of the router ports that the
 firewall is associated with.
 
-On the pre-routing chain, add the following rules in the order specified:
+On the router uplink port inbound chain, add the following rules in the order
+specified:
 
  * Return rule matching on everything if admin_state_up is false.  An
    alternative approach would have been to not add any rule when admin_state_up
@@ -824,7 +829,8 @@ On the pre-routing chain, add the following rules in the order specified:
 
  * Rule dropping all traffic.
 
-On the post-routing chain, add the following rules in the order specified:
+On the router uplink outbound chain, add the following rules in the order
+specified:
 
    * Return rule matching on everything if admin_state_up is false.
    * Rule matching on the forward flow to start connection tracking.
@@ -832,11 +838,8 @@ On the post-routing chain, add the following rules in the order specified:
 'add-router-ids' field contains a list of router IDs that the firewall is
 currently associated with.
 
-For each router associated, create jump rules to the firewall chains.  On the
-pre-routing chain of the router, insert the jump rule at index 0 so that the
-firewall rules are evaluated before the NAT rules that may also exist.  On the
-post-routing chain of the router, insert the jump rule at the end for no other
-reason than to be symmetric.
+For each router associated, find the uplink port and create jump rules to the
+firewall chains.
 
 
 ### UPDATE
@@ -853,11 +856,8 @@ currently associated with.  It may contain IDs of the router that the firewall
 is already associated with, so when adding a new router-firewall association
 rule, make sure to check that they are not already associated.
 
-For each router associated, create jump rules to the firewall chains.  On the
-pre-routing chain of the router, insert the jump rule at index 0 so that the
-firewall rules are evaluated before the NAT rules that may also exist.  On the
-post-routing chain of the router, insert the jump rule at the end for no other
-reason than to be symmetric.
+For each router associated, find the uplink port and create jump rules to the
+firewall chains.
 
 'del-router-ids' field contains a list of router IDs that the firewall is
 disassociated with from the update request.  For the routers disassociated,
