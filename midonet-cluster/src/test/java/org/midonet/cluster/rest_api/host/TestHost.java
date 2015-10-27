@@ -28,21 +28,24 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.cluster.rest_api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
-import org.midonet.cluster.rest_api.rest_api.FuncTest;
-import org.midonet.cluster.rest_api.rest_api.Topology;
-import org.midonet.cluster.rest_api.rest_api.TopologyBackdoor;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoInterface;
 import org.midonet.client.dto.DtoPort;
+import org.midonet.client.dto.DtoTunnelZone;
+import org.midonet.client.dto.DtoTunnelZoneHost;
+import org.midonet.client.dto.TunnelZoneType;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.cluster.rest_api.ForbiddenHttpException;
+import org.midonet.cluster.rest_api.ResourceUriBuilder;
+import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
+import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.Topology;
+import org.midonet.cluster.rest_api.rest_api.TopologyBackdoor;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.CoreMatchers.allOf;
@@ -66,6 +69,9 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_INTERFACE_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
 
 public class TestHost extends JerseyTest {
 
@@ -470,6 +476,23 @@ public class TestHost extends JerseyTest {
         };
         topologyBackdoor.createHost(hostId, hostName, addrs);
 
+        // Add the host to a tunnel zone
+        DtoTunnelZone tz = new DtoTunnelZone();
+        tz.setName("test");
+        tz.setType(TunnelZoneType.GRE);
+        URI tzUri = topology.getApplication().getTunnelZones();
+        tz = dtoResource.postAndVerifyCreated(tzUri,
+                                              APPLICATION_TUNNEL_ZONE_JSON(),
+                                              tz, DtoTunnelZone.class);
+
+        DtoTunnelZoneHost tzh = new DtoTunnelZoneHost();
+        tzh.setHostId(hostId);
+        tzh.setIpAddress("127.0.0.1");
+        tzh.setTunnelZoneId(tz.getId());
+        dtoResource.postAndVerifyCreated(tz.getHosts(),
+                                         APPLICATION_TUNNEL_ZONE_HOST_JSON(),
+                                         tzh, DtoTunnelZoneHost.class);
+
         ResourceCollection<Host> hosts = api.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
@@ -488,6 +511,12 @@ public class TestHost extends JerseyTest {
 
         assertThat("Host should have been removed from ZooKeeper.",
                    topologyBackdoor.getHostIds(), not(contains(hostId)));
+
+        DtoTunnelZoneHost[] tzhs = dtoResource.getAndVerifyOk(tz.getHosts(),
+                              APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON(),
+                              DtoTunnelZoneHost[].class);
+
+        assertEquals("The tunnel zone membership was removed", 0, tzhs.length);
     }
 
     @Test

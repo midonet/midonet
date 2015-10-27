@@ -72,8 +72,8 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_HAS_B
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_COLLECTION_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_COLLECTION_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_VTEP_BINDING_JSON_V2;
