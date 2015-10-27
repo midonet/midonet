@@ -23,21 +23,13 @@ import java.util.UUID;
 
 import com.google.inject.Inject;
 
-import org.midonet.nsdb.ConfigWithProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
-import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.packets.IPAddr$;
-import org.midonet.util.functors.Functors;
+import org.midonet.nsdb.ConfigWithProperties;
 
 /**
  * Class to manage the router ZooKeeper data.
@@ -57,15 +49,6 @@ public class IpAddrGroupZkManager extends
     /**
      * Initializes a IpAddrGroupZkManager object with a ZooKeeper client and the
      * root path of the ZooKeeper directory.
-     *
-     * @param zk
-     *         Zk data access class
-     * @param paths
-     *         PathBuilder class to construct ZK paths
-     * @param serializer
-     *         ZK data serialization class
-     * @versionProvider
-     *         Provides versioning information
      */
     @Inject
     public IpAddrGroupZkManager(ZkManager zk, PathBuilder paths,
@@ -130,24 +113,8 @@ public class IpAddrGroupZkManager extends
         return configs;
     }
 
-    public boolean isMember(UUID groupId, String addr)
-            throws StateAccessException {
-        addr = IPAddr$.MODULE$.canonicalize(addr);
-        return zk.exists(paths.getIpAddrGroupAddrPath(groupId, addr));
-    }
-
     public Set<String> getAddrs(UUID id) throws StateAccessException {
         return zk.getChildren(paths.getIpAddrGroupAddrsPath(id));
-    }
-
-    public void getAddrsAsync(UUID ipAddrGroupId,
-                              DirectoryCallback<Set<String>> addrsCallback,
-                              Directory.TypedWatcher watcher) {
-        zk.asyncGetChildren(
-            paths.getIpAddrGroupAddrsPath(ipAddrGroupId),
-            DirectoryCallbackFactory.transform(
-                addrsCallback, Functors.<Set<String>>identity()),
-            watcher);
     }
 
 }

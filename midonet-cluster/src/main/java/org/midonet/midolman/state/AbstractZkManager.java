@@ -15,28 +15,18 @@
  */
 package org.midonet.midolman.state;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Action1;
-
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.nsdb.BaseConfig;
-import org.midonet.midolman.state.zkManagers.ConfigGetter;
-import org.midonet.util.functors.Functor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.zkManagers.ConfigGetter;
+import org.midonet.nsdb.BaseConfig;
 
 /**
  *  Extends BaseZkManager with common key-value operations needed by
@@ -56,25 +46,6 @@ public abstract class AbstractZkManager<K, CFG>
 
     protected final static Logger log =
             LoggerFactory.getLogger(AbstractZkManager.class);
-
-    protected static final Functor<Set<String>, Map<UUID, UUID>>
-        splitStrSetToUuidUuidMap =
-            new Functor<Set<String>, Map<UUID, UUID>>() {
-                @Override
-                public Map<UUID, UUID> apply(Set<String> keys) {
-                    Map<UUID, UUID> map = new HashMap<UUID, UUID>(keys.size());
-                    for (String name : keys) {
-                        String[] items = name.split("_");
-                        if (items.length < 2) {
-                            throw new IllegalArgumentException(
-                                    "Invalid input, cannot split " + name);
-                        }
-                        map.put(UUID.fromString(items[0]),
-                                UUID.fromString(items[1]));
-                    }
-                    return map;
-                }
-            };
 
     /**
      * Constructor.
@@ -102,27 +73,6 @@ public abstract class AbstractZkManager<K, CFG>
      * object for deserialization.
      */
     protected abstract Class<CFG> getConfigClass();
-
-    /**
-     * Creates an operation for storing the specified CONFIG with the
-     * specified KEY. Does not create or otherwise affect any other
-     * nodes.
-     */
-    protected Op simpleCreateOp(K key, CFG config)
-            throws SerializationException {
-        return Op.create(getConfigPath(key), serializer.serialize(config),
-                         ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    }
-
-    /**
-     * Creates an operation for updating the node for the specified
-     * specified KEY with the data of the specified CONFIG. Does
-     * not create, update, or otherwise affect any other nodes.
-     */
-    protected Op simpleUpdateOp(K key, CFG config)
-            throws SerializationException {
-        return Op.setData(getConfigPath(key), serializer.serialize(config), -1);
-    }
 
     public boolean exists(K key) throws StateAccessException {
         return zk.exists(getConfigPath(key));
@@ -185,38 +135,4 @@ public abstract class AbstractZkManager<K, CFG>
         return configs;
     }
 
-    /**
-     * Gets the config for the specified resource ID asynchronously.
-     *
-     * @param callback Receives the config when available.
-     * @param watcher Optional watcher to be notified of a future update.
-     */
-    public void getAsync(final K key,
-                         DirectoryCallback<CFG> callback,
-                         Directory.TypedWatcher watcher) {
-        getAsync(getConfigPath(key), getConfigClass(), callback, watcher);
-    }
-
-    public Observable<CFG> getWithObservable(final K key) {
-        return getWithObservable(key, null);
-    }
-
-    public Observable<CFG> getWithObservable(final K key,
-            final Directory.TypedWatcher watcher) {
-        return Observable.create(new Observable.OnSubscribe<CFG>() {
-                    public void call(final Subscriber<? super CFG> sub) {
-                        getAsync(getConfigPath(key),
-                                 getConfigClass(),
-                                 DirectoryCallbackFactory.wrap(sub),
-                                 watcher);
-                    }
-            }).doOnNext(new Action1<CFG>() {
-                    @Override
-                    public void call(CFG config) {
-                        if (config instanceof BaseConfig && key instanceof UUID) {
-                            ((BaseConfig)config).id = (UUID)key;
-                        }
-                    }
-                });
-    }
 }

@@ -38,18 +38,11 @@ import org.midonet.packets.IPv6Subnet;
 
 public class BridgeDhcpV6ZkManager extends BaseZkManager {
 
-    private static final Logger log = LoggerFactory
-        .getLogger(BridgeDhcpV6ZkManager.class);
-
     public static class Subnet6 {
         IPv6Subnet prefix;
 
         /* Default constructor for deserialization. */
         public Subnet6() {
-        }
-
-        public Subnet6(IPv6Subnet prefix) {
-            this.prefix = prefix;
         }
 
         public IPv6Subnet getPrefix() {
@@ -142,7 +135,7 @@ public class BridgeDhcpV6ZkManager extends BaseZkManager {
             throws StateAccessException {
         Set<String> prefixStrings = zk.getChildren(
                 paths.getBridgeDhcpV6Path(bridgeId), null);
-        List<IPv6Subnet> prefixes = new ArrayList<IPv6Subnet>();
+        List<IPv6Subnet> prefixes = new ArrayList<>();
         for (String prefixStr : prefixStrings)
             prefixes.add(IPv6Subnet.fromString(prefixStr));
         return prefixes;
@@ -155,17 +148,11 @@ public class BridgeDhcpV6ZkManager extends BaseZkManager {
         return serializer.deserialize(data, Host.class);
     }
 
-    public boolean existsHost(UUID bridgeId, IPv6Subnet prefix, String clientId)
-            throws StateAccessException {
-        return zk.exists(paths.getBridgeDhcpV6HostPath(
-                bridgeId, prefix, clientId));
-    }
-
     public List<Host> getHosts(UUID bridgeId, IPv6Subnet prefix)
             throws StateAccessException, SerializationException {
         Set<String> clientIds = zk.getChildren(
                 paths.getBridgeDhcpV6HostsPath(bridgeId, prefix));
-        List<Host> hosts = new ArrayList<Host>();
+        List<Host> hosts = new ArrayList<>();
         for (String clientId : clientIds)
             hosts.add(getHost(bridgeId, prefix, clientId));
         return hosts;
