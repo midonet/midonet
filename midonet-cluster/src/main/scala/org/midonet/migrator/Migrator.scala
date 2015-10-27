@@ -402,13 +402,13 @@ object Migrator extends App {
                 case bp: BridgePort =>
                     log.info("Migrating " + p)
                     val resp = resources.bridges.ports(bp.bridgeId)
-                        .create(bp, APPLICATION_PORT_V2_JSON)
+                        .create(bp, APPLICATION_PORT_V3_JSON)
                     handleResponse(resp)
                     migratedPorts += p.id
                 case rp: RouterPort =>
                     log.info("Migrating " + p)
                     val resp = resources.routers.ports(rp.routerId)
-                        .create(rp, APPLICATION_PORT_V2_JSON)
+                        .create(rp, APPLICATION_PORT_V3_JSON)
                     handleResponse(resp)
                     migratedPorts += p.id
                 case vp: VxLanPort =>

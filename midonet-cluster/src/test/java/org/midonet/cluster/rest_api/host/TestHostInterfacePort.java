@@ -59,7 +59,7 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_INTERFACE_PORT_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_JSON;
 
@@ -337,7 +337,7 @@ public class TestHostInterfacePort {
             port.setPortAddress("10.0.0.1");
             DtoRouterPort resPort =
                     dtoResource.postAndVerifyCreated(resRouter.getPorts(),
-                            APPLICATION_PORT_V2_JSON(),
+                            APPLICATION_PORT_V3_JSON(),
                             port, DtoRouterPort.class);
 
             // Get the host DTO.
