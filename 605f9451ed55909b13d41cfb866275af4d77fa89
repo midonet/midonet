@@ -122,6 +122,24 @@
       "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_027db06e",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-27T08:35:16Z",
+      "side": 1,
+      "message": "Ok cool, I see your point.",
+      "parentUuid": "9ab29df4_c22658ba",
+      "revId": "605f9451ed55909b13d41cfb866275af4d77fa89",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
