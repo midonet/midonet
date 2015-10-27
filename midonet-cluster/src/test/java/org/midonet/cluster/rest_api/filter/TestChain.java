@@ -42,7 +42,7 @@ import static org.junit.Assert.assertThat;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_RULE_COLLECTION_JSON_V2;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_RULE_JSON_V2;
@@ -258,7 +258,7 @@ public class TestChain extends JerseyTest {
 
         DtoRouterPort port
                 = dtoResource.postAndVerifyCreated(router.getPorts(),
-                APPLICATION_PORT_V2_JSON(),
+                APPLICATION_PORT_V3_JSON(),
                 getStockRouterPort(router.getId(), ruleChain1.getId(),
                         ruleChain2.getId()),
                 DtoRouterPort.class);
@@ -284,7 +284,7 @@ public class TestChain extends JerseyTest {
 
         // Everyone's inbound filters should now be empty
         port = dtoResource.getAndVerifyOk(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), DtoRouterPort.class);
         assertEquals(port.getInboundFilterId(), null);
         router = dtoResource.getAndVerifyOk(router.getUri(),
                 APPLICATION_ROUTER_JSON_V3(), DtoRouter.class);
@@ -297,7 +297,7 @@ public class TestChain extends JerseyTest {
         // outbound filters.
         port.setInboundFilterId(ruleChain2.getId());
         port = dtoResource.putAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), port, DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), port, DtoRouterPort.class);
 
         router.setInboundFilterId(ruleChain2.getId());
         router = dtoResource.putAndVerifyNoContent(router.getUri(),
@@ -313,7 +313,7 @@ public class TestChain extends JerseyTest {
 
         // Everyone's filters should have been cleaned up.
         port = dtoResource.getAndVerifyOk(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), DtoRouterPort.class);
         assertEquals(port.getInboundFilterId(), null);
         assertEquals(port.getOutboundFilterId(), null);
         router = dtoResource.getAndVerifyOk(router.getUri(),
@@ -338,7 +338,7 @@ public class TestChain extends JerseyTest {
         port.setInboundFilterId(ruleChain1.getId());
         port.setOutboundFilterId(ruleChain2.getId());
         port = dtoResource.putAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), port, DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), port, DtoRouterPort.class);
 
         router.setInboundFilterId(ruleChain1.getId());
         router.setOutboundFilterId(ruleChain2.getId());
@@ -353,7 +353,7 @@ public class TestChain extends JerseyTest {
         //Reset to the same Id
         port.setInboundFilterId(ruleChain2.getId());
         port = dtoResource.putAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), port, DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), port, DtoRouterPort.class);
 
         router.setInboundFilterId(ruleChain2.getId());
         router = dtoResource.putAndVerifyNoContent(router.getUri(),
@@ -368,7 +368,7 @@ public class TestChain extends JerseyTest {
                 APPLICATION_CHAIN_JSON());
 
         port = dtoResource.getAndVerifyOk(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), DtoRouterPort.class);
         assertEquals(port.getInboundFilterId(), ruleChain2.getId());
         assertEquals(port.getOutboundFilterId(), ruleChain2.getId());
         router = dtoResource.getAndVerifyOk(router.getUri(),
@@ -384,7 +384,7 @@ public class TestChain extends JerseyTest {
                 APPLICATION_CHAIN_JSON());
 
         port = dtoResource.getAndVerifyOk(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), DtoRouterPort.class);
         assertEquals(port.getInboundFilterId(), null);
         assertEquals(port.getOutboundFilterId(), null);
         router = dtoResource.getAndVerifyOk(router.getUri(),
@@ -409,7 +409,7 @@ public class TestChain extends JerseyTest {
         port.setInboundFilterId(ruleChain1.getId());
         port.setOutboundFilterId(ruleChain2.getId());
         port = dtoResource.putAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), port, DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), port, DtoRouterPort.class);
 
         router.setInboundFilterId(ruleChain1.getId());
         router.setOutboundFilterId(ruleChain2.getId());
@@ -430,7 +430,7 @@ public class TestChain extends JerseyTest {
         port.setInboundFilterId(ruleChain1.getId());
         port.setOutboundFilterId(null);
         port = dtoResource.putAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), port, DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), port, DtoRouterPort.class);
 
         router.setInboundFilterId(ruleChain1.getId());
         router.setOutboundFilterId(null);
@@ -455,7 +455,7 @@ public class TestChain extends JerseyTest {
         port.setInboundFilterId(ruleChain1.getId());
         port.setOutboundFilterId(ruleChain1.getId());
         port = dtoResource.putAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), port, DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), port, DtoRouterPort.class);
 
         router.setInboundFilterId(ruleChain1.getId());
         router.setOutboundFilterId(ruleChain1.getId());
@@ -470,7 +470,7 @@ public class TestChain extends JerseyTest {
         port.setInboundFilterId(ruleChain2.getId());
         port.setOutboundFilterId(ruleChain2.getId());
         port = dtoResource.putAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), port, DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), port, DtoRouterPort.class);
 
         router.setInboundFilterId(ruleChain2.getId());
         router.setOutboundFilterId(ruleChain2.getId());
@@ -485,7 +485,7 @@ public class TestChain extends JerseyTest {
         port.setInboundFilterId(null);
         port.setOutboundFilterId(null);
         port = dtoResource.putAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON(), port, DtoRouterPort.class);
+                APPLICATION_PORT_V3_JSON(), port, DtoRouterPort.class);
 
         router.setInboundFilterId(null);
         router.setOutboundFilterId(null);
@@ -502,7 +502,7 @@ public class TestChain extends JerseyTest {
         // now deleted first because otherwise, in v2 the port would be deleted
         // when deleting the router.
         dtoResource.deleteAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON());
+                APPLICATION_PORT_V3_JSON());
         dtoResource.deleteAndVerifyNoContent(router.getUri(),
                 APPLICATION_ROUTER_JSON_V3());
         dtoResource.deleteAndVerifyNoContent(bridge.getUri(),

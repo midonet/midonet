@@ -97,7 +97,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
         return getChildResources(
                 principalDto.getPorts(),
                 null,
-                MidonetMediaTypes.APPLICATION_PORT_V2_COLLECTION_JSON(),
+                MidonetMediaTypes.APPLICATION_PORT_V3_COLLECTION_JSON(),
                 BridgePort.class, DtoBridgePort.class);
     }
 
@@ -109,7 +109,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
                 principalDto.getPeerPorts(),
                 null,
                 DtoPort[].class,
-                MidonetMediaTypes.APPLICATION_PORT_V2_COLLECTION_JSON());
+                MidonetMediaTypes.APPLICATION_PORT_V3_COLLECTION_JSON());
 
         for (DtoPort pp : dtoPeerPorts) {
             if (pp instanceof DtoRouterPort) {

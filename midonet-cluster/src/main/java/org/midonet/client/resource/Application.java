@@ -48,7 +48,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_COLLECTION_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTE_JSON;
@@ -192,7 +192,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getPortTemplate(), ID_TOKEN, id);
         DtoPort port = resource.get(uri, null, DtoPort.class,
-                APPLICATION_PORT_V2_JSON());
+                APPLICATION_PORT_V3_JSON());
         if (port instanceof DtoBridgePort) {
             return new BridgePort(resource, null, (DtoBridgePort) port);
         } else if (port instanceof  DtoRouterPort) {

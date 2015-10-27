@@ -63,7 +63,7 @@ import static org.midonet.cluster.rest_api.rest_api.FuncTest.appDesc;
 import static org.midonet.cluster.rest_api.rest_api.FuncTest.objectMapper;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_COLLECTION_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
 
@@ -443,7 +443,7 @@ public class TestRouter {
             port.setPortAddress("10.0.0.1");
             DtoRouterPort resPort =
                 dtoResource.postAndVerifyCreated(resRouter.getPorts(),
-                    APPLICATION_PORT_V2_JSON(), port, DtoRouterPort.class);
+                    APPLICATION_PORT_V3_JSON(), port, DtoRouterPort.class);
             assertNotNull(resPort.getId());
             // Create a bridge that we can link to the router.
             DtoBridge bridge = new DtoBridge();
@@ -456,7 +456,7 @@ public class TestRouter {
             assertNotNull(resBridge.getUri());
             // Add an interior bridge port.
             DtoBridgePort bPort = dtoResource.postAndVerifyCreated(
-                resBridge.getPorts(), APPLICATION_PORT_V2_JSON(),
+                resBridge.getPorts(), APPLICATION_PORT_V3_JSON(),
                 new DtoBridgePort(), DtoBridgePort.class);
             assertNotNull(bPort.getId());
             assertNotNull(bPort.getUri());

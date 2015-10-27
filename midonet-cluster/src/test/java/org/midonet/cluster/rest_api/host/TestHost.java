@@ -68,7 +68,7 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_INTERFACE_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
@@ -131,7 +131,7 @@ public class TestHost extends JerseyTest {
     private DtoBridgePort addPort(DtoBridge bridge) {
         DtoBridgePort port = new DtoBridgePort();
         port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
-            APPLICATION_PORT_V2_JSON(), port, DtoBridgePort.class);
+            APPLICATION_PORT_V3_JSON(), port, DtoBridgePort.class);
         return port;
     }
 

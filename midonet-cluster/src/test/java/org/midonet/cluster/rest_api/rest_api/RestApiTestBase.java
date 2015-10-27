@@ -141,11 +141,11 @@ public abstract class RestApiTestBase extends JerseyTest {
     protected DtoPort getPort(UUID id) {
         URI uri = UriBuilder.fromPath(app.getPortTemplate()).build(id);
         return dtoResource.getAndVerifyOk(
-                uri, APPLICATION_PORT_V2_JSON(), DtoPort.class);
+                uri, APPLICATION_PORT_V3_JSON(), DtoPort.class);
     }
 
     public DtoBridgePort postBridgePort(DtoBridgePort port, DtoBridge bridge) {
         return dtoResource.postAndVerifyCreated(bridge.getPorts(),
-                APPLICATION_PORT_V2_JSON(), port, DtoBridgePort.class);
+                APPLICATION_PORT_V3_JSON(), port, DtoBridgePort.class);
     }
 }

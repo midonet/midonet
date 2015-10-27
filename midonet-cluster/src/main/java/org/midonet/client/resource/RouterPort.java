@@ -23,14 +23,14 @@ import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoRouterPort;
 
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 
 public class RouterPort extends Port<RouterPort, DtoRouterPort> {
 
 
     public RouterPort(WebResource resource, URI uriForCreation,
                       DtoRouterPort p) {
-        super(resource, uriForCreation, p, APPLICATION_PORT_V2_JSON());
+        super(resource, uriForCreation, p, APPLICATION_PORT_V3_JSON());
     }
 
     @Override
