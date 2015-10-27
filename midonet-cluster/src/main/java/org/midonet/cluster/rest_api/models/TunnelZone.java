@@ -17,7 +17,9 @@ package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -83,9 +85,19 @@ public class TunnelZone extends UriResource {
 
     @JsonIgnore
     public void update(TunnelZone from) {
-        this.id = from.id;
+        id = from.id;
         tzHosts = from.tzHosts;
         hostIds = from.hostIds;
+    }
+
+    @JsonIgnore
+    public void removeHost(UUID hostId) {
+        tzHosts.removeIf(new Predicate<TunnelZoneHost>() {
+            @Override
+            public boolean test(TunnelZoneHost tunnelZoneHost) {
+                return Objects.equals(tunnelZoneHost.hostId, hostId);
+            }
+        });
     }
 
     @Override

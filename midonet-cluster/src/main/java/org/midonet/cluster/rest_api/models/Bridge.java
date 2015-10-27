@@ -155,7 +155,7 @@ public class Bridge extends UriResource {
 
     @JsonIgnore
     public void update(Bridge from) {
-        this.id = from.id;
+        id = from.id;
         portIds = from.portIds;
         vxLanPortIds = from.vxLanPortIds;
         dhcpIds = from.dhcpIds;
