@@ -17,6 +17,8 @@ package org.midonet.cluster.rest_api.e2e;
 
 import java.util.UUID;
 
+import com.sun.jersey.api.client.ClientResponse;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -25,7 +27,10 @@ import org.junit.runner.RunWith;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.l4lb.LBStatus;
+import org.midonet.cluster.data.storage.NotFoundException;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.models.ErrorEntity;
+import org.midonet.cluster.rest_api.models.HealthMonitor;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 
 import static javax.ws.rs.core.Response.Status.CONFLICT;
@@ -45,6 +50,15 @@ public class TestHealthMonitor {
                     APPLICATION_HEALTH_MONITOR_COLLECTION_JSON(),
                     DtoHealthMonitor[].class);
             assertEquals(num, healthMonitors.length);
+        }
+
+        private void assertHealthMonitorNotFound(UUID healthMonitorId,
+                                                 ClientResponse response) {
+            assertEquals(404, response.getStatus());
+            NotFoundException nfe = new NotFoundException(HealthMonitor.class,
+                                                          healthMonitorId);
+            ErrorEntity error = response.getEntity(ErrorEntity.class);
+            assertEquals(nfe.getMessage(), error.getMessage());
         }
 
         @Test
@@ -90,6 +104,17 @@ public class TestHealthMonitor {
             verifyNumberOfHealthMonitors(--counter);
             deleteHealthMonitor(healthMonitor2.getUri());
             verifyNumberOfHealthMonitors(--counter);
+
+            // Delete non-existing health monitor.
+            ClientResponse response = resource().uri(healthMonitor.getUri())
+                .delete(ClientResponse.class);
+            assertEquals(204, response.getStatus());
+
+            // Update non-existing health-monitor.
+            response = resource().uri(healthMonitor.getUri())
+                .type(APPLICATION_HEALTH_MONITOR_JSON())
+                .put(ClientResponse.class, healthMonitor);
+            assertHealthMonitorNotFound(healthMonitor.getId(), response);
         }
 
         @Test
