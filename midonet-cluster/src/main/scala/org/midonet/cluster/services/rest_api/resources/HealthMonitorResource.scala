@@ -19,6 +19,8 @@ package org.midonet.cluster.services.rest_api.resources
 import java.util.UUID
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response
+import javax.ws.rs.core.Response.Status
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -42,6 +44,18 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, O
 @AllowDelete
 class HealthMonitorResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[HealthMonitor](resContext) {
+
+    protected override def handleDelete: PartialFunction[Response, Response] = {
+        case response
+            if response.getStatus == Status.NOT_FOUND.getStatusCode =>
+            MidonetResource.OkNoContentResponse
+    }
+
+    protected override def catchDelete: PartialFunction[Throwable, Response] = {
+        case e: WebApplicationException
+            if e.getResponse.getStatus == Status.NOT_FOUND.getStatusCode =>
+            MidonetResource.OkNoContentResponse
+    }
 
     @Path("{id}/pools")
     def pools(@PathParam("id") id: UUID): HealthMonitorPoolResource = {

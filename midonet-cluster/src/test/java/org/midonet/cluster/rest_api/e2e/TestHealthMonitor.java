@@ -108,7 +108,7 @@ public class TestHealthMonitor {
             // Delete non-existing health monitor.
             ClientResponse response = resource().uri(healthMonitor.getUri())
                 .delete(ClientResponse.class);
-            assertHealthMonitorNotFound(healthMonitor.getId(), response);
+            assertEquals(204, response.getStatus());
 
             // Update non-existing health-monitor.
             response = resource().uri(healthMonitor.getUri())
