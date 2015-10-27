@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_4296c895",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-27T08:38:58Z",
+      "side": 1,
+      "message": "extra on.",
+      "range": {
+        "startLine": 5,
+        "startChar": 66,
+        "endLine": 5,
+        "endChar": 68
+      },
+      "revId": "b24baacd6c5564ab1cfb9aea5c027fd16700c1e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
