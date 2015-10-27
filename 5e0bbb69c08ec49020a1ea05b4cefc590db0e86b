@@ -45,6 +45,30 @@
       "revId": "5e0bbb69c08ec49020a1ea05b4cefc590db0e86b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e8d89b55",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-27T17:14:04Z",
+      "side": 1,
+      "message": "The only difference is that the method will not throw if the network is the same, but the rest remains: the error will be fine as it\u0027ll say that you\u0027re trying to create a binding to another network.",
+      "parentUuid": "9ab29df4_28ab73d9",
+      "range": {
+        "startLine": 224,
+        "startChar": 12,
+        "endLine": 229,
+        "endChar": 65
+      },
+      "revId": "5e0bbb69c08ec49020a1ea05b4cefc590db0e86b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
