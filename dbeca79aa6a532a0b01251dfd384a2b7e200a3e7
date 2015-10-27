@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_6d51fd61",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-27T14:28:30Z",
+      "side": 1,
+      "message": "What about adding a test that removes a host and ensures that the host is deleted from its tunnel zones?",
+      "range": {
+        "startLine": 68,
+        "startChar": 8,
+        "endLine": 75,
+        "endChar": 26
+      },
+      "revId": "dbeca79aa6a532a0b01251dfd384a2b7e200a3e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
