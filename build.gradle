@@ -152,7 +152,6 @@ project.ext {
         },
         sqlite: "org.xerial:sqlite-jdbc:3.8.7",
 
-        vmware_midoapi: [ "com.vmware:vijava:5.1", "dom4j:dom4j:1.6.1" ],
         jcabi: "com.jcabi:jcabi-aspects:0.15.1",
         aspectj: "org.aspectj:aspectjrt:1.8.0",
         protobuf: "com.google.protobuf:protobuf-java:2.6.1",
