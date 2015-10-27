@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_02de903f",
+        "filename": "midonet-cluster/conf/logback.xml",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-27T09:33:50Z",
+      "side": 1,
+      "message": "Should the console appender be deleted from logback.xml in tests as well?",
+      "revId": "39a6be5cadfcb7684fb57e2d6baecf354e853dd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
