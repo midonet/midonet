@@ -36,6 +36,10 @@ public class MessageProperty {
             "{midokura.javarx.FragPolicyInvalidForNatRule.message}";
     public static final String FRAG_POLICY_UNDEFINED =
             "{midokura.javarx.FragPolicyUndefined.message}";
+    public static final String HOST_DELETION_NOT_ALLOWED_ACTIVE =
+            "{midokura.javarx.HostDeletionNotAllowedActive.message}";
+    public static final String HOST_DELETION_NOT_ALLOWED_BINDINGS =
+            "{midokura.javarx.HostDeletionNotAllowedBindings.message}";
     public static final String HOST_FLOODING_PROXY_WEIGHT_IS_NULL =
             "{midokura.javarx.HostFloodingProxyWeightIsNull}";
     public static final String HOST_ID_IS_INVALID =
