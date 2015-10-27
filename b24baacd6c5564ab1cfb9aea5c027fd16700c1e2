@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_62a02c91",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-27T10:13:05Z",
+      "side": 1,
+      "message": "The change in the example breaks the build.\n\nAnyway, yes, you can hack the recommendation by introducing a change that gets detected as a version bump AND does not break the build.  The only consequence here is that you might get a +1 from Jenkins. But reviewers will -2.\n\nHaving a more intelligent script that essentially does a code review of changes to build.gradle would be awesome, but IMO is out of scope here: the script\u0027s job is to offer recommendations for CI targets; detecting malicious patches is code reviewers job.",
+      "parentUuid": "9ab29df4_42c40892",
+      "range": {
+        "startLine": 83,
+        "startChar": 2,
+        "endLine": 83,
+        "endChar": 80
+      },
+      "revId": "b24baacd6c5564ab1cfb9aea5c027fd16700c1e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_e2d51c44",
         "filename": "what_ci_targets.sh",
         "patchSetId": 2
@@ -59,6 +83,30 @@
       "writtenOn": "2015-10-27T09:03:12Z",
       "side": 1,
       "message": "Should this be LINES_ADDED?",
+      "range": {
+        "startLine": 84,
+        "startChar": 40,
+        "endLine": 84,
+        "endChar": 53
+      },
+      "revId": "b24baacd6c5564ab1cfb9aea5c027fd16700c1e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_427c0821",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-27T10:13:05Z",
+      "side": 1,
+      "message": "indeed",
+      "parentUuid": "9ab29df4_e2d51c44",
       "range": {
         "startLine": 84,
         "startChar": 40,
