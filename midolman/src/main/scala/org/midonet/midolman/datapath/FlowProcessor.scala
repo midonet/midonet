@@ -93,6 +93,7 @@ class FlowProcessor(dpState: DatapathState,
         maxRequestSize,
         BytesUtil.instance.allocateDirect(64 * 1024),
         clock)
+    private val timeoutMillis = broker.timeout.toMillis
 
     private val flowMask = new FlowMask()
 
@@ -232,12 +233,14 @@ class FlowProcessor(dpState: DatapathState,
                 val createKey = createChannel.register(selector, SelectionKey.OP_READ)
                 val deleteKey = brokerChannel.register(selector, SelectionKey.OP_READ)
                 try {
-                    if (selector.select() > 0) {
+                    if (selector.select(timeoutMillis) > 0) {
                         if (createKey.isReadable)
                             handleCreateError(reader, createErrorsBuffer)
                         if (deleteKey.isReadable)
                             broker.readReply(handleDeleteError)
                         selector.selectedKeys().clear()
+                    } else {
+                        broker.timeoutExpiredRequests()
                     }
                 } catch {
                     case ignored @ (_: InterruptedException |
