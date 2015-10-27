@@ -18,7 +18,9 @@ package org.midonet.netlink
 
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.util.concurrent.atomic.{AtomicIntegerArray, AtomicLong}
+import java.util.concurrent.atomic.{AtomicInteger, AtomicIntegerArray, AtomicLong}
+
+import org.midonet.util.concurrent.WakerUpper.Parkable
 
 import scala.concurrent.duration._
 
@@ -90,7 +92,7 @@ object NetlinkRequestBroker {
  * TODO: Use @Contended on some of these fields when on java 8
  */
 final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
-                                 reader: NetlinkReader,
+                                 reader: NetlinkTimeoutReader,
                                  maxPendingRequests: Int,
                                  maxRequestSize: Int,
                                  readBuf: ByteBuffer,
@@ -167,6 +169,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
      */
     private val expirations = Array.fill(capacity)(Long.MaxValue)
     private val timeoutNanos = timeout.toNanos
+    private val interruptibleReader = new InterruptibleReader
 
     def hasRequestsToWrite: Boolean =
         isAvailable(writtenSequence)
@@ -253,7 +256,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
     @throws(classOf[IOException])
     def readReply(unhandled: Observer[ByteBuffer] = NOOP): Int = {
         try {
-            val nbytes = reader.read(readBuf)
+            val nbytes = interruptibleReader.read()
             readBuf.flip()
             var start = 0
             while (readBuf.remaining() >= NetlinkMessage.HEADER_SIZE) {
@@ -273,6 +276,56 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
             advanceReadSeqAndCheckTimeouts()
             readBuf.clear()
         }
+    }
+
+    private class InterruptibleReader extends Parkable {
+        @volatile private var timestamp: Long = _
+        private var nbytes: Int = _
+        private val UNPARKED = 0
+        private val PARKED = 1
+        private val INTERRUPTED  = 2
+        private val status = new AtomicInteger(UNPARKED)
+
+        /**
+         * Reads interruptibly from the channel. A protocol with the WakerUpper
+         * ensures that the thread doesn't exit this method in the interrupted
+         * state. In the normal case this method costs a single uncontended
+         * atomic operation, which is cheap in newer hardware. This is
+         * preferred over a select-then-read approach.
+         */
+        def read(): Int =
+            try {
+                timestamp = clock.tick
+                status.set(PARKED)
+                park(retries = 0)
+                nbytes
+            } catch { case _: InterruptedException =>
+                0
+            } finally {
+                waitUntilUnparked()
+            }
+
+        private def waitUntilUnparked(): Unit = {
+            if (!status.compareAndSet(PARKED, UNPARKED)) {
+                // The WakerUpper "owns" this thread. Wait until it is done.
+                while (status.get() != UNPARKED) {
+                    Thread.`yield`()
+                }
+                Thread.interrupted()
+            }
+        }
+
+        override protected def shouldWakeUp(): Boolean =
+            clock.tick - timestamp >= timeoutNanos
+
+        override protected def doPark(): Unit =
+            nbytes = reader.read(readBuf)
+
+        override protected def doUnpark(t: Thread): Unit =
+            if (status.compareAndSet(PARKED, INTERRUPTED)) {
+                t.interrupt()
+                status.set(UNPARKED)
+            }
     }
 
     private def handleReply(reply: ByteBuffer, unhandled: Observer[ByteBuffer],
