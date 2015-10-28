@@ -538,7 +538,6 @@ def test_disabling_topology_loadbalancing():
     disable_and_assert_traffic_fails(sender, action_loadbalancer, vips=vips)
     enable_and_assert_traffic_succeeds(sender, action_loadbalancer, vips=vips)
 
-@nottest
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_haproxy_failback():
@@ -593,7 +592,6 @@ def test_haproxy_failback():
                 'L4LB: not all agents were elected as leaders %s' %
                 leaders_elected)
 
-@nottest
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_health_monitoring_backend_failback():

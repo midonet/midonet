@@ -19,6 +19,7 @@ package org.midonet.cluster.services.rest_api.resources
 import java.lang.annotation.Annotation
 import java.net.URI
 import java.util.concurrent.Executors.newCachedThreadPool
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
 
 import javax.validation.{ConstraintViolation, Validator}
@@ -40,7 +41,8 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
 
-import org.midonet.cluster.{restApiLog, restApiResourceLog}
+import org.midonet.cluster.data.util.ZkOpLock
+import org.midonet.cluster.{ZookeeperLockFactory, restApiLog, restApiResourceLog}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
@@ -59,6 +61,8 @@ object MidonetResource {
 
     private final val log = getLogger(restApiLog)
     private final val StorageAttempts = 3
+
+    private final val lockOpNumber = new AtomicInteger(1)
 
     type Ids = Future[Seq[Any]]
     type Ops = Future[Seq[Multi]]
@@ -170,6 +174,7 @@ object MidonetResource {
     }
 
     case class ResourceContext @Inject() (backend: MidonetBackend,
+                                          lockFactory: ZookeeperLockFactory,
                                           uriInfo: UriInfo,
                                           validator: Validator,
                                           seqDispenser: SequenceDispenser,
@@ -190,6 +195,10 @@ abstract class MidonetResource[T >: Null <: UriResource]
     private val validator = resContext.validator
     protected val backend = resContext.backend
     protected val uriInfo = resContext.uriInfo
+
+    /* Determines whether a zookeeper lock is needed when performing
+       update and delete operations. This variable is overridden in the subclasses. */
+    protected val zkLockNeeded = true
 
     @GET
     @Path("{id}")
@@ -225,6 +234,51 @@ abstract class MidonetResource[T >: Null <: UriResource]
         list.asJava
     }
 
+    /**
+      * This method acquires a ZooKeeper lock to perform updates to storage.
+      * This is to prevent races with other components modifying the topology
+      * concurrently that may result in a [[ConcurrentModificationException]].
+      */
+    protected[resources] def zkLock[R](f: => Response): Response = {
+        val lock = new ZkOpLock(resContext.lockFactory, lockOpNumber.getAndIncrement,
+                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
+        try lock.acquire() catch {
+            case NonFatal(t) =>
+                log.info("Could not acquire storage lock.", t)
+                throw new ServiceUnavailableHttpException(
+                    "Could not acquire lock for storage operation.")
+        }
+        try {
+            f
+        } catch {
+            case e: NotFoundException =>
+                log.info(e.getMessage)
+                return buildErrorResponse(Status.NOT_FOUND, e.getMessage)
+            case e: ObjectReferencedException =>
+                log.info(e.getMessage)
+                return buildErrorResponse(Status.CONFLICT, e.getMessage)
+            case e: ReferenceConflictException =>
+                log.info(e.getMessage)
+                return buildErrorResponse(Status.CONFLICT, e.getMessage)
+            case e: ObjectExistsException =>
+                log.info(e.getMessage)
+                return buildErrorResponse(Status.CONFLICT, e.getMessage)
+            /* In case the object was modified elsewhere without acquiring
+               a lock. */
+            case e: ConcurrentModificationException =>
+                log.info("Write to storage failed due to contention", e)
+                return Response.status(Status.CONFLICT).build()
+            case e: WebApplicationException =>
+                return e.getResponse
+            case NonFatal(e) =>
+                log.info("Unhandled exception", e)
+                return buildErrorResponse(Status.INTERNAL_SERVER_ERROR,
+                                          e.getMessage)
+        } finally {
+            lock.release()
+        }
+    }
+
     @POST
     def create(t: T, @HeaderParam("Content-Type") contentType: String)
     : Response = {
@@ -248,31 +302,43 @@ abstract class MidonetResource[T >: Null <: UriResource]
     @Path("{id}")
     def update(@PathParam("id") id: String, t: T,
                @HeaderParam("Content-Type") contentType: String): Response = {
-        val consumes = getAnnotation(classOf[AllowUpdate])
-        if ((consumes eq null) || !consumes.value().contains(contentType)) {
-            log.info("Media type {} not supported", contentType)
-            throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
-        }
+        def ops: Response = {
+            val consumes = getAnnotation(classOf[AllowUpdate])
+            if ((consumes eq null) || !consumes.value().contains(contentType)) {
+                log.info("Media type {} not supported", contentType)
+                throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
+            }
 
-        val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
-        tryResponse(handleUpdate, catchUpdate) {
-            getResource(clazz, id) flatMap { current =>
-                throwIfViolationsOn(t)
-                updateFilter(t, current)
-            } map { ops =>
-                multiResource(ops :+ Update(t), OkNoContentResponse)
-            } getOrThrow
+            val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
+            tryResponse(handleUpdate, catchUpdate) {
+                getResource(clazz, id) flatMap { current =>
+                    throwIfViolationsOn(t)
+                    updateFilter(t, current)
+                } map { ops =>
+                    multiResource(ops :+ Update(t), OkNoContentResponse)
+                } getOrThrow
+            }
+        }
+        zkLockNeeded match {
+            case true => zkLock(ops)
+            case false => ops
         }
     }
 
     @DELETE
     @Path("{id}")
     def delete(@PathParam("id") id: String): Response = {
-        val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
-        tryResponse(handleDelete, catchDelete) {
-            deleteFilter(id) map { ops =>
-                multiResource(ops :+ Delete(clazz, id), OkNoContentResponse)
-            } getOrThrow
+        def ops: Response = {
+            val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
+            tryResponse(handleDelete, catchDelete) {
+                deleteFilter(id) map { ops =>
+                    multiResource(ops :+ Delete(clazz, id), OkNoContentResponse)
+                } getOrThrow
+            }
+        }
+        zkLockNeeded match {
+            case true => zkLock(ops)
+            case false => ops
         }
     }
 
