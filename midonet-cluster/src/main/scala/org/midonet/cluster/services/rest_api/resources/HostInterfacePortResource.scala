@@ -72,7 +72,7 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
                     APPLICATION_JSON))
     override def create(binding: HostInterfacePort,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
+    : Response = zkLock {
 
         val store = resContext.backend.store
         val h = store.get(classOf[Topology.Host], hostId).getOrThrow
@@ -111,7 +111,7 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
 
     @DELETE
     @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = {
+    override def delete(@PathParam("id") id: String): Response = zkLock {
         getResource(classOf[Port], id).map(port => {
             port.hostId = null
             port.interfaceName = null

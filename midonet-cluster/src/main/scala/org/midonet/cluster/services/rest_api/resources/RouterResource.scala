@@ -26,7 +26,6 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.data.ZoomConvert.{toProto => zoomToProto}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
