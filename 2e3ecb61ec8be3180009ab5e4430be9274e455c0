@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_b5c197e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-28T16:07:13Z",
+      "side": 1,
+      "message": "Yes let\u0027s discuss it. I\u0027m not sure whether another component besides the api would need to rely on retries.",
+      "parentUuid": "9ab29df4_754b7fb0",
+      "range": {
+        "startLine": 139,
+        "startChar": 6,
+        "endLine": 139,
+        "endChar": 25
+      },
+      "revId": "2e3ecb61ec8be3180009ab5e4430be9274e455c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_554e7bc2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_55aafb19",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-28T16:07:13Z",
+      "side": 1,
+      "message": "This would be nsdb.conf under the schema folder in the nsdb project? I was not sure whether these keys should be added there too because in nsdb.conf lots of config is missing (there\u0027s nothing for HealthMonitorConfig for instance).",
+      "parentUuid": "9ab29df4_554e7bc2",
+      "range": {
+        "startLine": 145,
+        "startChar": 4,
+        "endLine": 148,
+        "endChar": 116
+      },
+      "revId": "2e3ecb61ec8be3180009ab5e4430be9274e455c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_15db23ee",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2015-10-28T15:45:39Z",
       "side": 1,
       "message": "I think you should reschedule this by sending a message to the actor with a delay (an exponential back-off starting from 1 s is too much?), rather than blocking the actor during the retry. In the API we use a similar policy with 3 retries and 0 delay, and that worked fine in most cases. Maybe exponential is okay, but starting from a smaller initial value.",
+      "range": {
+        "startLine": 402,
+        "startChar": 8,
+        "endLine": 425,
+        "endChar": 23
+      },
+      "revId": "2e3ecb61ec8be3180009ab5e4430be9274e455c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_757e1fb0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-28T16:07:13Z",
+      "side": 1,
+      "message": "Note that the initial value is randomly distributed but sure I can lower the max initial value (which is 1 second at the moment). I\u0027ll send a message to the actor instead of retrying here.",
+      "parentUuid": "9ab29df4_15db23ee",
       "range": {
         "startLine": 402,
         "startChar": 8,
