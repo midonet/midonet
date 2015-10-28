@@ -334,10 +334,12 @@ class PacketWorkflow(
             metrics.packetsOnHold.dec()
             pktCtx.log.debug("Restarting workflow")
             MDC.put("cookie", pktCtx.cookieStr)
-            if (error eq null)
+            if (error eq null) {
                 runWorkflow(pktCtx)
-            else
+            } else {
                 handleErrorOn(pktCtx, error)
+                waitingRoom leave pktCtx
+            }
             MDC.remove("cookie")
             FlowTracingContext.clearContext()
         } // Else the packet may have already been expired and dropped
