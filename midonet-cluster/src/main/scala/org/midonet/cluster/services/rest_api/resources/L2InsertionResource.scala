@@ -35,7 +35,7 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.UUIDUtil._
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "l2insertions", template = "l2InsertionTemplate")
 @Path("l2insertions")
 @RequestScoped
 @AllowGet(Array(APPLICATION_L2INSERTION_JSON,

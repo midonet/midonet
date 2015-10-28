@@ -37,7 +37,7 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 import org.midonet.cluster.util.UUIDUtil
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "tunnelZones", template = "tunnelZoneTemplate")
 @Path("tunnel_zones")
 @RequestScoped
 @AllowGet(Array(APPLICATION_TUNNEL_ZONE_JSON,

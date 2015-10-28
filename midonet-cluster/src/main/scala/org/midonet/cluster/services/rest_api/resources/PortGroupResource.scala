@@ -31,7 +31,7 @@ import org.midonet.cluster.rest_api.models.{Port, PortGroup, PortGroupPort}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "portGroups", template = "portGroupTemplate")
 @Path("port_groups")
 @RequestScoped
 @AllowGet(Array(APPLICATION_PORTGROUP_JSON))

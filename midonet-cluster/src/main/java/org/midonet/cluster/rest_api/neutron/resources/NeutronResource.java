@@ -33,7 +33,7 @@ import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.cluster.rest_api.neutron.models.Neutron;
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin;
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "neutron")
 @Path("neutron")
 @RequestScoped
 public class NeutronResource {

@@ -85,9 +85,7 @@ object MidonetMediaTypes {
     final val APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON = "application/vnd.org.midonet.collection.HostInterfacePort-v1+json"
 
     // Upgrade Control
-    final val APPLICATION_WRITE_VERSION_JSON = "application/vnd.org.midonet.WriteVersion-v1+json"
     final val APPLICATION_SYSTEM_STATE_JSON_V2 = "application/vnd.org.midonet.SystemState-v2+json"
-    final val APPLICATION_HOST_VERSION_JSON = "application/vnd.org.midonet.HostVersion-v1+json"
 
     // L4LB
     final val APPLICATION_HEALTH_MONITOR_JSON = "application/vnd.org.midonet.HealthMonitor-v1+json"
