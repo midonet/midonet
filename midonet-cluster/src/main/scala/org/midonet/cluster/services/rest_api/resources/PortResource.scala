@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.{List => JList, ArrayList, UUID}
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
@@ -349,52 +349,73 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
 
         throwIfViolationsOn(portGroupPort)
 
-        getResource(classOf[Port], portGroupPort.portId).flatMap(port => {
-            getResource(classOf[PortGroup], portGroupPort.portGroupId).map(pg => {
-                if (port.portGroupIds.contains(portGroupPort.portGroupId)) {
-                    Response.status(Status.CONFLICT).build()
-                } else  if (pg.portIds.contains(portGroupPort.portId)) {
-                    Response.status(Status.CONFLICT).build()
-                } else {
-                    portGroupPort.setBaseUri(resContext.uriInfo.getBaseUri)
-                    port.portGroupIds.add(portGroupPort.portGroupId)
-                    pg.portIds.add(portGroupPort.portId)
-                    multiResource(Seq(Update(port), Update(pg)),
-                                  Response.created(portGroupPort.getUri)
-                                      .build())
-                }
-            })
-        }).getOrThrow
+        zkLock {
+            getResource(classOf[Port], portGroupPort.portId).flatMap(port => {
+                getResource(classOf[PortGroup], portGroupPort.portGroupId).map(
+                    pg => {
+
+                    if (port.portGroupIds.contains(portGroupPort.portGroupId)) {
+                        Response.status(Status.CONFLICT).build()
+                    } else  if (pg.portIds.contains(portGroupPort.portId)) {
+                        Response.status(Status.CONFLICT).build()
+                    } else {
+                        portGroupPort.setBaseUri(resContext.uriInfo.getBaseUri)
+                        port.portGroupIds.add(portGroupPort.portGroupId)
+                        pg.portIds.add(portGroupPort.portId)
+                        multiResource(Seq(Update(port), Update(pg)),
+                                      Response.created(portGroupPort.getUri)
+                                          .build())
+                    }
+                })
+            }).getOrThrow
+        }
     }
 
     @DELETE
     @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = {
+    override def delete(@PathParam("id") id: String): Response = zkLock {
         val portId = UUID.fromString(id)
         // If the port still exists, delete the port group ID from the port,
         // otherwise delete only the port ID from the port group.
-        getResource(classOf[Port], portId).flatMap(port => {
-            getResource(classOf[PortGroup], portGroupId).map(pg => {
-                if (!port.portGroupIds.contains(portGroupId)) {
-                    Response.status(Status.NOT_FOUND).build()
-                } else if (!pg.portIds.contains(portId)) {
-                    MidonetResource.OkNoContentResponse
-                } else {
-                    port.portGroupIds.remove(portGroupId)
-                    pg.portIds.remove(portId)
-                    multiResource(Seq(Update(port), Update(pg)),
-                                  MidonetResource.OkNoContentResponse)
-                }
-            })
-        }).fallbackTo(
-            getResource(classOf[PortGroup], portGroupId).map(pg => {
-                if (!pg.portIds.contains(portId)) {
-                    MidonetResource.OkNoContentResponse
-                } else {
-                    pg.portIds.remove(portId)
-                    updateResource(pg, MidonetResource.OkNoContentResponse)
-                }
-            }))
-        .getOrThrow
+        val port = try {
+            getResource(classOf[Port], portId).getOrThrow
+        } catch {
+            case t: NotFoundHttpException => null
+            case NonFatal(t) => throw t
+        }
+
+        val pg = try {
+            getResource(classOf[PortGroup], portGroupId).getOrThrow
+        } catch {
+            case t: NotFoundHttpException => null
+            case NonFatal(t) => throw t
+        }
+
+        val ops = new ArrayList[Multi]
+        val updatePort = port != null
+        val updatePg = pg != null
+
+        if (updatePort) {
+            if (!port.portGroupIds.contains(portGroupId)) {
+                // TODO: should we return a 204 instead for idempotency?
+                Response.status(Status.NOT_FOUND)
+                    .entity(getMessage(RESOURCE_NOT_FOUND,
+                                       "port group", portGroupId))
+                    .build()
+            }
+            port.portGroupIds.remove(portGroupId)
+            ops.add(Update(port))
+        }
+
+        if (updatePg && pg.portIds.contains(portId)) {
+            pg.portIds.remove(portId)
+            ops.add(Update(pg))
+        }
+
+        if (ops.nonEmpty) {
+            multiResource(ops.toSeq)
+        }
+
+        OkNoContentResponse
     }
 }
