@@ -20,7 +20,7 @@ import java.util.UUID
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
-import javax.ws.rs.{Path, PathParam}
+import javax.ws.rs._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -28,7 +28,7 @@ import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.{Pool => TopPool}
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{HealthMonitor, LoadBalancer, Pool}
+import org.midonet.cluster.rest_api.models.{RouterPort, HealthMonitor, LoadBalancer, Pool}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
@@ -36,6 +36,29 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
+/**
+  * All operations that need to be performed atomically are done by
+  * acquiring a ZooKeeper lock. This is to prevent races with
+  * midolman, more specifically the health monitor, which operates on:
+  * - Route, with side effects on Router and RouterPort due to ZOOM bindings.
+  * - Port, with side effects on Router and Host due to ZOOM bindings.
+  * - Pool
+  * - PoolMember
+  *
+  * Any api or midolman sections that may be doing something like:
+  *
+  *   val port = store.get(classOf[Port], id)
+  *   val portModified = port.toBuilder() -alter fields- .build()
+  *   store.update(portModified)
+  *
+  * Might overwrite changes made by this class on the port (directly, or
+  * implicitly as a result of referential constraints).  To protect
+  * against this, sections of the code similar to the one above should
+  * be protected using the following lock:
+  *
+  *   new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
+  *                ZookeeperLockFactory.ZOOM_TOPOLOGY)
+  */
 @ApiResource(version = 1, name = "pools", template = "poolTemplate")
 @Path("pools")
 @RequestScoped
@@ -51,6 +74,23 @@ class PoolResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Pool](resContext) {
 
     private val store = resContext.backend.store
+
+    @PUT
+    @Path("{id}")
+    @Consumes(Array(APPLICATION_POOL_JSON,
+                    APPLICATION_JSON))
+    override def update(@PathParam("id") id: String, pool: Pool,
+                        @HeaderParam("Content-Type") contentType: String)
+    : Response = {
+        lock {
+            super.update(id, pool, contentType)
+        }
+    }
+
+    @DELETE
+    @Path("{id}")
+    override def delete(@PathParam("id") id: String): Response =
+        lock { super.delete(id) }
 
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): PoolVipResource = {
