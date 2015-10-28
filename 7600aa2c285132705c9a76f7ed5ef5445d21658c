@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_55067b21",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/mock/MockFlowProcessor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-28T16:14:38Z",
+      "side": 1,
+      "message": "Unintentional?",
+      "range": {
+        "startLine": 66,
+        "startChar": 41,
+        "endLine": 66,
+        "endChar": 44
+      },
+      "revId": "7600aa2c285132705c9a76f7ed5ef5445d21658c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
