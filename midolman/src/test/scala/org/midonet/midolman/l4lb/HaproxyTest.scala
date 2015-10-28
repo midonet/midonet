@@ -17,23 +17,25 @@ package org.midonet.midolman.l4lb
 
 import java.util.UUID
 
-import akka.actor.{ActorRef, Props, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{TestActorRef, TestKit}
-
+import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
-import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.packets.IPv4Addr
-import org.mockito.Mockito.{mock, verify, times}
+import org.mockito.Mockito.{mock, times, verify}
+import org.mockito.{Matchers, Mockito}
 import org.scalatest._
 import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.SpanSugar
 
-import org.midonet.cluster.models.Topology.{HealthMonitor => topHM, Router, Pool => topPool, Host}
+import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.models.Topology.{HealthMonitor => topHM, Pool => topPool, Router}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.{HealthMonitor => HMSystem}
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.packets.IPv4Addr
 
 
 @RunWith(classOf[JUnitRunner])
@@ -47,6 +49,7 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
     var hmSystem: ActorRef = _
     var backend: MidonetBackend = _
     var conf = mock(classOf[MidolmanConfig])
+    var lockFactory: ZookeeperLockFactory = _
 
     def makeRouter(): UUID = {
         val rid = UUID.randomUUID()
@@ -101,14 +104,17 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
         backend.store.get(classOf[Router], routerId).value.get.get
     }
 
-    class TestableHealthMonitor extends HMSystem(conf, backend, null) {
+    class TestableHealthMonitor extends HMSystem(conf, backend, lockFactory,
+                                                 curator = null) {
         override def getHostId = hostId
 
         override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
-                                     routerId: UUID) = {
+                                              routerId: UUID) = {
+            val backendUtil = new BackendUtil(backend.store, lockFactory)
             context.actorOf(
                 Props(
-                    new HaproxyHealthMonitor(config, self, routerId, store, hostId) {
+                    new HaproxyHealthMonitor(config, self, routerId, store,
+                                             hostId, backendUtil) {
                         override def writeConf(config: PoolConfig): Unit = {}
                     }
                 ).withDispatcher(context.props.dispatcher),
@@ -119,6 +125,13 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
     override def beforeTest(): Unit = {
         backend = injector.getInstance(classOf[MidonetBackend])
         conf = injector.getInstance(classOf[MidolmanConfig])
+        lockFactory = mock(classOf[ZookeeperLockFactory])
+        val mutex = mock(classOf[InterProcessSemaphoreMutex])
+        Mockito.when(lockFactory.createShared(ZookeeperLockFactory.ZOOM_TOPOLOGY))
+               .thenReturn(mutex)
+        Mockito.when(mutex.acquire(Matchers.anyLong(), Matchers.anyObject()))
+               .thenReturn(true)
+
         HMSystem.ipCommand = mock(classOf[IP])
         hmSystem = TestActorRef(Props(new TestableHealthMonitor()))(actorSystem)
     }
