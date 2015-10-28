@@ -23,7 +23,6 @@ import java.util.concurrent.locks.ReentrantLock
 import scala.async.Async.async
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
@@ -35,13 +34,11 @@ import rx.Observable
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.{PersistenceOp, Storage}
-import org.midonet.cluster.models.Neutron.{SecurityGroup => NeutronSecurityGroup}
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.C3POStorageManager
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
-import org.midonet.cluster.util.UUIDUtil.{toProto => toPuuid}
 import org.midonet.midolman.state.PathBuilder
 
 @RunWith(classOf[JUnitRunner])
@@ -52,8 +49,12 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
                                    with MockitoSugar {
 
     val backend: MidonetBackend = mock[MidonetBackend]
-    val resContext: ResourceContext = new ResourceContext(backend, null, null,
-                                                          null, null)
+    val resContext: ResourceContext = new ResourceContext(backend,
+                                                          lockFactory = null,
+                                                          uriInfo = null,
+                                                          validator = null,
+                                                          seqDispenser = null,
+                                                          stateTables = null)
     val paths: PathBuilder = mock[PathBuilder]
     val c3po: C3POStorageManager = mock[C3POStorageManager]
     val lockFactory: ZookeeperLockFactory = mock[ZookeeperLockFactory]

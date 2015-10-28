@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.{List => JList, ArrayList, UUID}
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
@@ -247,6 +247,21 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
         }
     }
 
+    @PUT
+    @Path("{id}")
+    @Consumes(Array(APPLICATION_PORT_V3_JSON,
+                    APPLICATION_JSON))
+    override def update(@PathParam("id") id: String, port: RouterPort,
+                        @HeaderParam("Content-Type") contentType: String)
+    : Response = zkLock {
+        super.update(id, port, contentType)
+    }
+
+    @DELETE
+    @Path("{id}")
+    override def delete(@PathParam("id") id: String): Response = zkLock {
+        super.delete(id)
+    }
 }
 
 @RequestScoped
