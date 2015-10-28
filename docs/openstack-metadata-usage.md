@@ -23,7 +23,7 @@ This feature requires the v2 architecture. (ZOOM)
 
 #### Hypervisor network stack requirement
 
-If enabled, this feature uses 169.254/64 link-local addresses on
+If enabled, this feature uses 169.254/16 link-local addresses on
 the hypervisor.  midolman creates a pseudo network interface named
 "midonet", and assigns the metadata service address (169.254.169.254)
 on it.  Also, it listens on TCP 169.254.169.254:9697 for incoming
