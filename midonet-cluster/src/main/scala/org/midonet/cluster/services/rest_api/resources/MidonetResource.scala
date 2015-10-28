@@ -169,6 +169,14 @@ object MidonetResource {
 
 }
 
+/**
+  * CRUD operations need to be performed atomically and are done by
+  * acquiring a ZooKeeper lock. This is to prevent races with
+  * the agent (Midolman), more specifically the health monitor.
+  *
+  * TODO: The agent should never write to topology elements.  All code
+  * violating this principle will be refactored out of here shortly (MNA-1068).
+  */
 abstract class MidonetResource[T >: Null <: UriResource]
                               (resContext: ResourceContext)
                               (implicit tag: ClassTag[T]) {
@@ -328,7 +336,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
     @PUT
     @Path("{id}")
     def update(@PathParam("id") id: String, t: T,
-               @HeaderParam("Content-Type") contentType: String): Response = {
+               @HeaderParam("Content-Type") contentType: String)
+    : Response = {
         val consumes = getAnnotation(classOf[AllowUpdate])
         if ((consumes eq null) || !consumes.value().contains(contentType)) {
             log.info("Media type {} not supported", contentType)
