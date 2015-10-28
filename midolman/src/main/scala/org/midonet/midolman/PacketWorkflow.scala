@@ -246,6 +246,7 @@ class PacketWorkflow(
                     process()
                 } else {
                     handleErrorOn(pktCtx, error)
+                    waitingRoom leave pktCtx
                 }
                 MDC.remove("cookie")
                 FlowTracingContext.clearContext()
