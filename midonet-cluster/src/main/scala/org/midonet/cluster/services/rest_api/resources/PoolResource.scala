@@ -20,7 +20,7 @@ import java.util.UUID
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
-import javax.ws.rs.{Path, PathParam}
+import javax.ws.rs._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -28,7 +28,7 @@ import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.{Pool => TopPool}
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{HealthMonitor, LoadBalancer, Pool}
+import org.midonet.cluster.rest_api.models.{RouterPort, HealthMonitor, LoadBalancer, Pool}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
@@ -51,6 +51,22 @@ class PoolResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Pool](resContext) {
 
     private val store = resContext.backend.store
+
+    @PUT
+    @Path("{id}")
+    @Consumes(Array(APPLICATION_POOL_JSON,
+                    APPLICATION_JSON))
+    override def update(@PathParam("id") id: String, pool: Pool,
+                        @HeaderParam("Content-Type") contentType: String)
+    : Response = zkLock {
+        super.update(id, pool, contentType)
+    }
+
+    @DELETE
+    @Path("{id}")
+    override def delete(@PathParam("id") id: String): Response = zkLock {
+        super.delete(id)
+    }
 
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): PoolVipResource = {
