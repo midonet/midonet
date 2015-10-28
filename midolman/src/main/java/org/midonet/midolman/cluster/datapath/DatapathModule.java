@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.cluster.datapath;
 
+import java.nio.channels.spi.SelectorProvider;
 import java.util.Arrays;
 
 import javax.inject.Singleton;
@@ -185,6 +186,7 @@ public class DatapathModule extends PrivateModule {
                         config.datapath().globalIncomingBurstCapacity() * 2,
                         512, // Flow request size
                         injector.getInstance(NetlinkChannelFactory.class),
+                        SelectorProvider.provider(),
                         NanoClock$.MODULE$.DEFAULT());
                 }
             })

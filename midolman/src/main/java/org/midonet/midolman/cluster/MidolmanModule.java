@@ -67,6 +67,7 @@ public class MidolmanModule extends PrivateModule {
 
         bind(SelectLoopService.class)
             .asEagerSingleton();
+        expose(SelectLoopService.class);
 
         requestStaticInjection(Chain.class);
 
