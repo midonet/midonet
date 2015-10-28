@@ -50,8 +50,12 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
                                    with MockitoSugar {
 
     val backend: MidonetBackend = mock[MidonetBackend]
-    val resContext: ResourceContext = new ResourceContext(backend, null, null,
-                                                          null, null, null)
+    val resContext: ResourceContext = new ResourceContext(backend,
+                                                          lockFactory = null,
+                                                          uriInfo = null,
+                                                          validator = null,
+                                                          seqDispenser = null,
+                                                          stateTables = null)
     val paths: PathBuilder = mock[PathBuilder]
     val c3po: C3POStorageManager = mock[C3POStorageManager]
     val lockFactory: ZookeeperLockFactory = mock[ZookeeperLockFactory]
