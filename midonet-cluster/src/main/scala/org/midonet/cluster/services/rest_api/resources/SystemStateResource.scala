@@ -25,7 +25,7 @@ import org.midonet.cluster.rest_api.annotation.ApiResource
 import org.midonet.cluster.rest_api.models.SystemState
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "systemState")
 @Path("system_state")
 @RequestScoped
 /** We're probably removing this in V2, kept here as it's required by MDTS */

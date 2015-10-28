@@ -26,14 +26,13 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.data.ZoomConvert.{toProto => zoomToProto}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.midolman.state.PathBuilder
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "routers", template = "routerTemplate")
 @Path("routers")
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTER_JSON_V3,

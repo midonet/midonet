@@ -48,7 +48,7 @@ import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.MAC.InvalidMacException
 import org.midonet.packets.{IPv4Addr, MAC}
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "bridges", template = "bridgeTemplate")
 @Path("bridges")
 @RequestScoped
 @AllowGet(Array(APPLICATION_BRIDGE_JSON_V4,

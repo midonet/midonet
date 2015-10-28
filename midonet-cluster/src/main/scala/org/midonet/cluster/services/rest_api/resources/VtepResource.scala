@@ -42,7 +42,7 @@ import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
 import org.midonet.util.reactivex._
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "vteps", template = "vtepTemplate")
 @Path("vteps")
 @RequestScoped
 @AllowGet(Array(APPLICATION_VTEP_JSON_V2,

@@ -42,7 +42,7 @@ import org.midonet.cluster.util.IPAddressUtil.{toIPAddr, toProto}
 import org.midonet.packets.IPAddr.canonicalize
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr}
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "ipAddrGroups", template = "ipAddrGroupTemplate")
 @Path("ip_addr_groups")
 @RequestScoped
 @AllowGet(Array(APPLICATION_IP_ADDR_GROUP_JSON))

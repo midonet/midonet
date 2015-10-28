@@ -36,7 +36,7 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "pools", template = "poolTemplate")
 @Path("pools")
 @RequestScoped
 @AllowGet(Array(APPLICATION_POOL_JSON,

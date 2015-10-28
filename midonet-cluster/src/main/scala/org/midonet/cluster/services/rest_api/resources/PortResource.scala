@@ -98,7 +98,7 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
 
 }
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "ports", template = "portTemplate")
 @Path("ports")
 @RequestScoped
 @AllowGet(Array(APPLICATION_PORT_V3_JSON,

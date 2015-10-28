@@ -261,17 +261,9 @@ class MidonetApi(object):
         return host.add_host_interface_port().port_id(port_id) \
             .interface_name(interface_name).create()
 
-    def get_write_version(self):
-        self._ensure_application()
-        return self.app.get_write_version()
-
     def get_system_state(self):
         self._ensure_application()
         return self.app.get_system_state()
-
-    def get_host_versions(self, query=None):
-        self._ensure_application()
-        return self.app.get_host_versions(query)
 
     def get_host(self, id_):
         self._ensure_application()
