@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_55559bc4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-28T14:30:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_1277b9d5",
+      "range": {
+        "startLine": 11,
+        "startChar": 6,
+        "endLine": 11,
+        "endChar": 12
+      },
+      "revId": "090708e372d3422b244f4aed27c3529af3f4e266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_75529fde",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-28T14:30:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_3274bdce",
+      "range": {
+        "startLine": 11,
+        "startChar": 38,
+        "endLine": 11,
+        "endChar": 40
+      },
+      "revId": "090708e372d3422b244f4aed27c3529af3f4e266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_522f71a1",
         "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
         "patchSetId": 7
@@ -59,6 +107,30 @@
       "writtenOn": "2015-10-28T13:42:48Z",
       "side": 1,
       "message": "not sure if we want a much larger number (1000?) to make sure that we don\u0027t get flakiness",
+      "range": {
+        "startLine": 332,
+        "startChar": 15,
+        "endLine": 332,
+        "endChar": 17
+      },
+      "revId": "090708e372d3422b244f4aed27c3529af3f4e266",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_955e53e8",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-28T14:30:12Z",
+      "side": 1,
+      "message": "This will make the test quite slower. Let\u0027s see once these set of patches the level of flakyness and investigate if necessary.",
+      "parentUuid": "9ab29df4_522f71a1",
       "range": {
         "startLine": 332,
         "startChar": 15,
