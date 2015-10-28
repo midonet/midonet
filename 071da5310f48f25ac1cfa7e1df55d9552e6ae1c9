@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_1fd182fb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-28T08:53:09Z",
+      "side": 1,
+      "message": "5.0",
+      "range": {
+        "startLine": 131,
+        "startChar": 84,
+        "endLine": 131,
+        "endChar": 87
+      },
+      "revId": "071da5310f48f25ac1cfa7e1df55d9552e6ae1c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_1f3fc226",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-28T08:53:09Z",
+      "side": 1,
+      "message": "and?",
+      "range": {
+        "startLine": 683,
+        "startChar": 68,
+        "endLine": 683,
+        "endChar": 69
+      },
+      "revId": "071da5310f48f25ac1cfa7e1df55d9552e6ae1c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_7f1d1ebd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 735,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-28T08:53:09Z",
+      "side": 1,
+      "message": "indent",
+      "range": {
+        "startLine": 735,
+        "startChar": 43,
+        "endLine": 735,
+        "endChar": 69
+      },
+      "revId": "071da5310f48f25ac1cfa7e1df55d9552e6ae1c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_1fdb42ee",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-28T08:53:09Z",
+      "side": 1,
+      "message": "Perhaps we could introduce a default option and return the default in that case?",
+      "range": {
+        "startLine": 845,
+        "startChar": 21,
+        "endLine": 845,
+        "endChar": 36
+      },
+      "revId": "071da5310f48f25ac1cfa7e1df55d9552e6ae1c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
