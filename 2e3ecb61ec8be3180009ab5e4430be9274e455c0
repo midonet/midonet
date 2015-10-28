@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_b02605b9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-28T16:20:03Z",
+      "side": 1,
+      "message": "If you want to make this a health monitor config, then it should be in agent.conf under the key agent.haproxy_health_monitor. If you put it as a backend config, then maybe it should be in nsdb.conf",
+      "parentUuid": "9ab29df4_55aafb19",
+      "range": {
+        "startLine": 145,
+        "startChar": 4,
+        "endLine": 148,
+        "endChar": 116
+      },
+      "revId": "2e3ecb61ec8be3180009ab5e4430be9274e455c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_15db23ee",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 2
