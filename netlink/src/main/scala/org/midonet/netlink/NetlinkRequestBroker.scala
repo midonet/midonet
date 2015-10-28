@@ -30,6 +30,7 @@ import org.midonet.util.concurrent.NanoClock
 
 object NetlinkRequestBroker {
     val FULL = -1
+    private val NO_TIMEOUT = -1L
 
     private val NOOP = new Observer[ByteBuffer] {
         override def onCompleted(): Unit = { }
@@ -86,6 +87,15 @@ object NetlinkRequestBroker {
  * no error is detected. We don't support timing out a request if we'll eventually
  * receive the reply: if the request is in position X and the reply arrives after
  * we have wrapped around to X again, it may be mistaken as the new reply.
+ *
+ * The timeout value associated with a request is written by the writer thread
+ * so that it doesn't account for the time the requests spend in the queue. It
+ * is cleared by the reader thread, which sets it to a reserved value upon request
+ * completion. We ensure that the writer thread publishes the timeout value before
+ * writing the request, otherwise there could a be race where the reader thread
+ * reads the reply and clears the timeout before the writer thread overwrites it
+ * with a valid value. This could cause the reader thread to timeout a new request
+ * in the same position (when wrapping around the queue) even before it is written.
  *
  * TODO: Use @Contended on some of these fields when on java 8
  */
@@ -226,9 +236,15 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
             val pos = position(seq)
             val buf = buffers(pos)
             try {
+                expirations(pos) = {
+                    val timeout = clock.tick + timeoutNanos
+                    if (timeout == NO_TIMEOUT)
+                        timeout + 1
+                    else
+                        timeout
+                }
                 buf.putInt(buf.position() + NetlinkMessage.NLMSG_SEQ_OFFSET, pos)
                 nbytes += writer.write(buf)
-                expirations(pos) = clock.tick + timeoutNanos
             } catch { case e: Throwable =>
                 val obs = observers(pos)
                 freeObserver(pos)
@@ -321,7 +337,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
     }
 
     private def timedOut(pos: Int, currentTime: Long): Boolean =
-        if (currentTime > expirations(pos)) {
+        if (currentTime - expirations(pos) > 0 && expirations(pos) != NO_TIMEOUT) {
             val obs = observers(pos)
             freeObserver(pos)
             obs.onError(timeoutException)
@@ -332,7 +348,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
 
     private def freeObserver(pos: Int): Unit = {
         observers(pos) = null
-        expirations(pos) = Long.MaxValue
+        expirations(pos) = NO_TIMEOUT
     }
 
     private def isAvailable(seq: Long): Boolean =
