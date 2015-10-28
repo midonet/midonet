@@ -46,6 +46,30 @@
       "revId": "0507c6e7adc1599e09f55f59dadff14bb8507ce3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d212a161",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-28T13:44:48Z",
+      "side": 1,
+      "message": "yes, but maybe it\u0027s better if you fetch this root from MidonetBackendConfig.rootKey so that you get the right one.",
+      "parentUuid": "9ab29df4_263e51b9",
+      "range": {
+        "startLine": 89,
+        "startChar": 36,
+        "endLine": 89,
+        "endChar": 39
+      },
+      "revId": "0507c6e7adc1599e09f55f59dadff14bb8507ce3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
