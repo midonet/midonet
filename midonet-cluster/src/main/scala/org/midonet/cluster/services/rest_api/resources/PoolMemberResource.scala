@@ -18,7 +18,7 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
 import javax.ws.rs.core.Response
-import javax.ws.rs.{PathParam, Path, DELETE}
+import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConverters._
@@ -28,9 +28,9 @@ import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{Pool, PoolMember}
+import org.midonet.cluster.rest_api.models.{RouterPort, Pool, PoolMember}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Ids, NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
 @ApiResource(version = 1)
 @Path("pool_members")
@@ -52,15 +52,32 @@ class PoolMemberResource @Inject()(resContext: ResourceContext)
         NoOps
     }
 
+    @PUT
+    @Path("{id}")
+    @Consumes(Array(APPLICATION_POOL_MEMBER_JSON,
+                    APPLICATION_JSON))
+    override def update(@PathParam("id") id: String, member: PoolMember,
+                        @HeaderParam("Content-Type") contentType: String)
+    : Response = {
+        lock {
+            getResource(classOf[PoolMember], id).map(current => {
+                current.update(member)
+                updateResource(current, OkResponse)
+            }).getOrThrow
+        }
+    }
+
     @DELETE
     @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = {
-        try {
-            deleteResource(classOf[PoolMember], id)
-        } catch {
-            case t: NotFoundHttpException => // ok, idempotent
+        lock {
+            try {
+                deleteResource(classOf[PoolMember], id)
+            } catch {
+                case t: NotFoundHttpException => // ok, idempotent
+            }
+            MidonetResource.OkNoContentResponse
         }
-        MidonetResource.OkNoContentResponse
     }
 
 }
