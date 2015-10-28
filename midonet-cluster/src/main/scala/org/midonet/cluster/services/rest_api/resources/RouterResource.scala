@@ -17,16 +17,15 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response
 
 import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.data.ZoomConvert.{toProto => zoomToProto}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -72,6 +71,25 @@ class RouterResource @Inject()(resContext: ResourceContext,
     @Path("{id}/bgp_peers")
     def bgpPeers(@PathParam("id") id: UUID): RouterBgpPeerResource = {
         new RouterBgpPeerResource(id, resContext)
+    }
+
+    @PUT
+    @Path("{id}")
+    @Consumes(Array(APPLICATION_ROUTER_JSON_V3,
+                    APPLICATION_JSON))
+    override def update(@PathParam("id") id: String, router: Router,
+                        @HeaderParam("Content-Type") contentType: String)
+    : Response = zkLock {
+        getResource(classOf[Router], id).map(current => {
+            router.update(current)
+            updateResource(router, OkNoContentResponse)
+        }).getOrThrow
+    }
+
+    @DELETE
+    @Path("{id}")
+    override def delete(@PathParam("id") id: String): Response = zkLock {
+        deleteResource(classOf[Router], id)
     }
 
     protected override def listFilter(routers: Seq[Router]): Future[Seq[Router]] = {
