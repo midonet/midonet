@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_5023e904",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 6
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-28T18:31:22Z",
+      "side": 1,
+      "message": "this is in tentional btw, we should add finer grain filters for tempest, but I want to do these gradually and later after talking to integration devs",
+      "range": {
+        "startLine": 96,
+        "startChar": 7,
+        "endLine": 96,
+        "endChar": 15
+      },
+      "revId": "7002de12789b4b621eb339ae38267568a24c269f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
