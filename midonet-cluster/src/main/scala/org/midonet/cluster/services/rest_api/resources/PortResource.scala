@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.{List => JList, ArrayList, UUID}
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
@@ -228,6 +228,30 @@ class BridgePortResource @Inject()(bridgeId: UUID,
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_PORT_V3_JSON,
                    APPLICATION_JSON))
+
+/**
+  * All operations that need to be performed atomically are done by
+  * acquiring a ZooKeeper lock. This is to prevent races with
+  * midolman, more specifically the health monitor, which operates on:
+  * - Route, with side effects on Router and RouterPort due to ZOOM bindings.
+  * - Port, with side effects on Router and Host due to ZOOM bindings.
+  * - Pool
+  * - PoolMember
+  *
+  * Any api or midolman sections that may be doing something like:
+  *
+  *   val port = store.get(classOf[Port], id)
+  *   val portModified = port.toBuilder() -alter fields- .build()
+  *   store.update(portModified)
+  *
+  * Might overwrite changes made by this class on the port (directly, or
+  * implicitly as a result of referential constraints).  To protect
+  * against this, sections of the code similar to the one above should
+  * be protected using the following lock:
+  *
+  *   new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
+  *                ZookeeperLockFactory.ZOOM_TOPOLOGY)
+  */
 class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
     extends AbstractPortResource[RouterPort](resContext) {
 
@@ -247,6 +271,22 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
         }
     }
 
+    @PUT
+    @Path("{id}")
+    @Consumes(Array(APPLICATION_PORT_V3_JSON,
+                    APPLICATION_JSON))
+    override def update(@PathParam("id") id: String, port: RouterPort,
+                        @HeaderParam("Content-Type") contentType: String)
+    : Response = {
+        lock {
+            super.update(id, port, contentType)
+        }
+    }
+
+    @DELETE
+    @Path("{id}")
+    override def delete(@PathParam("id") id: String): Response =
+        lock { super.delete(id) }
 }
 
 @RequestScoped
@@ -373,28 +413,45 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
         val portId = UUID.fromString(id)
         // If the port still exists, delete the port group ID from the port,
         // otherwise delete only the port ID from the port group.
-        getResource(classOf[Port], portId).flatMap(port => {
-            getResource(classOf[PortGroup], portGroupId).map(pg => {
-                if (!port.portGroupIds.contains(portGroupId)) {
-                    Response.status(Status.NOT_FOUND).build()
-                } else if (!pg.portIds.contains(portId)) {
-                    MidonetResource.OkNoContentResponse
-                } else {
-                    port.portGroupIds.remove(portGroupId)
-                    pg.portIds.remove(portId)
-                    multiResource(Seq(Update(port), Update(pg)),
-                                  MidonetResource.OkNoContentResponse)
-                }
-            })
-        }).fallbackTo(
-            getResource(classOf[PortGroup], portGroupId).map(pg => {
-                if (!pg.portIds.contains(portId)) {
-                    MidonetResource.OkNoContentResponse
-                } else {
-                    pg.portIds.remove(portId)
-                    updateResource(pg, MidonetResource.OkNoContentResponse)
-                }
-            }))
-        .getOrThrow
+        val port = try {
+            getResource(classOf[Port], portId).getOrThrow
+        } catch {
+            case t: NotFoundHttpException => null
+            case NonFatal(t) => throw t
+        }
+
+        val pg = try {
+            getResource(classOf[PortGroup], portGroupId).getOrThrow
+        } catch {
+            case t: NotFoundHttpException => null
+            case NonFatal(t) => throw t
+        }
+
+        val ops = new ArrayList[Multi]
+        val updatePort = port != null
+        val updatePg = pg != null
+
+        if (updatePort) {
+            if (!port.portGroupIds.contains(portGroupId)) {
+                // TODO: should we return a 204 instead for idempotency?
+                Response.status(Status.NOT_FOUND)
+                    .entity(getMessage(RESOURCE_NOT_FOUND,
+                                       "port group", portGroupId))
+                    .build()
+            }
+            port.portGroupIds.remove(portGroupId)
+            ops.add(Update(port))
+        }
+
+        if (updatePg && pg.portIds.contains(portId)) {
+            pg.portIds.remove(portId)
+            ops.add(Update(pg))
+        }
+
+        if (ops.nonEmpty) {
+            multiResource(ops.toSeq)
+        }
+
+        OkNoContentResponse
     }
 }
