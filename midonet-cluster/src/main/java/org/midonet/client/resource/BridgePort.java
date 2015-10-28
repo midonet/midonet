@@ -23,7 +23,7 @@ import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoBridgePort;
 
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 
 public class BridgePort extends
         Port<BridgePort, DtoBridgePort> {
@@ -31,7 +31,7 @@ public class BridgePort extends
     public BridgePort(WebResource resource, URI uriForCreation,
                       DtoBridgePort port) {
         super(resource, uriForCreation, port,
-              APPLICATION_PORT_V2_JSON());
+              APPLICATION_PORT_V3_JSON());
     }
 
     @Override

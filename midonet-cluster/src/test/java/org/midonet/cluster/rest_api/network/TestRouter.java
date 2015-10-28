@@ -37,14 +37,12 @@ import org.junit.runner.RunWith;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
-import org.midonet.cluster.rest_api.models.Router;
 import org.midonet.cluster.rest_api.models.Tenant;
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
@@ -54,8 +52,6 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -67,7 +63,7 @@ import static org.midonet.cluster.rest_api.rest_api.FuncTest.appDesc;
 import static org.midonet.cluster.rest_api.rest_api.FuncTest.objectMapper;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORT_V3_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_COLLECTION_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_ROUTER_JSON_V3;
 
@@ -447,7 +443,7 @@ public class TestRouter {
             port.setPortAddress("10.0.0.1");
             DtoRouterPort resPort =
                 dtoResource.postAndVerifyCreated(resRouter.getPorts(),
-                    APPLICATION_PORT_V2_JSON(), port, DtoRouterPort.class);
+                    APPLICATION_PORT_V3_JSON(), port, DtoRouterPort.class);
             assertNotNull(resPort.getId());
             // Create a bridge that we can link to the router.
             DtoBridge bridge = new DtoBridge();
@@ -460,7 +456,7 @@ public class TestRouter {
             assertNotNull(resBridge.getUri());
             // Add an interior bridge port.
             DtoBridgePort bPort = dtoResource.postAndVerifyCreated(
-                resBridge.getPorts(), APPLICATION_PORT_V2_JSON(),
+                resBridge.getPorts(), APPLICATION_PORT_V3_JSON(),
                 new DtoBridgePort(), DtoBridgePort.class);
             assertNotNull(bPort.getId());
             assertNotNull(bPort.getUri());
