@@ -63,7 +63,6 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
     override def create(binding: HostInterfacePort,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = tryTx { tx =>
-
         val host = tx.get(classOf[Host], hostId)
         if (host.tunnelZoneIds.isEmpty) {
             throw new BadRequestHttpException(
