@@ -31,7 +31,7 @@ import org.midonet.cluster.rest_api.models.{Router, BgpPeer}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Ids, NoOps, Ops, ResourceContext}
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, template = "bgpPeerTemplate")
 @Path("bgp_peers")
 @RequestScoped
 @AllowGet(Array(APPLICATION_BGP_PEER_JSON,

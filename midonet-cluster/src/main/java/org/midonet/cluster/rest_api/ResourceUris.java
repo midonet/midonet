@@ -64,7 +64,6 @@ public final class ResourceUris {
     public static final String VTEPS = "vteps";
     public static final String VTEP_BINDINGS = "vtep_bindings";
     public static final String VXLAN_PORTS = "vxlan_ports";
-    public static final String WRITE_VERSION = "write_version";
 
     // TODO: remove these? they are templates, and belong in the resources IMO
     public static final String TENANT_ID_PARAM = "tenant_id";

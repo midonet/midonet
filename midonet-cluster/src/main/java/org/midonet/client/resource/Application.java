@@ -26,7 +26,6 @@ import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoHost;
-import org.midonet.client.dto.DtoHostVersion;
 import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRoute;
@@ -36,7 +35,6 @@ import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoSystemState;
 import org.midonet.client.dto.DtoTunnelZone;
-import org.midonet.client.dto.DtoWriteVersion;
 
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_COLLECTION_JSON_V4;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_BRIDGE_JSON_V4;
@@ -44,7 +42,6 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_CHAIN_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_JSON_V3;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_VERSION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_JSON_V5;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_PORTGROUP_JSON;
@@ -60,7 +57,6 @@ import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATIO
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_HOST_JSON;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_TUNNEL_ZONE_JSON;
-import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_WRITE_VERSION_JSON;
 
 public class Application extends ResourceBase<Application, DtoApplication> {
 
@@ -254,26 +250,12 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         );
     }
 
-    public WriteVersion getWriteVersion() {
-        URI uri = principalDto.getWriteVersion();
-        DtoWriteVersion writeVersion = resource.get(uri, null,
-                DtoWriteVersion.class,
-                APPLICATION_WRITE_VERSION_JSON());
-        return new WriteVersion(resource, null, writeVersion);
-    }
-
     public SystemState getSystemState() {
         URI uri = principalDto.getSystemState();
         DtoSystemState systemState = resource.get(uri, null,
                 DtoSystemState.class,
                 APPLICATION_SYSTEM_STATE_JSON_V2());
         return new SystemState(resource, null, systemState);
-    }
-
-    public ResourceCollection<HostVersion> getHostVersions() {
-        return getChildResources(principalDto.getHostVersions(), null,
-                                 APPLICATION_HOST_VERSION_JSON(),
-                                 HostVersion.class, DtoHostVersion.class);
     }
 
     public TunnelZone getTunnelZone(UUID id) {

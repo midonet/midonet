@@ -40,7 +40,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "hosts", template = "hostTemplate")
 @Path("hosts")
 @RequestScoped
 @AllowGet(Array(APPLICATION_HOST_JSON_V3,

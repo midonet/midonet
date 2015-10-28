@@ -51,14 +51,14 @@ class ResourceProvider(log: Logger) {
             val pathAnnotation = clazz.getAnnotation(classOf[Path])
             log info s"API endpoint found: /${pathAnnotation.value} version  " +
                      apiAnnotation.version
-            (pathAnnotation.value, apiAnnotation.version, clazz)
+            (pathAnnotation.value, apiAnnotation, clazz)
         }
     private val currentResources =
         allResources.aggregate(Map[String, (Int, Class[_])]())((map, entry) => {
             map get entry._1 match {
-                case Some((version, _)) if version < entry._2 =>
-                    map + (entry._1 -> (entry._2, entry._3))
-                case None => map + (entry._1 -> (entry._2, entry._3))
+                case Some((version, _)) if version < entry._2.version() =>
+                    map + (entry._1 -> (entry._2.version(), entry._3))
+                case None => map + (entry._1 -> (entry._2.version(), entry._3))
                 case _ => map
             }
         }, _ ++ _)
@@ -73,5 +73,9 @@ class ResourceProvider(log: Logger) {
                 throw new NotFoundHttpException(s"Root resource $name not found")
         }
     }
+
+    def all = allResources.toSeq.sortBy(_._1)
+                          .asInstanceOf[Seq[(String, ApiResource, Class[Object])]]
+                          .asJavaCollection
 
 }
