@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_72a71550",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-28T13:36:27Z",
+      "side": 1,
+      "message": "is it hard to do now? (or, does it add a lot of changes in other areas of the code)",
+      "range": {
+        "startLine": 312,
+        "startChar": 0,
+        "endLine": 313,
+        "endChar": 47
+      },
+      "revId": "af8d8e148e1aead1e0729728db0d07546e6e87f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_b268cdf6",
+        "filename": "tests/mdts/tests/topologies/mmm_virtual_test_load_balancer.yaml",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-28T13:36:27Z",
+      "side": 1,
+      "message": "Comment as a relative newbie into this: it\u0027d be extremely useful to see a diagram with the topology modelled here.",
+      "revId": "af8d8e148e1aead1e0729728db0d07546e6e87f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
