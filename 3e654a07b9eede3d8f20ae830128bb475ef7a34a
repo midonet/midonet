@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_bf309657",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-28T08:47:17Z",
+      "side": 1,
+      "message": "well.. i can add it, but if i were to add one comment for everything in this class that can\u0027t be moved out of order.. :D",
+      "parentUuid": "9ab29df4_7feefeed",
+      "revId": "3e654a07b9eede3d8f20ae830128bb475ef7a34a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_5ff13acc",
         "filename": "netlink/src/main/scala/org/midonet/netlink/NetlinkRequestBroker.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-10-28T07:20:32Z",
       "side": 1,
       "message": "why this change?",
+      "revId": "3e654a07b9eede3d8f20ae830128bb475ef7a34a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_9f603237",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-28T08:47:17Z",
+      "side": 1,
+      "message": "well, i got scared by all the races :s java longs are signed, but the cpu counter from where it reads the time is unsigned. so the number can be negative, right?",
+      "parentUuid": "9ab29df4_5ff13acc",
       "revId": "3e654a07b9eede3d8f20ae830128bb475ef7a34a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
