@@ -19,7 +19,8 @@ package org.midonet.cluster.services.rest_api.resources
 import java.util.{List => JList, UUID}
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.{Path, GET, HeaderParam, Produces}
+import javax.ws.rs._
+import javax.ws.rs.core.Response
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -46,6 +47,23 @@ import org.midonet.util.reactivex._
 @AllowDelete
 class RouteResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Route](resContext) {
+
+    @PUT
+    @Path("{id}")
+    @Consumes(Array(APPLICATION_ROUTE_JSON,
+                    APPLICATION_JSON))
+    override def update(@PathParam("id") id: String, route: Route,
+                        @HeaderParam("Content-Type") contentType: String)
+    : Response = {
+        zkLock {
+            super.update(id, route, contentType)
+        }
+    }
+
+    @DELETE
+    @Path("{id}")
+    override def delete(@PathParam("id") id: String): Response =
+        zkLock { super.delete(id) }
 
     protected override def getFilter(route: Route): Future[Route] = {
         if (route.routerId eq null) {
