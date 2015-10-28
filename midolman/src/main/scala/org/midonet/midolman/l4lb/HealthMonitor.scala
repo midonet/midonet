@@ -17,7 +17,9 @@
 package org.midonet.midolman.l4lb
 
 import java.io._
-import java.util.UUID
+import java.util.{ConcurrentModificationException, UUID}
+
+import scala.util.Random
 
 import akka.actor.{Props, Actor, ActorRef}
 import com.google.inject.Inject
@@ -377,16 +379,50 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
             }
     }
 
-    def interceptStorageError[T](f: => T): Unit =
-        try {
-            f
-        } catch {
-            case e: NotFoundException =>
-                log.warn("Missing data", e)
-            case e: ObjectExistsException =>
-                log.warn("Tried to overwrite existing data", e)
-            case e: StorageException =>
-                log.error("Unexpected storage error", e)
-        }
+    /**
+     * This method executes function f and retries if a
+     * [[ConcurrentModificationException]]
+     * is thrown. All other Zoom exceptions are logged.
+     *
+     * Retries follow an exponential back-off approach:
+     * -The time slept between the 1st and 2nd attempts is uniformly
+     *  distributed between 0 and the wait time configured in the
+     *  HealthMonitor config.
+     * -After that, sleep times are doubled after each attempt.
+     */
+    def interceptStorageError[T](f: => T): Unit = {
+        val maxRetries = config.healthMonitor.retriesOnConcurrentModification
+        var sleepTime =
+            Random.nextInt(
+                config.healthMonitor.seedTimeAfterConcurrentModification.toInt
+            ).toLong
+        var retry = false
+        var attempt = 1
+        
+        do {
+            try {
+                f
+            } catch {
+                case e: ConcurrentModificationException =>
+                    attempt += 1
+                    if (attempt < maxRetries) {
+                        Thread.sleep(sleepTime)
+                        sleepTime *= 2l
+                        retry = true
+                    } else {
+                        retry = false
+                    }
+                case e: NotFoundException =>
+                    log.warn("Missing data", e)
+                    retry = false
+                case e: ObjectExistsException =>
+                    log.warn("Tried to overwrite existing data", e)
+                    retry = false
+                case e: StorageException =>
+                    log.error("Unexpected storage error", e)
+                    retry = false
+            }
+        } while (retry)
+    }
 }
 
