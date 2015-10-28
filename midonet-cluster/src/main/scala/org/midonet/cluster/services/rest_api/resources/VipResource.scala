@@ -72,16 +72,18 @@ class VipResource @Inject()(resContext: ResourceContext)
     @DELETE
     @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = {
-        try {
-            val response = super.delete(id)
-            if (response.getStatus == Status.NOT_FOUND.getStatusCode)
-                MidonetResource.OkNoContentResponse
-            else
-                response
-        } catch {
-            case e: WebApplicationException
-                if e.getResponse.getStatus == Status.NOT_FOUND.getStatusCode =>
-                MidonetResource.OkNoContentResponse
+        lock {
+            try {
+                val response = super.delete(id)
+                if (response.getStatus == Status.NOT_FOUND.getStatusCode)
+                    MidonetResource.OkNoContentResponse
+                else
+                    response
+            } catch {
+                case e: WebApplicationException
+                    if e.getResponse.getStatus == Status.NOT_FOUND.getStatusCode =>
+                    MidonetResource.OkNoContentResponse
+            }
         }
     }
 

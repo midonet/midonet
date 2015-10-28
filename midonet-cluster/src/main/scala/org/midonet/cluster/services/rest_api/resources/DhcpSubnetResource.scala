@@ -78,23 +78,29 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
                         subnet: DhcpSubnet,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(_.map(current => {
-            subnet.update(current)
-            updateResource(subnet)
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp(subnetAddress))
+        lock {
+            getSubnet(IPv4Subnet.fromZkString(subnetAddress))
+                .map(_.map(current => {
+                    subnet.update(current)
+                    updateResource(subnet)
+                }))
+                .getOrThrow
+                .getOrElse(subnetNotFoundResp(subnetAddress))
+        }
     }
 
     @DELETE
     @Path("{subnetAddress}")
     override def delete(@PathParam("subnetAddress") subnetAddress: String)
     : Response = {
-        getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(_.map(subnet => {
-            deleteResource(classOf[DhcpSubnet], subnet.id)
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp(subnetAddress))
+        lock {
+            getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(
+                _.map(subnet => {
+                    deleteResource(classOf[DhcpSubnet], subnet.id)
+                }))
+                .getOrThrow
+                .getOrElse(subnetNotFoundResp(subnetAddress))
+        }
     }
 
     @Path("{subnetAddress}/hosts")

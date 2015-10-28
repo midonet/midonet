@@ -78,23 +78,29 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
                         subnet: DhcpSubnet6,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        getSubnet(IPv6Subnet.fromString(subnetAddress)).map(_.map(current => {
-            subnet.update(current)
-            updateResource(subnet)
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp(subnetAddress))
+        lock {
+            getSubnet(IPv6Subnet.fromString(subnetAddress)).map(
+                _.map(current => {
+                    subnet.update(current)
+                    updateResource(subnet)
+                }))
+                .getOrThrow
+                .getOrElse(subnetNotFoundResp(subnetAddress))
+        }
     }
 
     @DELETE
     @Path("{subnetAddress}")
     override def delete(@PathParam("subnetAddress") subnetAddress: String)
     : Response = {
-        getSubnet(IPv6Subnet.fromString(subnetAddress)).map(_.map(subnet => {
-            deleteResource(classOf[DhcpSubnet6], subnet.id)
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp(subnetAddress))
+        lock {
+            getSubnet(IPv6Subnet.fromString(subnetAddress)).map(
+                _.map(subnet => {
+                    deleteResource(classOf[DhcpSubnet6], subnet.id)
+                }))
+                .getOrThrow
+                .getOrElse(subnetNotFoundResp(subnetAddress))
+        }
     }
 
     @Path("{subnetAddress}/hostsV6")

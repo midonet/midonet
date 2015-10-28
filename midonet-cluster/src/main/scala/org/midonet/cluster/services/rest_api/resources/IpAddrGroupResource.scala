@@ -21,15 +21,9 @@ import java.util.UUID
 import javax.ws.rs.core.{Response, UriInfo}
 import javax.ws.rs.{Path, _}
 
-import scala.collection.JavaConversions._
-import scala.concurrent.Await
-
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
-import org.slf4j.LoggerFactory.getLogger
-
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
@@ -41,6 +35,10 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 import org.midonet.cluster.util.IPAddressUtil.{toIPAddr, toProto}
 import org.midonet.packets.IPAddr.canonicalize
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr}
+import org.slf4j.LoggerFactory
+
+import scala.collection.JavaConversions._
+import scala.concurrent.Await
 
 @ApiResource(version = 1)
 @Path("ip_addr_groups")
@@ -99,7 +97,6 @@ sealed trait IpAddrGroupAddrSubResource {
         case ip6: IPv6Addr =>
             new Ipv6AddrGroupAddr(uriInfo.getBaseUri, ipAddrGroupId, ip6)
     }
-
 }
 
 @RequestScoped
@@ -146,15 +143,17 @@ extends IpAddrGroupAddrSubResource {
                 newList.add(a)
             }
         }
-        MidonetResource.tryWrite {
-            if (doUpdate) {
-                store.update(ipg.toBuilder.clearIpAddrPorts()
-                                          .addAllIpAddrPorts(newList)
-                                          .build())
-            }
-            MidonetResource.OkNoContentResponse
-        }
 
+        MidonetResource.lock({
+            MidonetResource.tryWrite {
+                if (doUpdate) {
+                    store.update(ipg.toBuilder.clearIpAddrPorts()
+                                              .addAllIpAddrPorts(newList)
+                                              .build())
+                }
+                MidonetResource.OkNoContentResponse
+            }
+        }, resContext.lockFactory)
     }
 }
 

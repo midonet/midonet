@@ -80,19 +80,21 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
     override def create(host: DhcpV6Host,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        getSubnet(subnetAddress).map(_.map(subnet => {
-            if (subnet.dhcpHosts.asScala.exists(_.clientId == host.clientId)) {
-                val msg = getMessage(SUBNET_HAS_HOST, subnetAddress,
-                                     bridgeId, host.fixedAddress)
-                buildErrorResponse(Status.CONFLICT, msg)
-            } else {
-                host.setBaseUri(subnet.getUri)
-                subnet.dhcpHosts.add(host)
-                updateResource(subnet, Response.created(host.getUri).build())
-            }
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp)
+        lock {
+            getSubnet(subnetAddress).map(_.map(subnet => {
+                if (subnet.dhcpHosts.asScala.exists(_.clientId == host.clientId)) {
+                    val msg = getMessage(SUBNET_HAS_HOST, subnetAddress,
+                                         bridgeId, host.fixedAddress)
+                    buildErrorResponse(Status.CONFLICT, msg)
+                } else {
+                    host.setBaseUri(subnet.getUri)
+                    subnet.dhcpHosts.add(host)
+                    updateResource(subnet, Response.created(host.getUri).build())
+                }
+            }))
+                .getOrThrow
+                .getOrElse(subnetNotFoundResp)
+        }
     }
 
     @PUT
@@ -104,34 +106,38 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
         val reqClientId = DhcpV6Host.clientIdFromUri(clientId)
-        getSubnet(subnetAddress).map(_.flatMap(subnet => {
-            subnet.dhcpHosts.asScala.find( _.clientId == reqClientId )
-                .map(h => {
-                    val index = subnet.dhcpHosts.indexOf(h)
-                    host.setBaseUri(subnet.getUri)
-                    subnet.dhcpHosts.remove(index)
-                    subnet.dhcpHosts.add(index, host)
-                    updateResource(subnet)
-                })
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp)
+        lock {
+            getSubnet(subnetAddress).map(_.flatMap(subnet => {
+                subnet.dhcpHosts.asScala.find( _.clientId == reqClientId )
+                    .map(h => {
+                        val index = subnet.dhcpHosts.indexOf(h)
+                        host.setBaseUri(subnet.getUri)
+                        subnet.dhcpHosts.remove(index)
+                        subnet.dhcpHosts.add(index, host)
+                        updateResource(subnet)
+                    })
+            }))
+                .getOrThrow
+                .getOrElse(subnetNotFoundResp)
+        }
     }
 
     @DELETE
     @Path("/{client_id}")
     override def delete(@PathParam("client_id") clientId: String): Response = {
         val reqClientId = DhcpV6Host.clientIdFromUri(clientId)
-        getSubnet(subnetAddress).map(_.flatMap(subnet => {
-            subnet.dhcpHosts.asScala.find( _.clientId == reqClientId)
-                                    .map(h => {
-                                        subnet.dhcpHosts.remove(h)
-                                        updateResource(subnet)
-                                    })
+        lock {
+            getSubnet(subnetAddress).map(_.flatMap(subnet => {
+                subnet.dhcpHosts.asScala.find( _.clientId == reqClientId)
+                                        .map(h => {
+                                            subnet.dhcpHosts.remove(h)
+                                            updateResource(subnet)
+                                        })
 
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp)
+            }))
+                .getOrThrow
+                .getOrElse(subnetNotFoundResp)
+        }
     }
 
     private def getSubnet(subnetAddress: IPv6Subnet)

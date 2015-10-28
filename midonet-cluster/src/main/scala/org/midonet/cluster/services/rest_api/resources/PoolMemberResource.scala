@@ -55,12 +55,14 @@ class PoolMemberResource @Inject()(resContext: ResourceContext)
     @DELETE
     @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = {
-        try {
-            deleteResource(classOf[PoolMember], id)
-        } catch {
-            case t: NotFoundHttpException => // ok, idempotent
+        lock {
+            try {
+                deleteResource(classOf[PoolMember], id)
+            } catch {
+                case t: NotFoundHttpException => // ok, idempotent
+            }
+            MidonetResource.OkNoContentResponse
         }
-        MidonetResource.OkNoContentResponse
     }
 
 }

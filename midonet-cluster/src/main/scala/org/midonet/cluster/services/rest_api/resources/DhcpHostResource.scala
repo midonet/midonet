@@ -78,20 +78,22 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
     override def create(host: DhcpHost,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        val subnet = getSubnet(subnetAddress).getOrThrow.getOrElse {
-            return subnetNotFoundResp
-        }
+        lock {
+            val subnet = getSubnet(subnetAddress).getOrThrow.getOrElse {
+                return subnetNotFoundResp
+            }
 
-        val hostMac = MAC.fromString(host.macAddr)
-        if (subnet.dhcpHosts.asScala.exists(
-            h => MAC.fromString(h.macAddr) == hostMac)) {
-            val msg = getMessage(SUBNET_HAS_HOST, subnetAddress,
-                                 bridgeId, host.macAddr)
-            buildErrorResponse(Status.CONFLICT, msg)
-        } else {
-            host.setBaseUri(subnet.getUri)
-            subnet.dhcpHosts.add(host)
-            updateResource(subnet, Response.created(host.getUri).build())
+            val hostMac = MAC.fromString(host.macAddr)
+            if (subnet.dhcpHosts.asScala.exists(
+                h => MAC.fromString(h.macAddr) == hostMac)) {
+                val msg = getMessage(SUBNET_HAS_HOST, subnetAddress,
+                                     bridgeId, host.macAddr)
+                buildErrorResponse(Status.CONFLICT, msg)
+            } else {
+                host.setBaseUri(subnet.getUri)
+                subnet.dhcpHosts.add(host)
+                updateResource(subnet, Response.created(host.getUri).build())
+            }
         }
     }
 
@@ -108,34 +110,40 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
         val m = MAC.fromString(mac)
-        getSubnet(subnetAddress).map(_.flatMap(subnet => {
-            subnet.dhcpHosts.asScala.find(h => { MAC.fromString(h.macAddr) == m })
-                .map(h => {
-                    val index = subnet.dhcpHosts.indexOf(h)
-                    host.setBaseUri(subnet.getUri)
-                    subnet.dhcpHosts.remove(index)
-                    subnet.dhcpHosts.add(index, host)
-                    updateResource(subnet)
-                })
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp)
+        lock {
+            getSubnet(subnetAddress).map(_.flatMap(subnet => {
+                subnet.dhcpHosts.asScala
+                    .find(h => { MAC.fromString(h.macAddr) == m })
+                    .map(h => {
+                        val index = subnet.dhcpHosts.indexOf(h)
+                        host.setBaseUri(subnet.getUri)
+                        subnet.dhcpHosts.remove(index)
+                        subnet.dhcpHosts.add(index, host)
+                        updateResource(subnet)
+                    })
+            }))
+                .getOrThrow
+                .getOrElse(subnetNotFoundResp)
+        }
     }
 
     @DELETE
     @Path("/{mac}")
     override def delete(@PathParam("mac") mac: String): Response = {
         val m = MAC.fromString(mac)
-        getSubnet(subnetAddress).map(_.flatMap(subnet => {
-            subnet.dhcpHosts.asScala.find(h => { MAC.fromString(h.macAddr) == m })
-                .map(h => {
-                    subnet.dhcpHosts.remove(h)
-                    updateResource(subnet)
-                })
+        lock {
+            getSubnet(subnetAddress).map(_.flatMap(subnet => {
+                subnet.dhcpHosts.asScala
+                    .find(h => { MAC.fromString(h.macAddr) == m })
+                    .map(h => {
+                        subnet.dhcpHosts.remove(h)
+                        updateResource(subnet)
+                    })
 
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp)
+            }))
+                .getOrThrow
+                .getOrElse(subnetNotFoundResp)
+        }
     }
 
     private def getSubnet(subnetAddress: IPv4Subnet)

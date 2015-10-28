@@ -349,52 +349,58 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
 
         throwIfViolationsOn(portGroupPort)
 
-        getResource(classOf[Port], portGroupPort.portId).flatMap(port => {
-            getResource(classOf[PortGroup], portGroupPort.portGroupId).map(pg => {
-                if (port.portGroupIds.contains(portGroupPort.portGroupId)) {
-                    Response.status(Status.CONFLICT).build()
-                } else  if (pg.portIds.contains(portGroupPort.portId)) {
-                    Response.status(Status.CONFLICT).build()
-                } else {
-                    portGroupPort.setBaseUri(resContext.uriInfo.getBaseUri)
-                    port.portGroupIds.add(portGroupPort.portGroupId)
-                    pg.portIds.add(portGroupPort.portId)
-                    multiResource(Seq(Update(port), Update(pg)),
-                                  Response.created(portGroupPort.getUri)
-                                      .build())
-                }
-            })
-        }).getOrThrow
+        lock {
+            getResource(classOf[Port], portGroupPort.portId).flatMap(port => {
+                getResource(classOf[PortGroup], portGroupPort.portGroupId).map(
+                    pg => {
+
+                    if (port.portGroupIds.contains(portGroupPort.portGroupId)) {
+                        Response.status(Status.CONFLICT).build()
+                    } else  if (pg.portIds.contains(portGroupPort.portId)) {
+                        Response.status(Status.CONFLICT).build()
+                    } else {
+                        portGroupPort.setBaseUri(resContext.uriInfo.getBaseUri)
+                        port.portGroupIds.add(portGroupPort.portGroupId)
+                        pg.portIds.add(portGroupPort.portId)
+                        multiResource(Seq(Update(port), Update(pg)),
+                                      Response.created(portGroupPort.getUri)
+                                          .build())
+                    }
+                })
+            }).getOrThrow
+        }
     }
 
     @DELETE
     @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = {
         val portId = UUID.fromString(id)
-        // If the port still exists, delete the port group ID from the port,
-        // otherwise delete only the port ID from the port group.
-        getResource(classOf[Port], portId).flatMap(port => {
-            getResource(classOf[PortGroup], portGroupId).map(pg => {
-                if (!port.portGroupIds.contains(portGroupId)) {
-                    Response.status(Status.NOT_FOUND).build()
-                } else if (!pg.portIds.contains(portId)) {
-                    MidonetResource.OkNoContentResponse
-                } else {
-                    port.portGroupIds.remove(portGroupId)
-                    pg.portIds.remove(portId)
-                    multiResource(Seq(Update(port), Update(pg)),
-                                  MidonetResource.OkNoContentResponse)
-                }
-            })
-        }).fallbackTo(
-            getResource(classOf[PortGroup], portGroupId).map(pg => {
-                if (!pg.portIds.contains(portId)) {
-                    MidonetResource.OkNoContentResponse
-                } else {
-                    pg.portIds.remove(portId)
-                    updateResource(pg, MidonetResource.OkNoContentResponse)
-                }
-            }))
-        .getOrThrow
+        lock {
+            // If the port still exists, delete the port group ID from the port,
+            // otherwise delete only the port ID from the port group.
+            getResource(classOf[Port], portId).flatMap(port => {
+                getResource(classOf[PortGroup], portGroupId).map(pg => {
+                    if (!port.portGroupIds.contains(portGroupId)) {
+                        Response.status(Status.NOT_FOUND).build()
+                    } else if (!pg.portIds.contains(portId)) {
+                        MidonetResource.OkNoContentResponse
+                    } else {
+                        port.portGroupIds.remove(portGroupId)
+                        pg.portIds.remove(portId)
+                        multiResource(Seq(Update(port), Update(pg)),
+                                      MidonetResource.OkNoContentResponse)
+                    }
+                })
+            }).fallbackTo(
+                getResource(classOf[PortGroup], portGroupId).map(pg => {
+                    if (!pg.portIds.contains(portId)) {
+                        MidonetResource.OkNoContentResponse
+                    } else {
+                        pg.portIds.remove(portId)
+                        updateResource(pg, MidonetResource.OkNoContentResponse)
+                    }
+                }))
+            .getOrThrow
+        }
     }
 }
