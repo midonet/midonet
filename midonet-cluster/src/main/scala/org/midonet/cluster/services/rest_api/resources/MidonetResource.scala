@@ -19,6 +19,7 @@ package org.midonet.cluster.services.rest_api.resources
 import java.lang.annotation.Annotation
 import java.net.URI
 import java.util.concurrent.Executors.newCachedThreadPool
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
 
 import javax.validation.{ConstraintViolation, Validator}
@@ -40,7 +41,8 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
 
-import org.midonet.cluster.{restApiLog, restApiResourceLog}
+import org.midonet.cluster.data.util.ZkOpLock
+import org.midonet.cluster.{ZookeeperLockFactory, restApiLog, restApiResourceLog}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
@@ -59,6 +61,8 @@ object MidonetResource {
 
     private final val log = getLogger(restApiLog)
     private final val StorageAttempts = 3
+
+    private final val lockOpNumber = new AtomicInteger(1)
 
     type Ids = Future[Seq[Any]]
     type Ops = Future[Seq[Multi]]
@@ -170,6 +174,7 @@ object MidonetResource {
     }
 
     case class ResourceContext @Inject() (backend: MidonetBackend,
+                                          lockFactory: ZookeeperLockFactory,
                                           uriInfo: UriInfo,
                                           validator: Validator,
                                           seqDispenser: SequenceDispenser,
@@ -227,7 +232,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     @POST
     def create(t: T, @HeaderParam("Content-Type") contentType: String)
-    : Response = {
+    : Response = zkLock {
         val consumes = getAnnotation(classOf[AllowCreate])
         if ((consumes eq null) || !consumes.value().contains(contentType)) {
             log.info("Media type {} not supported", contentType)
@@ -247,7 +252,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
     @PUT
     @Path("{id}")
     def update(@PathParam("id") id: String, t: T,
-               @HeaderParam("Content-Type") contentType: String): Response = {
+               @HeaderParam("Content-Type") contentType: String)
+    : Response = zkLock {
         val consumes = getAnnotation(classOf[AllowUpdate])
         if ((consumes eq null) || !consumes.value().contains(contentType)) {
             log.info("Media type {} not supported", contentType)
@@ -267,7 +273,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     @DELETE
     @Path("{id}")
-    def delete(@PathParam("id") id: String): Response = {
+    def delete(@PathParam("id") id: String): Response = zkLock {
         val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
         tryResponse(handleDelete, catchDelete) {
             deleteFilter(id) map { ops =>
@@ -407,6 +413,44 @@ abstract class MidonetResource[T >: Null <: UriResource]
         tryWrite {
             backend.store.multi(zoomOps)
             r
+        }
+    }
+
+    protected def zkLock[R](f: => Response): Response = {
+        val lock = new ZkOpLock(resContext.lockFactory,
+                                lockOpNumber.getAndIncrement,
+                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
+        try lock.acquire() catch {
+            case NonFatal(t) =>
+                log.info("Could not acquire storage lock.", t)
+                throw new ServiceUnavailableHttpException(
+                    "Could not acquire lock for storage operation.")
+        }
+        try {
+            f
+        } catch {
+            case e: NotFoundException =>
+                log.info(e.getMessage)
+                buildErrorResponse(Status.NOT_FOUND, e.getMessage)
+            case e: ObjectReferencedException =>
+                log.info(e.getMessage)
+                buildErrorResponse(Status.CONFLICT, e.getMessage)
+            case e: ReferenceConflictException =>
+                log.info(e.getMessage)
+                buildErrorResponse(Status.CONFLICT, e.getMessage)
+            case e: ObjectExistsException =>
+                log.info(e.getMessage)
+                buildErrorResponse(Status.CONFLICT, e.getMessage)
+            case e: ConcurrentModificationException =>
+                log.warn("Write to storage failed due to contention", e)
+                Response.status(Status.CONFLICT).build()
+            case e: WebApplicationException =>
+                e.getResponse
+            case NonFatal(e) =>
+                log.warn("Unhandled exception", e)
+                buildErrorResponse(Status.INTERNAL_SERVER_ERROR, e.getMessage)
+        } finally {
+            lock.release()
         }
     }
 

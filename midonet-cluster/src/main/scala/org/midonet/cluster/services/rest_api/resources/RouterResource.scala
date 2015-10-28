@@ -17,16 +17,15 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response
 
 import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.data.ZoomConvert.{toProto => zoomToProto}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
