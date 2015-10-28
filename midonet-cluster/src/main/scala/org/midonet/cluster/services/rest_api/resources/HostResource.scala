@@ -52,7 +52,7 @@ class HostResource @Inject()(resContext: ResourceContext)
 
     @DELETE
     @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = {
+    override def delete(@PathParam("id") id: String): Response = zkLock {
         if (isAlive(id)) {
             return buildErrorResponse(
                 Status.FORBIDDEN,
@@ -81,7 +81,7 @@ class HostResource @Inject()(resContext: ResourceContext)
                     APPLICATION_JSON))
     override def update(@PathParam("id") id: String, host: Host,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
+    : Response = zkLock {
 
         // We only allow modifying the Flooding Proxy in this method, all other
         // updates are disallowed.
