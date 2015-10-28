@@ -51,6 +51,24 @@
       "revId": "2125f75f1dd9612c8b35d89bcfb8b29f872f4d46",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_7fd8be1d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-28T08:27:01Z",
+      "side": 1,
+      "message": "yes, please look at the issue. \n\n\"There are 2,925 DeviceQueryTimeoutException. There are 3481 \"Pending cookie:XXX was scheduled for cleanup but was not idle\" messages.\"",
+      "parentUuid": "9ab29df4_1fe7c213",
+      "revId": "2125f75f1dd9612c8b35d89bcfb8b29f872f4d46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
