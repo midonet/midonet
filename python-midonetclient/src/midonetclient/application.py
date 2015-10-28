@@ -22,7 +22,6 @@ from midonetclient import mirror
 from midonetclient import chain
 from midonetclient import health_monitor
 from midonetclient import host
-from midonetclient import host_version
 from midonetclient import ip_addr_group
 from midonetclient import load_balancer
 from midonetclient import l2insertion
@@ -43,7 +42,6 @@ from midonetclient import tracerequest
 from midonetclient import vendor_media_type
 from midonetclient import vip
 from midonetclient import vtep
-from midonetclient import write_version
 
 import uuid
 
@@ -112,9 +110,6 @@ class Application(resource_base.ResourceBase):
 
     def get_system_state_uri(self):
         return self.dto['systemState']
-
-    def get_host_versions_uri(self):
-        return self.dto['hostVersions']
 
     #L4LB resources
     def get_load_balancers_uri(self):
@@ -381,19 +376,9 @@ class Application(resource_base.ResourceBase):
             vendor_media_type.APPLICATION_TUNNEL_ZONE_HOST_JSON,
             vendor_media_type.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON)
 
-    def get_write_version(self):
-        return self._get_resource(write_version.WriteVersion, None,
-                                  self.get_write_version_uri())
-
     def get_system_state(self):
         return self._get_resource(system_state.SystemState, None,
                                   self.get_system_state_uri())
-
-    def get_host_versions(self, query):
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_HOST_VERSION_JSON}
-        return self.get_children(self.dto['hostVersions'],
-                                 query, headers, host_version.HostVersion)
 
     def _create_uri_from_template(self, template, token, value):
         return template.replace(token, value)

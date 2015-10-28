@@ -36,7 +36,7 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.UUIDUtil._
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "traceRequests", template = "traceRequestTemplate")
 @Path("traces")
 @RequestScoped
 @AllowGet(Array(APPLICATION_TRACE_REQUEST_JSON,

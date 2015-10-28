@@ -121,12 +121,8 @@ APPLICATION_CONDITION_COLLECTION_JSON = \
 APPLICATION_TRACE_JSON = "application/vnd.org.midonet.Trace-v1+json"
 APPLICATION_TRACE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Trace-v1+json"
-APPLICATION_WRITE_VERSION_JSON = \
-    "application/vnd.org.midonet.WriteVersion-v1+json"
 APPLICATION_SYSTEM_STATE_JSON = \
     "application/vnd.org.midonet.SystemState-v2+json"
-APPLICATION_HOST_VERSION_JSON = \
-    "application/vnd.org.midonet.HostVersion-v1+json"
 
 # Port media types
 APPLICATION_PORT_JSON = "application/vnd.org.midonet.Port-v3+json"

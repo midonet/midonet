@@ -38,7 +38,7 @@ class ApplicationResource @Inject()(resProvider: ResourceProvider,
     def application: Application = {
         log.debug(s"${getClass.getName} entered on " +
                   s"${resContext.uriInfo.getAbsolutePath}")
-        new Application(resContext.uriInfo.getAbsolutePathBuilder.build())
+        new Application(resProvider, resContext)
     }
 
     @Path("{name}/")

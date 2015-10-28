@@ -32,7 +32,7 @@ import org.midonet.cluster.rest_api.models.{Chain, _}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "chains", template = "chainTemplate")
 @Path("chains")
 @RequestScoped
 @AllowGet(Array(APPLICATION_CHAIN_JSON,

@@ -16,47 +16,79 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import java.io.IOException;
 import java.net.URI;
 
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+
+import scala.Tuple3;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import org.apache.commons.lang3.StringUtils;
 
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.cluster.rest_api.annotation.ApiResource;
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.cluster.rest_api.version.Version;
+import org.midonet.cluster.services.rest_api.ResourceProvider;
 
+import static org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext;
+
+@JsonSerialize(using = Application.Serializer.class)
 public class Application {
 
+    public static class Serializer extends JsonSerializer<Application> {
+        @Override
+        public void serialize(Application app, JsonGenerator gen,
+                              SerializerProvider serializers) throws IOException {
+            UriInfo uriInfo = app.resContext.uriInfo();
+            gen.writeStartObject();
+            gen.writeStringField("uri", uriInfo.getBaseUri().toString());
+            gen.writeStringField("version", Version.CURRENT);
+            for (Tuple3<String, ApiResource, Class<Object>> entry : app.resProvider.all()) {
+                if (StringUtils.isNotBlank(entry._2().name())) {
+                    gen.writeStringField(entry._2().name(),
+                                         uriFor(uriInfo, entry._1()));
+                }
+                if (StringUtils.isNotBlank(entry._2().template())) {
+                    gen.writeStringField(entry._2().template(),
+                                         templateFor(uriInfo, entry._1()));
+                }
+            }
+            gen.writeEndObject();
+        }
+
+        private String uriFor(UriInfo uriInfo, String segment) {
+            return uriInfo.getAbsolutePathBuilder().segment(segment)
+                          .build().toString();
+        }
+
+        private String templateFor(UriInfo uriInfo, String segment) {
+            return uriInfo.getAbsolutePathBuilder().segment(segment)
+                          .build().toString() + "/{id}";
+        }
+    }
+
     @JsonIgnore
-    private final URI root;
+    private final ResourceProvider resProvider;
 
-    public Application(URI root)  {
-        this.root = root;
+    @JsonIgnore
+    private final ResourceContext resContext;
+
+    public Application(ResourceProvider resProvider, ResourceContext resContext) {
+        this.resProvider = resProvider;
+        this.resContext = resContext;
     }
 
-    private URI uriFor(String s) {
-        return UriBuilder.fromUri(root).segment(s).build();
-    }
+    /*
 
-    private String templateFor(String s) {
-        return uriFor(s).toString() + "/{id}";
-    }
-
-    public URI getUri() {
-        return root;
-    }
-
-    @JsonProperty("version")
-    public String getVersion() {
-        return Version.CURRENT;
-    }
-
-    @JsonProperty("bridges")
-    public URI getBridges() {
-        return uriFor(ResourceUris.BRIDGES);
-    }
 
     @JsonProperty("l2insertions")
     public URI getL2Insertions() {
@@ -281,5 +313,5 @@ public class Application {
     @JsonProperty("traceRequestTemplate")
     public String getTraceRequestTemplate() {
         return templateFor(ResourceUris.TRACE_REQUESTS);
-    }
+    }*/
 }
