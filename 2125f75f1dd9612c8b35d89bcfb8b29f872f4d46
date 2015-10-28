@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_bfd89654",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-28T07:17:02Z",
+      "side": 1,
+      "message": "the last sentence does not make sense.",
+      "revId": "2125f75f1dd9612c8b35d89bcfb8b29f872f4d46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_1fe7c213",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-28T07:17:02Z",
+      "side": 1,
+      "message": "this is fine, but it sounds like a rare occurrence, are you sure it was the cod path that cause all those warnings?",
+      "revId": "2125f75f1dd9612c8b35d89bcfb8b29f872f4d46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
