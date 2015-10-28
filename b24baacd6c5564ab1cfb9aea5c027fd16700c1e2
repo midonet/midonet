@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_b02b65ea",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-28T18:24:35Z",
+      "side": 1,
+      "message": "Mike, here you suggested:\n\n if [ \".$FOR_UNIT\" \u003d\u003d \".0\" ]\n  then\n      echo \"$DESC_NO_CHANGES\"\n      echo \"$FAST_BUILD\"\n      exit 0\n  fi\n\nNote that a FOR_UNIT \u003d\u003d 0 doesn\u0027t imply that FOR_MDTS \u003d\u003d 0. This snippet would skip MDTS tests if, for example, I just edit an MDTS test.\n\nNow, you were suggesting:\n\n  if [ \".$FOR_UNIT\" \u003d\u003d \".1\" ] \u0026\u0026 [ \".$FOR_MDTS\" \u003d\u003d \".1\" ] \u0026\u0026 [ $(git diff-tree --no-commit-id --name-only -r HEAD build.gradle) ]\n\n\nI think this is not so correct. Note that apart of the build.gradle version bump, you could edit any file included in REGEX_FOR_MDTS and still get a FOR_MDTS \u003d\u003d 1 which would result in recommending a fast build incorrectly.\n\nInstead the code on patch 6/7 is more explicit looking for a positive match on the case we want to catch. Once we know that FOR_UNIT \u003d\u003d 1, we check the whole changeset, no filters, and search precisely for a single change in the midonetVersion line. Only if this matches will we allow the \"version bump\" mode. \n\nOtherwise it falls back to full build.",
+      "revId": "b24baacd6c5564ab1cfb9aea5c027fd16700c1e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_42c40892",
         "filename": "what_ci_targets.sh",
         "patchSetId": 2
@@ -60,6 +77,30 @@
       "side": 1,
       "message": "The change in the example breaks the build.\n\nAnyway, yes, you can hack the recommendation by introducing a change that gets detected as a version bump AND does not break the build.  The only consequence here is that you might get a +1 from Jenkins. But reviewers will -2.\n\nHaving a more intelligent script that essentially does a code review of changes to build.gradle would be awesome, but IMO is out of scope here: the script\u0027s job is to offer recommendations for CI targets; detecting malicious patches is code reviewers job.",
       "parentUuid": "9ab29df4_42c40892",
+      "range": {
+        "startLine": 83,
+        "startChar": 2,
+        "endLine": 83,
+        "endChar": 80
+      },
+      "revId": "b24baacd6c5564ab1cfb9aea5c027fd16700c1e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_90d8211f",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-28T18:24:35Z",
+      "side": 1,
+      "message": "Mike, your suggestion (JIRA) was to replace here for this:\n\n  LINES_REMOVED\u003d`git diff HEAD~1 build.gradle | grep -E \"^\\- \" | wc -l | xargs`\n  LINES_ADDED\u003d`git diff HEAD~1 build.gradle | grep -E \"^\\+ \" | wc -l | xargs`\n\n  MNV_LINES_REMOVED\u003d`git diff HEAD~1 build.gradle | grep -E \"^\\- \" | grep midonetVersion | wc -l`\n  MNV_LINES_ADDED\u003d`git diff HEAD~1 build.gradle | grep -E \"^\\+ \" | grep midonetVersion | wc -l`\n\n  # If only one line was changed and it was the midonetVersion line:\n  if [ \".$LINES_ADDED\" \u003d\u003d \".1\" ] \u0026\u0026\n     [ \".$LINES_REMOVED\" \u003d\u003d \".1\" ] \u0026\u0026\n     [ \".$MNV_LINES_REMOVED\" \u003d\u003d \".1\" ] \u0026\u0026\n     [ \".$MNV_LINES_ADDED\" \u003d\u003d \".1\" ]\n\nI preferred to differenciate ADDED and REMOVED, but for our purposes the change is good enough as it tells us whether there is any change that is not on midonetVersion, which does the same as the 2 MVN_ greps. So just conciseness.",
+      "parentUuid": "9ab29df4_62a02c91",
       "range": {
         "startLine": 83,
         "startChar": 2,
