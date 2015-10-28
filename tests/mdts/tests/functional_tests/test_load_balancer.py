@@ -479,6 +479,7 @@ def test_multi_member_loadbalancing():
     stuck_pool_member.enable()
 
 
+@nottest
 @attr(version="v1.3.0", slow=False)
 @bindings(binding_onehost, binding_multihost)
 @with_setup(start_servers, stop_servers)
