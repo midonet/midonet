@@ -16,6 +16,74 @@
       "revId": "0b9905d4e7d69b2ee86f1e47d3975bacf9793f40",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_9504937f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-28T15:15:07Z",
+      "side": 1,
+      "message": "should it be with underscores? My understanding is that each dot is a separate section on the configuration.\nretries_on_concurrent_modification",
+      "revId": "0b9905d4e7d69b2ee86f1e47d3975bacf9793f40",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d5fe0b6b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-28T15:15:07Z",
+      "side": 1,
+      "message": "same here?",
+      "revId": "0b9905d4e7d69b2ee86f1e47d3975bacf9793f40",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_55dbdb1a",
+        "filename": "tests/mdts/tests/topologies/mmm_virtual_test_load_balancer.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-28T15:15:07Z",
+      "side": 1,
+      "message": "uncomment",
+      "revId": "0b9905d4e7d69b2ee86f1e47d3975bacf9793f40",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_75d8df1d",
+        "filename": "tests/mdts/tests/topologies/mmm_virtual_test_load_balancer.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-28T15:15:07Z",
+      "side": 1,
+      "message": "uncomment",
+      "revId": "0b9905d4e7d69b2ee86f1e47d3975bacf9793f40",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
