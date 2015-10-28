@@ -16,14 +16,13 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.{List => JList, ArrayList, UUID}
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.Response.Status._
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -209,10 +208,11 @@ class BridgePortResource @Inject()(bridgeId: UUID,
                                                          id))
         }
         val vtep = store.get(classOf[Topology.Vtep], p.getVtepId).getOrThrow
-        val bindings = vtep.getBindingsList
-                           .filter { _.getNetworkId == p.getNetworkId }
-                           .map { fromProto(_, classOf[VtepBinding]) }
-                           .toList
+        val bindings =
+            vtep.getBindingsList.asScala
+                                .filter { _.getNetworkId == p.getNetworkId }
+                                .map { fromProto(_, classOf[VtepBinding]) }
+                                .toList
         if (bindings.isEmpty) {
             log.warn("Network VXLAN port {} exists, but no bindings are " +
                      "found in VTEP {}, this is wrong as the port is deleted " +
