@@ -63,7 +63,7 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
         log.debug("Try get")
         if (flowsTable ne null) {
             val flow = flowsTable.get(flowMatch)
-            log.debug("Got flow " + flow)
+            log.debug("Got flow " + flow)gco
             val buf = ByteBuffer.allocate(1024)
             buf.putInt(datapathId)
             NetlinkMessage.writeAttrSeq(buf, Attr.Key, flow.getMatch().getKeys,
