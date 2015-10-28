@@ -40,6 +40,29 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
+/**
+  * All operations that need to be performed atomically are done by
+  * acquiring a ZooKeeper lock. This is to prevent races with
+  * midolman, more specifically the health monitor, which operates on:
+  * - Route, with side effects on Router and RouterPort due to ZOOM bindings.
+  * - Port, with side effects on Router and Host due to ZOOM bindings.
+  * - Pool
+  * - PoolMember
+  *
+  * Any api or midolman sections that may be doing something like:
+  *
+  *   val port = store.get(classOf[Port], id)
+  *   val portModified = port.toBuilder() -alter fields- .build()
+  *   store.update(portModified)
+  *
+  * Might overwrite changes made by this class on the port (directly, or
+  * implicitly as a result of referential constraints).  To protect
+  * against this, sections of the code similar to the one above should
+  * be protected using the following lock:
+  *
+  *   new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
+  *                ZookeeperLockFactory.ZOOM_TOPOLOGY)
+  */
 @ApiResource(version = 1)
 @Path("hosts")
 @RequestScoped
@@ -58,21 +81,24 @@ class HostResource @Inject()(resContext: ResourceContext)
                 Status.FORBIDDEN,
                 getMessage(HOST_DELETION_NOT_ALLOWED_ACTIVE, id))
         }
-        val host = getResource(classOf[Host], id).getOrThrow
-        if ((host.portIds ne null) && !host.portIds.isEmpty) {
-            return buildErrorResponse(
-                Status.FORBIDDEN,
-                getMessage(HOST_DELETION_NOT_ALLOWED_BINDINGS,
-                           id, Integer.valueOf(host.portIds.size())))
+
+        lock {
+            val host = getResource(classOf[Host], id).getOrThrow
+            if ((host.portIds ne null) && !host.portIds.isEmpty) {
+                return buildErrorResponse(
+                    Status.FORBIDDEN,
+                    getMessage(HOST_DELETION_NOT_ALLOWED_BINDINGS,
+                               id, Integer.valueOf(host.portIds.size())))
+            }
+            var ops = for (tunnelZoneId <- host.tunnelZoneIds.asScala) yield {
+                val tunnelZone =
+                    getResource(classOf[TunnelZone], tunnelZoneId).getOrThrow
+                tunnelZone.removeHost(host.id)
+                Update(tunnelZone).asInstanceOf[Multi]
+            }
+            ops = ops :+ Delete(classOf[Host], id)
+            multiResource(ops)
         }
-        var ops = for (tunnelZoneId <- host.tunnelZoneIds.asScala) yield {
-            val tunnelZone =
-                getResource(classOf[TunnelZone], tunnelZoneId).getOrThrow
-            tunnelZone.removeHost(host.id)
-            Update(tunnelZone).asInstanceOf[Multi]
-        }
-        ops = ops :+ Delete(classOf[Host], id)
-        multiResource(ops)
     }
 
     @PUT
@@ -83,18 +109,20 @@ class HostResource @Inject()(resContext: ResourceContext)
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
 
-        // We only allow modifying the Flooding Proxy in this method, all other
-        // updates are disallowed.
-        getResource(classOf[Host], id).map(current =>
-            if (host.floodingProxyWeight != null) {
-                current.floodingProxyWeight = host.floodingProxyWeight
-                updateResource(current, OkResponse)
-            } else {
-                buildErrorResponse(
-                    Status.BAD_REQUEST,
-                    getMessage(HOST_FLOODING_PROXY_WEIGHT_IS_NULL))
-            }
-        ).getOrThrow
+        lock {
+            // We only allow modifying the Flooding Proxy in this method, all
+            // other updates are disallowed.
+            getResource(classOf[Host], id).map(current =>
+                if (host.floodingProxyWeight != null) {
+                    current.floodingProxyWeight = host.floodingProxyWeight
+                    updateResource(current, OkResponse)
+                } else {
+                    buildErrorResponse(
+                        Status.BAD_REQUEST,
+                        getMessage(HOST_FLOODING_PROXY_WEIGHT_IS_NULL))
+                }
+            ).getOrThrow
+        }
     }
 
     @Path("{id}/interfaces")
