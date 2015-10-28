@@ -184,6 +184,8 @@ DST_PORT = 10000
 
 NUM_BACKENDS = 3
 
+SRC_PORT = 40000
+
 SERVERS = dict()
 
 
@@ -192,6 +194,8 @@ SERVERS = dict()
 def disable_and_assert_traffic_fails(sender, action_fun, **kwargs):
     # Do action
     action_fun("disable", **kwargs)
+
+    time.sleep(5)
 
     # Make one request to the non sticky loadbalancer IP, should fail
     assert_request_fails_to(sender, kwargs['vips']['non_sticky_vip'])
@@ -203,6 +207,8 @@ def disable_and_assert_traffic_fails(sender, action_fun, **kwargs):
 def enable_and_assert_traffic_succeeds(sender, action_fun, **kwargs):
     # Do action
     action_fun("enable", **kwargs)
+
+    time.sleep(5)
 
     # Make one request to the non sticky loadbalancer IP, should succeed
     assert_request_succeeds_to(sender, kwargs['vips']['non_sticky_vip'])
@@ -294,6 +300,9 @@ def start_servers():
     for backend_num in range(1, NUM_BACKENDS + 1):
         start_server(backend_num)
     set_filters('router-000-001', 'rev_snat', 'snat')
+    lb_pools = VTM.get_load_balancer('lb-000-001').get_pools()
+    get_current_leader(lb_pools)
+    time.sleep(5)
 
 def stop_servers():
     global SERVERS
@@ -302,9 +311,12 @@ def stop_servers():
     SERVERS = dict()
     unset_filters('router-000-001')
 
-def make_request_to(sender, dest, timeout=10, src_port=None):
+def make_request_to(sender, dest, timeout=10):
+    global SRC_PORT
+
+    SRC_PORT += 1
     cmd_line = 'ncat --recv-only %s %s %d' % (
-        '-p %d' % src_port if src_port is not None else '',
+        '-p %d' % SRC_PORT,
         dest,
         DST_PORT
     )
@@ -312,12 +324,15 @@ def make_request_to(sender, dest, timeout=10, src_port=None):
     LOG.debug("L4LB: request to %s. Response: %s" % (sender, result))
     return result
 
-def make_n_requests_to(sender, num_reqs, dest, timeout=10, src_port=None):
+def make_n_requests_to(sender, num_reqs, dest, timeout=10):
+    global SRC_PORT
+
+    SRC_PORT += 1
     result = sender.execute(
         'sh -c \"for i in `seq 1 %d`; do ncat --recv-only -w %d %s %s %d; done\"' % (
             num_reqs,
             timeout,
-            '-p %d' % src_port if src_port is not None else '',
+            '-p %d' % SRC_PORT,
             dest,
             DST_PORT
         ),
@@ -326,13 +341,13 @@ def make_n_requests_to(sender, num_reqs, dest, timeout=10, src_port=None):
     )
     return result.split('\n')
 
-def assert_request_succeeds_to(sender, dest, timeout=10, src_port=None):
-    result = make_request_to(sender, dest, timeout, src_port)
+def assert_request_succeeds_to(sender, dest, timeout=10):
+    result = make_request_to(sender, dest, timeout)
     assert_that(result, is_not(equal_to('')))
 
 
-def assert_request_fails_to(sender, dest, timeout=10, src_port=None):
-    result = make_request_to(sender, dest, timeout, src_port)
+def assert_request_fails_to(sender, dest, timeout=10):
+    result = make_request_to(sender, dest, timeout)
     assert_that(result, equal_to(''))
 
 
@@ -414,10 +429,12 @@ def get_current_leader(lb_pools, timeout = 60, wait_time=5):
 
 @attr(version="v1.3.0", slow=False)
 @bindings(binding_onehost,
-          binding_onehost_weighted,
+          # TODO FIXME: MNA-1090
+          # binding_onehost_weighted,
           binding_onehost_same_subnet,
           binding_multihost,
-          binding_multihost_weighted,
+          # TODO FIXME: MNA-1090
+          # binding_multihost_weighted,
           binding_multihost_same_subnet)
 @with_setup(start_servers, stop_servers)
 def test_multi_member_loadbalancing():
@@ -542,7 +559,6 @@ def test_disabling_topology_loadbalancing():
     disable_and_assert_traffic_fails(sender, action_loadbalancer, vips=vips)
     enable_and_assert_traffic_succeeds(sender, action_loadbalancer, vips=vips)
 
-@nottest
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_haproxy_failback():
@@ -597,7 +613,6 @@ def test_haproxy_failback():
                 'L4LB: not all agents were elected as leaders %s' %
                 leaders_elected)
 
-@nottest
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_health_monitoring_backend_failback():
@@ -693,13 +708,11 @@ def test_long_connection_loadbalancing():
     # Should point to the only enabled backend 10.0.2.1
     result = make_request_to(sender,
                              vips['sticky_vip'],
-                             timeout=20,
-                             src_port=12345)
+                             timeout=20)
     assert_that(result, equal_to('10.0.2.1'))
     result = make_request_to(sender,
                              vips['non_sticky_vips'],
-                             timeout=20,
-                             src_port=12345)
+                             timeout=20)
     assert_that(result, equal_to('10.0.2.1'))
 
     # Disable the one remaining backend (STICKY) and enable another one (NON_STICKY)
@@ -709,12 +722,12 @@ def test_long_connection_loadbalancing():
 
     # Connections from the same src ip / port will be counted as the same ongoing connection
     # Sticky traffic fails - connection dropped. It should reroute to an enabled backend?
-    result = make_request_to(sender, vips['sticky_vip'], timeout=20, src_port=12345)
+    result = make_request_to(sender, vips['sticky_vip'], timeout=20)
     # Is that right? Shouldn't midonet change to another backend?
     assert_that(result, equal_to(''))
     #assert_request_fails_to(sender, STICKY_VIP, timeout=20, src_port=12345)
     # Non sticky traffic succeeds - connection allowed to continue
-    result = make_request_to(sender, vips['non_sticky_vip'], timeout=20, src_port=12345)
+    result = make_request_to(sender, vips['non_sticky_vip'], timeout=20)
     # It's not the disabled backend
     assert_that(result, is_not(equal_to('10.0.2.1')))
     # But some backend answers
@@ -723,8 +736,8 @@ def test_long_connection_loadbalancing():
     # Re-enable the sticky backend
     pool_member_1.enable()
 
-    assert_request_succeeds_to(sender, vips['sticky_vip'], timeout=20, src_port=12345)
-    assert_request_succeeds_to(sender, vips['non_sticky_vip'], timeout=20, src_port=12345)
+    assert_request_succeeds_to(sender, vips['sticky_vip'], timeout=20)
+    assert_request_succeeds_to(sender, vips['non_sticky_vip'], timeout=20)
 
     # When disabling the loadbalancer, both sticky and non sticky fail
     action_loadbalancer("disable")
