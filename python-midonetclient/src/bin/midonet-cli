@@ -1313,7 +1313,7 @@ class ObjectType(object):
             for raw in raw_objects:
                 api_obj = factory()
                 api_obj.dto = raw
-                api_obj._dto = lambda: raw
+                api_obj._dto = lambda a=raw: a
                 api_objects.append(api_obj)
 
         cli_objects = map(lambda elem: attr.element_type(elem), api_objects)
