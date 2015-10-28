@@ -28,7 +28,6 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.LoggerFactory.getLogger
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Topology

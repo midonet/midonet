@@ -412,6 +412,7 @@ def get_current_leader(lb_pools, timeout = 60, wait_time=5):
     raise RuntimeError('Not all haproxy instances found! '
                        'Only pools %s have an haproxy instance.' % haproxies)
 
+@nottest
 @attr(version="v1.3.0", slow=False)
 @bindings(binding_onehost,
           binding_onehost_weighted,
@@ -504,6 +505,7 @@ def test_multi_member_loadbalancing():
     stuck_pool_member.enable()
 
 
+@nottest
 @attr(version="v1.3.0", slow=False)
 @bindings(binding_onehost, binding_multihost)
 @with_setup(start_servers, stop_servers)
