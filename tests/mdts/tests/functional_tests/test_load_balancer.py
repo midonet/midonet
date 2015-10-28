@@ -517,7 +517,6 @@ def test_disabling_topology_loadbalancing():
     disable_and_assert_traffic_fails(sender, action_loadbalancer, vips=vips)
     enable_and_assert_traffic_succeeds(sender, action_loadbalancer, vips=vips)
 
-@nottest
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_haproxy_failback():
@@ -591,7 +590,6 @@ def test_haproxy_failback():
         )
     )
 
-@nottest
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_health_monitoring_backend_failback():

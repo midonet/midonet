@@ -106,9 +106,11 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
 
         override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
                                      routerId: UUID) = {
+            val poolUpdater = new BackendUtil(backend.store, maxRetries = 0)
             context.actorOf(
                 Props(
-                    new HaproxyHealthMonitor(config, self, routerId, store, hostId) {
+                    new HaproxyHealthMonitor(config, self, routerId, store,
+                                             hostId, poolUpdater) {
                         override def writeConf(config: PoolConfig): Unit = {}
                     }
                 ).withDispatcher(context.props.dispatcher),
