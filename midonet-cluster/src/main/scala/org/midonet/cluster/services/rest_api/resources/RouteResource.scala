@@ -19,7 +19,8 @@ package org.midonet.cluster.services.rest_api.resources
 import java.util.{List => JList, UUID}
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.{Path, GET, HeaderParam, Produces}
+import javax.ws.rs._
+import javax.ws.rs.core.Response
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -38,6 +39,29 @@ import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
 
+/**
+  * All operations that need to be performed atomically are done by
+  * acquiring a ZooKeeper lock. This is to prevent races with
+  * midolman, more specifically the health monitor, which operates on:
+  * - Route, with side effects on Router and RouterPort due to ZOOM bindings.
+  * - Port, with side effects on Router and Host due to ZOOM bindings.
+  * - Pool
+  * - PoolMember
+  *
+  * Any api or midolman sections that may be doing something like:
+  *
+  *   val port = store.get(classOf[Port], id)
+  *   val portModified = port.toBuilder() -alter fields- .build()
+  *   store.update(portModified)
+  *
+  * Might overwrite changes made by this class on the port (directly, or
+  * implicitly as a result of referential constraints).  To protect
+  * against this, sections of the code similar to the one above should
+  * be protected using the following lock:
+  *
+  *   new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,
+  *                ZookeeperLockFactory.ZOOM_TOPOLOGY)
+  */
 @ApiResource(version = 1, template = "routeTemplate")
 @Path("routes")
 @RequestScoped
@@ -46,6 +70,8 @@ import org.midonet.util.reactivex._
 @AllowDelete
 class RouteResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Route](resContext) {
+
+    protected final override val zkLockNeeded = true
 
     protected override def getFilter(route: Route): Future[Route] = {
         if (route.routerId eq null) {
