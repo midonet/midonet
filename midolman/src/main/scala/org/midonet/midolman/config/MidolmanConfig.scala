@@ -142,6 +142,8 @@ class HealthMonitorConfig(val conf: Config, val schema: Config) extends TypeFail
     def enable = getBoolean(s"$PREFIX.health_monitor_enable")
     def namespaceCleanup = getBoolean(s"$PREFIX.namespace_cleanup")
     def haproxyFileLoc = getString(s"$PREFIX.haproxy_file_loc")
+    def maxBackendRetries =
+        getInt(s"$PREFIX.max_backend_retries")
 }
 
 
