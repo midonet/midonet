@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_dfb46af4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-28T07:24:19Z",
+      "side": 1,
+      "message": "how does this use the waker upper? it looks like it\u0027s just select()\u0027ing with a timeout.",
+      "revId": "779b30e7f9d5b899e20db260b03d9b0b8e11a727",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
