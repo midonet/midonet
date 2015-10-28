@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_70be2d01",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-28T16:58:00Z",
+      "side": 1,
+      "message": "I put it in agent.conf",
+      "parentUuid": "9ab29df4_b02605b9",
+      "range": {
+        "startLine": 145,
+        "startChar": 4,
+        "endLine": 148,
+        "endChar": 116
+      },
+      "revId": "2e3ecb61ec8be3180009ab5e4430be9274e455c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_15db23ee",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 2
