@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_7feefeed",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-28T07:20:32Z",
+      "side": 1,
+      "message": "i think a big comment here is probably indicated, the change is subtle and not obvious.",
+      "revId": "3e654a07b9eede3d8f20ae830128bb475ef7a34a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_5ff13acc",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-10-28T07:20:32Z",
+      "side": 1,
+      "message": "why this change?",
+      "revId": "3e654a07b9eede3d8f20ae830128bb475ef7a34a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
