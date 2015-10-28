@@ -21,23 +21,22 @@ virtual_topology:
 
   tenant_name: MMM-TEST-000-001
 
-# FIXME: uncomment to activate health monitor tests
-#  health_monitors:
-#    - health_monitor:
-#        name: 'hm0'
-#        admin_state_up: true
-#        delay: 3
-#        max_retries: 2
-#        timeout: 1
-#        type: 'TCP'
+  health_monitors:
+    - health_monitor:
+        name: 'hm0'
+        admin_state_up: true
+        delay: 3
+        max_retries: 2
+        timeout: 1
+        type: 'TCP'
 
-#    - health_monitor:
-#        name: 'hm1'
-#        admin_state_up: true
-#        delay: 3
-#        max_retries: 2
-#        timeout: 1
-#        type: 'TCP'
+    - health_monitor:
+        name: 'hm1'
+        admin_state_up: true
+        delay: 3
+        max_retries: 2
+        timeout: 1
+        type: 'TCP'
 
   load_balancers:
     - load_balancer:

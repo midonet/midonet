@@ -142,6 +142,10 @@ class HealthMonitorConfig(val conf: Config, val schema: Config) extends TypeFail
     def enable = getBoolean(s"$PREFIX.health_monitor_enable")
     def namespaceCleanup = getBoolean(s"$PREFIX.namespace_cleanup")
     def haproxyFileLoc = getString(s"$PREFIX.haproxy_file_loc")
+    def retriesOnConcurrentModification =
+        Try(getInt(s"$PREFIX.retries.on.concurrent.modification")).getOrElse(10)
+    def seedTimeAfterConcurrentModification: Long =
+        Try(getDuration(s"$PREFIX.seed.time.after.concurrent.modification", TimeUnit.MILLISECONDS)).getOrElse(1000L)
 }
 
 
