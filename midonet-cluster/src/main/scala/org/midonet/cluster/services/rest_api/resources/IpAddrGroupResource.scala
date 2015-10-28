@@ -146,15 +146,17 @@ extends IpAddrGroupAddrSubResource {
                 newList.add(a)
             }
         }
-        MidonetResource.tryWrite {
-            if (doUpdate) {
+
+        if (doUpdate) {
+            MidonetResource.tryWrite(resContext.lockFactory, {
                 store.update(ipg.toBuilder.clearIpAddrPorts()
                                           .addAllIpAddrPorts(newList)
                                           .build())
-            }
+                MidonetResource.OkNoContentResponse
+            })
+        } else {
             MidonetResource.OkNoContentResponse
         }
-
     }
 }
 
