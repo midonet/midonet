@@ -23,8 +23,12 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ApiResource {
+public @interface ApiResource    {
 
     int version() default 1;
+
+    String name() default "";
+
+    String template() default "";
 
 }

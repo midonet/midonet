@@ -25,7 +25,6 @@ import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.resource.Application;
 import org.midonet.client.resource.Bridge;
 import org.midonet.client.resource.Host;
-import org.midonet.client.resource.HostVersion;
 import org.midonet.client.resource.Port;
 import org.midonet.client.resource.PortGroup;
 import org.midonet.client.resource.ResourceCollection;
@@ -34,7 +33,6 @@ import org.midonet.client.resource.RuleChain;
 import org.midonet.client.resource.SystemState;
 import org.midonet.client.resource.Tenant;
 import org.midonet.client.resource.TunnelZone;
-import org.midonet.client.resource.WriteVersion;
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 
 
@@ -219,24 +217,6 @@ public class MidonetApi {
     public SystemState getSystemState() {
         ensureApplication();
         return application.getSystemState();
-    }
-
-    /**
-     * Returns WriteVersion object
-     *
-     * @return WriteVersion
-     */
-    public WriteVersion getWriteVersion() {
-        ensureApplication();
-        return application.getWriteVersion();
-    }
-
-    /**
-     * Returns List of Host Versions
-     */
-    public ResourceCollection<HostVersion> getHostVersions() {
-        ensureApplication();
-        return application.getHostVersions();
     }
 
     private void ensureApplication() {

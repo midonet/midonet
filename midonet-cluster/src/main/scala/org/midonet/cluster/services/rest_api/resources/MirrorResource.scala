@@ -27,7 +27,7 @@ import org.midonet.cluster.rest_api.models.Mirror
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "mirrors", template = "mirrorTemplate")
 @Path("mirrors")
 @RequestScoped
 @AllowGet(Array(APPLICATION_MIRROR_JSON,

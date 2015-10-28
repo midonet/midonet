@@ -1776,35 +1776,6 @@ class SystemState(ObjectType):
     def type_name(self):
         return "system_state"
 
-class WriteVersion(ObjectType):
-    def __init__(self, obj):
-        super(WriteVersion, self).__init__(obj)
-        self.clear_attrs()
-        self.put_attr(SingleAttr(name = 'version',
-                                 value_type = StringType(),
-                                 getter = 'get_version',
-                                 setter = 'version'))
-
-    def type_name(self):
-        return "write_version"
-
-class HostVersion(ObjectType):
-    def __init__(self, obj):
-        super(HostVersion, self).__init__(obj)
-        self.clear_attrs()
-        self.put_attr(SingleAttr(name = 'version',
-                                 value_type = StringType(),
-                                 getter = 'get_version'))
-        self.put_attr(SingleAttr(name = 'host',
-                                 value_type = StringType(),
-                                 getter = 'get_host'))
-        self.put_attr(SingleAttr(name = 'host_id',
-                                 value_type = StringType(),
-                                 getter = 'get_host_id'))
-
-    def type_name(self):
-        return "write_version"
-
 class Bridge(ObjectType):
     def __init__(self, obj):
         super(Bridge, self).__init__(obj)
@@ -2671,13 +2642,6 @@ class Midonet(ObjectType):
         self.put_attr(SingleObject(name = 'system-state',
                                    element_type = SystemState,
                                    getter = 'get_system_state'))
-        self.put_attr(SingleObject(name = 'write-version',
-                                   element_type = WriteVersion,
-                                   getter = 'get_write_version'))
-        self.put_attr(Collection(name = 'host-versions',
-                                 element_type = HostVersion,
-                                 list_method = 'get_host_versions',
-                                 list_with_tenant = True))
         self.put_attr(Collection(name = 'router',
                                  element_type = Router,
                                  list_method = 'get_routers',
