@@ -19,7 +19,8 @@ package org.midonet.cluster.services.rest_api.resources
 import java.util.{List => JList, UUID}
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.{Path, GET, HeaderParam, Produces}
+import javax.ws.rs._
+import javax.ws.rs.core.Response
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer

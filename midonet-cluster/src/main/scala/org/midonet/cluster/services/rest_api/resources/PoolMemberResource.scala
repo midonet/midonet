@@ -54,7 +54,7 @@ class PoolMemberResource @Inject()(resContext: ResourceContext)
 
     @DELETE
     @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = {
+    override def delete(@PathParam("id") id: String): Response = zkLock {
         try {
             deleteResource(classOf[PoolMember], id)
         } catch {
