@@ -207,6 +207,11 @@ message LoadBalancer {
     repeated UUID pool_ids = 102;
 }
 
+message MacIp {
+    optional string mac = 1;
+    optional IPAddress ip = 2;
+}
+
 message Network {
     // Neutron / MidoNet common attributes
     optional UUID id = 1;
@@ -307,6 +312,11 @@ message Port {
     // l2 insertion filters (should only be set by translation)
     optional UUID l2insertion_infilter = 23;
     optional UUID l2insertion_outfilter = 24;
+
+    // Overlay VTEP on Routers
+    optional uint32 vni = 40;
+    optional bool off_ramp_vxlan = 41;
+    repeated MacIp remote_vteps = 44;
 
     // Backreferences
 
