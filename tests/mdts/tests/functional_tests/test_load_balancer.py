@@ -193,6 +193,8 @@ def disable_and_assert_traffic_fails(sender, action_fun, **kwargs):
     # Do action
     action_fun("disable", **kwargs)
 
+    time.sleep(5)
+
     # Make one request to the non sticky loadbalancer IP, should fail
     assert_request_fails_to(sender, kwargs['vips']['non_sticky_vip'])
 
@@ -203,6 +205,8 @@ def disable_and_assert_traffic_fails(sender, action_fun, **kwargs):
 def enable_and_assert_traffic_succeeds(sender, action_fun, **kwargs):
     # Do action
     action_fun("enable", **kwargs)
+
+    time.sleep(5)
 
     # Make one request to the non sticky loadbalancer IP, should succeed
     assert_request_succeeds_to(sender, kwargs['vips']['non_sticky_vip'])
@@ -276,6 +280,7 @@ def start_server(backend_num):
     output_stream, exec_id = f.result()
     backend_if.compute_host.ensure_command_running(exec_id)
     SERVERS.setdefault(backend_num, backend_if)
+    time.sleep(5)
 
 def stop_server(backend_num):
     global SERVERS
@@ -294,6 +299,8 @@ def start_servers():
     for backend_num in range(1, NUM_BACKENDS + 1):
         start_server(backend_num)
     set_filters('router-000-001', 'rev_snat', 'snat')
+    lb_pools = VTM.get_load_balancer('lb-000-001').get_pools()
+    get_current_leader(lb_pools)
 
 def stop_servers():
     global SERVERS
@@ -414,10 +421,12 @@ def get_current_leader(lb_pools, timeout = 60, wait_time=5):
 
 @attr(version="v1.3.0", slow=False)
 @bindings(binding_onehost,
-          binding_onehost_weighted,
+          # TODO FIXME: MNA-1090
+          # binding_onehost_weighted,
           binding_onehost_same_subnet,
           binding_multihost,
-          binding_multihost_weighted,
+          # TODO FIXME: MNA-1090
+          # binding_multihost_weighted,
           binding_multihost_same_subnet)
 @with_setup(start_servers, stop_servers)
 def test_multi_member_loadbalancing():
@@ -538,7 +547,6 @@ def test_disabling_topology_loadbalancing():
     disable_and_assert_traffic_fails(sender, action_loadbalancer, vips=vips)
     enable_and_assert_traffic_succeeds(sender, action_loadbalancer, vips=vips)
 
-@nottest
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_haproxy_failback():
@@ -593,7 +601,6 @@ def test_haproxy_failback():
                 'L4LB: not all agents were elected as leaders %s' %
                 leaders_elected)
 
-@nottest
 @bindings(binding_multihost)
 @with_setup(start_servers, stop_servers)
 def test_health_monitoring_backend_failback():
