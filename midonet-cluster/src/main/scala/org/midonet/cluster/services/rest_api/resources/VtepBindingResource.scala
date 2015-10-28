@@ -132,43 +132,46 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                     s"${vtep.getManagementPort} because the physical " +
                     "switch is not configured")
         } map { ports =>
+
             if (!ports.flatten.exists(_.name == binding.portName)) {
                 val msg = getMessage(VTEP_PORT_NOT_FOUND, mgmtIp,
                                      Int.box(mgmtPort), binding.portName)
                 throw new NotFoundHttpException(msg)
             }
 
-            ensureBindingDoesntExist(vtep, binding)
+            if (throwIfConflictingBinding(vtep, binding)) {
+                log.debug(s"Idempotent create of VTEP binding $binding")
+            } else {
+                val protoBdg = binding.toProto(classOf[Topology.Vtep.Binding])
+                                      .toBuilder
+                                      .setVlanId(binding.vlanId)
+                                      .setPortName(binding.portName)
+                                      .setNetworkId(uuidToProto(binding.networkId))
+                                      .build()
 
-            val protoBdg = binding.toProto(classOf[Topology.Vtep.Binding])
-                                  .toBuilder
-                                  .setVlanId(binding.vlanId)
-                                  .setPortName(binding.portName)
-                                  .setNetworkId(uuidToProto(binding.networkId))
-                                  .build()
+                val newVtep = vtep.toBuilder.addBindings(protoBdg).build()
 
-            val newVtep = vtep.toBuilder.addBindings(protoBdg).build()
+                // The vxLan port id is deterministically generated from the
+                // vxlan and network ids.
+                findVxPortForVtep(network, vtepId) match {
+                    case Some(p) =>
+                        store.update(newVtep)
+                    case None =>
+                        val vni = if (!network.hasVni) {
+                            seqDispenser.next(VxgwVni).getOrThrow
+                        } else {
+                            network.getVni
+                        }
 
-            // The vxLan port id is deterministically generated from the
-            // vxlan and network ids.
-            findVxPortForVtep(network, vtepId) match {
-                case Some(p) =>
-                    store.update(newVtep)
-                case None =>
-                    val vni = if (!network.hasVni) {
-                        seqDispenser.next(VxgwVni).getOrThrow
-                    } else {
-                        network.getVni
-                    }
-
-                    val p = makeAVxlanPort(vtep, network)
-                    val n = network.toBuilder
-                                   .setVni(vni)
-                                   .addVxlanPortIds(p.getId)
-                                   .build()
-                    store.multi (
-                        Seq(UpdateOp(newVtep), UpdateOp(n), CreateOp(p))
-                    )
+                        val p = makeAVxlanPort(vtep, network)
+                        val n = network.toBuilder
+                                       .setVni(vni)
+                                       .addVxlanPortIds(p.getId)
+                                       .build()
+                        store.multi (
+                            Seq(UpdateOp(newVtep), UpdateOp(n), CreateOp(p))
+                        )
+                }
             }
 
             binding.setBaseUri(resContext.uriInfo.getBaseUri)
@@ -199,17 +202,22 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
     }
 
     /** Check that there isn't any other network using the same port-vlan
-      * pair in a binding to this VTEP.
+      * pair in a binding to this VTEP.  It will throw otherwise.
+      *
+      * @return true when the exact same binding already exists,
+      *         allowing idempotent binding creation.
       */
-    private def ensureBindingDoesntExist(vtep: Topology.Vtep, bdg: VtepBinding)
-    : Unit = {
+    private def throwIfConflictingBinding(vtep: Topology.Vtep, bdg: VtepBinding)
+    : Boolean = {
         val conflict = vtep.getBindingsList.find { proto =>
-            fromProto(proto.getNetworkId) != bdg.networkId &&
             proto.getVlanId.toShort == bdg.vlanId &&
             proto.getPortName == bdg.portName
         }
 
-        if (conflict.nonEmpty) {
+        if (conflict.nonEmpty &&
+            conflict.get.getNetworkId.asJava == bdg.networkId) {
+            return true
+        } else if (conflict.nonEmpty) {
             throw new ConflictHttpException(
                 getMessage(VTEP_PORT_VLAN_PAIR_ALREADY_USED,
                            toIPv4Addr(vtep.getManagementIp),
@@ -217,6 +225,7 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                            Short.box(bdg.vlanId),
                            fromProto(conflict.get.getNetworkId)))
         }
+        false
     }
 
     /**
