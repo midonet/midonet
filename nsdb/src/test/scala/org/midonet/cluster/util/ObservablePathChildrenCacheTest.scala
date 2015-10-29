@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.util
 
+import java.util
 import java.util.concurrent._
 
 import scala.collection.JavaConversions._
@@ -34,8 +35,8 @@ import rx.Observable
 import rx.observers.{TestObserver, TestSubscriber}
 
 import org.midonet.util.MidonetEventually
-import org.midonet.util.functors.makeRunnable
-import org.midonet.util.reactivex.TestAwaitableObserver
+import org.midonet.util.functors.{makeAction1, makeRunnable}
+import org.midonet.util.reactivex.{AwaitableObserver, TestAwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class ObservablePathChildrenCacheTest extends Suite
@@ -258,29 +259,30 @@ class ObservablePathChildrenCacheTest extends Suite
 
         checkChildren(collector)
 
-        // Create a new observer for a child, and subscribe
-        val _1 = new TestObserver[ChildData]()
+        // Create a new observer for a child, and subscribe.  We'll unblock
+        // the latch when we receive a 'c', which is the last update emitted.
+        // We're doing this instead of using a TestAwaitableObserver because
+        // we can't tell deterministically how many updates we'll receive later.
+        @volatile var lastSeen: String = null
+        val _1 = makeAction1[ChildData]{ d => lastSeen = new String(d.getData) }
         opcc.observableChild(nodeData.keys.head).subscribe(_1)
 
         eventually {
            collector.extractData().head shouldEqual childData
-           childData shouldEqual new String(_1.getOnNextEvents.head.getData)
+           childData shouldEqual lastSeen
         }
 
-        // Let's trigger some updates
+        // Let's trigger some updates on the node
         val path = nodeData.keys.head
         curator.setData().forPath(path, "a".getBytes)
         curator.setData().forPath(path, "b".getBytes)
         curator.setData().forPath(path, "c".getBytes)
 
-        eventually { "c" shouldEqual new String(opcc.child(path).getData) }
-
-        // We don't necessarily get all updates, but at least converge to "c"
-        // on the last one
-        val evts = _1.getOnNextEvents
-        "c" shouldEqual new String(evts.last.getData)
-
-        collector.extractData() should contain ("c")
+        eventually {
+            "c" shouldEqual new String(opcc.child(path).getData)
+            "c" shouldBe lastSeen
+            collector.extractData() should contain ("c")
+        }
 
     }
 
