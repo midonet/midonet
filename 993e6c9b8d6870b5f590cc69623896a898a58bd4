@@ -52,6 +52,24 @@
       "revId": "993e6c9b8d6870b5f590cc69623896a898a58bd4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_013be53a",
+        "filename": "tests/mdts/tests/topologies/mmm_virtual_test_load_balancer.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-29T15:41:07Z",
+      "side": 1,
+      "message": "I think fixing it here is fine. Nicolas patch is unrelated to this test. Anyway, if he rebases on top of the changes I do here, his patch will already have it.",
+      "parentUuid": "9ab29df4_61f2e19b",
+      "revId": "993e6c9b8d6870b5f590cc69623896a898a58bd4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
