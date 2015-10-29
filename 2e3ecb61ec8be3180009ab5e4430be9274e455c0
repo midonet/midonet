@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_66e75741",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-29T08:53:56Z",
+      "side": 1,
+      "message": "Then, try use some names such as (these are not really representatives for a haproxy):\n\n- backend_contention_retries\n- backend_contention_delay (or base_delay)",
+      "parentUuid": "9ab29df4_70be2d01",
+      "range": {
+        "startLine": 145,
+        "startChar": 4,
+        "endLine": 148,
+        "endChar": 116
+      },
+      "revId": "2e3ecb61ec8be3180009ab5e4430be9274e455c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_15db23ee",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 2
