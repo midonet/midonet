@@ -107,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_25539418",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-29T17:33:33Z",
+      "side": 1,
+      "message": "why is that a hard requirement?",
+      "parentUuid": "9ab29df4_2168e9b9",
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_c1048d17",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
         "patchSetId": 3
