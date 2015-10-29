@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_e699a76f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T10:00:20Z",
+      "side": 1,
+      "message": "At the moment you would be looping forever here in the case of an EOF right? What about just exiting at this point?",
+      "range": {
+        "startLine": 845,
+        "startChar": 40,
+        "endLine": 845,
+        "endChar": 68
+      },
+      "revId": "1ca517f9ee0c2749695b755fdc2ef934bb496728",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
