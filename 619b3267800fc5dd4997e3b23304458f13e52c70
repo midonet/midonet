@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_e1127161",
+        "filename": "tests/mdts/services/midonet_agent.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-29T17:04:58Z",
+      "side": 1,
+      "message": "I believe the first 8 chars of the pool ID is used for the name.  You could compare it more precisely:\n\npool_id[:8] + \"_hm\"",
+      "parentUuid": "9ab29df4_e19fd101",
+      "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_c6874360",
         "filename": "tests/mdts/services/vmguest.py",
         "patchSetId": 6
