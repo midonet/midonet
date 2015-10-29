@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_a18f9922",
+        "filename": "tests/mdts/tests/topologies/mmm_virtual_test_load_balancer.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-29T15:06:51Z",
+      "side": 1,
+      "message": "If the intention of this set up is to accurately mimic the translation (and looking at chain 1, it seems like it) then we should add more conditions here:\n1. Match on the destination IP of 10.0.2.254\n2. in_ports of port_id \u003d\u003d 2",
+      "revId": "993e6c9b8d6870b5f590cc69623896a898a58bd4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
