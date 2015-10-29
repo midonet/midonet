@@ -45,6 +45,30 @@
       "revId": "e640b0c3db9ded0ef4102bef40f49a36e48cad83",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_8bef14b0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-29T05:03:49Z",
+      "side": 1,
+      "message": "Oh, no, I guess it can\u0027t, at least under normal operation.",
+      "parentUuid": "9ab29df4_cb090c97",
+      "range": {
+        "startLine": 381,
+        "startChar": 16,
+        "endLine": 381,
+        "endChar": 40
+      },
+      "revId": "e640b0c3db9ded0ef4102bef40f49a36e48cad83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
