@@ -19,6 +19,52 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_e548bc5d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-29T18:02:37Z",
+      "side": 1,
+      "message": "Use camel case for scala def.",
+      "range": {
+        "startLine": 145,
+        "startChar": 8,
+        "endLine": 145,
+        "endChar": 38
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_059cd0bf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-10-29T18:02:37Z",
+      "side": 1,
+      "message": "Nit: put this up?",
+      "range": {
+        "startLine": 97,
+        "startChar": 4,
+        "endLine": 97,
+        "endChar": 84
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_6181018f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
         "patchSetId": 4
