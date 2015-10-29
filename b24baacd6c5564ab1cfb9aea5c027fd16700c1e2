@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_6b03a0b8",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-10-29T02:47:49Z",
+      "side": 1,
+      "message": "As for FOR_UNIT\u003d\u003d0, I think I did that because the FOR_MDTS is currently a subset of FOR_UNIT (so the UNIT_REGEX includes all of the files/dirs in the MDTS_REGEX).  You are correct, though, in that this might not always be the case.  In which case a FOR_UNIT \u003d\u003d 0 \u0026\u0026 FOR_MDTS \u003d\u003d 0 would seem better.  Basically, any file that is in both REGEXes (and hence will be grep -v\u0027d) will trigger a NO CHANGES/FAST BUILD.\n\nAs for line 77, I\u0027m not sure I see the problem very well.  If I edit a file not in either regex, FOR_UNIT and FOR_MDTS will be 1, but to recommend a fast build that file has to be a) build.gradle and b) match the conditions lower in the code block.  Also, I don\u0027t see how I can edit a file in the MDTS_REGEX and get FOR_MDTS\u003d1 based on the grep you already had in place.  Did you mean edit a UNIT_REGEX file and get FOR_MDTS\u003d1?  That\u0027s true, but in my conditional, the FOR_UNIT\u003d\u003d0 should catch that case.  I am probably missing something, but unfortunately, I still don\u0027t see it.",
+      "parentUuid": "9ab29df4_b02b65ea",
+      "revId": "b24baacd6c5564ab1cfb9aea5c027fd16700c1e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_42c40892",
         "filename": "what_ci_targets.sh",
         "patchSetId": 2
@@ -101,6 +119,30 @@
       "side": 1,
       "message": "Mike, your suggestion (JIRA) was to replace here for this:\n\n  LINES_REMOVED\u003d`git diff HEAD~1 build.gradle | grep -E \"^\\- \" | wc -l | xargs`\n  LINES_ADDED\u003d`git diff HEAD~1 build.gradle | grep -E \"^\\+ \" | wc -l | xargs`\n\n  MNV_LINES_REMOVED\u003d`git diff HEAD~1 build.gradle | grep -E \"^\\- \" | grep midonetVersion | wc -l`\n  MNV_LINES_ADDED\u003d`git diff HEAD~1 build.gradle | grep -E \"^\\+ \" | grep midonetVersion | wc -l`\n\n  # If only one line was changed and it was the midonetVersion line:\n  if [ \".$LINES_ADDED\" \u003d\u003d \".1\" ] \u0026\u0026\n     [ \".$LINES_REMOVED\" \u003d\u003d \".1\" ] \u0026\u0026\n     [ \".$MNV_LINES_REMOVED\" \u003d\u003d \".1\" ] \u0026\u0026\n     [ \".$MNV_LINES_ADDED\" \u003d\u003d \".1\" ]\n\nI preferred to differenciate ADDED and REMOVED, but for our purposes the change is good enough as it tells us whether there is any change that is not on midonetVersion, which does the same as the 2 MVN_ greps. So just conciseness.",
       "parentUuid": "9ab29df4_62a02c91",
+      "range": {
+        "startLine": 83,
+        "startChar": 2,
+        "endLine": 83,
+        "endChar": 80
+      },
+      "revId": "b24baacd6c5564ab1cfb9aea5c027fd16700c1e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_4b1dfc0e",
+        "filename": "what_ci_targets.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-10-29T02:47:49Z",
+      "side": 1,
+      "message": "I\u0027ll preface this by saying I can always be wrong (and I always think as much, and I am nowhere near perfect, so I say nothing as \"gospel\"), but I think in this case \"conciseness\" comes at the expense of \"correctness\".  My proposal was a little more verbose, true, but it seems to catch the edge conditions I was mentioning at negligible cost in terms of runtime or complexity (one extra grep will hardly be noticed in this kind of code-examination-style script).  And I think the edge case I pointed out shows a difference in the two greps, so if I am not mistaken, it looks like we might end up making the code one line shorter, but at the cost of exposing the edge case.\n\nAs a matter of this particular case, it\u0027s not something I would hold up the change, but I think conciseness in general should only come as long as its not at the expense of completeness or correctness. \n\nAgain, this is just based on my current understanding, and it\u0027s mostly just for conversational purpose, as I will add my +1 either way, so we don\u0027t get held up.",
+      "parentUuid": "9ab29df4_90d8211f",
       "range": {
         "startLine": 83,
         "startChar": 2,
