@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_7381e48e",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/models/Bgp.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-29T04:33:19Z",
+      "side": 1,
+      "message": "This isn\u0027t really necessary. The LegacyImporter can just return org.midonet.cluster.data.BGP directly. The other converters all convert directly to the API object. That\u0027s not really an option here, since the API object is missing a field we need for migration, but there\u0027s no point in converting to an intermediate object with exactly the same properties as the old storage object.",
+      "revId": "3e7f5abacbe3888261c06d62d6ed5ed09211dbbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
