@@ -117,34 +117,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         }
     }
 
-    private def handlePreRoutingResult(preRoutingResult: RuleResult,
-                                       inPort: RouterPort)
-                                      (implicit context: PacketContext)
-    : SimulationResult =
-        preRoutingResult.action match {
-            case RuleResult.Action.ACCEPT => NoOp // pass through
-            case RuleResult.Action.DROP =>
-                // For header fragments only, we should send an ICMP_FRAG_NEEDED
-                // response and install a temporary drop flow so that the sender
-                // will continue to receive these responses occasionally. We can
-                // silently drop nonheader fragments and unfragmented packets.
-                if (context.wcmatch.getIpFragmentType != IPFragmentType.First) {
-                    Drop
-                } else {
-                    sendAnswer(inPort.id,
-                               icmpErrors.unreachableFragNeededIcmp(inPort, context))
-                    ErrorDrop
-                }
-            case RuleResult.Action.REJECT =>
-                sendAnswer(inPort.id,
-                           icmpErrors.unreachableProhibitedIcmp(inPort, context))
-                Drop
-            case _ =>
-                context.log.warn("Pre-routing returned an action which was {}, " +
-                                 "not ACCEPT, DROP, or REJECT.", preRoutingResult.action)
-                ErrorDrop
-        }
-
     @throws[NotYetException]
     private def preRouting()(implicit context: PacketContext): SimulationResult = {
         val inPort = tryGet[RouterPort](context.inPortId)
@@ -304,9 +276,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             context.log.warn("Got a packet addressed to a port without a LOCAL route")
             return Drop
         }
-
-        val pMatch = context.wcmatch
-        val pFrame = context.ethernet
 
         context.outPortId = outPort.id
         context.routeTo = rt
