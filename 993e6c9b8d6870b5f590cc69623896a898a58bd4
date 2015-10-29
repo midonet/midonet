@@ -16,6 +16,24 @@
       "revId": "993e6c9b8d6870b5f590cc69623896a898a58bd4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_61f2e19b",
+        "filename": "tests/mdts/tests/topologies/mmm_virtual_test_load_balancer.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T15:34:11Z",
+      "side": 1,
+      "message": "Maybe it\u0027s a good idea to make these additions in the patch where Nicolas enables the tests, since here they are disabled, and there they\u0027ll hopefully contribute to make it pass?\n\n@Xavi what do you think?",
+      "parentUuid": "9ab29df4_a18f9922",
+      "revId": "993e6c9b8d6870b5f590cc69623896a898a58bd4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
