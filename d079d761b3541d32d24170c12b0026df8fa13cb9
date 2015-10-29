@@ -140,6 +140,30 @@
       "revId": "d079d761b3541d32d24170c12b0026df8fa13cb9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_012685b7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T13:05:10Z",
+      "side": 1,
+      "message": "Actually, not parallelizing for now. Updating the host list in a proto directly is a pain. The improvement is ok but we can do it in a separate patch. The update is still atomic which is what we really care about.",
+      "parentUuid": "9ab29df4_66067722",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 9
+      },
+      "revId": "d079d761b3541d32d24170c12b0026df8fa13cb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
