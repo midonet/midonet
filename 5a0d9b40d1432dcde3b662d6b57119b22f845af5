@@ -241,6 +241,29 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_2172a97c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T14:14:37Z",
+      "side": 1,
+      "message": "acquire monitor on a private object like the map (synchronizing on this is generally considered bad practise as it\u0027s a public instance that others might also synchronize on, risking unexpected contention \u0026 deadlocks)",
+      "range": {
+        "startLine": 78,
+        "startChar": 8,
+        "endLine": 78,
+        "endChar": 13
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_e157d100",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 3
@@ -328,6 +351,29 @@
         "startChar": 27,
         "endLine": 321,
         "endChar": 37
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c163adaf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T14:14:37Z",
+      "side": 1,
+      "message": "maxRetries?",
+      "range": {
+        "startLine": 331,
+        "startChar": 49,
+        "endLine": 331,
+        "endChar": 63
       },
       "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
