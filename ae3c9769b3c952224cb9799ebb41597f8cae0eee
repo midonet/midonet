@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_21b0e98a",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T17:12:17Z",
+      "side": 1,
+      "message": "ditto as patch #3",
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_6181018f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T17:12:17Z",
+      "side": 1,
+      "message": "looks like this should be in JIRA rather than code (less likely to get done)",
+      "range": {
+        "startLine": 44,
+        "startChar": 3,
+        "endLine": 45,
+        "endChar": 73
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_817e15ad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T17:12:17Z",
+      "side": 1,
+      "message": "The scope of this synchronized looks excessive. What exactly do you want to thread-protect?",
+      "range": {
+        "startLine": 62,
+        "startChar": 27,
+        "endLine": 62,
+        "endChar": 42
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c14f2d91",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T17:12:17Z",
+      "side": 1,
+      "message": "this will block the actor thread, you should instead .onComplete or .recover and schedule the retry there",
+      "range": {
+        "startLine": 64,
+        "startChar": 59,
+        "endLine": 64,
+        "endChar": 67
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e1443176",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T17:12:17Z",
+      "side": 1,
+      "message": "ditto, this is blocking, you want:\n\nstore.get.andThen { store.update }.recover",
+      "range": {
+        "startLine": 65,
+        "startChar": 16,
+        "endLine": 65,
+        "endChar": 28
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_41095d30",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T17:12:17Z",
+      "side": 1,
+      "message": "I think trying to take the timestamp as a version makes the code too complex, and forces you to sync on the entire block needlessly. Isn\u0027t it easier to:\n\n/** This one gets called from the outside. You can probably just use a concurrent hash map and remove all synchronization.\n  */\nsetStatus(poolId) {\n  myTimestamp \u003d nanoTime()\n  map.put(poolId, myTimestamp)\n  doUpdate(myTimestamp)\n  // at this point we know that any update registered \n  // from the outside pushed the timestamp up, invalidating \n  // any past retries\n}\n\nprivate doSetStatus(myTimestamp) {\n  if (timestamp \u003c lastUpdate.get()) {\n    return // obsoleted\n  }\n  store.get.andThen {\n    if (timestamp \u003d\u003d lastUpdate.get()) {\n      store.update\n    }\n  }.oncomplete {\n    case Failure() \u003d\u003e\n       scheduler.schedule(doStatus(myTimestamp))\n  }\n}\n\nThe ConcurrentHashMap would not be needed if we can assume that there is only 1 thread that\u0027s going to be used by the calling classs to do both setStatus, and handle the retries.",
+      "range": {
+        "startLine": 71,
+        "startChar": 24,
+        "endLine": 71,
+        "endChar": 72
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_a131590d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T17:12:17Z",
+      "side": 1,
+      "message": "This is for devs, not users. It should be something like \"Pool update could not be updated .. \"",
+      "range": {
+        "startLine": 80,
+        "startChar": 34,
+        "endLine": 81,
+        "endChar": 42
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_415b1d54",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T17:12:17Z",
+      "side": 1,
+      "message": "Uninformative. How can the user know what happened? What should they do?",
+      "range": {
+        "startLine": 84,
+        "startChar": 29,
+        "endLine": 84,
+        "endChar": 43
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_61582157",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T17:12:17Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 86,
+        "startChar": 30,
+        "endLine": 86,
+        "endChar": 61
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_8155351f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T17:12:17Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 88,
+        "startChar": 32,
+        "endLine": 88,
+        "endChar": 55
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
