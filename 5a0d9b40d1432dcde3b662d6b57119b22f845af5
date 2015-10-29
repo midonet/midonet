@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ab29df4_8131b5ee",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T13:18:33Z",
+      "side": 1,
+      "message": "this is too low level IMO. I\u0027d replace with \"number of retries to be made if the update of a pools status in storage fails\"",
+      "range": {
+        "startLine": 221,
+        "startChar": 8,
+        "endLine": 222,
+        "endChar": 60
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_413ebdb9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T13:18:33Z",
+      "side": 1,
+      "message": "This is a bad name. The code here has a concrete purpose: reliably update pool statuses.. PoolStatusReporter.. anything like that.\n\nAlso, as noted in the other file, I think it makes more sense to have this as a non static class.",
+      "range": {
+        "startLine": 36,
+        "startChar": 7,
+        "endLine": 36,
+        "endChar": 19
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_010f6531",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
         "patchSetId": 3
@@ -86,6 +132,52 @@
         "startChar": 22,
         "endLine": 74,
         "endChar": 34
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e157d100",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T13:18:33Z",
+      "side": 1,
+      "message": "passing this in scope all the time feels a bit awkward, making the BackendUtils static kind of forces but I\u0027m not really sure of the benefit of making that class static as opposed to an instance (or just having the methods here) and use a standard @Inject",
+      "range": {
+        "startLine": 258,
+        "startChar": 54,
+        "endLine": 258,
+        "endChar": 70
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_015da521",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T13:18:33Z",
+      "side": 1,
+      "message": "\"Discarding obsolete\" sounds less alarming",
+      "range": {
+        "startLine": 321,
+        "startChar": 27,
+        "endLine": 321,
+        "endChar": 37
       },
       "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
