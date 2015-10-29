@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_e6ca87a0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-29T09:03:56Z",
+      "side": 1,
+      "message": "Is there a test for this? I don\u0027t see any code changes that look like they address this.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 9
+      },
+      "revId": "d079d761b3541d32d24170c12b0026df8fa13cb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_06d05b4f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-29T09:03:56Z",
+      "side": 1,
+      "message": "I don\u0027t understand this phrase. Anyway, why isn\u0027t this relationship enforced by Zoom?",
+      "range": {
+        "startLine": 16,
+        "startChar": 60,
+        "endLine": 18,
+        "endChar": 21
+      },
+      "revId": "d079d761b3541d32d24170c12b0026df8fa13cb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_a6d08f54",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-29T09:03:56Z",
+      "side": 1,
+      "message": "Why not parallelize the gets?\n\n  val tzs \u003d backend.getAll(classOf[TunnelZone], host.tunnelZoneIds.asScala).getOrThrow\n  val updateOps \u003d for (tz \u003c- tzs) yield {\n      tz.removeHost(id)\n      Update(tunnelZone).asInstanceOf[Multi]\n  }\n  \n  multiResource(updateOps :+ Delete(classOf[Host], id)\n\nOr, even better, why not use Zoom bindings?",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 9
+      },
+      "revId": "d079d761b3541d32d24170c12b0026df8fa13cb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
