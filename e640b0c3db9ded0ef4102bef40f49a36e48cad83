@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_ebfed06a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-29T05:02:25Z",
+      "side": 1,
+      "message": "It\u0027s okay either way, but I think this would be better without the colon. \"DELETE Network: {...}\" vs. \"DELETE: NETWORK: {...}\"",
+      "range": {
+        "startLine": 380,
+        "startChar": 25,
+        "endLine": 380,
+        "endChar": 26
+      },
+      "revId": "e640b0c3db9ded0ef4102bef40f49a36e48cad83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_cb090c97",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-10-29T05:02:25Z",
+      "side": 1,
+      "message": "What about this one? Can it be a Commons.UUID?",
+      "range": {
+        "startLine": 381,
+        "startChar": 16,
+        "endLine": 381,
+        "endChar": 40
+      },
+      "revId": "e640b0c3db9ded0ef4102bef40f49a36e48cad83",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
