@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_8669cb8d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T09:21:56Z",
+      "side": 1,
+      "message": "5.0",
+      "range": {
+        "startLine": 131,
+        "startChar": 84,
+        "endLine": 131,
+        "endChar": 87
+      },
+      "revId": "5a28a6d88a6ce59dff3fd017049e3a795d645fcd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_a605efc3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T09:21:56Z",
+      "side": 1,
+      "message": "and",
+      "range": {
+        "startLine": 683,
+        "startChar": 68,
+        "endLine": 683,
+        "endChar": 69
+      },
+      "revId": "5a28a6d88a6ce59dff3fd017049e3a795d645fcd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c60ae3d1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 735,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T09:21:56Z",
+      "side": 1,
+      "message": "indent",
+      "range": {
+        "startLine": 735,
+        "startChar": 43,
+        "endLine": 735,
+        "endChar": 69
+      },
+      "revId": "5a28a6d88a6ce59dff3fd017049e3a795d645fcd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_46f6d3d8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T09:21:56Z",
+      "side": 1,
+      "message": "Could EOFException also happen if the user enters ascii code \u0027\\0\u0027? Terminating the migration seems fine to me too.",
+      "range": {
+        "startLine": 845,
+        "startChar": 24,
+        "endLine": 845,
+        "endChar": 68
+      },
+      "revId": "5a28a6d88a6ce59dff3fd017049e3a795d645fcd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
