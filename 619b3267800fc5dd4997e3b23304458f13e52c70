@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_215e2946",
+        "filename": "tests/mdts/services/midonet_agent.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-29T16:55:35Z",
+      "side": 1,
+      "message": "I see it\u0027s the first 8 chars of the pool_id. I\u0027ll add this check.",
+      "parentUuid": "9ab29df4_e19fd101",
+      "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_c6874360",
         "filename": "tests/mdts/services/vmguest.py",
         "patchSetId": 6
