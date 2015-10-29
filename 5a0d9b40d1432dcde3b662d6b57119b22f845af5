@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_4165dddf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T13:59:11Z",
+      "side": 1,
+      "message": "Changing name and making this a class.",
+      "parentUuid": "9ab29df4_413ebdb9",
+      "range": {
+        "startLine": 36,
+        "startChar": 7,
+        "endLine": 36,
+        "endChar": 19
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_010f6531",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
         "patchSetId": 3
@@ -65,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_2168e9b9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T13:59:11Z",
+      "side": 1,
+      "message": "method retryIfValid needs to be executed atomically (with no interleaved calls to setPoolMappingStatus). As discussed, in the current settings, no concurrency control is needed but if suddenly the HealthMonitor and HaproxyHealthMonitor actors run on different threads, then we have problems.",
+      "parentUuid": "9ab29df4_010f6531",
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_c1048d17",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
         "patchSetId": 3
@@ -76,6 +118,24 @@
       "writtenOn": "2015-10-29T13:03:53Z",
       "side": 1,
       "message": "this doesn\u0027t do what you think. this is an expression executed eagerly.",
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_61b9012e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T13:59:11Z",
+      "side": 1,
+      "message": "retryOnConnection is now part of this method.",
+      "parentUuid": "9ab29df4_c1048d17",
       "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -116,6 +176,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_81b6153c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T13:59:11Z",
+      "side": 1,
+      "message": "I moved the try catch block inside.",
+      "parentUuid": "9ab29df4_c12bad80",
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_6693d7fa",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
         "patchSetId": 3
@@ -127,6 +205,30 @@
       "writtenOn": "2015-10-29T12:09:41Z",
       "side": 1,
       "message": "rename to retryUpdatePoolIfValid",
+      "range": {
+        "startLine": 74,
+        "startChar": 22,
+        "endLine": 74,
+        "endChar": 34
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_21af09e5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T13:59:11Z",
+      "side": 1,
+      "message": "Keeping the name since the class name is changing.",
+      "parentUuid": "9ab29df4_6693d7fa",
       "range": {
         "startLine": 74,
         "startChar": 22,
@@ -162,6 +264,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_61be6101",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T13:59:11Z",
+      "side": 1,
+      "message": "I made it an instance.",
+      "parentUuid": "9ab29df4_e157d100",
+      "range": {
+        "startLine": 258,
+        "startChar": 54,
+        "endLine": 258,
+        "endChar": 70
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_015da521",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 3
@@ -173,6 +299,30 @@
       "writtenOn": "2015-10-29T13:18:33Z",
       "side": 1,
       "message": "\"Discarding obsolete\" sounds less alarming",
+      "range": {
+        "startLine": 321,
+        "startChar": 27,
+        "endLine": 321,
+        "endChar": 37
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_81bb750d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T13:59:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_015da521",
       "range": {
         "startLine": 321,
         "startChar": 27,
