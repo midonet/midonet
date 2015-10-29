@@ -23,7 +23,12 @@ else
     exit 1
 fi
 
-MIDO_JAR=`ls $MIDO_HOME/midonet-cluster-*.jar`
+if [ -z $JAVA ]; then
+    echo '$JAVA not defined.'
+    exit 1
+fi
+
+MIDO_JAR=`ls $MIDO_HOME/midonet-cluster.jar`
 MIDO_DEP_CLASS_PATH=$MIDO_HOME/dep/*
 MIDO_MAIN=org.midonet.migrator.Migrator
 
