@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_611d8166",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T13:01:32Z",
+      "side": 1,
+      "message": "added",
+      "parentUuid": "9ab29df4_e6ca87a0",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 9
+      },
+      "revId": "d079d761b3541d32d24170c12b0026df8fa13cb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_06d05b4f",
         "filename": "/COMMIT_MSG",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_811a956c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T13:01:32Z",
+      "side": 1,
+      "message": "See topology.proto:500",
+      "parentUuid": "9ab29df4_06d05b4f",
+      "range": {
+        "startLine": 16,
+        "startChar": 60,
+        "endLine": 18,
+        "endChar": 21
+      },
+      "revId": "d079d761b3541d32d24170c12b0026df8fa13cb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_a6d08f54",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostResource.scala",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2015-10-29T09:03:56Z",
       "side": 1,
       "message": "Why not parallelize the gets?\n\n  val tzs \u003d backend.getAll(classOf[TunnelZone], host.tunnelZoneIds.asScala).getOrThrow\n  val updateOps \u003d for (tz \u003c- tzs) yield {\n      tz.removeHost(id)\n      Update(tunnelZone).asInstanceOf[Multi]\n  }\n  \n  multiResource(updateOps :+ Delete(classOf[Host], id)\n\nOr, even better, why not use Zoom bindings?",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 9
+      },
+      "revId": "d079d761b3541d32d24170c12b0026df8fa13cb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_66067722",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T13:01:32Z",
+      "side": 1,
+      "message": "Adding the parallelized gets.\n\nRe. backrefs see topology.proto:500\n\nthe host is referenced from the host_ids property, but the tz also has a \"hosts\" nested message containing a tuple, afaik we can\u0027t express references in such model.",
+      "parentUuid": "9ab29df4_a6d08f54",
       "range": {
         "startLine": 68,
         "startChar": 0,
