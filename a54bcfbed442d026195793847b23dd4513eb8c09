@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_6bf2c09b",
+        "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/zkManagers/PortZkManager.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-29T05:35:59Z",
+      "side": 1,
+      "message": "Unused",
+      "revId": "a54bcfbed442d026195793847b23dd4513eb8c09",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_8b4634be",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-29T05:35:59Z",
+      "side": 1,
+      "message": "For a script, I would expect a lower number of retries since you might not want it to hang for too long retrying (considering below that baseRetryTime exponentially increases).",
+      "revId": "a54bcfbed442d026195793847b23dd4513eb8c09",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
