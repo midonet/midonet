@@ -70,6 +70,24 @@
       "revId": "993e6c9b8d6870b5f590cc69623896a898a58bd4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c1172da2",
+        "filename": "tests/mdts/tests/topologies/mmm_virtual_test_load_balancer.yaml",
+        "patchSetId": 9
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-10-29T15:45:01Z",
+      "side": 1,
+      "message": "Yeah, sorry I got confused with another one.",
+      "parentUuid": "9ab29df4_013be53a",
+      "revId": "993e6c9b8d6870b5f590cc69623896a898a58bd4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
