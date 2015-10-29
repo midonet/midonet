@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_66b9172e",
+        "filename": "tests/mdts/services/midonet_agent.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-29T09:11:34Z",
+      "side": 1,
+      "message": "Since this command doesn\u0027t really tell us about haproxy process\u0027s status as it is more to do with the existence of a namespace, consider changing the name of the method to something like \u0027hm_resources_exist\u0027 for accuracy.",
+      "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c6874360",
+        "filename": "tests/mdts/services/vmguest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-29T09:11:34Z",
+      "side": 1,
+      "message": "This seems like an unrelated (yet fairly critical) change.  We should separate this into a different patch.",
+      "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e67c4775",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-29T09:11:34Z",
+      "side": 1,
+      "message": "not important, but was it intentional to add this blank line?",
+      "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_06f93be9",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-29T09:11:34Z",
+      "side": 1,
+      "message": "If the result of this command is simply separated by \\n, wouldn\u0027t be easier if this method just called \u0027make_request_to\u0027 num_reqs times and save the results in a list?",
+      "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
