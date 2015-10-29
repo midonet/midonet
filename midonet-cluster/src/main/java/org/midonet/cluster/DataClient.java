@@ -123,6 +123,9 @@ public interface DataClient {
     List<TunnelZone> tunnelZonesGetAll()
             throws StateAccessException, SerializationException;
 
+    Set<TunnelZone.HostConfig> tunnelZonesGetMemberships(UUID uuid)
+        throws StateAccessException;
+
     @CheckForNull TunnelZone.HostConfig tunnelZonesGetMembership(
             UUID uuid, UUID hostId)
             throws StateAccessException, SerializationException;

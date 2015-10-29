@@ -26,6 +26,7 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.rest_api.models._
 import org.midonet.migrator.converters._
 import org.midonet.packets.{IPv6Subnet, IPv4Addr, IPv4Subnet}
+import scala.collection.breakOut
 
 class LegacyImporter @Inject() (dataClient: DataClient) {
 
@@ -95,6 +96,10 @@ class LegacyImporter @Inject() (dataClient: DataClient) {
 
     def listTunnelZones: Seq[TunnelZone] =
         dataClient.tunnelZonesGetAll.map(TunnelZoneDataConverter.fromData)
+
+    def listTunnelZoneHosts(tzId: UUID): Seq[TunnelZoneHost] =
+        dataClient.tunnelZonesGetMemberships(tzId)
+            .map(TunnelZoneDataConverter.fromData)(breakOut)
 
     def listVips: Seq[Vip] = dataClient.vipGetAll.map(VipDataConverter.fromData)
 

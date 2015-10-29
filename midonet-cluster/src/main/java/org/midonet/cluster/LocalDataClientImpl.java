@@ -17,6 +17,7 @@ package org.midonet.cluster;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -343,6 +344,21 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return tunnelZones;
+    }
+
+    @Override
+    public Set<TunnelZone.HostConfig> tunnelZonesGetMemberships(
+            final UUID tzId) throws StateAccessException {
+        Set<UUID> hostIds = zonesZkManager.getZoneMemberships(tzId, null);
+        Set<TunnelZone.HostConfig> hosts = new HashSet<>(hostIds.size());
+        for (UUID hostId : hostIds) {
+            try {
+                hosts.add(zonesZkManager.getZoneMembership(tzId, hostId, null));
+            } catch (StateAccessException | SerializationException e) {
+                log.error("Could not read HostConfig {}", hostId, e);
+            }
+        }
+        return hosts;
     }
 
     @Override
