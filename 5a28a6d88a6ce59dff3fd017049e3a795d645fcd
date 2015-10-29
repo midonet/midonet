@@ -91,6 +91,30 @@
       "revId": "5a28a6d88a6ce59dff3fd017049e3a795d645fcd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_a62c0f4c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-10-29T09:24:16Z",
+      "side": 1,
+      "message": "I meant rather ascii code 0.",
+      "parentUuid": "9ab29df4_46f6d3d8",
+      "range": {
+        "startLine": 845,
+        "startChar": 24,
+        "endLine": 845,
+        "endChar": 68
+      },
+      "revId": "5a28a6d88a6ce59dff3fd017049e3a795d645fcd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
