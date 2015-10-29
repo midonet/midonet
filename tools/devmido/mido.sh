@@ -273,10 +273,10 @@ cp  $TOP_DIR/midonet-util/src/test/resources/logback-test.xml  \
 # MidoNet Cluster
 # ---------------
 
-# Copy over the cluster config
+# Copy over the cluster bootstrap config
 mkdir -p $TOP_DIR/conf
-CLUSTER_CONF=$TOP_DIR/conf/midonet-cluster.conf
-cp midonet-cluster/conf/midonet-cluster.conf $CLUSTER_CONF
+CLUSTER_CONF=$TOP_DIR/conf/midonet.conf
+cp nsdb/conf/midonet.conf $CLUSTER_CONF
 iniset ${CLUSTER_CONF} zookeeper zookeeper_hosts $ZOOKEEPER_HOSTS
 
 # Configure the cluster using mn-conf
