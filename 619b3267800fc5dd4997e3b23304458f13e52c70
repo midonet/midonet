@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_e19fd101",
+        "filename": "tests/mdts/services/midonet_agent.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-29T16:25:32Z",
+      "side": 1,
+      "message": "We check both things (namespace and haproxy process). We check that the haproxy process for a specific pool exists in line 92. Maybe we should refine the grep expression for the netns command? I need to check the naming convention thought. what do you think?\n\nI\u0027ll change the naming.",
+      "parentUuid": "9ab29df4_66b9172e",
+      "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_c6874360",
         "filename": "tests/mdts/services/vmguest.py",
         "patchSetId": 6
@@ -30,6 +48,24 @@
       "writtenOn": "2015-10-29T09:11:34Z",
       "side": 1,
       "message": "This seems like an unrelated (yet fairly critical) change.  We should separate this into a different patch.",
+      "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_01a5a552",
+        "filename": "tests/mdts/services/vmguest.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-29T16:25:32Z",
+      "side": 1,
+      "message": "Agreed. Done.",
+      "parentUuid": "9ab29df4_c6874360",
       "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_4186bdba",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-29T16:25:32Z",
+      "side": 1,
+      "message": "No, mistakenly added. Removed.",
+      "parentUuid": "9ab29df4_e67c4775",
+      "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_06f93be9",
         "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
         "patchSetId": 6
@@ -64,6 +118,24 @@
       "writtenOn": "2015-10-29T09:11:34Z",
       "side": 1,
       "message": "If the result of this command is simply separated by \\n, wouldn\u0027t be easier if this method just called \u0027make_request_to\u0027 num_reqs times and save the results in a list?",
+      "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c1c1ede5",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-29T16:25:32Z",
+      "side": 1,
+      "message": "This change was made to reduce flakyness as each sender.execute() implies an API call to docker to actually execute the command and it may fail on an overloaded machine (like our CI). I can do it on another patch if necessary?",
+      "parentUuid": "9ab29df4_06f93be9",
       "revId": "619b3267800fc5dd4997e3b23304458f13e52c70",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
