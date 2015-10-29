@@ -2,6 +2,74 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ab29df4_010f6531",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-29T13:03:53Z",
+      "side": 1,
+      "message": "i think a concurrenthashmap would avoid the need for the synchronized block. better yet, if this was a trait or an object, there would be no need for concurrency control.",
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c1048d17",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-29T13:03:53Z",
+      "side": 1,
+      "message": "this doesn\u0027t do what you think. this is an expression executed eagerly.",
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e109912d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-29T13:03:53Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c12bad80",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-10-29T13:03:53Z",
+      "side": 1,
+      "message": "how about something like Try(op) recover retryOnContention foreach onRetry? \n\ndef retryOnContention: PartialFunction[Throwable, Try[_]]\n\nor just a plain try catch block :p",
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_6693d7fa",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
         "patchSetId": 3
