@@ -189,8 +189,14 @@ public class KeystoneService implements AuthService {
             throw new InvalidCredentialsException("No token was passed in.");
         }
 
-        KeystoneAccess access = client.getToken(token);
+        KeystoneAccess access;
 
+        try {
+            access = client.getToken(token);
+        } catch (Exception ex) {
+            log.debug("Authentication failed: "+ex.getMessage());
+            throw new InvalidCredentialsException("Invalid token");
+        }
         // Parse the JSON response
         return (access == null) ? null : getUserIdentity(access);
     }
@@ -213,9 +219,14 @@ public class KeystoneService implements AuthService {
         }
 
         // Construct the credentials
-        KeystoneAuthCredentials credentials = new KeystoneAuthCredentials(
+        KeystoneAuthCredentials credentials;
+        try {
+            credentials = new KeystoneAuthCredentials(
                 username, password, project);
-
+        } catch (Exception ex) {
+            log.debug("Failed to get credentials: "+ex.getMessage());
+            throw new InvalidCredentialsException("Invalid credentials for user: "+username);
+        }
         // POST to get the token
         KeystoneAccess access = client.createToken(credentials);
 
