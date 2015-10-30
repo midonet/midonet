@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_057a10f1",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-10-30T01:51:13Z",
+      "side": 1,
+      "message": "missing backslach\nhttps://review.gerrithub.io/#/c/250966/",
+      "revId": "fbbc83b621e14abe53c639a958bda9a3648f4948",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_257f14e2",
+        "filename": "tools/devmido/mido.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-10-30T01:51:13Z",
+      "side": 1,
+      "message": "is it intended to copy this as logback-test.xml,\nwhile for midolman you copy it as logback.xml?",
+      "revId": "fbbc83b621e14abe53c639a958bda9a3648f4948",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
