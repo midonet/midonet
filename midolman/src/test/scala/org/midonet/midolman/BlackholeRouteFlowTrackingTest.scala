@@ -23,7 +23,6 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, ErrorDrop}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec

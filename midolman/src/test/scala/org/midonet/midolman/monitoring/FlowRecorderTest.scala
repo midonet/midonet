@@ -33,7 +33,7 @@ import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{FlowMatch, Packet}
@@ -102,7 +102,7 @@ class FlowRecorderTest extends MidolmanSpec {
             val conf = MidolmanConfig.forTests(confStr)
 
             val factory = new FlowRecorderFactory(
-                conf, injector.getInstance(classOf[HostIdProviderService]))
+                conf, injector.getInstance(classOf[HostIdProvider]))
             val recorder = factory.newFlowRecorder()
 
             val data = new Array[Byte](4096)
@@ -151,7 +151,7 @@ class FlowRecorderTest extends MidolmanSpec {
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
             val factory = new FlowRecorderFactory(
-                conf, injector.getInstance(classOf[HostIdProviderService]))
+                conf, injector.getInstance(classOf[HostIdProvider]))
 
             val recorder = factory.newFlowRecorder()
 

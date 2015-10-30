@@ -25,7 +25,7 @@ import com.google.inject.Inject
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.{VxLanPort, PortGroup, Port}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -36,7 +36,7 @@ object PeerResolver {
 }
 
 class PeerResolver @Inject() (
-        hostIdProvider: HostIdProviderService,
+        hostIdProvider: HostIdProvider,
         backend: MidonetBackend,
         virtualTopology: VirtualTopology) {
     import PeerResolver._
@@ -44,7 +44,7 @@ class PeerResolver @Inject() (
     private var fpHerald: FloodingProxyHerald = _
 
     def start(): Unit = {
-        fpHerald = new FloodingProxyHerald(backend, Some(hostIdProvider.hostId()))
+        fpHerald = new FloodingProxyHerald(backend, Some(hostIdProvider.hostId))
         fpHerald.start()
     }
 
