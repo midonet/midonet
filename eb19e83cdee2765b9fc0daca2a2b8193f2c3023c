@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_a5232404",
+        "filename": "tests/mdts/services/midonet_agent.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-10-30T01:26:10Z",
+      "side": 1,
+      "message": "You don\u0027t need to run this command if result_ha is \u0027\u0027.  Since we want to pay attention to the speed of the tests, it might be worth optimizing it.\n\nMaybe that\u0027s easily achieved if you just split these two checks into separate methods, is_haproxy_running and hm_namespace_exists, and this method just does:\n\nreturn is_haproxy_running(pool_id) and hm_namespace_exists(pool_id)",
+      "revId": "eb19e83cdee2765b9fc0daca2a2b8193f2c3023c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
