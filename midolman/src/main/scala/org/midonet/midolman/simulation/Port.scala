@@ -332,7 +332,7 @@ class ServicePort(override val id: UUID,
 
     override def egressCommon(context: PacketContext, as: ActorSystem,
                               next: SimStep): SimulationResult = {
-        if (context.isRedirected()) {
+        if (context.isRedirectedOut()) {
             if (!realAdminStateUp || !isActive) {
                 /* If a service port is down, what happens to the packet depends
                  * on whether the redirect has a FAIL_OPEN flag or not.
