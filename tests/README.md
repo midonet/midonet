@@ -93,7 +93,7 @@ cp midonet-tools/build/packages/midonet-tools*deb tests/sandbox/override_v2/clus
 And start sandbox with a specific flavor, override and provisioning scripts:
 ```
 pushd tests
-sudo sandbox-manage -c sandbox.conf run default_v2 --name=mdts --override=sandbox/override_v2 --provision=sandbox/provisioning/bgp-l2gw-provisioning.sh
+sudo sandbox-manage -c sandbox.conf run default_v2 --name=mdts --override=sandbox/override_v2 --provision=sandbox/provisioning/all-provisioning.sh
 ```
 
 To completely remove all containers to restart sandbox:
