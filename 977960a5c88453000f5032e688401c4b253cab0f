@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_48dedd40",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T08:41:34Z",
+      "side": 1,
+      "message": "Could you please catch more specific exceptions here? It\u0027s either KeystoneServerException or KeystoneConnectionException. In particular if it\u0027s KeystoneConnectionException, it doesn\u0027t seem correct to re-throw InvalidCredentialsException.",
+      "revId": "977960a5c88453000f5032e688401c4b253cab0f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_68e3a107",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T08:41:34Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem to throw any exception.",
+      "revId": "977960a5c88453000f5032e688401c4b253cab0f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
