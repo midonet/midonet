@@ -9,9 +9,5 @@ dpkg -r midonet-tools
 dpkg -r python-midonetclient
 dpkg -i --force-confnew --force-confmiss $LATEST_CLIENT $LATEST_CLUSTER $LATEST_TOOLS
 
-# TODO: remove this once the midonet-cluster points to port 8080 by default
-# Update midonet-cli to point to cluster
-sed -i 's/api_url = .*$/api_url = http:\/\/localhost:8181\/midonet-api/' /root/.midonetrc
-
 # Run cluster
 exec /run-midonetcluster.sh
