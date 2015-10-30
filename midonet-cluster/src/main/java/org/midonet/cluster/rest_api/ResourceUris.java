@@ -67,16 +67,7 @@ public final class ResourceUris {
     public static final String WRITE_VERSION = "write_version";
 
     // TODO: remove these? they are templates, and belong in the resources IMO
-    public static final String ID_TOKEN = "{id}";
-    public static final String IP_ADDR = "{ipAddr}";
-    public static final String MAC_ADDR = "{macAddress}";
-    public static final String PORT_NAME = "{portName}";
-    public static final String VLAN_ID = "{vlanId}";
     public static final String TENANT_ID_PARAM = "tenant_id";
-
-    // DEPRECATED: the py client needs to remove these before we can
-    public static final String LICENSES = "licenses";
-    public static final String LICENSE_STATUS = "licenses/status";
 
     public static String macToUri(String mac) {
         return mac.replace(':', '-');

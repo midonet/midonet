@@ -27,7 +27,7 @@ public interface Serializer {
      * @return the serialized representation of obj
      * @throws SerializationException
      */
-    public <T> byte[] serialize(T obj) throws SerializationException;
+    <T> byte[] serialize(T obj) throws SerializationException;
 
     /**
      * Convert an array of bytes to an object of type T.
@@ -45,7 +45,7 @@ public interface Serializer {
      * @throws SerializationException
      *             IO error.
      */
-    public <T> T deserialize(byte[] data, Class<T> clazz)
+    <T> T deserialize(byte[] data, Class<T> clazz)
             throws SerializationException;
 
 }
