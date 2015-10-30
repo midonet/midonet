@@ -44,7 +44,7 @@ test -r $MIDO_ETC/midonet-cluster-env.sh && . /etc/midonet-cluster/midonet-clust
 
 set -x
 
-JAVA_OPTS="$JVM_OPTS -Dmidonet-cluster.log.dir=$MIDO_LOG_DIR -Dconfig.file=$MIDO_AKKA_CFG -Dlogback.configurationFile=$MIDO_CFG/logback.xml"
+JAVA_OPTS="$JVM_OPTS -Dmidonet-cluster.log.dir=$MIDO_LOG_DIR -Dconfig.file=$MIDO_AKKA_CFG -Dlogback.configurationFile=$MIDO_ETC/logback.xml"
 if [ "xyes" = "x$DEBUG" ] ; then
     JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$MIDO_DEBUG_PORT,server=y,suspend=y"
 fi
