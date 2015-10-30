@@ -213,19 +213,19 @@ trait RecordedContext extends Clearable {
 }
 
 trait RedirectContext extends Clearable {
-    var redirected = false
+    var redirectedOut = false
     var redirectFailOpen = false
 
-    def isRedirected(): Boolean = redirected
+    def isRedirectedOut(): Boolean = redirectedOut
     def isRedirectFailOpen(): Boolean = redirectFailOpen
 
-    def redirect(failOpen: Boolean): Unit = {
-        redirected = true
+    def redirectOut(failOpen: Boolean): Unit = {
+        redirectedOut = true
         redirectFailOpen = failOpen
     }
 
     def clearRedirect(): Unit = {
-        redirected = false
+        redirectedOut = false
         redirectFailOpen = false
     }
 

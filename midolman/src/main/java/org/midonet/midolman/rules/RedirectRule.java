@@ -51,9 +51,14 @@ public class RedirectRule extends L2TransformRule {
     @Override
     public boolean apply(PacketContext pktCtx) {
         super.apply(pktCtx);
-        pktCtx.jlog().debug("Redirecting flow {} port with ID {}.",
-                            (ingress ? "IN" : "OUT"), targetPort);
-        pktCtx.redirect(failOpen);
+        if (ingress) {
+            pktCtx.jlog().debug("Redirecting flow IN port with ID {}.",
+                                targetPort);
+        } else {
+            pktCtx.jlog().debug("Redirecting flow OUT port with ID {}.",
+                                targetPort);
+            pktCtx.redirectOut(failOpen);
+        }
         return true;
     }
 
