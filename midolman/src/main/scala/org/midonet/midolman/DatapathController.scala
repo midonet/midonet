@@ -43,7 +43,7 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.state.FlowStateStorageFactory
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
@@ -138,7 +138,7 @@ object DatapathController extends Referenceable {
  * The DP Controller is also responsible for managing overlay tunnels.
  */
 class DatapathController @Inject() (val driver: DatapathStateDriver,
-                                    hostService: HostIdProviderService,
+                                    hostIdProvider: HostIdProvider,
                                     interfaceScanner: InterfaceScanner,
                                     config: MidolmanConfig,
                                     upcallConnManager: UpcallDatapathConnectionManager,
@@ -184,7 +184,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     private def initialize(): Unit = {
         context become {
             case TunnelPortsCreated_ =>
-                subscribeToHost(hostService.hostId)
+                subscribeToHost(hostIdProvider.hostId)
                 log.info("Initialization complete")
                 context become receive
                 portWatcher = interfaceScanner.subscribe(
@@ -277,7 +277,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     def handleZoneChange(zone: UUID, t: TunnelType, config: TZHostConfig,
                          op: HostConfigOperation.Value) {
 
-        if (config.getId == hostService.hostId())
+        if (config.getId == hostIdProvider.hostId)
             return
 
         val peerUUID = config.getId

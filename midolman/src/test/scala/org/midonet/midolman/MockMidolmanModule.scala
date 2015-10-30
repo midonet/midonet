@@ -19,6 +19,8 @@ package org.midonet.midolman
 import java.util.{UUID, LinkedList}
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
+import org.midonet.conf.HostIdGenerator
+
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
@@ -52,6 +54,8 @@ class MockMidolmanModule(config: MidolmanConfig,
         extends MidolmanModule(config, new MetricRegistry) {
 
     val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]
+
+    override def hostId = UUID.randomUUID()
 
     override def simulationBackChannel(as: ActorSystem) = {
         bind(classOf[ShardedSimulationBackChannel]).toInstance(
@@ -99,15 +103,7 @@ class MockMidolmanModule(config: MidolmanConfig,
     protected override def flowTracingAppender()=
         new FlowTracingAppender(Future.failed(new Exception))
 
-    protected override def bindHostService(): Unit =
-        bind(classOf[HostIdProviderService])
-                .toInstance(new AbstractService with HostIdProviderService {
-            val hostId = UUID.randomUUID()
-            def getHostId: UUID = hostId
-
-            override def doStart(): Unit = notifyStarted()
-            override def doStop(): Unit = notifyStopped()
-        })
+    protected override def bindHostService(): Unit = { }
 
     protected override def flowStateStorageFactory() =
         new FlowStateStorageFactory() {

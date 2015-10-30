@@ -31,7 +31,7 @@ import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.DhcpConfigFromNsdb
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -107,7 +107,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     var dpState: DatapathState = _
 
     @Inject
-    var hostIdProviderService: HostIdProviderService = _
+    var hostIdProvider: HostIdProvider = _
 
     @Inject
     var flowRecorderFactory: FlowRecorderFactory = _
@@ -158,7 +158,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
 
         Props(new PacketWorkflow(
             config,
-            hostIdProviderService.hostId(),
+            hostIdProvider.hostId,
             dpState,
             cookieGen,
             clock,
