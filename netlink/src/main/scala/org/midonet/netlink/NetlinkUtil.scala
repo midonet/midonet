@@ -86,4 +86,21 @@ object NetlinkUtil {
                 }
             }
         }
+
+    def rpc[T](
+            buf: ByteBuffer,
+            writer: NetlinkWriter,
+            reader: NetlinkReader,
+            f: ByteBuffer => T,
+            headerSize: Int = NetlinkMessage.GENL_HEADER_SIZE): T =
+        try {
+            writer.write(buf)
+            buf.clear()
+            reader.read(buf)
+            buf.position(headerSize)
+            buf.limit(buf.getInt(NetlinkMessage.NLMSG_LEN_OFFSET))
+            f(buf)
+        } finally {
+            buf.clear()
+        }
 }
