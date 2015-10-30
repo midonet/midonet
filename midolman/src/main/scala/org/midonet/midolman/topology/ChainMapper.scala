@@ -226,13 +226,15 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology, metricRegistry: Metr
                 case _ =>
             }
 
-            // Unsubscribe from IPAddrGroups the rule may be referencing.
-            val condition = rule.currentRule.getCondition
-            if (condition.ipAddrGroupIdSrc ne null) {
-                unsubscribeFromIpAddrGroup(condition.ipAddrGroupIdSrc)
-            }
-            if (condition.ipAddrGroupIdDst ne null) {
-                unsubscribeFromIpAddrGroup(condition.ipAddrGroupIdDst)
+            if (rule.currentRule != null){
+                // Unsubscribe from IPAddrGroups the rule may be referencing.
+                val condition = rule.currentRule.getCondition
+                if (condition.ipAddrGroupIdSrc ne null) {
+                    unsubscribeFromIpAddrGroup(condition.ipAddrGroupIdSrc)
+                }
+                if (condition.ipAddrGroupIdDst ne null) {
+                    unsubscribeFromIpAddrGroup(condition.ipAddrGroupIdDst)
+                }
             }
 
             rules -= ruleId
