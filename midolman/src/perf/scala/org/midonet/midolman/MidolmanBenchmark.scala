@@ -16,6 +16,8 @@
 
 package org.midonet.midolman
 
+import java.util.UUID
+
 import org.midonet.midolman.config.MidolmanConfig
 
 import scala.collection.JavaConversions._
@@ -73,7 +75,7 @@ trait MidolmanBenchmark extends MockMidolmanActors
             new SerializationModule(),
             new MidonetBackendTestModule(conf),
             new MockZookeeperConnectionModule(),
-            new MockMidolmanModule(midolmanConf, actorsService),
+            new MockMidolmanModule(UUID.randomUUID(), midolmanConf, actorsService),
             new LegacyClusterModule(),
             new AbstractModule {
                 override def configure() {

@@ -17,8 +17,11 @@
 package org.midonet.midolman
 
 import java.nio.channels.spi.SelectorProvider
+import java.util.UUID
 import java.util.concurrent.{ThreadFactory, Executors, ExecutorService}
 import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
+
+import org.midonet.conf.HostIdGenerator
 
 import scala.concurrent.{Future, ExecutionContext}
 
@@ -58,6 +61,10 @@ class MidolmanModule(config: MidolmanConfig,
 
     override def configure(): Unit = {
         bind(classOf[MidolmanConfig]).toInstance(config)
+        val host = hostId()
+        bind(classOf[HostIdProvider]).toInstance(new HostIdProvider {
+            override def hostId(): UUID = host
+        })
 
         bind(classOf[NanoClock]).toInstance(NanoClock.DEFAULT)
         bind(classOf[UnixClock]).toInstance(UnixClock.DEFAULT)
@@ -132,6 +139,9 @@ class MidolmanModule(config: MidolmanConfig,
 
         bind(classOf[MidolmanService]).asEagerSingleton()
     }
+
+    protected def hostId() =
+        HostIdGenerator.getHostId
 
     protected def htbPolicy(counter: StatisticalCounter) = {
         val multiplier = 8
@@ -276,10 +286,8 @@ class MidolmanModule(config: MidolmanConfig,
             NetlinkUtil.DEFAULT_MAX_REQUEST_SIZE,
             NanoClock.DEFAULT)
 
-    protected def bindHostService(): Unit = {
+    protected def bindHostService(): Unit =
         bind(classOf[HostService]).asEagerSingleton()
-        bind(classOf[HostIdProviderService]).to(classOf[HostService])
-    }
 
     protected def datapathInterface(
             scanner: InterfaceScanner,

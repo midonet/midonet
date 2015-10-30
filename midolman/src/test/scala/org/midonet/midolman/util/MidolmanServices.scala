@@ -39,7 +39,7 @@ import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.DhcpConfig
 import org.midonet.midolman.util.mock.{MockDatapathChannel, MockFlowProcessor, MockUpcallDatapathConnectionManager}
 import org.midonet.netlink.{MockNetlinkChannel, NetlinkChannelFactory}
@@ -78,8 +78,8 @@ trait MidolmanServices {
         new PacketPipelineMetrics(metricsReg, 1)
     }
 
-    implicit def hostId: UUID =
-        injector.getInstance(classOf[HostIdProviderService]).hostId
+    implicit val hostId: UUID =
+        UUID.randomUUID()
 
     def mockDpConn()(implicit ec: ExecutionContext, as: ActorSystem) = {
         dpConn().asInstanceOf[MockOvsDatapathConnection]
