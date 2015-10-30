@@ -24,10 +24,10 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.state.PeerResolver;
 
 /**
@@ -54,7 +54,7 @@ public class MidolmanService extends AbstractService {
     MetricRegistry metrics;
 
     @Inject(optional = true)
-    HostIdProviderService hostService;
+    HostService hostService;
 
     @Inject
     PeerResolver resolver;

@@ -23,10 +23,8 @@ import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, 
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage.InMemoryStorage
-import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendTestModule
-import org.midonet.cluster.util.UUIDUtil
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.MockMidolmanModule
 import org.midonet.midolman.cluster._
@@ -80,10 +78,6 @@ trait MidolmanSpec extends FeatureSpecLike
             ensurePath(dir, "/midonet/bridges")
             val backend = injector.getInstance(classOf[MidonetBackend])
             backend.startAsync().awaitRunning()
-            backend.store.create(
-                Host.newBuilder()
-                    .setId(UUIDUtil.toProto(hostId))
-                    .build())
             injector.getInstance(classOf[MidolmanService])
                 .startAsync()
                 .awaitRunning()
@@ -138,6 +132,7 @@ trait MidolmanSpec extends FeatureSpecLike
             },
             new LegacyClusterModule(),
             new MockMidolmanModule(
+                hostId,
                 new MidolmanConfig(conf, ConfigFactory.empty()),
                 actorsService)
         ).asJava

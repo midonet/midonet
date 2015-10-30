@@ -24,7 +24,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
-import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.FlowStateStorageFactory
 import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper}
@@ -49,7 +49,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
                                           with MessageAccumulator),
         DatapathController -> (() => new DatapathController(
             new DatapathStateDriver(mockDpConn().futures.datapathsCreate("midonet").get()),
-            injector.getInstance(classOf[HostIdProviderService]),
+            injector.getInstance(classOf[HostIdProvider]),
             injector.getInstance(classOf[InterfaceScanner]),
             injector.getInstance(classOf[MidolmanConfig]),
             injector.getInstance(classOf[UpcallDatapathConnectionManager]),

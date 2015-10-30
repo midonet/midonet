@@ -18,8 +18,6 @@ package org.midonet.midolman.services;
 
 import java.util.UUID;
 
-import com.google.common.util.concurrent.Service;
-
-public interface HostIdProviderService extends Service {
+public interface HostIdProvider {
     UUID hostId();
 }
