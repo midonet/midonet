@@ -1,0 +1,158 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_4b6fb7c5",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T11:16:36Z",
+      "side": 1,
+      "message": "Can you please bring this below \"from mdts.lib.virtual_topology_manager\"?",
+      "revId": "bb312f3f0ccaf61b843e10b6b3035cf6ae3ebc07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_cb62e7d7",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T11:16:36Z",
+      "side": 1,
+      "message": "Please delete an extra blank line.",
+      "revId": "bb312f3f0ccaf61b843e10b6b3035cf6ae3ebc07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_cb34a7e0",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T11:16:36Z",
+      "side": 1,
+      "message": "FYI. This can be simply as follows:\n\n  return [container.getip_address() for container in containers]",
+      "range": {
+        "startLine": 69,
+        "startChar": 4,
+        "endLine": 72,
+        "endChar": 14
+      },
+      "revId": "bb312f3f0ccaf61b843e10b6b3035cf6ae3ebc07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_eb5fab0c",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T11:16:36Z",
+      "side": 1,
+      "message": "s/the bridge by pinigng/ping goes through/",
+      "range": {
+        "startLine": 92,
+        "startChar": 13,
+        "endLine": 92,
+        "endChar": 34
+      },
+      "revId": "bb312f3f0ccaf61b843e10b6b3035cf6ae3ebc07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0b75bf97",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T11:16:36Z",
+      "side": 1,
+      "message": "Should add a line below saying \"- checks that ping still goes through\"",
+      "revId": "bb312f3f0ccaf61b843e10b6b3035cf6ae3ebc07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0b9cdfbf",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T11:16:36Z",
+      "side": 1,
+      "message": "s/the bridge by pinigng/ping does not go through now/",
+      "revId": "bb312f3f0ccaf61b843e10b6b3035cf6ae3ebc07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_2ba1a3f8",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T11:16:36Z",
+      "side": 1,
+      "message": "\"ping goes through agaim\"",
+      "revId": "bb312f3f0ccaf61b843e10b6b3035cf6ae3ebc07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_ab3e93b6",
+        "filename": "tests/mdts/tests/functional_tests/test_zoom_connection_loss.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T11:16:36Z",
+      "side": 1,
+      "message": "I just wonder if we really need to round the floating point number here. Also, why do we actually want to multiply it with 1000? Why can\u0027t we use the original seconds since the epoch time? The multiplication doesn\u0027t seem to improve precision.",
+      "range": {
+        "startLine": 121,
+        "startChar": 15,
+        "endLine": 121,
+        "endChar": 20
+      },
+      "revId": "bb312f3f0ccaf61b843e10b6b3035cf6ae3ebc07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
