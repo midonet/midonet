@@ -384,17 +384,18 @@ class Interface(object):
     #     return self.execute_interactive(web_start_command)
 
     def ping4(self, target_iface, interval=0.5, count=1, sync=False,
-              size=56, should_succeed=True, do_arp=False):
+              size=56, should_succeed=True, do_arp=False, data=None):
         return self.ping_ipv4_addr(target_iface.get_ip(),
                                    interval,
                                    count,
                                    sync,
                                    size,
                                    should_succeed,
-                                   do_arp)
+                                   do_arp,
+                                   data)
 
     def ping_ipv4_addr(self, ipv4_addr, interval=0.5, count=1, sync=False,
-                       size=56, should_succeed=True, do_arp=False):
+                       size=56, should_succeed=True, do_arp=False, data=None):
         """Ping an IPv4 address."""
 
         if do_arp:
@@ -405,10 +406,14 @@ class Interface(object):
             self.send_arp_request(ipv4_addr)
             time.sleep(1)
 
-        ping_cmd = 'ping -i %s -c %s -s %s %s' % (
+        if data == None:
+            data = "ff"
+
+        ping_cmd = 'ping -i %s -c %s -s %s -p %s %s' % (
             interval,
             count,
             size,
+            data,
             ipv4_addr
         )
         return self.execute(ping_cmd, should_succeed=should_succeed, sync=sync)
