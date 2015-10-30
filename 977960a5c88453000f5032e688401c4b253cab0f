@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_08dea511",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-10-30T10:11:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_48dedd40",
+      "revId": "977960a5c88453000f5032e688401c4b253cab0f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_68e3a107",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-10-30T08:41:34Z",
       "side": 1,
       "message": "This doesn\u0027t seem to throw any exception.",
+      "revId": "977960a5c88453000f5032e688401c4b253cab0f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_a85bf952",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-10-30T10:11:41Z",
+      "side": 1,
+      "message": "yea, you are right. I  should have wrapped the real call to keystone api, which is below this, lol.",
+      "parentUuid": "9ab29df4_68e3a107",
       "revId": "977960a5c88453000f5032e688401c4b253cab0f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
