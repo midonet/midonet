@@ -1,3 +1,13 @@
+keystone:
+  extends:
+    file: $BASE/keystone.yml
+    service: keystone
+  image: sandbox/keystone:kilo
+  hostname: keystone
+  labels:
+    interface: mdts.services.keystone.KeystoneHost
+    type: keystone
+
 zookeeper1:
   extends:
     file: $BASE/zookeeper.yml
@@ -56,6 +66,7 @@ cluster1:
   - "zookeeper1:zk1"
   - "zookeeper2:zk2"
   - "zookeeper3:zk3"
+  - "keystone:keystone"
 
 cassandra1:
   extends:
