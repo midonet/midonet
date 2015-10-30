@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_a8093933",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T10:16:10Z",
+      "side": 1,
+      "message": "Should we squash the exception here? If we do, we should instead log \"warn\" here.",
+      "revId": "94b001084ec6abdf5c8c5cc8fd3446e2b8e20b66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0b005f00",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/auth/keystone/v2_0/KeystoneService.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-10-30T10:16:10Z",
+      "side": 1,
+      "message": "Can you please wrap the original exception? The same applies below.",
+      "range": {
+        "startLine": 200,
+        "startChar": 22,
+        "endLine": 200,
+        "endChar": 66
+      },
+      "revId": "94b001084ec6abdf5c8c5cc8fd3446e2b8e20b66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
