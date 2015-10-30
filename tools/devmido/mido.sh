@@ -298,7 +298,7 @@ if [[ "$USE_METADATA" = "True" ]]; then
         "$METADATA_SHARED_SECRET"
 fi
 
-cp $TOP_DIR/midonet-util/src/test/resources/logback-test.xml
+cp $TOP_DIR/midonet-util/src/test/resources/logback-test.xml \
    $TOP_DIR/midonet-cluster/build/resources/main
 
 run_process midonet-cluster "./gradlew :midonet-cluster:run"
