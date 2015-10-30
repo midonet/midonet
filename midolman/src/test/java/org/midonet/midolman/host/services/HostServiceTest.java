@@ -65,6 +65,7 @@ import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
+import org.midonet.midolman.services.HostIdProvider;
 import org.midonet.midolman.util.mock.MockInterfaceScanner;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.reactivex.RichObservable;
@@ -103,7 +104,13 @@ public class HostServiceTest {
                                    MidonetBackend backend,
                                    InterfaceScanner scanner,
                                    Reactor reactor) {
-            super(config, backendConfig, backend, scanner, reactor);
+            super(config, backendConfig, backend, scanner,
+                  new HostIdProvider() {
+                      @Override
+                      public UUID hostId() {
+                          return UUID.randomUUID();
+                      }
+                  }, reactor);
         }
 
         @Override

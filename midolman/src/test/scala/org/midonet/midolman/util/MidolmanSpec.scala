@@ -138,6 +138,7 @@ trait MidolmanSpec extends FeatureSpecLike
             },
             new LegacyClusterModule(),
             new MockMidolmanModule(
+                hostId,
                 new MidolmanConfig(conf, ConfigFactory.empty()),
                 actorsService)
         ).asJava

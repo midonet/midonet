@@ -19,6 +19,8 @@ package org.midonet.midolman
 import java.util.{UUID, LinkedList}
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
+import org.midonet.conf.HostIdGenerator
+
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
@@ -36,7 +38,7 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.FlowTracingAppender
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.services.{MidolmanActorsService, HostIdProviderService, SelectLoopService}
+import org.midonet.midolman.services.{MidolmanActorsService, HostIdProvider, SelectLoopService}
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockFlowProcessor, MockDatapathChannel, MockUpcallDatapathConnectionManager}
@@ -47,7 +49,8 @@ import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
 import org.midonet.util.functors.{Predicate, makePredicate}
 
-class MockMidolmanModule(config: MidolmanConfig,
+class MockMidolmanModule(override val hostId: UUID,
+                         config: MidolmanConfig,
                          actorService: MidolmanActorsService)
         extends MidolmanModule(config, new MetricRegistry) {
 
@@ -99,15 +102,7 @@ class MockMidolmanModule(config: MidolmanConfig,
     protected override def flowTracingAppender()=
         new FlowTracingAppender(Future.failed(new Exception))
 
-    protected override def bindHostService(): Unit =
-        bind(classOf[HostIdProviderService])
-                .toInstance(new AbstractService with HostIdProviderService {
-            val hostId = UUID.randomUUID()
-            def getHostId: UUID = hostId
-
-            override def doStart(): Unit = notifyStarted()
-            override def doStop(): Unit = notifyStopped()
-        })
+    protected override def bindHostService(): Unit = { }
 
     protected override def flowStateStorageFactory() =
         new FlowStateStorageFactory() {
