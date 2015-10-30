@@ -30,19 +30,21 @@ EXECUTOR = ThreadPoolExecutor(max_workers=NUM_WORKERS)
 
 class InterfaceExpects(BaseMatcher):
 
-    def __init__(self, expected, pcap_filter_string, timeout, listen_host_interface=False):
+    def __init__(self, expected, pcap_filter_string, timeout,
+                 listen_host_interface=False, count=1):
         self._expected = expected
         self._filter = pcap_filter_string
         self._timeout = timeout  # in sec
         self._listen_host_interface=listen_host_interface
         self._iface = None
+        self._count = count
 
     def _matches(self, iface):
         self._iface = iface
         result = iface.expect(self._filter,
                               self._timeout,
-                              listen_host_interface=self._listen_host_interface)\
-            .result()
+                              listen_host_interface=self._listen_host_interface,
+                              count=self._count).result()
         LOG.debug("[%s] " % iface +
                   "Result = " + str(result) +
                   " / Expected = " + str(self._expected))
@@ -63,18 +65,22 @@ class InterfaceExpects(BaseMatcher):
                             .append_text('receive a packet.')
 
 
-def receives(pcap_filter_string, timeout=5, listen_host_interface=False):
+def receives(pcap_filter_string, timeout=5,
+             listen_host_interface=False, count=1):
     return InterfaceExpects(True,
                             pcap_filter_string,
                             timeout,
-                            listen_host_interface)
+                            listen_host_interface,
+                            count)
 
 
-def should_NOT_receive(pcap_filter_string, timeout, listen_host_interface=False):
+def should_NOT_receive(pcap_filter_string, timeout,
+                       listen_host_interface=False, count=1):
     return InterfaceExpects(False,
                             pcap_filter_string,
                             timeout,
-                            listen_host_interface)
+                            listen_host_interface,
+                            count)
 
 
 def receives_icmp_unreachable_for_udp(udp_src_ip,
