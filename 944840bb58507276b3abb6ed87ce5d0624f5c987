@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_34f4a0f1",
+        "filename": "tests/mdts/services/interface.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-10-31T11:52:26Z",
+      "side": 1,
+      "message": "I assume there\u0027s no side effect on adding this padding data on every ping. I\u0027d do something like:\nping_cmd \u003d \u0027ping -i %s -c %s %s %s %s %s\u0027 % (\n    interval,\n    count,\n    size,\n    \u0027-p %s\u0027 % data if data is not None else \u0027\u0027,\n    ipv4_addr)\nso we don\u0027t pad if we don\u0027t instruct to.",
+      "revId": "944840bb58507276b3abb6ed87ce5d0624f5c987",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
