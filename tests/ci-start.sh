@@ -25,7 +25,7 @@ popd
 # Start sandbox
 pushd tests/
 sudo sandbox-manage -c sandbox.conf \
-                    run default_v2 \
+                    run default_v2_neutron+kilo \
                     --name=mdts \
                     --override=sandbox/override_v2 \
                     --provision=sandbox/provisioning/all-provisioning.sh
