@@ -5,10 +5,12 @@ MDTS provides the testing framework for [MidoNet](https://github.com/midonet/mid
 
 It will exercise MidoNet system using [Midonet Sandbox](https://github.com/midokura/midonet-sandbox)
 (docker containers management framework) to simulate multiple hosts, including
-multiple MidoNet Agents, multiple Zookeeper and Cassandra instances and Quagga
-servers. On top of this simulated physical topology, we can generate whatever
-virtual topology we need to test including ports, bridges, routers, chains,
-vlans, etc.
+Neutron, multiple MidoNet Agents, multiple Zookeeper and Cassandra instances 
+and Quagga servers. 
+On top of this simulated physical topology, we can generate whatever
+virtual topology we need to test using both the Neutron API models (networks,
+subnets, ports, security groups, etc.) or the internal Midonet API counterparts
+(bridges, routers, ports, chains, etc.)
 It will then run a suite of tests using python testing frameworks to inject
 traffic into the simulated network while simultaneously checking state and
 end-to-end transmission.
@@ -36,10 +38,10 @@ midonet/tests$ ./setup_test_server
 If manual installation is needed, please refer to this script for a
 comprehensive list of all the required packages.
 
-You also need the python-midonetclient installed on your host so MDTS can
-access the API server through the python API. However, as this package is part
-of the Midonet packages, you need to install it once you compile/generate
-the packages.
+You also need the python-neutronclient and the python-midonetclient installed 
+on your host so MDTS can access both API servers (Neutron or Midonet) through
+the python API. However, as this package is part of the Midonet packages, 
+you need to install it once you compile/generate the packages.
 
 Running Sandbox
 ---------------
@@ -75,8 +77,9 @@ pushd tests
 sudo sandbox-manage -c sandbox.conf build-all default_v2 && popd
 ```
 
-Wait until all images have been generated. The default_v2 is the default MDTS
-flavour for sandbox. For more information about how to use sandbox, components,
+Wait until all images have been generated. The default_v2 is a basic MDTS
+flavour for sandbox. Look into the sandbox/flavours directory for a list of the
+supported flavours. For more information about how to use sandbox, components,
 flavors and overrides, check its [source repo](https://github.com/midokura/midonet-sandbox)
 or execute `sandbox-manage --help`.
 
