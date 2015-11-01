@@ -38,7 +38,7 @@ else
 fi
 
 # Install dependencies for MDTS
-sudo apt-get install -qy python-pip python-setuptools
+sudo apt-get install -qy python-pip python-setuptools python-neutronclient
 sudo pip install -r mdts.dependencies
 
 # Update Docker to the latest version
