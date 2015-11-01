@@ -89,6 +89,7 @@ cobertura {
         '.*org.midonet.midolman.state.zkManagers.*',
         '.*org.midonet.midolman.io.*Test.*',
         '.*org.midonet.midolman.tools.*',
+        '.*org.midonet.midolman.serialization.*',
         '.*org.midonet.midolman.Midolman',
         '.*FlowController$Wildcard.*',
         '.*FlowController$Wildcard.*',

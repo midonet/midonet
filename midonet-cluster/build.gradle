@@ -95,7 +95,9 @@ cobertura {
             '.*org.midonet.client.*',
             '.*org.midonet.midolman.state.*',
             '.*org.midonet.midolman.state.zkManagers.*',
-            '.*org.midonet.cluster.LocalDataClientImpl.*'
+            '.*org.midonet.cluster.LocalDataClientImpl.*',
+            '.*org.midonet.cluster.services.heartbeat.*',
+            '.*org.midonet.cluster.services.topology.client.*'
     ]
 }
 
