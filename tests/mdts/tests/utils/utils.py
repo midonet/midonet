@@ -48,6 +48,13 @@ def get_midonet_api():
     return service.get_container_by_hostname('cluster1').get_midonet_api()
 
 
+def get_neutron_api():
+    """
+    :rtype: neutronclient.v2_0.client.Client
+    """
+    return service.get_container_by_hostname('neutron').get_neutron_api()
+
+
 #
 # ``failures'' introduces another decorator @failures which can be used to
 # inject various failures, combined with @bindings, in existing test cases.
@@ -199,13 +206,16 @@ def update_with_setup(func, setup, teardown):
     return func
 
 # list -> (() -> ()) -> () -> generator (() -> ())
-def bindings(*args):
+def bindings(*args, **kwargs):
 
     bindings_args = args
     # FRAME, FILE_NAME, LINE_NUM, FUNCTION_NAME, LINES, INDEX
     (frame, _, _, _, _, _) = inspect.getouterframes(inspect.currentframe())[1]
     test_mod = inspect.getmodule(frame)
-    BM = test_mod.BM
+    if 'binding_manager' in kwargs:
+        BM = kwargs['binding_manager']
+    else:
+        BM = test_mod.BM
 
     def test_method_wrapper(f):
         f.setup_executed = False
