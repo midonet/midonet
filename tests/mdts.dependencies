@@ -5,3 +5,5 @@ pyhamcrest
 docker-py
 virtualenv
 cassandra-driver
+fixtures
+python-neutronclient
