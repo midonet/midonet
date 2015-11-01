@@ -5,3 +5,4 @@ pyhamcrest
 docker-py
 virtualenv
 cassandra-driver
+fixtures
