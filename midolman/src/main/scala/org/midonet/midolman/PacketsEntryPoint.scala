@@ -174,6 +174,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             natLeaser,
             metrics,
             flowRecorderFactory.newFlowRecorder(),
+            vt,
             counter.addAndGet(index, _: Int)))
     }
 

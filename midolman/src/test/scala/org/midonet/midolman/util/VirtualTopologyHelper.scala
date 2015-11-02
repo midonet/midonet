@@ -314,6 +314,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             HappyGoLuckyLeaser,
             metrics,
             flowRecorder,
+            injector.getInstance(classOf[VirtualTopology]),
             _ => { }) {
 
             override def runWorkflow(pktCtx: PacketContext) = {

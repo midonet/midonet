@@ -17,6 +17,8 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import org.midonet.midolman.topology.VirtualTopology
+
 import scala.concurrent.{Future, Promise}
 
 import akka.actor.Props
@@ -445,6 +447,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    injector.getInstance(
                                        classOf[FlowRecorderFactory])
                                        .newFlowRecorder(),
+                                   injector.getInstance(classOf[VirtualTopology]),
                                    packetOut)
             with MessageAccumulator {
 

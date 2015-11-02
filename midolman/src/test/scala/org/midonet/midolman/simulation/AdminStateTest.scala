@@ -372,11 +372,12 @@ class AdminStateTest extends MidolmanSpec {
     class MockFlowTranslator extends Actor with ActorLogging with FlowTranslator {
 
         protected val datapathConnection: OvsDatapathConnection = null
-        protected implicit val system = context.system
 
         val cookieStr: String = ""
 
         override protected val hostId: UUID = AdminStateTest.this.hostId
+
+        override protected val vt = injector.getInstance(classOf[VirtualTopology])
 
         protected val dpState: DatapathState = new DatapathState {
             val host = rcu.ResolvedHost(hostId, true, Map.empty, Map.empty)

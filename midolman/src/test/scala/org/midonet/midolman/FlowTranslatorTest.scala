@@ -17,7 +17,9 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.simulation.Simulator.ToPortAction
+import org.slf4j.helpers.NOPLogger
 
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
@@ -34,7 +36,7 @@ import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.{VxLanPort, Bridge, PacketContext}
-import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper}
+import org.midonet.midolman.topology.{VirtualTopology, LocalPortActive, VirtualToPhysicalMapper}
 import org.midonet.midolman.simulation.BridgePort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
@@ -275,9 +277,7 @@ class FlowTranslatorTest extends MidolmanSpec {
     }
 
     sealed class TestFlowTranslator(val dpState: DatapathState) extends FlowTranslator {
-        implicit protected def system: ActorSystem = actorSystem
-        implicit override protected def executor = ExecutionContext.callingThread
-        val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
+        override protected val vt = injector.getInstance(classOf[VirtualTopology])
         override protected val hostId: UUID = FlowTranslatorTest.this.hostId
 
         override def translateActions(pktCtx: PacketContext): Unit =
