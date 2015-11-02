@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_d1ee11ec",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-11-02T19:07:29Z",
+      "side": 1,
+      "message": "looks like you\u0027re not setting this variable inside the loop.  Perhaps you meant to loop on \u0027timeout\u0027?",
+      "revId": "b91e050e41d57cfc52aa0926ecc6a5e620660660",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
