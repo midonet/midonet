@@ -255,7 +255,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                             Observable.empty[Set[InterfaceDescription]]
                         case _ =>
                             log.debug("Received NEWLINK notification with a " +
-                                "new link")
+                                          s"new link $link")
                             links += (link.ifi.index -> link)
                             interfaceDescriptions += (link.ifi.index ->
                                 linkToIntefaceDescription(link))
@@ -266,7 +266,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                     val link = Link.buildFrom(buf)
                     if (links.containsKey(link.ifi.index)) {
                         log.debug("Received DELLINK notification with the " +
-                            "existing link")
+                                      s"existing link $link")
                         links -= link.ifi.index
                         interfaceDescriptions -= link.ifi.index
                         Observable.just(filteredIfDescSet)
