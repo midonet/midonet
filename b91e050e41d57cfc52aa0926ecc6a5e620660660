@@ -16,6 +16,24 @@
       "revId": "b91e050e41d57cfc52aa0926ecc6a5e620660660",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_2421cd9f",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-02T21:53:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_d1ee11ec",
+      "revId": "b91e050e41d57cfc52aa0926ecc6a5e620660660",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
