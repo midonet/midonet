@@ -32,7 +32,7 @@ import org.slf4j.helpers.NOPLogger
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.monitoring.FlowRecorderFactory
+import org.midonet.midolman.monitoring.NullFlowRecorder
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -444,9 +444,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    Future.successful(new MockStateStorage()),
                                    HappyGoLuckyLeaser,
                                    metrics,
-                                   injector.getInstance(
-                                       classOf[FlowRecorderFactory])
-                                       .newFlowRecorder(),
+                                   NullFlowRecorder,
                                    injector.getInstance(classOf[VirtualTopology]),
                                    packetOut)
             with MessageAccumulator {

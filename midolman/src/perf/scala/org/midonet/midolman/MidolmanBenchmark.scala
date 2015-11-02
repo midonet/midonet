@@ -16,10 +16,6 @@
 
 package org.midonet.midolman
 
-import java.util.UUID
-
-import org.midonet.midolman.config.MidolmanConfig
-
 import scala.collection.JavaConversions._
 
 import com.google.inject.{AbstractModule, Guice, Injector}
@@ -32,6 +28,7 @@ import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.cluster.LegacyClusterModule
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.MidolmanService
 import org.midonet.midolman.util._
 import org.midonet.midolman.util.mock.MockMidolmanActors
@@ -44,7 +41,13 @@ trait MidolmanBenchmark extends MockMidolmanActors
 
     @JmhSetup
     def midolmanBenchmarkSetup(): Unit = {
-        injector = Guice.createInjector(getModules)
+        val conf = MidoTestConfigurator.forAgents(fillConfig())
+        injector = Guice.createInjector(getModules(conf))
+        injector = injector.createChildInjector(new MockMidolmanModule(
+                hostId,
+                injector,
+                new MidolmanConfig(conf, ConfigFactory.empty()),
+                actorsService))
         injector.getInstance(classOf[MidonetBackend])
                 .startAsync().awaitRunning()
         injector.getInstance(classOf[MidolmanService])
@@ -68,14 +71,11 @@ trait MidolmanBenchmark extends MockMidolmanActors
         ConfigFactory.parseString(defaults).withFallback(config)
     }
 
-    protected def getModules = {
-        val conf = MidoTestConfigurator.forAgents(fillConfig())
-        val midolmanConf = new MidolmanConfig(conf, ConfigFactory.empty())
+    protected def getModules(conf: Config) = {
         List(
             new SerializationModule(),
             new MidonetBackendTestModule(conf),
             new MockZookeeperConnectionModule(),
-            new MockMidolmanModule(UUID.randomUUID(), midolmanConf, actorsService),
             new LegacyClusterModule(),
             new AbstractModule {
                 override def configure() {

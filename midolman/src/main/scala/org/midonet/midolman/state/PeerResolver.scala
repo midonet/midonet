@@ -25,7 +25,6 @@ import com.google.inject.Inject
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.{VxLanPort, PortGroup, Port}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -36,7 +35,7 @@ object PeerResolver {
 }
 
 class PeerResolver @Inject() (
-        hostIdProvider: HostIdProvider,
+        hostId: UUID,
         backend: MidonetBackend,
         virtualTopology: VirtualTopology) {
     import PeerResolver._
@@ -44,7 +43,7 @@ class PeerResolver @Inject() (
     private var fpHerald: FloodingProxyHerald = _
 
     def start(): Unit = {
-        fpHerald = new FloodingProxyHerald(backend, Some(hostIdProvider.hostId))
+        fpHerald = new FloodingProxyHerald(backend, Some(hostId))
         fpHerald.start()
     }
 
@@ -90,7 +89,7 @@ class PeerResolver @Inject() (
             port: Port,
             hosts: Set[UUID],
             tags: Collection[FlowTag]): Unit = {
-        if ((port.hostId ne null) && port.hostId != hostIdProvider.hostId)
+        if ((port.hostId ne null) && port.hostId != hostId)
             hosts.add(port.hostId)
         if (port.isInstanceOf[VxLanPort])
             addFps(hosts)

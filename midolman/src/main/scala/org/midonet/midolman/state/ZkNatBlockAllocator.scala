@@ -23,7 +23,6 @@ import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 
 import scala.concurrent.{ExecutionContext, Promise, Future}
 
-import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.{CuratorEvent, BackgroundCallback}
@@ -76,7 +75,7 @@ object ZkNatBlockAllocator {
  *
  * Refer to the documentation for details on the algorithm.
  */
-class ZkNatBlockAllocator @Inject()(
+class ZkNatBlockAllocator(
         zk: CuratorFramework,
         clock: UnixClock) extends NatBlockAllocator {
     import ZkNatBlockAllocator._

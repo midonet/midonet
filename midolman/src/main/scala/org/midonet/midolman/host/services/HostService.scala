@@ -19,7 +19,7 @@ package org.midonet.midolman.host.services
 import java.net.{InetAddress, UnknownHostException}
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{CountDownLatch, TimeUnit, TimeoutException}
-import java.util.ConcurrentModificationException
+import java.util.{UUID, ConcurrentModificationException}
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
@@ -50,7 +50,6 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.SerializationException
-import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.state.StateAccessException
 import org.midonet.packets.MAC
 import org.midonet.util.eventloop.Reactor
@@ -88,19 +87,17 @@ object HostService {
  * [[HostService]] shuts down according to the behavior specified in the
  * `shutdown()` method.
  */
-class HostService @Inject()(config: MidolmanConfig,
-                            backendConfig: MidonetBackendConfig,
-                            backend: MidonetBackend,
-                            scanner: InterfaceScanner,
-                            hostIdProvider: HostIdProvider,
-                            @Named("directoryReactor") reactor: Reactor)
+class HostService (config: MidolmanConfig,
+                   backendConfig: MidonetBackendConfig,
+                   backend: MidonetBackend,
+                   scanner: InterfaceScanner,
+                   hostId: UUID,
+                   reactor: Reactor)
     extends AbstractService with MidolmanLogging {
     import HostService._
 
     private final val store = backend.store
     private final val stateStore = backend.stateStore
-
-    private final val hostId = hostIdProvider.hostId()
 
     private final val timeout = 5 seconds
     @volatile private var hostName: String = "UNKNOWN"

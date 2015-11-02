@@ -34,7 +34,7 @@ import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman._
 import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.monitoring.{FlowRecorder, FlowRecorderFactory}
+import org.midonet.midolman.monitoring.{NullFlowRecorder, FlowRecorder}
 import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain, DhcpConfigFromNsdb, PacketContext, Port => SimPort, Router => SimRouter, _}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -274,7 +274,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue] = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
                        natTable: FlowStateTable[NatKey, NatBinding] = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
                        traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard(),
-                       flowRecorder: FlowRecorder = injector.getInstance(classOf[FlowRecorderFactory]).newFlowRecorder())
+                       flowRecorder: FlowRecorder = NullFlowRecorder)
                       (implicit hostId: UUID) = {
         val dpState = new DatapathState {
             override val datapath = new Datapath(0, "midonet")
