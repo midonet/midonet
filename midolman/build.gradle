@@ -213,9 +213,13 @@ debian.dependsOn preparePkg
 if (project.rhelTarget == "7") {
     rpm.dependsOn rhel7Prepare
     rhel7Prepare.dependsOn preparePkg
-} else {
+} else if (project.rhelTarget == "6") {
     rpm.dependsOn rhel6Prepare
     rhel6Prepare.dependsOn preparePkg
+} else {
+    // SLES 12 uses systemd, like rhel7
+    rpm.dependsOn rhel7Prepare
+    rhel7Prepare.dependsOn preparePkg
 }
 
 debian.doFirst {
@@ -243,7 +247,6 @@ rpm.doFirst {
     project.packaging.fpmOpts.addAll([
         '-d', 'python',
         '-d', 'quagga >= 0.99.21',
-        '-d', 'iproute',
         '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
     if (project.rhelTarget == "7") {
         project.packaging.fpmOpts.addAll([
@@ -252,13 +255,23 @@ rpm.doFirst {
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
             '--depends', 'python-setproctitle',
+            '--depends', 'iproute',
             '--depends', 'java-1.7.0'])
-    } else {
+    } else if (project.rhelTarget == "6") {
         project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel6/control/preinst",
             '--before-remove', "${project.projectDir}/src/rhel6/control/prerm",
+            '--depends', 'iproute',
             '--depends', 'java7'])
+    } else {
+        project.packaging.fpmOpts.addAll([
+            '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
+            '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
+            '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
+            '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
+            '--depends', 'iproute2',
+            '--depends', 'java >= 1.7.0'])
     }
 }
 
