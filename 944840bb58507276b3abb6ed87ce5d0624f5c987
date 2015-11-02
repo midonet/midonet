@@ -16,6 +16,24 @@
       "revId": "944840bb58507276b3abb6ed87ce5d0624f5c987",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_9f790532",
+        "filename": "tests/mdts/services/interface.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-02T05:31:55Z",
+      "side": 1,
+      "message": "IMHO it\u0027s fine the packet is still tiny, they are allowed to have a payload.",
+      "parentUuid": "9ab29df4_34f4a0f1",
+      "revId": "944840bb58507276b3abb6ed87ce5d0624f5c987",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
