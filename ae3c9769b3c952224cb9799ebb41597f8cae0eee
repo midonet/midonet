@@ -88,6 +88,29 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_c51d7868",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-02T13:37:41Z",
+      "side": 1,
+      "message": "since this one is nice and decoupled, it\u0027s worth adding unit to the class with mocked storage covering the failure scenarios.",
+      "range": {
+        "startLine": 46,
+        "startChar": 6,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_817e15ad",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
         "patchSetId": 4
