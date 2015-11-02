@@ -20,11 +20,13 @@ project.ext {
     maintainer = "MidoNet user list <midonet-user@midonet.org>"
     url = "http://midonet.org"
 
-    if (rootProject.hasProperty('rhelTarget')) {
-        println("Only RHEL7 is supported: rhelTarget property will be ignored")
+    if (!rootProject.hasProperty('rhelTarget')) {
+        rhelTarget = "el7"
     }
 
-    rhelTarget = "7"
+    if (!(rhelTarget == "el7" || rhelTarget == "sles12")) {
+        println("Only RHEL7 and SLES12 are supported: rhelTarget property will be ignored")
+    }
 
     scalaLangLevel = 'Scala 2.11.7'
 
@@ -169,7 +171,7 @@ project.ext {
                                 replaceAll(/^.*(hf\d*)$/, "1.0.\$1").
                                 replaceAll(/^.*SNAPSHOT$/, "0.0.${timestamp}.${gitrev}").
                                 replaceAll(/^.*-(.*)$/, "0.1.\$1")
-    rpmRelease = "${rpmRelease}.el${project.rhelTarget}"
+    rpmRelease = "${rpmRelease}.${project.rhelTarget}"
 }
 
 buildscript {

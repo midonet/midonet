@@ -193,9 +193,17 @@ RHEL 7 packages:
 
     ~/midonet$ ./gradlew rpm -x test
 
+SLES 12 packages:
+
+    ~/midonet$ ./gradlew rpm -x test -PrhelTarget=sles12
+
 On ubuntu this requires the rpm tools which you can install with
 
     # apt-get install rpm
+
+### Build all & Run tests
+
+    ~/midonet$ ./gradlew test
 
 ## Running the Cluster Daemon locally
 
