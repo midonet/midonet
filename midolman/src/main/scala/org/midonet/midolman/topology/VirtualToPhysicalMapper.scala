@@ -26,7 +26,6 @@ import scala.util.control.NonFatal
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
-import com.google.inject.Inject
 
 import rx.Observable
 import rx.functions.Func1
@@ -36,7 +35,6 @@ import org.midonet.cluster.data.storage.{TransactionManager, NotFoundException, 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{TunnelZoneType, Host, TunnelZone}
 import org.midonet.packets.IPAddr
@@ -168,9 +166,9 @@ object VirtualToPhysicalMapper extends MidolmanLogging {
 
 }
 
-class VirtualToPhysicalMapper @Inject() (val backend: MidonetBackend,
-                                         val vt: VirtualTopology,
-                                         val hostIdProvider: HostIdProvider)
+class VirtualToPhysicalMapper(backend: MidonetBackend,
+                              vt: VirtualTopology,
+                              hostId: UUID)
     extends AbstractService with MidolmanLogging {
 
     import VirtualToPhysicalMapper._
@@ -221,8 +219,6 @@ class VirtualToPhysicalMapper @Inject() (val backend: MidonetBackend,
       * complete on the virtual topology thread.
       */
     private def setPortActive(portId: UUID, active: Boolean): Future[StateResult] = {
-        val hostId = hostIdProvider.hostId()
-
         backend.stateStore.setPortActive(portId, hostId, active)
                .observeOn(vt.vtScheduler)
                .doOnNext(makeAction1 { result =>

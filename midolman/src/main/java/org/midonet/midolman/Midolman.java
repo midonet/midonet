@@ -188,9 +188,11 @@ public class Midolman {
             new MidonetBackendModule(config.zookeeper(), metricRegistry),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
-            new LegacyClusterModule(),
-            new MidolmanModule(config, metricRegistry)
+            new LegacyClusterModule()
         );
+
+        injector = injector.createChildInjector(
+            new MidolmanModule(injector, config, metricRegistry));
 
         // start the services
         injector.getInstance(MidonetBackend.class)

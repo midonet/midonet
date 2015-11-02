@@ -69,7 +69,13 @@ trait MidolmanSpec extends FeatureSpecLike
 
     before {
         try {
-            injector = Guice.createInjector(getModules)
+            val conf = MidoTestConfigurator.forAgents(fillConfig())
+            injector = Guice.createInjector(getModules(conf))
+            injector = injector.createChildInjector(new MockMidolmanModule(
+                hostId,
+                injector,
+                new MidolmanConfig(conf, ConfigFactory.empty()),
+                actorsService))
 
             IPv4InvalidationArray.reset()
 
@@ -117,8 +123,7 @@ trait MidolmanSpec extends FeatureSpecLike
                        ConfigValueFactory.fromAnyRef(true))
     }
 
-    protected def getModules = {
-        val conf = MidoTestConfigurator.forAgents(fillConfig())
+    protected def getModules(conf: Config) =
         List (
             new SerializationModule(),
             new MidonetBackendTestModule(conf),
@@ -130,11 +135,6 @@ trait MidolmanSpec extends FeatureSpecLike
                         .asEagerSingleton()
                 }
             },
-            new LegacyClusterModule(),
-            new MockMidolmanModule(
-                hostId,
-                new MidolmanConfig(conf, ConfigFactory.empty()),
-                actorsService)
+            new LegacyClusterModule()
         ).asJava
-    }
 }
