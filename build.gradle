@@ -24,7 +24,9 @@ project.ext {
         println("Only RHEL7 is supported: rhelTarget property will be ignored")
     }
 
-    rhelTarget = "7"
+    if (rhelTarget == null && rhelTarget != "sles12") {
+        rhelTarget = "el7"
+    }
 
     scalaLangLevel = 'Scala 2.11.7'
 
@@ -169,7 +171,7 @@ project.ext {
                                 replaceAll(/^.*(hf\d*)$/, "1.0.\$1").
                                 replaceAll(/^.*SNAPSHOT$/, "0.0.${timestamp}.${gitrev}").
                                 replaceAll(/^.*-(.*)$/, "0.1.\$1")
-    rpmRelease = "${rpmRelease}.el${project.rhelTarget}"
+    rpmRelease = "${rpmRelease}.${project.rhelTarget}"
 }
 
 buildscript {
