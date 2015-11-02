@@ -25,7 +25,6 @@ import java.util.{ArrayList, List, UUID}
 import org.slf4j.LoggerFactory
 
 import com.google.common.net.HostAndPort
-import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.flowhistory._
@@ -33,7 +32,6 @@ import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimulationResult => MMSimRes}
 import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
 import org.midonet.midolman.rules.{RuleResult => MMRuleResult}
-import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
@@ -43,27 +41,25 @@ trait FlowRecorder {
     def record(pktContext: PacketContext, simRes: MMSimRes): Unit
 }
 
-class FlowRecorderFactory @Inject() (config : MidolmanConfig,
-                                     hostIdProvider: HostIdProvider) {
-    val log = Logger(LoggerFactory.getLogger(classOf[FlowRecorderFactory]))
+object FlowRecorder {
+    val log = Logger(LoggerFactory.getLogger(classOf[FlowRecorder]))
 
-    def newFlowRecorder(): FlowRecorder = {
-        val hostUuid = hostIdProvider.hostId()
+    def apply(config: MidolmanConfig, hostId: UUID): FlowRecorder = {
         log.info("Creating flow recorder with " +
                      s"(${config.flowHistory.encoding}) encoding")
         if (config.flowHistory.enabled) {
             config.flowHistory.encoding match {
                 case "json" => new JsonFlowRecorder(
-                    hostUuid, config.flowHistory)
-                case "binary" => new BinaryFlowRecorder(hostUuid,
+                    hostId, config.flowHistory)
+                case "binary" => new BinaryFlowRecorder(hostId,
                                                         config.flowHistory)
-                case "none" => new NullFlowRecorder
+                case "none" => NullFlowRecorder
                 case other =>
                     log.error(s"Invalid encoding ($other) specified")
-                    new NullFlowRecorder
+                    NullFlowRecorder
             }
         } else {
-            new NullFlowRecorder
+            NullFlowRecorder
         }
     }
 }
@@ -72,7 +68,7 @@ class FlowRecorderFactory @Inject() (config : MidolmanConfig,
   * Null implementation of flow recorder, for use when flow recording
   * is disabled.
   */
-class NullFlowRecorder extends FlowRecorder {
+object NullFlowRecorder extends FlowRecorder {
     override def record(pktContext: PacketContext, simRes: MMSimRes):
             Unit = {
         // do nothing

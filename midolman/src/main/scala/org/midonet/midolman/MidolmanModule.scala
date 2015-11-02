@@ -18,22 +18,25 @@ package org.midonet.midolman
 
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
-import java.util.concurrent.{ThreadFactory, Executors, ExecutorService}
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
-
-import org.midonet.conf.HostIdGenerator
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicLong
 
 import scala.concurrent.{Future, ExecutionContext}
 
 import akka.actor.{OneForOneStrategy, SupervisorStrategy, ActorSystem}
 import com.codahale.metrics.MetricRegistry
+import com.google.inject.{Key, Injector, AbstractModule}
 import com.google.inject.name.Names
-import com.google.inject.AbstractModule
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
+import org.apache.curator.framework.CuratorFramework
 import org.slf4j.{LoggerFactory, Logger}
 
 import org.midonet.cluster.backend.cassandra.CassandraClient
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.state.LegacyStorage
+import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath._
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
@@ -41,7 +44,7 @@ import org.midonet.midolman.host.scanner.{DefaultInterfaceScanner, InterfaceScan
 import org.midonet.midolman.host.services.HostService
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.{FlowTracingSchema, FlowTracingAppender}
-import org.midonet.midolman.monitoring.FlowRecorderFactory
+import org.midonet.midolman.monitoring._
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
@@ -51,11 +54,11 @@ import org.midonet.netlink.{NetlinkUtil, NetlinkProtocol, NetlinkChannelFactory}
 import org.midonet.odp.OvsNetlinkFamilies
 import org.midonet.Util
 import org.midonet.util.concurrent._
-import org.midonet.util.eventloop.{SimpleSelectLoop, SelectLoop}
-import org.midonet.util.functors.Predicate
+import org.midonet.util.eventloop.{Reactor, SimpleSelectLoop, SelectLoop}
 import org.midonet.util._
 
-class MidolmanModule(config: MidolmanConfig,
+class MidolmanModule(injector: Injector,
+                     config: MidolmanConfig,
                      metricRegistry: MetricRegistry) extends AbstractModule {
     private val log: Logger = LoggerFactory.getLogger(classOf[MidolmanModule])
 
@@ -116,7 +119,8 @@ class MidolmanModule(config: MidolmanConfig,
         val scanner = interfaceScanner(channelFactory)
         bind(classOf[InterfaceScanner]).toInstance(scanner)
 
-        bindHostService()
+        val hservice = hostService(host, scanner)
+        bind(classOf[HostService]).toInstance(hservice)
 
         bind(classOf[Plumber]).toInstance(plumber(dpState))
         bind(classOf[DatapathInterface]).toInstance(
@@ -129,13 +133,17 @@ class MidolmanModule(config: MidolmanConfig,
         bind(classOf[SimulationBackChannel]).toInstance(backChannel)
 
         bind(classOf[FlowTracingAppender]).toInstance(flowTracingAppender())
-        bind(classOf[FlowRecorderFactory]).asEagerSingleton()
+        bind(classOf[FlowRecorder]).toInstance(flowRecorder(host))
 
-        bind(classOf[PeerResolver]).asEagerSingleton()
-
-        bindNatAllocator()
+        val allocator = natAllocator()
+        bind(classOf[NatBlockAllocator]).toInstance(allocator)
         bindSelectLoopService()
-        bindVirtualTopology()
+
+        val vt = virtualTopology(backChannel)
+        bind(classOf[VirtualTopology]).toInstance(vt)
+
+        val resolver = peerResolver(host, vt)
+        bind(classOf[PeerResolver]).toInstance(resolver)
 
         bind(classOf[MidolmanService]).asEagerSingleton()
     }
@@ -286,6 +294,18 @@ class MidolmanModule(config: MidolmanConfig,
             NetlinkUtil.DEFAULT_MAX_REQUEST_SIZE,
             NanoClock.DEFAULT)
 
+    protected def hostService(
+            hostId: UUID,
+            interfaceScanner: InterfaceScanner): HostService =
+        new HostService(
+            config,
+            injector.getInstance(classOf[MidonetBackendConfig]),
+            injector.getInstance(classOf[MidonetBackend]),
+            interfaceScanner,
+            hostId,
+            injector.getInstance(Key.get(classOf[Reactor],
+                                         Names.named("directoryReactor"))))
+
     protected def bindHostService(): Unit =
         bind(classOf[HostService]).asEagerSingleton()
 
@@ -310,6 +330,9 @@ class MidolmanModule(config: MidolmanConfig,
         backchannel
     }
 
+    protected def flowRecorder(hostId: UUID): FlowRecorder =
+        FlowRecorder(config, hostId)
+
     protected def flowTracingAppender() = {
         val cass = new CassandraClient(
             config.zookeeper,
@@ -320,10 +343,10 @@ class MidolmanModule(config: MidolmanConfig,
         new FlowTracingAppender(cass.connect())
     }
 
-    protected def bindNatAllocator(): Unit =
-        bind(classOf[NatBlockAllocator])
-            .to(classOf[ZkNatBlockAllocator])
-            .asEagerSingleton()
+    protected def natAllocator(): NatBlockAllocator =
+        new ZkNatBlockAllocator(
+            injector.getInstance(classOf[CuratorFramework]),
+            UnixClock.DEFAULT)
 
     protected def bindSelectLoopService(): Unit = {
         bind(classOf[SelectLoop])
@@ -333,31 +356,22 @@ class MidolmanModule(config: MidolmanConfig,
         bind(classOf[SelectLoopService]).asEagerSingleton()
     }
 
-    protected def bindVirtualTopology() {
+    protected def peerResolver(hostId: UUID, vt: VirtualTopology): PeerResolver =
+        new PeerResolver(hostId, injector.getInstance(classOf[MidonetBackend]), vt)
+
+    protected def virtualTopology(simBackChannel: SimulationBackChannel) = {
         val vtThread: AtomicLong = new AtomicLong(-1)
-        bind(classOf[ExecutorService])
-            .annotatedWith(Names.named(VirtualTopology.VtExecutorName))
-            .toInstance(Executors.newSingleThreadExecutor(
-                new NamedThreadFactory("devices-service", isDaemon = true)))
-        bind(classOf[Predicate]).annotatedWith(
-            Names.named(VirtualTopology.VtExecutorCheckerName))
-            .toInstance(new Predicate() {
-                def check(): Boolean =
-                    vtThread.get < 0 || vtThread.get == Thread.currentThread.getId
-            })
-        val ioThreadIndex: AtomicInteger = new AtomicInteger(0)
-        bind(classOf[ExecutorService])
-            .annotatedWith(Names.named(VirtualTopology.IoExecutorName))
-            .toInstance(Executors.newCachedThreadPool(
-                new ThreadFactory() {
-                def newThread(r: Runnable): Thread = {
-                    val name = "devices-io-" + ioThreadIndex.getAndIncrement
-                    val t = new Thread(r, name)
-                    t.setDaemon(true)
-                    t
-                }
-            }))
-        bind(classOf[VirtualTopology]).asEagerSingleton()
+        new VirtualTopology(
+            injector.getInstance(classOf[MidonetBackend]),
+            config,
+            injector.getInstance(classOf[LegacyStorage]),
+            injector.getInstance(classOf[ZkConnectionAwareWatcher]),
+            simBackChannel,
+            metricRegistry,
+            Executors.newSingleThreadExecutor(
+                new NamedThreadFactory("devices-service", isDaemon = true)),
+            () => vtThread.get < 0 || vtThread.get == Thread.currentThread.getId,
+            Executors.newCachedThreadPool(new NamedThreadFactory("devices-io-", true)))
     }
 
     protected def crashStrategy(): SupervisorStrategy =

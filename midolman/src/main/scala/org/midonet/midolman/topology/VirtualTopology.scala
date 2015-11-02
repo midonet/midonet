@@ -25,8 +25,6 @@ import scala.util.control.NonFatal
 
 import com.codahale.metrics.{Gauge, MetricRegistry}
 import com.google.common.annotations.VisibleForTesting
-import com.google.inject.Inject
-import com.google.inject.name.Named
 import rx.Observable
 import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
@@ -42,7 +40,7 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.functors.{Predicate, makeFunc1, makeRunnable}
+import org.midonet.util.functors.{makeFunc1, makeRunnable}
 import org.midonet.util.reactivex._
 
 /**
@@ -52,10 +50,6 @@ import org.midonet.util.reactivex._
  * and the agent actor system.
  */
 object VirtualTopology extends MidolmanLogging {
-    final val VtExecutorName = "vtExecutor"
-    final val VtExecutorCheckerName = "vtExecutorChecker"
-    final val IoExecutorName = "ioExecutor"
-
     trait Device
 
     trait VirtualDevice extends Device {
@@ -169,18 +163,16 @@ object VirtualTopology extends MidolmanLogging {
  * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
  * +------------------------------------------------+
  */
-class VirtualTopology @Inject() (val backend: MidonetBackend,
-                                 val config: MidolmanConfig,
-                                 val state: LegacyStorage,
-                                 val connectionWatcher: ZkConnectionAwareWatcher,
-                                 val simBackChannel: SimulationBackChannel,
-                                 val metricRegistry: MetricRegistry,
-                                 @Named(VirtualTopology.VtExecutorName)
-                                 val vtExecutor: ExecutorService,
-                                 @Named(VirtualTopology.VtExecutorCheckerName)
-                                 vtExecutorCheck: Predicate,
-                                 @Named(VirtualTopology.IoExecutorName)
-                                 ioExecutor: ExecutorService)
+class VirtualTopology(
+        val backend: MidonetBackend,
+        val config: MidolmanConfig,
+        val state: LegacyStorage,
+        val connectionWatcher: ZkConnectionAwareWatcher,
+        val simBackChannel: SimulationBackChannel,
+        val metricRegistry: MetricRegistry,
+        val vtExecutor: ExecutorService,
+        vtExecutorCheck: () => Boolean,
+        ioExecutor: ExecutorService)
     extends MidolmanLogging {
 
     import VirtualTopology._
@@ -289,7 +281,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
     @throws[DeviceMapperException]
     @inline
     private[topology] def assertThread(): Unit = {
-        if (!vtExecutorCheck.check()) {
+        if (!vtExecutorCheck()) {
             val curThread = Thread.currentThread()
             throw new DeviceMapperException(
                 s"Call expected on vtExecutor thread but received on " +
