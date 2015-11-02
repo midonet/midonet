@@ -21,10 +21,8 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.{Router, Bridge}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.packets.{IPv4Addr, IPSubnet, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
@@ -69,12 +67,6 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
     def router: Router = spec.fetchDevice[Router](clusterRouter)
 
     def tagFor(port: UUID) = FlowTagger.tagForBridgePort(clusterBridge, port)
-
-    private def addAndMaterializeBridgePort(br: UUID): UUID = {
-        val port = spec.newBridgePort(br)
-        spec.setPortActive(port, spec.hostId, true)
-        port
-    }
 
     def buildTopology() {
         clusterBridge = spec.newBridge(s"bridge-$subnet")

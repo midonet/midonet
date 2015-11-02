@@ -29,16 +29,14 @@ import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.flowhistory._
-import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimulationResult => MMSimRes}
 import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
 import org.midonet.midolman.rules.{RuleResult => MMRuleResult}
-import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
-import org.midonet.packets.MAC
 import org.midonet.sdn.flows.FlowTagger._
 
 trait FlowRecorder {
@@ -46,7 +44,7 @@ trait FlowRecorder {
 }
 
 class FlowRecorderFactory @Inject() (config : MidolmanConfig,
-                                     hostIdProvider: HostIdProviderService) {
+                                     hostIdProvider: HostIdProvider) {
     val log = Logger(LoggerFactory.getLogger(classOf[FlowRecorderFactory]))
 
     def newFlowRecorder(): FlowRecorder = {
@@ -60,10 +58,9 @@ class FlowRecorderFactory @Inject() (config : MidolmanConfig,
                 case "binary" => new BinaryFlowRecorder(hostUuid,
                                                         config.flowHistory)
                 case "none" => new NullFlowRecorder
-                case other => {
-                    log.error(s"Invalid encoding (${other}) specified")
+                case other =>
+                    log.error(s"Invalid encoding ($other) specified")
                     new NullFlowRecorder
-                }
             }
         } else {
             new NullFlowRecorder
@@ -94,11 +91,10 @@ abstract class AbstractFlowRecorder(config: FlowHistoryConfig) extends FlowRecor
         new InetSocketAddress(InetAddress.getByName(hostAndPort.getHostText),
                               hostAndPort.getPort)
     } catch {
-        case t: Throwable => {
+        case t: Throwable =>
             log.warn(s"FlowHistory: Invalid udp endpoint ${config.udpEndpoint}",
                      t)
             null
-        }
     }
 
     val socket = DatagramChannel.open()

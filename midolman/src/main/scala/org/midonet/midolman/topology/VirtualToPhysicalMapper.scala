@@ -39,12 +39,11 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{Host, TunnelZone => NewTunnelZone}
 import org.midonet.util.concurrent._
 import org.midonet.util.reactivex._
-
 
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
@@ -281,7 +280,7 @@ trait DataClientLink {
     @Inject
     private val backend: MidonetBackend = null
     @Inject
-    private val hostIdProvider : HostIdProviderService = null
+    private val hostIdProvider : HostIdProvider = null
 
     private val activeLocalPorts = new ConcurrentHashMap[UUID, Boolean]
 
@@ -313,7 +312,7 @@ trait DataClientLink {
 
 trait DeviceManagement {
     @Inject
-    val hostId: HostIdProviderService = null
+    val hostId: HostIdProvider = null
 
 }
 

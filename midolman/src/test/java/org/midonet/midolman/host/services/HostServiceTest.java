@@ -65,6 +65,7 @@ import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
+import org.midonet.midolman.services.HostIdProvider;
 import org.midonet.midolman.util.mock.MockInterfaceScanner;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.reactivex.RichObservable;
@@ -94,16 +95,17 @@ public class HostServiceTest {
     int cnxnTimeoutMs = 2 * 1000;
     int sessionTimeoutMs = 10 * 1000;
 
+
     static class TestableHostService extends HostService {
         public int shutdownCalls = 0;
-
         @Inject
         public TestableHostService(MidolmanConfig config,
                                    MidonetBackendConfig backendConfig,
                                    MidonetBackend backend,
                                    InterfaceScanner scanner,
+                                   HostIdProvider provider,
                                    Reactor reactor) {
-            super(config, backendConfig, backend, scanner, reactor);
+            super(config, backendConfig, backend, scanner, provider, reactor);
         }
 
         @Override
@@ -138,6 +140,13 @@ public class HostServiceTest {
             bind(Reactor.class)
                 .toProvider(ZookeeperConnectionModule.ZookeeperReactorProvider.class)
                 .asEagerSingleton();
+            bind(HostIdProvider.class).toInstance(
+                new HostIdProvider() {
+                      @Override
+                      public UUID hostId() {
+                          return hostId;
+                      }
+                });
             bind(HostService.class)
                 .to(TestableHostService.class).asEagerSingleton();
         }
