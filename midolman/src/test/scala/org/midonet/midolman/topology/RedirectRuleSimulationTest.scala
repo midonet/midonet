@@ -17,6 +17,7 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -34,6 +35,7 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.{Chain, Bridge}
 import org.midonet.midolman.simulation.{Port,ServicePort}
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.FlowTagger
@@ -436,5 +438,64 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                             FlowTagger.tagForPort(svc1Port.getId), // still traversed
                             FlowTagger.tagForPort(svc2Port.getId)))
         }
+
+        scenario("Test redirect interaction with flooding") {
+            Given("A bridge with a mix of normal and service ports")
+            val bridge0: TopoBridge = createBridge(name = Some("bridge"),
+                                                   adminStateUp = true)
+            store.create(bridge0)
+
+            val id = new UUID(2,0xdeadbeef)
+            val srcPort = makePort(id,
+                                   "src_port", bridge0)
+            store.create(srcPort)
+            materializePort(srcPort.getId, hostId, "src_port_$i")
+
+            for (i <- 1.until(100)) {
+                var filter = createChain(name = Some(s"filter_$i"))
+                val port = makePort(new UUID(0,i), s"prot_if_$i",
+                                    bridge0, outfilter=Some(filter.getId))
+                val srvPort = makePort(new UUID(1,i), s"srv_if_$i", bridge0)
+                val rule = redirectRuleBuilder(
+                    chainId = Some(filter.getId),
+                    targetPortId = Some(srvPort.getId)).build()
+                val ins = addServiceToPort(srvPort.getId)
+                store.create(filter)
+                store.create(port)
+                store.create(srvPort)
+                store.create(ins)
+                store.create(rule)
+
+                materializePort(port.getId, hostId, "vm_if_$i")
+                materializePort(srvPort.getId, hostId, "vm_if_srv_$i")
+
+                fetchPorts(port.getId, srvPort.getId)
+            }
+
+            fetchPorts(srcPort.getId)
+            fetchDevice[Bridge](bridge0.getId)
+
+            When("A packet floods the bridge")
+            val frame = packet(mac1, mac2, None)
+            val packetContext = packetContextFor(frame, srcPort.getId)
+            val result = simulate(packetContext)
+
+            val portIds = packetContext.virtualFlowActions.asScala
+                .filter({ _ match {
+                             case ToPortAction(_) => true
+                             case _ => false
+                         }
+                        })
+                .map({ case ToPortAction(id) => id })
+
+            Then("No port should receive the packet more than once")
+            val portCounts = portIds.groupBy(identity).mapValues(_.size)
+            portCounts.count({ case (key,count) => count > 1 }) shouldBe 0
+
+            Then("Should only have hit service ports (and the srcPort) ")
+            // the protected ports all have a uuid with MSB as 0
+            portIds.count({ _.getMostSignificantBits == 0 }) shouldBe 0
+        }
+
     }
 }
