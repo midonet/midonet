@@ -220,6 +220,14 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                         stat.getVersion)
         }
 
+        /** Commits the operations from the current transaction to the storage
+          * backend. */
+        @throws[InternalObjectMapperException]
+        @throws[ConcurrentModificationException]
+        @throws[ReferenceConflictException]
+        @throws[ObjectExistsException]
+        @throws[StorageNodeExistsException]
+        @throws[StorageNodeNotFoundException]
         override def commit(): Unit = {
             val ops = flattenOps
             var txn =
@@ -253,7 +261,10 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                         "TxNodeExists should have been filtered by flattenOps.")
             }
 
-            try txn.commit() catch {
+            val startTime = System.nanoTime()
+            try {
+                txn.commit()
+            } catch {
                 case bve: BadVersionException =>
                     // NoNodeException is assumed to be due to concurrent delete
                     // operation because we already successfully fetched any
@@ -264,6 +275,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                     rethrowException(ops, e)
                 case rce: ReferenceConflictException => throw rce
                 case NonFatal(ex) => throw new InternalObjectMapperException(ex)
+            } finally {
+                metrics.addMultiLatency(System.nanoTime() - startTime)
             }
         }
 
@@ -568,10 +581,20 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 manager.deleteNode(path)
         }
 
-        val start = System.nanoTime()
-        try manager.commit() finally { manager.releaseLock() }
-        val end = System.nanoTime()
-        metrics.addMultiLatency(end-start)
+        try manager.commit() finally manager.releaseLock()
+    }
+
+    /**
+      * Creates a new storage transaction that allows multiple read and write
+      * operations to be executed atomically. The transaction guarantees that
+      * the value of an object is not modified until the transaction is
+      * completed or that the transaction will fail with a
+      * [[java.util.ConcurrentModificationException]].
+      */
+    @throws[ServiceUnavailableException]
+    override def transaction(): Transaction = {
+        assertBuilt()
+        new ZoomTransactionManager(version.longValue())
     }
 
     @throws[ServiceUnavailableException]
