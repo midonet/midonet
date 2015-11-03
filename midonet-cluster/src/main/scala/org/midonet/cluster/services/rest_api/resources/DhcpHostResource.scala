@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
@@ -29,6 +28,7 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpHost, DhcpSubnet}
 import org.midonet.cluster.rest_api.validation.MessageProperty.{NETWORK_SUBNET_NOT_FOUND, SUBNET_HAS_HOST, getMessage}
@@ -56,7 +56,11 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
             host
         }))
             .getOrThrow
-            .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
+            .getOrElse {
+                throw new NotFoundHttpException(
+                    getMessage(NETWORK_SUBNET_NOT_FOUND, bridgeId,
+                               subnetAddress))
+            }
     }
 
     @GET
@@ -68,8 +72,11 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
             hosts.foreach(_.setBaseUri(subnet.getUri))
             hosts.asJava
         }))
-            .getOrThrow
-            .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
+        .getOrThrow
+        .getOrElse {
+            throw new NotFoundHttpException(
+                getMessage(NETWORK_SUBNET_NOT_FOUND, bridgeId, subnetAddress))
+        }
     }
 
     @POST
