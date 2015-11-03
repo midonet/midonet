@@ -16,6 +16,24 @@
       "revId": "5b5917894fbe109001b4e39a4d1e492422e01fe3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_a2db0d1a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-03T13:26:18Z",
+      "side": 1,
+      "message": "The cache is actually taken from the BehaviorObservable of that node, we\u0027d have to reimplement the cache as an observer of the zk observable. But then a plain get() would not be in sync with results emitted by the corresponding observable.  We could have the cache as a plain map that observes on the node observable, but that wouldn\u0027t solve the later problem, you\u0027d still have to inject the dirty value into those observables. And this still doesn\u0027t consider that the notifications emitted by watchers may skip values (e.g., I save an A locally, emit the dirty value in observables, another node saves a B, Zk just notifies B.  Some components in the first JVM that do .get will be seeing A, others listening on the observable won\u0027t).\n\nAn additional point is that the node observable is shared by the Observable that exposes all children observables of a node, which complicates the whole thing a lot.\n\nThe current layering where caches only pay attention to ZK watchers allow us to keep things simpler,\n\n  ZK -\u003e Observable -\u003e Cache -\u003e Subscriber\n\nThat said, it might make sense to implement a cachedGet or similar that is implemented on top of the observables, and has writes modify the cache and later sync up with the value notified via the observables. But there isn\u0027t a real use case for this now, in practise, the use case that we care about the most is the observable stream of node/children, which already implements a cache (by using BehaviourObservable). Gets are rare, and mostly in one-off usages that don\u0027t really benefit so much from caching considering the added complexity.",
+      "parentUuid": "9ab29df4_027af987",
+      "revId": "5b5917894fbe109001b4e39a4d1e492422e01fe3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
