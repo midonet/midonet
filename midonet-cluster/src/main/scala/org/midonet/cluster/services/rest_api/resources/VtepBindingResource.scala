@@ -58,34 +58,31 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
     def get(@PathParam("portName") portName: String,
             @PathParam("vlanId") vlanId: JShort): VtepBinding = {
 
-        getResource(classOf[Vtep], vtepId) map { vtep =>
-            val binding = vtep.bindings.asScala
-                .find(binding =>
-                          binding.portName == portName &&
-                          binding.vlanId == vlanId)
-                .getOrElse(throw new NotFoundHttpException(
-                    getMessage(VTEP_BINDING_NOT_FOUND, vtep.managementIp,
-                               vlanId, portName)))
-            binding.setBaseUri(resContext.uriInfo.getBaseUri)
-            binding.vtepId = vtepId
-            binding
-        } getOrThrow
+        val vtep = getResource(classOf[Vtep], vtepId)
+        val binding = vtep.bindings.asScala
+            .find(binding =>
+                      binding.portName == portName &&
+                      binding.vlanId == vlanId)
+            .getOrElse(throw new NotFoundHttpException(
+                getMessage(VTEP_BINDING_NOT_FOUND, vtep.managementIp,
+                           vlanId, portName)))
+        binding.setBaseUri(resContext.uriInfo.getBaseUri)
+        binding.vtepId = vtepId
+        binding
     }
 
     @GET
     @Produces(Array(APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2,
                     APPLICATION_JSON))
-    override def list(@HeaderParam("Accept") accept: String)
-    : JList[VtepBinding] = {
-        getResource(classOf[Vtep], vtepId) map {
-            _.bindings.asScala
-                      .map(binding => {
-                          binding.setBaseUri(resContext.uriInfo.getBaseUri)
-                          binding.vtepId = vtepId
-                          binding
-                      })
-                      .asJava
-        } getOrThrow
+    override def list(@HeaderParam("Accept") accept: String): JList[VtepBinding] = {
+        val vtep = getResource(classOf[Vtep], vtepId)
+        vtep.bindings.asScala
+            .map(binding => {
+                binding.setBaseUri(resContext.uriInfo.getBaseUri)
+                binding.vtepId = vtepId
+                binding
+            })
+            .asJava
     }
 
     /* This class should be generalized into MidonetResource.getOrThrow, so that

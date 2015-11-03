@@ -80,18 +80,17 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
         }
 
         zkLock {
-            getResource(classOf[TunnelZone], tunnelZoneId).map(tunnelZone => {
-                if (tunnelZone.tzHosts.exists(_.hostId == tunnelZoneHost.hostId)) {
-                    Response.status(Status.CONFLICT).build()
-                } else {
-                    tunnelZoneHost.create(tunnelZone.id)
-                    tunnelZoneHost.setBaseUri(resContext.uriInfo.getBaseUri)
-                    tunnelZone.tzHosts.add(tunnelZoneHost)
-                    tunnelZone.hostIds.add(tunnelZoneHost.hostId)
-                    updateResource(tunnelZone,
-                                   Response.created(tunnelZoneHost.getUri).build())
-                }
-            }).getOrThrow
+            val tunnelZone = getResource(classOf[TunnelZone], tunnelZoneId)
+            if (tunnelZone.tzHosts.exists(_.hostId == tunnelZoneHost.hostId)) {
+                Response.status(Status.CONFLICT).build()
+            } else {
+                tunnelZoneHost.create(tunnelZone.id)
+                tunnelZoneHost.setBaseUri(resContext.uriInfo.getBaseUri)
+                tunnelZone.tzHosts.add(tunnelZoneHost)
+                tunnelZone.hostIds.add(tunnelZoneHost.hostId)
+                updateResource(tunnelZone,
+                               Response.created(tunnelZoneHost.getUri).build())
+            }
         }
     }
 
@@ -99,15 +98,15 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = zkLock {
         val hostId = UUID.fromString(id)
-        getResource(classOf[TunnelZone], tunnelZoneId).map(tunnelZone => {
-            tunnelZone.tzHosts.asScala.find(_.hostId == hostId)
-                .map(tunnelZoneHost => {
-                    tunnelZone.tzHosts.remove(tunnelZoneHost)
-                    tunnelZone.hostIds.remove(tunnelZoneHost.hostId)
-                    updateResource(tunnelZone, OkNoContentResponse)
-                })
-                .getOrElse(Response.status(Status.NOT_FOUND).build())
-        }).getOrThrow
+        val tunnelZone = getResource(classOf[TunnelZone], tunnelZoneId)
+        tunnelZone.tzHosts.asScala
+            .find(_.hostId == hostId)
+            .map(tunnelZoneHost => {
+                tunnelZone.tzHosts.remove(tunnelZoneHost)
+                tunnelZone.hostIds.remove(tunnelZoneHost.hostId)
+                updateResource(tunnelZone, OkNoContentResponse)
+            })
+            .getOrElse(Response.status(Status.NOT_FOUND).build())
     }
 
 }
