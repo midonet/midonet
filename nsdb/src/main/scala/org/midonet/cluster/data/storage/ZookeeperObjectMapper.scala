@@ -45,9 +45,11 @@ import org.apache.zookeeper.OpResult.ErrorResult
 import org.apache.zookeeper._
 import org.apache.zookeeper.data.Stat
 import org.slf4j.LoggerFactory
+import rx.Notification._
 import rx.functions.Func1
 import rx.{Notification, Observable}
 
+import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException}
@@ -194,31 +196,56 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             ZookeeperObjectMapper.this.isRegistered(clazz)
         }
 
-        override def getSnapshot(clazz: Class[_], id: ObjId): ObjSnapshot = {
-            val stat = new Stat()
+        override def getSnapshot(clazz: Class[_], id: ObjId)
+        : Observable[ObjSnapshot] = {
             val path = getPath(clazz, id)
-            val data = try {
-                curator.getData.storingStatIn(stat).forPath(path)
-            } catch {
-                case nne: NoNodeException =>
-                    metrics.count(nne)
-                    throw new NotFoundException(clazz, id)
-                case ex: Exception =>
-                    metrics.count(ex)
-                    throw new InternalObjectMapperException(ex)
-            }
 
-            if (stat.getMzxid > zxid) {
-                val prettyId = getIdString(clazz, id)
-                throw new ConcurrentModificationException(
-                    s"${clazz.getSimpleName} with ID $prettyId was modified " +
-                    "during the transaction.")
-            }
-
-            ObjSnapshot(deserialize(data, clazz).asInstanceOf[Obj],
-                        stat.getVersion)
+            asObservable {
+                curator.getData.inBackground(_).forPath(path)
+            } map[Notification[ObjSnapshot]] makeFunc1 { event =>
+                if (event.getResultCode == Code.OK.intValue()) {
+                    if (event.getStat.getMzxid > zxid) {
+                        createOnError(new ConcurrentModificationException(
+                            s"${clazz.getSimpleName} with ID $id was modified " +
+                            "during the transaction."))
+                    } else {
+                        createOnNext(
+                            ObjSnapshot(deserialize(event.getData, clazz).asInstanceOf[Obj],
+                                        event.getStat.getVersion))
+                    }
+                } else if (event.getResultCode == Code.NONODE.intValue()) {
+                    metrics.zkNoNodeTriggered()
+                    createOnError(new NotFoundException(clazz, id))
+                } else {
+                    createOnError(new InternalObjectMapperException(
+                        KeeperException.create(Code.get(event.getResultCode), path)))
+                }
+            } dematerialize()
         }
 
+        override def getIds(clazz: Class[_]): Observable[Seq[ObjId]] = {
+            val path = classPath(clazz)
+
+            asObservable {
+                curator.getChildren.inBackground(_).forPath(path)
+            } map[Notification[Seq[ObjId]]] makeFunc1 { event =>
+                if (event.getResultCode == Code.OK.intValue()) {
+                    createOnNext(event.getChildren.asScala)
+                } else {
+                    createOnError(new InternalObjectMapperException(
+                        KeeperException.create(Code.get(event.getResultCode), path)))
+                }
+            } dematerialize()
+        }
+
+        /** Commits the operations from the current transaction to the storage
+          * backend. */
+        @throws[InternalObjectMapperException]
+        @throws[ConcurrentModificationException]
+        @throws[ReferenceConflictException]
+        @throws[ObjectExistsException]
+        @throws[StorageNodeExistsException]
+        @throws[StorageNodeNotFoundException]
         override def commit(): Unit = {
             val ops = flattenOps
             var txn =
@@ -252,7 +279,10 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                         "TxNodeExists should have been filtered by flattenOps.")
             }
 
-            try txn.commit() catch {
+            val startTime = System.nanoTime()
+            try {
+                txn.commit()
+            } catch {
                 case bve: BadVersionException =>
                     // NoNodeException is assumed to be due to concurrent delete
                     // operation because we already successfully fetched any
@@ -263,6 +293,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                     rethrowException(ops, e)
                 case rce: ReferenceConflictException => throw rce
                 case NonFatal(ex) => throw new InternalObjectMapperException(ex)
+            } finally {
+                metrics.addMultiLatency(System.nanoTime() - startTime)
             }
         }
 
@@ -565,10 +597,20 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 manager.deleteNode(path)
         }
 
-        val start = System.nanoTime()
-        try manager.commit() finally { manager.releaseLock() }
-        val end = System.nanoTime()
-        metrics.addMultiLatency(end-start)
+        try manager.commit() finally manager.releaseLock()
+    }
+
+    /**
+      * Creates a new storage transaction that allows multiple read and write
+      * operations to be executed atomically. The transaction guarantees that
+      * the value of an object is not modified until the transaction is
+      * completed or that the transaction will fail with a
+      * [[java.util.ConcurrentModificationException]].
+      */
+    @throws[ServiceUnavailableException]
+    override def transaction(): Transaction = {
+        assertBuilt()
+        new ZoomTransactionManager(version.longValue())
     }
 
     @throws[ServiceUnavailableException]

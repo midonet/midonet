@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.ConcurrentModificationException
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -22,10 +24,13 @@ import scala.collection.mutable.ArrayBuffer
 import com.google.common.collect.Multimap
 import com.google.protobuf.Message
 
+import rx.Observable
+
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.TransactionManager.{BindingsMap, ClassesMap}
 import org.midonet.util.collection.PathMap
+import org.midonet.util.functors.makeFunc1
 
 object TransactionManager {
 
@@ -72,7 +77,8 @@ object TransactionManager {
  * @param classes The map of registered classes.
  * @param bindings The map of registered bindings.
  */
-abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
+abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
+    extends Transaction {
 
     import TransactionManager._
 
@@ -131,9 +137,9 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
 
     protected def isRegistered(clazz: Class[_]): Boolean
 
-    protected def getSnapshot(clazz: Class[_], id: ObjId): ObjSnapshot
+    protected def getSnapshot(clazz: Class[_], id: ObjId): Observable[ObjSnapshot]
 
-    protected def commit(): Unit
+    protected def getIds(clazz: Class[_]): Observable[Seq[ObjId]]
 
     /**
      * Gets the specified object from the internal cache. If not found,
@@ -141,9 +147,12 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
      *
      * @return None if the object has been marked for deletion.
      */
-    private def get(clazz: Class[_], id: ObjId): Option[ObjSnapshot] = {
+    @throws[NotFoundException]
+    @throws[InternalObjectMapperException]
+    @throws[ConcurrentModificationException]
+    private def cachedGet(clazz: Class[_], id: ObjId): Option[ObjSnapshot] = {
         objCache.getOrElseUpdate(getKey(clazz, id),
-                                 Some(getSnapshot(clazz, id)))
+                                 Some(getSnapshot(clazz, id).toBlocking.first()))
     }
 
     private def getObjectId(obj: Obj) = classes(obj.getClass).idOf(obj)
@@ -163,12 +172,12 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
      */
     private def addBackreference(bdg: FieldBinding,
                                  thisId: ObjId, thatId: ObjId) {
-        get(bdg.getReferencedClass, thatId).foreach { snapshot =>
+        cachedGet(bdg.getReferencedClass, thatId).foreach { snapshot =>
             val updatedThatObj =
                 bdg.addBackReference(snapshot.obj, thatId, thisId)
             updateCacheAndOp(bdg.getReferencedClass, thatId,
                              updatedThatObj.asInstanceOf[Obj])
-                                                         }
+        }
     }
 
     /**
@@ -180,14 +189,48 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
      */
     private def clearBackreference(bdg: FieldBinding, thisId: ObjId,
                                    thatId: ObjId) {
-        get(bdg.getReferencedClass, thatId).foreach { snapshot =>
+        cachedGet(bdg.getReferencedClass, thatId).foreach { snapshot =>
             val updatedThatObj = bdg.clearBackReference(snapshot.obj, thisId)
             updateCacheAndOp(bdg.getReferencedClass, thatId,
                              updatedThatObj.asInstanceOf[Obj])
-                                                         }
+        }
     }
 
-    def create(obj: Obj): Unit = {
+    /** Gets the specified object within the context of the current transaction.
+      * The object is either guaranteed to not be modified until the transaction
+      * is committed, or the transaction will fail with a
+      * [[ConcurrentModificationException]] */
+    @throws[NotFoundException]
+    @throws[InternalObjectMapperException]
+    @throws[ConcurrentModificationException]
+    override def get[T](clazz: Class[T], id: ObjId): T = {
+        cachedGet(clazz, id)
+            .getOrElse(throw new NotFoundException(clazz, id))
+            .obj.asInstanceOf[T]
+    }
+
+    /** Gets all objects of the specified class within the context of the
+      * current transaction. The objects are either guaranteed to not be
+      * modified until the transaction is committed, or the transaction will
+      * fail with a [[ConcurrentModificationException]]. */
+    @throws[InternalObjectMapperException]
+    @throws[ConcurrentModificationException]
+    def getAll[T](clazz: Class[T]): Seq[T] = {
+        getAll(clazz, getIds(clazz).toBlocking.first())
+    }
+
+    /** Gets the specified objects within the context of the current transaction.
+      * The objects are either guaranteed to not be modified until the
+      * transaction is committed, or the transaction will fail with a
+      * [[ConcurrentModificationException]]. */
+    @throws[NotFoundException]
+    @throws[InternalObjectMapperException]
+    @throws[ConcurrentModificationException]
+    def getAll[T](clazz: Class[T], ids: Seq[ObjId]): Seq[T] = {
+        for (id <- ids) yield get(clazz, id)
+    }
+
+    override def create(obj: Obj): Unit = {
         assert(isRegistered(obj.getClass))
         // Allow a creation of an object with an exclusive ownership type, whose
         // ownership may later be claimed by others with an Update operation.
@@ -218,13 +261,13 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
         }
     }
 
-    def update(obj: Obj, validator: UpdateValidator[Obj]): Unit = {
+    override def update(obj: Obj, validator: UpdateValidator[Obj]): Unit = {
 
         val clazz = obj.getClass
         assert(isRegistered(clazz), s"Class is not registered: " + clazz)
 
         val thisId = getObjectId(obj)
-        val snapshot = get(clazz, thisId).getOrElse(
+        val snapshot = cachedGet(clazz, thisId).getOrElse(
             throw new NotFoundException(clazz, thisId))
 
         // Invoke the validator/update callback if provided. If it returns
@@ -258,7 +301,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
      */
     private def updateCacheAndOp(clazz: Class[_], id: ObjId, obj: Obj)
     : Unit = {
-        val snapshot = get(clazz, id).getOrElse(
+        val snapshot = cachedGet(clazz, id).getOrElse(
             throw new NotFoundException(clazz, id))
         updateCacheAndOp(clazz, id, snapshot, obj)
     }
@@ -291,12 +334,12 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
      * the method silently returns if the specified object does not exist /
      * has already been deleted.
      */
-    def delete(clazz: Class[_], id: ObjId, ignoresNeo: Boolean): Unit = {
+    override def delete(clazz: Class[_], id: ObjId, ignoresNeo: Boolean): Unit = {
         assert(isRegistered(clazz))
         val key = getKey(clazz, id)
 
         val ObjSnapshot(thisObj, thisVersion) = try {
-            get(clazz, id) match {
+            cachedGet(clazz, id) match {
                 case Some(s) => s
                 case None if ignoresNeo => return
                 // The primary purpose of this is to throw up a red flag
@@ -391,7 +434,9 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
         list.toSeq
     }
 
-    def createNode(path: String, value: String): Unit = {
+    /** Creates a new data node as part of the current transaction. */
+    @throws[StorageNodeExistsException]
+    override def createNode(path: String, value: String): Unit = {
         nodeOps.get(path) match {
             case None =>
                 val cn = TxCreateNode(value)
@@ -427,7 +472,9 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
         }
     }
 
-    def updateNode(path: String, value: String): Unit = {
+    /** Updates a data node as part of the current transaction. */
+    @throws[StorageNodeNotFoundException]
+    override def updateNode(path: String, value: String): Unit = {
         nodeOps.get(path) match {
             case None | Some(TxUpdateNode(_) | TxNodeExists) =>
                 nodeOps(path) = TxUpdateNode(value)
@@ -438,7 +485,8 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
         }
     }
 
-    def deleteNode(path: String): Unit = {
+    /** Deletes a data node as part of the current transaction. */
+    override def deleteNode(path: String): Unit = {
         // First mark all known descendants for deletion.
         for ((p, op) <- nodeOps.getDescendants(path)) op match {
             case TxCreateNode(_) => nodeOps -= p
