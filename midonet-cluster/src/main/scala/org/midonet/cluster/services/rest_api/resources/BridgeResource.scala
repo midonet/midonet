@@ -24,7 +24,6 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.{MediaType, Response}
 
 import scala.collection.JavaConversions._
-import scala.concurrent.Future
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -259,46 +258,43 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         macPortsNoVlan(id, isV1 = false) ++ entriesWithVlan
     }
 
-    protected override def deleteFilter(id: String): Ops = {
+    protected override def deleteFilter(id: String): Seq[Multi] = {
         val b = store.get(classOf[Topology.Network], id).getOrThrow
         if (!b.getVxlanPortIdsList.isEmpty) {
             throw new ConflictHttpException("The bridge still has VTEP " +
                     "bindings, please remove them before deleting the bridge")
         }
-        NoOps
+        Seq.empty
     }
 
 
-    protected override def listFilter(bridges: Seq[Bridge])
-    : Future[Seq[Bridge]] = {
+    protected override def listFilter(bridges: Seq[Bridge]): Seq[Bridge] = {
         val tenantId = resContext.uriInfo
             .getQueryParameters.getFirst("tenant_id")
-        Future.successful(if (tenantId eq null) bridges
-                          else bridges filter { _.tenantId == tenantId })
+        if (tenantId eq null) bridges
+        else bridges filter { _.tenantId == tenantId }
     }
 
-    protected override def createFilter(bridge: Bridge)
-    : Ops = {
+    protected override def createFilter(bridge: Bridge): Seq[Multi] = {
         if (bridge.vxLanPortIds != null) {
-            return Future.failed(new BadRequestHttpException(
-                getMessage(VXLAN_PORT_ID_NOT_SETTABLE)))
+            throw new BadRequestHttpException(
+                getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
         }
         bridge.create()
 
         // Create replicated map nodes.
-        Future.successful(Seq(
-            CreateNode(pathBuilder.getBridgeIP4MacMapPath(bridge.id)),
+        Seq(CreateNode(pathBuilder.getBridgeIP4MacMapPath(bridge.id)),
             CreateNode(pathBuilder.getBridgeMacPortsPath(bridge.id)),
-            CreateNode(pathBuilder.getBridgeVlansPath(bridge.id))))
+            CreateNode(pathBuilder.getBridgeVlansPath(bridge.id)))
     }
 
-    protected override def updateFilter(to: Bridge, from: Bridge): Ops = {
+    protected override def updateFilter(to: Bridge, from: Bridge): Seq[Multi] = {
         if (to.vxLanPortIds != null && to.vxLanPortIds != from.vxLanPortIds) {
-            return Future.failed(new BadRequestHttpException(
-                getMessage(VXLAN_PORT_ID_NOT_SETTABLE)))
+            throw new BadRequestHttpException(
+                getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
         }
         to.update(from)
-        NoOps
+        Seq.empty
     }
 
     // All methods below can easily be extracted to a separate class behind an

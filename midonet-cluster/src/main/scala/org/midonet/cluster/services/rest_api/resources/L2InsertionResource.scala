@@ -21,15 +21,12 @@ import javax.ws.rs.Path
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 
-import scala.concurrent.Future
-
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, UpdateOp}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{L2Insertion, UriResource}
+import org.midonet.cluster.rest_api.models.L2Insertion
 import org.midonet.cluster.services.c3po.translators.L2InsertionTranslation._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
@@ -77,7 +74,7 @@ class L2InsertionResource @Inject()(resContext: ResourceContext)
         }
     }
 
-    protected override def listFilter(list: Seq[L2Insertion]): Future[Seq[L2Insertion]] = {
+    protected override def listFilter(list: Seq[L2Insertion]): Seq[L2Insertion] = {
         val filtered = list filter {
             val srvPort = uriInfo.getQueryParameters.getFirst("srv_port")
             val port = uriInfo.getQueryParameters.getFirst("port")
@@ -88,6 +85,6 @@ class L2InsertionResource @Inject()(resContext: ResourceContext)
             else
                 (_: L2Insertion) => true
         }
-        Future.successful(filtered)
+        filtered
     }
 }
