@@ -42,7 +42,6 @@ class Service(object):
             timeout -= wait_time
             time.sleep(wait_time)
 
-
     def _update_container_info(self):
         self.info = cli.inspect_container(self.container_id)
 
@@ -138,17 +137,19 @@ class Service(object):
     def start(self, wait=False):
         self.exec_command('service %s start' % self.get_service_name())
         if wait:
-            self.wait_for_status('up')
+            return self.wait_for_status('up')
 
     def stop(self, wait=False):
         self.exec_command('service %s stop' % self.get_service_name())
         if wait:
-            self.wait_for_status('down')
+            return self.wait_for_status('down')
 
-    def restart(self, wait=False):
+    def restart(self, wait=False, timeout=10):
         self.exec_command('service %s restart' % self.get_service_name())
+        # restart does not always sets status to stop so let's wait a bit
+        time.sleep(timeout)
         if wait:
-            self.wait_for_status('up')
+            return self.wait_for_status('up')
 
     def create_provided(self, **iface_kwargs):
         iface_kwargs['compute_host'] = self
@@ -169,7 +170,7 @@ class Service(object):
                  else: the result of the command
         """
         # Use raw representation to account for " and ' inside the cmd
-        #cmd = "sh -c \"%s\"" % cmd
+        # cmd = "sh -c \"%s\"" % cmd
 
         LOG.debug('[%s] executing command: %s',
                   self.get_name(),
@@ -183,7 +184,7 @@ class Service(object):
 
         result = cli.exec_start(exec_id, detach=detach, stream=stream)
         if stream:
-            #self._ensure_command_running(exec_id) # TODO
+            # self._ensure_command_running(exec_id) # TODO
             # Result is a data blocking stream, exec_id for future checks
             return result, exec_id
 
@@ -194,12 +195,15 @@ class Service(object):
         # return_code is the exit code
         return result
 
-    def ensure_command_running(self, exec_id, timeout=20):
+    def ensure_command_running(self, exec_id, timeout=20, raise_error=True):
         wait_time = 0.5
         while not cli.exec_inspect(exec_id)['Running']:
             if timeout == 0:
                 LOG.debug('Command %s did not start' % exec_id)
-                raise Exception('Command %s did not start' % exec_id)
+                if raise_error:
+                    raise Exception('Command %s did not start' % exec_id)
+                else:
+                    return False
             timeout -= wait_time
             time.sleep(wait_time)
         LOG.debug('Command started')
@@ -239,12 +243,14 @@ class Service(object):
         init_timeout = timeout
         while self.get_service_status() != status:
             if init_timeout == 0:
-                raise RuntimeError("Service %s: timeout waiting to be %s" % (
+                LOG.debug("Service %s: timeout waiting to be %s" % (
                     self.get_hostname(),
                     status))
+                return False
             init_timeout -= wait_time
             time.sleep(wait_time)
         LOG.debug("Service %s: status is now %s" % (self.get_name(), status))
+        return True
 
     # TODO: Make it generic so you can fail whatever component
     # (even packet failure in an interface)
