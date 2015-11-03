@@ -56,7 +56,7 @@ class VtepPortResource (vtepId: UUID, resContext: ResourceContext,
     }
 
     private def getPorts: Seq[VtepPort] = {
-        val vtep = getResource(classOf[Vtep], vtepId).getOrThrow
+        val vtep = getResource(classOf[Vtep], vtepId)
         val connection = connectionProvider.get(IPv4Addr(vtep.managementIp),
                                                 vtep.managementPort)
         val client = OvsdbVtepDataClient(connection)

@@ -21,7 +21,6 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -41,22 +40,19 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 class RuleResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Rule](resContext) {
 
-    protected override def getFilter(rule: Rule): Future[Rule] = {
-        getResource(classOf[Chain], rule.chainId) map { chain =>
-            rule.position = chain.ruleIds.indexOf(rule.id) + 1
-            rule
-        }
+    protected override def getFilter(rule: Rule): Rule = {
+        val chain = getResource(classOf[Chain], rule.chainId)
+        rule.position = chain.ruleIds.indexOf(rule.id) + 1
+        rule
     }
 
-    protected override def deleteFilter(ruleId: String): Ops = {
-        getResource(classOf[Rule], ruleId) flatMap { rule =>
-            getResource(classOf[Chain], rule.chainId) map { chain =>
-                if (chain.ruleIds.remove(rule.id)) {
-                    Seq(Update(chain))
-                } else {
-                    throw new NotFoundHttpException("Rule chain not found")
-                }
-            }
+    protected override def deleteFilter(ruleId: String): Seq[Multi] = {
+        val rule = getResource(classOf[Rule], ruleId)
+        val chain = getResource(classOf[Chain], rule.chainId)
+        if (chain.ruleIds.remove(rule.id)) {
+            Seq(Update(chain))
+        } else {
+            throw new NotFoundHttpException("Rule chain not found")
         }
     }
 
@@ -70,41 +66,38 @@ class RuleResource @Inject()(resContext: ResourceContext)
 class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
     extends MidonetResource[Rule](resContext) {
 
-    protected override def listIds: Ids = {
-        getResource(classOf[Chain], chainId) map { _.ruleIds.asScala }
+    protected override def listIds: Seq[Any] = {
+        getResource(classOf[Chain], chainId).ruleIds.asScala
     }
 
-    protected override def listFilter(rules: Seq[Rule]): Future[Seq[Rule]] = {
+    protected override def listFilter(rules: Seq[Rule]): Seq[Rule] = {
         for (index <- rules.indices) rules(index).position = index + 1
-        Future.successful(rules)
+        rules
     }
 
-    protected override def createFilter(rule: Rule): Ops = {
+    protected override def createFilter(rule: Rule): Seq[Multi] = {
         rule.create(chainId)
 
-        getResource(classOf[Chain], chainId) flatMap { chain =>
-            rule.setBaseUri(resContext.uriInfo.getBaseUri)
-            if (rule.position <= 0 || rule.position > chain.ruleIds.size() + 1) {
-                throw new BadRequestHttpException("Position exceeds number " +
-                                                  "of rules in chain")
-            }
-            chain.ruleIds.add(rule.position - 1, rule.id)
-
-            updateJumpChain(rule)(Seq(Update(chain)))
+        val chain = getResource(classOf[Chain], chainId)
+        rule.setBaseUri(resContext.uriInfo.getBaseUri)
+        if (rule.position <= 0 || rule.position > chain.ruleIds.size() + 1) {
+            throw new BadRequestHttpException("Position exceeds number " +
+                                              "of rules in chain")
         }
+        chain.ruleIds.add(rule.position - 1, rule.id)
+
+        updateJumpChain(rule)(Seq(Update(chain)))
     }
 
-    private def updateJumpChain(rule: Rule)(ops: Seq[Multi]): Ops = {
+    private def updateJumpChain(rule: Rule)(ops: Seq[Multi]): Seq[Multi] = {
         rule match {
             case jumpRule: JumpRule if jumpRule.jumpChainId ne null=>
-                getResource(classOf[Chain], jumpRule.jumpChainId) map { chain =>
-                    chain.jumpRuleIds.add(rule.id)
-                    ops :+ Update(chain)
-                }
+                val chain = getResource(classOf[Chain], jumpRule.jumpChainId)
+                chain.jumpRuleIds.add(rule.id)
+                ops :+ Update(chain)
             case jumpRule: JumpRule =>
-                Future.failed(new BadRequestHttpException("Jump rule missing " +
-                                                          "chain identifier"))
-            case _ => Future.successful(ops)
+                throw new BadRequestHttpException("Jump rule missing chain identifier")
+            case _ => ops
         }
     }
 
