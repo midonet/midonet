@@ -48,12 +48,10 @@ import org.slf4j.LoggerFactory
 import rx.functions.Func1
 import rx.{Notification, Observable}
 
-import org.midonet.cluster.data.storage.CuratorUtil.asObservable
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException}
 import org.midonet.util.functors.makeFunc1
-import org.midonet.util.reactivex._
 
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
@@ -434,19 +432,19 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         }
     }
 
-    /** Takes a Curator event and turns it into the adequate Notification,
-     *  updating any appropriate metrics.
-     */
-    private def digestCuratorEvent[T](clazz: Class[T], id: ObjId) = {
-        makeFunc1[CuratorEvent, Notification[T]] { e =>
-            if (e.getResultCode == Code.OK.intValue()) {
-                Notification.createOnNext(deserialize(e.getData, clazz))
-            } else {
-                if (e.getResultCode == Code.NONODE.intValue()) {
-                    metrics.zkNoNodeTriggered()
-                }
-                Notification.createOnError(new NotFoundException(clazz, id))
+    /** Produce the instance of [[T]] deserialized from the event.
+      *
+      * Metrics-aware.
+      */
+    private def tryDeserialize[T](clazz: Class[T], id: ObjId,
+                                  event: CuratorEvent): T = {
+        if (event.getResultCode == Code.OK.intValue()) {
+            deserialize(event.getData, clazz)
+        } else {
+            if (event.getResultCode == Code.NONODE.intValue()) {
+                metrics.zkNoNodeTriggered()
             }
+            throw new NotFoundException(clazz, id)
         }
     }
 
@@ -454,24 +452,22 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
-
-        val key = Key(clazz, getIdString(clazz, id))
         val path = objectPath(clazz, id)
-
-        nodeObservables.get(key) match {
-            case Some(obs) if !obs.isClosed =>
-                obs.map[Notification[T]](deserializerOf(clazz))
-                   .dematerialize().asInstanceOf[Observable[T]]
-                   .onErrorResumeNext(recoverNodeObservable[T](key, obs))
-                   .asFuture
-            case Some(obs) if obs.isClosed =>
-                nodeObservables.remove(key, obs)
-                get(clazz, id)
-            case None =>
-                asObservable { curator.getData.inBackground(_).forPath(path) }
-                .map[Notification[T]](digestCuratorEvent[T](clazz, id))
-                .dematerialize() asFuture
+        val p = Promise[T]()
+        val start = System.nanoTime()
+        val cb = new BackgroundCallback {
+            override def processResult(client: CuratorFramework,
+                                       event: CuratorEvent): Unit = {
+                metrics.addLatency(event.getType, System.nanoTime() - start)
+                try {
+                    p.trySuccess(tryDeserialize(clazz, id, event))
+                } catch {
+                    case NonFatal(t) => p.tryFailure(t)
+                }
+            }
         }
+        curator.getData.inBackground(cb).forPath(path)
+        p.future
     }
 
     @throws[ServiceUnavailableException]

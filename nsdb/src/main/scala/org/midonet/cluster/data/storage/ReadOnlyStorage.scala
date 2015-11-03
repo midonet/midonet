@@ -26,8 +26,8 @@ import org.midonet.cluster.data.ObjId
 trait ReadOnlyStorage {
     /**
      * Asynchronous method that gets the specified instance of the specified
-     * class from storage. If the value is available in the internal cache,
-     * the returned future is completed synchronously.
+     * class from storage.  This method *always* goes to the backend storage
+     * in order to fetch the latest version of the entity.
      */
     def get[T](clazz: Class[T], id: ObjId): Future[T]
 
@@ -35,14 +35,17 @@ trait ReadOnlyStorage {
      * Asynchronously gets the specified instances of the specified class from
      * storage. The future completes when all instances have been successfully
      * retrieved, or fails if any of the requested instances cannot be
-     * retrieved.
+     * retrieved.  Each element will be fetched from the backend storage in
+     * order to retrieve the latest version.
      */
     def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId]): Future[Seq[T]]
 
     /**
      * Asynchronously gets all instances of the specified class. The future
      * completes when all instances have been successfully retrieved, or fails
-     * if any of the requested instances cannot be retrieved.
+     * if any of the requested instances cannot be retrieved. Each element
+     * will be fetched from the backend storage in order to retrieve the
+     * latest version.
      */
     def getAll[T](clazz: Class[T]): Future[Seq[T]]
 
