@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_9d774802",
+        "filename": "tests/mdts/services/keystone.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-03T15:58:44Z",
+      "side": 1,
+      "message": "trailing chars",
+      "revId": "58a7a8cc59695e0755d234b98f8622f66057ac26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
