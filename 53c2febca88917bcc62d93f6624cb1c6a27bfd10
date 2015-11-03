@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_dd2620ba",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-03T14:07:06Z",
+      "side": 1,
+      "message": "Would we want to put this in a nested object?",
+      "range": {
+        "startLine": 316,
+        "startChar": 4,
+        "endLine": 319,
+        "endChar": 37
+      },
+      "revId": "53c2febca88917bcc62d93f6624cb1c6a27bfd10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
