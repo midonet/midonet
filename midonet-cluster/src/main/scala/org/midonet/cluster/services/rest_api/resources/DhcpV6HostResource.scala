@@ -23,7 +23,6 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -47,26 +46,22 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
     override def get(@PathParam("client_id") clientId: String,
                      @HeaderParam("Accept") accept: String): DhcpV6Host = {
         val reqClientId = DhcpV6Host.clientIdFromUri(clientId)
-        getSubnet(subnetAddress).map(_.flatMap(subnet => {
+        getSubnet(subnetAddress).flatMap(subnet => {
             val host = subnet.dhcpHosts.asScala.find (_.clientId == reqClientId)
             host.foreach(_.setBaseUri(subnet.getUri))
             host
-        }))
-            .getOrThrow
-            .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
+        }).getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
     }
 
     @GET
     @Produces(Array(APPLICATION_DHCPV6_HOST_COLLECTION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[DhcpV6Host] = {
-        getSubnet(subnetAddress).map(_.map(subnet => {
+        getSubnet(subnetAddress).map(subnet => {
             val hosts = subnet.dhcpHosts.asScala
             hosts.foreach(_.setBaseUri(subnet.getUri))
             hosts.asJava
-        }))
-            .getOrThrow
-            .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
+        }).getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
     }
 
     private def subnetNotFoundResp: Response =
@@ -80,7 +75,7 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
     override def create(host: DhcpV6Host,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        getSubnet(subnetAddress).map(_.map(subnet => {
+        getSubnet(subnetAddress).map(subnet => {
             if (subnet.dhcpHosts.asScala.exists(_.clientId == host.clientId)) {
                 val msg = getMessage(SUBNET_HAS_HOST, subnetAddress,
                                      bridgeId, host.fixedAddress)
@@ -90,9 +85,7 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
                 subnet.dhcpHosts.add(host)
                 updateResource(subnet, Response.created(host.getUri).build())
             }
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp)
+        }).getOrElse(subnetNotFoundResp)
     }
 
     @PUT
@@ -104,7 +97,7 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
         val reqClientId = DhcpV6Host.clientIdFromUri(clientId)
-        getSubnet(subnetAddress).map(_.flatMap(subnet => {
+        getSubnet(subnetAddress).flatMap(subnet => {
             subnet.dhcpHosts.asScala.find( _.clientId == reqClientId )
                 .map(h => {
                     val index = subnet.dhcpHosts.indexOf(h)
@@ -113,33 +106,27 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
                     subnet.dhcpHosts.add(index, host)
                     updateResource(subnet)
                 })
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp)
+        }).getOrElse(subnetNotFoundResp)
     }
 
     @DELETE
     @Path("/{client_id}")
     override def delete(@PathParam("client_id") clientId: String): Response = {
         val reqClientId = DhcpV6Host.clientIdFromUri(clientId)
-        getSubnet(subnetAddress).map(_.flatMap(subnet => {
+        getSubnet(subnetAddress).flatMap(subnet => {
             subnet.dhcpHosts.asScala.find( _.clientId == reqClientId)
                                     .map(h => {
                                         subnet.dhcpHosts.remove(h)
                                         updateResource(subnet)
                                     })
 
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp)
+        }).getOrElse(subnetNotFoundResp)
     }
 
-    private def getSubnet(subnetAddress: IPv6Subnet)
-    : Future[Option[DhcpSubnet6]] = {
-        getResource(classOf[Bridge], bridgeId)
-            .flatMap(bridge => listResources(classOf[DhcpSubnet6],
-                                             bridge.dhcpv6Ids.asScala))
-            .map(_.find(_.subnetAddress == subnetAddress))
+    private def getSubnet(subnetAddress: IPv6Subnet): Option[DhcpSubnet6] = {
+        val bridge = getResource(classOf[Bridge], bridgeId)
+        listResources(classOf[DhcpSubnet6], bridge.dhcpv6Ids.asScala)
+            .find(_.subnetAddress == subnetAddress)
     }
 
 }

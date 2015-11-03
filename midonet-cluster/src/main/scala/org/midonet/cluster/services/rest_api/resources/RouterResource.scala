@@ -21,8 +21,6 @@ import java.util.UUID
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
-import scala.concurrent.Future
-
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
@@ -73,22 +71,21 @@ class RouterResource @Inject()(resContext: ResourceContext,
         new RouterBgpPeerResource(id, resContext)
     }
 
-    protected override def listFilter(routers: Seq[Router]): Future[Seq[Router]] = {
+    protected override def listFilter(routers: Seq[Router]): Seq[Router] = {
         val tenantId = resContext.uriInfo.getQueryParameters
                                          .getFirst("tenant_id")
-        Future.successful(if (tenantId eq null) routers
-                          else routers filter { _.tenantId == tenantId })
+        if (tenantId eq null) routers
+        else routers filter { _.tenantId == tenantId }
     }
 
-    protected override def createFilter(router: Router): Ops = {
+    protected override def createFilter(router: Router): Seq[Multi] = {
         router.create()
-        Future.successful(Seq(
-            CreateNode(pathBuilder.getRouterArpTablePath(router.id)),
-            CreateNode(pathBuilder.getRouterRoutingTablePath(router.id))))
+        Seq(CreateNode(pathBuilder.getRouterArpTablePath(router.id)),
+            CreateNode(pathBuilder.getRouterRoutingTablePath(router.id)))
     }
 
-    protected override def updateFilter(to: Router, from: Router): Ops = {
+    protected override def updateFilter(to: Router, from: Router): Seq[Multi] = {
         to.update(from)
-        NoOps
+        Seq.empty
     }
 }

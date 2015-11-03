@@ -22,7 +22,6 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -50,19 +49,18 @@ class ChainResource @Inject()(resContext: ResourceContext)
         new ChainRuleResource(id, resContext)
     }
 
-    protected override def listFilter(chains: Seq[Chain]): Future[Seq[Chain]] = {
+    protected override def listFilter(chains: Seq[Chain]): Seq[Chain] = {
         val tenantId = resContext.uriInfo.getQueryParameters
                                          .getFirst("tenant_id")
-        Future.successful(if (tenantId eq null) chains
-                          else chains filter { _.tenantId == tenantId })
+        if (tenantId eq null) chains
+        else chains filter { _.tenantId == tenantId }
     }
 
-    protected override def deleteFilter(chainId: String): Ops = {
-        getResource(classOf[Chain], chainId) map { chain =>
-            // Deletes the jump rules that reference a chain.
-            for (ruleId <- chain.jumpRuleIds.asScala)
-                yield Delete(classOf[Rule], ruleId)
-        }
+    protected override def deleteFilter(chainId: String): Seq[Multi] = {
+        val chain = getResource(classOf[Chain], chainId)
+        // Deletes the jump rules that reference a chain.
+        for (ruleId <- chain.jumpRuleIds.asScala)
+            yield Delete(classOf[Rule], ruleId)
     }
 
 }

@@ -21,8 +21,6 @@ import java.util.UUID
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
-import scala.concurrent.Future
-
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
@@ -52,22 +50,22 @@ class TraceRequestResource @Inject()(resContext: ResourceContext)
         extends MidonetResource[TraceRequest](resContext) {
 
     protected override def listFilter(
-        traceRequests: Seq[TraceRequest]): Future[Seq[TraceRequest]] = {
+        traceRequests: Seq[TraceRequest]): Seq[TraceRequest] = {
 
         val tenantId = resContext.uriInfo
             .getQueryParameters.getFirst("tenant_id")
-        Future.successful(if (tenantId eq null) traceRequests
-                          else {
-                              traceRequests filter {
-                                  case tr if tr.deviceType == DeviceType.PORT =>
-                                      checkPortTenant(tr.deviceId, tenantId)
-                                  case tr if tr.deviceType == DeviceType.BRIDGE =>
-                                      checkNetworkTenant(tr.deviceId, tenantId)
-                                  case tr if tr.deviceType == DeviceType.ROUTER =>
-                                      checkRouterTenant(tr.deviceId, tenantId)
-                                  case _ => false
-                              }
-                          })
+        if (tenantId eq null) traceRequests
+        else {
+            traceRequests filter {
+                case tr if tr.deviceType == DeviceType.PORT =>
+                    checkPortTenant(tr.deviceId, tenantId)
+                case tr if tr.deviceType == DeviceType.BRIDGE =>
+                    checkNetworkTenant(tr.deviceId, tenantId)
+                case tr if tr.deviceType == DeviceType.ROUTER =>
+                    checkRouterTenant(tr.deviceId, tenantId)
+                case _ => false
+            }
+        }
     }
 
     private def checkPortTenant(id: UUID, tenantId: String): Boolean = {
