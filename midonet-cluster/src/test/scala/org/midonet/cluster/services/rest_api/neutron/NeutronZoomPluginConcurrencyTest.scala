@@ -34,7 +34,7 @@ import org.scalatest.mock.MockitoSugar
 import rx.Observable
 
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.data.storage.{PersistenceOp, Storage}
+import org.midonet.cluster.data.storage.{PersistenceOp, Storage, Transaction}
 import org.midonet.cluster.models.Neutron.{SecurityGroup => NeutronSecurityGroup}
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.MidonetBackend
@@ -78,6 +78,7 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
         override def multi(ops: Seq[PersistenceOp]): Unit = {
             threadUnsafeCounter = threadUnsafeCounter + 1
         }
+        override def transaction(): Transaction = ???
         override def isRegistered(clazz: Class[_]): Boolean = ???
         override def observable[T](clazz: Class[T], id: Any)
         : Observable[T] = ???
