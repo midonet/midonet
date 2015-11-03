@@ -16,6 +16,24 @@
       "revId": "b2b2d79a32f6622e33b20f3bb311b9c64a3d0967",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_5dddb06f",
+        "filename": "tests/mdts/services/service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-03T15:24:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_dd74609e",
+      "revId": "b2b2d79a32f6622e33b20f3bb311b9c64a3d0967",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
