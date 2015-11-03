@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_02f4b959",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T13:40:21Z",
+      "side": 1,
+      "message": "You could mention ticket MNA-1054 for this patch.",
+      "revId": "7ea7254ef476f79d946af83e71d2e46759af60ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
