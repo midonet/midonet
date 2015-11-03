@@ -16,6 +16,24 @@
       "revId": "4f1619047ffd8b2a2472a36c99f624210ccf0df4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_38b1eaf8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-03T17:55:51Z",
+      "side": 1,
+      "message": "In this case the null check could be enough. So this should happen if the rule is deleted from the chain (and the chain update notified) before the rule is loaded, in which case we should subscribe to the jump chain and the IP address groups as needed. Since here the rule hasn\u0027t been loaded yet, those referenced resources haven\u0027t been requested yet.\n\nSince we call rule.complete() this ensures that even if the rule notification will arrive afterward, the notification won\u0027t be processed and the rule ignored.",
+      "parentUuid": "9ab29df4_58af7ee3",
+      "revId": "4f1619047ffd8b2a2472a36c99f624210ccf0df4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
