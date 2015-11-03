@@ -23,7 +23,6 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -33,7 +32,7 @@ import org.midonet.cluster.rest_api.annotation.AllowCreate
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
 import org.midonet.packets.IPv4Subnet
 
 @RequestScoped
@@ -50,7 +49,6 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
     override def get(@PathParam("subnetAddress") subnetAddress: String,
                      @HeaderParam("Accept") accept: String): DhcpSubnet = {
         getSubnet(IPv4Subnet.fromZkString(subnetAddress))
-            .getOrThrow
             .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
     }
 
@@ -58,11 +56,8 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
     @Produces(Array(APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[DhcpSubnet] = {
-        getResource(classOf[Bridge], bridgeId)
-            .flatMap(bridge => listResources(classOf[DhcpSubnet],
-                                             bridge.dhcpIds.asScala))
-            .getOrThrow
-            .asJava
+        val bridge = getResource(classOf[Bridge], bridgeId)
+        listResources(classOf[DhcpSubnet], bridge.dhcpIds.asScala).asJava
     }
 
     private def subnetNotFoundResp(subnetAddr: String): Response =
@@ -78,23 +73,19 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
                         subnet: DhcpSubnet,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(_.map(current => {
+        getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(current => {
             subnet.update(current)
             updateResource(subnet)
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp(subnetAddress))
+        }).getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
     @DELETE
     @Path("{subnetAddress}")
     override def delete(@PathParam("subnetAddress") subnetAddress: String)
     : Response = {
-        getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(_.map(subnet => {
+        getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(subnet => {
             deleteResource(classOf[DhcpSubnet], subnet.id)
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp(subnetAddress))
+        }).getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
     @Path("{subnetAddress}/hosts")
@@ -103,17 +94,15 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
         new DhcpHostResource(bridgeId, subnetAddress, resContext)
     }
 
-    protected override def createFilter(subnet: DhcpSubnet): Ops = {
+    protected override def createFilter(subnet: DhcpSubnet): Seq[Multi] = {
         subnet.create(bridgeId)
-        NoOps
+        Seq.empty
     }
 
-    private def getSubnet(subnetAddress: IPv4Subnet)
-    : Future[Option[DhcpSubnet]] = {
-        getResource(classOf[Bridge], bridgeId)
-            .flatMap(bridge => listResources(classOf[DhcpSubnet],
-                                             bridge.dhcpIds.asScala))
-            .map(_.find(_.subnetAddress == subnetAddress))
+    private def getSubnet(subnetAddress: IPv4Subnet): Option[DhcpSubnet] = {
+        val bridge = getResource(classOf[Bridge], bridgeId)
+        listResources(classOf[DhcpSubnet], bridge.dhcpIds.asScala)
+            .find(_.subnetAddress == subnetAddress)
     }
 
 }

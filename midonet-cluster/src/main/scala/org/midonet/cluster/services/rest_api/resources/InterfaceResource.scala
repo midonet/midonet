@@ -22,7 +22,6 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -48,8 +47,8 @@ class InterfaceResource @Inject()(hostId: UUID, resContext: ResourceContext)
     override def get(@PathParam("name") name: String,
                      @HeaderParam("Accept") accept: String): Interface = {
         getInterfaces(hostId.toString)
-            .map(_.find(_.name == name).map(setInterface))
-            .getOrThrow
+            .find(_.name == name)
+            .map(setInterface)
             .getOrElse(throw new NotFoundHttpException("Interface not found"))
     }
 
@@ -58,9 +57,7 @@ class InterfaceResource @Inject()(hostId: UUID, resContext: ResourceContext)
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[Interface] = {
-        getInterfaces(hostId.toString)
-            .map(_.map(setInterface).asJava)
-            .getOrThrow
+        getInterfaces(hostId.toString).map(setInterface).asJava
     }
 
     private def setInterface(interface: Interface): Interface = {
@@ -69,9 +66,9 @@ class InterfaceResource @Inject()(hostId: UUID, resContext: ResourceContext)
         interface
     }
 
-    private def getInterfaces(hostId: String): Future[Seq[Interface]] = {
+    private def getInterfaces(hostId: String): Seq[Interface] = {
         getResourceState(hostId.toString, classOf[Host], hostId,
-                         MidonetBackend.HostKey).map {
+                         MidonetBackend.HostKey) match {
             case SingleValueKey(_, Some(value), _) =>
                 val builder = State.HostState.newBuilder()
                 TextFormat.merge(value, builder)

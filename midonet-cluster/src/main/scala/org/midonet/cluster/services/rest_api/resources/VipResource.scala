@@ -33,7 +33,7 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{LoadBalancer, Pool, Vip}
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
 
 @ApiResource(version = 1, name = "vips", template = "vipTemplate")
 @Path("vips")
@@ -51,8 +51,8 @@ class VipResource @Inject()(resContext: ResourceContext)
                     APPLICATION_JSON))
     override def get(@PathParam("id") id: String,
                      @HeaderParam("Accept") accept: String):Vip = {
-        val vip = getResource(classOf[Vip], id).getOrThrow
-        val pool = getResource(classOf[Pool], vip.poolId).getOrThrow
+        val vip = getResource(classOf[Vip], id)
+        val pool = getResource(classOf[Pool], vip.poolId)
         vip.loadBalancerId = pool.loadBalancerId
         vip
     }
@@ -61,10 +61,10 @@ class VipResource @Inject()(resContext: ResourceContext)
     @Produces(Array(APPLICATION_VIP_COLLECTION_JSON,
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String): JList[Vip] = {
-        val vips = listResources(classOf[Vip]).getOrThrow
+        val vips = listResources(classOf[Vip])
         for (vip <- vips) {
             vip.loadBalancerId =
-                getResource(classOf[Pool], vip.poolId).getOrThrow.loadBalancerId
+                getResource(classOf[Pool], vip.poolId).loadBalancerId
         }
         vips.asJava
     }
@@ -85,27 +85,27 @@ class VipResource @Inject()(resContext: ResourceContext)
         }
     }
 
-    protected override def createFilter(vip: Vip): Ops = {
+    protected override def createFilter(vip: Vip): Seq[Multi] = {
         vip.create()
         throwIfViolationsOn(vip)
         try {
-            getResource(classOf[Pool], vip.poolId).getOrThrow
+            getResource(classOf[Pool], vip.poolId)
         } catch {
             case t: NotFoundHttpException =>
                 throw new BadRequestHttpException(t.getMessage)
         }
-        NoOps
+        Seq.empty
     }
 
-    protected override def updateFilter(to: Vip, from: Vip): Ops = {
+    protected override def updateFilter(to: Vip, from: Vip): Seq[Multi] = {
         to.update(from)
         try {
-            getResource(classOf[Pool], to.poolId).getOrThrow
+            getResource(classOf[Pool], to.poolId)
         } catch {
             case t: NotFoundHttpException =>
                 throw new BadRequestHttpException(t.getMessage)
         }
-        NoOps
+        Seq.empty
     }
 
 }
@@ -120,25 +120,23 @@ class PoolVipResource @Inject()(poolId: UUID, resContext: ResourceContext)
     @Produces(Array(APPLICATION_VIP_COLLECTION_JSON,
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String): JList[Vip] = {
-        getResource(classOf[Pool], poolId) flatMap { pool =>
-            listResources(classOf[Vip], pool.vipIds.asScala) map { vips =>
-                vips.foreach(_.loadBalancerId = pool.loadBalancerId)
-                vips.asJava
-            }
-        } getOrThrow
+        val pool = getResource(classOf[Pool], poolId)
+        val vips = listResources(classOf[Vip], pool.vipIds.asScala)
+        vips.foreach(_.loadBalancerId = pool.loadBalancerId)
+        vips.asJava
     }
 
-    protected override def createFilter(vip: Vip): Ops = {
+    protected override def createFilter(vip: Vip): Seq[Multi] = {
         vip.create()
         throwIfViolationsOn(vip)
         val pool = try {
-            getResource(classOf[Pool], vip.poolId).getOrThrow
+            getResource(classOf[Pool], vip.poolId)
         } catch {
             case t: NotFoundHttpException =>
                 throw new BadRequestHttpException(t.getMessage)
         }
         vip.loadBalancerId = pool.loadBalancerId
-        NoOps
+        Seq.empty
     }
 }
 
@@ -151,15 +149,12 @@ class LoadBalancerVipResource @Inject()(loadBalancerId: UUID,
     @Produces(Array(APPLICATION_VIP_COLLECTION_JSON,
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String): JList[Vip] = {
-        getResource(classOf[LoadBalancer], loadBalancerId) flatMap { lb =>
-            listResources(classOf[Pool], lb.poolIds.asScala)
-        } flatMap { pools =>
-            val vipIds = pools.flatMap(_.vipIds.asScala)
-            listResources(classOf[Vip], vipIds) map { vips =>
-                vips.foreach(_.loadBalancerId = loadBalancerId)
-                vips.asJava
-            }
-        } getOrThrow
+        val lb = getResource(classOf[LoadBalancer], loadBalancerId)
+        val pools = listResources(classOf[Pool], lb.poolIds.asScala)
+        val vipIds = pools.flatMap(_.vipIds.asScala)
+        val vips = listResources(classOf[Vip], vipIds)
+        vips.foreach(_.loadBalancerId = loadBalancerId)
+        vips.asJava
     }
 
     @POST

@@ -35,7 +35,6 @@ import com.google.inject.Inject
 import com.google.protobuf.Message
 import com.lmax.disruptor.util.DaemonThreadFactory
 import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
 
 import org.midonet.cluster.data.ZoomConvert
@@ -57,10 +56,6 @@ object MidonetResource {
 
     private final val log = getLogger(restApiLog)
     private final val StorageAttempts = 3
-
-    type Ids = Future[Seq[Any]]
-    type Ops = Future[Seq[Multi]]
-    final val NoOps = Future.successful(Seq.empty[Multi])
 
     final val Timeout = 30 seconds
     final val OkResponse = Response.ok().build()
@@ -183,7 +178,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         ExecutionContext.fromExecutor(
             newCachedThreadPool(DaemonThreadFactory.INSTANCE))
     protected final implicit val log =
-        Logger(LoggerFactory.getLogger(restApiResourceLog(getClass)))
+        Logger(getLogger(restApiResourceLog(getClass)))
 
     private val validator = resContext.validator
     protected val backend = resContext.backend
@@ -198,9 +193,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
             log.info("Media type {} not acceptable", accept)
             throw new WebApplicationException(NOT_ACCEPTABLE)
         }
-        getResource(tag.runtimeClass.asInstanceOf[Class[T]], id)
-            .flatMap(getFilter)
-            .getOrThrow
+        getFilter(getResource(tag.runtimeClass.asInstanceOf[Class[T]], id))
     }
 
     @GET
@@ -210,16 +203,12 @@ abstract class MidonetResource[T >: Null <: UriResource]
             log.info("Media type {} not acceptable", accept)
             throw new WebApplicationException(NOT_ACCEPTABLE)
         }
-        val list = listIds flatMap { ids =>
-            if (ids eq null) {
-                listResources(tag.runtimeClass.asInstanceOf[Class[T]])
-            } else {
-                listResources(tag.runtimeClass.asInstanceOf[Class[T]], ids)
-            }
-        } flatMap { list =>
-            listFilter(list)
-        } getOrThrow
-
+        val ids = listIds
+        val list = if (ids eq null) {
+            listFilter(listResources(tag.runtimeClass.asInstanceOf[Class[T]]))
+        } else {
+            listFilter(listResources(tag.runtimeClass.asInstanceOf[Class[T]], ids))
+        }
         list.asJava
     }
 
@@ -235,10 +224,9 @@ abstract class MidonetResource[T >: Null <: UriResource]
         t.setBaseUri(uriInfo.getBaseUri)
 
         tryResponse(handleCreate, catchCreate) {
-            createFilter(t) map { ops =>
-                throwIfViolationsOn(t)
-                multiResource(Seq(Create(t)) ++ ops, OkCreated(t.getUri))
-            } getOrThrow
+            val ops = createFilter(t)
+            throwIfViolationsOn(t)
+            multiResource(Seq(Create(t)) ++ ops, OkCreated(t.getUri))
         }
     }
 
@@ -254,12 +242,10 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
         val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
         tryResponse(handleUpdate, catchUpdate) {
-            getResource(clazz, id) flatMap { current =>
-                throwIfViolationsOn(t)
-                updateFilter(t, current)
-            } map { ops =>
-                multiResource(ops :+ Update(t), OkNoContentResponse)
-            } getOrThrow
+            val current = getResource(clazz, id)
+            throwIfViolationsOn(t)
+            val ops = updateFilter(t, current)
+            multiResource(ops :+ Update(t), OkNoContentResponse)
         }
     }
 
@@ -268,9 +254,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
     def delete(@PathParam("id") id: String): Response = {
         val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
         tryResponse(handleDelete, catchDelete) {
-            deleteFilter(id) map { ops =>
-                multiResource(ops :+ Delete(clazz, id), OkNoContentResponse)
-            } getOrThrow
+            val ops = deleteFilter(id)
+            multiResource(ops :+ Delete(clazz, id), OkNoContentResponse)
         }
     }
 
@@ -285,18 +270,17 @@ abstract class MidonetResource[T >: Null <: UriResource]
         new FutureOps(future)
     }
 
-    protected def getFilter(t: T): Future[T] = Future.successful(t)
+    protected def getFilter(t: T): T = t
 
-    protected def listIds: Ids = Future.successful(null)
+    protected def listIds: Seq[Any] = null
 
-    protected def listFilter(list: Seq[T]): Future[Seq[T]] =
-        Future.successful(list)
+    protected def listFilter(list: Seq[T]): Seq[T] = list
 
-    protected def createFilter(t: T): Ops = { t.create(); NoOps }
+    protected def createFilter(t: T): Seq[Multi] = { t.create(); Seq.empty }
 
-    protected def updateFilter(to: T, from: T): Ops = { NoOps }
+    protected def updateFilter(to: T, from: T): Seq[Multi] = { Seq.empty }
 
-    protected def deleteFilter(id: String): Ops = { NoOps }
+    protected def deleteFilter(id: String): Seq[Multi] = { Seq.empty }
 
     protected def handleCreate: PartialFunction[Response, Response] =
         DefaultHandler
@@ -317,38 +301,41 @@ abstract class MidonetResource[T >: Null <: UriResource]
         DefaultCatcher
 
     protected def listResources[U >: Null <: UriResource](clazz: Class[U])
-    : Future[Seq[U]] = {
+    : Seq[U] = {
         backend.store.getAll(UriResource.getZoomClass(clazz))
-            .map(_.map(fromProto(_, clazz)))
+                     .map(_.map(fromProto(_, clazz)))
+                     .getOrThrow
     }
 
     protected def listResources[U >: Null <: UriResource](clazz: Class[U],
                                                           ids: Seq[Any])
-    : Future[Seq[U]] = {
+    : Seq[U] = {
         backend.store.getAll(UriResource.getZoomClass(clazz), ids)
                      .map(_.map(fromProto(_, clazz)))
+                     .getOrThrow
     }
 
     protected def getResource[U >: Null <: UriResource](clazz: Class[U], id: Any)
-    : Future[U] = {
-        backend.store.get(UriResource.getZoomClass(clazz), id).map { r =>
-            fromProto(r, clazz)
-        }
+    : U = {
+        backend.store.get(UriResource.getZoomClass(clazz), id)
+                     .map(fromProto(_, clazz))
+                     .getOrThrow
     }
 
     protected def getResources[U >: Null <: UriResource](clazz: Class[U], ids: Seq[Any])
-    : Future[Seq[U]] = {
-        backend.store.getAll(UriResource.getZoomClass(clazz), ids).map { r =>
-            r.map(fromProto(_, clazz))
-        }
+    : Seq[U] = {
+        backend.store.getAll(UriResource.getZoomClass(clazz), ids)
+                     .map { r => r.map(fromProto(_, clazz)) }
+                     .getOrThrow
     }
 
     protected def getResourceState[U >: Null <: UriResource](host: String,
                                                              clazz: Class[U],
                                                              id: Any, key: String)
-    : Future[StateKey] = {
+    : StateKey = {
         backend.stateStore.getKey(host, UriResource.getZoomClass(clazz), id, key)
             .asFuture
+            .getOrThrow
     }
 
     protected def hasResource[U >: Null <: UriResource](clazz: Class[U],

@@ -22,8 +22,11 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.{Path, PathParam}
 
+import scala.collection.JavaConverters._
+
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
+
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.{Pool => TopPool}
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException
@@ -32,9 +35,6 @@ import org.midonet.cluster.rest_api.models.{HealthMonitor, LoadBalancer, Pool}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
-
-import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 @ApiResource(version = 1, name = "pools", template = "poolTemplate")
 @Path("pools")
@@ -55,13 +55,13 @@ class PoolResource @Inject()(resContext: ResourceContext)
 
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): PoolVipResource = {
-        getResource(classOf[Pool], id).getOrThrow
+        getResource(classOf[Pool], id)
         new PoolVipResource(id, resContext)
     }
 
     @Path("{id}/pool_members")
     def members(@PathParam("id") id: UUID): PoolPoolMemberResource = {
-        getResource(classOf[Pool], id).getOrThrow
+        getResource(classOf[Pool], id)
         new PoolPoolMemberResource(id, resContext)
     }
 
@@ -75,19 +75,19 @@ class PoolResource @Inject()(resContext: ResourceContext)
         }
     }
 
-    protected override def updateFilter(to: Pool, from: Pool): Ops = {
+    protected override def updateFilter(to: Pool, from: Pool): Seq[Multi] = {
         val p = store.get(classOf[TopPool], from.id).getOrThrow
         checkMappingStatus(p)
         to.update(from)
-        NoOps
+        Seq.empty
     }
 
-    protected override def deleteFilter(id: String): Ops = {
+    protected override def deleteFilter(id: String): Seq[Multi] = {
         if (store.exists(classOf[TopPool], id).getOrThrow) {
             val p = store.get(classOf[TopPool], id).getOrThrow
             checkMappingStatus(p)
         }
-        NoOps
+        Seq.empty
     }
 
     protected override def handleDelete = {
@@ -95,13 +95,13 @@ class PoolResource @Inject()(resContext: ResourceContext)
             OkNoContentResponse
     }
 
-    protected override def listFilter(pools: Seq[Pool]): Future[Seq[Pool]] = {
+    protected override def listFilter(pools: Seq[Pool]): Seq[Pool] = {
         val hmId = resContext.uriInfo.getQueryParameters.getFirst("hm_id")
         if (hmId eq null) {
-            Future.successful(pools)
+            pools
         } else {
             val hmIdUUID = UUID.fromString(hmId)
-            Future.successful(pools filter {_.healthMonitorId == hmIdUUID})
+            pools filter {_.healthMonitorId == hmIdUUID}
         }
     }
 }
@@ -120,15 +120,13 @@ class LoadBalancerPoolResource @Inject()(loadBalancerId: UUID,
         new PoolPoolMemberResource(id, resContext)
     }
 
-    protected override def listIds: Ids = {
-        getResource(classOf[LoadBalancer], loadBalancerId) map {
-            _.poolIds.asScala
-        }
+    protected override def listIds: Seq[Any] = {
+        getResource(classOf[LoadBalancer], loadBalancerId).poolIds.asScala
     }
 
-    protected override def createFilter(pool: Pool): Ops = {
+    protected override def createFilter(pool: Pool): Seq[Multi] = {
         pool.create(loadBalancerId)
-        NoOps
+        Seq.empty
     }
 }
 
@@ -139,10 +137,8 @@ class HealthMonitorPoolResource @Inject()(healthMonitorId: UUID,
                                           resContext: ResourceContext)
     extends MidonetResource[Pool](resContext) {
 
-    protected override def listIds: Ids = {
-        getResource(classOf[HealthMonitor], healthMonitorId) map {
-            _.poolIds.asScala
-        }
+    protected override def listIds: Seq[Any] = {
+        getResource(classOf[HealthMonitor], healthMonitorId).poolIds.asScala
     }
 
 }
