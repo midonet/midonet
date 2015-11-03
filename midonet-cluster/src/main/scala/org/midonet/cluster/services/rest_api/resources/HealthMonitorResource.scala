@@ -28,7 +28,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.HealthMonitor
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
 
 @ApiResource(version = 1, name = "healthMonitors", template = "healthMonitorTemplate")
 @Path("health_monitors")
@@ -63,8 +63,8 @@ class HealthMonitorResource @Inject()(resContext: ResourceContext)
     }
 
     protected override def updateFilter(to: HealthMonitor,
-                                        from: HealthMonitor): Ops = {
+                                        from: HealthMonitor): Seq[Multi] = {
         to.update(from)
-        NoOps
+        Seq.empty
     }
 }

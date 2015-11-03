@@ -29,7 +29,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Router, BgpPeer}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Ids, NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
 
 @ApiResource(version = 1, template = "bgpPeerTemplate")
 @Path("bgp_peers")
@@ -42,9 +42,9 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Ids, NoO
 class BgpPeerResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[BgpPeer](resContext) {
 
-    protected override def updateFilter(to: BgpPeer, from: BgpPeer): Ops = {
+    protected override def updateFilter(to: BgpPeer, from: BgpPeer): Seq[Multi] = {
         to.update(from)
-        NoOps
+        Seq.empty
     }
 }
 
@@ -57,13 +57,13 @@ class RouterBgpPeerResource @Inject()(routerId: UUID,
                                       resContext: ResourceContext)
     extends MidonetResource[BgpPeer](resContext) {
 
-    protected override def listIds: Ids = {
-        getResource(classOf[Router], routerId) map { _.bgpPeerIds.asScala }
+    protected override def listIds: Seq[Any] = {
+        getResource(classOf[Router], routerId).bgpPeerIds.asScala
     }
 
-    protected override def createFilter(bgpPeer: BgpPeer): Ops = {
+    protected override def createFilter(bgpPeer: BgpPeer): Seq[Multi] = {
         bgpPeer.create(routerId)
-        NoOps
+        Seq.empty
     }
 
 }
