@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{ConfigFactory, Config}
 
+import org.midonet.cluster.services.direct_connect.DirectConnectService
 import org.midonet.cluster.services.rest_api.Vladimir
 import org.midonet.cluster.services.{ScheduledMinionConfig, MinionConfig}
 import org.midonet.cluster.services.c3po.C3POMinion
@@ -58,6 +59,7 @@ class ClusterConfig(_conf: Config) {
     val vxgw = new VxGwConfig(conf)
     val topologyApi = new TopologyApiConfig(conf)
     val restApi = new RestApiConfig(conf)
+    val directConnect = new DirectConnectConfig(conf)
 }
 
 class AuthConfig(val conf: Config) {
@@ -119,4 +121,10 @@ class RestApiConfig(val conf: Config) extends MinionConfig[Vladimir] {
     def httpPort = conf.getInt(s"$Prefix.http_port")
     def httpsPort = conf.getInt(s"$Prefix.https_port")
     def rootUri = conf.getString(s"$Prefix.root_uri")
+}
+
+class DirectConnectConfig(val conf: Config) extends MinionConfig[DirectConnectService] {
+    final val Prefix = "cluster.direct_connect"
+
+    override def isEnabled = conf.getBoolean("cluster.direct_connect.enabled")
 }
