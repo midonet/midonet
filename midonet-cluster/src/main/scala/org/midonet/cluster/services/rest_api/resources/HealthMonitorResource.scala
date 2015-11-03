@@ -30,7 +30,7 @@ import org.midonet.cluster.rest_api.models.HealthMonitor
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "healthMonitors", template = "healthMonitorTemplate")
 @Path("health_monitors")
 @RequestScoped
 @AllowGet(Array(APPLICATION_HEALTH_MONITOR_JSON,

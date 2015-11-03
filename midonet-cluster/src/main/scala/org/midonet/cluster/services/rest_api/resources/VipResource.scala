@@ -35,7 +35,7 @@ import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpExcept
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "vips", template = "vipTemplate")
 @Path("vips")
 @RequestScoped
 @AllowCreate(Array(APPLICATION_VIP_JSON,

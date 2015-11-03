@@ -32,7 +32,7 @@ import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpExcept
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, template = "ruleTemplate")
 @Path("rules")
 @RequestScoped
 @AllowGet(Array(APPLICATION_RULE_JSON_V2,

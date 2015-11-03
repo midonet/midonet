@@ -38,7 +38,7 @@ import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, template = "routeTemplate")
 @Path("routes")
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTE_JSON,

@@ -35,7 +35,7 @@ import org.midonet.cluster.rest_api.models.Tenant
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
-@ApiResource(version = 1)
+@ApiResource(version = 1, name = "tenants", template = "tenantTemplate")
 @Path("tenants")
 @RequestScoped
 class TenantResource @Inject()(authService: AuthService,
