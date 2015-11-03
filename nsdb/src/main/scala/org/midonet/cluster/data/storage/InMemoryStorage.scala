@@ -55,6 +55,8 @@ class InMemoryStorage extends Storage with StateStorage {
         private val streamUpdates = new mutable.LinkedHashSet[InstanceNode[T]]
         private val instanceUpdates = new mutable.LinkedHashSet[InstanceNode[T]]
 
+        def ids = instances.keySet
+
         @throws[ObjectExistsException]
         def create(id: ObjId, obj: Obj): Unit = {
             val node = new InstanceNode(clazz, id, obj.asInstanceOf[T])
@@ -441,8 +443,13 @@ class InMemoryStorage extends Storage with StateStorage {
             InMemoryStorage.this.isRegistered(clazz)
         }
 
-        override def getSnapshot(clazz: Class[_], id: ObjId): ObjSnapshot = {
-            classes(clazz).getSnapshot(id)
+        override def getSnapshot(clazz: Class[_], id: ObjId)
+        : Observable[ObjSnapshot] = {
+            Observable.just(classes(clazz).getSnapshot(id))
+        }
+
+        override def getIds(clazz: Class[_]): Observable[Seq[ObjId]] = {
+            Observable.just(classes(clazz).ids.toSeq)
         }
 
         override def commit(): Unit = {
@@ -541,6 +548,11 @@ class InMemoryStorage extends Storage with StateStorage {
         }
 
         manager.commit()
+    }
+
+    override def transaction(): Transaction = {
+        assertBuilt()
+        new InMemoryTransactionManager
     }
 
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
