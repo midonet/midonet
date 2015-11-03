@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ab29df4_9d902897",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-03T14:35:41Z",
+      "side": 1,
+      "message": "Considering that we\u0027ll have a potentially large set, do we really want to put these in the topology? This will set us for worries with large ZK children sets, etc.\n\nWould it be better to model this differently (e.g., have a MacIpSet that contains a list of mac-ip pairs and can thus be fetched in a single read, and eventually considered to move to another storage?",
+      "range": {
+        "startLine": 210,
+        "startChar": 8,
+        "endLine": 210,
+        "endChar": 13
+      },
+      "revId": "53c2febca88917bcc62d93f6624cb1c6a27bfd10",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_dd2620ba",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 1
