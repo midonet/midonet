@@ -191,6 +191,37 @@ abstract class MidonetResource[T >: Null <: UriResource]
     protected val backend = resContext.backend
     protected val uriInfo = resContext.uriInfo
 
+    class ResourceTransaction(tx: Transaction) {
+
+        def get[U >: Null <: UriResource](clazz: Class[U], id: Any)
+        : U = {
+            fromProto(tx.get(UriResource.getZoomClass(clazz), id), clazz)
+        }
+
+        def create[U >: Null <: UriResource](resource: U): Unit = {
+            val message = toProto(resource)
+            log.debug("TX CREATE: {}", makeReadable(message))
+            tx.create(message)
+        }
+
+        def update[U >: Null <: UriResource](resource: U): Unit = {
+            val message = toProto(resource)
+            log.debug("TX UPDATE: {}", makeReadable(message))
+            tx.update(message, null)
+        }
+
+        def delete(clazz: Class[_ <: UriResource], id: Any): Unit = {
+            log.debug("TX DELETE: {}: {}", UriResource.getZoomClass(clazz),
+                      id.asInstanceOf[AnyRef])
+            tx.delete(UriResource.getZoomClass(clazz), id, ignoresNeo = true)
+        }
+
+        def commit(): Unit = {
+            tx.commit()
+        }
+
+    }
+
     @GET
     @Path("{id}")
     def get(@PathParam("id") id: String,
@@ -317,6 +348,10 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected def catchDelete: PartialFunction[Throwable, Response] =
         DefaultCatcher
+
+    protected def transaction(): ResourceTransaction = {
+        new ResourceTransaction(backend.store.transaction())
+    }
 
     protected def listResources[U >: Null <: UriResource](clazz: Class[U])
     : Future[Seq[U]] = {
@@ -453,5 +488,39 @@ abstract class MidonetResource[T >: Null <: UriResource]
             c = c.getSuperclass
         }
         null
+    }
+
+    protected def tryTx(f: (ResourceTransaction) => Response): Response = {
+        var attempt = 1
+        while (attempt <= StorageAttempts) {
+            try {
+                val tx = transaction()
+                val response = f(tx)
+                tx.commit()
+                return response
+            } catch {
+                case e: NotFoundException =>
+                    log.warn(e.getMessage)
+                    return buildErrorResponse(Status.NOT_FOUND, e.getMessage)
+                case e: ObjectReferencedException =>
+                    log.warn(e.getMessage)
+                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                case e: ReferenceConflictException =>
+                    log.warn(e.getMessage)
+                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                case e: ObjectExistsException =>
+                    log.warn(e.getMessage)
+                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                case e: ConcurrentModificationException =>
+                    log.error(s"Write $attempt of $StorageAttempts failed " +
+                              "due to a concurrent modification: retrying", e)
+                    attempt += 1
+                case NonFatal(e) =>
+                    log.error("Unhandled exception", e)
+                    return buildErrorResponse(Status.INTERNAL_SERVER_ERROR,
+                                              e.getMessage)
+            }
+        }
+        Response.status(Status.CONFLICT).build()
     }
 }
