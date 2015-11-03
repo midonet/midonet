@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_b8009aab",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpHostResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-03T17:35:50Z",
+      "side": 1,
+      "message": "note to self: unrelated to this patch, these need proper messages",
+      "range": {
+        "startLine": 56,
+        "startChar": 31,
+        "endLine": 56,
+        "endChar": 54
+      },
+      "revId": "b177c4bebfca4aceb4f1011bf8f276f83d5f90fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
