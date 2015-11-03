@@ -16,6 +16,24 @@
       "revId": "7ea7254ef476f79d946af83e71d2e46759af60ba",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_fd520412",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-03T20:45:28Z",
+      "side": 1,
+      "message": "Sorry, I didn\u0027t see the comments, I will update in the next submission.",
+      "parentUuid": "9ab29df4_02f4b959",
+      "revId": "7ea7254ef476f79d946af83e71d2e46759af60ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
