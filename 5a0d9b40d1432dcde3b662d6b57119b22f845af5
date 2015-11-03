@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_9fff4534",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_8131b5ee",
+      "range": {
+        "startLine": 221,
+        "startChar": 8,
+        "endLine": 222,
+        "endChar": 60
+      },
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_413ebdb9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
         "patchSetId": 3
@@ -119,6 +143,24 @@
       "side": 1,
       "message": "why is that a hard requirement?",
       "parentUuid": "9ab29df4_2168e9b9",
+      "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_6ee72413",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtils.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "To make sure that this test:\nif (lastPoolUpdateTSMap(poolId) \u003d\u003d ts)\nand setPoolMapping status were executed atomically.",
+      "parentUuid": "9ab29df4_25539418",
       "revId": "5a0d9b40d1432dcde3b662d6b57119b22f845af5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
