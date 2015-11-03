@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_189a6663",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-03T18:04:35Z",
+      "side": 1,
+      "message": "If I read correctly bridge2 is expected to be !\u003d bridge1, so you\u0027re verifying that the snapshot in the transaction doesn\u0027t change despite having modified it in storage right? \n\nIt\u0027s not too obvious from reading the test, maybe \n\nval bridge1 \u003d createPojoBridge(id \u003d randomUUID, name \u003d \"name-1\")\n\nthen\n\nval bridge2 \u003d createPojoBridge(id \u003d bridge1.getId, name \u003d \"name-2\")\n\nwould make it more evident\n\nOr just \n\nval bridge2 \u003d createPojoBridge(id \u003d bridge1.getId, name \u003d \"a-changed-name\")",
+      "range": {
+        "startLine": 170,
+        "startChar": 12,
+        "endLine": 172,
+        "endChar": 68
+      },
+      "revId": "a59671586cbfe8a94f611ae902123e23c55a62e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_d8b62edc",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-03T18:04:35Z",
+      "side": 1,
+      "message": "why should this fail? It\u0027s the first get inside the transaction so as long as you get the latest value in storage (bridge2) before you start modifying it we\u0027re good no?",
+      "range": {
+        "startLine": 184,
+        "startChar": 16,
+        "endLine": 184,
+        "endChar": 72
+      },
+      "revId": "a59671586cbfe8a94f611ae902123e23c55a62e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
