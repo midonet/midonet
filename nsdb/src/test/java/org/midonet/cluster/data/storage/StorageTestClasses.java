@@ -17,6 +17,7 @@ package org.midonet.cluster.data.storage;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class StorageTestClasses {
@@ -39,6 +40,23 @@ public class StorageTestClasses {
 
         PojoBridge(String name, UUID inChainId, UUID outChainId) {
             this(UUID.randomUUID(), name, inChainId, outChainId);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof PojoBridge)) return false;
+            PojoBridge pb = (PojoBridge)o;
+            return Objects.equals(id, pb.id) &&
+                   Objects.equals(name, pb.name) &&
+                   Objects.equals(inChainId, pb.inChainId) &&
+                   Objects.equals(outChainId, pb.outChainId) &&
+                   Objects.equals(portIds, pb.portIds);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, name, inChainId, outChainId, portIds);
         }
     }
 
