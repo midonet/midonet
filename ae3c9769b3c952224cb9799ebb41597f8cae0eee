@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_bffc0940",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_21b0e98a",
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_e548bc5d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
         "patchSetId": 4
@@ -30,6 +48,30 @@
       "writtenOn": "2015-10-29T18:02:37Z",
       "side": 1,
       "message": "Use camel case for scala def.",
+      "range": {
+        "startLine": 145,
+        "startChar": 8,
+        "endLine": 145,
+        "endChar": 38
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_5a2cdb47",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_e548bc5d",
       "range": {
         "startLine": 145,
         "startChar": 8,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_9a1d9312",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_059cd0bf",
+      "range": {
+        "startLine": 97,
+        "startChar": 4,
+        "endLine": 97,
+        "endChar": 84
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_6181018f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
         "patchSetId": 4
@@ -76,6 +142,30 @@
       "writtenOn": "2015-10-29T17:12:17Z",
       "side": 1,
       "message": "looks like this should be in JIRA rather than code (less likely to get done)",
+      "range": {
+        "startLine": 44,
+        "startChar": 3,
+        "endLine": 45,
+        "endChar": 73
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_dff9bd4e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "Created a JIRA ticket for this and referred to the ticket in the TODO.",
+      "parentUuid": "9ab29df4_6181018f",
       "range": {
         "startLine": 44,
         "startChar": 3,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_2eac4ca0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_c51d7868",
+      "range": {
+        "startLine": 46,
+        "startChar": 6,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_817e15ad",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
         "patchSetId": 4
@@ -122,6 +236,30 @@
       "writtenOn": "2015-10-29T17:12:17Z",
       "side": 1,
       "message": "The scope of this synchronized looks excessive. What exactly do you want to thread-protect?",
+      "range": {
+        "startLine": 62,
+        "startChar": 27,
+        "endLine": 62,
+        "endChar": 42
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_eeba54e0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "No synchronized blocks are needed anymore because we exclusively use Zookeeper locks.",
+      "parentUuid": "9ab29df4_817e15ad",
       "range": {
         "startLine": 62,
         "startChar": 27,
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_2eb52cee",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "This is something to be discussed but if I use ZK locks things need to be blocking.",
+      "parentUuid": "9ab29df4_c14f2d91",
+      "range": {
+        "startLine": 64,
+        "startChar": 59,
+        "endLine": 64,
+        "endChar": 67
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_e1443176",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
         "patchSetId": 4
@@ -168,6 +330,30 @@
       "writtenOn": "2015-10-29T17:12:17Z",
       "side": 1,
       "message": "ditto, this is blocking, you want:\n\nstore.get.andThen { store.update }.recover",
+      "range": {
+        "startLine": 65,
+        "startChar": 16,
+        "endLine": 65,
+        "endChar": 28
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_8ecb9871",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "same comment.",
+      "parentUuid": "9ab29df4_e1443176",
       "range": {
         "startLine": 65,
         "startChar": 16,
@@ -203,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_ba0337b7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "I now use a zk lock to perform the get and update to ensure these two operations are executed atomically. This forces it to be blocking however...",
+      "parentUuid": "9ab29df4_41095d30",
+      "range": {
+        "startLine": 71,
+        "startChar": 24,
+        "endLine": 71,
+        "endChar": 72
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_a131590d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
         "patchSetId": 4
@@ -214,6 +424,30 @@
       "writtenOn": "2015-10-29T17:12:17Z",
       "side": 1,
       "message": "This is for devs, not users. It should be something like \"Pool update could not be updated .. \"",
+      "range": {
+        "startLine": 80,
+        "startChar": 34,
+        "endLine": 81,
+        "endChar": 42
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_3a21e79f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_a131590d",
       "range": {
         "startLine": 80,
         "startChar": 34,
@@ -249,6 +483,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_9a3753e3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_415b1d54",
+      "range": {
+        "startLine": 84,
+        "startChar": 29,
+        "endLine": 84,
+        "endChar": 43
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_61582157",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
         "patchSetId": 4
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_ba3417df",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_61582157",
+      "range": {
+        "startLine": 86,
+        "startChar": 30,
+        "endLine": 86,
+        "endChar": 61
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_8155351f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
         "patchSetId": 4
@@ -283,6 +565,30 @@
       "writtenOn": "2015-10-29T17:12:17Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 88,
+        "startChar": 32,
+        "endLine": 88,
+        "endChar": 55
+      },
+      "revId": "ae3c9769b3c952224cb9799ebb41597f8cae0eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_da31cbed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/PoolUpdater.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T10:41:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_8155351f",
       "range": {
         "startLine": 88,
         "startChar": 32,
