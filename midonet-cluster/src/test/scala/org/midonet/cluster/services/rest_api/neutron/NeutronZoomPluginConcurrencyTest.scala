@@ -26,15 +26,15 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
-import org.mockito.Mockito
 import org.mockito.Matchers.{any => Any}
+import org.mockito.Mockito
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 import rx.Observable
 
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.data.storage.{PersistenceOp, Storage}
+import org.midonet.cluster.data.storage.{PersistenceOp, Storage, Transaction}
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.C3POStorageManager
@@ -76,6 +76,7 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
         override def multi(ops: Seq[PersistenceOp]): Unit = {
             threadUnsafeCounter = threadUnsafeCounter + 1
         }
+        override def transaction(): Transaction = ???
         override def isRegistered(clazz: Class[_]): Boolean = ???
         override def observable[T](clazz: Class[T], id: Any)
         : Observable[T] = ???
