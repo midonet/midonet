@@ -17,7 +17,7 @@
 package org.midonet.cluster.data.storage
 
 import java.util
-import java.util.UUID
+import java.util.{ConcurrentModificationException, UUID}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Await, Future, ExecutionContext}
@@ -375,7 +375,8 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
             val bridge = createPojoBridge()
             storage.create(bridge)
             storage.multi(List(DeleteOp(classOf[PojoBridge], bridge.id),
-                               DeleteOp(classOf[PojoBridge], bridge.id, true)))
+                               DeleteOp(classOf[PojoBridge], bridge.id,
+                                        ignoreIfNotExists = true)))
         }
 
         scenario("Test delete of exists on deleted multi Protocol Buffers") {
@@ -383,7 +384,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
             storage.create(network)
             storage.multi(List(DeleteOp(classOf[Network], network.getId.asJava),
                                DeleteOp(classOf[Network], network.getId.asJava,
-                                        true)))
+                                        ignoreIfNotExists = true)))
         }
 
         scenario("Test multi with redundant delete if exists Java") {
@@ -395,7 +396,8 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
             // to the backend ZooKeeper.
             storage.multi(List(CreateOp(chain), CreateOp(rule)))
             storage.multi(List(DeleteOp(classOf[PojoChain], chain.id),
-                               DeleteOp(classOf[PojoRule], rule.id, true)))
+                               DeleteOp(classOf[PojoRule], rule.id,
+                                        ignoreIfNotExists = true)))
         }
 
         scenario("Test multi with redundant delete if exists Protocol Buffers") {
@@ -407,7 +409,8 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
             // to the backend ZooKeeper.
             storage.multi(List(CreateOp(chain), CreateOp(rule)))
             storage.multi(List(DeleteOp(classOf[Chain], chain.getId.asJava),
-                               DeleteOp(classOf[Rule], rule.getId.asJava, true)))
+                               DeleteOp(classOf[Rule], rule.getId.asJava,
+                                        ignoreIfNotExists = true)))
         }
     }
 
