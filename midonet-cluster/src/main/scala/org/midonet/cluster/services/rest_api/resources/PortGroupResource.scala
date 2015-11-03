@@ -21,7 +21,6 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -29,7 +28,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Port, PortGroup, PortGroupPort}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
 
 @ApiResource(version = 1)
 @Path("port_groups")
@@ -45,27 +44,26 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, O
 class PortGroupResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[PortGroup](resContext) {
 
-    protected override def listFilter(portGroups: Seq[PortGroup])
-    : Future[Seq[PortGroup]] = {
+    protected override def listFilter(portGroups: Seq[PortGroup]): Seq[PortGroup] = {
         val portIdStr = uriInfo.getQueryParameters.getFirst("port_id")
         val portId = if (portIdStr == null) null else UUID.fromString(portIdStr)
         val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
-        Future.successful(if ((portId ne null) && (tenantId ne null))
-                              portGroups filter { portGroup =>
-                                  portGroup.portIds.contains(portId) &&
-                                  portGroup.tenantId == tenantId
-                              }
-                          else if (portId ne null)
-                              portGroups filter { _.portIds.contains(portId) }
-                          else if (tenantId ne null)
-                              portGroups filter { _.tenantId == tenantId }
-                          else
-                              portGroups)
+        if ((portId ne null) && (tenantId ne null))
+            portGroups filter { portGroup =>
+            portGroup.portIds.contains(portId) &&
+            portGroup.tenantId == tenantId
+        }
+        else if (portId ne null)
+            portGroups filter { _.portIds.contains(portId) }
+        else if (tenantId ne null)
+            portGroups filter { _.tenantId == tenantId }
+        else
+            portGroups
     }
 
-    protected override def updateFilter(to: PortGroup, from: PortGroup): Ops = {
+    protected override def updateFilter(to: PortGroup, from: PortGroup): Seq[Multi] = {
         to.update(from)
-        NoOps
+        Seq.empty
     }
 
     @Path("{id}/ports")
@@ -84,15 +82,13 @@ class PortPortGroupResource @Inject()(portId: UUID,
     @Produces(Array(APPLICATION_PORTGROUP_PORT_COLLECTION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[PortGroupPort] = {
-        getResource(classOf[Port], portId).map(_.portGroupIds.asScala.map(id => {
+        getResource(classOf[Port], portId).portGroupIds.asScala.map(id => {
             val portGroupPort = new PortGroupPort
             portGroupPort.portId = portId
             portGroupPort.portGroupId = id
             portGroupPort.setBaseUri(resContext.uriInfo.getBaseUri)
             portGroupPort
-        }))
-            .getOrThrow
-            .asJava
+        }).asJava
     }
 
 }

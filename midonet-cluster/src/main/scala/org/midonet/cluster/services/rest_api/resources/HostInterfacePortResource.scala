@@ -29,12 +29,10 @@ import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
-import org.midonet.cluster.rest_api.validation.MessageProperty
 import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, HOST_INTERFACE_IS_USED, PORT_ALREADY_BOUND, getMessage}
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
-import org.midonet.cluster.util.UUIDUtil
 
 @RequestScoped
 class HostInterfacePortResource @Inject()(hostId: UUID,
@@ -47,24 +45,18 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
                      @HeaderParam("Accept") accept: String)
     : HostInterfacePort = {
         val portId = UUID.fromString(id)
-        getResource(classOf[Host], hostId)
-            .flatMap(_.portIds.asScala
-                         .find(_ == portId)
-                         .map(getResource(classOf[HostInterfacePort], _))
-                         .getOrElse(throw new NotFoundHttpException(
-                            "host interface port not found")))
-            .getOrThrow
+        getResource(classOf[Host], hostId).portIds.asScala
+            .find(_ == portId)
+            .map(getResource(classOf[HostInterfacePort], _))
+            .getOrElse(throw new NotFoundHttpException("Host interface port not found"))
     }
 
     @GET
     @Produces(Array(APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[HostInterfacePort] = {
-        getResource(classOf[Host], hostId)
-            .flatMap(host => listResources(classOf[HostInterfacePort],
-                                           host.portIds.asScala))
-            .getOrThrow
-            .asJava
+        val host = getResource(classOf[Host], hostId)
+        listResources(classOf[HostInterfacePort], host.portIds.asScala).asJava
     }
 
     @POST
@@ -100,23 +92,21 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
                 case _ =>
             }
 
-        getResource(classOf[Port], binding.portId).map(port => {
-            binding.setBaseUri(resContext.uriInfo.getBaseUri)
-            binding.create(hostId)
-            port.hostId = hostId
-            port.interfaceName = binding.interfaceName
-            updateResource(port, Response.created(binding.getUri).build())
-        }).getOrThrow
+        val port = getResource(classOf[Port], binding.portId)
+        binding.setBaseUri(resContext.uriInfo.getBaseUri)
+        binding.create(hostId)
+        port.hostId = hostId
+        port.interfaceName = binding.interfaceName
+        updateResource(port, Response.created(binding.getUri).build())
     }
 
     @DELETE
     @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = {
-        getResource(classOf[Port], id).map(port => {
-            port.hostId = null
-            port.interfaceName = null
-            updateResource(port, MidonetResource.OkNoContentResponse)
-        }).getOrThrow
+        val port = getResource(classOf[Port], id)
+        port.hostId = null
+        port.interfaceName = null
+        updateResource(port, MidonetResource.OkNoContentResponse)
     }
 
 }
