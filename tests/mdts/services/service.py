@@ -42,7 +42,6 @@ class Service(object):
             timeout -= wait_time
             time.sleep(wait_time)
 
-
     def _update_container_info(self):
         self.info = cli.inspect_container(self.container_id)
 
@@ -136,19 +135,33 @@ class Service(object):
         return test_logs
 
     def start(self, wait=False):
-        self.exec_command('service %s start' % self.get_service_name())
-        if wait:
-            self.wait_for_status('up')
+        return self.manage_service('start', wait=wait)
 
     def stop(self, wait=False):
-        self.exec_command('service %s stop' % self.get_service_name())
-        if wait:
-            self.wait_for_status('down')
+        return self.manage_service('stop', wait=wait)
 
-    def restart(self, wait=False):
-        self.exec_command('service %s restart' % self.get_service_name())
-        if wait:
-            self.wait_for_status('up')
+    def restart(self, wait_time=10, wait=False):
+        # restart does not always sets status to stop so let's wait a bit
+        time.sleep(wait_time)
+        return self.manage_service('restart', wait=wait)
+
+    def manage_service(self, op="start",
+                       wait=False, timeout=120,
+                       wait_time=5, raise_error=True):
+        # helper function
+        def return_status(operation):
+            if "start" in operation:
+                return "up"
+            else:
+                return "down"
+        if not wait:
+            timeout = 1
+        status = return_status(op)
+        self.exec_command('service %s %s' % self.get_service_name() % op)
+        return self.wait_for_status(status=status,
+                                    timeout=timeout,
+                                    wait_time=wait_time,
+                                    raise_error=raise_error)
 
     def create_provided(self, **iface_kwargs):
         iface_kwargs['compute_host'] = self
@@ -169,7 +182,7 @@ class Service(object):
                  else: the result of the command
         """
         # Use raw representation to account for " and ' inside the cmd
-        #cmd = "sh -c \"%s\"" % cmd
+        # cmd = "sh -c \"%s\"" % cmd
 
         LOG.debug('[%s] executing command: %s',
                   self.get_name(),
@@ -183,7 +196,7 @@ class Service(object):
 
         result = cli.exec_start(exec_id, detach=detach, stream=stream)
         if stream:
-            #self._ensure_command_running(exec_id) # TODO
+            # self._ensure_command_running(exec_id) # TODO
             # Result is a data blocking stream, exec_id for future checks
             return result, exec_id
 
@@ -194,12 +207,15 @@ class Service(object):
         # return_code is the exit code
         return result
 
-    def ensure_command_running(self, exec_id, timeout=20):
+    def ensure_command_running(self, exec_id, timeout=20, raise_error=True):
         wait_time = 0.5
         while not cli.exec_inspect(exec_id)['Running']:
             if timeout == 0:
                 LOG.debug('Command %s did not start' % exec_id)
-                raise Exception('Command %s did not start' % exec_id)
+                if raise_error:
+                    raise Exception('Command %s did not start' % exec_id)
+                else:
+                    return False
             timeout -= wait_time
             time.sleep(wait_time)
         LOG.debug('Command started')
@@ -235,16 +251,23 @@ class Service(object):
         ))
         return exec_info['ExitCode']
 
-    def wait_for_status(self, status, timeout=120, wait_time=5):
+    def wait_for_status(self, status, timeout=120, wait_time=5, raise_error=True):
         init_timeout = timeout
         while self.get_service_status() != status:
             if init_timeout == 0:
-                raise RuntimeError("Service %s: timeout waiting to be %s" % (
-                    self.get_hostname(),
-                    status))
+                if raise_error:
+                    raise RuntimeError("Service %s: timeout waiting to be %s" % (
+                        self.get_hostname(),
+                        status))
+                else:
+                    LOG.debug("Service %s: timeout waiting to be %s" % (
+                        self.get_hostname(),
+                        status))
+                    return False
             init_timeout -= wait_time
             time.sleep(wait_time)
         LOG.debug("Service %s: status is now %s" % (self.get_name(), status))
+        return True
 
     # TODO: Make it generic so you can fail whatever component
     # (even packet failure in an interface)
