@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_d89b8ec7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/BackendUtilTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-03T16:48:03Z",
+      "side": 1,
+      "message": "@RunWith(classOf[JUnitRunner])",
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
