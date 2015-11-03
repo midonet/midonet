@@ -21,12 +21,10 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import scala.collection.JavaConversions._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.State.VtepConnectionState._
 import org.midonet.cluster.models.State.{VtepConfiguration, VtepConnectionState}
 import org.midonet.cluster.rest_api._
@@ -36,7 +34,7 @@ import org.midonet.cluster.rest_api.models.Vtep.ConnectionState._
 import org.midonet.cluster.rest_api.models.{TunnelZone, Vtep}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
@@ -61,15 +59,15 @@ class VtepResource @Inject()(resContext: ResourceContext,
         new VtepBindingResource(vtepId, resContext, cnxnProvider)
     }
 
-    protected override def getFilter(vtep: Vtep): Future[Vtep] = {
+    protected override def getFilter(vtep: Vtep): Vtep = {
         initVtep(vtep)
     }
 
-    protected override def listFilter(vteps: Seq[Vtep]): Future[Seq[Vtep]] = {
-        Future.sequence(for (vtep <- vteps) yield initVtep(vtep))
+    protected override def listFilter(vteps: Seq[Vtep]): Seq[Vtep] = {
+        for (vtep <- vteps) yield initVtep(vtep)
     }
 
-    protected override def createFilter(vtep: Vtep): Ops = {
+    protected override def createFilter(vtep: Vtep): Seq[Multi] = {
 
         throwIfViolationsOn(vtep)
 
@@ -79,26 +77,25 @@ class VtepResource @Inject()(resContext: ResourceContext,
             throw new BadRequestHttpException(msg)
         }
 
-        getResource(classOf[TunnelZone], vtep.tunnelZoneId) recover {
-            // Validate the tunnel zone exists.
-            case e: NotFoundException =>
+        // Validate the tunnel zone exists.
+        val tunnelZone = try {
+            getResource(classOf[TunnelZone], vtep.tunnelZoneId)
+        } catch {
+            case e: NotFoundHttpException =>
                 val msg = getMessage(TUNNEL_ZONE_ID_IS_INVALID)
                 throw new BadRequestHttpException(msg)
-        } flatMap { tunnelZone =>
-            // Validate this is a VTEP tunnel-zone
-            if (tunnelZone.`type` != TunnelZoneType.vtep) {
-                val msg = getMessage(TUNNEL_ZONE_NOT_VTEP)
-                throw new BadRequestHttpException(msg)
-            }
-
-            listResources(classOf[Vtep])
-        } map { vteps =>
-            // Validate there is no conflict with existing VTEPs.
-            for (v <- vteps if v.managementIp == vtep.managementIp) {
-                val msg = getMessage(VTEP_EXISTS, vtep.managementIp)
-                throw new ConflictHttpException(msg)
-            }
-        } getOrThrow
+        }
+        // Validate this is a VTEP tunnel-zone
+        if (tunnelZone.`type` != TunnelZoneType.vtep) {
+            val msg = getMessage(TUNNEL_ZONE_NOT_VTEP)
+            throw new BadRequestHttpException(msg)
+        }
+        val vteps = listResources(classOf[Vtep])
+        // Validate there is no conflict with existing VTEPs.
+        for (v <- vteps if v.managementIp == vtep.managementIp) {
+            val msg = getMessage(VTEP_EXISTS, vtep.managementIp)
+            throw new ConflictHttpException(msg)
+        }
 
         // Verify there is no conflict between hosts and the VTEP IPs.
         val mgmtIp = IPv4Addr.fromString(vtep.managementIp)
@@ -139,43 +136,39 @@ class VtepResource @Inject()(resContext: ResourceContext,
         }
 
         vtep.create()
-        NoOps
+        Seq.empty
     }
 
-    protected override def deleteFilter(id: String): Ops = {
-        getResource(classOf[Vtep], id) map { vtep =>
-            // Validate the VTEP has no bindings.
-            if (vtep.bindings.size() > 0) {
-                val msg = getMessage(VTEP_HAS_BINDINGS, vtep.managementIp)
-                throw new BadRequestHttpException(msg)
-            }
-        } getOrThrow
-
-        NoOps
-    }
-
-    private def initVtep(vtep: Vtep): Future[Vtep] = {
-        getConfiguration(vtep.id) flatMap { config =>
-            vtep.name = config.getName
-            vtep.description = config.getDescription
-            vtep.tunnelIpAddrs = config.getTunnelAddressesList.map(_.getAddress)
-            getConnectionState(vtep.id)
-        } map { connectionState =>
-            vtep.connectionState = connectionState match {
-                case VTEP_DISCONNECTED => disconnected
-                case VTEP_CONNECTED => connected
-                case VTEP_ERROR => error
-            }
-            vtep
+    protected override def deleteFilter(id: String): Seq[Multi] = {
+        val vtep = getResource(classOf[Vtep], id)
+        // Validate the VTEP has no bindings.
+        if (vtep.bindings.size() > 0) {
+            val msg = getMessage(VTEP_HAS_BINDINGS, vtep.managementIp)
+            throw new BadRequestHttpException(msg)
         }
+        Seq.empty
     }
 
-    private def getConfiguration(vtepId: UUID): Future[VtepConfiguration] = {
-        resContext.backend.stateStore.getVtepConfig(vtepId).asFuture
+    private def initVtep(vtep: Vtep): Vtep = {
+        val config = getConfiguration(vtep.id)
+        val connectionState = getConnectionState(vtep.id)
+        vtep.name = config.getName
+        vtep.description = config.getDescription
+        vtep.tunnelIpAddrs = config.getTunnelAddressesList.map(_.getAddress)
+        vtep.connectionState = connectionState match {
+            case VTEP_DISCONNECTED => disconnected
+            case VTEP_CONNECTED => connected
+            case VTEP_ERROR => error
+        }
+        vtep
     }
 
-    private def getConnectionState(vtepId: UUID): Future[VtepConnectionState] = {
-        resContext.backend.stateStore.getVtepConnectionState(vtepId).asFuture
+    private def getConfiguration(vtepId: UUID): VtepConfiguration = {
+        resContext.backend.stateStore.getVtepConfig(vtepId).asFuture.getOrThrow
+    }
+
+    private def getConnectionState(vtepId: UUID): VtepConnectionState = {
+        resContext.backend.stateStore.getVtepConnectionState(vtepId).asFuture.getOrThrow
     }
 
 }

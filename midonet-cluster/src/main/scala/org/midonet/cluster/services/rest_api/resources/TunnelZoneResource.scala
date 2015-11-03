@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
@@ -28,13 +27,12 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.rest_api.validation.MessageProperty
-import org.midonet.cluster.rest_api.{ConflictHttpException, BadRequestHttpException}
+import org.midonet.cluster.rest_api.ConflictHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.TunnelZone
 import org.midonet.cluster.rest_api.validation.MessageProperty.{UNIQUE_TUNNEL_ZONE_NAME_TYPE, getMessage}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
 import org.midonet.cluster.util.UUIDUtil
 
 @ApiResource(version = 1)
@@ -57,17 +55,17 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
         new TunnelZoneHostResource(id, resContext)
     }
 
-    protected override def createFilter(tz: TunnelZone): Ops = {
+    protected override def createFilter(tz: TunnelZone): Seq[Multi] = {
         throwIfTunnelZoneNameUsed(tz)
         tz.create()
-        NoOps
+        Seq.empty
     }
 
     protected override def updateFilter(to: TunnelZone, from: TunnelZone)
-    : Ops = {
+    : Seq[Multi] = {
         throwIfTunnelZoneNameUsed(to)
         to.update(from)
-        NoOps
+        Seq.empty
     }
 
     /** Make sure that tunnel zone host entries in this tunnel zone have the
@@ -75,7 +73,7 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
       */
     private def fillTzDetails(tz: TunnelZone): TunnelZone = {
         if (tz.tzHosts != null) {
-            tz.tzHosts.foreach { tzh =>
+            tz.tzHosts.asScala.foreach { tzh =>
                 tzh.tunnelZoneId = tz.id
                 tzh.setBaseUri(uriInfo.getBaseUri)
             }
@@ -83,18 +81,17 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
         tz
     }
 
-    override protected def getFilter(tz: TunnelZone): Future[TunnelZone] = {
+    override protected def getFilter(tz: TunnelZone): TunnelZone = {
         fillTzDetails(tz)
-        Future.successful(tz)
+        tz
     }
 
-    override protected def listFilter(list: Seq[TunnelZone])
-    : Future[Seq[TunnelZone]] = {
+    override protected def listFilter(list: Seq[TunnelZone]): Seq[TunnelZone] = {
         list.foreach(fillTzDetails)
-        Future.successful(list)
+        list
     }
 
-    protected override def deleteFilter(id: String): Ops = {
+    protected override def deleteFilter(id: String): Seq[Multi] = {
         val vteps = backend.store.getAll(classOf[Topology.Vtep]).getOrThrow
         val matchingVteps = vteps.filter { v =>
             UUIDUtil.fromProto(v.getTunnelZoneId).toString == id
@@ -106,7 +103,7 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
                                             "VTEPs before deleting this " +
                                             "tunnel zone: " + ids)
         }
-        NoOps
+        Seq.empty
     }
 
     private def throwIfTunnelZoneNameUsed(tz: TunnelZone): Unit = {

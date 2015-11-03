@@ -30,7 +30,7 @@ import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Pool, PoolMember}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Ids, NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
 
 @ApiResource(version = 1)
 @Path("pool_members")
@@ -47,9 +47,9 @@ class PoolMemberResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[PoolMember](resContext) {
 
     protected override def updateFilter(to: PoolMember, from: PoolMember)
-    : Ops = {
+    : Seq[Multi] = {
         to.update(from)
-        NoOps
+        Seq.empty
     }
 
     @DELETE
@@ -73,13 +73,13 @@ class PoolMemberResource @Inject()(resContext: ResourceContext)
 class PoolPoolMemberResource @Inject()(poolId: UUID, resCtx: ResourceContext)
     extends MidonetResource[PoolMember](resCtx) {
 
-    protected override def listIds: Ids = {
-        getResource(classOf[Pool], poolId) map { _.poolMemberIds.asScala }
+    protected override def listIds: Seq[Any] = {
+        getResource(classOf[Pool], poolId).poolMemberIds.asScala
     }
 
-    protected override def createFilter(poolMember: PoolMember): Ops = {
+    protected override def createFilter(poolMember: PoolMember): Seq[Multi] = {
         poolMember.create(poolId)
-        NoOps
+        Seq.empty
     }
 
 }

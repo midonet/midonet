@@ -23,7 +23,6 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -58,16 +57,16 @@ class HostResource @Inject()(resContext: ResourceContext)
                 Status.FORBIDDEN,
                 getMessage(HOST_DELETION_NOT_ALLOWED_ACTIVE, id))
         }
-        val host = getResource(classOf[Host], id).getOrThrow
+        val host = getResource(classOf[Host], id)
         if ((host.portIds ne null) && !host.portIds.isEmpty) {
             return buildErrorResponse(
                 Status.FORBIDDEN,
                 getMessage(HOST_DELETION_NOT_ALLOWED_BINDINGS,
                            id, Integer.valueOf(host.portIds.size())))
         }
-        var ops = for (tunnelZoneId <- host.tunnelZoneIds.asScala) yield {
-            val tunnelZone =
-                getResource(classOf[TunnelZone], tunnelZoneId).getOrThrow
+        val tunnelZones = getResources(classOf[TunnelZone],
+                                       host.tunnelZoneIds.asScala)
+        var ops = for (tunnelZone <- tunnelZones) yield {
             tunnelZone.removeHost(host.id)
             Update(tunnelZone).asInstanceOf[Multi]
         }
@@ -85,16 +84,15 @@ class HostResource @Inject()(resContext: ResourceContext)
 
         // We only allow modifying the Flooding Proxy in this method, all other
         // updates are disallowed.
-        getResource(classOf[Host], id).map(current =>
-            if (host.floodingProxyWeight != null) {
-                current.floodingProxyWeight = host.floodingProxyWeight
-                updateResource(current, OkResponse)
-            } else {
-                buildErrorResponse(
-                    Status.BAD_REQUEST,
-                    getMessage(HOST_FLOODING_PROXY_WEIGHT_IS_NULL))
-            }
-        ).getOrThrow
+        val current = getResource(classOf[Host], id)
+        if (host.floodingProxyWeight != null) {
+            current.floodingProxyWeight = host.floodingProxyWeight
+            updateResource(current, OkResponse)
+        } else {
+            buildErrorResponse(
+                Status.BAD_REQUEST,
+                getMessage(HOST_FLOODING_PROXY_WEIGHT_IS_NULL))
+        }
     }
 
     @Path("{id}/interfaces")
@@ -107,17 +105,17 @@ class HostResource @Inject()(resContext: ResourceContext)
         new HostInterfacePortResource(hostId, resContext)
     }
 
-    protected override def getFilter(host: Host): Future[Host] = {
-        Future.successful(initHost(host))
+    protected override def getFilter(host: Host): Host = {
+        initHost(host)
     }
 
-    protected override def listFilter(hosts: Seq[Host]): Future[Seq[Host]] = {
+    protected override def listFilter(hosts: Seq[Host]): Seq[Host] = {
         hosts foreach initHost
-        Future.successful(hosts)
+        hosts
     }
 
     private def initHost(host: Host): Host = {
-        val interfaces = getInterfaces(host.id.toString).getOrThrow
+        val interfaces = getInterfaces(host.id.toString)
         interfaces.foreach { i =>
             i.hostId = host.id
             i.setBaseUri(resContext.uriInfo.getBaseUri)
@@ -131,12 +129,12 @@ class HostResource @Inject()(resContext: ResourceContext)
 
     private def isAlive(id: String): Boolean = {
         getResourceState(id.toString, classOf[Host], id, MidonetBackend.AliveKey)
-            .getOrThrow.nonEmpty
+            .nonEmpty
     }
 
-    private def getInterfaces(hostId: String): Future[Seq[Interface]] = {
+    private def getInterfaces(hostId: String): Seq[Interface] = {
         getResourceState(hostId.toString,classOf[Host], hostId,
-                         MidonetBackend.HostKey).map {
+                         MidonetBackend.HostKey) match {
             case SingleValueKey(_, Some(value), _) =>
                 val builder = State.HostState.newBuilder()
                 TextFormat.merge(value, builder)
