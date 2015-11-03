@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_135969fe",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-03T20:45:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_189a6663",
+      "range": {
+        "startLine": 170,
+        "startChar": 12,
+        "endLine": 172,
+        "endChar": 68
+      },
+      "revId": "a59671586cbfe8a94f611ae902123e23c55a62e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_d8b62edc",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-11-03T18:04:35Z",
       "side": 1,
       "message": "why should this fail? It\u0027s the first get inside the transaction so as long as you get the latest value in storage (bridge2) before you start modifying it we\u0027re good no?",
+      "range": {
+        "startLine": 184,
+        "startChar": 16,
+        "endLine": 184,
+        "endChar": 72
+      },
+      "revId": "a59671586cbfe8a94f611ae902123e23c55a62e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_5372017d",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-03T20:45:28Z",
+      "side": 1,
+      "message": "Well, this is because we built the transaction manager where the last transaction id (the zxid) is read when we create the transaction instance, not when we read the first time. The get verifies that the mzxid of the znode is smaller than this upper bound, which here is not true. Well, we could modify the TransactionManager to create the lockPath on the first op rather than when creating the transaction.",
+      "parentUuid": "9ab29df4_d8b62edc",
       "range": {
         "startLine": 184,
         "startChar": 16,
