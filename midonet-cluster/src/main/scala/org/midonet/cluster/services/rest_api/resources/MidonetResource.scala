@@ -58,7 +58,7 @@ import org.midonet.util.reactivex._
 object MidonetResource {
 
     private final val log = getLogger(restApiLog)
-    private final val StorageAttempts = 3
+    private final val StorageAttempts = 10
 
     type Ids = Future[Seq[Any]]
     type Ops = Future[Seq[Multi]]
