@@ -17,7 +17,7 @@
 package org.midonet.cluster.data.storage
 
 import java.util
-import java.util.UUID
+import java.util.{ConcurrentModificationException, UUID}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Await, Future, ExecutionContext}
@@ -375,7 +375,8 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
             val bridge = createPojoBridge()
             storage.create(bridge)
             storage.multi(List(DeleteOp(classOf[PojoBridge], bridge.id),
-                               DeleteOp(classOf[PojoBridge], bridge.id, true)))
+                               DeleteOp(classOf[PojoBridge], bridge.id,
+                                        ignoreIfNotExists = true)))
         }
 
         scenario("Test delete of exists on deleted multi Protocol Buffers") {
@@ -383,7 +384,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
             storage.create(network)
             storage.multi(List(DeleteOp(classOf[Network], network.getId.asJava),
                                DeleteOp(classOf[Network], network.getId.asJava,
-                                        true)))
+                                        ignoreIfNotExists = true)))
         }
 
         scenario("Test multi with redundant delete if exists Java") {
@@ -395,7 +396,8 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
             // to the backend ZooKeeper.
             storage.multi(List(CreateOp(chain), CreateOp(rule)))
             storage.multi(List(DeleteOp(classOf[PojoChain], chain.id),
-                               DeleteOp(classOf[PojoRule], rule.id, true)))
+                               DeleteOp(classOf[PojoRule], rule.id,
+                                        ignoreIfNotExists = true)))
         }
 
         scenario("Test multi with redundant delete if exists Protocol Buffers") {
@@ -407,7 +409,8 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
             // to the backend ZooKeeper.
             storage.multi(List(CreateOp(chain), CreateOp(rule)))
             storage.multi(List(DeleteOp(classOf[Chain], chain.getId.asJava),
-                               DeleteOp(classOf[Rule], rule.getId.asJava, true)))
+                               DeleteOp(classOf[Rule], rule.getId.asJava,
+                                        ignoreIfNotExists = true)))
         }
     }
 
@@ -1104,6 +1107,327 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
 
             chain2Sub.awaitOnNext(1, 1 second) shouldBe true
             chain2Sub.getOnNextEvents.get(0).name shouldBe "chain2"
+        }
+    }
+
+    feature("Test transactions") {
+        scenario("Get fails on non-existing object") {
+            val tx = storage.transaction()
+            intercept[NotFoundException] {
+                tx.get(classOf[PojoBridge], UUID.randomUUID())
+            }
+        }
+
+        scenario("Get succeeds on existing object") {
+            val bridge = createPojoBridge()
+            storage.create(bridge)
+            val tx = storage.transaction()
+            tx.get(classOf[PojoBridge], bridge.id) shouldBe bridge
+        }
+
+        scenario("Get returns a transaction-local object") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+            val tx = storage.transaction()
+            tx.get(classOf[PojoBridge], bridge1.id) shouldBe bridge1
+
+            val bridge2 = createPojoBridge(id = bridge1.id, name = "name")
+            storage.update(bridge2)
+            tx.get(classOf[PojoBridge], bridge1.id) shouldBe bridge1
+        }
+
+        scenario("Get fails if an object is modified during the transaction") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+            val tx = storage.transaction()
+
+            val bridge2 = createPojoBridge(id = bridge1.id, name = "name")
+            storage.update(bridge2)
+
+            intercept[ConcurrentModificationException] {
+                tx.get(classOf[PojoBridge], bridge1.id) shouldBe bridge1
+            }
+        }
+
+        scenario("Get all fails on non existing objects") {
+            val tx = storage.transaction()
+            intercept[NotFoundException] {
+                tx.getAll(classOf[PojoBridge],
+                          Seq(UUID.randomUUID(), UUID.randomUUID()))
+            }
+        }
+
+        scenario("Get all fails if some objects do not exist") {
+            val bridge = createPojoBridge()
+            storage.create(bridge)
+
+            val tx = storage.transaction()
+            intercept[NotFoundException] {
+                tx.getAll(classOf[PojoBridge],
+                          Seq(bridge.id, UUID.randomUUID()))
+            }
+        }
+
+        scenario("Get all succeeds if all objects exist") {
+            val bridge1 = createPojoBridge()
+            val bridge2 = createPojoBridge()
+            storage.multi(Seq(CreateOp(bridge1), CreateOp(bridge2)))
+
+            val tx = storage.transaction()
+            tx.getAll(classOf[PojoBridge], Seq(bridge1.id, bridge2.id)) should contain allOf(
+                bridge1, bridge2)
+        }
+
+        scenario("Get all returns transaction-local objects") {
+            val bridge1 = createPojoBridge()
+            val bridge2 = createPojoBridge()
+            storage.multi(Seq(CreateOp(bridge1), CreateOp(bridge2)))
+
+            val tx = storage.transaction()
+            tx.get(classOf[PojoBridge], bridge1.id) shouldBe bridge1
+
+            val bridge3 = createPojoBridge(id = bridge1.id, name = "name")
+            storage.update(bridge3)
+            tx.getAll(classOf[PojoBridge], Seq(bridge1.id, bridge2.id)) should contain allOf(
+                bridge1, bridge2)
+        }
+
+        scenario("Get all fails if an object is modified during the transaction") {
+            val bridge1 = createPojoBridge()
+            val bridge2 = createPojoBridge()
+            storage.multi(Seq(CreateOp(bridge1), CreateOp(bridge2)))
+
+            val tx = storage.transaction()
+
+            val bridge3 = createPojoBridge(id = bridge1.id, name = "name")
+            storage.update(bridge3)
+
+            intercept[ConcurrentModificationException] {
+                tx.getAll(classOf[PojoBridge], Seq(bridge1.id, bridge2.id))
+            }
+        }
+
+        scenario("Create succeeds if object does not exist") {
+            val bridge = createPojoBridge()
+            val tx = storage.transaction()
+
+            tx.create(bridge)
+            await(storage.exists(classOf[PojoBridge], bridge.id)) shouldBe false
+            tx.get(classOf[PojoBridge], bridge.id) shouldBe bridge
+
+            tx.commit()
+            await(storage.get(classOf[PojoBridge], bridge.id)) shouldBe bridge
+        }
+
+        scenario("Create fails if the object exists") {
+            val bridge = createPojoBridge()
+            val tx = storage.transaction()
+
+            tx.create(bridge)
+            await(storage.exists(classOf[PojoBridge], bridge.id)) shouldBe false
+            tx.get(classOf[PojoBridge], bridge.id) shouldBe bridge
+
+            storage.create(bridge)
+            intercept[ObjectExistsException] {
+                tx.commit()
+            }
+        }
+
+        scenario("Update fails on non-existing object") {
+            val bridge = createPojoBridge()
+            val tx = storage.transaction()
+
+            intercept[NotFoundException] {
+                tx.update(bridge)
+            }
+        }
+
+        scenario("Update succeeds on existing object") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+
+            val bridge2 = createPojoBridge(id = bridge1.id, name = "name")
+            val tx = storage.transaction()
+            tx.update(bridge2)
+            tx.commit()
+
+            await(storage.get(classOf[PojoBridge], bridge1.id)) shouldBe bridge2
+        }
+
+        scenario("Update succeeds on transaction-local object") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+
+            val tx = storage.transaction()
+            val bridge2 = tx.get(classOf[PojoBridge], bridge1.id)
+            val bridge3 = createPojoBridge(id = bridge2.id, name = "name")
+            tx.update(bridge3)
+            tx.commit()
+
+            await(storage.get(classOf[PojoBridge], bridge1.id)) shouldBe bridge3
+        }
+
+        scenario("Update fails if the existing object is modified before get") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+
+            val tx = storage.transaction()
+            val bridge2 = createPojoBridge(id = bridge1.id, name = "name")
+            storage.update(bridge2)
+
+            intercept[ConcurrentModificationException] {
+                tx.get(classOf[PojoBridge], bridge1.id)
+            }
+        }
+
+        scenario("Update fails if the existing object is modified before commit") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+
+            val tx = storage.transaction()
+            val bridge2 = tx.get(classOf[PojoBridge], bridge1.id)
+
+            val bridge3 = createPojoBridge(id = bridge2.id, name = "name")
+            tx.update(bridge3)
+
+            val bridge4 = createPojoBridge(id = bridge2.id, name = "other")
+            storage.update(bridge4)
+
+            intercept[ConcurrentModificationException] {
+                tx.commit()
+            }
+        }
+
+        scenario("Update fails if the existing object is modified indirectly before commit") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+
+            val tx = storage.transaction()
+            val bridge2 = tx.get(classOf[PojoBridge], bridge1.id)
+
+            val bridge3 = createPojoBridge(id = bridge2.id, name = "name")
+            tx.update(bridge3)
+
+            val port = createPojoPort(bridgeId = bridge1.id)
+            storage.create(port)
+
+            intercept[ConcurrentModificationException] {
+                tx.commit()
+            }
+        }
+
+        scenario("Update fails if the existing object is deleted before commit") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+
+            val tx = storage.transaction()
+            val bridge2 = tx.get(classOf[PojoBridge], bridge1.id)
+
+            val bridge3 = createPojoBridge(id = bridge2.id, name = "name")
+            tx.update(bridge3)
+
+            storage.delete(classOf[PojoBridge], bridge1.id)
+
+            intercept[ConcurrentModificationException] {
+                tx.commit()
+            }
+        }
+
+        scenario("Update from two transactions only one succeeds") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+
+            val tx1 = storage.transaction()
+            val bridge1_1 = tx1.get(classOf[PojoBridge], bridge1.id)
+
+            val tx2 = storage.transaction()
+            val bridge2_1 = tx2.get(classOf[PojoBridge], bridge1.id)
+
+            val bridge1_2 = createPojoBridge(id = bridge1_1.id, name = "1")
+            tx1.update(bridge1_2)
+
+            val bridge2_2 = createPojoBridge(id = bridge2_1.id, name = "2")
+            tx2.update(bridge2_2)
+
+            tx1.commit()
+
+            intercept[ConcurrentModificationException] {
+                tx2.commit()
+            }
+        }
+
+        scenario("Delete fails on non-existing object") {
+            val tx = storage.transaction()
+            intercept[NotFoundException] {
+                tx.delete(classOf[PojoBridge], UUID.randomUUID())
+            }
+        }
+
+        scenario("Delete succeeds on existing object") {
+            val bridge = createPojoBridge()
+            storage.create(bridge)
+
+            val tx = storage.transaction()
+            tx.delete(classOf[PojoBridge], bridge.id)
+            tx.commit()
+
+            await(storage.exists(classOf[PojoBridge], bridge.id)) shouldBe false
+        }
+
+        scenario("Delete fails if the object is modified before delete") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+
+            val tx = storage.transaction()
+
+            val bridge2 = createPojoBridge(id = bridge1.id, name = "name")
+            storage.update(bridge2)
+
+            intercept[ConcurrentModificationException] {
+                tx.delete(classOf[PojoBridge], bridge1.id)
+            }
+        }
+
+        scenario("Delete fails of the object is modified before commit") {
+            val bridge1 = createPojoBridge()
+            storage.create(bridge1)
+
+            val tx = storage.transaction()
+            tx.delete(classOf[PojoBridge], bridge1.id)
+
+            val bridge2 = createPojoBridge(id = bridge1.id, name = "name")
+            storage.update(bridge2)
+
+            intercept[ConcurrentModificationException] {
+                tx.commit()
+            }
+        }
+
+        scenario("Delete fails if the object is deleted before delete") {
+            val bridge = createPojoBridge()
+            storage.create(bridge)
+
+            val tx = storage.transaction()
+
+            storage.delete(classOf[PojoBridge], bridge.id)
+
+            intercept[NotFoundException] {
+                tx.delete(classOf[PojoBridge], bridge.id)
+            }
+        }
+
+        scenario("Delete fails if the object is deleted before commit") {
+            val bridge = createPojoBridge()
+            storage.create(bridge)
+
+            val tx = storage.transaction()
+            tx.delete(classOf[PojoBridge], bridge.id)
+
+            storage.delete(classOf[PojoBridge], bridge.id)
+
+            intercept[ConcurrentModificationException] {
+                tx.commit()
+            }
         }
     }
 
