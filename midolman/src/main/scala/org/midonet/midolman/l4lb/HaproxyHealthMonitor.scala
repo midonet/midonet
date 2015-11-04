@@ -21,30 +21,27 @@ import java.nio.channels.IllegalSelectorException
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+import scala.collection.mutable
+import scala.concurrent.duration._
+import scala.util.control.NonFatal
+
 import akka.actor._
+
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.data.storage._
-import org.midonet.cluster.data.util.ZkOpLock
+import org.midonet.cluster.data.storage.{Storage, Transaction}
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
-import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
-import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus
+import org.midonet.cluster.models.Topology.{Host, Pool, PoolMember, Port, Route}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{CheckHealth, ConfigUpdate, _}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.AfUnix
-import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.process.ProcessHelper
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable
-import scala.collection.mutable.{HashSet, Set}
-import scala.concurrent.duration._
-import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
 
 /**
  * Actor that represents the interaction with Haproxy for health monitoring.
@@ -108,12 +105,11 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                            val lockFactory: ZookeeperLockFactory)
     extends Actor with ActorLogWithoutPath with Stash {
 
-
     implicit def system: ActorSystem = context.system
     implicit def executor = system.dispatcher
 
-    private var currentUpNodes = Set[UUID]()
-    private var currentDownNodes = Set[UUID]()
+    private var currentUpNodes = mutable.Set[UUID]()
+    private var currentDownNodes = mutable.Set[UUID]()
     private val healthMonitorName = config.id.toString.substring(0,8) +
                                     config.nsPostFix
     private var routerPortId: UUID = null
@@ -125,29 +121,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     override def logSource =
         s"org.midonet.l4lb.health-monitor.haproxy-${config.id}"
 
-    private def setPoolMappingStatus(poolId: UUID, status: PoolHMMappingStatus,
-                                     lockNeeded: Boolean = true,
-                                     rethrowException: Boolean = false)
-    : Unit = {
-        def ops(): Unit = {
-            val pool = store.get(classOf[Pool], poolId).await()
-            store.update(pool.toBuilder.setMappingStatus(status).build())
-        }
-        try {
-            if (lockNeeded) {
-                HealthMonitor.zkLock(lockFactory)(ops)
-            } else {
-                ops
-            }
-        } catch {
-            case NonFatal(e) =>
-                log.info("Unable to set the mapping status for pool: {} to: {}",
-                         Array(poolId, status, e):_*)
-                if (rethrowException) {
-                    throw e
-                }
-        }
-    }
 
     override def preStart(): Unit = {
         try {
@@ -160,12 +133,12 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             restartHaproxy(healthMonitorName, config.haproxyConfFileLoc,
                            config.haproxyPidFileLoc)
             system.scheduler.scheduleOnce(1 second, self, CheckHealth)
-            setPoolMappingStatus(config.id, ACTIVE, rethrowException = true)
+            setPoolMappingStatus(ACTIVE)
         } catch {
             case NonFatal(e) =>
                 log.error("Unable to create HAProxy health monitor for " +
                           config.haproxyConfFileLoc + ": " + e.getMessage)
-                setPoolMappingStatus(config.id, ERROR)
+                setPoolMappingStatus(ERROR)
                 manager ! SetupFailure
         }
     }
@@ -176,7 +149,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         HealthMonitor.cleanAndDeleteNamespace(healthMonitorName,
                                               config.nsPostFix,
                                               config.l4lbFileLocs)
-        setPoolMappingStatus(config.id, INACTIVE)
+        setPoolMappingStatus(INACTIVE)
     }
 
     def receive = {
@@ -191,27 +164,31 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                                          conf.haproxyConfFileLoc,
                                          conf.haproxyPidFileLoc)
                 }
-                HealthMonitor.zkLock(lockFactory) {
-                    // The vip may have changed. If so, we need to change the
-                    // routes on the router.
-                    if (config.vip != conf.vip) {
-                        if (routeId != null) {
-                            store.delete(classOf[Route], routeId)
-                            deleteIpTableRules(healthMonitorName, config.vip.ip)
+                // The vip may have changed. If so, we need to change the
+                // routes on the router.
+                if (config.vip != conf.vip) {
+                    if (routeId != null) {
+                        HealthMonitor.tryTx(store) { tx =>
+                            log.info("({}) Delete route {} to {}", config.id,
+                                     routeId, config.vip.ip)
+                            tx.delete(classOf[Route], routeId)
                         }
-                        if (routerId != null && routerPortId != null) {
-                            store.create(createVipRoute(conf.vip.ip))
-                            createIpTableRules(healthMonitorName, conf.vip.ip)
-                        }
+                        deleteIpTableRules(healthMonitorName, config.vip.ip)
                     }
-                    setPoolMappingStatus(config.id, ACTIVE, lockNeeded = false,
-                                         rethrowException = true)
+                    if (routerId != null && routerPortId != null) {
+                        HealthMonitor.tryTx(store) { tx =>
+                            log.info("({}) Add route to {}", config.id, conf.vip.ip)
+                            addVipRoute(tx, conf.vip.ip)
+                        }
+                        createIpTableRules(healthMonitorName, conf.vip.ip)
+                    }
+                    setPoolMappingStatus(ACTIVE)
                 }
             } catch {
                 case NonFatal(e) =>
                     log.info("Unable to update Health Monitor for " +
                               config.haproxyConfFileLoc)
-                    setPoolMappingStatus(config.id, ERROR)
+                    setPoolMappingStatus(ERROR)
                     manager ! SetupFailure
             } finally {
                 config = conf
@@ -225,14 +202,18 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 val newUpNodes = upNodes diff currentUpNodes
                 val newDownNodes = downNodes diff currentDownNodes
 
-                setMembersStatus(newUpNodes, newDownNodes)
+                HealthMonitor.tryTx(store) { tx =>
+                    setMembersStatus(tx, newUpNodes, LBStatus.ACTIVE)
+                    setMembersStatus(tx, newDownNodes, LBStatus.INACTIVE)
+                }
+
                 currentUpNodes = upNodes
                 currentDownNodes = downNodes
             } catch {
                 case NonFatal(e) =>
-                    log.info("Unable to retrieve health information for "
+                    log.warn("Unable to retrieve health information for "
                               + config.haproxySockFileLoc)
-                    setPoolMappingStatus(config.id, ERROR)
+                    setPoolMappingStatus(ERROR)
                     manager ! SockReadFailure
             }
             system.scheduler.scheduleOnce(1 second, self, CheckHealth)
@@ -242,43 +223,32 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             routerId = newRouterId
             try {
                 hookNamespaceToRouter()
-                setPoolMappingStatus(config.id, INACTIVE,
-                                     rethrowException = true)
+                setPoolMappingStatus(INACTIVE)
             } catch {
                 case NonFatal(e) =>
-                    log.info("Unable to add router: {}", routeId)
+                    log.error("Unable to configure new router {} for pool {}",
+                              routeId, config.id, e)
+                    setPoolMappingStatus(PoolHealthMonitorMappingStatus.ERROR)
             }
 
         case RouterRemoved =>
             log.debug("Removing router: {}", routerId)
             try {
-                unhookNamespaceFromRouter()
-                setPoolMappingStatus(config.id, INACTIVE,
-                                     rethrowException = true)
                 routerId = null
+                unhookNamespaceFromRouter()
+                setPoolMappingStatus(INACTIVE)
             } catch {
                 case NonFatal(e) =>
                     log.info("Unable to remove router: {}", routerId)
             }
     }
 
-    /**
-      * Sets the health status of active and inactive pool members.
-      */
-    private def setMembersStatus(activeMemberIds: Set[UUID], inactiveMemberIds: Set[UUID]) = {
-        val ops = new mutable.MutableList[PersistenceOp]()
-        log.debug("Set members status active: {} inactive: {}",
-                  activeMemberIds, inactiveMemberIds)
-        HealthMonitor.zkLock(lockFactory) {
-            val upMembers = store.getAll(classOf[PoolMember], activeMemberIds.toSeq).await()
-            ops ++= upMembers.map { member =>
-                UpdateOp(member.toBuilder.setStatus(LBStatus.ACTIVE).build)
-            }
-            val downMembers = store.getAll(classOf[PoolMember], inactiveMemberIds.toSeq).await()
-            ops ++= downMembers.map { member =>
-                UpdateOp(member.toBuilder.setStatus(LBStatus.INACTIVE).build)
-            }
-            store.multi(ops)
+    private def setMembersStatus(tx: Transaction, memberIds: mutable.Set[UUID],
+                                 status: LBStatus) = {
+        log.info("Set member status for {} to {}", memberIds, status)
+        val members = tx.getAll(classOf[PoolMember], memberIds.toSeq)
+        members.foreach { m =>
+            tx.update(m.toBuilder.setStatus(status).build())
         }
     }
 
@@ -291,13 +261,13 @@ class HaproxyHealthMonitor(var config: PoolConfig,
      * backend_id,name_of_server,0,0,0,0,,0,0,0,,0,,0,0,0,0,DOWN,1,1,0,0,1,
      * 2411,2411,,1,2,2,,0,,2,0,,0,L4CON,,1999,,,,,,,0,,,,0,0,
      */
-    private def parseResponse(resp: String): (Set[UUID], Set[UUID]) = {
+    private def parseResponse(resp: String): (mutable.Set[UUID], mutable.Set[UUID]) = {
         if (resp == null) {
             return (currentUpNodes, currentDownNodes)
         }
 
-        val upNodes = new HashSet[UUID]()
-        val downNodes = new HashSet[UUID]()
+        val upNodes = new mutable.HashSet[UUID]()
+        val downNodes = new mutable.HashSet[UUID]()
 
         def isMemberEntry(entry: Array[String]): Boolean =
             entry.length > StatusPos &&
@@ -345,12 +315,12 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             case fnfe: FileNotFoundException =>
                 log.error("FileNotFoundException while trying to write " +
                           config.haproxyConfFileLoc)
-                setPoolMappingStatus(config.id, ERROR)
+                setPoolMappingStatus(ERROR)
                 throw fnfe
             case uee: UnsupportedEncodingException =>
                 log.error("UnsupportedEncodingException while trying to " +
                           "write " + config.haproxyConfFileLoc)
-                setPoolMappingStatus(config.id, ERROR)
+                setPoolMappingStatus(ERROR)
                 throw uee
         } finally {
             writer.close()
@@ -409,7 +379,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 HealthMonitor.cleanAndDeleteNamespace(name, config.nsPostFix,
                                                       config.l4lbFileLocs)
                 log.error("Failed to create Namespace: ", e.getMessage)
-                setPoolMappingStatus(config.id, ERROR)
+                setPoolMappingStatus(ERROR)
                 throw e
         }
         dp
@@ -457,7 +427,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         case other =>
           log.error("Invalid selector type: {} => jdk-bootstrap shadowing " +
                     "may have failed ?", other.getClass)
-          setPoolMappingStatus(config.id, ERROR)
+          setPoolMappingStatus(ERROR)
           throw new IllegalSelectorException
     }
 
@@ -485,19 +455,21 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         data.toString()
     }
 
-    def createVipRoute(ip: String): Route = {
+    def addVipRoute(tx: Transaction, ip: String) = {
         routeId = UUID.randomUUID()
         val destIp = IPAddressUtil.toProto(ip)
-        Route.newBuilder
+        val route = Route.newBuilder
             .setId(toProto(routeId))
             .setSrcSubnet(IPSubnetUtil.univSubnet4)
             .setDstSubnet(IPSubnetUtil.fromAddr(destIp))
             .setWeight(100)
             .setNextHopGateway(IPAddressUtil.toProto(NameSpaceIp))
-            .setRouterId(toProto(routerId))
             .setNextHop(Route.NextHop.PORT)
             .setNextHopPortId(toProto(routerPortId))
-            .build
+            .build()
+        log.debug("{} Add route {} for router port {} to {}", config.id,
+                  routeId, routerPortId, destIp)
+        tx.create(route)
     }
 
     def hookNamespaceToRouter(): Unit = {
@@ -505,31 +477,31 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         if (routerId == null)
             return
 
-        HealthMonitor.zkLock(lockFactory) {
-            val host = store.get(classOf[Host], toProto(hostId)).await()
-            val ports = store.getAll(classOf[Port], host.getPortIdsList).await()
-            val ops = new mutable.MutableList[PersistenceOp]
+        HealthMonitor.tryTx(store) { tx =>
+            if (routerId == null)
+                return
 
-            ops ++= ports.filter(_.getInterfaceName == namespaceName).map { p =>
+            val host = tx.get(classOf[Host], UUIDUtil.toProto(hostId))
+            val ports = tx.getAll(classOf[Port], host.getPortIdsList)
+            ports.filter(_.getInterfaceName == namespaceName).foreach { p =>
                 log.debug("Deleting unused health monitor port {} from pool {}",
                           fromProto(p.getId), config.id)
-                DeleteOp(classOf[Port], p.getId)
+                tx.delete(classOf[Port], p.getId)
             }
 
             val hmPort = Port.newBuilder()
-                .setId(randomUuidProto)
-                .setRouterId(toProto(routerId))
+                .setId(UUIDUtil.randomUuidProto)
+                .setRouterId(UUIDUtil.toProto(routerId))
                 .setPortAddress(IPAddressUtil.toProto(RouterIp))
                 .setPortSubnet(IPSubnetUtil.toProto(NetSubnet))
                 .setPortMac(RouterMAC.toString)
-                .setHostId(toProto(hostId))
+                .setHostId(UUIDUtil.toProto(hostId))
                 .setInterfaceName(namespaceName).build
-            ops += CreateOp(hmPort)
-            log.debug("Create HAProxy port {}", hmPort.getId.asJava)
-
-            routerPortId = fromProto(hmPort.getId)
-            ops += CreateOp(createVipRoute(config.vip.ip))
-            store.multi(ops)
+            log.debug("Create HAProxy port {} bound to {}/{}",
+                      hmPort.getId.asJava, hostId, namespaceName)
+            tx.create(hmPort)
+            routerPortId = UUIDUtil.fromProto(hmPort.getId)
+            addVipRoute(tx, config.vip.ip)
         }
         createIpTableRules(healthMonitorName, config.vip.ip)
     }
@@ -538,13 +510,26 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         log.debug("Unhook HAProxy namespace from router {}", routerId)
         if (routerPortId != null) {
             // This should delete the route also
-            HealthMonitor.zkLock(lockFactory) {
-                store.delete(classOf[Port], routerPortId)
-            }
+            log.info("Delete port {}", routerPortId)
+            HealthMonitor.tryTx(store) { _.delete(classOf[Port], routerPortId) }
 
             deleteIpTableRules(healthMonitorName, config.vip.ip)
             routeId = null
             routerPortId = null
+        }
+    }
+
+    private def setPoolMappingStatus(status: PoolHealthMonitorMappingStatus)
+    : Unit = {
+        log.debug("Set pool mapping status to {}", status)
+        try {
+            HealthMonitor.tryTx(store) { tx =>
+                val pool = tx.get(classOf[Pool], config.id)
+                tx.update(pool.toBuilder.setMappingStatus(status).build())
+            }
+        } catch {
+            case NonFatal(e) =>
+                log.warn("Failed to set pool mapping status to {}", status)
         }
     }
 }
