@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ab29df4_aea68f0e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-04T20:00:35Z",
+      "side": 1,
+      "message": "This is obscure enough that nobody will know when and why. I\u0027d list here the list of bindings that we know about, and explain why a .delete(route) might mess up with, say, the Router. And document the list of things that need to be protected.\n\nSuggestion:\n\n-  * All operations that need to be performed\n-  * atomically are done by acquiring a ZooKeeper lock. This is to prevent races\n-  * with other components modifying the topology concurrently, e.g., the api.\n-  * Single operations are also protected by a lock to prevent them from failing\n-  * due to a [[ConcurrentModificationException]].\n+  * All operations that need to be performed atomically are done by\n+  * acquiring a ZooKeeper lock. This is to prevent races with the\n+  * cluster which is meant to be the only component writing to the\n+  * topology.  The writes performed in this class are directly on:\n+  *\n+  * - Route, with side effects on Router and Port due to ZOOM bindings.\n+  * - Port, with side effects on Router and Port due to ZOOM bindings.\n+  *\n+  * Any cluster section that may be doing something like:\n+  *\n+  *   val port \u003d store.get(classOf[Port], id)\n+  *   val portModified \u003d port.toBuilder() -alter fields- .build()\n+  *   store.update(portModified)\n+  *\n+  * Might overwrite changes made by this class on the port (directly, or\n+  * implicitly as a result of referential constraints).  To protecte\n+  * against this, sections of the code similar to the one above should\n+  * be protected using the following lock:\n+  *\n+  *   new ZkOpLock(lockFactory, lockOpNumber.getAndIncrement,\n+  *                ZookeeperLockFactory.ZOOM_TOPOLOGY)\n+  * TODO: the agent should never write to topology elements.  All code\n+  * violating this principle will be refactored out of here shortly.\n  */",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 49
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_6e839756",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-04T20:00:35Z",
+      "side": 1,
+      "message": "Read comments from Ivan here: https://midonet.slack.com/archives/developers/p1446664828000115",
+      "range": {
+        "startLine": 159,
+        "startChar": 24,
+        "endLine": 161,
+        "endChar": 37
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_2eba7f23",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-04T20:00:35Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 190,
+        "startChar": 3,
+        "endLine": 190,
+        "endChar": 14
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_7338e0a0",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpHostResource.scala",
         "patchSetId": 11
@@ -42,6 +111,29 @@
         "startChar": 8,
         "endLine": 81,
         "endChar": 14
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_2ec99f78",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepBindingResource.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-04T20:00:35Z",
+      "side": 1,
+      "message": "not needed. The port touched here will never be referenced by a Route or anything in L4LB.",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 12
       },
       "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
