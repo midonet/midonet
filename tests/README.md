@@ -46,7 +46,7 @@ Running Sandbox
 
 To run MDTS, first start the Midonet Sandbox subsystem. Midonet Sandbox depends
 on the MidoNet packages. If they're needed to be installed manually,
-please build them as follows:
+please build them as follows from the midonet root tree:
 
 ```
 git submodule update --init --recursive
