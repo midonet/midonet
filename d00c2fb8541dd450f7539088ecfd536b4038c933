@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_4254ec20",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-04T10:49:02Z",
+      "side": 1,
+      "message": "Where do those updates happen? If a route is updated in the api but was deleted here you\u0027ll get a \"not found\" in the API, which seems correct. \n\nIf the delete comes first, it\u0027s ok (update fails legitimally). If the delete comes after the update: it\u0027s ok. No need to lock, no?",
+      "parentUuid": "9ab29df4_a27dc870",
+      "range": {
+        "startLine": 154,
+        "startChar": 24,
+        "endLine": 156,
+        "endChar": 25
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_3812cab1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 7
@@ -272,6 +296,30 @@
       "side": 1,
       "message": "There is no retry anymore since we use locks. Only the writeConf call above can throw an exception now. I changed the logging to info.",
       "parentUuid": "9ab29df4_3812cab1",
+      "range": {
+        "startLine": 167,
+        "startChar": 20,
+        "endLine": 167,
+        "endChar": 29
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_a23ce8e3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-04T10:49:02Z",
+      "side": 1,
+      "message": "but without retries what happens if the write fails not because of conflict, but because a transient disconnection?",
+      "parentUuid": "9ab29df4_c2f71cf4",
       "range": {
         "startLine": 167,
         "startChar": 20,
