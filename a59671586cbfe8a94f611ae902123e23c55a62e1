@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ab29df4_9f13bb65",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/Transaction.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T07:38:25Z",
+      "side": 1,
+      "message": "Could you add a getAll[T](clazz: Class[T])? I need it for the health monitor.",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 14
+      },
+      "revId": "a59671586cbfe8a94f611ae902123e23c55a62e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_189a6663",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
         "patchSetId": 3
