@@ -41,8 +41,9 @@ class LoggerLevelWatcher(prefix: Option[String] = None) extends Observer[Config]
             for (entry <- logconf.entrySet
                     if !entry.getKey.endsWith("_description") && entry.getKey != "root") {
                 val level = Level.toLevel(logconf.getString(entry.getKey), Level.INFO)
-                logbackLogger(entry.getKey).setLevel(level)
-                log.info(s"Set logging level of ${entry.getKey} to $level")
+                val key = entry.getKey.stripSuffix(".root")
+                logbackLogger(key).setLevel(level)
+                log.info(s"Set logging level of $key to $level")
             }
 
             val rootLevel = Level.toLevel(logconf.getString("root"), Level.INFO)
