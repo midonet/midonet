@@ -95,7 +95,7 @@ public final class AuthFilter implements Filter {
         }
 
         if (user != null) {
-            log.info("Accepted auth token from " + req.getRemoteAddr());
+            log.debug("Accepted auth token from " + req.getRemoteAddr());
             req.setAttribute(USER_IDENTITY_ATTR_KEY, user);
             chain.doFilter(request, response);
         } else {
