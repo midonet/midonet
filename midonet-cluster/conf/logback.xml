@@ -45,46 +45,15 @@
     </appender> //-->
 
 
-    <!-- Loggers for Cluster services -->
-
-    <!-- VxLAN Gateway -->
-    <!-- Top level logger for the VxGW service, enable for general logging from
-         the service, fine tune for specific networks or vteps using the loogers
-         below.
-         -->
-    <!-- <logger name="org.midonet.cluster.vxgw" level="DEBUG" /> -->
-
-    <!-- Loggers for specific VxGW processes -->
-
-    <!-- Information about hardware VTEP controllers bound to networks. -->
-    <!-- <logger name="org.midonet.cluster.vxgw.vxgw-vtep-$VTEP_ID" level="DEBUG"/> -->
-
-    <!-- Information about the controller of networks bound to VTEPs.
-         Replace $NETWORK_ID with a given neutron network UUID
-        -->
-    <!-- <logger name="org.midonet.cluster.vxgw.vxgw-midonet-$NETWORK_ID" level="DEBUG" /> -->
-
-    <!-- REST API -->
-    <!-- logger name="org.midonet.cluster.services.rest_api" level="DEBUG"/ -->
-
-    <!-- NEUTRON DATA SYNC BACKEND -->
-    <!-- logger name="org.midonet.cluster.services.neutron-importer" level="DEBUG"/ -->
-
-
-    <!-- Fine grained loggers for libraries, fine tune if required
-         during debug. -->
-
-    <!-- Set com.sun.jersey to INFO if you want verbose logs of each
-         HTTP request/response, including headers -->
-    <logger name="com.sun.jersey" level="WARN"/>
-    <logger name="org.apache.cassandra" level="INFO"/>
-    <logger name="org.apache.zookeeper" level="INFO"/>
-    <logger name="org.eclipse.jetty" level="INFO"/>
-    <logger name="org.hibernate" level="WARN"/>
-    <logger name="org.opendaylight" level="WARN"/>
-    <logger name="org.reflections" level="INFO"/>
-
-    <!-- OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
+    <!--+                                   ***NOTE***
+        |
+        |  Use this file to configure log appenders, but not log levels. Log
+        |  levels are configured in mn-conf(1), in the 'cluster.loggers' section.
+        |
+        |  Example, make all cluster log at DEBUG level with this command:
+        |
+        |      $ mn-conf set -t default "cluster.loggers.root : DEBUG"
+        +-->
     <root level="INFO">
         <appender-ref ref="LOG-FILE" />
         <!-- <appender-ref ref="SYSLOG" /> //-->
