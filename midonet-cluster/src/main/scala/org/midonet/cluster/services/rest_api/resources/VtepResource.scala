@@ -34,7 +34,7 @@ import org.midonet.cluster.rest_api.models.Vtep.ConnectionState._
 import org.midonet.cluster.rest_api.models.{TunnelZone, Vtep}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
@@ -67,7 +67,8 @@ class VtepResource @Inject()(resContext: ResourceContext,
         for (vtep <- vteps) yield initVtep(vtep)
     }
 
-    protected override def createFilter(vtep: Vtep): Seq[Multi] = {
+    protected override def createFilter(vtep: Vtep, tx: ResourceTransaction)
+    : Unit = {
 
         throwIfViolationsOn(vtep)
 
@@ -135,18 +136,18 @@ class VtepResource @Inject()(resContext: ResourceContext,
             client.close()
         }
 
-        vtep.create()
-        Seq.empty
+        tx.create(vtep)
     }
 
-    protected override def deleteFilter(id: String): Seq[Multi] = {
-        val vtep = getResource(classOf[Vtep], id)
+    protected override def deleteFilter(id: String, tx: ResourceTransaction)
+    : Unit = {
+        val vtep = tx.get(classOf[Vtep], id)
         // Validate the VTEP has no bindings.
         if (vtep.bindings.size() > 0) {
             val msg = getMessage(VTEP_HAS_BINDINGS, vtep.managementIp)
             throw new BadRequestHttpException(msg)
         }
-        Seq.empty
+        tx.delete(classOf[Vtep], id)
     }
 
     private def initVtep(vtep: Vtep): Vtep = {

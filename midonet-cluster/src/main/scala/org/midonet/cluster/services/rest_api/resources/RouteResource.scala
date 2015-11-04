@@ -31,7 +31,7 @@ import org.midonet.cluster.rest_api.models.{RouterPort, Port, Route, Router}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
@@ -93,14 +93,15 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
         result.asJava
     }
 
-    protected override def createFilter(route: Route): Seq[Multi] = {
-        throwIfNextPortNotValid(route)
-        throwIfViolationsOn(route)
+    protected override def createFilter(route: Route, tx: ResourceTransaction)
+    : Unit = {
+        throwIfNextPortNotValid(route, tx)
         route.create(routerId)
-        Seq.empty
+        tx.create(route)
     }
 
-    private def throwIfNextPortNotValid(route: Route): Unit = {
+    private def throwIfNextPortNotValid(route: Route, tx: ResourceTransaction)
+    : Unit = {
         if (route.`type` != Route.NextHop.Normal) {
             // The validation only applies to 'normal' routes.
             return
@@ -112,7 +113,7 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
         }
 
         try {
-            val port = getResource(classOf[Port], route.nextHopPort)
+            val port = tx.get(classOf[Port], route.nextHopPort)
             if (port.getDeviceId != routerId) {
                 throw new BadRequestHttpException(getMessage(
                     ROUTE_NEXT_HOP_PORT_NOT_NULL))
