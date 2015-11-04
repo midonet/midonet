@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_df20d34b",
+        "filename": "tests/mdts/tests/functional_tests/test_basic_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-04T02:08:06Z",
+      "side": 1,
+      "message": "what are your thoughts on making this yaml based?  For consistency with the mido ones and also because it can become a good way to fire up topologies for manual development / testing / demo.",
+      "revId": "78c61ffbd7de93c8403fc75fa3e1076b3613696e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
