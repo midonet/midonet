@@ -16,6 +16,24 @@
       "revId": "78c61ffbd7de93c8403fc75fa3e1076b3613696e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0264b4e3",
+        "filename": "tests/mdts/tests/functional_tests/test_basic_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-04T08:09:10Z",
+      "side": 1,
+      "message": "We can schedule a discussion about it in slack or mailing list, I\u0027d also like to hear other opinions but imho, yaml just hides whatever is happening under the hood and makes the framework behave like black magic (hard to get involved).\n\nI was thinking just the opposite :D Also after seeing how Duarte had to hack the yaml system for the scalability tests. \n\nInstead of a yaml layer that complicates the mdts framework, remove the yaml files all together and just rely on how the specific api handles calls (Midonet or Neutron). This will simplify the codebase of mdts A LOT (removing almost everything under the lib directory) at the \"cost\" of using the python APIs directly (which is more explicit) instead of yamls.\n\nIn the examples below, the topology is separated from the test (being still python calls to the corresponding api). If we want to do manual testing and create topologies for a test or demo, we could add a utility (e.g. mdts build-topology topology.py) which just takes the python object specifying the topology and build it (we could have an analogous delete). We could even add calls to the CLIs instead of the python APIs.",
+      "parentUuid": "9ab29df4_df20d34b",
+      "revId": "78c61ffbd7de93c8403fc75fa3e1076b3613696e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
