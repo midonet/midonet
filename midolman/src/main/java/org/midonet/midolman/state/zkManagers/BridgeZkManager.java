@@ -83,6 +83,7 @@ public class BridgeZkManager
         public List<UUID> vxLanPortIds = new ArrayList<>(0);
         public String name;
         public boolean adminStateUp;
+        public boolean disableAntiSpoof;
 
         @Override
         public boolean equals(Object o) {
@@ -99,13 +100,15 @@ public class BridgeZkManager
                     Objects.equals(outboundFilter, that.outboundFilter) &&
                     Objects.equals(vxLanPortId, that.vxLanPortId) &&
                     Objects.equals(vxLanPortIds, that.vxLanPortIds) &&
+                    Objects.equals(disableAntiSpoof, that.disableAntiSpoof) &&
                     Objects.equals(name, that.name);
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(tunnelKey, adminStateUp, inboundFilter,
-                                outboundFilter, vxLanPortId, vxLanPortIds, name);
+                                outboundFilter, vxLanPortId, vxLanPortIds,
+                                name, disableAntiSpoof);
         }
 
         @Override
@@ -116,7 +119,8 @@ public class BridgeZkManager
                    ", vxLanPortId=" + vxLanPortId +
                    ", vxLanPortIds=" + vxLanPortIds +
                    ", name=" + name +
-                   ", adminStateUp=" + adminStateUp + '}';
+                   ", adminStateUp=" + adminStateUp +
+                   ", disableAntiSpoof=" + disableAntiSpoof + '}';
         }
     }
 
@@ -224,6 +228,15 @@ public class BridgeZkManager
         if (!Objects.equals(oldConfig.name, newConfig.name)) {
             log.debug("The name of bridge {} changed from {} to {}",
                       id, oldConfig.name, newConfig.name);
+            dataChanged = true;
+        }
+
+        if (!Objects.equals(oldConfig.disableAntiSpoof,
+                            newConfig.disableAntiSpoof)) {
+            log.debug("The disable-anti-spoofing of bridge " +
+                      "{} changed from {} to {}",
+                      id, oldConfig.disableAntiSpoof,
+                      newConfig.disableAntiSpoof);
             dataChanged = true;
         }
 

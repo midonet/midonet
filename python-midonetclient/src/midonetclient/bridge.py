@@ -35,6 +35,9 @@ class Bridge(resource_base.ResourceBase,
     def get_name(self):
         return self.dto['name']
 
+    def get_disable_anti_spoof(self):
+        return self.dto['disableAntiSpoof']
+
     def get_id(self):
         return self.dto['id']
 
@@ -49,6 +52,10 @@ class Bridge(resource_base.ResourceBase,
 
     def name(self, name):
         self.dto['name'] = name
+        return self
+
+    def disable_anti_spoof(self, disable_anti_spoof):
+        self.dto['disableAntiSpoof'] = disable_anti_spoof
         return self
 
     def tenant_id(self, tenant_id):

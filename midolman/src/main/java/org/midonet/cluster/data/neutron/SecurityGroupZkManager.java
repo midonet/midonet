@@ -36,6 +36,7 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
@@ -51,11 +52,13 @@ public class SecurityGroupZkManager extends BaseZkManager {
     private final NetworkZkManager networkZkManager;
     private final PortZkManager portZkManager;
     private final RuleZkManager ruleZkManager;
+    private final BridgeZkManager bridgeZkManager;
 
     @Inject
     public SecurityGroupZkManager(ZkManager zk,
                                   PathBuilder paths,
                                   Serializer serializer,
+                                  BridgeZkManager bridgeZkManager,
                                   ChainZkManager chainZkManager,
                                   IpAddrGroupZkManager ipAddrGroupZkManager,
                                   NetworkZkManager networkZkManager,
@@ -67,6 +70,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         this.networkZkManager = networkZkManager;
         this.portZkManager = portZkManager;
         this.ruleZkManager = ruleZkManager;
+        this.bridgeZkManager = bridgeZkManager;
     }
 
     private void prepareCreateChain(List<Op> ops, UUID chainId, String name,
@@ -126,25 +130,28 @@ public class SecurityGroupZkManager extends BaseZkManager {
                          .isReturnFlow()
                          .accept());
 
-        // IP spoofing protection for in_chain
-        for (IPAllocation fixedIp : port.fixedIps) {
+        BridgeZkManager.BridgeConfig bridgeConfig = bridgeZkManager.get(port.networkId);
+        if (!bridgeConfig.disableAntiSpoof) {
+            // IP spoofing protection for in_chain
+            for (IPAllocation fixedIp : port.fixedIps) {
 
-            Subnet subnet = networkZkManager.getSubnet(fixedIp.subnetId);
-            IPSubnet ipSub = subnet.isIpv4()
-                             ? fixedIp.ipv4Subnet() : fixedIp.ipv6Subnet();
-            Rule ipSpoofProtectionRule = new RuleBuilder(inChainId)
-                .isAnyFragmentState()
-                .notFromSubnet(ipSub)
-                .drop();
-            inRules.add(ipSpoofProtectionRule);
+                Subnet subnet = networkZkManager.getSubnet(fixedIp.subnetId);
+                IPSubnet ipSub = subnet.isIpv4()
+                        ? fixedIp.ipv4Subnet() : fixedIp.ipv6Subnet();
+                Rule ipSpoofProtectionRule = new RuleBuilder(inChainId)
+                        .isAnyFragmentState()
+                        .notFromSubnet(ipSub)
+                        .drop();
+                inRules.add(ipSpoofProtectionRule);
+            }
+
+            // MAC spoofing protection for in_chain
+            Rule macSpoofProtectionRule = new RuleBuilder(inChainId)
+                    .notFromMac(port.macAddress())
+                    .isAnyFragmentState()
+                    .drop();
+            inRules.add(macSpoofProtectionRule);
         }
-
-        // MAC spoofing protection for in_chain
-        Rule macSpoofProtectionRule = new RuleBuilder(inChainId)
-            .notFromMac(port.macAddress())
-            .isAnyFragmentState()
-            .drop();
-        inRules.add(macSpoofProtectionRule);
 
         // Add reverse flow matching for in_chain.
         inRules.add(new RuleBuilder(inChainId)

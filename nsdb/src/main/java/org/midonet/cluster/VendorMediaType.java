@@ -48,12 +48,16 @@ public class VendorMediaType {
             "application/vnd.org.midonet.Bridge-v2+json";
     public static final String APPLICATION_BRIDGE_JSON_V3 =
             "application/vnd.org.midonet.Bridge-v3+json";
+    public static final String APPLICATION_BRIDGE_JSON_V4 =
+            "application/vnd.org.midonet.Bridge-v4+json";
     public static final String APPLICATION_BRIDGE_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.Bridge-v1+json";
     public static final String APPLICATION_BRIDGE_COLLECTION_JSON_V2 =
             "application/vnd.org.midonet.collection.Bridge-v2+json";
     public static final String APPLICATION_BRIDGE_COLLECTION_JSON_V3 =
            "application/vnd.org.midonet.collection.Bridge-v3+json";
+    public static final String APPLICATION_BRIDGE_COLLECTION_JSON_V4 =
+            "application/vnd.org.midonet.collection.Bridge-v4+json";
     public static final String APPLICATION_MAC_PORT_JSON =
             "application/vnd.org.midonet.MacPort-v1+json";
     public static final String APPLICATION_MAC_PORT_JSON_V2 =

@@ -114,6 +114,7 @@ public class Converter {
         bridgeConfig.vxLanPortId = bridge.getVxLanPortId();
         bridgeConfig.vxLanPortIds = bridge.getVxLanPortIds();
         bridgeConfig.tunnelKey = bridge.getTunnelKey();
+        bridgeConfig.disableAntiSpoof = bridge.getDisableAntiSpoof();
         bridgeConfig.properties = new HashMap<>(bridge.getProperties());
 
         return bridgeConfig;
@@ -131,6 +132,7 @@ public class Converter {
                 .setOutboundFilter(bridge.outboundFilter)
                 .setVxLanPortId(bridge.vxLanPortId)
                 .setVxLanPortIds(bridge.vxLanPortIds)
+                .setDisableAntiSpoof(bridge.disableAntiSpoof)
                 .setProperties(bridge.properties);
     }
 

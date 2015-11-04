@@ -65,8 +65,12 @@ public class Bridge extends UriResource {
     @Since("3") // after adding support to multiple vtep bindings
     private List<UUID> vxLanPortIds = null;
 
+    @Since("4")
+    private boolean disableAntiSpoof;
+
     public Bridge() {
         adminStateUp = true;
+        disableAntiSpoof = false;
     }
 
     public Bridge(UUID id, String name, String tenantId) {
@@ -84,6 +88,7 @@ public class Bridge extends UriResource {
         this.outboundFilterId = bridgeData.getOutboundFilter();
         this.vxLanPortId = bridgeData.getVxLanPortId();
         this.vxLanPortIds = bridgeData.getVxLanPortIds();
+        this.disableAntiSpoof = bridgeData.getDisableAntiSpoof();
     }
 
     public UUID getId() {
@@ -104,6 +109,14 @@ public class Bridge extends UriResource {
 
     public void setAdminStateUp(boolean adminStateUp) {
         this.adminStateUp = adminStateUp;
+    }
+
+    public void setDisableAntiSpoof(boolean disableAntiSpoof) {
+        this.disableAntiSpoof = disableAntiSpoof;
+    }
+
+    public boolean getDisableAntiSpoof() {
+        return disableAntiSpoof;
     }
 
     public void setName(String name) {
@@ -276,6 +289,7 @@ public class Bridge extends UriResource {
                 .setOutboundFilter(this.outboundFilterId)
                 .setVxLanPortId(this.vxLanPortId)
                 .setVxLanPortIds(this.vxLanPortIds)
+                .setDisableAntiSpoof(this.disableAntiSpoof)
                 .setProperty(Property.tenant_id, this.tenantId);
     }
 

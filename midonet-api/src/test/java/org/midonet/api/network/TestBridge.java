@@ -59,12 +59,10 @@ import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON_V4;
 import static org.midonet.client.VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_IP4_MAC_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
@@ -348,21 +346,21 @@ public class TestBridge {
             bridge.setTenantId("tenant1");
 
             DtoBridge b1 = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
 
             // Duplicate name should be allowed
             bridge = new DtoBridge();
             bridge.setName("name");
             bridge.setTenantId("tenant1");
             DtoBridge b2 = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
 
             // Deletion should work
             dtoResource.deleteAndVerifyNoContent(b1.getUri(),
-                    APPLICATION_BRIDGE_JSON);
+                    APPLICATION_BRIDGE_JSON_V4);
 
             dtoResource.deleteAndVerifyNoContent(b2.getUri(),
-                    APPLICATION_BRIDGE_JSON);
+                    APPLICATION_BRIDGE_JSON_V4);
         }
 
         @Test
@@ -375,10 +373,10 @@ public class TestBridge {
             bridge.setName("");
             bridge.setTenantId("tenant1");
             DtoBridge b3 = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
 
             dtoResource.deleteAndVerifyNoContent(b3.getUri(),
-                    APPLICATION_BRIDGE_JSON);
+                    APPLICATION_BRIDGE_JSON_V4);
         }
 
         @Test
@@ -389,7 +387,7 @@ public class TestBridge {
             bridge.setVxLanPortId(UUID.randomUUID());
 
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    app.getBridges(), APPLICATION_BRIDGE_JSON_V2, bridge);
+                    app.getBridges(), APPLICATION_BRIDGE_JSON_V4, bridge);
             assertErrorMatches(error,
                     MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE);
         }
@@ -399,7 +397,7 @@ public class TestBridge {
             DtoBridge bridge = postBridge("bridge1");
             bridge.setVxLanPortId(UUID.randomUUID());
             DtoError error = dtoResource.putAndVerifyBadRequest(
-                    bridge.getUri(), APPLICATION_BRIDGE_JSON_V2, bridge);
+                    bridge.getUri(), APPLICATION_BRIDGE_JSON_V4, bridge);
             assertErrorMatches(error,
                     MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE);
         }
@@ -425,7 +423,7 @@ public class TestBridge {
             bridge.setOutboundFilterId(chain2.getId());
 
             DtoBridge resBridge = dtoResource.postAndVerifyCreated(bridgesUri,
-                    APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON_V4, bridge, DtoBridge.class);
             assertNotNull(resBridge.getId());
             assertNotNull(resBridge.getUri());
             // TODO: Implement 'equals' for DtoBridge
@@ -446,14 +444,16 @@ public class TestBridge {
             // Update the bridge
             resBridge.setName("bridge1-modified");
             resBridge.setAdminStateUp(false);
+            resBridge.setDisableAntiSpoof(true);
             resBridge.setInboundFilterId(chain2.getId());
             resBridge.setOutboundFilterId(chain1.getId());
             DtoBridge updatedBridge = dtoResource.putAndVerifyNoContent(
-                    bridgeUri, APPLICATION_BRIDGE_JSON, resBridge,
+                    bridgeUri, APPLICATION_BRIDGE_JSON_V4, resBridge,
                     DtoBridge.class);
             assertNotNull(updatedBridge.getId());
             assertEquals(updatedBridge.getName(), "bridge1-modified");
             assertFalse(updatedBridge.isAdminStateUp());
+            assertTrue(updatedBridge.getDisableAntiSpoof());
             assertEquals(resBridge.getTenantId(), updatedBridge.getTenantId());
             assertEquals(resBridge.getInboundFilterId(),
                     updatedBridge.getInboundFilterId());
@@ -463,7 +463,7 @@ public class TestBridge {
             //Update the bridge updatedBridge (name only)
             updatedBridge.setName("bridge1-modified2");
             DtoBridge updatedBridge2 = dtoResource.putAndVerifyNoContent(
-                    bridgeUri, APPLICATION_BRIDGE_JSON, updatedBridge,
+                    bridgeUri, APPLICATION_BRIDGE_JSON_V4, updatedBridge,
                     DtoBridge.class);
             assertNotNull(updatedBridge2.getId());
             assertEquals(updatedBridge2.getName(), "bridge1-modified2");
@@ -476,11 +476,11 @@ public class TestBridge {
 
             // Delete the bridge
             dtoResource.deleteAndVerifyNoContent(bridgeUri,
-                    APPLICATION_BRIDGE_JSON);
+                    APPLICATION_BRIDGE_JSON_V4);
 
             // Verify that it's gone
             dtoResource.getAndVerifyNotFound(bridgeUri,
-                    APPLICATION_BRIDGE_JSON);
+                    APPLICATION_BRIDGE_JSON_V4);
 
             // List should return an empty array
             bridges = dtoResource.getAndVerifyOk(bridgesUri,
@@ -903,7 +903,7 @@ public class TestBridge {
             DtoApplication app = topology.getApplication();
 
             DtoError error = dtoWebResource.postAndVerifyBadRequest(
-                    app.getBridges(), APPLICATION_BRIDGE_JSON, bridge);
+                    app.getBridges(), APPLICATION_BRIDGE_JSON_V4, bridge);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));
@@ -964,7 +964,7 @@ public class TestBridge {
             DtoBridge bridge = topology.getBridge("bridge1");
 
             DtoError error = dtoWebResource.putAndVerifyBadRequest(
-                    bridge.getUri(), APPLICATION_BRIDGE_JSON, testBridge);
+                    bridge.getUri(), APPLICATION_BRIDGE_JSON_V4, testBridge);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(1, violations.size());
             assertEquals(property, violations.get(0).get("property"));

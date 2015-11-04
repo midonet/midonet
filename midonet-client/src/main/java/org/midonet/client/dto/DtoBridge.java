@@ -29,6 +29,7 @@ public class DtoBridge {
     private UUID id;
     private String name;
     private boolean adminStateUp = true;
+    private boolean disableAntiSpoof = false;
     private String tenantId;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
@@ -71,6 +72,14 @@ public class DtoBridge {
 
     public void setAdminStateUp(boolean adminStateUp) {
         this.adminStateUp = adminStateUp;
+    }
+
+    public boolean getDisableAntiSpoof() {
+        return disableAntiSpoof;
+    }
+
+    public void setDisableAntiSpoof(boolean disableAntiSpoof) {
+        this.disableAntiSpoof = disableAntiSpoof;
     }
 
     public String getTenantId() {
@@ -255,6 +264,7 @@ public class DtoBridge {
                 Objects.equal(arpTable, that.getArpTable()) &&
                 Objects.equal(dhcpSubnet6s, that.getDhcpSubnet6s()) &&
                 Objects.equal(dhcpSubnets, that.getDhcpSubnets()) &&
+                disableAntiSpoof == that.disableAntiSpoof &&
                 adminStateUp == that.adminStateUp;
     }
 }

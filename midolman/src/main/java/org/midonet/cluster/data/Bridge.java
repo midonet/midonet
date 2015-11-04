@@ -70,6 +70,15 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         return this;
     }
 
+    public boolean getDisableAntiSpoof() {
+        return getData().disableAntiSpoof;
+    }
+
+    public Bridge setDisableAntiSpoof(boolean disableAntiSpoof) {
+        getData().disableAntiSpoof = disableAntiSpoof;
+        return this;
+    }
+
     public UUID getInboundFilter() {
         return getData().inboundFilter;
     }
@@ -136,6 +145,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
     public static class Data {
         public String name;
         public boolean adminStateUp = true;
+        public boolean disableAntiSpoof = false;
         public int tunnelKey;
         public UUID inboundFilter;
         public UUID outboundFilter;
@@ -154,6 +164,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
 
             return tunnelKey == that.tunnelKey &&
                     adminStateUp == that.adminStateUp &&
+                    disableAntiSpoof == that.disableAntiSpoof &&
                     Objects.equals(inboundFilter, that.inboundFilter) &&
                     Objects.equals(outboundFilter, that.outboundFilter) &&
                     Objects.equals(vxLanPortId, that.vxLanPortId) &&
@@ -165,7 +176,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         public int hashCode() {
             return Objects.hash(tunnelKey, adminStateUp, inboundFilter,
                                 outboundFilter, vxLanPortId, vxLanPortIds,
-                                name);
+                                name, disableAntiSpoof);
         }
 
         @Override
@@ -176,6 +187,7 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
                    ", vxLanPortId=" + vxLanPortId +
                    ", vxLanPortIds=" + vxLanPortIds +
                    ", name=" + name +
+                   ", disableAntiSpoof =" + disableAntiSpoof +
                    ", adminStateUp=" + adminStateUp + '}';
         }
     }

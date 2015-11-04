@@ -1706,6 +1706,9 @@ class Bridge(ObjectType):
                                  value_type = StringType(),
                                  setter = 'name',
                                  getter = 'get_name'))
+        self.put_attr(BooleanAttr(name = 'disable_anti_spoof',
+                                 setter = 'disable_anti_spoof',
+                                 getter = 'get_disable_anti_spoof'))
         self.put_attr(AdminStateAttr(name = 'state',
                                  getter = 'get_admin_state_up',
                                  setter = 'admin_state_up'))
