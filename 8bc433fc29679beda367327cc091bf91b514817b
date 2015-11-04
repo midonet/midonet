@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_c23f1cd5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-04T10:49:02Z",
+      "side": 1,
+      "message": "ditto, what happens if it fails?",
+      "range": {
+        "startLine": 213,
+        "startChar": 37,
+        "endLine": 213,
+        "endChar": 53
+      },
+      "revId": "8bc433fc29679beda367327cc091bf91b514817b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
