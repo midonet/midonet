@@ -118,6 +118,53 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_ee6de733",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpHostResource.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-04T20:36:13Z",
+      "side": 1,
+      "message": "We should also document why each locked resource is locked.  DhcpHost (-\u003e Topology.Dhcp.Host has no bindings to Port or Route which are the ones written from the HAProxy, so no need to lock it).",
+      "parentUuid": "9ab29df4_ee3a47cc",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 14
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_2e78bff1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpSubnetResource.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-04T20:36:13Z",
+      "side": 1,
+      "message": "Document why. This one seems unnecessary: Dhcp.gateway_route_ids is Bound to Route.gateway_dhcp_ids, (see MidonetBackendService:189), but the Routes linked will never be touched by the HAProxy, so it seems safe to remove it.\n\nWhat do you think?",
+      "range": {
+        "startLine": 81,
+        "startChar": 12,
+        "endLine": 81,
+        "endChar": 13
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_8e8c6b37",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
         "patchSetId": 11
