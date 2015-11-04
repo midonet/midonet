@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_02fe7438",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HealthMonitorUpdaterTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T10:11:24Z",
+      "side": 1,
+      "message": "@RunWith(classOf[JUnitRunner])",
+      "revId": "f24edce895a57e69a3b5f07f2b03a720c3edd60b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
