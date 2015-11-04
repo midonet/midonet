@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_7338e0a0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpHostResource.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-04T17:13:06Z",
+      "side": 1,
+      "message": "Why not locking just the resources that are modified by the agent?",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 14
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
