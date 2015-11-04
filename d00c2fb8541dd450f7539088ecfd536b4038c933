@@ -356,6 +356,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_e5b0aa8d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T13:26:12Z",
+      "side": 1,
+      "message": "According to this:\nhttp://curator.apache.org/errors.html\nCurator will re-send the operation transparently.",
+      "parentUuid": "9ab29df4_a23ce8e3",
+      "range": {
+        "startLine": 167,
+        "startChar": 20,
+        "endLine": 167,
+        "endChar": 29
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_180d0691",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 7
@@ -603,6 +627,30 @@
       "side": 1,
       "message": "After talking with Alex, he tells me the root issue here is that the create may have a side effect modifying the route. The change we\u0027re implicitly protecting here is against an *update* on the router. Not the create on the route (where arguably it wouldn\u0027t be necessary if they didn\u0027t have the backrefs).  In the deletes it\u0027s the same case. The delete per-se doesn\u0027t need a lock: it\u0027s the implicit update on the router that we need to protect.\n\nI\u0027d add this info to the docs of the class (and possibly API) since it\u0027s far from obvious.",
       "parentUuid": "9ab29df4_02e3d405",
+      "range": {
+        "startLine": 426,
+        "startChar": 8,
+        "endLine": 426,
+        "endChar": 36
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_854e0e95",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T13:26:12Z",
+      "side": 1,
+      "message": "I can add this info but note that even if it\u0027s not done by the api at the moment doesn\u0027t mean in won\u0027t be done later by the api (meaning get all routes and modify some of them). I prefer clear semantics (implementing linearizability) rather than optimizing things for our use case and then once we change something it breaks!\nNot also that these: getAll-update macro-operations are not always done atomically in the api (Alex is working on that I believe).",
+      "parentUuid": "9ab29df4_a50a321f",
       "range": {
         "startLine": 426,
         "startChar": 8,
