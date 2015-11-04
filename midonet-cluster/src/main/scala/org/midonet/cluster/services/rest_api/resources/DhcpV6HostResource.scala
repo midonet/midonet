@@ -31,7 +31,7 @@ import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet6, DhcpV6Host}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
 import org.midonet.packets.IPv6Subnet
 
 @RequestScoped
@@ -74,8 +74,8 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
                     APPLICATION_JSON))
     override def create(host: DhcpV6Host,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
-        getSubnet(subnetAddress).map(subnet => {
+    : Response = tryTx { tx =>
+        getSubnet(subnetAddress, tx).map(subnet => {
             if (subnet.dhcpHosts.asScala.exists(_.clientId == host.clientId)) {
                 val msg = getMessage(SUBNET_HAS_HOST, subnetAddress,
                                      bridgeId, host.fixedAddress)
@@ -83,7 +83,8 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
             } else {
                 host.setBaseUri(subnet.getUri)
                 subnet.dhcpHosts.add(host)
-                updateResource(subnet, Response.created(host.getUri).build())
+                tx.update(subnet)
+                Response.created(host.getUri).build()
             }
         }).getOrElse(subnetNotFoundResp)
     }
@@ -95,38 +96,48 @@ class DhcpV6HostResource @Inject()(bridgeId: UUID, subnetAddress: IPv6Subnet,
     override def update(@PathParam("client_id") clientId: String,
                         host: DhcpV6Host,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
+    : Response = tryTx { tx =>
         val reqClientId = DhcpV6Host.clientIdFromUri(clientId)
-        getSubnet(subnetAddress).flatMap(subnet => {
+        getSubnet(subnetAddress, tx).flatMap(subnet => {
             subnet.dhcpHosts.asScala.find( _.clientId == reqClientId )
                 .map(h => {
                     val index = subnet.dhcpHosts.indexOf(h)
                     host.setBaseUri(subnet.getUri)
                     subnet.dhcpHosts.remove(index)
                     subnet.dhcpHosts.add(index, host)
-                    updateResource(subnet)
+                    tx.update(subnet)
+                    OkNoContentResponse
                 })
         }).getOrElse(subnetNotFoundResp)
     }
 
     @DELETE
     @Path("/{client_id}")
-    override def delete(@PathParam("client_id") clientId: String): Response = {
+    override def delete(@PathParam("client_id") clientId: String)
+    : Response = tryTx { tx =>
         val reqClientId = DhcpV6Host.clientIdFromUri(clientId)
-        getSubnet(subnetAddress).flatMap(subnet => {
+        getSubnet(subnetAddress, tx).flatMap(subnet => {
             subnet.dhcpHosts.asScala.find( _.clientId == reqClientId)
                                     .map(h => {
                                         subnet.dhcpHosts.remove(h)
-                                        updateResource(subnet)
+                                        tx.update(subnet)
+                                        OkNoContentResponse
                                     })
 
         }).getOrElse(subnetNotFoundResp)
     }
 
-    private def getSubnet(subnetAddress: IPv6Subnet): Option[DhcpSubnet6] = {
-        val bridge = getResource(classOf[Bridge], bridgeId)
-        listResources(classOf[DhcpSubnet6], bridge.dhcpv6Ids.asScala)
-            .find(_.subnetAddress == subnetAddress)
+    private def getSubnet(subnetAddress: IPv6Subnet, tx: ResourceTransaction = null)
+    : Option[DhcpSubnet6] = {
+        if (tx eq null) {
+            val bridge = getResource(classOf[Bridge], bridgeId)
+            listResources(classOf[DhcpSubnet6], bridge.dhcpv6Ids.asScala)
+                .find(_.subnetAddress == subnetAddress)
+        } else {
+            val bridge = tx.get(classOf[Bridge], bridgeId)
+            tx.list(classOf[DhcpSubnet6], bridge.dhcpv6Ids.asScala)
+                .find(_.subnetAddress == subnetAddress)
+        }
     }
 
 }

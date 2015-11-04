@@ -70,8 +70,7 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
                     APPLICATION_TUNNEL_ZONE_HOST_JSON))
     override def create(tunnelZoneHost: TunnelZoneHost,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
-
+    : Response = tryTx { tx =>
         val validator = resContext.validator
         val violations: JSet[ConstraintViolation[TunnelZoneHost]] =
             validator.validate(tunnelZoneHost)
@@ -79,32 +78,31 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
             throw new BadRequestHttpException(violations)
         }
 
-        zkLock {
-            val tunnelZone = getResource(classOf[TunnelZone], tunnelZoneId)
-            if (tunnelZone.tzHosts.exists(_.hostId == tunnelZoneHost.hostId)) {
-                Response.status(Status.CONFLICT).build()
-            } else {
-                tunnelZoneHost.create(tunnelZone.id)
-                tunnelZoneHost.setBaseUri(resContext.uriInfo.getBaseUri)
-                tunnelZone.tzHosts.add(tunnelZoneHost)
-                tunnelZone.hostIds.add(tunnelZoneHost.hostId)
-                updateResource(tunnelZone,
-                               Response.created(tunnelZoneHost.getUri).build())
-            }
+        val tunnelZone = tx.get(classOf[TunnelZone], tunnelZoneId)
+        if (tunnelZone.tzHosts.exists(_.hostId == tunnelZoneHost.hostId)) {
+            Response.status(Status.CONFLICT).build()
+        } else {
+            tunnelZoneHost.create(tunnelZone.id)
+            tunnelZoneHost.setBaseUri(resContext.uriInfo.getBaseUri)
+            tunnelZone.tzHosts.add(tunnelZoneHost)
+            tunnelZone.hostIds.add(tunnelZoneHost.hostId)
+            tx.update(tunnelZone)
+            Response.created(tunnelZoneHost.getUri).build()
         }
     }
 
     @DELETE
     @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = zkLock {
+    override def delete(@PathParam("id") id: String): Response = tryTx { tx =>
         val hostId = UUID.fromString(id)
-        val tunnelZone = getResource(classOf[TunnelZone], tunnelZoneId)
+        val tunnelZone = tx.get(classOf[TunnelZone], tunnelZoneId)
         tunnelZone.tzHosts.asScala
             .find(_.hostId == hostId)
             .map(tunnelZoneHost => {
                 tunnelZone.tzHosts.remove(tunnelZoneHost)
                 tunnelZone.hostIds.remove(tunnelZoneHost.hostId)
-                updateResource(tunnelZone, OkNoContentResponse)
+                tx.update(tunnelZone)
+                OkNoContentResponse
             })
             .getOrElse(Response.status(Status.NOT_FOUND).build())
     }
