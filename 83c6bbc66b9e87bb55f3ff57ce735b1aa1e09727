@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_9fb1fbe3",
+        "filename": "netlink/src/main/java/org/midonet/odp/protos/OvsDatapathConnectionImpl.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-11-04T03:29:32Z",
+      "side": 1,
+      "message": "i guess the intention of the original code is\n\"set packetLen only when eth.deserialize() succeeded\".",
+      "revId": "83c6bbc66b9e87bb55f3ff57ce735b1aa1e09727",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
