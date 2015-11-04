@@ -66,7 +66,8 @@ public final class AdminOnlyAuthFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request; // Assume HTTP.
         UserIdentity uid = (UserIdentity)req.getAttribute(USER_IDENTITY_ATTR_KEY);
         if (uid.hasRole(AuthRole.ADMIN)) {
-            log.info("User authenticated as admin: " + uid.userId);
+            log.info("User {} authenticated as admin from {}", uid.userId,
+                     request.getRemoteAddr());
             chain.doFilter(request, response);
         } else {
             log.info("User was authenticated, but not an admin: " + uid.userId);
