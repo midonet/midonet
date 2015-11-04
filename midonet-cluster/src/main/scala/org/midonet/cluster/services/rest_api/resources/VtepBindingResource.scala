@@ -48,7 +48,6 @@ class VtepBindingResource @Inject()(vtepId: UUID, resContext: ResourceContext,
                                     cnxnProvider: OvsdbVtepConnectionProvider)
     extends MidonetResource[VtepBinding](resContext) {
 
-    private val store = resContext.backend.store
     private val seqDispenser = resContext.seqDispenser
 
     @GET

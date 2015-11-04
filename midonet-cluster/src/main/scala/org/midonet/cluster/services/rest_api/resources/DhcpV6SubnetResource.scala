@@ -32,7 +32,7 @@ import org.midonet.cluster.rest_api.annotation.AllowCreate
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet6}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
 import org.midonet.packets.IPv6Subnet
 
 @RequestScoped
@@ -72,19 +72,21 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
     override def update(@PathParam("subnetAddress") subnetAddress: String,
                         subnet: DhcpSubnet6,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
-        getSubnet(IPv6Subnet.fromString(subnetAddress)).map(current => {
+    : Response = tryTx { tx =>
+        getSubnet(IPv6Subnet.fromString(subnetAddress), tx).map(current => {
             subnet.update(current)
-            updateResource(subnet)
+            tx.update(subnet)
+            OkNoContentResponse
         }).getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
     @DELETE
     @Path("{subnetAddress}")
     override def delete(@PathParam("subnetAddress") subnetAddress: String)
-    : Response = {
-        getSubnet(IPv6Subnet.fromString(subnetAddress)).map(subnet => {
-            deleteResource(classOf[DhcpSubnet6], subnet.id)
+    : Response = tryTx { tx =>
+        getSubnet(IPv6Subnet.fromString(subnetAddress), tx).map(subnet => {
+            tx.delete(classOf[DhcpSubnet6], subnet.id)
+            OkNoContentResponse
         }).getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
@@ -94,15 +96,23 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
         new DhcpV6HostResource(bridgeId, subnetAddress, resContext)
     }
 
-    protected override def createFilter(subnet: DhcpSubnet6): Seq[Multi] = {
+    protected override def createFilter(subnet: DhcpSubnet6,
+                                        tx: ResourceTransaction): Unit = {
         subnet.create(bridgeId)
-        Seq.empty
+        tx.create(subnet)
     }
 
-    private def getSubnet(subnetAddress: IPv6Subnet): Option[DhcpSubnet6] = {
-        val bridge = getResource(classOf[Bridge], bridgeId)
-        listResources(classOf[DhcpSubnet6], bridge.dhcpv6Ids.asScala)
-            .find(_.subnetAddress == subnetAddress)
+    private def getSubnet(subnetAddress: IPv6Subnet, tx: ResourceTransaction = null)
+    : Option[DhcpSubnet6] = {
+        if (tx eq null) {
+            val bridge = getResource(classOf[Bridge], bridgeId)
+            listResources(classOf[DhcpSubnet6], bridge.dhcpv6Ids.asScala)
+                .find(_.subnetAddress == subnetAddress)
+        } else {
+            val bridge = tx.get(classOf[Bridge], bridgeId)
+            tx.list(classOf[DhcpSubnet6], bridge.dhcpv6Ids.asScala)
+                .find(_.subnetAddress == subnetAddress)
+        }
     }
 
 }

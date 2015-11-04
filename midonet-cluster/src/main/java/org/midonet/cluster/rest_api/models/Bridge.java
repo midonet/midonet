@@ -152,7 +152,6 @@ public class Bridge extends UriResource {
         if (null == id) {
             id = UUID.randomUUID();
         }
-        vxLanPortIds = null;
     }
 
     @JsonIgnore

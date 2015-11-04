@@ -21,18 +21,16 @@ import scala.collection.JavaConverters._
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
-import scala.concurrent.Future
-
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.ConflictHttpException
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.TunnelZone
+import org.midonet.cluster.rest_api.models.{Vtep, TunnelZone}
 import org.midonet.cluster.rest_api.validation.MessageProperty.{UNIQUE_TUNNEL_ZONE_NAME_TYPE, getMessage}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.UUIDUtil
 
 @ApiResource(version = 1, name = "tunnelZones", template = "tunnelZoneTemplate")
@@ -55,17 +53,17 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
         new TunnelZoneHostResource(id, resContext)
     }
 
-    protected override def createFilter(tz: TunnelZone): Seq[Multi] = {
+    protected override def createFilter(tz: TunnelZone, tx: ResourceTransaction)
+    : Unit = {
         throwIfTunnelZoneNameUsed(tz)
-        tz.create()
-        Seq.empty
+        tx.create(tz)
     }
 
-    protected override def updateFilter(to: TunnelZone, from: TunnelZone)
-    : Seq[Multi] = {
+    protected override def updateFilter(to: TunnelZone, from: TunnelZone,
+                                        tx: ResourceTransaction): Unit = {
         throwIfTunnelZoneNameUsed(to)
         to.update(from)
-        Seq.empty
+        tx.update(to)
     }
 
     /** Make sure that tunnel zone host entries in this tunnel zone have the
@@ -91,19 +89,18 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
         list
     }
 
-    protected override def deleteFilter(id: String): Seq[Multi] = {
-        val vteps = backend.store.getAll(classOf[Topology.Vtep]).getOrThrow
-        val matchingVteps = vteps.filter { v =>
-            UUIDUtil.fromProto(v.getTunnelZoneId).toString == id
-        }
+    protected override def deleteFilter(id: String, tx: ResourceTransaction)
+    : Unit = {
+        val vteps = tx.list(classOf[Vtep])
+        val matchingVteps = vteps.filter { v => v.tunnelZoneId.toString == id }
         if (matchingVteps.nonEmpty) {
-            val ids = matchingVteps.map { v => UUIDUtil.fromProto(v.getId) }
+            val ids = matchingVteps.map { v => v.id }
             throw new ConflictHttpException("Tunnel Zone is used by VTEP(s), " +
                                             "please delete the following " +
                                             "VTEPs before deleting this " +
                                             "tunnel zone: " + ids)
         }
-        Seq.empty
+        tx.delete(classOf[TunnelZone], id)
     }
 
     private def throwIfTunnelZoneNameUsed(tz: TunnelZone): Unit = {

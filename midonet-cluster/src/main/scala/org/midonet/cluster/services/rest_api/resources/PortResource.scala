@@ -39,7 +39,7 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Route.NextHop
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{BadRequestHttpException, InternalServerErrorHttpException, NotFoundHttpException, ConflictHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend.{ActiveKey, BgpKey}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
@@ -114,12 +114,12 @@ class PortResource @Inject()(resContext: ResourceContext)
     @Path("{id}/link")
     @Consumes(Array(APPLICATION_PORT_LINK_JSON,
                     APPLICATION_JSON))
-    def link(@PathParam("id") id: UUID, link: Link): Response = {
-        val Seq(port, peer) =
-            listResources(classOf[Port], Seq(id, link.peerId))
+    def link(@PathParam("id") id: UUID, link: Link): Response = tryTx { tx =>
+        val Seq(port, peer) = tx.list(classOf[Port], Seq(id, link.peerId))
         if ((port.peerId eq null) && (peer.peerId eq null)) {
             port.peerId = link.peerId
-            updateResource(port, Response.created(link.getUri).build())
+            tx.update(port)
+            Response.created(link.getUri).build()
         } else {
             buildErrorResponse(BAD_REQUEST.getStatusCode,
                                getMessage(PORTS_LINKABLE))
@@ -128,10 +128,11 @@ class PortResource @Inject()(resContext: ResourceContext)
 
     @DELETE
     @Path("{id}/link")
-    def unlink(@PathParam("id") id: UUID): Response = {
-        val port = getResource(classOf[Port], id)
+    def unlink(@PathParam("id") id: UUID): Response = tryTx { tx =>
+        val port = tx.get(classOf[Port], id)
         port.peerId = null
-        updateResource(port, MidonetResource.OkNoContentResponse)
+        tx.update(port)
+        OkNoContentResponse
     }
 
     @Path("{id}/port_groups")
@@ -139,21 +140,23 @@ class PortResource @Inject()(resContext: ResourceContext)
         new PortPortGroupResource(id, resContext)
     }
 
-    protected override def deleteFilter(id: String): Seq[Multi] = {
-        val port = backend.store.get(classOf[Topology.Port], id).getOrThrow
-        if (port.hasVtepId) {
-            val vtepId = port.getVtepId.asJava
-            val nwId = port.getNetworkId.asJava
+    protected override def deleteFilter(id: String,
+                                        tx: ResourceTransaction): Unit = {
+        val port = tx.get(classOf[VxLanPort], id)
+        if (port.vtepId ne null) {
+            //val vtepId = port.getVtepId.asJava
+            //val nwId = port.getNetworkId.asJava
             throw new ConflictHttpException("This port type doesn't allow  " +
-                s"deletions as it binds network $nwId to VTEP $vtepId. " +
-                "Please remove the bindings instead.")
+                s"deletions as it binds network ${port.networkId} to VTEP " +
+                s"${port.vtepId}. Please remove the bindings instead.")
         }
-        Seq.empty
+        tx.delete(classOf[Port], id)
     }
 
-    protected override def updateFilter(to: Port, from: Port): Seq[Multi] = {
+    protected override def updateFilter(to: Port, from: Port,
+                                        tx: ResourceTransaction): Unit = {
         to.update(from)
-        Seq.empty
+        tx.update(to)
     }
 
 }
@@ -171,7 +174,8 @@ class BridgePortResource @Inject()(bridgeId: UUID,
         getResource(classOf[Bridge], bridgeId).portIds.asScala
     }
 
-    protected override def createFilter(port: Port): Seq[Multi] = {
+    protected override def createFilter(port: Port,
+                                        tx: ResourceTransaction): Unit = {
         val bridgePort = port match {
             case bp: BridgePort => bp
             case _ =>
@@ -179,7 +183,7 @@ class BridgePortResource @Inject()(bridgeId: UUID,
         }
         ensureTunnelKey(port)
         bridgePort.create(bridgeId)
-        Seq.empty
+        tx.create(bridgePort)
     }
 
     @GET
@@ -199,22 +203,21 @@ class BridgePortResource @Inject()(bridgeId: UUID,
     }
 
     private def getBindings(id: UUID): List[VtepBinding] = {
-        val p = backend.store.get(classOf[Topology.Port], id).getOrThrow
+        val p = store.get(classOf[Topology.Port], id).getOrThrow
         if (!p.hasVtepId) {
             throw new BadRequestHttpException(getMessage(PORT_NOT_VXLAN_PORT,
                                                          id))
         }
-        val vtep = backend.store.get(classOf[Topology.Vtep], p.getVtepId)
-                          .getOrThrow
+        val vtep = store.get(classOf[Topology.Vtep], p.getVtepId).getOrThrow
         val bindings = vtep.getBindingsList
                            .filter { _.getNetworkId == p.getNetworkId }
                            .map { fromProto(_, classOf[VtepBinding]) }
                            .toList
         if (bindings.isEmpty) {
-            log.warn("Network VxLAN port $id exists, but no bindings are " +
-                     "found in VTEP ${fromProto(vtep.getId()}, this is wrong" +
-                     "as the port is deleted when the last binding is removed" +
-                     ". Data inconsistency?")
+            log.warn("Network VXLAN port {} exists, but no bindings are " +
+                     "found in VTEP {}, this is wrong as the port is deleted " +
+                     "when the last binding is removed. Data inconsistency?",
+                     id, vtep.getId.asJava)
         }
         bindings
     }
@@ -232,15 +235,18 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
         getResource(classOf[Router], routerId).portIds.asScala
     }
 
-    protected override def createFilter(port:RouterPort): Seq[Multi] = {
+    protected override def createFilter(port:RouterPort,
+                                        tx: ResourceTransaction): Unit = {
         ensureTunnelKey(port)
         port.create(routerId)
         port.setBaseUri(resContext.uriInfo.getBaseUri)
+        tx.create(port)
+
         val route = new Route("0.0.0.0", 0, port.portAddress, 32,
                               NextHop.Local, port.id, "255.255.255.255", 0,
                               null, false)
         route.setBaseUri(resContext.uriInfo.getBaseUri)
-        Seq(Create(route))
+        tx.create(route)
     }
 
 }
@@ -338,13 +344,13 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
                     APPLICATION_JSON))
     override def create(portGroupPort: PortGroupPort,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
+    : Response = tryTx { tx =>
         portGroupPort.portGroupId = portGroupId
 
         throwIfViolationsOn(portGroupPort)
 
-        val port = getResource(classOf[Port], portGroupPort.portId)
-        val pg = getResource(classOf[PortGroup], portGroupPort.portGroupId)
+        val port = tx.get(classOf[Port], portGroupPort.portId)
+        val pg = tx.get(classOf[PortGroup], portGroupPort.portGroupId)
         if (port.portGroupIds.contains(portGroupPort.portGroupId)) {
             Response.status(Status.CONFLICT).build()
         } else  if (pg.portIds.contains(portGroupPort.portId)) {
@@ -353,39 +359,41 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
             portGroupPort.setBaseUri(resContext.uriInfo.getBaseUri)
             port.portGroupIds.add(portGroupPort.portGroupId)
             pg.portIds.add(portGroupPort.portId)
-            multiResource(Seq(Update(port), Update(pg)),
-                          Response.created(portGroupPort.getUri)
-                              .build())
+            tx.update(port)
+            tx.update(pg)
+            Response.created(portGroupPort.getUri).build()
         }
     }
 
     @DELETE
     @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = {
+    override def delete(@PathParam("id") id: String): Response = tryTx { tx =>
         val portId = UUID.fromString(id)
         // If the port still exists, delete the port group ID from the port,
         // otherwise delete only the port ID from the port group.
         try {
-            val port = getResource(classOf[Port], portId)
-            val pg = getResource(classOf[PortGroup], portGroupId)
+            val port = tx.get(classOf[Port], portId)
+            val pg = tx.get(classOf[PortGroup], portGroupId)
             if (!port.portGroupIds.contains(portGroupId)) {
                 Response.status(Status.NOT_FOUND).build()
             } else if (!pg.portIds.contains(portId)) {
-                MidonetResource.OkNoContentResponse
+                OkNoContentResponse
             } else {
                 port.portGroupIds.remove(portGroupId)
                 pg.portIds.remove(portId)
-                multiResource(Seq(Update(port), Update(pg)),
-                              MidonetResource.OkNoContentResponse)
+                tx.update(port)
+                tx.update(pg)
+                OkNoContentResponse
             }
         } catch {
             case NonFatal(_) =>
-                val pg = getResource(classOf[PortGroup], portGroupId)
+                val pg = tx.get(classOf[PortGroup], portGroupId)
                 if (!pg.portIds.contains(portId)) {
-                    MidonetResource.OkNoContentResponse
+                    OkNoContentResponse
                 } else {
                     pg.portIds.remove(portId)
-                    updateResource(pg, MidonetResource.OkNoContentResponse)
+                    tx.update(pg)
+                    OkNoContentResponse
                 }
         }
     }

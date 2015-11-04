@@ -67,7 +67,9 @@ class NeutronZoomPluginTest extends FeatureSpec
         backend.startAsync().awaitRunning()
 
         val paths = new PathBuilder(zkRoot)
-        val resContext = new ResourceContext(backend, uriInfo = null,
+        val resContext = new ResourceContext(backend,
+                                             lockFactory = null,
+                                             uriInfo = null,
                                              validator = null,
                                              seqDispenser = null,
                                              stateTables = null)

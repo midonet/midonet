@@ -21,15 +21,13 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
-import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, HOST_INTERFACE_IS_USED, PORT_ALREADY_BOUND, getMessage}
+import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_INTERFACE_IS_USED, HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, PORT_ALREADY_BOUND, getMessage}
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -64,27 +62,23 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
                     APPLICATION_JSON))
     override def create(binding: HostInterfacePort,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
+    : Response = tryTx { tx =>
 
-        val store = resContext.backend.store
-        val h = store.get(classOf[Topology.Host], hostId).getOrThrow
-        if (h.getTunnelZoneIdsList.isEmpty) {
+        val host = tx.get(classOf[Host], hostId)
+        if (host.tunnelZoneIds.isEmpty) {
             throw new BadRequestHttpException(
                 getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE, hostId))
         }
 
-        val oldP = store.get(classOf[Topology.Port], binding.portId).getOrThrow
-        if (oldP.hasInterfaceName) {
+        val oldPort = tx.get(classOf[Port], binding.portId)
+        if (oldPort.interfaceName ne null) {
             throw new BadRequestHttpException(
                 getMessage(PORT_ALREADY_BOUND, binding.portId))
         }
 
-        store.getAll(classOf[Topology.Port], h.getPortIdsList)
-             .getOrThrow
-             .find (
-                // of those ports in the host, see if any has the same ifc
-                _.getInterfaceName == binding.interfaceName
-            ) match {
+        tx.list(classOf[Port], host.portIds.asScala)
+            // of those ports in the host, see if any has the same ifc
+            .find(_.interfaceName == binding.interfaceName) match {
                 case Some(conflictingPort) =>
                     throw new BadRequestHttpException(
                         getMessage(HOST_INTERFACE_IS_USED,
@@ -92,21 +86,23 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
                 case _ =>
             }
 
-        val port = getResource(classOf[Port], binding.portId)
+        val port = tx.get(classOf[Port], binding.portId)
         binding.setBaseUri(resContext.uriInfo.getBaseUri)
         binding.create(hostId)
         port.hostId = hostId
         port.interfaceName = binding.interfaceName
-        updateResource(port, Response.created(binding.getUri).build())
+        tx.update(port)
+        Response.created(binding.getUri).build()
     }
 
     @DELETE
     @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = {
-        val port = getResource(classOf[Port], id)
+    override def delete(@PathParam("id") id: String): Response = tryTx { tx =>
+        val port = tx.get(classOf[Port], id)
         port.hostId = null
         port.interfaceName = null
-        updateResource(port, MidonetResource.OkNoContentResponse)
+        tx.update(port)
+        MidonetResource.OkNoContentResponse
     }
 
 }
