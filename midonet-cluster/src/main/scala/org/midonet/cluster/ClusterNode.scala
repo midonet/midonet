@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.auth.AuthModule
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage._
-import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
+import org.midonet.conf.{HostIdGenerator, LoggerLevelWatcher, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
@@ -89,6 +89,8 @@ object ClusterNode extends App {
         log.info("Deployed new configuration schema into NSDB")
     }
     configurator.centralPerNodeConfig(nodeId)
+    configurator.observableRuntimeConfig(nodeId)
+                .subscribe(new LoggerLevelWatcher(Some("cluster")))
 
     val clusterConf = new ClusterConfig(configurator.runtimeConfig)
 
