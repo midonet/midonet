@@ -176,7 +176,7 @@ public class Bridge extends UriResource {
     @Since("3")
     public List<URI> getVxLanPorts() {
         if (getBaseUri() == null || vxLanPortIds == null)
-            return null;
+            return new ArrayList<>();
         List<URI> uris = new ArrayList<>(vxLanPortIds.size());
         for (UUID id : vxLanPortIds) {
             uris.add(ResourceUriBuilder.getPort(getBaseUri(), id));
