@@ -30,7 +30,7 @@ import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Pool, PoolMember}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
 
 @ApiResource(version = 1)
 @Path("pool_members")
@@ -46,21 +46,21 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, R
 class PoolMemberResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[PoolMember](resContext) {
 
-    protected override def updateFilter(to: PoolMember, from: PoolMember)
-    : Seq[Multi] = {
+    protected override def updateFilter(to: PoolMember, from: PoolMember,
+                                        tx: ResourceTransaction): Unit = {
         to.update(from)
-        Seq.empty
+        tx.update(to)
     }
 
     @DELETE
     @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = {
+    override def delete(@PathParam("id") id: String): Response = tryTx { tx =>
         try {
-            deleteResource(classOf[PoolMember], id)
+            tx.delete(classOf[PoolMember], id)
         } catch {
             case t: NotFoundHttpException => // ok, idempotent
         }
-        MidonetResource.OkNoContentResponse
+        OkNoContentResponse
     }
 
 }
@@ -77,9 +77,10 @@ class PoolPoolMemberResource @Inject()(poolId: UUID, resCtx: ResourceContext)
         getResource(classOf[Pool], poolId).poolMemberIds.asScala
     }
 
-    protected override def createFilter(poolMember: PoolMember): Seq[Multi] = {
+    protected override def createFilter(poolMember: PoolMember,
+                                        tx: ResourceTransaction): Unit = {
         poolMember.create(poolId)
-        Seq.empty
+        tx.create(poolMember)
     }
 
 }

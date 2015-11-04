@@ -46,14 +46,16 @@ class RuleResource @Inject()(resContext: ResourceContext)
         rule
     }
 
-    protected override def deleteFilter(ruleId: String): Seq[Multi] = {
-        val rule = getResource(classOf[Rule], ruleId)
-        val chain = getResource(classOf[Chain], rule.chainId)
+    protected override def deleteFilter(ruleId: String,
+                                        tx: ResourceTransaction): Unit = {
+        val rule = tx.get(classOf[Rule], ruleId)
+        val chain = tx.get(classOf[Chain], rule.chainId)
         if (chain.ruleIds.remove(rule.id)) {
-            Seq(Update(chain))
+            tx.update(chain)
         } else {
             throw new NotFoundHttpException("Rule chain not found")
         }
+        tx.delete(classOf[Rule], ruleId)
     }
 
 }
@@ -75,10 +77,11 @@ class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
         rules
     }
 
-    protected override def createFilter(rule: Rule): Seq[Multi] = {
-        rule.create(chainId)
+    protected override def createFilter(rule: Rule, tx: ResourceTransaction)
+    : Unit = {
+        tx.create(rule)
 
-        val chain = getResource(classOf[Chain], chainId)
+        val chain = tx.get(classOf[Chain], chainId)
         rule.setBaseUri(resContext.uriInfo.getBaseUri)
         if (rule.position <= 0 || rule.position > chain.ruleIds.size() + 1) {
             throw new BadRequestHttpException("Position exceeds number " +
@@ -86,18 +89,19 @@ class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
         }
         chain.ruleIds.add(rule.position - 1, rule.id)
 
-        updateJumpChain(rule)(Seq(Update(chain)))
+        tx.update(chain)
+        updateJumpChain(rule, tx)
     }
 
-    private def updateJumpChain(rule: Rule)(ops: Seq[Multi]): Seq[Multi] = {
+    private def updateJumpChain(rule: Rule, tx: ResourceTransaction): Unit = {
         rule match {
             case jumpRule: JumpRule if jumpRule.jumpChainId ne null=>
-                val chain = getResource(classOf[Chain], jumpRule.jumpChainId)
+                val chain = tx.get(classOf[Chain], jumpRule.jumpChainId)
                 chain.jumpRuleIds.add(rule.id)
-                ops :+ Update(chain)
+                tx.update(chain)
             case jumpRule: JumpRule =>
                 throw new BadRequestHttpException("Jump rule missing chain identifier")
-            case _ => ops
+            case _ =>
         }
     }
 

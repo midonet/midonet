@@ -51,27 +51,26 @@ class HostResource @Inject()(resContext: ResourceContext)
 
     @DELETE
     @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = {
+    override def delete(@PathParam("id") id: String): Response = tryTx { tx =>
         if (isAlive(id)) {
             return buildErrorResponse(
                 Status.FORBIDDEN,
                 getMessage(HOST_DELETION_NOT_ALLOWED_ACTIVE, id))
         }
-        val host = getResource(classOf[Host], id)
+        val host = tx.get(classOf[Host], id)
         if ((host.portIds ne null) && !host.portIds.isEmpty) {
             return buildErrorResponse(
                 Status.FORBIDDEN,
                 getMessage(HOST_DELETION_NOT_ALLOWED_BINDINGS,
                            id, Integer.valueOf(host.portIds.size())))
         }
-        val tunnelZones = getResources(classOf[TunnelZone],
-                                       host.tunnelZoneIds.asScala)
-        var ops = for (tunnelZone <- tunnelZones) yield {
+        val tunnelZones = tx.list(classOf[TunnelZone], host.tunnelZoneIds.asScala)
+        for (tunnelZone <- tunnelZones) {
             tunnelZone.removeHost(host.id)
-            Update(tunnelZone).asInstanceOf[Multi]
+            tx.update(tunnelZone)
         }
-        ops = ops :+ Delete(classOf[Host], id)
-        multiResource(ops)
+        tx.delete(classOf[Host], id)
+        OkResponse
     }
 
     @PUT
@@ -80,14 +79,14 @@ class HostResource @Inject()(resContext: ResourceContext)
                     APPLICATION_JSON))
     override def update(@PathParam("id") id: String, host: Host,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
-
+    : Response = tryTx { tx =>
         // We only allow modifying the Flooding Proxy in this method, all other
         // updates are disallowed.
-        val current = getResource(classOf[Host], id)
+        val current = tx.get(classOf[Host], id)
         if (host.floodingProxyWeight != null) {
             current.floodingProxyWeight = host.floodingProxyWeight
-            updateResource(current, OkResponse)
+            tx.update(current)
+            OkResponse
         } else {
             buildErrorResponse(
                 Status.BAD_REQUEST,

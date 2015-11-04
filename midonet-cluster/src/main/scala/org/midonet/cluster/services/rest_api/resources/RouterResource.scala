@@ -24,7 +24,6 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.data.ZoomConvert.{toProto => zoomToProto}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -79,14 +78,16 @@ class RouterResource @Inject()(resContext: ResourceContext,
         else routers filter { _.tenantId == tenantId }
     }
 
-    protected override def createFilter(router: Router): Seq[Multi] = {
-        router.create()
-        Seq(CreateNode(pathBuilder.getRouterArpTablePath(router.id)),
-            CreateNode(pathBuilder.getRouterRoutingTablePath(router.id)))
+    protected override def createFilter(router: Router, tx: ResourceTransaction)
+    : Unit = {
+        tx.create(router)
+        tx.tx.createNode(pathBuilder.getRouterArpTablePath(router.id), null)
+        tx.tx.createNode(pathBuilder.getRouterRoutingTablePath(router.id), null)
     }
 
-    protected override def updateFilter(to: Router, from: Router): Seq[Multi] = {
+    protected override def updateFilter(to: Router, from: Router,
+                                        tx: ResourceTransaction): Unit = {
         to.update(from)
-        Seq.empty
+        tx.update(to)
     }
 }

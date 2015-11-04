@@ -33,7 +33,7 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{LoadBalancer, Pool, Vip}
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @ApiResource(version = 1)
 @Path("vips")
@@ -85,27 +85,26 @@ class VipResource @Inject()(resContext: ResourceContext)
         }
     }
 
-    protected override def createFilter(vip: Vip): Seq[Multi] = {
-        vip.create()
-        throwIfViolationsOn(vip)
+    protected override def createFilter(vip: Vip, tx: ResourceTransaction): Unit = {
         try {
-            getResource(classOf[Pool], vip.poolId)
+            tx.get(classOf[Pool], vip.poolId)
         } catch {
             case t: NotFoundHttpException =>
                 throw new BadRequestHttpException(t.getMessage)
         }
-        Seq.empty
+        tx.create(vip)
     }
 
-    protected override def updateFilter(to: Vip, from: Vip): Seq[Multi] = {
+    protected override def updateFilter(to: Vip, from: Vip,
+                                        tx: ResourceTransaction): Unit = {
         to.update(from)
         try {
-            getResource(classOf[Pool], to.poolId)
+            tx.get(classOf[Pool], to.poolId)
         } catch {
             case t: NotFoundHttpException =>
                 throw new BadRequestHttpException(t.getMessage)
         }
-        Seq.empty
+        tx.update(to)
     }
 
 }
@@ -126,17 +125,15 @@ class PoolVipResource @Inject()(poolId: UUID, resContext: ResourceContext)
         vips.asJava
     }
 
-    protected override def createFilter(vip: Vip): Seq[Multi] = {
-        vip.create()
-        throwIfViolationsOn(vip)
+    protected override def createFilter(vip: Vip, tx: ResourceTransaction): Unit = {
         val pool = try {
-            getResource(classOf[Pool], vip.poolId)
+            tx.get(classOf[Pool], vip.poolId)
         } catch {
             case t: NotFoundHttpException =>
                 throw new BadRequestHttpException(t.getMessage)
         }
         vip.loadBalancerId = pool.loadBalancerId
-        Seq.empty
+        tx.create(vip)
     }
 }
 

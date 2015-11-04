@@ -47,33 +47,6 @@ import org.midonet.cluster.util.UUIDUtil._
 class L2InsertionResource @Inject()(resContext: ResourceContext)
         extends MidonetResource[L2Insertion](resContext) {
 
-    protected override def multiResource(ops: Seq[Multi],
-                                         r: Response = OkResponse) : Response = {
-
-        try {
-            ops.last match {
-                case Create(t) if t.isInstanceOf[L2Insertion] =>
-                    val msg = toProto(t).asInstanceOf[Topology.L2Insertion]
-                    translateInsertionCreate(backend.store, msg)
-                    r
-                case Update(t) if t.isInstanceOf[L2Insertion]  =>
-                    val msg = toProto(t).asInstanceOf[Topology.L2Insertion]
-                    translateInsertionUpdate(backend.store, msg)
-                    r
-                case Delete(clazz, id) =>
-                    translateInsertionDelete(backend.store,
-                                             UUID.fromString(id.toString).asProto)
-                    r
-                case _ =>
-                    Response.status(Response.Status.PRECONDITION_FAILED).build
-            }
-        } catch {
-            case e: Exception =>
-                log.error(s"Error writing l2insertion", e)
-                Response.status(Response.Status.PRECONDITION_FAILED).build
-        }
-    }
-
     protected override def listFilter(list: Seq[L2Insertion]): Seq[L2Insertion] = {
         val filtered = list filter {
             val srvPort = uriInfo.getQueryParameters.getFirst("srv_port")
@@ -87,4 +60,21 @@ class L2InsertionResource @Inject()(resContext: ResourceContext)
         }
         filtered
     }
+
+    protected override def createFilter(l2Insertion: L2Insertion,
+                                        tx: ResourceTransaction): Unit = {
+        val msg = toProto(l2Insertion).asInstanceOf[Topology.L2Insertion]
+        translateInsertionCreate(store, msg)
+    }
+
+    protected override def updateFilter(to: L2Insertion, from: L2Insertion,
+                                        tx: ResourceTransaction): Unit = {
+        val msg = toProto(to).asInstanceOf[Topology.L2Insertion]
+        translateInsertionUpdate(store, msg)
+    }
+
+    protected override def deleteFilter(id: String, tx: ResourceTransaction): Unit = {
+        translateInsertionDelete(store, UUID.fromString(id.toString).asProto)
+    }
+
 }
