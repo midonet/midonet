@@ -25,7 +25,7 @@ class MidonetClusterHost(Service):
     def __init__(self, container_id):
         super(MidonetClusterHost, self).__init__(container_id)
         self.username = 'admin'
-        self.password = '*'
+        self.password = 'admin'
         self.port = 8181
 
     def get_service_status(self):
