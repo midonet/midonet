@@ -65,7 +65,7 @@
     <!-- <logger name="org.midonet.cluster.vxgw.vxgw-midonet-$NETWORK_ID" level="DEBUG" /> -->
 
     <!-- REST API -->
-    <!-- logger name="org.midonet.cluster.services.rest_api" level="DEBUG"/ -->
+    <!-- logger name="org.midonet.cluster.services.rest-api" level="DEBUG"/ -->
 
     <!-- NEUTRON DATA SYNC BACKEND -->
     <!-- logger name="org.midonet.cluster.services.neutron-importer" level="DEBUG"/ -->
