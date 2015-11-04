@@ -380,6 +380,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_8803830c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-04T13:39:08Z",
+      "side": 1,
+      "message": "Say the op runs, fails, the retry loop kicks in, no success, 30s pass, we give up and restart midolman.\n\nWhat will happen to the status that could not be written? Are all consolidated on startup?",
+      "parentUuid": "9ab29df4_e5b0aa8d",
+      "range": {
+        "startLine": 167,
+        "startChar": 20,
+        "endLine": 167,
+        "endChar": 29
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_180d0691",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 7
