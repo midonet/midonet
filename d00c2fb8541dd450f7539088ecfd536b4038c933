@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_42194c78",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtil.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "Not only, the HAproxyHealthMonitor also uses writeWithLock, that\u0027s why I changed the name. I\u0027m open to better names though.",
+      "parentUuid": "9ab29df4_38ed6ac4",
+      "range": {
+        "startLine": 40,
+        "startChar": 6,
+        "endLine": 40,
+        "endChar": 17
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_383baa3b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtil.scala",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2015-11-03T18:44:21Z",
       "side": 1,
       "message": "I know you\u0027re forced to use this bc. of the ZkLockApi, but does it have any practical purpose?",
+      "range": {
+        "startLine": 44,
+        "startChar": 22,
+        "endLine": 44,
+        "endChar": 34
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_822a847c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtil.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "It\u0027s used to distinguish different op numbers when logging messages.",
+      "parentUuid": "9ab29df4_383baa3b",
       "range": {
         "startLine": 44,
         "startChar": 22,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_224c5870",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtil.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "This is copied from the neutron api (which logs an error as well in this situation). After reading your rational behind using info below, I understood your suggestion better.",
+      "parentUuid": "9ab29df4_f8093296",
+      "range": {
+        "startLine": 60,
+        "startChar": 20,
+        "endLine": 60,
+        "endChar": 25
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_38048a7a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtil.scala",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2015-11-03T18:44:21Z",
       "side": 1,
       "message": "Uninformative, what failed? (something contextualized in the l4lb health monitor actions that are being written here).\n\nDoes the operator need to do anything after reading it (if no: it\u0027s an INFO)",
+      "range": {
+        "startLine": 69,
+        "startChar": 26,
+        "endLine": 69,
+        "endChar": 49
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e268a0bc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/BackendUtil.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "OK this rule helped me understand better why you want to use info. I tried to also improve the message.",
+      "parentUuid": "9ab29df4_38048a7a",
       "range": {
         "startLine": 69,
         "startChar": 26,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_a27dc870",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "We need to make sure that topology modified by the api and the health monitor is done using a lock. Otherwise, the api may get routes and then try to update them even though one was deleted here.",
+      "parentUuid": "9ab29df4_b846dabd",
+      "range": {
+        "startLine": 154,
+        "startChar": 24,
+        "endLine": 156,
+        "endChar": 25
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_3812cab1",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 7
@@ -128,6 +248,30 @@
       "writtenOn": "2015-11-03T18:44:21Z",
       "side": 1,
       "message": "Not really an error as it\u0027ll retry no? INFO, mention the retry, and bonus points for a better message (e.g.: \"failed to update HM status, will retry..\")",
+      "range": {
+        "startLine": 167,
+        "startChar": 20,
+        "endLine": 167,
+        "endChar": 29
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_c2f71cf4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "There is no retry anymore since we use locks. Only the writeConf call above can throw an exception now. I changed the logging to info.",
+      "parentUuid": "9ab29df4_3812cab1",
       "range": {
         "startLine": 167,
         "startChar": 20,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_0292f49e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_180d0691",
+      "range": {
+        "startLine": 169,
+        "startChar": 20,
+        "endLine": 169,
+        "endChar": 39
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_78236205",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 7
@@ -174,6 +342,30 @@
       "writtenOn": "2015-11-03T18:44:21Z",
       "side": 1,
       "message": "This is a nit, but I like having\n\nsetPoolMappingError(config.id) and then have these methods delegate on a protected setPoolMappingStatus(config.id, status), hiding the constants in BackendUtil. The API has stronger semantics and is less error prone.",
+      "range": {
+        "startLine": 170,
+        "startChar": 31,
+        "endLine": 170,
+        "endChar": 52
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e24b4029",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_78236205",
       "range": {
         "startLine": 170,
         "startChar": 31,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_225618d3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_982036f9",
+      "range": {
+        "startLine": 200,
+        "startChar": 38,
+        "endLine": 200,
+        "endChar": 44
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_98775602",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 7
@@ -220,6 +436,30 @@
       "writtenOn": "2015-11-03T18:44:21Z",
       "side": 1,
       "message": "Since we\u0027re locking, we might as well try to do fewer writes:\n\n        backendUtil.writeWithLock {\n            val membersFuture \u003d store.getAll(classOf[PoolMember], memberIds.toSeq)\n            membersFuture.map { _.map { member \u003d\u003e\n                UpdateOp(member.toBuilder.setStatus(status).build)\n            }} andThen {\n                case Success(ops) \u003d\u003e store.multi(ops)\n                case Failure(t) \u003d\u003e // throw? \n            }\n        }",
+      "range": {
+        "startLine": 210,
+        "startChar": 12,
+        "endLine": 212,
+        "endChar": 29
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_e2f980c9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "Thanks for the suggestion! Instead of throwing the exception I\u0027m logging a message.",
+      "parentUuid": "9ab29df4_98775602",
       "range": {
         "startLine": 210,
         "startChar": 12,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_02e3d405",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "This would be to avoid situations where the api would acquire a lock to perform a multi-operation transaction and would fail when creating a route because it already exists. We could change that to just catch exceptions and log them but I feel it\u0027s safer as is for the moment. If we don\u0027t do that, the api would have to be aware of the fact that some operations don\u0027t acquire locks in the health monitor.",
+      "parentUuid": "9ab29df4_38600a32",
+      "range": {
+        "startLine": 426,
+        "startChar": 8,
+        "endLine": 426,
+        "endChar": 36
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_b8741afe",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 7
@@ -266,6 +530,30 @@
       "writtenOn": "2015-11-03T18:44:21Z",
       "side": 1,
       "message": "why warn? looks more like a debug/info",
+      "range": {
+        "startLine": 439,
+        "startChar": 20,
+        "endLine": 439,
+        "endChar": 24
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_42edccee",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 439,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "This is legacy code, changing that to info.",
+      "parentUuid": "9ab29df4_b8741afe",
       "range": {
         "startLine": 439,
         "startChar": 20,
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_42c4ec5e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 441,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_d860ee37",
+      "range": {
+        "startLine": 440,
+        "startChar": 25,
+        "endLine": 441,
+        "endChar": 50
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_f865b245",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 7
@@ -324,6 +636,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_62a2d0af",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "same comment as above.",
+      "parentUuid": "9ab29df4_f865b245",
+      "range": {
+        "startLine": 453,
+        "startChar": 8,
+        "endLine": 453,
+        "endChar": 35
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_185b4688",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 7
@@ -335,6 +671,30 @@
       "writtenOn": "2015-11-03T18:44:21Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 463,
+        "startChar": 12,
+        "endLine": 463,
+        "endChar": 39
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_82a524b7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "same comment.",
+      "parentUuid": "9ab29df4_185b4688",
       "range": {
         "startLine": 463,
         "startChar": 12,
@@ -387,6 +747,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_42a94c7a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/IpAddrGroupResource.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_7851a261",
+      "range": {
+        "startLine": 150,
+        "startChar": 12,
+        "endLine": 150,
+        "endChar": 27
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_98e596aa",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/IpAddrGroupResource.scala",
         "patchSetId": 7
@@ -398,6 +782,30 @@
       "writtenOn": "2015-11-03T18:44:21Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 155,
+        "startChar": 12,
+        "endLine": 155,
+        "endChar": 47
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_62b730d9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/IpAddrGroupResource.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "Note that the function passed to tryWrite must return a response. So I kept this inside the tryWrite and also placed one when we don\u0027t perform an update.",
+      "parentUuid": "9ab29df4_98e596aa",
       "range": {
         "startLine": 155,
         "startChar": 12,
@@ -433,6 +841,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_c2b47cd3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_b8e25a9d",
+      "range": {
+        "startLine": 120,
+        "startChar": 20,
+        "endLine": 120,
+        "endChar": 25
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_f8f3f270",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
         "patchSetId": 7
@@ -456,6 +888,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_22c5383c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_f8f3f270",
+      "range": {
+        "startLine": 142,
+        "startChar": 32,
+        "endLine": 142,
+        "endChar": 39
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_18e98680",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
         "patchSetId": 7
@@ -467,6 +923,30 @@
       "writtenOn": "2015-11-03T18:44:21Z",
       "side": 1,
       "message": "if we\u0027re passing request-specific context into tryWrite it means that tryWrite is no longer a static function. Not sure if it\u0027s worth moving it to the class though. What do you guys think?",
+      "range": {
+        "startLine": 392,
+        "startChar": 17,
+        "endLine": 392,
+        "endChar": 42
+      },
+      "revId": "d00c2fb8541dd450f7539088ecfd536b4038c933",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_02cd945d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-04T09:31:08Z",
+      "side": 1,
+      "message": "I kept it as is for now.",
+      "parentUuid": "9ab29df4_18e98680",
       "range": {
         "startLine": 392,
         "startChar": 17,
