@@ -14,7 +14,7 @@ sudo apt-get install -qy python2.7
 sudo apt-get install -qy g++
 
 # brctl, iptables
-sudo apt-get install --no-install-recommends -y bridge-utils vlan arping
+sudo apt-get install --no-install-recommends -y bridge-utils vlan
 
 # python and ruby for generating packages
 sudo apt-get install --no-install-recommends -qy debhelper autotools-dev python-unittest2 python-all-dev ruby-ronn
@@ -25,7 +25,7 @@ if protoc --version | grep 2.6.1 > /dev/null
 then
     echo "Protobufs 2.6.1 already installed"
 else
-    cd ..
+    pushd ../
     rm -rf build-protoc
     mkdir -p build-protoc
     cd build-protoc
@@ -34,7 +34,7 @@ else
     cd protobuf-2.6.1
     ./configure && make
     sudo make install
-    cd tests
+    popd
 fi
 
 # Install dependencies for MDTS
