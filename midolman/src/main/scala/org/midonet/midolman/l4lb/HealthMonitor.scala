@@ -17,13 +17,15 @@
 package org.midonet.midolman.l4lb
 
 import java.io._
-import java.util.UUID
+import java.util.{ConcurrentModificationException, UUID}
+
+import scala.collection.JavaConversions._
 
 import akka.actor.{Actor, ActorRef}
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
-import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, StorageException}
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Pool
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus
 import org.midonet.cluster.services.MidonetBackend
@@ -34,10 +36,7 @@ import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.util.concurrent.toFutureOps
 import org.slf4j.{Logger, LoggerFactory}
-
-import scala.collection.JavaConversions._
 
 object HealthMonitor extends Referenceable {
     override val Name = "HealthMonitor"
@@ -47,7 +46,8 @@ object HealthMonitor extends Referenceable {
     case class RouterChanged(poolId: UUID, config: PoolConfig, routerId: UUID)
 
     private val log: Logger
-        = LoggerFactory.getLogger(classOf[HealthMonitor])
+        = LoggerFactory.getLogger("org.midonet.l4lb.health-monitor")
+    private val StorageAttempts = 10
 
     def isRunningHaproxyPid(pid: Int, pidFilePath: String,
                             confFilePath: String): Boolean = {
@@ -174,6 +174,23 @@ object HealthMonitor extends Referenceable {
             }
         }
     }
+
+    def tryTx(store: Storage)(f: (Transaction) => Unit): Unit = {
+        var attempt = 1
+        while (attempt <= StorageAttempts) {
+            try {
+                val tx = store.transaction()
+                f(tx)
+                tx.commit()
+                return
+            } catch {
+                case e: ConcurrentModificationException =>
+                    log.warn(s"Write $attempt of $StorageAttempts failed " +
+                             "due to a concurrent modification: retrying", e)
+                    attempt += 1
+            }
+        }
+    }
 }
 
 /*
@@ -192,10 +209,14 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
 
     private var watcher: ActorRef = null
 
+    override def logSource = "org.midonet.l4lb.health-monitor"
+
     private def setPoolMappingStatus(poolId: UUID,
                                      status: PoolHealthMonitorMappingStatus) = {
-        val pool = store.get(classOf[Pool], poolId).await()
-        store.update(pool.toBuilder.setMappingStatus(status).build())
+        HealthMonitor.tryTx(store) { tx =>
+            val pool = tx.get(classOf[Pool], poolId)
+            tx.update(pool.toBuilder.setMappingStatus(status).build())
+        }
     }
 
     private def inactivatePoolMap(poolId: UUID) =
@@ -219,15 +240,15 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
             cleanupNamespaces()
         }
         log.info("Starting Health Monitor")
-        hostId = HostIdGenerator.getIdFromPropertiesFile()
+        hostId = HostIdGenerator.getIdFromPropertiesFile
         hmLatch.addListener(hmLatchListener)
         hmLatch.start()
     }
 
     def receive = {
-        case ConfigUpdated(poolId, config, routerId) =>
+        case ConfigUpdated(poolId, cfg, routerId) =>
             context.child(poolId.toString) match {
-                case Some(child) if !config.isConfigurable =>
+                case Some(child) if !cfg.isConfigurable =>
                     log.info("received unconfigurable update for pool {}",
                         poolId.toString)
                     context.stop(child)
@@ -235,12 +256,12 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
                 case Some(child) =>
                     log.info("received configurable update for pool {}",
                         poolId.toString)
-                    child ! ConfigUpdate(config)
+                    child ! ConfigUpdate(cfg)
 
-                case None if config.isConfigurable && routerId != null =>
+                case None if cfg.isConfigurable && routerId != null =>
                     log.info("received configurable update for non-existing" +
                              "pool {}", poolId.toString)
-                    startChildHaproxyMonitor(poolId, config, routerId)
+                    startChildHaproxyMonitor(poolId, cfg, routerId)
 
                 case _ =>
                     log.info("received unconfigurable update for non-existing" +
@@ -250,12 +271,12 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
                     }
             }
 
-        case ConfigAdded(poolId, config, routerId) =>
+        case ConfigAdded(poolId, cfg, routerId) =>
             context.child(poolId.toString) match {
                 case Some(child) => log.error("Request to add health monitor" +
                     "that already exists: " + poolId.toString)
 
-                case None if !config.isConfigurable || routerId == null =>
+                case None if !cfg.isConfigurable || routerId == null =>
                     log.info("received unconfigurable add for pool {}",
                         poolId.toString)
                     interceptStorageError {
@@ -265,7 +286,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
                 case None =>
                     log.info("received configurable add for pool {}",
                              poolId.toString)
-                    startChildHaproxyMonitor(poolId, config, routerId)
+                    startChildHaproxyMonitor(poolId, cfg, routerId)
             }
 
         case ConfigDeleted(poolId) =>
@@ -283,7 +304,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
                     }
             }
 
-        case RouterChanged(poolId, config, routerId) =>
+        case RouterChanged(poolId, cfg, routerId) =>
             context.child(poolId.toString) match {
                 case Some(child) if routerId == null =>
                     log.info("router removed for pool {}", poolId.toString)
@@ -293,10 +314,10 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
                     log.info("router added for pool {}", poolId.toString)
                     child ! RouterAdded(routerId)
 
-                case None if config.isConfigurable && routerId != null =>
+                case None if cfg.isConfigurable && routerId != null =>
                     log.info("router added for non-existent pool {}",
                              poolId.toString)
-                    startChildHaproxyMonitor(poolId, config, routerId)
+                    startChildHaproxyMonitor(poolId, cfg, routerId)
 
                 case _ =>
                     log.info("router changed for unconfigurable and non-" +

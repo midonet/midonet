@@ -21,8 +21,12 @@ import java.nio.channels.IllegalSelectorException
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+import scala.collection.mutable
+import scala.concurrent.duration._
+
 import akka.actor._
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.{Transaction, Storage}
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus
 import org.midonet.cluster.models.Topology.{Host, Pool, PoolMember, Port, Route}
@@ -32,12 +36,7 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.AfUnix
-import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.process.ProcessHelper
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable.{HashSet, Set}
-import scala.concurrent.duration._
 
 
 /**
@@ -95,13 +94,15 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     implicit def system: ActorSystem = context.system
     implicit def executor = system.dispatcher
 
-    private var currentUpNodes = Set[UUID]()
-    private var currentDownNodes = Set[UUID]()
+    private var currentUpNodes = mutable.Set[UUID]()
+    private var currentDownNodes = mutable.Set[UUID]()
     private val healthMonitorName = config.id.toString.substring(0,8) +
                                     config.nsPostFix
     private var routerPortId: UUID = null
     private var routeId: UUID = null
     private var namespaceName: String = null
+
+    override def logSource = "org.midonet.l4lb.health-monitor"
 
     override def preStart(): Unit = {
         try {
@@ -149,7 +150,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                         deleteIpTableRules(healthMonitorName, config.vip.ip)
                     }
                     if (routerId != null && routerPortId != null) {
-                        addVipRoute(conf.vip.ip)
+                        HealthMonitor.tryTx(store) { addVipRoute(_, conf.vip.ip) }
                         createIpTableRules(healthMonitorName, conf.vip.ip)
                     }
                 }
@@ -171,8 +172,10 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 val newUpNodes = upNodes diff currentUpNodes
                 val newDownNodes = downNodes diff currentDownNodes
 
-                setMembersStatus(newUpNodes, LBStatus.ACTIVE)
-                setMembersStatus(newDownNodes, LBStatus.INACTIVE)
+                HealthMonitor.tryTx(store) { tx =>
+                    setMembersStatus(tx, newUpNodes, LBStatus.ACTIVE)
+                    setMembersStatus(tx, newDownNodes, LBStatus.INACTIVE)
+                }
 
                 currentUpNodes = upNodes
                 currentDownNodes = downNodes
@@ -196,11 +199,11 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             setPoolMapStatus(PoolHealthMonitorMappingStatus.INACTIVE)
     }
 
-    private def setMembersStatus(memberIds: Set[UUID], status: LBStatus) = {
-        val members = store.getAll(classOf[PoolMember],
-                                           memberIds.toSeq).await()
+    private def setMembersStatus(tx: Transaction, memberIds: mutable.Set[UUID],
+                                 status: LBStatus) = {
+        val members = tx.getAll(classOf[PoolMember], memberIds.toSeq)
         members.foreach { m =>
-            store.update(m.toBuilder.setStatus(status).build())
+            tx.update(m.toBuilder.setStatus(status).build())
         }
     }
 
@@ -213,13 +216,13 @@ class HaproxyHealthMonitor(var config: PoolConfig,
      * backend_id,name_of_server,0,0,0,0,,0,0,0,,0,,0,0,0,0,DOWN,1,1,0,0,1,
      * 2411,2411,,1,2,2,,0,,2,0,,0,L4CON,,1999,,,,,,,0,,,,0,0,
      */
-    private def parseResponse(resp: String): (Set[UUID], Set[UUID]) = {
+    private def parseResponse(resp: String): (mutable.Set[UUID], mutable.Set[UUID]) = {
         if (resp == null) {
             return (currentUpNodes, currentDownNodes)
         }
 
-        val upNodes = new HashSet[UUID]()
-        val downNodes = new HashSet[UUID]()
+        val upNodes = new mutable.HashSet[UUID]()
+        val downNodes = new mutable.HashSet[UUID]()
 
         def isMemberEntry(entry: Array[String]): Boolean =
             entry.length > StatusPos &&
@@ -395,7 +398,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         data.toString()
     }
 
-    def addVipRoute(ip: String) = {
+    def addVipRoute(tx: Transaction, ip: String) = {
         routeId = UUID.randomUUID()
         val destIp = IPAddressUtil.toProto(ip)
         val route = Route.newBuilder
@@ -408,21 +411,19 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             .setNextHop(Route.NextHop.PORT)
             .setNextHopPortId(UUIDUtil.toProto(routerPortId))
             .build
-        store.create(route)
+        tx.create(route)
     }
 
-    def hookNamespaceToRouter(): Unit = {
+    def hookNamespaceToRouter(): Unit = HealthMonitor.tryTx(store) { tx =>
         if (routerId == null)
             return
 
-        val host = store.get(classOf[Host],
-                                     UUIDUtil.toProto(hostId)).await()
-        val ports = store.getAll(classOf[Port],
-                                         host.getPortIdsList).await()
+        val host = tx.get(classOf[Host], UUIDUtil.toProto(hostId))
+        val ports = tx.getAll(classOf[Port], host.getPortIdsList)
         ports.filter(_.getInterfaceName == namespaceName).foreach { p =>
             log.warn("deleting unused health monitor port " + p.getId +
                      " for pool " + config.id)
-            store.delete(classOf[Port], p.getId)
+            tx.delete(classOf[Port], p.getId)
         }
 
         val hmPort = Port.newBuilder()
@@ -433,9 +434,9 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             .setPortMac(RouterMAC.toString)
             .setHostId(UUIDUtil.toProto(hostId))
             .setInterfaceName(namespaceName).build
-        store.create(hmPort)
+        tx.create(hmPort)
         routerPortId = UUIDUtil.fromProto(hmPort.getId)
-        addVipRoute(config.vip.ip)
+        addVipRoute(tx, config.vip.ip)
 
         createIpTableRules(healthMonitorName, config.vip.ip)
     }
@@ -443,7 +444,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     def unhookNamespaceFromRouter() = {
         if (routerPortId != null) {
             // This should delete the route also
-            store.delete(classOf[Port], routerPortId)
+            HealthMonitor.tryTx(store) { _.delete(classOf[Port], routerPortId) }
 
             deleteIpTableRules(healthMonitorName, config.vip.ip)
             routeId = null
@@ -452,8 +453,10 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     }
 
     private def setPoolMapStatus(status: PoolHealthMonitorMappingStatus) = {
-        val pool = store.get(classOf[Pool], config.id).await()
-        store.update(pool.toBuilder.setMappingStatus(status).build())
+        HealthMonitor.tryTx(store) { tx =>
+            val pool = tx.get(classOf[Pool], config.id)
+            tx.update(pool.toBuilder.setMappingStatus(status).build())
+        }
     }
 }
 
