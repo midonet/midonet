@@ -32,7 +32,7 @@ import org.midonet.cluster.rest_api.annotation.AllowCreate
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
 import org.midonet.packets.IPv4Subnet
 
 @RequestScoped
@@ -72,19 +72,21 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
     override def update(@PathParam("subnetAddress") subnetAddress: String,
                         subnet: DhcpSubnet,
                         @HeaderParam("Content-Type") contentType: String)
-    : Response = {
-        getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(current => {
+    : Response = tryTx { tx =>
+        getSubnet(IPv4Subnet.fromZkString(subnetAddress), tx).map(current => {
             subnet.update(current)
-            updateResource(subnet)
+            tx.update(subnet)
+            OkNoContentResponse
         }).getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
     @DELETE
     @Path("{subnetAddress}")
     override def delete(@PathParam("subnetAddress") subnetAddress: String)
-    : Response = {
-        getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(subnet => {
-            deleteResource(classOf[DhcpSubnet], subnet.id)
+    : Response = tryTx { tx =>
+        getSubnet(IPv4Subnet.fromZkString(subnetAddress), tx).map(subnet => {
+            tx.delete(classOf[DhcpSubnet], subnet.id)
+            OkNoContentResponse
         }).getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
@@ -94,15 +96,23 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
         new DhcpHostResource(bridgeId, subnetAddress, resContext)
     }
 
-    protected override def createFilter(subnet: DhcpSubnet): Seq[Multi] = {
+    protected override def createFilter(subnet: DhcpSubnet,
+                                        tx: ResourceTransaction): Unit = {
         subnet.create(bridgeId)
-        Seq.empty
+        tx.create(subnet)
     }
 
-    private def getSubnet(subnetAddress: IPv4Subnet): Option[DhcpSubnet] = {
-        val bridge = getResource(classOf[Bridge], bridgeId)
-        listResources(classOf[DhcpSubnet], bridge.dhcpIds.asScala)
-            .find(_.subnetAddress == subnetAddress)
+    private def getSubnet(subnetAddress: IPv4Subnet, tx: ResourceTransaction = null)
+    : Option[DhcpSubnet] = {
+        if (tx eq null) {
+            val bridge = getResource(classOf[Bridge], bridgeId)
+            listResources(classOf[DhcpSubnet], bridge.dhcpIds.asScala)
+                .find(_.subnetAddress == subnetAddress)
+        } else {
+            val bridge = tx.get(classOf[Bridge], bridgeId)
+            tx.list(classOf[DhcpSubnet], bridge.dhcpIds.asScala)
+                .find(_.subnetAddress == subnetAddress)
+        }
     }
 
 }

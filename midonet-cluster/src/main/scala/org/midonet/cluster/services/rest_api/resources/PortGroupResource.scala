@@ -28,7 +28,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Port, PortGroup, PortGroupPort}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @ApiResource(version = 1, name = "portGroups", template = "portGroupTemplate")
 @Path("port_groups")
@@ -61,9 +61,10 @@ class PortGroupResource @Inject()(resContext: ResourceContext)
             portGroups
     }
 
-    protected override def updateFilter(to: PortGroup, from: PortGroup): Seq[Multi] = {
+    protected override def updateFilter(to: PortGroup, from: PortGroup,
+                                        tx: ResourceTransaction): Unit = {
         to.update(from)
-        Seq.empty
+        tx.update(to)
     }
 
     @Path("{id}/ports")

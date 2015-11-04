@@ -28,7 +28,7 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Router, BgpNetwork}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @ApiResource(version = 1, template = "bgpNetworkTemplate")
 @Path("bgp_networks")
@@ -52,9 +52,10 @@ class RouterBgpNetworkResource @Inject()(routerId: UUID,
         getResource(classOf[Router], routerId).bgpNetworkIds.asScala
     }
 
-    protected override def createFilter(bgpNetwork: BgpNetwork): Seq[Multi] = {
+    protected override def createFilter(bgpNetwork: BgpNetwork,
+                                        tx: ResourceTransaction): Unit = {
         bgpNetwork.create(routerId)
-        Seq.empty
+        tx.create(bgpNetwork)
     }
 
 }
