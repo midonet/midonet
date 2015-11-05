@@ -34,6 +34,24 @@
       "revId": "78c61ffbd7de93c8403fc75fa3e1076b3613696e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_b9f53bcd",
+        "filename": "tests/mdts/tests/functional_tests/test_basic_neutron.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T18:00:04Z",
+      "side": 1,
+      "message": "I\u0027m not a big fan of the yaml either. In practise, it forces us to have a yaml interpreter..\n\nThe json representations are a good idea IMO because they can be fed directly to the API/translators, not only in tests but simply to set up any topology. Which isn\u0027t the case with yaml (you need the interpreter, the interpreter happens to be tied to mdts and call the api..)",
+      "parentUuid": "9ab29df4_0264b4e3",
+      "revId": "78c61ffbd7de93c8403fc75fa3e1076b3613696e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
