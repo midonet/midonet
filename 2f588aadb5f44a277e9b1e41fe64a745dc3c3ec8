@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_59dd0742",
+        "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-05T18:45:07Z",
+      "side": 1,
+      "message": "ah, i think i got it. we\u0027re sending a packet to the insertion_port, but it won\u0027t go out through it. it will be redirected to the service_port. then, when the mirrored packet comes, it will go from the service_port to the integration_port. uff.",
+      "parentUuid": "9ab29df4_eb7234ac",
+      "revId": "2f588aadb5f44a277e9b1e41fe64a745dc3c3ec8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_6b30e4e8",
         "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2015-11-05T13:37:03Z",
       "side": 1,
       "message": "you\u0027re pinging from one port of the bridge to another before any mac learning, so the packet will be broadcasted. is there any guarantee the packet is not appearing on the insertion port because of this, but instead due to redirection?",
+      "revId": "2f588aadb5f44a277e9b1e41fe64a745dc3c3ec8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_19d38f39",
+        "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-05T18:45:07Z",
+      "side": 1,
+      "message": "*service port",
+      "parentUuid": "9ab29df4_6b30e4e8",
       "revId": "2f588aadb5f44a277e9b1e41fe64a745dc3c3ec8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
