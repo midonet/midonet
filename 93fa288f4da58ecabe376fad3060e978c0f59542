@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_f9b5f331",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T17:23:23Z",
+      "side": 1,
+      "message": "See #11, this is unsafe and needs a lock.",
+      "range": {
+        "startLine": 251,
+        "startChar": 7,
+        "endLine": 258,
+        "endChar": 9
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
