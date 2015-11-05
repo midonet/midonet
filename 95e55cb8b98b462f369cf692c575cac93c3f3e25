@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_747a86f2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T08:36:34Z",
+      "side": 1,
+      "message": "My reasoning (patch #7) is that this is not an error as it just is a result of contention and we\u0027re dealing with it, so it\u0027s just normal operation that needs no user action.\n\nThat said, I still don\u0027t have clear that the code is actually dealing with it, as I already ask about in patch #7. Curator would only retry during the lifetime of the session, if it expires we\u0027ll restart Midolman. What happens on startup? Are all ConfigUpdates consolidated?",
+      "parentUuid": "9ab29df4_544582b1",
+      "range": {
+        "startLine": 172,
+        "startChar": 24,
+        "endLine": 172,
+        "endChar": 28
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_344acec5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 11
@@ -151,6 +175,30 @@
       "writtenOn": "2015-11-05T08:24:11Z",
       "side": 1,
       "message": "Do we need these?",
+      "range": {
+        "startLine": 49,
+        "startChar": 3,
+        "endLine": 59,
+        "endChar": 5
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_7461a638",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T08:36:34Z",
+      "side": 1,
+      "message": "See my comments on patch #7 - seems like a cleaner API from outside, but not a strong opinion on it.",
+      "parentUuid": "9ab29df4_d4399242",
       "range": {
         "startLine": 49,
         "startChar": 3,
