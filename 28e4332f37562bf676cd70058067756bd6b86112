@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_f45e9644",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/migrator/Migrator.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 710,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-05T09:57:22Z",
+      "side": 1,
+      "message": "Should we stop migrating here?",
+      "range": {
+        "startLine": 706,
+        "startChar": 12,
+        "endLine": 710,
+        "endChar": 66
+      },
+      "revId": "28e4332f37562bf676cd70058067756bd6b86112",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
