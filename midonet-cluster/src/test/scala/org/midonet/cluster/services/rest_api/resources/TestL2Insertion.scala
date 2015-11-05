@@ -85,8 +85,8 @@ class TestL2Insertion extends FeatureSpec
     def createInsertion(portId: UUID, srvPortId: UUID): L2Insertion = {
         val insertion = new L2Insertion()
         insertion.id = UUID.randomUUID
-        insertion.port = portId
-        insertion.srvPort = srvPortId
+        insertion.portId = portId
+        insertion.srvPortId = srvPortId
         insertion.vlan = 10
         insertion.position = 1
         insertion.failOpen = false
@@ -119,7 +119,7 @@ class TestL2Insertion extends FeatureSpec
             (id: PbCommons.UUID) => {
                 val r = fetchDevice(classOf[PbTopo.Rule], id)
                 if (r.getAction == PbTopo.Rule.Action.REDIRECT &&
-                        r.getTransformRuleData.getTargetPort == target) {
+                        r.getTransformRuleData.getTargetPortId == target) {
                     r.getTransformRuleData.getFailOpen shouldBe failOpen
                     foundRule = true
                 }
@@ -140,17 +140,17 @@ class TestL2Insertion extends FeatureSpec
                 .getStatusCode shouldBe Status.CREATED.getStatusCode
 
             var port0 = fetchDevice(classOf[PbTopo.Port], portId0)
-            port0.hasL2InsertionInfilter shouldBe true
-            port0.hasL2InsertionOutfilter shouldBe true
-            ensureRuleCount(port0.getL2InsertionInfilter, 3)
-            ensureRuleCount(port0.getL2InsertionOutfilter, 2)
+            port0.hasL2InsertionInfilterId shouldBe true
+            port0.hasL2InsertionOutfilterId shouldBe true
+            ensureRuleCount(port0.getL2InsertionInfilterId, 3)
+            ensureRuleCount(port0.getL2InsertionOutfilterId, 2)
 
             val srvPort0 = fetchDevice(classOf[PbTopo.Port], srvPortId0)
-            srvPort0.hasL2InsertionInfilter shouldBe true
-            srvPort0.hasL2InsertionOutfilter shouldBe true
-            ensureRuleCount(srvPort0.getL2InsertionInfilter, 2,
+            srvPort0.hasL2InsertionInfilterId shouldBe true
+            srvPort0.hasL2InsertionOutfilterId shouldBe true
+            ensureRuleCount(srvPort0.getL2InsertionInfilterId, 2,
                             PbTopo.Rule.Type.JUMP_RULE)
-            ensureRuleCount(srvPort0.getL2InsertionOutfilter, 0)
+            ensureRuleCount(srvPort0.getL2InsertionOutfilterId, 0)
 
             val srvPortId1 = topology.getBridgePort(ServicePort1).getId
             insertion = createInsertion(portId0, srvPortId1)
@@ -163,19 +163,19 @@ class TestL2Insertion extends FeatureSpec
             // adding another insertion should add 1 more rule on each chain
             // on the port
             port0 = fetchDevice(classOf[PbTopo.Port], portId0)
-            port0.hasL2InsertionInfilter shouldBe true
-            port0.hasL2InsertionOutfilter shouldBe true
-            ensureRuleCount(port0.getL2InsertionInfilter, 4)
-            ensureRuleCount(port0.getL2InsertionOutfilter, 3)
+            port0.hasL2InsertionInfilterId shouldBe true
+            port0.hasL2InsertionOutfilterId shouldBe true
+            ensureRuleCount(port0.getL2InsertionInfilterId, 4)
+            ensureRuleCount(port0.getL2InsertionOutfilterId, 3)
 
             // service ports should always be the same
             for (id <- Seq(srvPortId0, srvPortId1)) {
                 val srvPort = fetchDevice(classOf[PbTopo.Port], id)
-                srvPort.hasL2InsertionInfilter shouldBe true
-                srvPort.hasL2InsertionOutfilter shouldBe true
-                ensureRuleCount(srvPort.getL2InsertionInfilter, 2,
+                srvPort.hasL2InsertionInfilterId shouldBe true
+                srvPort.hasL2InsertionOutfilterId shouldBe true
+                ensureRuleCount(srvPort.getL2InsertionInfilterId, 2,
                                 PbTopo.Rule.Type.JUMP_RULE)
-                ensureRuleCount(srvPort.getL2InsertionOutfilter, 0)
+                ensureRuleCount(srvPort.getL2InsertionOutfilterId, 0)
             }
         }
 
@@ -190,10 +190,10 @@ class TestL2Insertion extends FeatureSpec
                 .getStatusCode shouldBe Status.CREATED.getStatusCode
 
             var port0 = fetchDevice(classOf[PbTopo.Port], portId0)
-            port0.hasL2InsertionInfilter shouldBe true
-            port0.hasL2InsertionOutfilter shouldBe true
-            checkRulesFailOpen(port0.getL2InsertionInfilter, srvPortId0, false)
-            checkRulesFailOpen(port0.getL2InsertionOutfilter, srvPortId0, false)
+            port0.hasL2InsertionInfilterId shouldBe true
+            port0.hasL2InsertionOutfilterId shouldBe true
+            checkRulesFailOpen(port0.getL2InsertionInfilterId, srvPortId0, false)
+            checkRulesFailOpen(port0.getL2InsertionOutfilterId, srvPortId0, false)
 
             insertion.failOpen = true
             response = l2Resource
@@ -203,10 +203,10 @@ class TestL2Insertion extends FeatureSpec
             response.getStatusInfo
                 .getStatusCode shouldBe Status.NO_CONTENT.getStatusCode
             port0 = fetchDevice(classOf[PbTopo.Port], portId0)
-            port0.hasL2InsertionInfilter shouldBe true
-            port0.hasL2InsertionOutfilter shouldBe true
-            checkRulesFailOpen(port0.getL2InsertionInfilter, srvPortId0, true)
-            checkRulesFailOpen(port0.getL2InsertionOutfilter, srvPortId0, true)
+            port0.hasL2InsertionInfilterId shouldBe true
+            port0.hasL2InsertionOutfilterId shouldBe true
+            checkRulesFailOpen(port0.getL2InsertionInfilterId, srvPortId0, true)
+            checkRulesFailOpen(port0.getL2InsertionOutfilterId, srvPortId0, true)
         }
 
         scenario("Deleting l2insertion clears chains") {
@@ -220,17 +220,17 @@ class TestL2Insertion extends FeatureSpec
                 .getStatusCode shouldBe Status.CREATED.getStatusCode
 
             var port0 = fetchDevice(classOf[PbTopo.Port], portId0)
-            port0.hasL2InsertionInfilter shouldBe true
-            port0.hasL2InsertionOutfilter shouldBe true
-            ensureRuleCount(port0.getL2InsertionInfilter, 3)
-            ensureRuleCount(port0.getL2InsertionOutfilter, 2)
+            port0.hasL2InsertionInfilterId shouldBe true
+            port0.hasL2InsertionOutfilterId shouldBe true
+            ensureRuleCount(port0.getL2InsertionInfilterId, 3)
+            ensureRuleCount(port0.getL2InsertionOutfilterId, 2)
 
             var srvPort0 = fetchDevice(classOf[PbTopo.Port], srvPortId0)
-            srvPort0.hasL2InsertionInfilter shouldBe true
-            srvPort0.hasL2InsertionOutfilter shouldBe true
-            ensureRuleCount(srvPort0.getL2InsertionInfilter, 2,
+            srvPort0.hasL2InsertionInfilterId shouldBe true
+            srvPort0.hasL2InsertionOutfilterId shouldBe true
+            ensureRuleCount(srvPort0.getL2InsertionInfilterId, 2,
                             PbTopo.Rule.Type.JUMP_RULE)
-            ensureRuleCount(srvPort0.getL2InsertionOutfilter, 0)
+            ensureRuleCount(srvPort0.getL2InsertionOutfilterId, 0)
 
             response = l2Resource.uri(response.getLocation)
                 .delete(classOf[ClientResponse])
@@ -238,16 +238,16 @@ class TestL2Insertion extends FeatureSpec
                 .getStatusCode shouldBe Status.NO_CONTENT.getStatusCode
 
             port0 = fetchDevice(classOf[PbTopo.Port], portId0)
-            port0.hasL2InsertionInfilter shouldBe true
-            port0.hasL2InsertionOutfilter shouldBe true
-            ensureRuleCount(port0.getL2InsertionInfilter, 0)
-            ensureRuleCount(port0.getL2InsertionOutfilter, 0)
+            port0.hasL2InsertionInfilterId shouldBe true
+            port0.hasL2InsertionOutfilterId shouldBe true
+            ensureRuleCount(port0.getL2InsertionInfilterId, 0)
+            ensureRuleCount(port0.getL2InsertionOutfilterId, 0)
 
             srvPort0 = fetchDevice(classOf[PbTopo.Port], srvPortId0)
-            srvPort0.hasL2InsertionInfilter shouldBe true
-            srvPort0.hasL2InsertionOutfilter shouldBe true
-            ensureRuleCount(srvPort0.getL2InsertionInfilter, 0)
-            ensureRuleCount(srvPort0.getL2InsertionOutfilter, 0)
+            srvPort0.hasL2InsertionInfilterId shouldBe true
+            srvPort0.hasL2InsertionOutfilterId shouldBe true
+            ensureRuleCount(srvPort0.getL2InsertionInfilterId, 0)
+            ensureRuleCount(srvPort0.getL2InsertionOutfilterId, 0)
         }
 
         scenario("Deleting port deletes insertion") {
@@ -264,7 +264,7 @@ class TestL2Insertion extends FeatureSpec
 
 
             var srvPort0 = fetchDevice(classOf[PbTopo.Port], srvPortId0)
-            srvPort0.getSrvInsertionsCount shouldBe 1
+            srvPort0.getSrvInsertionIdsCount shouldBe 1
 
             response = jerseyTest.resource().path(
                 ResourceUris.PORTS + "/" + portId0)
@@ -278,7 +278,7 @@ class TestL2Insertion extends FeatureSpec
             }
 
             srvPort0 = fetchDevice(classOf[PbTopo.Port], srvPortId0)
-            srvPort0.getSrvInsertionsCount shouldBe 0
+            srvPort0.getSrvInsertionIdsCount shouldBe 0
         }
 
         scenario("Deleting service port deletes insertion") {
@@ -291,7 +291,7 @@ class TestL2Insertion extends FeatureSpec
                 .getStatusCode shouldBe Status.CREATED.getStatusCode
 
             var port0 = fetchDevice(classOf[PbTopo.Port], portId0)
-            port0.getInsertionsCount shouldBe 1
+            port0.getInsertionIdsCount shouldBe 1
 
             val insertionObj = fetchDevice(classOf[PbTopo.L2Insertion],
                                         insertion.id)
@@ -307,7 +307,7 @@ class TestL2Insertion extends FeatureSpec
             }
 
             port0 = fetchDevice(classOf[PbTopo.Port], portId0)
-            port0.getInsertionsCount shouldBe 0
+            port0.getInsertionIdsCount shouldBe 0
         }
 
         scenario("Updating port doesn't clear l2insertion fields") {
@@ -320,9 +320,9 @@ class TestL2Insertion extends FeatureSpec
                 .getStatusCode shouldBe Status.CREATED.getStatusCode
 
             var port0dev = fetchDevice(classOf[PbTopo.Port], portId0)
-            port0dev.hasL2InsertionInfilter shouldBe true
-            port0dev.hasL2InsertionOutfilter shouldBe true
-            port0dev.getInsertionsCount shouldBe 1
+            port0dev.hasL2InsertionInfilterId shouldBe true
+            port0dev.hasL2InsertionOutfilterId shouldBe true
+            port0dev.getInsertionIdsCount shouldBe 1
 
             val portResource = jerseyTest.resource().path(
                 ResourceUris.PORTS + "/" + portId0)
@@ -335,14 +335,14 @@ class TestL2Insertion extends FeatureSpec
                 .put(port0)
 
             port0dev = fetchDevice(classOf[PbTopo.Port], portId0)
-            port0dev.hasL2InsertionInfilter shouldBe true
-            port0dev.hasL2InsertionOutfilter shouldBe true
-            port0dev.getInsertionsCount shouldBe 1
+            port0dev.hasL2InsertionInfilterId shouldBe true
+            port0dev.hasL2InsertionOutfilterId shouldBe true
+            port0dev.getInsertionIdsCount shouldBe 1
 
             var srvPort0dev = fetchDevice(classOf[PbTopo.Port], srvPortId0)
-            srvPort0dev.hasL2InsertionInfilter shouldBe true
-            srvPort0dev.hasL2InsertionOutfilter shouldBe true
-            srvPort0dev.getSrvInsertionsCount shouldBe 1
+            srvPort0dev.hasL2InsertionInfilterId shouldBe true
+            srvPort0dev.hasL2InsertionOutfilterId shouldBe true
+            srvPort0dev.getSrvInsertionIdsCount shouldBe 1
 
             val srvPortResource = jerseyTest.resource().path(
                 ResourceUris.PORTS + "/" + srvPortId0)
@@ -355,9 +355,9 @@ class TestL2Insertion extends FeatureSpec
                 .put(srvPort0)
 
             srvPort0dev = fetchDevice(classOf[PbTopo.Port], srvPortId0)
-            srvPort0dev.hasL2InsertionInfilter shouldBe true
-            srvPort0dev.hasL2InsertionOutfilter shouldBe true
-            srvPort0dev.getSrvInsertionsCount shouldBe 1
+            srvPort0dev.hasL2InsertionInfilterId shouldBe true
+            srvPort0dev.hasL2InsertionOutfilterId shouldBe true
+            srvPort0dev.getSrvInsertionIdsCount shouldBe 1
         }
     }
 

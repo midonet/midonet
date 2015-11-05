@@ -73,8 +73,8 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
         L2Insertion.newBuilder
             .setId(UUID.randomUUID().asProto)
             .setMac(mac1)
-            .setPort(id)
-            .setSrvPort(id)
+            .setPortId(id)
+            .setSrvPortId(id)
             .setPosition(1)
             .setVlan(10)
             .build

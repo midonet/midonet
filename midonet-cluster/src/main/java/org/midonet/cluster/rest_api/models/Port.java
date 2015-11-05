@@ -88,32 +88,32 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "trace_request_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> traceRequestIds;
 
-    @ZoomField(name = "inbound_mirrors", converter = UUIDUtil.Converter.class)
-    public List<UUID> inboundMirrors;
+    @ZoomField(name = "inbound_mirror_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> inboundMirrorIds;
 
-    @ZoomField(name = "outbound_mirrors", converter = UUIDUtil.Converter.class)
-    public List<UUID> outboundMirrors;
+    @ZoomField(name = "outbound_mirror_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> outboundMirrorIds;
 
     @JsonIgnore
     @ZoomField(name = "mirror_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> mirrorIds;
 
-    @ZoomField(name = "insertions", converter = UUIDUtil.Converter.class)
-    public List<UUID> insertions;
+    @ZoomField(name = "insertion_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> insertionIds;
 
     @JsonIgnore
-    @ZoomField(name = "l2insertion_infilter",
+    @ZoomField(name = "l2insertion_infilter_id",
                converter = UUIDUtil.Converter.class)
-    public UUID l2insertionInfilter;
+    public UUID l2insertionInfilterId;
 
     @JsonIgnore
-    @ZoomField(name = "l2insertion_outfilter",
+    @ZoomField(name = "l2insertion_outfilter_id",
                converter = UUIDUtil.Converter.class)
-    public UUID l2insertionOutfilter;
+    public UUID l2insertionOutfilterId;
 
     @JsonIgnore
-    @ZoomField(name = "srv_insertions", converter = UUIDUtil.Converter.class)
-    public List<UUID> serviceInsertions;
+    @ZoomField(name = "srv_insertion_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> serviceInsertionIds;
 
     public boolean active;
 
@@ -187,9 +187,9 @@ public abstract class Port extends UriResource {
         traceRequestIds = from.traceRequestIds;
 
         mirrorIds = from.mirrorIds;
-        insertions = from.insertions;
-        l2insertionInfilter = from.l2insertionInfilter;
-        l2insertionOutfilter = from.l2insertionOutfilter;
-        serviceInsertions = from.serviceInsertions;
+        insertionIds = from.insertionIds;
+        l2insertionInfilterId = from.l2insertionInfilterId;
+        l2insertionOutfilterId = from.l2insertionOutfilterId;
+        serviceInsertionIds = from.serviceInsertionIds;
     }
 }

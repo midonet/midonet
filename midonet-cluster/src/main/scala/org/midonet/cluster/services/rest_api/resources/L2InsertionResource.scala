@@ -82,9 +82,9 @@ class L2InsertionResource @Inject()(resContext: ResourceContext)
             val srvPort = uriInfo.getQueryParameters.getFirst("srv_port")
             val port = uriInfo.getQueryParameters.getFirst("port")
             if (srvPort != null)
-                (i: L2Insertion) => i.srvPort.toString.equals(srvPort)
+                (i: L2Insertion) => i.srvPortId.toString.equals(srvPort)
             else if (port != null)
-                (i: L2Insertion) => i.port.toString.equals(port)
+                (i: L2Insertion) => i.portId.toString.equals(port)
             else
                 (_: L2Insertion) => true
         }

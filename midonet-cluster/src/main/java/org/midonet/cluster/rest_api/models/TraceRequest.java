@@ -52,7 +52,7 @@ public class TraceRequest extends UriResource {
     @ZoomField(name = "condition")
     public Condition condition;
 
-    @ZoomField(name = "createTimestampMs")
+    @ZoomField(name = "create_timestamp_ms")
     public long creationTimestampMs = System.currentTimeMillis();
 
     @ZoomField(name = "limit")

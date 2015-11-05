@@ -26,7 +26,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 
 import static org.midonet.cluster.rest_api.ResourceUris.ARP_TABLE;
@@ -80,11 +79,11 @@ public class Bridge extends UriResource {
     @ZoomField(name = "trace_request_ids", converter = Converter.class)
     public List<UUID> traceRequestIds;
 
-    @ZoomField(name = "inbound_mirrors", converter = UUIDUtil.Converter.class)
-    public List<UUID> inboundMirrors;
+    @ZoomField(name = "inbound_mirror_ids", converter = Converter.class)
+    public List<UUID> inboundMirrorIds;
 
-    @ZoomField(name = "outbound_mirrors", converter = UUIDUtil.Converter.class)
-    public List<UUID> outboundMirrors;
+    @ZoomField(name = "outbound_mirror_ids", converter = Converter.class)
+    public List<UUID> outboundMirrorIds;
 
     public Bridge() {
         adminStateUp = true;
