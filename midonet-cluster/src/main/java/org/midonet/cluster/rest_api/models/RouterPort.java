@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +31,7 @@ import com.google.protobuf.Message;
 import org.apache.commons.lang.StringUtils;
 
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
@@ -77,6 +79,11 @@ public class RouterPort extends Port {
     @Override
     public void setDeviceId(UUID deviceId) {
         routerId = deviceId;
+    }
+
+    @Override
+    public URI getDevice() {
+        return absoluteUri(ResourceUris.ROUTERS, routerId);
     }
 
     @Override
