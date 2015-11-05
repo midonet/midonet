@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_cbac90a3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-05T14:48:08Z",
+      "side": 1,
+      "message": "Won\u0027t this call makeReadable(o: Any)? Btw, zoom uses getIdString(clazz, id) to make ids readable.",
+      "range": {
+        "startLine": 213,
+        "startChar": 16,
+        "endLine": 213,
+        "endChar": 67
+      },
+      "revId": "78e93942884a86f0fd1b47742a6f57e7782bacc3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
