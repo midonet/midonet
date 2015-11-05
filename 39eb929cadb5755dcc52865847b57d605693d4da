@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_d94af754",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_99123f57",
+      "revId": "39eb929cadb5755dcc52865847b57d605693d4da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_b9361be6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 13
@@ -30,6 +48,30 @@
       "writtenOn": "2015-11-05T16:53:43Z",
       "side": 1,
       "message": "this is unsafe, if we have an exception above we leave the lock open",
+      "range": {
+        "startLine": 498,
+        "startChar": 8,
+        "endLine": 498,
+        "endChar": 22
+      },
+      "revId": "39eb929cadb5755dcc52865847b57d605693d4da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_b93d3bbe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:58:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_b9361be6",
       "range": {
         "startLine": 498,
         "startChar": 8,
