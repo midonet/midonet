@@ -165,6 +165,29 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_34dc8e12",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-05T07:16:48Z",
+      "side": 1,
+      "message": "I don\u0027t think this is a concern because the API operations implement all writes a single multi. Although it is possible that now the retries are not needed, I suggest to leave this enhancement after the release, since we\u0027re not really sure how it will affect the api, and it obviously hasn\u0027t been tested.",
+      "range": {
+        "startLine": 161,
+        "startChar": 8,
+        "endLine": 163,
+        "endChar": 26
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_8e8c6b37",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
         "patchSetId": 11
