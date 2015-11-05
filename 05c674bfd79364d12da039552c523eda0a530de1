@@ -22,6 +22,30 @@
       "revId": "05c674bfd79364d12da039552c523eda0a530de1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_0bb04842",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:28:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_c8b576ef",
+      "range": {
+        "startLine": 62,
+        "startChar": 7,
+        "endLine": 67,
+        "endChar": 9
+      },
+      "revId": "05c674bfd79364d12da039552c523eda0a530de1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
