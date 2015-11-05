@@ -209,8 +209,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             }
 
             if (stat.getMzxid > zxid) {
+                val prettyId = getIdString(clazz, id)
                 throw new ConcurrentModificationException(
-                    s"${clazz.getSimpleName} with ID $id was modified " +
+                    s"${clazz.getSimpleName} with ID $prettyId was modified " +
                     "during the transaction.")
             }
 
