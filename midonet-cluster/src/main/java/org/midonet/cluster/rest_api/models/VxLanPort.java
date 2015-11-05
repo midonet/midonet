@@ -15,11 +15,13 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil;
 
 public class VxLanPort extends Port {
@@ -43,6 +45,11 @@ public class VxLanPort extends Port {
     @Override
     public void setDeviceId(UUID deviceId) {
         networkId = deviceId;
+    }
+
+    @Override
+    public URI getDevice() {
+        return absoluteUri(ResourceUris.BRIDGES, networkId);
     }
 
     @JsonIgnore
