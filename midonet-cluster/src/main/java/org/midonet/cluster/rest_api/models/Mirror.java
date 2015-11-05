@@ -37,8 +37,8 @@ public class Mirror extends UriResource {
     public UUID id;
 
     @NotNull
-    @ZoomField(name = "to_port", converter = UUIDUtil.Converter.class)
-    public UUID toPort;
+    @ZoomField(name = "to_port_id", converter = UUIDUtil.Converter.class)
+    public UUID toPortId;
 
     @ZoomField(name = "conditions")
     public List<Condition> conditions;

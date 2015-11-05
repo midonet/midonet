@@ -76,11 +76,11 @@ public class Router extends UriResource {
     @ZoomField(name = "trace_request_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> traceRequestIds;
 
-    @ZoomField(name = "inbound_mirrors", converter = UUIDUtil.Converter.class)
-    public List<UUID> inboundMirrors;
+    @ZoomField(name = "inbound_mirror_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> inboundMirrorIds;
 
-    @ZoomField(name = "outbound_mirrors", converter = UUIDUtil.Converter.class)
-    public List<UUID> outboundMirrors;
+    @ZoomField(name = "outbound_mirror_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> outboundMirrorIds;
 
     public Router() {
         adminStateUp = true;

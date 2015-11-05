@@ -112,10 +112,10 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
                     inbound match {
                         case true =>
                             x.getMac should be(srcMac)
-                            x.getPort should be(srcPortId.asProto)
+                            x.getPortId should be(srcPortId.asProto)
                         case false =>
                             x.getMac should be(dstMac)
-                            x.getPort should be(dstPortId.asProto)
+                            x.getPortId should be(dstPortId.asProto)
                     }
                     nextVlan = x.getVlan match {
                         case 0 => None
@@ -128,10 +128,10 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
                     checkPacket("The packet ingresses the previous port",
                                 "It's redirected out srv port-" + i,
                                 packet(srcMac, dstMac, prevVlan),
-                                prevPortId, x.getSrvPort, nextVlan)
+                                prevPortId, x.getSrvPortId, nextVlan)
                     i = i+1
                     prevVlan = nextVlan
-                    prevPortId = x.getSrvPort
+                    prevPortId = x.getSrvPortId
                 })
         }
         checkInsertions(srcInsertions, true)
@@ -220,8 +220,8 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             var vm1ins1 = L2Insertion.newBuilder
                 .setId(UUID.randomUUID().asProto)
                 .setMac(mac1)
-                .setPort(vm1Port.getId)
-                .setSrvPort(srv1Port.getId)
+                .setPortId(vm1Port.getId)
+                .setSrvPortId(srv1Port.getId)
                 .setPosition(1)
                 .setVlan(10)
                 .build
@@ -236,8 +236,8 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             val vm1ins2 = L2Insertion.newBuilder
                 .setId(UUID.randomUUID().asProto)
                 .setMac(mac1)
-                .setPort(vm1Port.getId)
-                .setSrvPort(srv2Port.getId)
+                .setPortId(vm1Port.getId)
+                .setSrvPortId(srv2Port.getId)
                 .setPosition(2)
                 .setVlan(20)
                 .build
@@ -252,8 +252,8 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             val vm2ins1 = L2Insertion.newBuilder
                 .setId(UUID.randomUUID().asProto)
                 .setMac(mac2)
-                .setPort(vm2Port.getId)
-                .setSrvPort(srv1Port.getId)
+                .setPortId(vm2Port.getId)
+                .setSrvPortId(srv1Port.getId)
                 .setPosition(1)
                 .setVlan(10)
                 .build
@@ -269,7 +269,7 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             vm1ins1 = vm1ins1.toBuilder.setVlan(30).build
             translateInsertionUpdate(store, vm1ins1)
             eventually (timeout(Span(2, Seconds))) {
-                val port = VirtualTopology.tryGet[SimPort](vm1ins1.getPort)
+                val port = VirtualTopology.tryGet[SimPort](vm1ins1.getPortId)
                 val chain = VirtualTopology
                     .tryGet[SimChain](port.inboundFilters.get(0))
                 chain.rules.get(3) match {
@@ -285,7 +285,7 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             vm1ins1 = vm1ins1.toBuilder.setVlan(0).build
             translateInsertionUpdate(store, vm1ins1)
             eventually (timeout(Span(2, Seconds))) {
-                val port = VirtualTopology.tryGet[SimPort](vm1ins1.getPort)
+                val port = VirtualTopology.tryGet[SimPort](vm1ins1.getPortId)
                 val chain = VirtualTopology
                     .tryGet[SimChain](port.inboundFilters.get(0))
                 chain.rules.get(3) match {
@@ -301,8 +301,8 @@ class L2InsertionSimulationTest extends MidolmanSpec with TopologyBuilder {
             val vm3ins1 = L2Insertion.newBuilder
                 .setId(UUID.randomUUID().asProto)
                 .setMac(mac3)
-                .setPort(vm3Port.getId)
-                .setSrvPort(srv1Port.getId)
+                .setPortId(vm3Port.getId)
+                .setSrvPortId(srv1Port.getId)
                 .setPosition(1)
                 .setVlan(10)
                 .setFailOpen(true)

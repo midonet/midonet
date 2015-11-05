@@ -84,17 +84,17 @@ class Router(resource_base.ResourceBase,
         return self
 
     def get_inbound_mirrors(self, query=None):
-        return self.dto['inboundMirrors']
+        return self.dto['inboundMirrorIds']
 
     def inbound_mirrors(self, inMirrors):
-        self.dto['inboundMirrors'] = inMirrors
+        self.dto['inboundMirrorIds'] = inMirrors
         return self
 
     def get_outbound_mirrors(self, query=None):
-        return self.dto['outboundMirrors']
+        return self.dto['outboundMirrorIds']
 
     def outbound_mirrors(self, outMirrors):
-        self.dto['outboundMirrors'] = outMirrors
+        self.dto['outboundMirrorIds'] = outMirrors
         return self
 
     def get_ports(self, query=None):

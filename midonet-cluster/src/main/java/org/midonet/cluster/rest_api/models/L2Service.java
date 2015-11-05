@@ -35,9 +35,9 @@ public class L2Service extends UriResource {
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @ZoomField(name = "port", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_id", converter = UUIDUtil.Converter.class)
     @NotNull
-    public UUID port;
+    public UUID portId;
 
     public L2Service() {}
 

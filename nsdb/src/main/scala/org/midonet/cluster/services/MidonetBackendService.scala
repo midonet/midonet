@@ -100,10 +100,10 @@ object MidonetBackend {
              classOf[Vtep]
         ).foreach(store.registerClass)
 
-        store.declareBinding(classOf[Port], "insertions", CASCADE,
-                             classOf[L2Insertion], "port", CLEAR)
-        store.declareBinding(classOf[Port], "srv_insertions", CASCADE,
-                             classOf[L2Insertion], "srv_port", CLEAR)
+        store.declareBinding(classOf[Port], "insertion_ids", CASCADE,
+                             classOf[L2Insertion], "port_id", CLEAR)
+        store.declareBinding(classOf[Port], "srv_insertion_ids", CASCADE,
+                             classOf[L2Insertion], "srv_port_id", CLEAR)
 
         store.declareBinding(classOf[Network], "port_ids", CASCADE,
                              classOf[Port], "network_id", CLEAR)
@@ -155,21 +155,21 @@ object MidonetBackend {
 
 
         // Mirroring references
-        store.declareBinding(classOf[Network], "inbound_mirrors", CLEAR,
+        store.declareBinding(classOf[Network], "inbound_mirror_ids", CLEAR,
                              classOf[Mirror], "network_inbound_ids", CLEAR)
-        store.declareBinding(classOf[Router], "inbound_mirrors", CLEAR,
+        store.declareBinding(classOf[Router], "inbound_mirror_ids", CLEAR,
                              classOf[Mirror], "router_inbound_ids", CLEAR)
-        store.declareBinding(classOf[Port], "inbound_mirrors", CLEAR,
+        store.declareBinding(classOf[Port], "inbound_mirror_ids", CLEAR,
                              classOf[Mirror], "port_inbound_ids", CLEAR)
 
-        store.declareBinding(classOf[Network], "outbound_mirrors", CLEAR,
+        store.declareBinding(classOf[Network], "outbound_mirror_ids", CLEAR,
                              classOf[Mirror], "network_outbound_ids", CLEAR)
-        store.declareBinding(classOf[Router], "outbound_mirrors", CLEAR,
+        store.declareBinding(classOf[Router], "outbound_mirror_ids", CLEAR,
                              classOf[Mirror], "router_outbound_ids", CLEAR)
-        store.declareBinding(classOf[Port], "outbound_mirrors", CLEAR,
+        store.declareBinding(classOf[Port], "outbound_mirror_ids", CLEAR,
                              classOf[Mirror], "port_outbound_ids", CLEAR)
 
-        store.declareBinding(classOf[Mirror], "to_port", CLEAR,
+        store.declareBinding(classOf[Mirror], "to_port_id", CLEAR,
                              classOf[Port], "mirror_ids", CASCADE)
 
 

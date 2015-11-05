@@ -35,13 +35,13 @@ public class L2Insertion extends UriResource {
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @ZoomField(name = "port", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_id", converter = UUIDUtil.Converter.class)
     @NotNull
-    public UUID port;
+    public UUID portId;
 
-    @ZoomField(name = "srv_port", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "srv_port_id", converter = UUIDUtil.Converter.class)
     @NotNull
-    public UUID srvPort;
+    public UUID srvPortId;
 
     @ZoomField(name = "vlan")
     public int vlan;
