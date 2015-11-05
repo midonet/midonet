@@ -21,6 +21,24 @@ virtual_topology:
 
   tenant_name: MMM-TEST-000-001
 
+# FIXME: uncomment to activate health monitor tests
+#  health_monitors:
+#    - health_monitor:
+#        name: 'hm0'
+#        admin_state_up: true
+#        delay: 3
+#        max_retries: 2
+#        timeout: 1
+#        type: 'TCP'
+
+#    - health_monitor:
+#        name: 'hm1'
+#        admin_state_up: true
+#        delay: 3
+#        max_retries: 2
+#        timeout: 1
+#        type: 'TCP'
+
   load_balancers:
     - load_balancer:
         name: lb-000-001
@@ -29,17 +47,18 @@ virtual_topology:
           - pool:
               lb_method: ROUND_ROBIN
               admin_state_up: true
+              #health_monitor: 'hm0'
               members:
                 - member:
                     address: 10.0.1.1
                     admin_state_up: true
                     protocol_port: 10000
-                    weight: 1
+                    weight: 5
                 - member:
                     address: 10.0.1.2
                     admin_state_up: true
                     protocol_port: 10000
-                    weight: 3
+                    weight: 10
                 - member:
                     address: 10.0.1.3
                     admin_state_up: false
@@ -50,14 +69,15 @@ virtual_topology:
                     address: 100.100.1.8
                     admin_state_up: true
                     protocol_port: 10000
-                    session_persistence: SOURCE_IP
                 - vip:
                     address: 100.100.1.9
                     admin_state_up: true
                     protocol_port: 10000
+                    session_persistence: SOURCE_IP
           - pool:
               lb_method: ROUND_ROBIN
               admin_state_up: true
+              #health_monitor: 'hm1'
               members:
                 - member:
                     address: 10.0.2.1
@@ -85,6 +105,7 @@ virtual_topology:
                     protocol_port: 10000
                     session_persistence: SOURCE_IP
 
+
   routers:
     - router:
         name: router-000-001
@@ -97,7 +118,7 @@ virtual_topology:
               ipv6_addr: null
               links_to:
                   device: bridge-000-001
-                  port_id: 4
+                  port_id: 5
           - port:
               id: 2
               type: interior
@@ -105,7 +126,7 @@ virtual_topology:
               ipv6_addr: null
               links_to:
                   device: bridge-000-002
-                  port_id: 4
+                  port_id: 5
           - port:
               id: 3
               type: interior
@@ -155,6 +176,9 @@ virtual_topology:
               type: exterior
           - port:
               id: 4
+              type: exterior
+          - port:
+              id: 5
               type: interior
     - bridge:
         name: bridge-000-002
@@ -170,6 +194,9 @@ virtual_topology:
               type: exterior
           - port:
               id: 4
+              type: exterior
+          - port:
+              id: 5
               type: interior
     - bridge:
         name: bridge-000-003
@@ -180,3 +207,41 @@ virtual_topology:
           - port:
               id: 2
               type: interior
+
+  chains:
+    - chain:
+        id: 1
+        name: snat
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              type: snat
+              flow_action: accept
+              in_ports:
+                - device_name: router-000-001
+                  port_id: 2
+              out_ports:
+                - device_name: router-000-001
+                  port_id: 2
+              nat_targets:
+                - addressFrom: 10.0.2.254
+                  addressTo: 10.0.2.254
+                  portFrom: 1
+                  portTo: 65535
+    - chain:
+        id: 2
+        name: rev_snat
+        rules:
+          - rule:
+              id: 1
+              position: 1
+              type: rev_snat
+              flow_action: accept
+              in_ports:
+                - device_name: router-000-001
+                  port_id: 2
+              nat_targets:
+                - addressTo: 10.0.2.254
+                  portFrom: 1
+                  portTo: 65535
