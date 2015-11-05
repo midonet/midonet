@@ -50,6 +50,7 @@ import rx.{Notification, Observable}
 
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.cluster.util.logging.ProtoTextPrettifier
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException}
 import org.midonet.util.functors.makeFunc1
 
@@ -209,8 +210,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             }
 
             if (stat.getMzxid > zxid) {
+                val prettyId = ProtoTextPrettifier.makeReadable(id)
                 throw new ConcurrentModificationException(
-                    s"${clazz.getSimpleName} with ID $id was modified " +
+                    s"${clazz.getSimpleName} with ID $prettyId was modified " +
                     "during the transaction.")
             }
 

@@ -29,6 +29,11 @@ import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
   */
 object ProtoTextPrettifier {
 
+    /** Returns a string representation of the given object, that must
+      * not be null.  It'll simply return o.toString()
+      */
+    def makeReadable(o: Any): String = o.toString
+
     /** Returns a string representation of the given protobuf, considering
       * [[Commons]] types such as UUID, IP address, etc.
       *

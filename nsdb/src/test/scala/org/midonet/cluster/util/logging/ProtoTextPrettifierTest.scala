@@ -35,6 +35,12 @@ import org.midonet.packets.{IPv4Addr, IPv6Addr}
 @RunWith(classOf[JUnitRunner])
 class ProtoTextPrettifierTest extends FunSuite with ShouldMatchers {
 
+    test("Non proto UUID") {
+        val uuid = randomUUID()
+        val serialized = makeReadable(uuid)
+        uuid.toString shouldBe serialized
+    }
+
     test("UUID") {
         val uuid = randomUUID()
         val serialized = makeReadable(UUIDUtil.toProto(uuid))
