@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_eb13140b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:28:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_aea68f0e",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 49
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_6e839756",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2015-11-04T20:00:35Z",
       "side": 1,
       "message": "Read comments from Ivan here: https://midonet.slack.com/archives/developers/p1446664828000115",
+      "range": {
+        "startLine": 159,
+        "startChar": 24,
+        "endLine": 161,
+        "endChar": 37
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_abbe7cd2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:28:44Z",
+      "side": 1,
+      "message": "As discussed, none of our writes are \"blind\", they always read before writing. If a delete implies deleting a binding the bound objet will be also read. Re-issuing operations after a session loss is thus fine in our case. Pfeww ;-)",
+      "parentUuid": "9ab29df4_6e839756",
       "range": {
         "startLine": 159,
         "startChar": 24,
@@ -95,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_4b77a03a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:28:44Z",
+      "side": 1,
+      "message": "I think it should be fine as, on startup, the health monitor will notify ConfigUpdates to the haproxy.",
+      "parentUuid": "9ab29df4_747a86f2",
+      "range": {
+        "startLine": 172,
+        "startChar": 24,
+        "endLine": 172,
+        "endChar": 28
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_344acec5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 11
@@ -142,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_566eb4ca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:28:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_b46edeff",
+      "range": {
+        "startLine": 214,
+        "startChar": 12,
+        "endLine": 222,
+        "endChar": 13
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_b436de50",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 11
@@ -165,6 +261,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_d6bd6404",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 463,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:28:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_b436de50",
+      "range": {
+        "startLine": 441,
+        "startChar": 7,
+        "endLine": 463,
+        "endChar": 60
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_2eba7f23",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
         "patchSetId": 11
@@ -176,6 +296,30 @@
       "writtenOn": "2015-11-04T20:00:35Z",
       "side": 1,
       "message": "unused",
+      "range": {
+        "startLine": 190,
+        "startChar": 3,
+        "endLine": 190,
+        "endChar": 14
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_abed9c27",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:28:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_2eba7f23",
       "range": {
         "startLine": 190,
         "startChar": 3,
@@ -306,6 +450,54 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_4b916098",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpHostResource.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:28:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_7338e0a0",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 14
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ab29df4_6b8c6480",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpHostResource.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:28:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ab29df4_ee3a47cc",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 14
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_2e78bff1",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpSubnetResource.scala",
         "patchSetId": 11
@@ -363,6 +555,30 @@
       "writtenOn": "2015-11-05T07:16:48Z",
       "side": 1,
       "message": "I don\u0027t think this is a concern because the API operations implement all writes a single multi. Although it is possible that now the retries are not needed, I suggest to leave this enhancement after the release, since we\u0027re not really sure how it will affect the api, and it obviously hasn\u0027t been tested.",
+      "range": {
+        "startLine": 161,
+        "startChar": 8,
+        "endLine": 163,
+        "endChar": 26
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_560cf494",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-05T16:28:44Z",
+      "side": 1,
+      "message": "I re-introduced the retry.",
+      "parentUuid": "9ab29df4_34dc8e12",
       "range": {
         "startLine": 161,
         "startChar": 8,
