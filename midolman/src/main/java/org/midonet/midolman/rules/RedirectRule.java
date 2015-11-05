@@ -29,7 +29,7 @@ import org.midonet.midolman.simulation.PacketContext;
 
 public class RedirectRule extends L2TransformRule {
     private static final long serialVersionUID = -7212783590950701194L;
-    @ZoomField(name = "target_port", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "target_port_id", converter = UUIDUtil.Converter.class)
     public UUID targetPort;
     @ZoomField(name = "ingress")
     public boolean ingress;

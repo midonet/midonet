@@ -110,7 +110,7 @@ object TopologyMatchers {
     class MirrorMatcher(mirror: Mirror) extends TopologyMatchers with DeviceMatcher[TopologyMirror] {
         override def shouldBeDeviceOf(m: TopologyMirror): Unit = {
             mirror.id shouldBe m.getId.asJava
-            mirror.toPort shouldBe m.getToPort.asJava
+            mirror.toPort shouldBe m.getToPortId.asJava
             mirror.conditions.size() should === (m.getConditionsList.size())
             var i = 0
             while (i < mirror.conditions.size()) {

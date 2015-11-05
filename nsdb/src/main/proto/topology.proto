@@ -84,20 +84,6 @@ message Chain {
     repeated UUID jump_rule_ids = 108;
 }
 
-message Mirror {
-    optional UUID id = 1;
-    optional UUID to_port = 2;
-    repeated Condition conditions = 3;
-
-    // Backreferences
-    repeated UUID network_inbound_ids = 101;
-    repeated UUID network_outbound_ids = 102;
-    repeated UUID router_inbound_ids = 103;
-    repeated UUID router_outbound_ids = 104;
-    repeated UUID port_inbound_ids = 105;
-    repeated UUID port_outbound_ids = 106;
-}
-
 message Dhcp {
     optional UUID id = 1;
     optional UUID network_id = 2;
@@ -196,6 +182,26 @@ message IPAddrGroup {
     repeated UUID rule_ids = 6;
 }
 
+message L2Insertion {
+    optional UUID id = 1;
+    optional UUID port_id = 2;
+    optional UUID srv_port_id = 3;
+    optional uint32 vlan = 4;
+    optional bool fail_open = 5;
+
+    optional uint32 position = 6;
+    optional string mac = 7;
+
+    // Keep a reference to the corresponding service port rule
+    optional UUID srv_rule_in_id = 100;
+    optional UUID srv_rule_out_id = 101;
+}
+
+message L2Service {
+    optional UUID id = 1;
+    optional UUID port_id = 2;
+}
+
 message LoadBalancer {
     // Load Balancer ID is always the same as the Router ID to which the LB is
     // attached. Therefore, LoadBalancer does not have a reference to Router.
@@ -205,6 +211,20 @@ message LoadBalancer {
     // Backreference
     optional UUID router_id = 101;
     repeated UUID pool_ids = 102;
+}
+
+message Mirror {
+    optional UUID id = 1;
+    optional UUID to_port_id = 2;
+    repeated Condition conditions = 3;
+
+    // Backreferences
+    repeated UUID network_inbound_ids = 101;
+    repeated UUID network_outbound_ids = 102;
+    repeated UUID router_inbound_ids = 103;
+    repeated UUID router_outbound_ids = 104;
+    repeated UUID port_inbound_ids = 105;
+    repeated UUID port_outbound_ids = 106;
 }
 
 message Network {
@@ -221,8 +241,8 @@ message Network {
     // If the Network is bound to any VTEPs, it'll be assigned a VNI
     // that is used for all bindings to all VTEPs
     optional uint32 vni = 8;
-    repeated UUID inbound_mirrors = 9;
-    repeated UUID outbound_mirrors = 10;
+    repeated UUID inbound_mirror_ids = 9;
+    repeated UUID outbound_mirror_ids = 10;
 
     // Backreferences
     repeated UUID port_ids = 101;
@@ -301,12 +321,12 @@ message Port {
     optional UUID vtep_id = 19;
 
     // mirroring
-    repeated UUID inbound_mirrors = 20;
-    repeated UUID outbound_mirrors = 21;
+    repeated UUID inbound_mirror_ids = 20;
+    repeated UUID outbound_mirror_ids = 21;
 
     // l2 insertion filters (should only be set by translation)
-    optional UUID l2insertion_infilter = 23;
-    optional UUID l2insertion_outfilter = 24;
+    optional UUID l2insertion_infilter_id = 23;
+    optional UUID l2insertion_outfilter_id = 24;
 
     // Backreferences
 
@@ -323,8 +343,8 @@ message Port {
     repeated UUID mirror_ids = 104;
 
     // service insertion
-    repeated UUID insertions = 110;
-    repeated UUID srv_insertions = 111;
+    repeated UUID insertion_ids = 110;
+    repeated UUID srv_insertion_ids = 111;
 }
 
 message PortGroup {
@@ -373,8 +393,8 @@ message Router {
     repeated UUID bgp_peer_ids = 11;
 
     // Mirroring
-    repeated UUID inbound_mirrors = 12;
-    repeated UUID outbound_mirrors = 13;
+    repeated UUID inbound_mirror_ids = 12;
+    repeated UUID outbound_mirror_ids = 13;
 
     // Backreferences
     repeated UUID port_ids = 101;
@@ -436,7 +456,7 @@ message Rule {
     message L2TransformRuleData {
         optional bool pop_vlan = 1;
         optional uint32 push_vlan = 2;
-        optional UUID target_port = 3;
+        optional UUID target_port_id = 3;
         optional bool ingress = 4;
         optional bool fail_open = 5;
     }
@@ -454,31 +474,11 @@ message TraceRequest {
     optional Condition condition = 3;
     optional uint64 limit = 4;
     optional string name = 5;
-    optional uint64 createTimestampMs = 6;
+    optional uint64 create_timestamp_ms = 6;
 
     optional UUID port_id = 101;
     optional UUID network_id = 102;
     optional UUID router_id = 103;
-}
-
-message L2Insertion {
-    optional UUID id = 1;
-    optional UUID port = 2;
-    optional UUID srv_port = 3;
-    optional uint32 vlan = 4;
-    optional bool fail_open = 5;
-
-    optional uint32 position = 6;
-    optional string mac = 7;
-
-    // Keep a reference to the corresponding service port rule
-    optional UUID srv_rule_in = 100;
-    optional UUID srv_rule_out = 101;
-}
-
-message L2Service {
-    optional UUID id = 1;
-    optional UUID port = 2;
 }
 
 message TunnelZone {
