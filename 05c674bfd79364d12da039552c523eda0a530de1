@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_c8b576ef",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T11:40:55Z",
+      "side": 1,
+      "message": "this misses checks, it should be\n\n    @PUT\n    @Path(\"{id}\")\n    @Consumes(Array(APPLICATION_POOL_JSON,\n                    APPLICATION_JSON))\n    override def update(@PathParam(\"id\") id: String, pool: Pool,\n                        @HeaderParam(\"Content-Type\") contentType: String)\n    : Response \u003d lock {\n        super.update(id, pool, contentType)\n    }",
+      "range": {
+        "startLine": 62,
+        "startChar": 7,
+        "endLine": 67,
+        "endChar": 9
+      },
+      "revId": "05c674bfd79364d12da039552c523eda0a530de1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
