@@ -68,6 +68,98 @@
       "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_d954b7cc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T17:54:27Z",
+      "side": 1,
+      "message": "this seems problematic in parts of the actor, as it swallows all errors and there is no way to tell whether the op was successful or not, so even if something failed when writing to storage, we might end up doing actions on the namespaces that we shouldn\u0027t do.\n\nEither not catch, or return a boolean",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 90,
+        "endChar": 9
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_795d63e9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T17:54:27Z",
+      "side": 1,
+      "message": "why static? you need to pass the lockFactory which would otherwise be in scope.  It looks like the code should be moved to L279",
+      "range": {
+        "startLine": 118,
+        "startChar": 3,
+        "endLine": 118,
+        "endChar": 35
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_5958a7fa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T17:54:27Z",
+      "side": 1,
+      "message": "nit: not needed",
+      "range": {
+        "startLine": 129,
+        "startChar": 12,
+        "endLine": 129,
+        "endChar": 18
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_b96e1b95",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T17:54:27Z",
+      "side": 1,
+      "message": "nit: more consistent style on these lock wrappings? these are done differently in each place. I find it more readable like:\n\n\n: Response \u003d lock {\n    super.update(id, port, contentType)\n}\n\nbut not a strong opinion, up to you",
+      "range": {
+        "startLine": 281,
+        "startChar": 8,
+        "endLine": 283,
+        "endChar": 9
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
