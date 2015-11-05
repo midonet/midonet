@@ -22,6 +22,52 @@
       "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_79f803e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T17:31:20Z",
+      "side": 1,
+      "message": "this all can be simplified immensely. You\u0027re doing a bunch of deletes, then a create, then another create. Why not simply build a list of Operations and .multi them? It\u0027s much more efficient, will hold the lock for a much shorter time, and add less network trips, reducing greatly the chance for conflicts \u0026 failures.\n\nSpecifically:\n\n- the ports.filter becomes a ports.map producing Delete[Port]\n- refactor addVipRoute -\u003e createVipRoute (it returns the proto, but doesn\u0027t create it), wrap it in a Create[Route]\n- add the Create(hmPort)\n\nMake a Seq[Op] and multi it.",
+      "range": {
+        "startLine": 481,
+        "startChar": 12,
+        "endLine": 498,
+        "endChar": 38
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_b9d9bb85",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T17:31:20Z",
+      "side": 1,
+      "message": "Unsafe. WriteWithLock swallows errors: if it fails you should skip the deleteIpTableRules",
+      "range": {
+        "startLine": 509,
+        "startChar": 12,
+        "endLine": 513,
+        "endChar": 30
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
