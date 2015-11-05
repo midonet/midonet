@@ -129,6 +129,8 @@ public abstract class Port extends UriResource {
 
     public abstract void setDeviceId(UUID deviceId);
 
+    public abstract URI getDevice();
+
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.PORTS, id);
@@ -153,6 +155,14 @@ public abstract class Port extends UriResource {
     public URI getHostInterfacePort() {
         return absoluteUri(ResourceUris.HOSTS, hostId,
                            ResourceUris.PORTS, id);
+    }
+
+    public URI getInboundFilter() {
+        return absoluteUri(ResourceUris.CHAINS, inboundFilterId);
+    }
+
+    public URI getOutboundFilter() {
+        return absoluteUri(ResourceUris.CHAINS, outboundFilterId);
     }
 
     @JsonIgnore
