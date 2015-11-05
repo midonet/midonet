@@ -51,6 +51,20 @@
 
     </appender>
 
+    <!--- This appender writes to SysLog.  Refer to the following URL
+          for further info on settings:
+              http://logback.qos.ch/manual/appenders.html#SyslogAppender
+
+          Remember to uncomment the <appender-ref ref="SYSLOG"/> tag at
+          the bottom of the file
+    //-->
+    <!--
+    <appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
+        <syslogHost>localhost</syslogHost>
+        <facility>USER</facility>
+        <suffixPattern>[%thread] %logger %msg</suffixPattern>
+    </appender> //-->
+
     <!-- This appender writes to logstash over a udp socket on the configured port.
          To use this, logstash should have an input configured with:
 
@@ -92,6 +106,7 @@
     <root level="INFO">
         <appender-ref ref="LOG-FILE" />
         <!-- <appender-ref ref="LOG-STASH" /> //-->
+        <!-- <appender-ref ref="SYSLOG" /> //-->
     </root>
 
 </configuration>
