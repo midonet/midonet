@@ -118,6 +118,30 @@
     },
     {
       "key": {
+        "uuid": "9ab29df4_b46edeff",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-05T09:41:33Z",
+      "side": 1,
+      "message": "Just talked about this with Alex: bottom line, we can\u0027t use writeWithLock as the .release needs to happen after the andThen, in the same thread.\n\nYou\u0027ll need:\n\nhmUpdater.lock.get()\n\nyada.yada.map { ops \u003d\u003e store.multi(ops) } andThen { lock.release() } \n\nand possibly a .recover to log the message in case of failure",
+      "parentUuid": "9ab29df4_344acec5",
+      "range": {
+        "startLine": 214,
+        "startChar": 12,
+        "endLine": 222,
+        "endChar": 13
+      },
+      "revId": "95e55cb8b98b462f369cf692c575cac93c3f3e25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_b436de50",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 11
