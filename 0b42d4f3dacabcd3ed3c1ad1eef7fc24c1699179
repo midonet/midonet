@@ -1,0 +1,636 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_ea750f33",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "NonFatal(e)",
+      "range": {
+        "startLine": 151,
+        "startChar": 17,
+        "endLine": 151,
+        "endChar": 29
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_0a732b4e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "This needs try catch, same goes for other places where it is called, unless it\u0027s not added to the method.",
+      "range": {
+        "startLine": 154,
+        "startChar": 16,
+        "endLine": 154,
+        "endChar": 56
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_aa94f744",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Use `writeWithLock`:",
+      "range": {
+        "startLine": 178,
+        "startChar": 16,
+        "endLine": 178,
+        "endChar": 50
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_ca913354",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "NonFatal(e)",
+      "range": {
+        "startLine": 197,
+        "startChar": 21,
+        "endLine": 197,
+        "endChar": 33
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_ea9eef62",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Use `writeWithLock`",
+      "range": {
+        "startLine": 213,
+        "startChar": 16,
+        "endLine": 213,
+        "endChar": 50
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_2a8f0725",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "NonFatal(e)",
+      "range": {
+        "startLine": 224,
+        "startChar": 21,
+        "endLine": 224,
+        "endChar": 33
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_4a944337",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "warn/error",
+      "range": {
+        "startLine": 225,
+        "startChar": 24,
+        "endLine": 225,
+        "endChar": 28
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_6a99ff6d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "If this can throw an exception, it needs a try catch.",
+      "range": {
+        "startLine": 234,
+        "startChar": 12,
+        "endLine": 234,
+        "endChar": 35
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_8a9e5b55",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Ditto",
+      "range": {
+        "startLine": 235,
+        "startChar": 11,
+        "endLine": 235,
+        "endChar": 53
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_aaa23798",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Ditto",
+      "range": {
+        "startLine": 239,
+        "startChar": 12,
+        "endLine": 240,
+        "endChar": 55
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_0a9c0b69",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Use await: you cannot use futures here, because map and andThen will complete on the execution context outside of your lock.",
+      "range": {
+        "startLine": 249,
+        "startChar": 8,
+        "endLine": 250,
+        "endChar": 57
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_2a88e721",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "However, using multi is a good idea.",
+      "range": {
+        "startLine": 252,
+        "startChar": 12,
+        "endLine": 252,
+        "endChar": 62
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_4a8d2331",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 475,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Use writeWithLock.",
+      "range": {
+        "startLine": 475,
+        "startChar": 8,
+        "endLine": 475,
+        "endChar": 42
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_6ab01fde",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Nit: logger class inconsistent with the one used by the healthmonitor classes, we should have the same as the calling class.",
+      "range": {
+        "startLine": 43,
+        "startChar": 22,
+        "endLine": 43,
+        "endChar": 65
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_2aa1c7a9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "I think this method could have stayed in the health monitor classes to minimize the changes.",
+      "range": {
+        "startLine": 60,
+        "startChar": 16,
+        "endLine": 60,
+        "endChar": 36
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_6ab49ff2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "This can be a boolean, isn\u0027t it?",
+      "range": {
+        "startLine": 61,
+        "startChar": 48,
+        "endLine": 61,
+        "endChar": 69
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_ca9f734f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "A debug log message could be useful here.",
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_aa7b1728",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Put a try... catch NonFatal(e) around this, or otherwise ensure it\u0027s protected where it\u0027s called.",
+      "range": {
+        "startLine": 63,
+        "startChar": 8,
+        "endLine": 71,
+        "endChar": 9
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_4aa603c3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "This is only needed for the log message below.",
+      "range": {
+        "startLine": 74,
+        "startChar": 46,
+        "endLine": 74,
+        "endChar": 60
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_aacdd788",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "warn/error?",
+      "range": {
+        "startLine": 79,
+        "startChar": 20,
+        "endLine": 79,
+        "endChar": 24
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_6aabbf89",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Not needed",
+      "range": {
+        "startLine": 85,
+        "startChar": 12,
+        "endLine": 85,
+        "endChar": 18
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_caca136e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "You can remove this, the exceptions are handled by the health monitor classes, which will log custom messages. This will only show the exception twice.",
+      "range": {
+        "startLine": 86,
+        "startChar": 10,
+        "endLine": 91,
+        "endChar": 9
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_8ab01bf6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "You already have the `writeWithLock` method above to protect a function with a lock. I think using that one is better since it guarantees the release of the lock when the function exists.",
+      "range": {
+        "startLine": 96,
+        "startChar": 4,
+        "endLine": 111,
+        "endChar": 5
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_eac34f36",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "I think a shorter comment like \"Note: this resource needs to synchronize access to zk\" could be more useful. We don\u0027t really know how many resources need the lock, and since the lock is implemented by the base class maybe say: use `zkLock` .",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 4
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_8ab57bcf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "You could add here:\n\n  if (!zkLockNeeded) return f\n\nThis would save all the changes below.",
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_aac9575c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Lock here?",
+      "range": {
+        "startLine": 282,
+        "startChar": 4,
+        "endLine": 299,
+        "endChar": 5
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_0ac16b2e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolMemberResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "The zkLockNeeded is already true, is this on purpose?",
+      "range": {
+        "startLine": 72,
+        "startChar": 4,
+        "endLine": 72,
+        "endChar": 52
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_cac69349",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 441,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 1,
+      "message": "Nit: I think these changes are not needed. Have been testing it, and perhaps the original issue was a concurrent  change via a backreference.",
+      "range": {
+        "startLine": 402,
+        "startChar": 8,
+        "endLine": 441,
+        "endChar": 27
+      },
+      "revId": "0b42d4f3dacabcd3ed3c1ad1eef7fc24c1699179",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

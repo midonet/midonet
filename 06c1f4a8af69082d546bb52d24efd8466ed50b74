@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_ca78532e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-06T10:52:14Z",
+      "side": 0,
+      "message": "You removed this, but now the setPoolMappingStatus has no try..catch around it.",
+      "range": {
+        "startLine": 380,
+        "startChar": 4,
+        "endLine": 390,
+        "endChar": 9
+      },
+      "revId": "06c1f4a8af69082d546bb52d24efd8466ed50b74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
