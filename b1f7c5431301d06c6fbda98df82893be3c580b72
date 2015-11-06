@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_df057715",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-06T08:00:47Z",
+      "side": 1,
+      "message": "Opted for always taking the lock, it\u0027s cleaner.",
+      "parentUuid": "7ac7a964_7973a3b1",
+      "range": {
+        "startLine": 197,
+        "startChar": 19,
+        "endLine": 199,
+        "endChar": 21
+      },
+      "revId": "b1f7c5431301d06c6fbda98df82893be3c580b72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_99679fea",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 14
@@ -36,6 +60,30 @@
       "writtenOn": "2015-11-05T17:03:17Z",
       "side": 1,
       "message": "This needs a lock. I\u0027m assuming now that every usage of setMembersStatus will be taking care to wrap the call in a lock, but even if that was true, this is way too error prone.",
+      "range": {
+        "startLine": 249,
+        "startChar": 8,
+        "endLine": 258,
+        "endChar": 9
+      },
+      "revId": "b1f7c5431301d06c6fbda98df82893be3c580b72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_2aff0703",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-06T08:00:47Z",
+      "side": 1,
+      "message": "I did this to take the lock only once instead of twice when receiving message SetHealth just above. What about adding a warning just above the method declaration?",
+      "parentUuid": "7ac7a964_99679fea",
       "range": {
         "startLine": 249,
         "startChar": 8,
