@@ -167,7 +167,11 @@ project.ext {
     rpmRelease = midonetVersion.replaceAll(/^[^-]+$/, "1.0").
                                 replaceAll(/^.*SNAPSHOT$/, "0.0.${timestamp}.${gitrev}").
                                 replaceAll(/^.*-(.*)$/, "0.1.\$1")
-    rpmRelease = "${rpmRelease}.el${project.rhelTarget}"
+    if (project.rhelTarget == '6' || project.rhelTarget == '7') {
+        rpmRelease = "${rpmRelease}.el${project.rhelTarget}"
+    } else {
+        rpmRelease = "${rpmRelease}.${project.rhelTarget}"
+    }
 
 }
 
