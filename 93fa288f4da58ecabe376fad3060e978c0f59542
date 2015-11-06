@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "7ac7a964_b040e836",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-06T17:18:51Z",
+      "side": 1,
+      "message": "Talked with Alex about these: in view that we\u0027re not doing retries, it might be worth having a warn here.  No need to resubmit just for this anyway.",
+      "range": {
+        "startLine": 203,
+        "startChar": 24,
+        "endLine": 203,
+        "endChar": 28
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_f9b5f331",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 16
