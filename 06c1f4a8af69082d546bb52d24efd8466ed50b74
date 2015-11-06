@@ -22,6 +22,30 @@
       "revId": "06c1f4a8af69082d546bb52d24efd8466ed50b74",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_a5aee8e5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-06T15:16:22Z",
+      "side": 0,
+      "message": "The try catch is there again because I reintroduced setPoolMappingStatus and got rid of the HealthMonitorUpdater.",
+      "parentUuid": "7ac7a964_ca78532e",
+      "range": {
+        "startLine": 380,
+        "startChar": 4,
+        "endLine": 390,
+        "endChar": 9
+      },
+      "revId": "06c1f4a8af69082d546bb52d24efd8466ed50b74",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
