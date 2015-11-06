@@ -54,8 +54,6 @@ import org.midonet.util.functors._
   * [[FloodingProxyHerald]])
   *
   * The nwInfos is only used for reads, no modifications will be applied.
-  *
-  * Note that the handlers may
   */
 class VtepMacRemoteConsumer(nsdbVtep: Topology.Vtep,
                             nwInfos: java.util.Map[UUID, NetworkInfo],
