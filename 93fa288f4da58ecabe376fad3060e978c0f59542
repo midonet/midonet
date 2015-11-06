@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_4a044315",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-06T08:00:47Z",
+      "side": 1,
+      "message": "I added a warning just above. I\u0027m not taking a lock to avoid taking one twice when setting members to active and inactive respectively.",
+      "parentUuid": "7ac7a964_f9b5f331",
+      "range": {
+        "startLine": 251,
+        "startChar": 7,
+        "endLine": 258,
+        "endChar": 9
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_79f803e6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 16
@@ -36,6 +60,30 @@
       "writtenOn": "2015-11-05T17:31:20Z",
       "side": 1,
       "message": "this all can be simplified immensely. You\u0027re doing a bunch of deletes, then a create, then another create. Why not simply build a list of Operations and .multi them? It\u0027s much more efficient, will hold the lock for a much shorter time, and add less network trips, reducing greatly the chance for conflicts \u0026 failures.\n\nSpecifically:\n\n- the ports.filter becomes a ports.map producing Delete[Port]\n- refactor addVipRoute -\u003e createVipRoute (it returns the proto, but doesn\u0027t create it), wrap it in a Create[Route]\n- add the Create(hmPort)\n\nMake a Seq[Op] and multi it.",
+      "range": {
+        "startLine": 481,
+        "startChar": 12,
+        "endLine": 498,
+        "endChar": 38
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_6a09ff2b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 498,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-06T08:00:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_79f803e6",
       "range": {
         "startLine": 481,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_aa407736",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-06T08:00:47Z",
+      "side": 1,
+      "message": "I made write with lock re-throw caught exceptions.",
+      "parentUuid": "7ac7a964_b9d9bb85",
+      "range": {
+        "startLine": 509,
+        "startChar": 12,
+        "endLine": 513,
+        "endChar": 30
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_d954b7cc",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
         "patchSetId": 16
@@ -82,6 +154,30 @@
       "writtenOn": "2015-11-05T17:54:27Z",
       "side": 1,
       "message": "this seems problematic in parts of the actor, as it swallows all errors and there is no way to tell whether the op was successful or not, so even if something failed when writing to storage, we might end up doing actions on the namespaces that we shouldn\u0027t do.\n\nEither not catch, or return a boolean",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 90,
+        "endChar": 9
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_ca3db3bd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitorUpdater.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-06T08:00:47Z",
+      "side": 1,
+      "message": "I rethrow the exception now.",
+      "parentUuid": "7ac7a964_d954b7cc",
       "range": {
         "startLine": 86,
         "startChar": 8,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_ea4a6f54",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-06T08:00:47Z",
+      "side": 1,
+      "message": "This is from the time when I was calling lock from classes that are not subclasses of MidonetResource such as the IPAddrGroupResrouce. I forgot to change that.",
+      "parentUuid": "7ac7a964_795d63e9",
+      "range": {
+        "startLine": 118,
+        "startChar": 3,
+        "endLine": 118,
+        "endChar": 35
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_5958a7fa",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
         "patchSetId": 16
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_0a488b5a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-06T08:00:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_5958a7fa",
+      "range": {
+        "startLine": 129,
+        "startChar": 12,
+        "endLine": 129,
+        "endChar": 18
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_b96e1b95",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
         "patchSetId": 16
@@ -151,6 +295,30 @@
       "writtenOn": "2015-11-05T17:54:27Z",
       "side": 1,
       "message": "nit: more consistent style on these lock wrappings? these are done differently in each place. I find it more readable like:\n\n\n: Response \u003d lock {\n    super.update(id, port, contentType)\n}\n\nbut not a strong opinion, up to you",
+      "range": {
+        "startLine": 281,
+        "startChar": 8,
+        "endLine": 283,
+        "endChar": 9
+      },
+      "revId": "93fa288f4da58ecabe376fad3060e978c0f59542",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_6a6e5fcb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-06T08:00:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_b96e1b95",
       "range": {
         "startLine": 281,
         "startChar": 8,
