@@ -54,8 +54,8 @@ import org.midonet.util.concurrent._
  * However, the DpC is able to cope with other components creating, deleting,
  * or modifying the status of network interfaces.
  *
- * The DpC scans the host's network interfaces periodically to track creations,
- * deletions, and status changes:
+ * The DpC tracks the host's network interfaces by monitoring NetLink events
+ * for creations, deletions, and status changes:
  * - when a network interface is created or goes up, if it corresponds to an
  *   interface-vport binding, then the DpC adds it as a port on the datapath
  *   and records the correspondence of the resulting port's number to the
