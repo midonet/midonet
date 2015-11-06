@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_70a57003",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-06T17:38:23Z",
+      "side": 1,
+      "message": "this should be ops()",
+      "revId": "95f4cbce9b05d1dc20fa2afa5ec125dc06332783",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_f01c206d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-06T17:38:23Z",
+      "side": 1,
+      "message": "What\u0027s the rationale for preferring this (more error prone) vs. actually aquiring the lock?",
+      "range": {
+        "startLine": 260,
+        "startChar": 8,
+        "endLine": 261,
+        "endChar": 34
+      },
+      "revId": "95f4cbce9b05d1dc20fa2afa5ec125dc06332783",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
