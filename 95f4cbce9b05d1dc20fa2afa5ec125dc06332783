@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_2b9549e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-07T13:06:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_70a57003",
+      "revId": "95f4cbce9b05d1dc20fa2afa5ec125dc06332783",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_f01c206d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 4
@@ -54,6 +72,30 @@
       "side": 1,
       "message": "I think this is because this method is only called in two places consecutively, so to avoid locking twice. Actually maybe this could be converted into a single call with a single multi.",
       "parentUuid": "7ac7a964_f01c206d",
+      "range": {
+        "startLine": 260,
+        "startChar": 8,
+        "endLine": 261,
+        "endChar": 34
+      },
+      "revId": "95f4cbce9b05d1dc20fa2afa5ec125dc06332783",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_4b9a8515",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-07T13:06:30Z",
+      "side": 1,
+      "message": "Yes it was to take the lock only once. I changed the method so the lock is taken outside and I know include all ops in a multi.",
+      "parentUuid": "7ac7a964_2bee298c",
       "range": {
         "startLine": 260,
         "startChar": 8,
