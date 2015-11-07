@@ -39,6 +39,30 @@
       "revId": "95f4cbce9b05d1dc20fa2afa5ec125dc06332783",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_2bee298c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-07T11:31:51Z",
+      "side": 1,
+      "message": "I think this is because this method is only called in two places consecutively, so to avoid locking twice. Actually maybe this could be converted into a single call with a single multi.",
+      "parentUuid": "7ac7a964_f01c206d",
+      "range": {
+        "startLine": 260,
+        "startChar": 8,
+        "endLine": 261,
+        "endChar": 34
+      },
+      "revId": "95f4cbce9b05d1dc20fa2afa5ec125dc06332783",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
