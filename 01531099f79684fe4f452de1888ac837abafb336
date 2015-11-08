@@ -22,6 +22,30 @@
       "revId": "01531099f79684fe4f452de1888ac837abafb336",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_60a03bf5",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-08T19:31:16Z",
+      "side": 1,
+      "message": "Using the logback.xml file? I think so, this will only set the logging level for the logger classes below, but it shouldn\u0027t reset it for others.",
+      "parentUuid": "7ac7a964_05f95c4d",
+      "range": {
+        "startLine": 232,
+        "startChar": 4,
+        "endLine": 232,
+        "endChar": 13
+      },
+      "revId": "01531099f79684fe4f452de1888ac837abafb336",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
