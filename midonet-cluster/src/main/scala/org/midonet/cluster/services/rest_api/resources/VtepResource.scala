@@ -61,6 +61,11 @@ class VtepResource @Inject()(resContext: ResourceContext,
         new VtepBindingResource(vtepId, resContext, cnxnProvider)
     }
 
+    @Path("{id}/ports")
+    def ports(@PathParam("id") vtepId: UUID): VtepPortResource = {
+        new VtepPortResource(vtepId, resContext, cnxnProvider)
+    }
+
     protected override def getFilter(vtep: Vtep): Future[Vtep] = {
         initVtep(vtep)
     }

@@ -106,6 +106,7 @@ object MidonetMediaTypes {
     final val APPLICATION_VTEP_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.VTEP-v2+json"
     final val APPLICATION_VTEP_BINDING_JSON_V2 = "application/vnd.org.midonet.VTEPBinding-v2+json"
     final val APPLICATION_VTEP_BINDING_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.VTEPBinding-v2+json"
+    final val APPLICATION_VTEP_PORT_JSON = "application/vnd.org.midonet.VTEPPort-v1+json"
     final val APPLICATION_VTEP_PORT_COLLECTION_JSON = "application/vnd.org.midonet.collection.VTEPPort-v1+json"
 
     // Token Information
