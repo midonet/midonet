@@ -52,11 +52,11 @@ public class BgpNetwork extends UriResource {
 
     @NotNull
     @Pattern(regexp = IPv4.regex)
-    public String subnetAddress;
+    public String subnetPrefix;
 
     @Min(0)
     @Max(32)
-    public byte subnetPrefix;
+    public byte subnetLength;
 
     @Override
     public URI getUri() {
@@ -70,15 +70,15 @@ public class BgpNetwork extends UriResource {
     @Override
     @JsonIgnore
     public void afterFromProto(Message proto) {
-        subnetAddress = subnet != null ? subnet.getAddress().toString() : null;
-        subnetPrefix = subnet != null ? (byte)subnet.getPrefixLen() : 0;
+        subnetPrefix = subnet != null ? subnet.getAddress().toString() : null;
+        subnetLength = subnet != null ? (byte)subnet.getPrefixLen() : 0;
     }
 
     @Override
     @JsonIgnore
     public void beforeToProto() {
-        subnet = subnetAddress != null ?
-                 IPSubnet.fromString(subnetAddress + "/" + subnetPrefix) : null;
+        subnet = subnetPrefix != null ?
+                 IPSubnet.fromString(subnetPrefix + "/" + subnetLength) : null;
     }
 
     @Override
