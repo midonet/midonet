@@ -155,7 +155,7 @@ public class Bridge extends ResourceBase<Bridge, DtoBridge> {
 
     public DhcpSubnet6 addDhcpSubnet6() {
         return new DhcpSubnet6(resource, principalDto.getDhcpSubnet6s(),
-                          new DtoDhcpSubnet6());
+                               new DtoDhcpSubnet6());
     }
 
     public ResourceCollection<DhcpSubnet6> getDhcpSubnet6s() {
