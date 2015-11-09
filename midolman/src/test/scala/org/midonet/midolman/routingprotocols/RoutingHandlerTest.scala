@@ -269,10 +269,7 @@ class RoutingHandlerTest extends FeatureSpecLike
 
             routingHandler ! BgpPort(rport, update, Set(peer1Id, peer2Id))
             routingHandler ! BgpPort(rport, baseConfig, Set(peer1Id))
-            verify(bgpd.vty).addPeer(MY_AS, peer2, 200,
-                                     config.bgpKeepAlive,
-                                     config.bgpHoldTime,
-                                     config.bgpConnectRetry)
+            verify(bgpd.vty).addPeer(MY_AS, Neighbor(peer2, 200))
             verify(bgpd.vty).deletePeer(MY_AS, peer2)
         }
 
@@ -301,7 +298,7 @@ class RoutingHandlerTest extends FeatureSpecLike
                 Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
 
             routingHandler ! BgpPort(rport, update, Set(peer1Id))
-            verify(bgpd.vty).addPeer(MY_AS, peer1, 100, 29, 30, 31)
+            verify(bgpd.vty).addPeer(MY_AS, Neighbor(peer1, 100, Some(29), Some(30), Some(31)))
         }
     }
 }
