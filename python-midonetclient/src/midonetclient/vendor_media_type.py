@@ -89,9 +89,9 @@ APPLICATION_DHCPV6_SUBNET_JSON = \
     "application/vnd.org.midonet.DhcpV6Subnet-v1+json"
 APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.DhcpV6Subnet-v1+json"
-APPLICATION_DHCPV6_HOST_JSON = "application/vnd.org.midonet.DhcpV6Host-v1+json"
+APPLICATION_DHCPV6_HOST_JSON = "application/vnd.org.midonet.DhcpV6Host-v2+json"
 APPLICATION_DHCPV6_HOST_COLLECTION_JSON = \
-    "application/vnd.org.midonet.collection.DhcpV6Host-v1+json"
+    "application/vnd.org.midonet.collection.DhcpV6Host-v2+json"
 APPLICATION_MONITORING_QUERY_RESPONSE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.mgmt.MetricQueryResponse-v1+json"
 APPLICATION_MONITORING_QUERY_COLLECTION_JSON = \
