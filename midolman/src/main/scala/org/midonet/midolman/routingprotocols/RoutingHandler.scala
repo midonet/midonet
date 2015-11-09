@@ -564,10 +564,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         }
 
         for (peer <- gained) {
-            bgpd.vty.addPeer(bgpConfig.as, peer.address, peer.as,
-                peer.keepalive.getOrElse(config.bgpKeepAlive),
-                peer.holdtime.getOrElse(config.bgpHoldTime),
-                peer.connect.getOrElse(config.bgpConnectRetry))
+            bgpd.vty.addPeer(bgpConfig.as, peer)
             routingInfo.peers.add(peer.address)
             log.info(s"Set up BGP session with AS ${peer.as} at ${peer.address}")
         }
@@ -591,10 +588,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             bgpd.vty.setMaximumPaths(bgpConfig.as, bgpConfig.neighbors.size)
 
         for (neigh <- bgpConfig.neighbors.values) {
-            bgpd.vty.addPeer(bgpConfig.as, neigh.address, neigh.as,
-                neigh.keepalive.getOrElse(config.bgpKeepAlive),
-                neigh.holdtime.getOrElse(config.bgpHoldTime),
-                neigh.connect.getOrElse(config.bgpConnectRetry))
+            bgpd.vty.addPeer(bgpConfig.as, neigh)
             routingInfo.peers.add(neigh.address)
             log.info(s"Set up BGP session with AS ${neigh.as} at ${neigh.address}")
         }

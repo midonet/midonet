@@ -62,6 +62,7 @@ message BgpPeer {
     optional int32 keep_alive = 4;
     optional int32 hold_time = 5;
     optional int32 connect_retry = 6;
+    optional string password = 8;
 
     // Backreference
     optional UUID router_id = 7;
