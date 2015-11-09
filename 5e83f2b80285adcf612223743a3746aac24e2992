@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_737c9773",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepPortResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-09T10:54:29Z",
+      "side": 1,
+      "message": "won\u0027t this happen twice if we go via recover?",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 22
+      },
+      "revId": "5e83f2b80285adcf612223743a3746aac24e2992",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
