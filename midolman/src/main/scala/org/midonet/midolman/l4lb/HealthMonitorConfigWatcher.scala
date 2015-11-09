@@ -117,19 +117,21 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
 
     override val Name = "HealthMonitorConfigWatcher"
 
+    override def logSource = "org.midonet.l4lb.health-monitor"
+
     override def preStart(): Unit = {
         subscribe[PoolHealthMonitorMap](PoolHealthMonitorMapKey)
     }
 
     private  def handleDeletedMapping(poolId: UUID) {
-        log.debug("handleDeletedMapping deleting {}", poolId)
+        log.debug("Pool {} mapping deleted", poolId)
         if (currentLeader)
             manager ! ConfigDeleted(poolId)
     }
 
     private def handleAddedMapping(poolId: UUID,
                                    data: PoolHealthMonitor) {
-        log.debug("handleAddedMapping added {}", poolId)
+        log.debug("Pool {} mapping added: {}", poolId, data)
         val poolConfig = convertDataToPoolConfig(poolId, fileLocs, suffix, data)
         if (currentLeader) {
             manager ! ConfigAdded(poolId, poolConfig,
@@ -138,6 +140,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     }
 
     private def handleUpdatedMapping(poolId: UUID, data: PoolConfig) {
+        log.debug("Pool {} mapping updated: {}", poolId, data)
         if (currentLeader)
             manager ! ConfigUpdated(poolId, data,
                 getRouterId(data.loadBalancerId))
@@ -194,11 +197,11 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     override def receive = {
 
         case PoolHealthMonitorMap(mapping) =>
-            log.debug(s"${mapping.size} mappings received")
+            log.debug("Received pool-healh monitor mappings: {}", mapping)
             handleMappingChange(mapping)
 
         case loadBalancer: SimLoadBalancer =>
-            log.debug("load balancer {} received", loadBalancer.id)
+            log.debug("Load balancer {} updated", loadBalancer.id)
 
             def notifyChangedRouter(loadBalancer: SimLoadBalancer,
                                     routerId: UUID) = {
