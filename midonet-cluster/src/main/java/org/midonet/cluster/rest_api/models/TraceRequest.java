@@ -21,6 +21,7 @@ import java.util.UUID;
 import javax.validation.constraints.NotNull;
 
 import com.google.common.base.MoreObjects;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.TraceRequest.DeviceType;
@@ -35,7 +36,6 @@ import org.midonet.cluster.util.UUIDUtil;
 @ZoomClass(clazz = Topology.TraceRequest.class)
 public class TraceRequest extends UriResource {
 
-    @NotNull
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -88,6 +88,15 @@ public class TraceRequest extends UriResource {
     }
 
     @Override
+    @JsonIgnore
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+    }
+
+    @Override
+    @JsonIgnore
     public void afterFromProto(Message proto) {
         super.afterFromProto(proto);
 
@@ -109,6 +118,7 @@ public class TraceRequest extends UriResource {
     }
 
     @Override
+    @JsonIgnore
     public void afterToProto(Message.Builder builder) {
         super.afterToProto(builder);
 

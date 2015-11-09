@@ -27,7 +27,7 @@ public class DhcpHostDataConverter {
         h.ipAddr = host.getIp().toString();
         h.macAddr = host.getMAC().toString();
         h.name = host.getName();
-        h.setExtraDhcpOpts(host.getExtraDhcpOpts());
+        h.extraDhcpOpts = host.getExtraDhcpOpts();
         return h;
     }
 

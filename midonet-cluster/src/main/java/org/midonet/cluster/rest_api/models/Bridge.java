@@ -19,7 +19,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
@@ -42,13 +42,16 @@ import static org.midonet.cluster.rest_api.ResourceUris.VXLAN_PORTS;
 @ZoomClass(clazz = Topology.Network.class)
 public class Bridge extends UriResource {
 
+    public static final int MIN_BRIDGE_NAME_LEN = 0;
+    public static final int MAX_BRIDGE_NAME_LEN = 255;
+
     @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
     @ZoomField(name = "tenant_id")
-    @NotNull
     public String tenantId;
 
+    @Size(min = MIN_BRIDGE_NAME_LEN, max = MAX_BRIDGE_NAME_LEN)
     @ZoomField(name = "name")
     public String name;
 

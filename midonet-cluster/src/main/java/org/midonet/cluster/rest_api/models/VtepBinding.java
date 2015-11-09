@@ -35,7 +35,6 @@ import org.midonet.cluster.util.UUIDUtil;
 @ZoomClass(clazz = Topology.Vtep.Binding.class)
 public class VtepBinding extends UriResource {
 
-    @NotNull
     public UUID vtepId;
 
     @NotNull

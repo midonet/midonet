@@ -753,7 +753,7 @@ object Migrator extends App {
         for (network <- bgpNetworks) {
             val bgpNetwork = new BgpNetwork
             bgpNetwork.subnetAddress = network.getAddress.toString
-            bgpNetwork.subnetPrefix = network.getPrefixLen.toByte
+            bgpNetwork.subnetLength = network.getPrefixLen.toByte
             val resp = resources.routers.bgpNetworks(rtrId)
                 .create(bgpNetwork, APPLICATION_BGP_NETWORK_JSON)
             handleResponse(resp)
