@@ -187,7 +187,8 @@ object BgpRouterMapper {
                              peer.getAsNumber,
                              Some(keepAlive),
                              Some(holdTime),
-                             Some(connectRetry)))
+                             Some(connectRetry),
+                             Option(peer.getPassword)))
             this
         }
     }

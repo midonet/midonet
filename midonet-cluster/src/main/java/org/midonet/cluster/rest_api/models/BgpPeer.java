@@ -64,6 +64,9 @@ public class BgpPeer extends UriResource {
     @Max(3600)
     public Integer connectRetry;
 
+    @ZoomField(name = "password")
+    public String password;
+
     @JsonIgnore
     @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     public UUID routerId;
