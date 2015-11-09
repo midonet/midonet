@@ -31,10 +31,10 @@ class Mirror(resource_base.ResourceBase):
         return self.dto['id']
 
     def get_to_port(self):
-        return self.dto['toPort']
+        return self.dto['toPortId']
 
-    def to_port(self, tenant_id):
-        self.dto['toPort'] = tenant_id
+    def to_port(self, to_port_id):
+        self.dto['toPortId'] = to_port_id
         return self
 
     def get_conditions(self):

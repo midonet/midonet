@@ -48,7 +48,7 @@ object Port {
     def apply(proto: Topology.Port,
               infilters: JList[UUID],
               outfilters: JList[UUID]): Port = {
-        if (proto.getSrvInsertionsCount > 0 && proto.hasNetworkId)
+        if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
             servicePort(proto, infilters)
         else if (proto.hasVtepId)
             vxLanPort(proto, infilters, outfilters)
@@ -73,8 +73,8 @@ object Port {
             p.getAdminStateUp,
             p.getPortGroupIdsList, false, p.getVlanId.toShort,
             if (p.hasNetworkId) p.getNetworkId else null,
-            p.getInboundMirrorsList,
-            p.getOutboundMirrorsList)
+            p.getInboundMirrorIdsList,
+            p.getOutboundMirrorIdsList)
 
     private def routerPort(p: Topology.Port,
                            infilters: JList[UUID],
@@ -92,8 +92,8 @@ object Port {
             if (p.hasPortAddress) toIPv4Addr(p.getPortAddress) else null,
             if (p.hasPortMac) MAC.fromString(p.getPortMac) else null,
             p.getRouteIdsList,
-            p.getInboundMirrorsList,
-            p.getOutboundMirrorsList)
+            p.getInboundMirrorIdsList,
+            p.getOutboundMirrorIdsList)
 
     private def vxLanPort(p: Topology.Port,
                           infilters: JList[UUID],
@@ -107,8 +107,8 @@ object Port {
             p.getPortGroupIdsList,
             if (p.hasNetworkId) p.getNetworkId else null,
             if (p.hasVtepId) p.getVtepId else null,
-            inboundMirrors = p.getInboundMirrorsList,
-            outboundMirrors = p.getOutboundMirrorsList)
+            inboundMirrors = p.getInboundMirrorIdsList,
+            outboundMirrors = p.getOutboundMirrorIdsList)
 
     private def servicePort(p: Topology.Port,
                             infilters: JList[UUID]) =
@@ -122,8 +122,8 @@ object Port {
             p.getAdminStateUp,
             p.getPortGroupIdsList, false, p.getVlanId.toShort,
             if (p.hasNetworkId) p.getNetworkId else null,
-            p.getInboundMirrorsList,
-            p.getOutboundMirrorsList)
+            p.getInboundMirrorIdsList,
+            p.getOutboundMirrorIdsList)
 
     private def filterListFrom(id: UUID): JList[UUID] = {
         val list = new JArrayList[UUID](1)

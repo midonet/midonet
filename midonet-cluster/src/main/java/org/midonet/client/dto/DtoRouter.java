@@ -30,8 +30,8 @@ public class DtoRouter {
     private String name;
     private boolean adminStateUp = true;
     private String tenantId;
-    private List<UUID> inboundMirrors;
-    private List<UUID> outboundMirrors;
+    private List<UUID> inboundMirrorIds;
+    private List<UUID> outboundMirrorIds;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
     private URI inboundFilter;
@@ -74,20 +74,20 @@ public class DtoRouter {
         return id;
     }
 
-    public List<UUID> getInboundMirrors() {
-        return this.inboundMirrors;
+    public List<UUID> getInboundMirrorIds() {
+        return this.inboundMirrorIds;
     }
 
-    public List<UUID> getOutboundMirrors() {
-        return this.inboundMirrors;
+    public List<UUID> getOutboundMirrorIds() {
+        return this.outboundMirrorIds;
     }
 
-    public void setInboundMirrors(List<UUID> mirrors) {
-        this.inboundMirrors = mirrors;
+    public void setInboundMirrorIds(List<UUID> mirrors) {
+        this.inboundMirrorIds = mirrors;
     }
 
-    public void setOutboundMirrors(List<UUID> mirrors) {
-        this.outboundMirrors = mirrors;
+    public void setOutboundMirrorIds(List<UUID> mirrors) {
+        this.outboundMirrorIds = mirrors;
     }
 
     public void setId(UUID id) {
@@ -258,9 +258,9 @@ public class DtoRouter {
             return false;
         }
 
-        if (!Objects.equal(this.inboundMirrors, otherRouter.getInboundMirrors()))
+        if (!Objects.equal(this.inboundMirrorIds, otherRouter.getInboundMirrorIds()))
             return false;
-        if (!Objects.equal(this.outboundMirrors, otherRouter.getOutboundMirrors()))
+        if (!Objects.equal(this.outboundMirrorIds, otherRouter.getOutboundMirrorIds()))
             return false;
 
         if (adminStateUp != otherRouter.adminStateUp) {

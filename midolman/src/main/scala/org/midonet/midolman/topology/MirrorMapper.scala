@@ -85,7 +85,7 @@ final class MirrorMapper(id: UUID, vt: VirtualTopology)
             condArray.add(cond)
         }
 
-        val mirror = SimMirror(id, condArray, mirrorProto.getToPort)
+        val mirror = SimMirror(id, condArray, mirrorProto.getToPortId)
         log.info(s"Emitting $mirror")
         mirror
     }

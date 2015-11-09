@@ -76,8 +76,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                 val infilters = new JArrayList[UUID](1)
                 val outfilters = new JArrayList[UUID](1)
                 traceChain.foreach(infilters.add)
-                if (port.hasL2InsertionInfilter) {
-                    infilters.add(port.getL2InsertionInfilter)
+                if (port.hasL2InsertionInfilterId) {
+                    infilters.add(port.getL2InsertionInfilterId)
                 }
                 if (port.hasInboundFilterId) {
                     infilters.add(port.getInboundFilterId)
@@ -85,8 +85,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                 if (port.hasOutboundFilterId) {
                     outfilters.add(port.getOutboundFilterId)
                 }
-                if (port.hasL2InsertionOutfilter) {
-                    outfilters.add(port.getL2InsertionOutfilter)
+                if (port.hasL2InsertionOutfilterId) {
+                    outfilters.add(port.getL2InsertionOutfilterId)
                 }
 
                 SimulationPort(port, infilters, outfilters)
@@ -122,8 +122,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
         chainsTracker.requestRefs(
             if (port.hasInboundFilterId) port.getInboundFilterId else null,
             if (port.hasOutboundFilterId) port.getOutboundFilterId else null,
-            if (port.hasL2InsertionInfilter) port.getL2InsertionInfilter else null,
-            if (port.hasL2InsertionOutfilter) port.getL2InsertionOutfilter else null)
+            if (port.hasL2InsertionInfilterId) port.getL2InsertionInfilterId else null,
+            if (port.hasL2InsertionOutfilterId) port.getL2InsertionOutfilterId else null)
 
         // If the port host has changed request the port state from the new
         // host and invalidate the port host.
@@ -134,8 +134,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             portStateSubject onNext hostId.asNullableString
         }
 
-        mirrorsTracker.requestRefs(port.getInboundMirrorsList :_*)
-        mirrorsTracker.requestRefs(port.getOutboundMirrorsList :_*)
+        mirrorsTracker.requestRefs(port.getInboundMirrorIdsList :_*)
+        mirrorsTracker.requestRefs(port.getOutboundMirrorIdsList :_*)
 
         requestTraceChain(port.getTraceRequestIdsList)
     }

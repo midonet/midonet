@@ -159,9 +159,9 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
     private def addMirrorToBridge(br: UUID, mirror: UUID, inbound: Boolean = true): Unit = {
         var dev = store.get(classOf[TopologyBridge], br).await()
         if (inbound)
-            dev = dev.toBuilder.addInboundMirrors(mirror).build()
+            dev = dev.toBuilder.addInboundMirrorIds(mirror).build()
         else
-            dev = dev.toBuilder.addOutboundMirrors(mirror).build()
+            dev = dev.toBuilder.addOutboundMirrorIds(mirror).build()
         store.update(dev)
         fetchDevice[SimBridge](br)
     }
@@ -169,9 +169,9 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
     private def addMirrorToRouter(rtr: UUID, mirror: UUID, inbound: Boolean = true): Unit = {
         var dev = store.get(classOf[TopologyRouter], rtr).await()
         if (inbound)
-            dev = dev.toBuilder.addInboundMirrors(mirror).build()
+            dev = dev.toBuilder.addInboundMirrorIds(mirror).build()
         else
-            dev = dev.toBuilder.addOutboundMirrors(mirror).build()
+            dev = dev.toBuilder.addOutboundMirrorIds(mirror).build()
         store.update(dev)
         fetchDevice[SimRouter](rtr)
     }
@@ -179,9 +179,9 @@ class MirroringTest extends MidolmanSpec with TopologyBuilder {
     private def addMirrorToPort(port: UUID, mirror: UUID, inbound: Boolean = true): Unit = {
         var dev = store.get(classOf[TopologyPort], port).await()
         if (inbound)
-            dev = dev.toBuilder.addInboundMirrors(mirror).build()
+            dev = dev.toBuilder.addInboundMirrorIds(mirror).build()
         else
-            dev = dev.toBuilder.addOutboundMirrors(mirror).build()
+            dev = dev.toBuilder.addOutboundMirrorIds(mirror).build()
         store.update(dev)
         fetchDevice[BridgePort](port)
     }
