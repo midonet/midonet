@@ -22,6 +22,30 @@
       "revId": "5e83f2b80285adcf612223743a3746aac24e2992",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_36ee8d8c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/VtepPortResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-09T16:28:42Z",
+      "side": 1,
+      "message": "I just copied it from the VtepResource. I think the rationale was that recover throws t, which will be rethrown by getOrThrow after possible converting the exception, so this code will be bypassed.\n\nAlthough maybe I should use a try... finally here, it\u0027s more elegant.",
+      "parentUuid": "7ac7a964_737c9773",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 22
+      },
+      "revId": "5e83f2b80285adcf612223743a3746aac24e2992",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
