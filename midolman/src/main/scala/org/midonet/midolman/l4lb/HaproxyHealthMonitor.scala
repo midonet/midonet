@@ -122,6 +122,9 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
     val ipCommand = HealthMonitor.ipCommand
 
+    override def logSource =
+        s"org.midonet.l4lb.health-monitor.haproxy-${config.id}"
+
     private def setPoolMappingStatus(poolId: UUID, status: PoolHMMappingStatus,
                                      lockNeeded: Boolean = true,
                                      rethrowException: Boolean = false)
@@ -148,6 +151,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
     override def preStart(): Unit = {
         try {
+            log.debug("Starting HAProxy health monitor for pool {}",
+                      config.id)
             writeConf(config)
             namespaceName = createNamespace(healthMonitorName,
                                             config.vip.ip)
@@ -158,7 +163,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             setPoolMappingStatus(config.id, ACTIVE, rethrowException = true)
         } catch {
             case NonFatal(e) =>
-                log.error("Unable to create Health Monitor for " +
+                log.error("Unable to create HAProxy health monitor for " +
                           config.haproxyConfFileLoc + ": " + e.getMessage)
                 setPoolMappingStatus(config.id, ERROR)
                 manager ! SetupFailure
@@ -166,6 +171,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     }
 
     override def postStop(): Unit = {
+        log.debug("Stopping HAProxy health monitor for pool {}", config.id)
         unhookNamespaceFromRouter()
         HealthMonitor.cleanAndDeleteNamespace(healthMonitorName,
                                               config.nsPostFix,
@@ -175,6 +181,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
     def receive = {
         case ConfigUpdate(conf) =>
+            log.debug("HAProxy configuration updated: {}", conf)
             try {
                 writeConf(conf)
                 if (conf.isConfigurable){
@@ -211,6 +218,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             }
 
         case CheckHealth =>
+            log.debug("Checking members health for pool {}", config.id)
             try {
                 val statusInfo = getHaproxyStatus(config.haproxySockFileLoc)
                 val (upNodes, downNodes) = parseResponse(statusInfo)
@@ -230,6 +238,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             system.scheduler.scheduleOnce(1 second, self, CheckHealth)
 
         case RouterAdded(newRouterId) =>
+            log.debug("Adding router: {}", routerId)
             routerId = newRouterId
             try {
                 hookNamespaceToRouter()
@@ -241,6 +250,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             }
 
         case RouterRemoved =>
+            log.debug("Removing router: {}", routerId)
             try {
                 unhookNamespaceFromRouter()
                 setPoolMappingStatus(config.id, INACTIVE,
@@ -257,6 +267,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
       */
     private def setMembersStatus(activeMemberIds: Set[UUID], inactiveMemberIds: Set[UUID]) = {
         val ops = new mutable.MutableList[PersistenceOp]()
+        log.debug("Set members status active: {} inactive: {}",
+                  activeMemberIds, inactiveMemberIds)
         HealthMonitor.zkLock(lockFactory) {
             val upMembers = store.getAll(classOf[PoolMember], activeMemberIds.toSeq).await()
             ops ++= upMembers.map { member =>
@@ -359,7 +371,11 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         val iptablePre = "iptables --table nat --" + op +" PREROUTING" +
             " --destination " + ip + " --jump DNAT --to-destination " +
             NameSpaceIp
+        log.debug("Modify iptables pre-routing rules in namespace {}: {}",
+                  nsName, iptablePre)
         ipCommand.execIn(nsName, iptablePre)
+        log.debug("Modify iptables post-routing rules in namespace {}: {}",
+                  nsName, iptablePre)
         ipCommand.execIn(nsName, iptablePost)
     }
 
@@ -389,7 +405,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             ipCommand.execIn(name, "route add default gateway " +
                                    RouterIp + " " + ns)
         } catch {
-            case e: Exception =>
+            case NonFatal(e) =>
                 HealthMonitor.cleanAndDeleteNamespace(name, config.nsPostFix,
                                                       config.l4lbFileLocs)
                 log.error("Failed to create Namespace: ", e.getMessage)
@@ -414,13 +430,17 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                              pidFileLoc: String) {
         HealthMonitor.getHaproxyPid(pidFileLoc) match {
             case Some(pid) =>
+                log.debug(s"Stopping HAProxy process $pid")
                 HealthMonitor.killHaproxy(name, pid, pidFileLoc, confFileLoc)
             case None =>
         }
     }
 
-    def startHaproxy(name: String) = ipCommand.execIn(name,
-                                                      haproxyCommandLine())
+    def startHaproxy(name: String) = {
+        log.debug("Starting HAProxy process in namespace {}: {}",
+                  name, haproxyCommandLine())
+        ipCommand.execIn(name, haproxyCommandLine())
+    }
 
     /*
      * This will restart haproxy with the given config file.
@@ -481,6 +501,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     }
 
     def hookNamespaceToRouter(): Unit = {
+        log.debug("Hook HAProxy namespace to router {}", routerId)
         if (routerId == null)
             return
 
@@ -490,8 +511,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             val ops = new mutable.MutableList[PersistenceOp]
 
             ops ++= ports.filter(_.getInterfaceName == namespaceName).map { p =>
-                log.info("deleting unused health monitor port " +
-                         s"${fromProto(p.getId)} for pool ${config.id}")
+                log.debug("Deleting unused health monitor port {} from pool {}",
+                          fromProto(p.getId), config.id)
                 DeleteOp(classOf[Port], p.getId)
             }
 
@@ -504,6 +525,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 .setHostId(toProto(hostId))
                 .setInterfaceName(namespaceName).build
             ops += CreateOp(hmPort)
+            log.debug("Create HAProxy port {}", hmPort.getId.asJava)
 
             routerPortId = fromProto(hmPort.getId)
             ops += CreateOp(createVipRoute(config.vip.ip))
@@ -513,6 +535,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     }
 
     def unhookNamespaceFromRouter() = {
+        log.debug("Unhook HAProxy namespace from router {}", routerId)
         if (routerPortId != null) {
             // This should delete the route also
             HealthMonitor.zkLock(lockFactory) {

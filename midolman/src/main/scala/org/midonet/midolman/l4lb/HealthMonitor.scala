@@ -53,7 +53,7 @@ object HealthMonitor extends Referenceable {
     private final val lockOpNumber = new AtomicInteger(1)
 
     private val log: Logger
-        = LoggerFactory.getLogger(classOf[HealthMonitor])
+        = LoggerFactory.getLogger("org.midonet.l4lb.health-monitor")
 
     def isRunningHaproxyPid(pid: Int, pidFilePath: String,
                             confFilePath: String): Boolean = {
@@ -90,10 +90,10 @@ object HealthMonitor extends Referenceable {
             Some(pidString.toInt)
         } catch {
             case ioe: IOException =>
-                log.info("Unable to get pid info from " + pidFileLoc)
+                log.info("Unable to get PID info from " + pidFileLoc)
                 None
             case nfe: NumberFormatException =>
-                log.error("The pid in " + pidFileLoc + " is malformed")
+                log.error("The PID in " + pidFileLoc + " is malformed")
                 None
         }
     }
@@ -116,7 +116,7 @@ object HealthMonitor extends Referenceable {
                 return
             log.error("Unable to kill haproxy process " + pid)
         } else {
-            log.info("pid " + pid + " does not match up with contents " +
+            log.info("PID " + pid + " does not match up with contents " +
                       " of " + pidFilePath)
         }
     }
@@ -234,6 +234,8 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
         }
     }
 
+    override def logSource = "org.midonet.l4lb.health-monitor"
+
     def getWatcher = context.actorOf(HealthMonitorConfigWatcher.props(
             config.healthMonitor.haproxyFileLoc, namespaceSuffix, self)
             .withDispatcher(context.props.dispatcher))
@@ -241,6 +243,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
     private def setPoolMappingStatus(poolId: UUID, status: PoolHMMappingStatus)
     : Unit = {
         try {
+            log.debug("Set mapping status for pool {} to {}", poolId, status)
             HealthMonitor.zkLock(lockFactory) {
                 val pool = store.get(classOf[Pool], poolId).await()
                 store.update(pool.toBuilder.setMappingStatus(status).build())
@@ -257,7 +260,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
             cleanupNamespaces()
         }
         watcher = getWatcher
-        log.info("Starting Health Monitor")
+        log.info("Starting L4LB health monitor")
         hostId = getHostId
         if (curator == null) {
             watcher ! BecomeHaproxyNode
@@ -274,73 +277,68 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
         case ConfigUpdated(poolId, poolConf, routerId) =>
             context.child(poolId.toString) match {
                 case Some(child) if !poolConf.isConfigurable =>
-                    log.info("received unconfigurable update for pool {}",
+                    log.info("Received unconfigurable update for pool {}",
                         poolId.toString)
                     context.stop(child)
 
                 case Some(child) =>
-                    log.info("received configurable update for pool {}",
+                    log.info("Received configurable update for pool {}",
                         poolId.toString)
                     child ! ConfigUpdate(poolConf)
 
                 case None if poolConf.isConfigurable && routerId != null =>
-                    log.info("received configurable update for non-existing" +
+                    log.info("Received configurable update for non-existing" +
                              "pool {}", poolId.toString)
                     startChildHaproxyMonitor(poolId, poolConf, routerId)
 
                 case _ =>
-                    log.info("received unconfigurable update for non-existing" +
+                    log.info("Received unconfigurable update for non-existing" +
                              "pool {}", poolId.toString)
                     setPoolMappingStatus(poolId, INACTIVE)
             }
 
         case ConfigAdded(poolId, poolConfig, routerId) =>
             context.child(poolId.toString) match {
-                case Some(child) => log.error("Request to add health monitor" +
-                    "that already exists: " + poolId.toString)
+                case Some(child) =>
+                    log.error("Health monitor for pool {} already exists", poolId)
 
                 case None if !poolConfig.isConfigurable || routerId == null =>
-                    log.info("received unconfigurable add for pool {}",
-                        poolId.toString)
+                    log.info("Received unconfigurable add for pool {}", poolId)
                     setPoolMappingStatus(poolId, INACTIVE)
 
                 case None =>
-                    log.info("received configurable add for pool {}",
-                             poolId.toString)
+                    log.info("Received configurable add for pool {}", poolId)
                     startChildHaproxyMonitor(poolId, poolConfig, routerId)
             }
 
         case ConfigDeleted(poolId) =>
             context.child(poolId.toString) match {
                 case Some(child) =>
-                    log.info("received delete for pool {}",
-                             poolId.toString)
+                    log.info("Received delete for pool {}", poolId)
                     context.stop(child)
 
                 case None =>
-                    log.info("received delete for non-existent pool {}",
-                             poolId.toString)
+                    log.info("Received delete for non-existent pool {}", poolId)
                     setPoolMappingStatus(poolId, INACTIVE)
             }
 
         case RouterChanged(poolId, poolConfig, routerId) =>
             context.child(poolId.toString) match {
                 case Some(child) if routerId == null =>
-                    log.info("router removed for pool {}", poolId.toString)
+                    log.info("Router removed for pool {}", poolId)
                     child ! RouterRemoved
 
                 case Some(child) =>
-                    log.info("router added for pool {}", poolId.toString)
+                    log.info("Router added for pool {}", poolId)
                     child ! RouterAdded(routerId)
 
                 case None if poolConfig.isConfigurable && routerId != null =>
-                    log.info("router added for non-existent pool {}",
-                             poolId.toString)
+                    log.info("Router added for non-existent pool {}", poolId)
                     startChildHaproxyMonitor(poolId, poolConfig, routerId)
 
                 case _ =>
-                    log.info("router changed for unconfigurable and non-" +
-                             "existent pool {}", poolId.toString)
+                    log.info("Router changed for unconfigurable and " +
+                             "non-existent pool {}", poolId)
                     setPoolMappingStatus(poolId, INACTIVE)
             }
 
