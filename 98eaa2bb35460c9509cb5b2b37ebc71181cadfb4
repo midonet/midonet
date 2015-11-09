@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_51ddd313",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 566,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-09T19:11:32Z",
+      "side": 1,
+      "message": "i was hoping we\u0027d keep adding arguments",
+      "revId": "98eaa2bb35460c9509cb5b2b37ebc71181cadfb4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
