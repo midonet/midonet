@@ -18,6 +18,8 @@ package org.midonet.cluster.rest_api.models;
 
 import java.util.UUID;
 
+import javax.validation.constraints.NotNull;
+
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomOneOf;
 import org.midonet.cluster.util.UUIDUtil;
@@ -27,6 +29,7 @@ public class JumpRule extends Rule {
 
     @ZoomField(name = "jump_chain_name")
     public String jumpChainName;
+    @NotNull
     @ZoomField(name = "jump_chain_id", converter = UUIDUtil.Converter.class)
     public UUID jumpChainId;
 
