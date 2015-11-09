@@ -41,6 +41,9 @@ class BgpPeer(resource_base.ResourceBase):
     def get_connect_retry(self):
         return self.dto['connectRetry']
 
+    def get_password(self):
+        return self.dto['password']
+
     def asn(self, asn):
         self.dto['asNumber'] = asn
         return self
@@ -59,4 +62,8 @@ class BgpPeer(resource_base.ResourceBase):
 
     def connect_retry(self, connect_retry):
         self.dto['connectRetry'] = connect_retry
+        return self
+
+    def password(self, password):
+        self.dto['password'] = password
         return self
