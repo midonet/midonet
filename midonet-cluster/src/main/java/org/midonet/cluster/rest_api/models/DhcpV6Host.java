@@ -18,7 +18,7 @@ package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
 
-import javax.ws.rs.core.UriBuilder;
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -27,20 +27,20 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
 
-@XmlRootElement
 @ZoomClass(clazz = Topology.DhcpV6.Host.class)
 public class DhcpV6Host extends UriResource {
 
+    @NotNull
     @ZoomField(name = "client_id")
     public String clientId;
+    @NotNull
     @ZoomField(name = "ip_address", converter = IPAddressUtil.Converter.class)
     public String fixedAddress;
+    @NotNull
     @ZoomField(name = "name")
     public String name;
 
-    /* Default constructor - for deserialization. */
-    public DhcpV6Host() {
-    }
+    public DhcpV6Host() { }
 
     @Override
     public URI getUri() {

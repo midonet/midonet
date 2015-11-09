@@ -118,8 +118,8 @@ extends IpAddrGroupAddrSubResource {
     @Produces(Array(APPLICATION_IP_ADDR_GROUP_ADDR_JSON))
     def get(@PathParam("addr") addr: String): IpAddrGroupAddr = {
         val canonicalAddr = IPAddr.canonicalize(addr)
-        ipg.getIpAddrPortsList.map(extractAddresses).find { add =>
-            add.getAddr == canonicalAddr
+        ipg.getIpAddrPortsList.map(extractAddresses).find {
+            _.addr == canonicalAddr
         } match {
             case None =>
                 throw new NotFoundHttpException("The IP address group does " +
@@ -183,14 +183,14 @@ class IpAddrGroupAddrResource @Inject()(protected[this] val ipAddrGroupId: UUID,
         }
 
         val canonicalAddr = try {
-            IPAddr.fromString(IPAddr.canonicalize(addr.getAddr))
+            IPAddr.fromString(IPAddr.canonicalize(addr.addr))
         } catch {
             case t: IllegalArgumentException =>
                 throw new BadRequestHttpException(t.getMessage)
         }
 
         ipg.getIpAddrPortsList.find ( p =>
-            toIPAddr(p.getIpAddress).toString == addr.getAddr
+            toIPAddr(p.getIpAddress).toString == addr.addr
         ) match {
             case None =>
                 store.update(ipg.toBuilder.addIpAddrPorts(
