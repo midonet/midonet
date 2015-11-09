@@ -31,7 +31,7 @@ import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
+              property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = BridgePort.class, name = PortType.BRIDGE),
         @JsonSubTypes.Type(value = RouterPort.class, name = PortType.ROUTER),

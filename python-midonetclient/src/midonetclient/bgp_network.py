@@ -29,13 +29,13 @@ class BgpNetwork(resource_base.ResourceBase):
     def get_subnet_address(self):
         return self.dto['subnetAddress']
 
-    def get_subnet_prefix(self):
-        return self.dto['subnetPrefix']
+    def get_subnet_length(self):
+        return self.dto['subnetLength']
 
     def subnet_address(self, subnet_address):
         self.dto['subnetAddress'] = subnet_address
         return self
 
-    def subnet_prefix(self, subnet_prefix):
-        self.dto['subnetPrefix'] = subnet_prefix
+    def subnet_length(self, subnet_length):
+        self.dto['subnetLength'] = subnet_length
         return self

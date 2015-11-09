@@ -50,12 +50,13 @@ public class Vip extends UriResource {
     @ZoomField(name = "pool_id", converter = UUIDUtil.Converter.class)
     public UUID poolId;
 
+    @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
     @ZoomField(name = "address", converter = IPAddressUtil.Converter.class)
     public String address;
 
     @Min(0)
-    @Max(65536)
+    @Max(65535)
     @ZoomField(name = "protocol_port")
     public int protocolPort;
 

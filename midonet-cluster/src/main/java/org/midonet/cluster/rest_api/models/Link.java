@@ -19,14 +19,18 @@ package org.midonet.cluster.rest_api.models;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.validation.constraints.NotNull;
+
 import org.midonet.cluster.rest_api.ResourceUris;
 
 public class Link extends UriResource {
 
     // TODO: @IsValidPortId
+    @NotNull
     public UUID portId;
 
     // TODO: @IsValidPortId
+    @NotNull
     public UUID peerId;
 
     @Override

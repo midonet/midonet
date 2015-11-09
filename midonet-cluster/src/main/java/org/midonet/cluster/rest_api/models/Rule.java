@@ -113,8 +113,8 @@ public abstract class Rule extends Condition {
     @ZoomField(name = "type")
     @NotNull
     public final RuleType type;
-    @ZoomField(name = "action")
 
+    @ZoomField(name = "action")
     public RuleAction action;
 
     // TODO: Add support in ZOOM

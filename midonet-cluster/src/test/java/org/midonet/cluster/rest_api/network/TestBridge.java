@@ -397,10 +397,11 @@ public class TestBridge {
 
         @Test
         public void testBridgeCreateWithNoTenant() throws Exception {
-            DtoError error = dtoResource.postAndVerifyBadRequest(
-                app.getBridges(), APPLICATION_BRIDGE_JSON_V4(), new DtoBridge());
+            DtoApplication app = topology.getApplication();
+            DtoBridge b = dtoResource.postAndVerifyCreated(
+                app.getBridges(), APPLICATION_BRIDGE_JSON_V4(), new DtoBridge(), DtoBridge.class);
 
-            assertValidationProperties(error, "tenantId");
+            assertNull(b.getTenantId());
         }
 
         @Test
@@ -408,9 +409,9 @@ public class TestBridge {
             DtoBridge bridge = postBridge("foo");
 
             bridge.setTenantId(null);
-            DtoError error = dtoResource.putAndVerifyBadRequest(
-                bridge.getUri(), APPLICATION_BRIDGE_JSON_V4(), bridge);
-            assertValidationProperties(error, "tenantId");
+            bridge = dtoResource.putAndVerifyNoContent(
+                bridge.getUri(), APPLICATION_BRIDGE_JSON_V4(), bridge, DtoBridge.class);
+            assertNull(bridge.getTenantId());
         }
 
         @Test

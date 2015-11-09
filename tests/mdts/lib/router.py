@@ -228,7 +228,7 @@ class Router(ResourceBase):
     def add_bgp_network(self, address, prefix):
         return self._mn_resource.add_bgp_network() \
             .subnet_address(address) \
-            .subnet_prefix(prefix) \
+            .subnet_length(prefix) \
             .create()
 
     def clear_bgp_networks(self):
