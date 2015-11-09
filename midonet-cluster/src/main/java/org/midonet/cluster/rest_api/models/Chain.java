@@ -20,7 +20,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,17 +33,15 @@ import org.midonet.cluster.util.UUIDUtil;
 @ZoomClass(clazz = Topology.Chain.class)
 public class Chain extends UriResource {
 
-    public static final int MIN_CHAIN_NAME_LEN = 1;
+    public static final int MIN_CHAIN_NAME_LEN = 0;
     public static final int MAX_CHAIN_NAME_LEN = 255;
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @NotNull
     @ZoomField(name = "tenant_id")
     public String tenantId;
 
-    @NotNull
     @Size(min = MIN_CHAIN_NAME_LEN, max = MAX_CHAIN_NAME_LEN)
     @ZoomField(name = "name")
     public String name;

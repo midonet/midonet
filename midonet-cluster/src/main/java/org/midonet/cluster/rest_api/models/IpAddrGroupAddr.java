@@ -23,7 +23,6 @@ import java.util.UUID;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -31,7 +30,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.packets.IPv4;
 
-@XmlRootElement
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "version")
 @JsonSubTypes({
@@ -43,7 +41,7 @@ public abstract class IpAddrGroupAddr extends UriResource {
     // IP address in canonical form. Can be either IPv4 or IPv6.
     @NotNull
     @Pattern(regexp = IPv4.regex, message = "is not a valid IP address")
-    protected String addr;
+    public String addr;
 
     @NotNull
     public UUID ipAddrGroupId;
@@ -53,10 +51,6 @@ public abstract class IpAddrGroupAddr extends UriResource {
     public IpAddrGroupAddr(UUID ipAddrGroupId, String addr) {
         this.addr = addr;
         this.ipAddrGroupId = ipAddrGroupId;
-    }
-
-    public String getAddr() {
-        return addr;
     }
 
     public abstract int getVersion();
