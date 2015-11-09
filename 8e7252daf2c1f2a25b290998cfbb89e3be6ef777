@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_138d237c",
+        "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/zkManagers/TunnelZoneZkManager.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-09T10:55:51Z",
+      "side": 1,
+      "message": "trailing space",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 4
+      },
+      "revId": "8e7252daf2c1f2a25b290998cfbb89e3be6ef777",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
