@@ -57,7 +57,7 @@ public class BgpNetwork extends UriResource {
 
     @Min(0)
     @Max(32)
-    public byte subnetPrefix;
+    public byte subnetLength;
 
     @Override
     public URI getUri() {
@@ -72,14 +72,14 @@ public class BgpNetwork extends UriResource {
     @JsonIgnore
     public void afterFromProto(Message proto) {
         subnetAddress = subnet != null ? subnet.getAddress().toString() : null;
-        subnetPrefix = subnet != null ? (byte)subnet.getPrefixLen() : 0;
+        subnetLength = subnet != null ? (byte)subnet.getPrefixLen() : 0;
     }
 
     @Override
     @JsonIgnore
     public void beforeToProto() {
         subnet = subnetAddress != null ?
-                 IPSubnet.fromString(subnetAddress + "/" + subnetPrefix) : null;
+                 IPSubnet.fromString(subnetAddress + "/" + subnetLength) : null;
     }
 
     @Override

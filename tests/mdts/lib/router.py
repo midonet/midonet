@@ -225,10 +225,10 @@ class Router(ResourceBase):
     def clear_asn(self):
         self._mn_resource.asn(None).update()
 
-    def add_bgp_network(self, address, prefix):
+    def add_bgp_network(self, address, length):
         return self._mn_resource.add_bgp_network() \
             .subnet_address(address) \
-            .subnet_prefix(prefix) \
+            .subnet_length(length) \
             .create()
 
     def clear_bgp_networks(self):

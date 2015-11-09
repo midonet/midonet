@@ -25,7 +25,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
@@ -42,7 +41,6 @@ import org.midonet.packets.IPv6;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.IPv6Subnet;
 
-@XmlRootElement
 @ZoomClass(clazz = Topology.DhcpV6.class)
 public class DhcpSubnet6 extends UriResource {
 

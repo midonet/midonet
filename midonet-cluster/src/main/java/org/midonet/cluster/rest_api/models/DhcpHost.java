@@ -20,10 +20,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
+import javax.validation.constraints.NotNull;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -35,28 +33,22 @@ import org.midonet.cluster.util.IPAddressUtil;
 @ZoomClass(clazz = Topology.Dhcp.Host.class)
 public class DhcpHost extends UriResource {
 
+    @NotNull
     @ZoomField(name = "mac")
     public String macAddr;
+    @NotNull
     @ZoomField(name = "ip_address", converter = IPAddressUtil.Converter.class)
     public String ipAddr;
+    @NotNull
     @ZoomField(name = "name")
     public String name;
 
-    @Nonnull
+    @NotNull
     @ZoomField(name = "extra_dhcp_opts")
-    private List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
+    public List<ExtraDhcpOpt> extraDhcpOpts;
 
-    @Nonnull
-    public List<ExtraDhcpOpt> getExtraDhcpOpts() {
-        return extraDhcpOpts;
-    }
-
-    public void setExtraDhcpOpts(@Nonnull List<ExtraDhcpOpt> newOpts) {
-        Preconditions.checkNotNull(newOpts,
-            "Extra DHCP options should not be null. Use an empty list to "
-           + "express the absense of them.");
-        extraDhcpOpts.clear();
-        extraDhcpOpts.addAll(newOpts);
+    public DhcpHost() {
+        extraDhcpOpts = new ArrayList<>();
     }
 
     @Override
