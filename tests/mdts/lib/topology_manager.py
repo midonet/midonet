@@ -65,7 +65,7 @@ class TopologyManager(fixtures.Fixture):
     def get_resource(self, name):
         """
         :param name: string
-        :rtype: object
+        :rtype: dict
         """
         return self._resources[name]
 
@@ -89,6 +89,9 @@ class TopologyManager(fixtures.Fixture):
         self.cleanUp()
         self._cleanups = callmany.CallMany()
         self._resources = {}
+
+    def get_default_tunnel_zone_name(self):
+        return 'tzone-%s' % str(uuid.uuid4())[:4]
 
     def add_host_to_tunnel_zone(self, hostname, tz_name, add_clean_up=True):
         """
