@@ -40,6 +40,10 @@ public abstract class DpPort {
         assert name != null;
         this.name = name;
     }
+    protected DpPort(String name, int portNo) {
+        this(name);
+        this.portNo = portNo;
+    }
 
     public enum Type {
 

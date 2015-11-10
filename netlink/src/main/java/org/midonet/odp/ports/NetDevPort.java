@@ -26,8 +26,11 @@ public class NetDevPort extends DpPort {
         super(name);
     }
 
+    public NetDevPort(String name, int portNo) {
+        super(name, portNo);
+    }
+
     public Type getType() {
         return Type.NetDev;
     }
-
 }
