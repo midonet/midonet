@@ -4363,6 +4363,8 @@ if __name__ == '__main__':
             # Test the credential by making an API call first before starting a
             # command loop
             status = root.get_system_state()
+            if not (status.get_information() is None):
+                sys.stderr.write(status.get_information())
         # Those except clauses are duplicitous. Cf. MidontCLI.default().
         except exc.HTTPUnauthorized as err:
             sys.stderr.write("Invalid credential. Wrong username/password. "
