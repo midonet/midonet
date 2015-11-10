@@ -1625,9 +1625,9 @@ class BgpNetwork(ObjectType):
         self.put_attr(CidrPair(name='net',
                                value_type=StringType(),
                                addr_getter='get_subnet_address',
-                               mask_getter='get_subnet_prefix',
+                               mask_getter='get_subnet_length',
                                addr_setter='subnet_address',
-                               mask_setter='subnet_prefix'))
+                               mask_setter='subnet_length'))
 
     def type_name(self):
         return "net"
