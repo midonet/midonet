@@ -69,7 +69,6 @@ object SessionInventory {
             case h: Host => Update.newBuilder().setHost(h).build()
             case h: IPAddrGroup => Update.newBuilder().setIpAddrGroup(h).build()
             case h: L2Insertion => Update.newBuilder().setL2Insertion(h).build()
-            case h: L2Service => Update.newBuilder().setL2Service(h).build()
             case h: Mirror => Update.newBuilder().setMirror(h).build()
             case h: Network => Update.newBuilder().setNetwork(h).build()
             case h: Pool => Update.newBuilder().setPool(h).build()

@@ -25,7 +25,6 @@ from midonetclient import host
 from midonetclient import ip_addr_group
 from midonetclient import load_balancer
 from midonetclient import l2insertion
-from midonetclient import l2service
 from midonetclient import pool
 from midonetclient import pool_member
 from midonetclient import pool_statistic
@@ -71,9 +70,6 @@ class Application(resource_base.ResourceBase):
 
     def get_l2insertion_template(self):
         return self.dto['l2InsertionTemplate']
-
-    def get_l2service_template(self):
-        return self.dto['l2ServiceTemplate']
 
     def get_host_template(self):
         return self.dto['hostTemplate']
@@ -302,21 +298,6 @@ class Application(resource_base.ResourceBase):
 
     def add_l2insertion(self):
         return l2insertion.L2Insertion(self.dto['l2insertions'], {}, self.auth)
-
-    def delete_l2service(self, id_):
-        return self._delete_resource_by_id(self.get_l2service_template(), id_)
-
-    def get_l2service(self, id_):
-        return self._get_resource_by_id(l2service.L2Service, self.dto['l2services'],
-                                        self.get_l2service_template(), id_)
-    def get_l2services(self, query):
-        headers = {'Accept':
-                   vendor_media_type.APPLICATION_L2SERVICE_COLLECTION_JSON}
-        return self.get_children(self.dto['l2services'], query, headers,
-                                 l2service.L2Service)
-
-    def add_l2service(self):
-        return l2service.L2Service(self.dto['l2services'], {}, self.auth)
 
     def delete_router(self, id_):
         return self._delete_resource_by_id(self.get_router_template(), id_)

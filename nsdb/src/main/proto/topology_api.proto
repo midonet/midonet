@@ -202,7 +202,6 @@ message Response {
             Vtep vtep = 21;
             Mirror mirror = 22;
 	    L2Insertion l2insertion = 23;
-	    L2Service l2service = 24;
         }
     }
     message Snapshot {
