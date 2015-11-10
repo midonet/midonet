@@ -173,6 +173,7 @@ class PacketWorkflow(
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
             val flowRecorder: FlowRecorder,
+            val vt: VirtualTopology,
             val packetOut: Int => Unit)
         extends Actor with ActorLogWithoutPath with Stash with DisruptorBackChannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow

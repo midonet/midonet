@@ -21,21 +21,18 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import org.midonet.midolman.simulation.Simulator.ToPortAction
+import org.midonet.midolman.topology.devices.Host
 
-import scala.concurrent.ExecutionContextExecutor
-
-import akka.actor.ActorSystem
 import akka.util.Timeout
 
 import org.midonet.midolman.simulation.{VxLanPort, PacketContext}
-import org.midonet.midolman.topology.{VxLanPortMappingService, VirtualToPhysicalMapper}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.topology.{VirtualTopology, VxLanPortMappingService}
 import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.midolman.simulation.Port
 import org.midonet.odp.flows.FlowActions.{output, setKey}
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr}
-import org.midonet.sdn.flows.{FlowTagger, VirtualActions}
+import org.midonet.sdn.flows.FlowTagger
 
 object FlowTranslator {
     val NotADpPort: JInteger = -1
@@ -43,14 +40,12 @@ object FlowTranslator {
 
 trait FlowTranslator {
     import FlowTranslator._
-    import VirtualActions._
 
     protected val dpState: DatapathState
     protected val hostId: UUID
 
     implicit protected val requestReplyTimeout = new Timeout(5, TimeUnit.SECONDS)
-    implicit protected def system: ActorSystem
-    implicit protected def executor: ExecutionContextExecutor = system.dispatcher
+    implicit protected def vt: VirtualTopology
 
     /**
      * Translates a Seq of FlowActions expressed in virtual references into a
@@ -160,7 +155,7 @@ trait FlowTranslator {
                 return
         }
 
-        val host = VirtualToPhysicalMapper.tryAsk(new HostRequest(hostId))
+        val host = vt.tryGet[Host](hostId)
         val tzMembership = host.tunnelZones.get(tunnel.tunnelZoneId)
 
         if (tzMembership eq None) {
