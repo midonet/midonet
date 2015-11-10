@@ -160,12 +160,31 @@ class MidonetAgentHost(Service):
                     vm_id
                 )
             )
+            # Necessary when you create a fake "vm" on a midolman host to
+            # simulate an external host, not in a virtual topology
+            if 'add_route_on_host' in iface_kwargs and \
+                    iface_kwargs['add_route_on_host']:
+                self.exec_command(
+                    'ip route add %s dev veth%s' % (
+                        iface_kwargs['ipv4_addr'][0],
+                        vm_id
+                    )
+                )
+                del iface_kwargs['add_route_on_host']
+
 
         if 'ipv4_gw' in iface_kwargs:
             self.exec_command(
                 'ip netns exec vm%s ip route add default via %s' % (
                     vm_id,
                     iface_kwargs['ipv4_gw']
+                )
+            )
+        else:
+            self.exec_command(
+                'ip netns exec vm%s ip route add default dev peth%s' % (
+                    vm_id,
+                    vm_id
                 )
             )
 
@@ -182,12 +201,12 @@ class MidonetAgentHost(Service):
 
         return VMGuest(vm_id, **iface_kwargs)
 
-    def destroy_vmguest(self, vm_guest):
+    def destroy_vmguest(self, vmguest_iface):
         self.exec_command('ip netns exec vm%s ip link set dev peth%s down' % (
-            vm_guest.get_vm_id(),
-            vm_guest.get_vm_id()
+            vmguest_iface.get_vm_id(),
+            vmguest_iface.get_vm_id()
         ))
-        self.exec_command('ip netns del vm%s' % vm_guest.get_vm_id())
+        self.exec_command('ip netns del vm%s' % vmguest_iface.get_vm_id())
 
     def create_trunk(self, **iface_kwargs):
         raise NotImplementedError()
@@ -199,8 +218,9 @@ class MidonetAgentHost(Service):
         iface_kwargs['compute_host'] = self
         return Interface(**iface_kwargs)
 
-    def destroy_provided(self, **iface_kwargs):
-        raise NotImplementedError()
+    def destroy_provided(self, provided_iface):
+        # Do nothing as the interface is configured externally
+        pass
 
     def bind_port(self, interface, mn_port_id):
         host_ifname = interface.get_binding_ifname()
