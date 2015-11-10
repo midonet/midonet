@@ -32,6 +32,8 @@ midonet-cli-load-balancer(1) -- Load Balancer objects in midonet-cli
     vip vip0 load-balancer lb0 address 192.168.0.1 protocol-port 8080 \
              persistence SOURCE_IP state down
 
+    midonet> load-balancer lb0 delete
+
 ## DESCRIPTION
 
 Load balancers are MidoNet's load balancing elements compatible with LBaaS of
