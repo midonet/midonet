@@ -33,8 +33,8 @@ public class DtoBridge {
     private UUID inboundFilterId;
     private UUID outboundFilterId;
     private List<UUID> vxLanPortIds;
-    private List<UUID> inboundMirrors;
-    private List<UUID> outboundMirrors;
+    private List<UUID> inboundMirrorIds;
+    private List<UUID> outboundMirrorIds;
     private URI inboundFilter;
     private URI outboundFilter;
     private URI vxLanPorts;
@@ -101,20 +101,20 @@ public class DtoBridge {
         return this.vxLanPortIds;
     }
 
-    public List<UUID> getInboundMirrors() {
-        return this.inboundMirrors;
+    public List<UUID> getInboundMirrorIds() {
+        return this.inboundMirrorIds;
     }
 
-    public List<UUID> getOutboundMirrors() {
-        return this.inboundMirrors;
+    public List<UUID> getOutboundMirrorIds() {
+        return this.outboundMirrorIds;
     }
 
-    public void setInboundMirrors(List<UUID> mirrors) {
-        this.inboundMirrors = mirrors;
+    public void setInboundMirrorIds(List<UUID> mirrors) {
+        this.inboundMirrorIds = mirrors;
     }
 
-    public void setOutboundMirrors(List<UUID> mirrors) {
-        this.outboundMirrors = mirrors;
+    public void setOutboundMirrorIds(List<UUID> mirrors) {
+        this.outboundMirrorIds = mirrors;
     }
 
     public void setVxLanPortIds(List<UUID> vxLanPortIds) {
@@ -238,23 +238,23 @@ public class DtoBridge {
 
         DtoBridge that = (DtoBridge) other;
         return Objects.equal(id, that.getId()) &&
-                Objects.equal(name, that.getName()) &&
-                Objects.equal(tenantId, that.getTenantId()) &&
-                Objects.equal(inboundFilterId, that.getInboundFilterId()) &&
-                Objects.equal(inboundFilter, that.getInboundFilter()) &&
-                Objects.equal(outboundFilterId, that.getOutboundFilterId()) &&
-                Objects.equal(outboundFilter, that.getOutboundFilter()) &&
-                Objects.equal(vxLanPortIds, that.getVxLanPortIds()) &&
-                Objects.equal(vxLanPorts, that.getVxLanPorts()) &&
-                Objects.equal(uri, that.getUri()) &&
-                Objects.equal(ports, that.getPorts()) &&
-                Objects.equal(peerPorts, that.getPeerPorts()) &&
-                Objects.equal(macTable, that.getMacTable()) &&
-                Objects.equal(arpTable, that.getArpTable()) &&
-                Objects.equal(dhcpSubnet6s, that.getDhcpSubnet6s()) &&
-                Objects.equal(dhcpSubnets, that.getDhcpSubnets()) &&
-                Objects.equal(inboundMirrors, that.getInboundMirrors()) &&
-                Objects.equal(outboundMirrors, that.getOutboundMirrors()) &&
-                adminStateUp == that.adminStateUp;
+               Objects.equal(name, that.getName()) &&
+               Objects.equal(tenantId, that.getTenantId()) &&
+               Objects.equal(inboundFilterId, that.getInboundFilterId()) &&
+               Objects.equal(inboundFilter, that.getInboundFilter()) &&
+               Objects.equal(outboundFilterId, that.getOutboundFilterId()) &&
+               Objects.equal(outboundFilter, that.getOutboundFilter()) &&
+               Objects.equal(vxLanPortIds, that.getVxLanPortIds()) &&
+               Objects.equal(vxLanPorts, that.getVxLanPorts()) &&
+               Objects.equal(uri, that.getUri()) &&
+               Objects.equal(ports, that.getPorts()) &&
+               Objects.equal(peerPorts, that.getPeerPorts()) &&
+               Objects.equal(macTable, that.getMacTable()) &&
+               Objects.equal(arpTable, that.getArpTable()) &&
+               Objects.equal(dhcpSubnet6s, that.getDhcpSubnet6s()) &&
+               Objects.equal(dhcpSubnets, that.getDhcpSubnets()) &&
+               Objects.equal(inboundMirrorIds, that.getInboundMirrorIds()) &&
+               Objects.equal(outboundMirrorIds, that.getOutboundMirrorIds()) &&
+               adminStateUp == that.adminStateUp;
     }
 }

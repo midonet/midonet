@@ -404,8 +404,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             rtrV2.getRouteIdsList should contain only toProto(routeId)
             rtrV2.getBgpNetworkIdsList should contain only toProto(bgpNwId)
             rtrV2.getBgpPeerIdsList should contain only toProto(bgpPeerId)
-            rtrV2.getInboundMirrorsList should contain only toProto(inMirrorId)
-            rtrV2.getOutboundMirrorsList should contain only toProto(outMirrorId)
+            rtrV2.getInboundMirrorIdsList should contain only toProto(inMirrorId)
+            rtrV2.getOutboundMirrorIdsList should contain only toProto(outMirrorId)
             rtrV2.getPortIdsList shouldBe rtr.getPortIdsList
             rtrV2.getTraceRequestIdsList should contain only toProto(trqId)
         }

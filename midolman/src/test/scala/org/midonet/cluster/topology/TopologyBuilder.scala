@@ -270,7 +270,7 @@ trait TopologyBuilder {
                      toPort: UUID): Mirror = {
         val builder = Mirror.newBuilder
             .setId(id.asProto)
-            .setToPort(toPort.asProto)
+            .setToPortId(toPort.asProto)
         builder.build()
     }
 
@@ -332,7 +332,7 @@ trait TopologyBuilder {
 
     def createMirrorBuilder(id: UUID = UUID.randomUUID, toPort: UUID): Mirror.Builder = {
         Mirror.newBuilder().setId(UUIDUtil.toProto(id)).
-                            setToPort(UUIDUtil.toProto(toPort))
+                            setToPortId(UUIDUtil.toProto(toPort))
     }
 
     def setCondition(ruleBuilder: Rule.Builder,
@@ -603,7 +603,7 @@ trait TopologyBuilder {
 
         val data = Rule.L2TransformRuleData.newBuilder
         targetPortId foreach {
-            (id: UUID) => data.setTargetPort(UUIDUtil.toProto(id)) }
+            (id: UUID) => data.setTargetPortId(id.asProto) }
         ingress foreach { data.setIngress(_) }
         failOpen foreach { data.setFailOpen(_) }
         pushVLan foreach { data.setPushVlan(_) }
