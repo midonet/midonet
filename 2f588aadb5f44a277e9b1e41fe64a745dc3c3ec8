@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_2231e3ec",
+        "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-10T10:05:17Z",
+      "side": 1,
+      "message": "Yes, we could also assert on the return packet, but i\u0027ve broken out packets going the other direction into separate checks below. ping_port will actually check that the ping return came correctly. This wasn\u0027t the case when I originally wrote these.",
+      "parentUuid": "7ac7a964_59dd0742",
+      "revId": "2f588aadb5f44a277e9b1e41fe64a745dc3c3ec8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_6b30e4e8",
         "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
         "patchSetId": 3
@@ -72,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_424dff71",
+        "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-10T10:05:17Z",
+      "side": 1,
+      "message": "There\u0027s a unit test for this, as part of https://review.gerrithub.io/#/c/251357/",
+      "parentUuid": "9ab29df4_6b30e4e8",
+      "revId": "2f588aadb5f44a277e9b1e41fe64a745dc3c3ec8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ab29df4_08cf6e80",
         "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
         "patchSetId": 3
@@ -83,6 +119,24 @@
       "writtenOn": "2015-11-05T13:37:03Z",
       "side": 1,
       "message": "i think you at least want bindings_spead2 here",
+      "revId": "2f588aadb5f44a277e9b1e41fe64a745dc3c3ec8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_82571702",
+        "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-10T10:05:17Z",
+      "side": 1,
+      "message": "actually, bindings_spread2 doesn\u0027t work yet. The others all do. Please review the staging/v5.0 patch first, as its enabled there. I\u0027m using the v5.0 patch as the canonical patch for now.",
+      "parentUuid": "9ab29df4_08cf6e80",
       "revId": "2f588aadb5f44a277e9b1e41fe64a745dc3c3ec8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
