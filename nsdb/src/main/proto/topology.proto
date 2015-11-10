@@ -45,7 +45,6 @@ enum Type {
     VTEP = 21;
     MIRROR = 22;
     L2INSERTION = 31;
-    L2SERVICE = 32;
 }
 
 message BgpNetwork {
@@ -195,11 +194,6 @@ message L2Insertion {
     // Keep a reference to the corresponding service port rule
     optional UUID srv_rule_in_id = 100;
     optional UUID srv_rule_out_id = 101;
-}
-
-message L2Service {
-    optional UUID id = 1;
-    optional UUID port_id = 2;
 }
 
 message LoadBalancer {

@@ -70,7 +70,6 @@ object MidonetBackend {
              classOf[IPAddrGroup],
              classOf[LoadBalancer],
              classOf[L2Insertion],
-             classOf[L2Service],
              classOf[Mirror],
              classOf[Network],
              classOf[NeutronConfig],
