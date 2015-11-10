@@ -56,7 +56,8 @@ object BgpdConfiguration {
                         as: Int,
                         var keepalive: Option[Int] = None,
                         var holdtime: Option[Int] = None,
-                        var connect: Option[Int] = None)
+                        var connect: Option[Int] = None,
+                        var password: Option[String] = None)
 
     case class BgpRouter(as: Int,
                          var id: IPv4Addr = IPv4Addr.fromString("0.0.0.0"),
@@ -91,6 +92,12 @@ object BgpdConfiguration {
                     val neigh = neighbors(peerAddr)
                     neigh.keepalive = Some(keepalive.toInt)
                     neigh.holdtime = Some(holdtime.toInt)
+                    tail
+
+                case List("neighbor", peer, "password", password) =>
+                    val peerAddr: IPv4Addr = IPv4Addr.fromString(peer)
+                    val neigh = neighbors(peerAddr)
+                    neigh.password = Some(password)
                     tail
 
                 case Nil => tail
