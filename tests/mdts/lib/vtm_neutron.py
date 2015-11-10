@@ -45,9 +45,9 @@ class NeutronTopologyManager(TopologyManager):
 
         # Keep the reference to the resource created identified by the name.
         # A dictionary mapping the json response.
-        name = resource[rtype]['name']
-
-        self.set_resource(name, resource)
+        if 'name' in resource[rtype]:
+            name = resource[rtype]['name']
+            self.set_resource(name, resource)
 
         delete_method_name = "%s_%s" % (
             self.method_mappings['create'],
