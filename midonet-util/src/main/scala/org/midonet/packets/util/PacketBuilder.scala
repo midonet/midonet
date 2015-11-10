@@ -243,6 +243,10 @@ case class UdpBuilder(packet: UDP = new UDP()) extends PacketBuilder[UDP] {
     def dst(port: Short): UdpBuilder = { packet.setDestinationPort(port) ; this }
 }
 
+case class VxlanBuilder(packet: VXLAN = new VXLAN()) extends PacketBuilder[VXLAN] {
+    def vni(value: Int): VxlanBuilder = { packet.setVni(value) ; this }
+}
+
 case class IPv4Builder(packet: IPv4 = new IPv4()) extends PacketBuilder[IPv4] {
     import org.midonet.packets.util.PacketBuilder._
     override val etherType = IPv4.ETHERTYPE
