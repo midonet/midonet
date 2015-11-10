@@ -16,6 +16,7 @@
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
 from midonetclient import vtep_binding
+from midonetclient import vtep_port
 
 
 class Vtep(resource_base.ResourceBase):
@@ -86,3 +87,12 @@ class Vtep(resource_base.ResourceBase):
         return vtep_binding.VtepBinding(self.dto['bindings'],
                            {'mgmtIp': self.get_management_ip()},
                            self.auth)
+
+    def get_ports(self):
+        query = {}
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_VTEP_PORT_COLLECTION_JSON}
+        return self.get_children(self.dto['ports'],
+                                 query,
+                                 headers,
+                                 vtep_port.VtepPort)
