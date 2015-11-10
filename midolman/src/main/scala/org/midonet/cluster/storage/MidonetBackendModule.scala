@@ -16,11 +16,18 @@
 
 package org.midonet.cluster.storage
 
+import java.lang.reflect.{Field, Modifier}
+
+import scala.util.control.NonFatal
+
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
+
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
+import org.apache.zookeeper.ClientCnxn
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.StateTableStorage
@@ -36,7 +43,8 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
                            metricRegistry: MetricRegistry = new MetricRegistry)
     extends AbstractModule {
 
-    System.setProperty("jute.maxbuffer", Integer.toString(conf.bufferSize))
+    private val log = LoggerFactory.getLogger("org.midonet.nsdb")
+    configureClientBuffer()
 
     def this(config: Config, metricRegistry: MetricRegistry) =
         this(new MidonetBackendConfig(config), metricRegistry)
@@ -73,5 +81,27 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
                 conf.retryMs.toInt, conf.maxRetries))
         bind(classOf[CuratorFramework]).toInstance(curator)
         curator
+    }
+
+    private def configureClientBuffer(): Unit = {
+        // Try configure the buffer size using the system property.
+        System.setProperty("jute.maxbuffer", Integer.toString(conf.bufferSize))
+        if (ClientCnxn.packetLen != conf.bufferSize) {
+            // If the static variable is already initialized, fallback to
+            // reflection.
+            try {
+                val field = classOf[ClientCnxn].getField("packetLen")
+                val modifiers = classOf[Field].getDeclaredField("modifiers")
+                modifiers.setAccessible(true)
+                modifiers.setInt(field, field.getModifiers & ~Modifier.FINAL)
+                field.setAccessible(true)
+                field.setInt(null, conf.bufferSize)
+            } catch {
+                case NonFatal(e) =>
+                    log.warn("Unable to set the buffer size to: " +
+                             s"${conf.bufferSize}, falling back tp: " +
+                             s"${ClientCnxn.packetLen}")
+            }
+        }
     }
 }
