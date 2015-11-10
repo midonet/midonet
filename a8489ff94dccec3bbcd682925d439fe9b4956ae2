@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_67d04a54",
+        "filename": "midonet-cluster/src/deb/init/midonet-cluster-start",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-10T16:11:55Z",
+      "side": 1,
+      "message": "I tested it and you need to add a: /*",
+      "range": {
+        "startLine": 56,
+        "startChar": 25,
+        "endLine": 56,
+        "endChar": 37
+      },
+      "revId": "a8489ff94dccec3bbcd682925d439fe9b4956ae2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
