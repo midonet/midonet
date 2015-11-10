@@ -1876,16 +1876,6 @@ class L2Insertion(ObjectType):
     def type_name(self):
         return "l2insertion"
 
-class L2Service(ObjectType):
-    def __init__(self, obj):
-        super(L2Service, self).__init__(obj)
-        self.put_attr(SingleAttr(name = 'port',
-                                 value_type = PortRef(),
-                                 getter = 'get_port',
-                                 setter = 'port'))
-    def type_name(self):
-        return "l2service"
-
 class Chain(ObjectType):
     def __init__(self, obj):
         super(Chain, self).__init__(obj)
@@ -2704,12 +2694,6 @@ class Midonet(ObjectType):
                                  getter = 'get_l2insertion',
                                  list_with_tenant = True,
                                  factory_method = 'add_l2insertion'))
-        self.put_attr(Collection(name = 'l2service',
-                                 element_type = L2Service,
-                                 list_method = 'get_l2services',
-                                 getter = 'get_l2service',
-                                 list_with_tenant = True,
-                                 factory_method = 'add_l2service'))
         self.put_attr(Collection(name = 'host',
                                  element_type = Host,
                                  list_method = 'get_hosts',

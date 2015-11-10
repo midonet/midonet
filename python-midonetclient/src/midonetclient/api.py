@@ -58,22 +58,6 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.add_l2insertion()
 
-    def delete_l2service(self, id_):
-        self._ensure_application()
-        return self.app.delete_l2service(id_)
-
-    def get_l2services(self, query):
-        self._ensure_application()
-        return self.app.get_l2services(query)
-
-    def get_l2service(self, id_):
-        self._ensure_application()
-        return self.app.get_l2service(id_)
-
-    def add_l2service(self):
-        self._ensure_application()
-        return self.app.add_l2service()
-
     def delete_router(self, id_):
         self._ensure_application()
         return self.app.delete_router(id_)
