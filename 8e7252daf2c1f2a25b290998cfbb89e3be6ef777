@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "7ac7a964_a409802e",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-10T16:19:32Z",
+      "side": 1,
+      "message": "It\u0027s easier to read the code when null parameters are given a name in a /* ... */ comment for instance.",
+      "range": {
+        "startLine": 363,
+        "startChar": 68,
+        "endLine": 363,
+        "endChar": 72
+      },
+      "revId": "8e7252daf2c1f2a25b290998cfbb89e3be6ef777",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_a77c2274",
+        "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/zkManagers/TunnelZkManager.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-10T16:19:32Z",
+      "side": 1,
+      "message": "Is this really needed?",
+      "range": {
+        "startLine": 42,
+        "startChar": 12,
+        "endLine": 42,
+        "endChar": 20
+      },
+      "revId": "8e7252daf2c1f2a25b290998cfbb89e3be6ef777",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_138d237c",
         "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/zkManagers/TunnelZoneZkManager.java",
         "patchSetId": 2
@@ -18,6 +64,29 @@
         "startChar": 0,
         "endLine": 73,
         "endChar": 4
+      },
+      "revId": "8e7252daf2c1f2a25b290998cfbb89e3be6ef777",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_c7f83ee8",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/PortDataConverter.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-10T16:19:32Z",
+      "side": 1,
+      "message": "Why not getting the vtep id by finding the vtep using it\u0027s management ip?",
+      "range": {
+        "startLine": 62,
+        "startChar": 21,
+        "endLine": 63,
+        "endChar": 32
       },
       "revId": "8e7252daf2c1f2a25b290998cfbb89e3be6ef777",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
