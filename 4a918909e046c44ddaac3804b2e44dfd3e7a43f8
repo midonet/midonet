@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_8779e695",
+        "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-10T15:52:04Z",
+      "side": 1,
+      "message": "For mirroring tests I used a single set of bindings, using several hosts, I tend to consider the single host case covered by the multi host scenario.\n\nI did this to keep test duration sane, as it\u0027s already too high. What do you think? Is it worth having all three bindings?",
+      "revId": "4a918909e046c44ddaac3804b2e44dfd3e7a43f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
