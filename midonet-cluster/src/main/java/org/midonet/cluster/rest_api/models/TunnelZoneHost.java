@@ -51,6 +51,14 @@ public class TunnelZoneHost extends UriResource {
                            ResourceUris.HOSTS, hostId);
     }
 
+    public URI getHost() {
+        return absoluteUri(ResourceUris.HOSTS, hostId);
+    }
+
+    public URI getTunnelZone() {
+        return absoluteUri(ResourceUris.TUNNEL_ZONES, tunnelZoneId);
+    }
+
     @JsonIgnore
     public void create(UUID tunnelZoneId) {
         this.tunnelZoneId = tunnelZoneId;
