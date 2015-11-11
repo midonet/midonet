@@ -26,6 +26,7 @@ import rx.Observable
 import rx.subjects.{PublishSubject,Subject}
 
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Rule => TopologyRule}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
@@ -43,15 +44,30 @@ object ChainMapper {
      * @param ruleId The id of the rule we want to start observing.
      * @param vt The virtual topology object.
      */
-    private final class RuleState(val ruleId: UUID, vt: VirtualTopology) {
+    private final class RuleState(val ruleId: UUID, vt: VirtualTopology)
+            extends MidolmanLogging {
+        override def logSource = s"org.midonet.devices.rule.rule-$ruleId"
 
         private val mark = PublishSubject.create[SimRule]()
         private var _previousRule: SimRule = null
         private var _currentRule: SimRule = null
 
+        val notFoundHandler = makeFunc1(
+            {
+                e: Throwable => e match {
+                    case nfe: NotFoundException =>
+                        log.warn("Rule {} not found, emit nothing and wait"
+                                     + " for chain to be updated", ruleId)
+                        Observable.empty()
+                    case _ =>
+                        Observable.error(e)
+                }
+            })
+
         /** The observable emitting Rule updates. */
         val observable = vt.store.observable(classOf[TopologyRule],ruleId)
             .observeOn(vt.vtScheduler)
+            .onErrorResumeNext(notFoundHandler)
             .takeUntil(mark)
             .map[RuleState](makeFunc1(ruleUpdated))
 
