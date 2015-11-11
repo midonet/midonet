@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_78946b37",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-11T09:14:26Z",
+      "side": 1,
+      "message": "Would it make more sense to do the getOrThrow first, and then call fromProto on the result? That way the intermediate Future doesn\u0027t have to be created.",
+      "range": {
+        "startLine": 323,
+        "startChar": 21,
+        "endLine": 323,
+        "endChar": 46
+      },
+      "revId": "5b7782d53801d50e6433fc909547060fb2545967",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_f89f9b4e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-11T09:14:26Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 330,
+        "startChar": 21,
+        "endLine": 330,
+        "endChar": 61
+      },
+      "revId": "5b7782d53801d50e6433fc909547060fb2545967",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_38aaf370",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-11T09:14:26Z",
+      "side": 1,
+      "message": ".asFuture.getOrThrow \u003d .await\n\nYou could also use toBlocking.first. Not sure which is more efficient. I guess it doesn\u0027t really matter, for API calls.",
+      "range": {
+        "startLine": 339,
+        "startChar": 0,
+        "endLine": 340,
+        "endChar": 23
+      },
+      "revId": "5b7782d53801d50e6433fc909547060fb2545967",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
