@@ -31,10 +31,10 @@ class L2Insertion(resource_base.ResourceBase):
         return self.dto['id']
 
     def get_port(self):
-        return self.dto['port']
+        return self.dto['portId']
 
     def get_srv_port(self):
-        return self.dto['srvPort']
+        return self.dto['srvPortId']
 
     def get_vlan(self):
         return self.dto['vlan']
@@ -53,11 +53,11 @@ class L2Insertion(resource_base.ResourceBase):
         return self
 
     def port(self, port):
-        self.dto['port'] = port
+        self.dto['portId'] = port
         return self
 
     def srv_port(self, srv_port):
-        self.dto['srvPort'] = srv_port
+        self.dto['srvPortId'] = srv_port
         return self
 
     def vlan(self, vlan):
