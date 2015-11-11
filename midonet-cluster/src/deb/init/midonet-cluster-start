@@ -32,6 +32,9 @@ MIDO_MAIN=org.midonet.cluster.ClusterNode
 
 test -r $MIDO_JAR || exit 1
 
+# Add-on/plugin directory
+MIDO_ADDONS="$MIDO_HOME/addons"
+
 # OpenJDK uses the system jnidispatcher as default, since /usr/lib/jni is in
 # the java library path.  If we specify our jna.jar in the classpath, this
 # leads to incompatibility.  We should use either (1) the system jnidispatcher
@@ -50,4 +53,4 @@ if [ "xyes" = "x$DEBUG" ] ; then
 fi
 
 exec $JAVA $JAVA_LIBRARY_PATH  \
- -cp $MIDO_ETC:$MIDO_JAR $JAVA_OPTS $MIDO_MAIN $MIDO_CFG/$MIDO_CFG_FILE
+ -cp $MIDO_ETC:$MIDO_JAR:$MIDO_ADDONS/* $JAVA_OPTS $MIDO_MAIN $MIDO_CFG/$MIDO_CFG_FILE
