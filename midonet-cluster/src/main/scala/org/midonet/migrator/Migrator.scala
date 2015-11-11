@@ -310,9 +310,9 @@ object Migrator extends App {
                 migrateLoadBalancers()
                 migrateBridges()
                 migrateRouters(routers)
-                migrateVteps()
+                val vtepIds = migrateVteps()
                 migratePortGroups()
-                migratePorts()
+                migratePorts(vtepIds)
                 migrateRoutes(routerIds)
                 migrateTraceRequests()
                 migrateHealthMonitors()
@@ -445,9 +445,9 @@ object Migrator extends App {
     }
 
     /** Migrate ports. Prerequisites: Bridges, Routers, Hosts, TunnelZones */
-    private def migratePorts(): Unit = {
+    private def migratePorts(vtepIds: Map[IPv4Addr, UUID]): Unit = {
         val migratedPorts = mutable.Set[UUID]()
-        for (p <- legacyImporter.listPorts) {
+        for (p <- legacyImporter.listPorts(vtepIds)) {
             // Can't create a port with a reference to a non-existing peer.
             // Clear it now, and Zoom will fix it when we create the peer.
             if (p.peerId != null && !migratedPorts(p.peerId))
@@ -627,8 +627,8 @@ object Migrator extends App {
     }
 
     /** Migrates VTEPs. Prerequisites: Bridges, Tunnel Zones. */
-    private def migrateVteps(): Unit = {
-        for (v <- legacyImporter.listVteps) {
+    private def migrateVteps(): Map[IPv4Addr, UUID] = {
+        val vtepIds = for (v <- legacyImporter.listVteps) yield {
             log.info("Migrating " + v)
             val resp = resources.vteps.create(v, APPLICATION_VTEP_JSON_V2)
             handleResponse(resp)
@@ -647,7 +647,10 @@ object Migrator extends App {
                                                    APPLICATION_BRIDGE_JSON_V4)
                 assert(bridge.vxLanPortIds.contains(vxlanPortId))
             }
+
+            (new IPv4Addr(v.managementIp), v.id)
         }
+        vtepIds.toMap
     }
 
     /** Migrates BGP. Prerequisites: Routers. */

@@ -84,8 +84,9 @@ class LegacyImporter @Inject() (dataClient: DataClient) {
     def listPoolMembers(poolId: UUID): Seq[PoolMember] =
         dataClient.poolGetMembers(poolId).map(PoolMemberDataConverter.fromData)
 
-    def listPorts: Seq[Port] =
-        dataClient.portsGetAll.map(PortDataConverter.fromData)
+    def listPorts(vtepIds: Map[IPv4Addr, UUID]): Seq[Port] =
+        for (p <- dataClient.portsGetAll) yield
+            PortDataConverter.fromData(p, vtepIds)
 
     def listPortGroups: Seq[PortGroup] =
         dataClient.portGroupsGetAll.map(PortGroupDataConverter.fromData)
