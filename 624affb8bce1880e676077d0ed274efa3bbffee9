@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_b3462422",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-11T11:18:38Z",
+      "side": 1,
+      "message": "I think it could be safer to use here Observable.empty() to complete the observable. This is to prevent blocking the output observable when the rule was deleted because the chain was also deleted (via cascade delete), in which case the update may not happen.",
+      "range": {
+        "startLine": 61,
+        "startChar": 24,
+        "endLine": 61,
+        "endChar": 42
+      },
+      "revId": "624affb8bce1880e676077d0ed274efa3bbffee9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
