@@ -122,7 +122,7 @@ bindings_spread2 = {
 
 @attr(version="v1.2.0", slow=False)
 @failures(NoFailure())
-@bindings(bindings_single, bindings_split, bindings_spread)
+@bindings(bindings_single)
 def test_basic_l2insertion():
     """
     Title: Basic insertion functionallity
@@ -194,9 +194,12 @@ def test_basic_l2insertion():
                                receives(rcv_filter_ret, within_sec(10)))
         ping_port(insertion_port, other_port, data="b00f00")
         wait_on_futures([f1, f2])
+
     finally:
+        time.sleep(6000)
         fakesnort.kill()
 
+@nottest
 @attr(version="v1.2.0", slow=False)
 @failures(NoFailure())
 @bindings(bindings_single, bindings_split, bindings_spread)
@@ -323,6 +326,7 @@ def test_multi_l2insertion():
         fakesnort1.kill()
         fakesnort2.kill()
 
+@nottest
 @attr(version="v1.2.0", slow=False)
 @failures(NoFailure())
 @bindings(bindings_single, bindings_split, bindings_spread) # bindings_spread2)
@@ -429,6 +433,7 @@ def test_l2insertion_with_flowstate():
         fakesnort1.kill()
         fakesnort2.kill()
 
+@nottest
 @attr(version="v1.2.0", slow=False)
 @failures(NoFailure())
 @bindings(bindings_single, bindings_split, bindings_spread)
@@ -534,7 +539,7 @@ def test_l2insertion_both_ends_protected():
         fakesnort2.kill()
         fakesnort1.kill()
 
-
+@nottest
 @attr(version="v1.2.0", slow=False)
 @failures(NoFailure())
 @bindings(bindings_single, bindings_split, bindings_spread)
@@ -706,6 +711,7 @@ class FakeSnort(object):
         iface = port.get_ifname()
         self._cmd = "fake_snort --interface %s --block-pattern %s" % (iface, pattern)
         self._killname = "fake_snort_%s" % iface
+        LOG.info("Running command %s. kill name %s" % (self._cmd, self._killname))
 
     def run(self):
         return self._port.execute(self._cmd)
