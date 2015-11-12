@@ -55,7 +55,7 @@ final class RtnetlinkProtocol(pid: Int) {
     }
 
     def prepareLinkSetAddr(buf: ByteBuffer, link: Link, mac: MAC): Unit = {
-        val message = messageFor(buf, Rtnetlink.Type.NEWLINK)
+        val message = messageFor(buf, Rtnetlink.Type.SETLINK)
             .withFlags((NLFlag.REQUEST | NLFlag.ACK).toShort)
         Link.describeSetAddrRequest(buf, link, mac)
         message.finalize(pid)
