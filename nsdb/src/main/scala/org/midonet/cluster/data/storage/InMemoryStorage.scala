@@ -555,6 +555,33 @@ class InMemoryStorage extends Storage with StateStorage {
         new InMemoryTransactionManager
     }
 
+    /** Create an object without referential integrity protection. */
+    def createAs(obj: Obj): Unit = {
+        val clazz = obj.getClass
+        val id = classInfo(obj.getClass).idOf(obj)
+        classes(clazz).validateCreate(id)
+        classes(clazz).create(id, obj)
+        classes(clazz).emitUpdates()
+    }
+
+    /** Update an object without referential integrity protection. */
+    def updateAs(obj: Obj): Unit = {
+        val clazz = obj.getClass
+        val id = classInfo(obj.getClass).idOf(obj)
+        val snapshot = classes(clazz).getSnapshot(id)
+        classes(clazz).validateUpdate(id, snapshot.version)
+        classes(clazz).update(id, obj, snapshot.version)
+        classes(clazz).emitUpdates()
+    }
+
+    /** Delete an object without referential integrity protection. */
+    def deleteAs(clazz: Class[_], id: ObjId): Unit = {
+        val snapshot = classes(clazz).getSnapshot(id)
+        classes(clazz).validateDelete(id, snapshot.version)
+        classes(clazz).delete(id, snapshot.version)
+        classes(clazz).emitUpdates()
+    }
+
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
