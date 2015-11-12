@@ -17,7 +17,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.ArrayList
+import java.util.{ArrayList => JArrayList}
 import scala.collection.JavaConverters._
 
 import com.codahale.metrics.MetricRegistry
@@ -39,7 +39,8 @@ final class MirrorMapper(id: UUID, vt: VirtualTopology, metricRegistry: MetricRe
 
     private var mirrorProto: TopologyMirror = TopologyMirror.newBuilder.build()
 
-    private val addressGroupsTracker = new ObjectReferenceTracker[SimIPAddrGroup](vt)
+    private val addressGroupsTracker =
+        new ObjectReferenceTracker[SimIPAddrGroup](vt, log)
 
     private def mirrorUpdated(mirror: TopologyMirror): TopologyMirror = {
         assertThread()
@@ -80,7 +81,7 @@ final class MirrorMapper(id: UUID, vt: VirtualTopology, metricRegistry: MetricRe
         def resolveGroup(id: UUID) = if (id ne null) addressGroupsTracker.currentRefs(id)
                                      else null
 
-        val condArray = new ArrayList[SimCond]()
+        val condArray = new JArrayList[SimCond]()
         for (cond <- mirrorProto.getConditionsList.asScala map
                         (ZoomConvert.fromProto(_, classOf[SimCond]))) {
             cond.ipAddrGroupSrc = resolveGroup(cond.ipAddrGroupIdSrc)
