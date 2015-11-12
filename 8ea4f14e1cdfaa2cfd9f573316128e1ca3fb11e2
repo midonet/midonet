@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_4b58b456",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/L2TransformRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-12T10:35:31Z",
+      "side": 1,
+      "message": "Check the field constraints and default values if needed.",
+      "range": {
+        "startLine": 35,
+        "startChar": 4,
+        "endLine": 54,
+        "endChar": 28
+      },
+      "revId": "8ea4f14e1cdfaa2cfd9f573316128e1ca3fb11e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_6b55701c",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/L2TransformRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-12T10:35:31Z",
+      "side": 1,
+      "message": "Are there any additional rule actions to support?",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 61
+      },
+      "revId": "8ea4f14e1cdfaa2cfd9f573316128e1ca3fb11e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
