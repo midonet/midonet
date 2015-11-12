@@ -65,7 +65,7 @@ class ObjectReferenceTrackerTest extends MidolmanSpec with TopologyBuilder
                         (implicit vt: VirtualTopology)
         extends VirtualDeviceMapper[TestableDevice](id, vt) {
 
-        private val chainsTracker = new ObjectReferenceTracker[SimulationChain](vt)
+        private val chainsTracker = new ObjectReferenceTracker[SimulationChain](vt, log)
 
         @volatile private var device: TestableDevice = null
         private lazy val deviceObservable = obs

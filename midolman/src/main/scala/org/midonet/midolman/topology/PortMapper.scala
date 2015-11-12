@@ -67,10 +67,10 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private val portStateSubject = PublishSubject.create[String]
     private var portStateReady = false
 
-    private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
-    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
+    private val chainsTracker = new ObjectReferenceTracker[Chain](vt, log)
+    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt, log)
     private val l2insertionsTracker = new StoreObjectReferenceTracker(
-        classOf[L2Insertion], vt)
+        classOf[L2Insertion], vt, log)
 
     private lazy val combinator =
         makeFunc4[Boolean, Option[UUID], JList[UUID],
@@ -195,7 +195,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     /** Handles updates to the chains. */
     private def refUpdated(obj: AnyRef): SimulationPort = {
         assertThread()
-        log.debug("Port ref updated {}", obj)
+        log.debug("Port reference updated {}", obj)
         currentPort
     }
 
