@@ -2050,6 +2050,7 @@ class Rule(Condition):
                                            'continue': 'continue',
                                            'drop': 'drop',
                                            'jump': 'jump',
+                                           'l2_transform': 'l2-transform',
                                            'redirect': 'redirect',
                                            'reject': 'reject',
                                            'return': 'return',
@@ -2063,6 +2064,7 @@ class Rule(Condition):
         self.put_attr(EnumAttr(name = 'action',
                                mappings = {'accept': 'accept',
                                            'continue': 'continue',
+                                           'redirect': 'redirect',
                                            'return': 'return'},
                                getter = 'get_flow_action',
                                setter = 'flow_action'))
