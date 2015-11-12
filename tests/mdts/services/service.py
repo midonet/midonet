@@ -169,14 +169,14 @@ class Service(object):
                  else: the result of the command
         """
 
-        LOG.debug('[%s] executing command: %s',
-                  self.get_name(),
-                  cmd)
+        LOG.info('[%s] executing command: %s',
+                 self.get_name(),
+                 cmd)
 
         exec_id = cli.exec_create(self.get_name(),
                                   cmd,
                                   stdout=stdout,
-                                  stderr=stderr,
+                                  stderr=True,
                                   tty=tty)
 
         result = cli.exec_start(exec_id, detach=detach, stream=stream)
