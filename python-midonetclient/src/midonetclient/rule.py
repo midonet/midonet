@@ -48,7 +48,7 @@ class Rule(condition.Condition):
         return self.dto['pushVlan']
 
     def get_target_port(self):
-        return self.dto['targetPort']
+        return self.dto['targetPortId']
 # TODO: </move>
     def get_chain_id(self):
         return self.dto['chainId']
@@ -119,7 +119,7 @@ class Rule(condition.Condition):
         return self
 
     def target_port(self, target_port):
-        self.dto['targetPort'] = target_port
+        self.dto['targetPortId'] = target_port
         return self
 
 # TODO: </move>
