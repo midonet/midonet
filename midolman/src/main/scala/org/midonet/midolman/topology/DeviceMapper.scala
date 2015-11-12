@@ -18,6 +18,9 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import javax.annotation.Nullable
 
+import com.typesafe.scalalogging.Logger
+import org.midonet.cluster.data.storage.NotFoundException
+
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -41,6 +44,21 @@ object DeviceMapper {
 
     final val MapperClosedException =
         new IllegalStateException("Device mapper is closed")
+
+    /** Ignores the [[NotFoundException]] errors emitted by a device if the
+      * condition is met. Otherwise, the error is allowed. */
+    final def ignoreNotFound(id: UUID, condition: Boolean, log: Logger) = {
+        makeFunc1 { e: Throwable =>
+            e match {
+                case nfe: NotFoundException if condition =>
+                    log.info("Device {} not found: ignoring", id)
+                    Observable.empty()
+                case _ =>
+                    log.error("Device {} error", id, e)
+                    Observable.error(e)
+            }
+        }
+    }
 
     /** The state of the mapper subscription to the underlying storage
       * observables. */

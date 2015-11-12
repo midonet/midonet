@@ -18,12 +18,13 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import javax.annotation.Nullable
 import javax.annotation.concurrent.NotThreadSafe
-
-import org.midonet.midolman.logging.MidolmanLogging
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
+
+import com.typesafe.scalalogging.Logger
 
 import rx.Observable
 import rx.subjects.PublishSubject
@@ -37,8 +38,9 @@ import org.midonet.util.functors.makeAction1
  * is deleted, or when calling the complete() method, which is used to
  * signal that an object no longer belongs to the containing device.
  */
-class TopologyObjectState[D >: Null <: Device](val id: UUID)(implicit tag: ClassTag[D]) {
-    private var currentObj: D = null
+class TopologyObjectState[D >: Null <: Device](val id: UUID)
+                                              (implicit tag: ClassTag[D]) {
+    @Nullable private var currentObj: D = null
     private val mark = PublishSubject.create[D]()
 
     val observable = VirtualTopology.observable[D](id)
@@ -48,13 +50,14 @@ class TopologyObjectState[D >: Null <: Device](val id: UUID)(implicit tag: Class
     /** Completes the observable corresponding to this obj state. */
     def complete(): Unit = mark.onCompleted()
     /** Get the chain for this obj state. */
-    def dereference: D = currentObj
+    @Nullable def dereference: D = currentObj
     /** Indicates whether the obj state has received the obj data. */
     def isReady: Boolean = currentObj ne null
 }
 
-class ObjectReferenceTracker[D >: Null <: Device](val vt: VirtualTopology)
-        (implicit tag: ClassTag[D]) extends MidolmanLogging {
+class ObjectReferenceTracker[D >: Null <: Device](val vt: VirtualTopology,
+                                                  log: Logger)
+                                                 (implicit tag: ClassTag[D]) {
 
     type State = TopologyObjectState[D]
 
@@ -66,7 +69,8 @@ class ObjectReferenceTracker[D >: Null <: Device](val vt: VirtualTopology)
 
     @NotThreadSafe
     final def requestRefs(ids: Set[UUID]): Unit = {
-        log.debug(s"Updating refs: $ids")
+        log.debug("Updating references {}: {}",
+                  tag.runtimeClass.getSimpleName, ids)
 
         // Remove the refs that are no longer used.
         for ((id, state) <- refs if !ids.contains(id)) {
@@ -120,7 +124,8 @@ class ObjectReferenceTracker[D >: Null <: Device](val vt: VirtualTopology)
     final def areRefsReady: Boolean = {
         assertThread()
         val ready = refs.forall(_._2.isReady)
-        log.debug("Refs ready: {}", Boolean.box(ready))
+        log.debug("References {} ready: {}", tag.runtimeClass.getSimpleName,
+                  Boolean.box(ready))
         ready
     }
 
@@ -131,7 +136,9 @@ class ObjectReferenceTracker[D >: Null <: Device](val vt: VirtualTopology)
      * corresponding value in the map is null.
      */
     @NotThreadSafe
-    final def currentRefs: Map[UUID, D] = refs.map(e  => (e._1, e._2.dereference)).toMap
+    final def currentRefs: Map[UUID, D] = {
+        refs.map(e  => (e._1, e._2.dereference)).toMap
+    }
 
     /**
      * An observable that emits notifications for the chains.

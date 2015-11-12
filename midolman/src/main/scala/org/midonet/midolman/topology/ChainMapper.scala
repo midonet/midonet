@@ -17,7 +17,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.{ArrayList, HashMap => JHashMap}
+import java.util.{ArrayList => JArrayList, HashMap => JHashMap}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -125,7 +125,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology, metricRegistry: Metr
     override def logSource = s"org.midonet.devices.chain.chain-$chainId"
 
     private var chainProto: TopologyChain = TopologyChain.newBuilder.build()
-    private val refTracker = new ObjectReferenceTracker[SimChain](vt)
+    private val refTracker = new ObjectReferenceTracker[SimChain](vt, log)
 
     // The stream of rules that belong to this chain
     private val ruleStream = PublishSubject.create[Observable[RuleState]]()
@@ -347,7 +347,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology, metricRegistry: Metr
             }
         }
 
-        val ruleList = new ArrayList[SimRule]()
+        val ruleList = new JArrayList[SimRule]()
         ruleList.addAll(ruleIds.map(rules(_).currentRule).asJava)
 
         val chainMap = new JHashMap[UUID, SimChain]()

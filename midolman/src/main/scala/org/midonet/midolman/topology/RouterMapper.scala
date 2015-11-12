@@ -19,6 +19,8 @@ package org.midonet.midolman.topology
 import java.lang.{Boolean => JBoolean}
 import java.util.{ArrayList => JArrayList, UUID}
 
+import javax.annotation.Nullable
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -68,7 +70,7 @@ object RouterMapper {
      */
     private class PortState(val portId: UUID, vt: VirtualTopology, log: Logger) {
 
-        private var currentPort: RouterPort = null
+        @Nullable private var currentPort: RouterPort = null
         private val mark = PublishSubject.create[RouteUpdates]
 
         private val routes = new mutable.HashMap[UUID, RouteState]
@@ -170,8 +172,10 @@ object RouterMapper {
             for ((routeId, route) <- routes.toList
                  if !port.routeIds.contains(routeId)) {
                 routes -= routeId
-                removedRoutes += route.route
-                routesCache -= route.route
+                if (route.isReady) {
+                    removedRoutes += route.route
+                    routesCache -= route.route
+                }
                 route.complete()
             }
 
@@ -269,18 +273,19 @@ object RouterMapper {
     private class RouteState(val routeId: UUID, vt: VirtualTopology,
                              log: Logger) {
 
-        private var currentRoute: Route = null
+        @Nullable private var currentRoute: Route = null
         private val mark = PublishSubject.create[RouteUpdates]
 
         val observable = vt.store.observable(classOf[TopologyRoute], routeId)
             .observeOn(vt.vtScheduler)
             .flatMap[RouteUpdates](makeFunc1(routeUpdated))
+            .onErrorResumeNext(makeFunc1(routeError))
             .takeUntil(mark)
 
         /** Completes the observable corresponding to this route state. */
         def complete(): Unit = mark.onCompleted()
         /** Gets the last route published by this route state. */
-        def route: Route = currentRoute
+        @Nullable def route: Route = currentRoute
         /** Indicates whether the route state has received the route data. */
         def isReady: Boolean = currentRoute ne null
 
@@ -299,6 +304,17 @@ object RouterMapper {
 
             updateObservable
         }
+
+        /** Handles the error emitted by the route observable by filtering
+          * all errors, logging the error, and if the route is ready advertise
+          * its removal. */
+        private def routeError(e: Throwable): Observable[RouteUpdates] = {
+            log.warn("Route {} error: route removed from the routing table",
+                     routeId, e)
+            if (isReady) Observable.just(RouteUpdates(EmptyRouteSet,
+                                                      routeAsSet(currentRoute)))
+            else Observable.empty()
+        }
     }
 
     /**
@@ -308,12 +324,14 @@ object RouterMapper {
      * complete() method, which is used to signal that the load-balancer is no
      * longer used by the router.
      */
-    private class LoadBalancerState(val loadBalancerId: UUID) {
+    private class LoadBalancerState(val loadBalancerId: UUID, log: Logger) {
 
         private var currentLoadBalancer: LoadBalancer = null
         private val mark = PublishSubject.create[LoadBalancer]
 
         val observable = VirtualTopology.observable[LoadBalancer](loadBalancerId)
+            .onErrorResumeNext(DeviceMapper.ignoreNotFound(loadBalancerId,
+                                                           !isReady, log))
             .doOnNext(makeAction1(currentLoadBalancer = _))
             .takeUntil(mark)
 
@@ -403,8 +421,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         }
     }
 
-    private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
-    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
+    private val chainsTracker = new ObjectReferenceTracker[Chain](vt, log)
+    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt, log)
 
     private lazy val mark =
         PublishSubject.create[Config]
@@ -592,14 +610,16 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         // Create a new load-balancer state and notify its observable on the
         // load-balancer subject.
         if ((loadBalancer eq null) && (cfg.loadBalancer ne null)) {
-            loadBalancer = new LoadBalancerState(cfg.loadBalancer)
+            loadBalancer = new LoadBalancerState(cfg.loadBalancer, log)
             loadBalancerSubject onNext loadBalancer.observable
         }
 
         // Remove any local routes no longer part of the router's configuration
         for ((routeId, route) <- localRoutes.toList if !routeIds.contains(routeId)) {
             localRoutes -= routeId
-            routingTableUpdated(RouteUpdates(EmptyRouteSet, Set(route.route)))
+            if (route.isReady) {
+                routingTableUpdated(RouteUpdates(EmptyRouteSet, Set(route.route)))
+            }
             route.complete()
         }
         // Add any routes present in the router's configuration, and not part of
