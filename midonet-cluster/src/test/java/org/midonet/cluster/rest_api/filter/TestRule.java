@@ -127,6 +127,25 @@ public class TestRule {
             invalidType.setType("badType");
             params.add(new Object[]{invalidType, "type"});
 
+            // Invalid L2 transform bad flow action
+            DtoRule l2TransformBadFlowAction = new DtoRule();
+            l2TransformBadFlowAction.setType(DtoRule.L2Transform);
+            l2TransformBadFlowAction.setFlowAction("badAction");
+            params.add(new Object[] { l2TransformBadFlowAction, "flowAction" });
+
+            // Invalid L2 transform invalid flow action
+            DtoRule l2TransformInvalidFlowAction = new DtoRule();
+            l2TransformInvalidFlowAction.setType(DtoRule.L2Transform);
+            l2TransformInvalidFlowAction.setFlowAction(DtoRule.Drop);
+            params.add(new Object[] { l2TransformInvalidFlowAction, "flowAction" });
+
+            // Invalid L2 transform invalid push VLAN
+            DtoRule l2TransformInvalidPushVlan = new DtoRule();
+            l2TransformInvalidPushVlan.setType(DtoRule.L2Transform);
+            l2TransformInvalidPushVlan.setFlowAction(DtoRule.Accept);
+            l2TransformInvalidPushVlan.setPushVlan(0x10000);
+            params.add(new Object[] { l2TransformInvalidPushVlan, "pushVlan" });
+
             return params;
         }
 
@@ -136,7 +155,9 @@ public class TestRule {
                     chain1.getRules(), APPLICATION_RULE_JSON_V2(),
                     rule);
             List<Map<String, String>> violations = error.getViolations();
-            assertEquals(0, violations.size());
+            if (violations.size() == 1) {
+                assertEquals(violations.get(0).get("property"), property);
+            }
         }
     }
 
@@ -497,9 +518,33 @@ public class TestRule {
             filteringRule.setPosition(1);
             filteringRule.setProperties(properties);
 
+            DtoRule l2TransformRuleAccept = new DtoRule();
+            l2TransformRuleAccept.setType(DtoRule.L2Transform);
+            l2TransformRuleAccept.setFlowAction(DtoRule.Accept);
+            l2TransformRuleAccept.setPopVlan(true);
+            l2TransformRuleAccept.setPushVlan(0x7000);
+            l2TransformRuleAccept.setTargetPortId(UUID.randomUUID());
+            l2TransformRuleAccept.setIngress(true);
+            l2TransformRuleAccept.setFailOpen(true);
+            l2TransformRuleAccept.setPosition(1);
+            l2TransformRuleAccept.setProperties(properties);
+
+            DtoRule l2TransformRuleRedirect = new DtoRule();
+            l2TransformRuleRedirect.setType(DtoRule.L2Transform);
+            l2TransformRuleRedirect.setFlowAction(DtoRule.Redirect);
+            l2TransformRuleRedirect.setPopVlan(true);
+            l2TransformRuleRedirect.setPushVlan(0x7000);
+            l2TransformRuleRedirect.setTargetPortId(UUID.randomUUID());
+            l2TransformRuleRedirect.setIngress(true);
+            l2TransformRuleRedirect.setFailOpen(true);
+            l2TransformRuleRedirect.setPosition(1);
+            l2TransformRuleRedirect.setProperties(properties);
+
             return Arrays.asList(new Object[][] { { dnatRule, null },
                     { revDnatRule, null }, { snatRule, null },
-                    { revSnatRule, null }, { filteringRule, "portgroup1" } });
+                    { revSnatRule, null }, { filteringRule, "portgroup1" },
+                    { l2TransformRuleAccept, null},
+                    { l2TransformRuleRedirect, null}});
         }
 
         @Test

@@ -17,6 +17,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.protobuf.Message;
@@ -32,6 +33,7 @@ import org.midonet.cluster.models.Topology;
 public abstract class NatRule extends Rule {
 
     @NotNull
+    @Pattern(regexp = Rule.Accept + "|" + Rule.Continue + "|" + Rule.Return)
     public String flowAction;
     @JsonIgnore
     @ZoomField(name = "dnat")

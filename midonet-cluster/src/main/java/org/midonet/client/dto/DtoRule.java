@@ -28,6 +28,8 @@ public class DtoRule {
     public static final String Continue = "continue";
     public static final String Drop = "drop";
     public static final String Jump = "jump";
+    public static final String L2Transform = "l2_transform";
+    public static final String Redirect = "redirect";
     public static final String Reject = "reject";
     public static final String Return = "return";
     public static final String DNAT = "dnat";
@@ -83,6 +85,11 @@ public class DtoRule {
     private DtoNatTarget[] natTargets;
     private int position;
     private String meterName;
+    private boolean popVlan;
+    private int pushVlan;
+    private UUID targetPortId;
+    private boolean ingress;
+    private boolean failOpen;
     private Map<String, String> properties = new HashMap<String, String>();
 
     public URI getUri() {
@@ -476,6 +483,46 @@ public class DtoRule {
 
     public void setMeterName(String meterName) {
         this.meterName = meterName;
+    }
+
+    public boolean getPopVlan() {
+        return popVlan;
+    }
+
+    public void setPopVlan(boolean popVlan) {
+        this.popVlan = popVlan;
+    }
+
+    public int getPushVlan() {
+        return pushVlan;
+    }
+
+    public void setPushVlan(int pushVlan) {
+        this.pushVlan = pushVlan;
+    }
+
+    public UUID getTargetPortId() {
+        return targetPortId;
+    }
+
+    public void setTargetPortId(UUID targetPortId) {
+        this.targetPortId = targetPortId;
+    }
+
+    public boolean getIngress() {
+        return ingress;
+    }
+
+    public void setIngress(boolean ingress) {
+        this.ingress = ingress;
+    }
+
+    public boolean getFailOpen() {
+        return failOpen;
+    }
+
+    public void setFailOpen(boolean failOpen) {
+        this.failOpen = failOpen;
     }
 
     public Map<String, String> getProperties() {

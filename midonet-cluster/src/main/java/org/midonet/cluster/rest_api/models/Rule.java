@@ -47,11 +47,12 @@ import org.midonet.cluster.util.UUIDUtil;
     @JsonSubTypes.Type(value = ForwardDnatRule.class, name = Rule.DNAT),
     @JsonSubTypes.Type(value = ForwardSnatRule.class, name = Rule.SNAT),
     @JsonSubTypes.Type(value = JumpRule.class, name = Rule.Jump),
+    @JsonSubTypes.Type(value = L2TransformRule.class, name = Rule.L2Transform),
     @JsonSubTypes.Type(value = RejectRule.class, name = Rule.Reject),
     @JsonSubTypes.Type(value = ReturnRule.class, name = Rule.Return),
-    @JsonSubTypes.Type(value = TraceRule.class, name = Rule.Trace),
     @JsonSubTypes.Type(value = ReverseDnatRule.class, name = Rule.RevDNAT),
-    @JsonSubTypes.Type(value = ReverseSnatRule.class, name = Rule.RevSNAT)})
+    @JsonSubTypes.Type(value = ReverseSnatRule.class, name = Rule.RevSNAT),
+    @JsonSubTypes.Type(value = TraceRule.class, name = Rule.Trace)})
 @ZoomClass(clazz = Topology.Rule.class, factory = Rule.Factory.class, skipSuper = true)
 public abstract class Rule extends Condition {
 
@@ -68,6 +69,7 @@ public abstract class Rule extends Condition {
                     }
                 case TRACE_RULE: return TraceRule.class;
                 case NAT_RULE: return NatRule.class;
+                case L2TRANSFORM_RULE: return L2TransformRule.class;
                 default: throw new ZoomConvert.ConvertException(
                     "Unknown rule type: " + proto.getType());
             }
@@ -76,22 +78,25 @@ public abstract class Rule extends Condition {
 
     public static final String Accept = "accept";
     public static final String Continue = "continue";
+    public static final String DNAT = "dnat";
     public static final String Drop = "drop";
     public static final String Jump = "jump";
+    public static final String L2Transform = "l2_transform";
+    public static final String Redirect = "redirect";
     public static final String Reject = "reject";
     public static final String Return = "return";
-    public static final String Trace = "trace";
-    public static final String DNAT = "dnat";
-    public static final String SNAT = "snat";
     public static final String RevDNAT = "rev_dnat";
     public static final String RevSNAT = "rev_snat";
+    public static final String SNAT = "snat";
+    public static final String Trace = "trace";
 
     @ZoomEnum(clazz = Topology.Rule.Type.class)
     public enum RuleType {
         @ZoomEnumValue(value = "LITERAL_RULE") LITERAL,
         @ZoomEnumValue(value = "NAT_RULE") NAT,
         @ZoomEnumValue(value = "JUMP_RULE") JUMP,
-        @ZoomEnumValue(value = "TRACE_RULE") TRACE
+        @ZoomEnumValue(value = "TRACE_RULE") TRACE,
+        @ZoomEnumValue(value = "L2TRANSFORM_RULE") L2TRANSFORM
     }
 
     @ZoomEnum(clazz = Topology.Rule.Action.class)
@@ -101,7 +106,8 @@ public abstract class Rule extends Condition {
         @ZoomEnumValue(value = "DROP") DROP,
         @ZoomEnumValue(value = "JUMP") JUMP,
         @ZoomEnumValue(value = "REJECT") REJECT,
-        @ZoomEnumValue(value = "RETURN") RETURN
+        @ZoomEnumValue(value = "RETURN") RETURN,
+        @ZoomEnumValue(value = "REDIRECT") REDIRECT
     }
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -115,6 +121,7 @@ public abstract class Rule extends Condition {
     @NotNull
     public final RuleType type;
 
+    @JsonIgnore
     @ZoomField(name = "action")
     public RuleAction action;
 
