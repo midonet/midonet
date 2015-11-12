@@ -65,11 +65,14 @@ class VMGuest(Interface):
             'ip netns exec %s' % self.get_vm_ns() if on_netns else '',
             'timeout %d' % (timeout + extra_timeout) if timeout else '')
         cmdline = pre_cmdline + cmdline
+        LOG.info("IKDEBUG %s" % (cmdline))
         result = self.compute_host.exec_command(cmdline,
                                                 detach=False,
                                                 stream=stream)
         # Extra timeout to account for docker exec warmup
         time.sleep(extra_timeout)
+        for s in result[0]:
+            LOG.info("IKDEBUG stream %s" % s)
         return result
 
 
