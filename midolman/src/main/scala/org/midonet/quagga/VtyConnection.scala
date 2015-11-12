@@ -26,7 +26,9 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPAddr}
-import org.midonet.quagga.BgpdConfiguration.BgpdRunningConfig
+import org.midonet.quagga.BgpdConfiguration.{Neighbor, BgpdRunningConfig}
+
+import scala.collection.mutable.ListBuffer
 
 object VtyConnection {
     class NotConnectedException extends Exception
@@ -177,6 +179,8 @@ trait BgpConnection {
     def addPeer(as: Int, peerAddr: IPAddr, peerAs: Int, keepAliveSecs: Int,
                 holdTimeSecs: Int, connectRetrySecs: Int)
 
+    def addPeer(as: Int, neigh: Neighbor)
+
     def deletePeer(as: Int, peerAddr: IPAddr)
 
     def addNetwork(as: Int, cidr: IPv4Subnet)
@@ -234,6 +238,25 @@ class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port
             s"neighbor $peer timers connect $connectRetrySecs",
             s"neighbor $peer filter-list 1 out")
         })
+    }
+
+    override def addPeer(as: Int, neigh: Neighbor) {
+       var cmds = List(s"neighbor ${neigh.address} remote-as ${neigh.as}",
+                       s"neighbor ${neigh.address} filter-list 1 out")
+
+        for (keepalive <- neigh.keepalive ; holdtime <- neigh.holdtime) {
+            cmds :+= s"neighbor ${neigh.address} timers $keepalive $holdtime"
+        }
+
+        for (retry <- neigh.connect) {
+            cmds :+= s"neighbor ${neigh.address} timers connect $retry"
+        }
+
+        for (password <- neigh.password) {
+            cmds :+= s"neighbor ${neigh.address} password $password"
+        }
+
+        exec(SetAs(as)(cmds))
     }
 
     override def deletePeer(as: Int, peerAddr: IPAddr) {

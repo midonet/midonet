@@ -1659,6 +1659,11 @@ class BgpPeer(ObjectType):
                                  getter="get_connect_retry",
                                  setter="connect_retry",
                                  optional=True))
+        self.put_attr(SingleAttr(name='password',
+                                 value_type=StringType(),
+                                 getter="get_password",
+                                 setter="password",
+                                 optional=True))
 
     def type_name(self):
         return "peer"
