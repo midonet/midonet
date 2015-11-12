@@ -16,7 +16,6 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Boolean => JBoolean, Long => JLong}
-import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.{ArrayList => JArrayList, UUID}
 
 import javax.annotation.Nullable
@@ -284,8 +283,8 @@ final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopolo
 
     override def logSource = s"org.midonet.devices.bridge.bridge-$bridgeId"
 
-    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
-    private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
+    private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt, log)
+    private val chainsTracker = new ObjectReferenceTracker[Chain](vt, log)
     private var bridge: TopologyBridge = null
     private val localPorts = new mutable.HashMap[UUID, LocalPortState]
     private val peerPorts = new mutable.HashMap[UUID, PeerPortState]
