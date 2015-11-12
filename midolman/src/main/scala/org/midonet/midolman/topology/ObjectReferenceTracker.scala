@@ -18,12 +18,13 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import javax.annotation.Nullable
 import javax.annotation.concurrent.NotThreadSafe
-
-import org.midonet.midolman.logging.MidolmanLogging
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
+
+import com.typesafe.scalalogging.Logger
 
 import rx.Observable
 import rx.subjects.PublishSubject
@@ -46,13 +47,14 @@ trait ObjectStateBase[D >: Null] {
     /** Completes the observable corresponding to this obj state. */
     def complete(): Unit = mark.onCompleted()
     /** Get the chain for this obj state. */
-    def dereference: D = currentObj
+    @Nullable def dereference: D = currentObj
     /** Indicates whether the obj state has received the obj data. */
     def isReady: Boolean = currentObj != null
 }
 
 abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBase[D]]
-        extends MidolmanLogging {
+                                         (log: Logger)
+                                         (implicit tag: ClassTag[D]) {
 
     val vt: VirtualTopology
     protected def newState(id: UUID): StateType
@@ -65,7 +67,8 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
 
     @NotThreadSafe
     final def requestRefs(ids: Set[UUID]): Unit = {
-        log.debug(s"Updating refs: $ids")
+        log.debug("Updating references {}: {}",
+                  tag.runtimeClass.getSimpleName, ids)
 
         // Remove the refs that are no longer used.
         for ((id, state) <- refs if !ids.contains(id)) {
@@ -119,7 +122,8 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
     final def areRefsReady: Boolean = {
         assertThread()
         val ready = refs.forall(_._2.isReady)
-        log.debug("Refs ready: {}", Boolean.box(ready))
+        log.debug("References {} ready: {}", tag.runtimeClass.getSimpleName,
+                  Boolean.box(ready))
         ready
     }
 
@@ -130,7 +134,9 @@ abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBas
      * corresponding value in the map is null.
      */
     @NotThreadSafe
-    final def currentRefs: Map[UUID, D] = refs.map(e  => (e._1, e._2.dereference)).toMap
+    final def currentRefs: Map[UUID, D] = {
+        refs.map(e  => (e._1, e._2.dereference)).toMap
+    }
 
     /**
      * An observable that emits notifications for the chains.
@@ -147,9 +153,10 @@ class TopologyObjectState[D >: Null <: Device](val id: UUID)
 }
 
 
-class ObjectReferenceTracker[D >: Null <: Device](override val vt: VirtualTopology)
-                            (implicit tag: ClassTag[D])
-        extends ObjectReferenceTrackerBase[D, TopologyObjectState[D]] {
+class ObjectReferenceTracker[D >: Null <: Device](override val vt: VirtualTopology,
+                                                  log: Logger)
+                                                 (implicit tag: ClassTag[D])
+        extends ObjectReferenceTrackerBase[D, TopologyObjectState[D]](log)(tag) {
 
     override def newState(id: UUID) = new TopologyObjectState[D](id)
 }
@@ -165,8 +172,10 @@ class StoreObjectState[D >: Null](val clazz: Class[D],
 }
 
 class StoreObjectReferenceTracker[D >: Null](val clazz: Class[D],
-                                             val vt: VirtualTopology)
-        extends ObjectReferenceTrackerBase[D, StoreObjectState[D]] {
+                                             val vt: VirtualTopology,
+                                             log: Logger)
+                                            (implicit tag: ClassTag[D])
+        extends ObjectReferenceTrackerBase[D, StoreObjectState[D]](log)(tag) {
 
     override def newState(id: UUID) = new StoreObjectState[D](clazz, id, vt)
 }

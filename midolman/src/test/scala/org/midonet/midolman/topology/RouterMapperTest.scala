@@ -55,7 +55,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
     import TopologyBuilder._
 
-    private var store: Storage = _
+    private var store: InMemoryStorage = _
     private var stateStore: StateStorage = _
     private var vt: VirtualTopology = _
     private var metricRegistry: MetricRegistry = _
@@ -66,7 +66,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
         metricRegistry = injector.getInstance(classOf[MetricRegistry])
-        store = injector.getInstance(classOf[MidonetBackend]).store
+        store = injector.getInstance(classOf[MidonetBackend]).store.asInstanceOf[InMemoryStorage]
         stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
         threadId = Thread.currentThread.getId
     }
@@ -1182,6 +1182,97 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("The virtual topology should not have the chain")
             VirtualTopology.tryGet[Chain](chain.getId)
+        }
+    }
+
+    feature("Test race conditions") {
+        scenario("Port deleted before being loaded") {
+            val obs = createObserver()
+            val router1 = testRouterCreated(obs)._1
+
+            When("Modifying the router by adding a port")
+            val router2 = router1.addPortId(UUID.randomUUID())
+            store.updateAs(router2)
+
+            Then("The mapper should not emit a notification")
+            obs.getOnNextEvents should have size 1
+
+            When("Modifying the router by changing the admin state")
+            val router3 = router1.setAdminStateUp(true)
+            store.updateAs(router3)
+
+            Then("The mapper should emit a notification")
+            obs.awaitOnNext(2, timeout)
+            obs.getOnNextEvents should have size 2
+            obs.getOnNextEvents.get(1) shouldBeDeviceOf router3
+        }
+
+        scenario("Router route deleted before being loaded") {
+            val obs = createObserver()
+            val router1 = testRouterCreated(obs)._1
+
+            When("Modifying the router by adding a route")
+            val router2 = router1.addRouteId(UUID.randomUUID())
+            store.updateAs(router2)
+
+            Then("The mapper should not emit a notification")
+            obs.getOnNextEvents should have size 1
+
+            When("Modifying the router by changing the admin state")
+            val router3 = router1.setAdminStateUp(true)
+            store.updateAs(router3)
+
+            Then("The mapper should emit a notification")
+            obs.awaitOnNext(2, timeout)
+            obs.getOnNextEvents should have size 2
+            obs.getOnNextEvents.get(1) shouldBeDeviceOf router3
+        }
+
+        scenario("Port route deleted before being loaded") {
+            val obs = createObserver()
+            val router1 = testRouterCreated(obs)._1
+
+            When("Creating an exterior port")
+            val port1 = createExteriorPort(router1.getId)
+            store.create(port1)
+
+            And("Modifying the port to include a route")
+            val port2 = port1.addRouteId(UUID.randomUUID())
+            store.updateAs(port2)
+
+            Then("The mapper should receive only one notification")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+
+            When("Modifying the router by changing the admin state")
+            val router2 = router1.setAdminStateUp(true)
+            store.updateAs(router2)
+
+            Then("The mapper should emit a notification")
+            obs.awaitOnNext(3, timeout)
+            obs.getOnNextEvents should have size 3
+            obs.getOnNextEvents.get(2) shouldBeDeviceOf router2
+        }
+
+        scenario("Load balancer deleted before being loaded") {
+            val obs = createObserver()
+            val router1 = testRouterCreated(obs)._1
+
+            When("Modifying the router by setting the load balancer")
+            val router2 = router1.setLoadBalancerId(UUID.randomUUID())
+            store.updateAs(router2)
+
+            Then("The mapper should not emit a notification")
+            obs.getOnNextEvents should have size 1
+
+            When("Modifying the router by changing the admin state")
+            val router3 = router1.setAdminStateUp(true)
+            store.updateAs(router3)
+
+            Then("The mapper should emit a notification")
+            obs.awaitOnNext(2, timeout)
+            obs.getOnNextEvents should have size 2
+            obs.getOnNextEvents.get(1) shouldBeDeviceOf router3
         }
     }
 }
