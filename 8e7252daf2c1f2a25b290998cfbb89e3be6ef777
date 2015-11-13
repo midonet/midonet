@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_4d2c4fac",
+        "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/zkManagers/TunnelZkManager.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-13T07:36:12Z",
+      "side": 1,
+      "message": "Not only is this line not needed, but as far as I can tell the rest of this file isn\u0027t needed, either.",
+      "parentUuid": "7ac7a964_a77c2274",
+      "range": {
+        "startLine": 42,
+        "startChar": 12,
+        "endLine": 42,
+        "endChar": 20
+      },
+      "revId": "8e7252daf2c1f2a25b290998cfbb89e3be6ef777",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_138d237c",
         "filename": "midonet-cluster/src/main/java/org/midonet/midolman/state/zkManagers/TunnelZoneZkManager.java",
         "patchSetId": 2
@@ -82,6 +106,30 @@
       "writtenOn": "2015-11-10T16:19:32Z",
       "side": 1,
       "message": "Why not getting the vtep id by finding the vtep using it\u0027s management ip?",
+      "range": {
+        "startLine": 62,
+        "startChar": 21,
+        "endLine": 63,
+        "endChar": 32
+      },
+      "revId": "8e7252daf2c1f2a25b290998cfbb89e3be6ef777",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_ad124360",
+        "filename": "midonet-cluster/src/main/java/org/midonet/migrator/converters/PortDataConverter.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-13T07:36:12Z",
+      "side": 1,
+      "message": "Not with the data client, because in 1.9 VTEPs don\u0027t have IDs at all. But what I can do is generate an IP address to UUID map when migrating the VTEPs and use it here.",
+      "parentUuid": "7ac7a964_c7f83ee8",
       "range": {
         "startLine": 62,
         "startChar": 21,
