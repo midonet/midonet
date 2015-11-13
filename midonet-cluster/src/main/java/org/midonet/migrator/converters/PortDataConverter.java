@@ -19,6 +19,8 @@ package org.midonet.migrator.converters;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import scala.collection.immutable.Map;
+
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.cluster.data.ports.VxLanPort;
@@ -27,11 +29,14 @@ import org.midonet.cluster.rest_api.models.ExteriorRouterPort;
 import org.midonet.cluster.rest_api.models.InteriorBridgePort;
 import org.midonet.cluster.rest_api.models.InteriorRouterPort;
 import org.midonet.cluster.rest_api.models.Port;
+import org.midonet.packets.IPv4Addr;
 
 import static org.midonet.util.StringUtil.toStringOrNull;
 
 public class PortDataConverter {
-    public static Port fromData(org.midonet.cluster.data.Port<?, ?> port) {
+    public static Port fromData(org.midonet.cluster.data.Port<?, ?> port,
+                                Map<IPv4Addr, UUID> vtepIds) {
+
         Port dto;
         if (port instanceof BridgePort) {
             BridgePort typedPort = (BridgePort)port;
@@ -58,11 +63,7 @@ public class PortDataConverter {
             org.midonet.cluster.rest_api.models.VxLanPort typedDto =
                 new org.midonet.cluster.rest_api.models.VxLanPort();
             typedDto.networkId = typedPort.getDeviceId();
-
-            // TODO: How to get the VtepId? Old ZK data only has mgmtIp,
-            // mgmtPort, and vni.
-            typedDto.vtepId = null;
-
+            typedDto.vtepId = vtepIds.apply(typedPort.getMgmtIpAddr());
             dto = typedDto;
         } else {
             throw new IllegalArgumentException(

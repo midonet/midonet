@@ -70,7 +70,7 @@ public class TunnelZoneZkManager
 
         return new TunnelZone(zoneId, super.get(zoneId, watcher));
     }
-    
+
     public Set<UUID> getZoneMemberships(UUID zoneId, Directory.TypedWatcher watcher)
         throws StateAccessException {
 
