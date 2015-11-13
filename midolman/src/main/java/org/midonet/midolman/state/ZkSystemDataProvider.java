@@ -15,7 +15,6 @@
  */
 package org.midonet.midolman.state;
 
-import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.inject.Inject;
@@ -24,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.cluster.serialization.VerCheck;
 
 /**
  * This class is the zookeeper data access class for system data info.
@@ -36,18 +34,15 @@ public class ZkSystemDataProvider implements SystemDataProvider {
 
     private ZkManager zk;
     private PathBuilder paths;
-    private final Comparator<String> comparator;
     private AtomicReference<String> cachedWriteVersion
         = new AtomicReference<>(null);
 
     private Runnable writeVersionWatcher = new WriteVersionWatcher();
 
     @Inject
-    public ZkSystemDataProvider(ZkManager zk, PathBuilder paths,
-                                 @VerCheck Comparator<String> comparator) {
+    public ZkSystemDataProvider(ZkManager zk, PathBuilder paths) {
         this.zk = zk;
         this.paths = paths;
-        this.comparator = comparator;
     }
 
     /**

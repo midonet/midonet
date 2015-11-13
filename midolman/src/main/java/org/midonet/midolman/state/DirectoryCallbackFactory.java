@@ -32,7 +32,7 @@ public class DirectoryCallbackFactory {
     public static <From, To> DirectoryCallback<From>
         transform(@Nonnull final DirectoryCallback<To> callback,
                   @Nonnull final Functor<From, To> functor) {
-        return new AdaptingCallback<From, To>(callback, functor);
+        return new AdaptingCallback<>(callback, functor);
     }
 
     private static class AdaptingCallback<From, To>
