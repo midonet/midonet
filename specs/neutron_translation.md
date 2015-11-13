@@ -879,11 +879,46 @@ get the list of associated routers from 'add-router-ids' field of
 NeutronFirewall.  For each, delete the corresponding jump rules.
 
 
+## VTEP (vendor extension)
+
+A VTEP device specifies a Management IP and a Management Port of a
+hardware VTEP that may later be used to create logical gateways.
+
+The VTEP is translated 1:1 to the equivalent MidoNet model `Vtep`, just
+providing the management ip:port.  MidoNet will load all other
+configuration from the VTEP's OVSDB instance when it's being used.
+
+No updates are allowed on the VTEP.
+
+Refer to [4][] for the OVSDB Vtep schema.
+
+### L2_GATEWAY
+
+An L2_GATEWAY creates a Logical Switch in the VTEP.  A Logical Switch
+represents a logical L2 segment that may span physical ports in several
+hardware VTEPs (and also virtual networks in MidoNet).
+
+The Logical Switch requires a VNI, which is taken from the L2_GATEWAY
+Neutron model, and a NAME.
+
+An L2_GATEWAY will be translated as a MidoNet Network as follows (left
+side is the MidoNet model, right side the Neutron model)
+
+    Network.name = L2_GATEWAY.name
+    Network.vni  = L2_GATEWAY.vni
+
+An L2_GATEWAY also contains a list of interfaces:VLAN pairs.  These are
+the name of a physical port in the VTEP, and a VLAN ID.  They are
+translated directly to MidoNet VtepBinding entities.  Every
+interface:VLAN pair gets translated into MidoNet by creating a new
+VtepBinding entity that is added to the corresponding Vtep.
+
+A deletion of an interface:VLAN results in the removal of the
+corresponding VtepBinding from the Vtep.
+
 # References
 
-[1]
-https://github.com/stackforge/networking-midonet/blob/master/specs/kilo/provider_net.rst
-[2]
-https://github.com/stackforge/networking-midonet/blob/master/specs/kilo/port_binding.rst
-[3]
-https://github.com/stackforge/networking-midonet/blob/master/specs/kilo/dynamic_routing.rst
+[1]: https://github.com/stackforge/networking-midonet/blob/master/specs/kilo/provider_net.rst
+[2]: https://github.com/stackforge/networking-midonet/blob/master/specs/kilo/port_binding.rst
+[3]: https://github.com/stackforge/networking-midonet/blob/master/specs/kilo/dynamic_routing.rst
+[4]: http://www.openvswitch.org/docs/vtep.5.pdf
