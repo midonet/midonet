@@ -18,6 +18,6 @@ package org.midonet.netlink
 
 import java.nio.ByteBuffer
 
-abstract class NetlinkSerializable {
+trait NetlinkSerializable {
     def serializeInto(buffer: ByteBuffer): Int
 }

@@ -62,8 +62,7 @@ import static org.midonet.odp.OpenVSwitch.FlowKey.Attr.*;
  * @see FlowKey
  * @see Flow
  */
-public class FlowMask extends NetlinkSerializable
-                      implements AttributeHandler {
+public class FlowMask implements NetlinkSerializable, AttributeHandler {
     private final static long EXACT_64 = ~0L;
     private final static int EXACT_32 = ~0;
     private final static short EXACT_16 = (short) ~0;

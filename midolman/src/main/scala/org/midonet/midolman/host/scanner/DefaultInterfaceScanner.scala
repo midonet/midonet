@@ -134,18 +134,17 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
 
     private def linkEndpoint(link: Link): InterfaceDescription.Endpoint = {
         val endpoint: Option[InterfaceDescription.Endpoint] =
-            link.attributes.toMap.get(Link.NestedAttrKey.IFLA_INFO_KIND) match {
-                case Some(s: String)
-                        if s == Link.NestedAttrValue.LinkInfo.KIND_TUN =>
+            link.info.kind match {
+                case Link.NestedAttrValue.LinkInfo.KIND_TUN =>
                     Some(InterfaceDescription.Endpoint.TUNTAP)
-                case Some(_: String) =>
-                    None
-                case _ =>
+                case null =>
                     if  (link.ifi.`type` == Link.Type.ARPHRD_LOOPBACK) {
                         Some(InterfaceDescription.Endpoint.LOCALHOST)
                     } else {
                         Some(InterfaceDescription.Endpoint.DATAPATH)
                     }
+                case _ =>
+                    None
             }
         endpoint.getOrElse(link.ifi.`type` match {
             case Link.Type.ARPHRD_IPGRE | Link.Type.ARPHRD_IP6GRE =>
@@ -159,7 +158,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
     private def linkToDesc(link: Link,
                            desc: InterfaceDescription): InterfaceDescription = {
         val clone = cloneIfDesc(desc)
-        clone.setName(link.ifname)
+        clone.setName(link.getName)
         clone.setType(linkType(link))
         clone.setMac(link.mac)
         clone.setUp((link.ifi.flags & Link.Flag.IFF_UP) == 1)
@@ -172,7 +171,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
     private def linkToIntefaceDescription(link: Link): InterfaceDescription = {
         val descOption: Option[InterfaceDescription] =
             interfaceDescriptions.get(link.ifi.index)
-        val desc = descOption.getOrElse(new InterfaceDescription(link.ifname))
+        val desc = descOption.getOrElse(new InterfaceDescription(link.getName))
         linkToDesc(link, desc)
     }
 
