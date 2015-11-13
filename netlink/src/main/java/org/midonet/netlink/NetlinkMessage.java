@@ -91,11 +91,11 @@ public final class NetlinkMessage {
     public static int writeAttr(ByteBuffer buffer, short id,
                                 NetlinkSerializable value) {
         int start = buffer.position(); // save position
-        int nbytes = 4; // header length
         NetlinkMessage.setAttrHeader(buffer, id, 0); // space for nl_attr header
-        nbytes += value.serializeInto(buffer);
+        int nbytes = 4 + value.serializeInto(buffer);
         buffer.putShort(start, (short) nbytes); // write nl_attr length field
-        return nbytes + alignBuffer(buffer);
+        alignBuffer(buffer);
+        return buffer.position() - start;
     }
 
     public static int writeAttrNested(ByteBuffer buffer, short id,
@@ -376,7 +376,7 @@ public final class NetlinkMessage {
 
     /** pad the given buffer with 0 until the position is aligned to the next
      *  4B index. */
-    public static int alignBuffer(ByteBuffer buf) {
+    public static void alignBuffer(ByteBuffer buf) {
         byte pad = 0;
         int neededBytes = 4 - (buf.position() & 0x3);
         switch (neededBytes) {
@@ -389,7 +389,6 @@ public final class NetlinkMessage {
             default:
                 break;
         }
-        return neededBytes;
     }
 
     public static void writeSequenceNumber(ByteBuffer buf, int seq) {
