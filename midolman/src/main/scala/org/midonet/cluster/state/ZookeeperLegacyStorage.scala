@@ -22,9 +22,6 @@ import javax.annotation.Nonnull
 import com.google.inject.Inject
 import com.google.inject.name.Named
 
-import org.apache.zookeeper.CreateMode.EPHEMERAL
-
-import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.Serializer
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
@@ -41,36 +38,6 @@ class ZookeeperLegacyStorage @Inject()(@Named("directoryReactor") reactor: React
                                        zkManager: ZkManager,
                                        pathBuilder: PathBuilder)
         extends LegacyStorage with MidolmanLogging {
-
-
-    /**
-     * An implementation of a route replicated set.
-     */
-    @throws[StateAccessException]
-    private class ReplicatedRouteTable(routerId: UUID)
-        extends ReplicatedSet[Route](
-            zkManager.getSubDirectory(pathBuilder.getRouterRoutingTablePath(routerId)), EPHEMERAL) {
-
-        protected override def encode(route: Route): String = {
-            try {
-                new String(serializer.serialize(route))
-            } catch {
-                case e: Throwable =>
-                    log.error("Could not serialize route {}", route, e)
-                    null
-            }
-        }
-
-        protected override def decode(str: String): Route = {
-            try {
-                serializer.deserialize(str.getBytes, classOf[Route])
-            } catch {
-                case e: Throwable =>
-                    log.error("Could not deserialize route {}", str, e)
-                    null
-            }
-        }
-    }
 
     override def logSource = "org.midonet.cluster.state"
 
@@ -99,15 +66,6 @@ class ZookeeperLegacyStorage @Inject()(@Named("directoryReactor") reactor: React
         val map = new Ip4ToMacReplicatedMap(getIP4MacMapDirectory(bridgeId))
         map.setConnectionWatcher(connectionWatcher)
         map
-    }
-
-    @throws[StateAccessException]
-    override def routerRoutingTable(@Nonnull routerId: UUID)
-    : ReplicatedSet[Route] = {
-        ensureRouterPaths(routerId)
-        val routingTable = new ReplicatedRouteTable(routerId)
-        routingTable.setConnectionWatcher(connectionWatcher)
-        routingTable
     }
 
     @throws[StateAccessException]

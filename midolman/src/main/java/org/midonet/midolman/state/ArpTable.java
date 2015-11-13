@@ -16,8 +16,6 @@
 
 package org.midonet.midolman.state;
 
-import org.apache.zookeeper.KeeperException;
-
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.packets.IPv4Addr;
 
@@ -25,32 +23,6 @@ public class ArpTable extends ReplicatedMap<IPv4Addr, ArpCacheEntry> {
 
     public ArpTable(Directory dir) {
         super(dir);
-    }
-
-    @Override
-    public ArpCacheEntry get(IPv4Addr key) {
-        return super.get(key);
-    }
-
-    @Override
-    public boolean containsKey(IPv4Addr key) {
-        return super.containsKey(key);
-    }
-
-    @Override
-    public void put(IPv4Addr key, ArpCacheEntry value) {
-        super.put(key, value);
-    }
-
-    @Override
-    public ArpCacheEntry removeIfOwner(IPv4Addr key)
-        throws InterruptedException, KeeperException {
-        return super.removeIfOwner(key);
-    }
-
-    @Override
-    public synchronized boolean isKeyOwner(IPv4Addr key) {
-        return super.isKeyOwner(key);
     }
 
     @Override

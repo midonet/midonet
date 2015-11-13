@@ -19,9 +19,6 @@ import java.util.UUID
 
 import javax.annotation.Nonnull
 
-import rx.Observable
-
-import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, StateAccessException, _}
 
 /**
@@ -43,12 +40,6 @@ trait LegacyStorage {
      */
     @throws[StateAccessException]
     def bridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap
-
-    /**
-     * Gets the replicated route set for the router's routing table.
-     */
-    @throws[StateAccessException]
-    def routerRoutingTable(@Nonnull routerId: UUID): ReplicatedSet[Route]
 
     /**
      * Gets the ARP table for the specified router.

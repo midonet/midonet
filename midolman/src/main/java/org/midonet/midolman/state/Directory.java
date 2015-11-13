@@ -141,43 +141,4 @@ public interface Directory {
         public void run() {
         }
     }
-
-    abstract class DefaultPersistentWatcher implements TypedWatcher {
-        protected ZkConnectionAwareWatcher connectionWatcher;
-
-        public DefaultPersistentWatcher(ZkConnectionAwareWatcher watcher) {
-            this.connectionWatcher = watcher;
-        }
-
-        protected abstract void _run() throws StateAccessException, KeeperException;
-
-        public abstract String describe();
-
-        @Override
-        public final void run() {
-            try {
-                _run();
-            } catch (StateAccessException e) {
-                connectionWatcher.handleError(describe(), this, e);
-            } catch (KeeperException e) {
-                connectionWatcher.handleError(describe(), this, e);
-            }
-        }
-
-        @Override
-        public void pathDeleted(String path) { }
-
-        @Override
-        public void pathCreated(String path) { }
-
-        @Override
-        public void pathChildrenUpdated(String path) { }
-
-        @Override
-        public void pathDataChanged(String path) { }
-
-        @Override
-        public void connectionStateChanged(Watcher.Event.KeeperState state) { }
-
-    }
 }
