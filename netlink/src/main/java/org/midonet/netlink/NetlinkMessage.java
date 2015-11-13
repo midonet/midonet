@@ -91,8 +91,9 @@ public final class NetlinkMessage {
     public static int writeAttr(ByteBuffer buffer, short id,
                                 NetlinkSerializable value) {
         int start = buffer.position(); // save position
+        int nbytes = 4; // header length
         NetlinkMessage.setAttrHeader(buffer, id, 0); // space for nl_attr header
-        int nbytes = 4 + value.serializeInto(buffer);
+        nbytes += value.serializeInto(buffer);
         buffer.putShort(start, (short) nbytes); // write nl_attr length field
         alignBuffer(buffer);
         return buffer.position() - start;
@@ -117,6 +118,11 @@ public final class NetlinkMessage {
     /** write an attribute as a raw stream of bytes, with header. */
     public static int writeRawAttribute(ByteBuffer buf, short id, byte[] value) {
         return writeAttrWithId(buf, id, value, bytesSerializer);
+    }
+
+    /** write an attribute as a raw stream of bytes, with header. */
+    public static int writeRawAttribute(ByteBuffer buf, short id, ByteBuffer value) {
+        return writeAttrWithId(buf, id, value, byteBufferSerializer);
     }
 
     public static int writeEthernetAttribute(ByteBuffer buf, short id,
@@ -246,6 +252,17 @@ public final class NetlinkMessage {
         public int serializeInto(ByteBuffer receiver, byte[] value) {
             receiver.put(value);
             return value.length;
+        }
+    };
+
+    private static final Writer<ByteBuffer> byteBufferSerializer = new Writer<ByteBuffer>() {
+        public short attrIdOf(ByteBuffer any) {
+            throw new UnsupportedOperationException();
+        }
+        public int serializeInto(ByteBuffer receiver, ByteBuffer value) {
+            int size = value.remaining();
+            receiver.put(value);
+            return size;
         }
     };
 

@@ -22,7 +22,7 @@ import com.google.common.primitives.Longs;
 
 import org.midonet.netlink.NetlinkSerializable;
 
-public class FlowStats extends NetlinkSerializable {
+public class FlowStats implements NetlinkSerializable {
     /** Number of matched packets. */
     /*__u64*/ public long packets;
 

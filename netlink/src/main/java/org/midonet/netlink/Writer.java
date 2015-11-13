@@ -25,7 +25,7 @@ public interface Writer<V> {
   short attrIdOf(V value);
 
   /** Serialize into a receiving ByteBuffer a T value and returns the number of
-   *  bytes written. The translator should writes the value continously and
+   *  bytes written. The translator should writes the value continuously and
    *  should not care about netlink attribute headers. */
   int serializeInto(ByteBuffer receiver, V value);
 }
