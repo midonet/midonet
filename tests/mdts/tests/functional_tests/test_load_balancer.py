@@ -251,7 +251,7 @@ def action_pool_members(fun_name, **kwargs):
         getattr(pool_member, fun_name)()
 
 
-def await_member_status(backend_num, status, timeout=20, sleep_time=2):
+def await_member_status(backend_num, status, timeout=30, sleep_time=2):
     pm_id = VTM.find_pool_member(backend_ip_port(backend_num)).\
         get_mn_resource().\
         get_id()
@@ -420,12 +420,10 @@ def get_current_leader(lb_pools, timeout = 60, wait_time=5):
 
 @attr(version="v1.3.0", slow=False)
 @bindings(binding_onehost,
-          # TODO FIXME: MNA-1090
-          # binding_onehost_weighted,
+          binding_onehost_weighted,
           binding_onehost_same_subnet,
           binding_multihost,
-          # TODO FIXME: MNA-1090
-          # binding_multihost_weighted,
+          binding_multihost_weighted,
           binding_multihost_same_subnet)
 @with_setup(start_servers, stop_servers)
 def test_multi_member_loadbalancing():
@@ -440,6 +438,10 @@ def test_multi_member_loadbalancing():
     Then: The loadbalancer sends some traffic to each backend when sticky
           source IP disabled, all to one backend if enabled.
     """
+
+    await_member_status(1, status='ACTIVE')
+    await_member_status(2, status='ACTIVE')
+    await_member_status(3, status='ACTIVE')
 
     # With 3 backends of equal weight and 35 reqs, ~1/1m chance of not hitting all 3 backends
     # >>> 1/((2/3.0)**(35-1))
