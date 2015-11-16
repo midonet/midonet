@@ -41,3 +41,9 @@ class SystemState(resource_base.ResourceBase):
     def availability(self, availability):
         self.dto['availability'] = availability
         return self
+
+    def get_information(self):
+        return self.dto['information']
+
+    def get_version(self):
+        return self.dto['version']
