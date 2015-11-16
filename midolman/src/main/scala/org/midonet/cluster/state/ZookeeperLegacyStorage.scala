@@ -20,20 +20,18 @@ import java.util.UUID
 import javax.annotation.Nonnull
 
 import com.google.inject.Inject
-import com.google.inject.name.Named
 
+import org.midonet.cluster.data.storage.Directory
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.Serializer
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state._
-import org.midonet.util.eventloop.Reactor
 
 /**
  * An implementation of the [[LegacyStorage]] trait using the legacy ZooKeeper
  * managers as backend.
  */
-class ZookeeperLegacyStorage @Inject()(@Named("directoryReactor") reactor: Reactor,
-                                       connectionWatcher: ZkConnectionAwareWatcher,
+class ZookeeperLegacyStorage @Inject()(connectionWatcher: ZkConnectionAwareWatcher,
                                        serializer: Serializer,
                                        zkManager: ZkManager,
                                        pathBuilder: PathBuilder)

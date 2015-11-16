@@ -31,6 +31,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.data.storage.Directory;
+
 
 public class TestMockDirectory {
 

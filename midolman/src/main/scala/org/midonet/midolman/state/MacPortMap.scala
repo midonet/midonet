@@ -17,9 +17,12 @@ package org.midonet.midolman.state
 
 import java.util.Map
 import java.util.UUID
-import org.apache.zookeeper.CreateMode
-import org.midonet.packets.MAC
+
 import scala.collection.JavaConversions._
+
+import org.apache.zookeeper.CreateMode
+import org.midonet.cluster.data.storage.Directory
+import org.midonet.packets.MAC
 
 class MacPortMap(dir: Directory, ephemeral: Boolean)
         extends ReplicatedMap[MAC, UUID](dir, ephemeral) {

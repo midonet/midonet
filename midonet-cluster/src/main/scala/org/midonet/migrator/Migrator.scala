@@ -63,7 +63,7 @@ import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
 import org.midonet.midolman.cluster.zookeeper.{DirectoryProvider, ZkConnectionProvider}
-import org.midonet.midolman.state.{Directory, ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher, _}
+import org.midonet.midolman.state.{ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher, _}
 import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet, IPv6Subnet}
 import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.eventloop.Reactor

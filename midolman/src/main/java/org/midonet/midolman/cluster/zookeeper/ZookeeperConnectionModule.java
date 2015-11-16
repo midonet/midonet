@@ -21,7 +21,7 @@ import com.google.inject.Provider;
 import com.google.inject.name.Names;
 
 import org.midonet.cluster.storage.MidonetBackendConfig;
-import org.midonet.midolman.state.Directory;
+import org.midonet.cluster.data.storage.Directory;
 import org.midonet.midolman.state.ZkConnection;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.util.eventloop.Reactor;

@@ -25,7 +25,7 @@ import org.apache.curator.utils.ZKPaths
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.StateTable
+import org.midonet.cluster.data.storage.{Directory, StateTable}
 import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}

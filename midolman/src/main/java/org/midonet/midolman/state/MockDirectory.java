@@ -48,6 +48,9 @@ import org.apache.zookeeper.proto.SetDataRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.storage.Directory;
+import org.midonet.cluster.data.storage.DirectoryCallback;
+
 import static org.apache.zookeeper.Watcher.Event.EventType;
 import static org.apache.zookeeper.Watcher.Event.KeeperState;
 

@@ -19,7 +19,7 @@ import javax.inject.Inject;
 
 import com.google.inject.Provider;
 
-import org.midonet.midolman.state.Directory;
+import org.midonet.cluster.data.storage.Directory;
 import org.midonet.midolman.state.ZkConnection;
 
 /**

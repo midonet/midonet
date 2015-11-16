@@ -18,7 +18,7 @@ package org.midonet.midolman.cluster.zookeeper;
 import javax.inject.Singleton;
 
 import com.google.inject.name.Names;
-import org.midonet.midolman.state.Directory;
+import org.midonet.cluster.data.storage.Directory;
 import org.midonet.midolman.state.MockDirectory;
 import org.midonet.midolman.state.SessionUnawareConnectionWatcher;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;

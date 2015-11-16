@@ -22,6 +22,8 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.storage.Directory;
+import org.midonet.cluster.data.storage.DirectoryCallback;
 import org.midonet.midolman.SystemDataProvider;
 
 /**

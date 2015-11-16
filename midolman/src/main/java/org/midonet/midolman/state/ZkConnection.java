@@ -24,6 +24,7 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.storage.Directory;
 import org.midonet.util.eventloop.Reactor;
 
 public class ZkConnection implements Watcher {

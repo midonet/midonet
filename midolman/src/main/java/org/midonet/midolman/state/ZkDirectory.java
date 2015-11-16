@@ -39,6 +39,8 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.storage.Directory;
+import org.midonet.cluster.data.storage.DirectoryCallback;
 import org.midonet.util.eventloop.Reactor;
 
 public class ZkDirectory implements Directory {

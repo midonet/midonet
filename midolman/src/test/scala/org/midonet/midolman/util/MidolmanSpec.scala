@@ -22,7 +22,7 @@ import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.storage.InMemoryStorage
+import org.midonet.cluster.data.storage.{Directory, InMemoryStorage}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
@@ -33,7 +33,6 @@ import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.MidolmanService
 import org.midonet.midolman.simulation.CustomMatchers
-import org.midonet.midolman.state.Directory
 import org.midonet.midolman.util.mock.MockMidolmanActors
 import org.midonet.util.collection.IPv4InvalidationArray
 
