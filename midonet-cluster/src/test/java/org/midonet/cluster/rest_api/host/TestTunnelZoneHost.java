@@ -37,10 +37,6 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import org.midonet.cluster.rest_api.host.rest_api.HostTopology;
-import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
-import org.midonet.cluster.rest_api.rest_api.FuncTest;
-import org.midonet.cluster.rest_api.rest_api.TopologyBackdoor;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoTunnelZone;
@@ -50,8 +46,12 @@ import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.TunnelZone;
 import org.midonet.client.resource.TunnelZoneHost;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.rest_api.host.rest_api.HostTopology;
+import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
+import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.TopologyBackdoor;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.MatcherAssert.assertThat;

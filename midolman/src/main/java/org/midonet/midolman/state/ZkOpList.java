@@ -35,6 +35,8 @@ import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+
 /**
  * Class to manage list of Op Zookeeper objects.
  *

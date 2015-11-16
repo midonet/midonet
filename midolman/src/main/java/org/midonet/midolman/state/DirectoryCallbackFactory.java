@@ -23,6 +23,7 @@ import rx.Observer;
 import org.apache.zookeeper.KeeperException;
 
 import org.midonet.cluster.backend.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.util.functors.Functor;
 
 /**

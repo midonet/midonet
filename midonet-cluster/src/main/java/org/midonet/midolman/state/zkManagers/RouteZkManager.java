@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import com.google.inject.Inject;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -28,7 +29,6 @@ import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 
 /**

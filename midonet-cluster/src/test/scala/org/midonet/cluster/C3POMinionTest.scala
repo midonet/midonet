@@ -23,10 +23,6 @@ import java.util.concurrent.TimeUnit
 
 import javax.sql.DataSource
 
-import org.midonet.cluster.backend.zookeeper.ZkConnection
-import org.midonet.cluster.models.Neutron.NeutronRoute
-import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
-
 import scala.collection.JavaConverters._
 import scala.util.{Random, Try}
 
@@ -45,6 +41,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
+import org.midonet.cluster.backend.zookeeper.{ZookeeperConnectionWatcher, ZkConnection}
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
@@ -52,7 +49,9 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.c3po.translators.BridgeStateTableManager
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
@@ -64,7 +63,7 @@ import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
-import org.midonet.midolman.state.{PathBuilder, ZookeeperConnectionWatcher}
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
