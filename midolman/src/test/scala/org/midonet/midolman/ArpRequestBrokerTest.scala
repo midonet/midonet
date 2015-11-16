@@ -16,26 +16,28 @@
 package org.midonet.midolman
 
 import java.util.{ArrayDeque, UUID}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
 import akka.actor.ActorSystem
+
 import org.apache.curator.test.TestingServer
 import org.apache.zookeeper.CreateMode
 import org.junit.runner.RunWith
-import org.midonet.midolman.PacketWorkflow.{GeneratedLogicalPacket, GeneratedPacket}
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.{Second, Span}
-
-import org.midonet.midolman.state.LegacyArpCacheImpl
+import org.midonet.cluster.backend.Directory
+import org.midonet.cluster.backend.zookeeper.{ZkDirectory, ZkConnection}
+import org.midonet.midolman.PacketWorkflow.{GeneratedLogicalPacket, GeneratedPacket}
+import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation._
-import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.state.ArpRequestBroker._
-import org.midonet.midolman.state._
+import org.midonet.midolman.state.{LegacyArpCacheImpl, _}
 import org.midonet.midolman.util.ArpCacheHelper
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}

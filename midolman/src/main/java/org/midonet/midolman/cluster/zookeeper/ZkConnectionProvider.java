@@ -20,8 +20,8 @@ import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import org.slf4j.Logger;
 
+import org.midonet.cluster.backend.zookeeper.ZkConnection;
 import org.midonet.cluster.storage.MidonetBackendConfig;
-import org.midonet.midolman.state.ZkConnection;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.util.eventloop.Reactor;
 
@@ -35,8 +35,7 @@ public class ZkConnectionProvider implements Provider<ZkConnection> {
 
     private final static Logger log = getLogger(ZkConnectionProvider.class);
 
-    // WARN: should this string change, also replace it in
-    // BridgeBuilderStateFeeder, ZookeeperStateStorage and HostService
+    // WARN: should this string change, also replace it in HostService
     public static final String DIRECTORY_REACTOR_TAG = "directoryReactor";
 
     @Inject
