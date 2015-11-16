@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_a9f9454f",
+        "filename": "tests/mdts/tests/utils/utils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-16T12:45:37Z",
+      "side": 1,
+      "message": "why on midolman1? shouldn\u0027t it be installed in the host too?",
+      "range": {
+        "startLine": 265,
+        "startChar": 46,
+        "endLine": 265,
+        "endChar": 55
+      },
+      "revId": "355a3c573022fd549d8858e43a87829e1d17a162",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
