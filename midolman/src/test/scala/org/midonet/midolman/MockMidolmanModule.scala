@@ -20,7 +20,6 @@ import java.util.{UUID, LinkedList}
 import java.util.concurrent.ConcurrentHashMap
 
 import org.midonet.midolman.monitoring.NullFlowRecorder
-
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
@@ -29,6 +28,7 @@ import com.google.inject.Injector
 import com.lmax.disruptor.{SequenceBarrier, RingBuffer}
 import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
 
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage

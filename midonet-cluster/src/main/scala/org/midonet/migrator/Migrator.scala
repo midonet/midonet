@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.backend.Directory
-import org.midonet.cluster.backend.zookeeper.ZkConnection
+import org.midonet.cluster.backend.zookeeper.{ZookeeperConnectionWatcher, ZkConnectionProvider, ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology
@@ -64,8 +64,8 @@ import org.midonet.cluster.{DataClient, LocalDataClientImpl}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
-import org.midonet.midolman.cluster.zookeeper.{DirectoryProvider, ZkConnectionProvider}
-import org.midonet.midolman.state.{ZkConnectionAwareWatcher, ZookeeperConnectionWatcher, _}
+import org.midonet.midolman.cluster.zookeeper.DirectoryProvider
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{IPSubnet, IPv4Addr, IPv4Subnet, IPv6Subnet}
 import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.eventloop.Reactor

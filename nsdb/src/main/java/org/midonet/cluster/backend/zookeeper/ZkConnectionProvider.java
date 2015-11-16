@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.cluster.zookeeper;
+package org.midonet.cluster.backend.zookeeper;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import org.slf4j.Logger;
 
-import org.midonet.cluster.backend.zookeeper.ZkConnection;
 import org.midonet.cluster.storage.MidonetBackendConfig;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.util.eventloop.Reactor;
 
 import static org.slf4j.LoggerFactory.getLogger;

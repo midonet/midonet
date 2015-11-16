@@ -30,6 +30,7 @@ import akka.actor.ActorRef
 import org.apache.zookeeper.KeeperException
 import rx.Subscription
 
+import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, StateAccessException}
 import org.midonet.cluster.data.Route
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
@@ -38,7 +39,6 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.routingprotocols.RoutingWorkflow.RoutingInfo
 import org.midonet.midolman.simulation.RouterPort
-import org.midonet.midolman.state.{StateAccessException, ZkConnectionAwareWatcher}
 import org.midonet.midolman.topology.devices.{BgpPort, BgpPortDeleted, BgpRouterDeleted}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp.DpPort
