@@ -16,6 +16,24 @@
       "revId": "8ffc339c0514962d4c5f522e2270c1fcae039f06",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_f47eb4e3",
+        "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-16T16:25:02Z",
+      "side": 1,
+      "message": "Yes. I want to keep a couple of different bindings though, to make sure this works well over multiple nodes.",
+      "parentUuid": "7ac7a964_74238405",
+      "revId": "8ffc339c0514962d4c5f522e2270c1fcae039f06",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
