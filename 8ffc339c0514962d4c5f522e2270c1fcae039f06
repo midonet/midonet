@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_74238405",
+        "filename": "tests/mdts/tests/functional_tests/test_l2insertion.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-16T16:23:26Z",
+      "side": 1,
+      "message": "I assume this is due to my comment?",
+      "revId": "8ffc339c0514962d4c5f522e2270c1fcae039f06",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
