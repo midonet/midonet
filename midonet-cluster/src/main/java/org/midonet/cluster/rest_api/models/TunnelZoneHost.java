@@ -37,6 +37,7 @@ public class TunnelZoneHost extends UriResource {
 
     public UUID tunnelZoneId;
 
+    @NotNull
     @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
     public UUID hostId;
 

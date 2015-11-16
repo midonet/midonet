@@ -320,7 +320,7 @@ public class TestRouter {
 
         @Test
         public void testRouterCreateWithNoName() throws Exception {
-           DtoRouter router = createRouter(null, "tenant1", false, false);
+            DtoRouter router = createRouter(null, "tenant1", false, false);
             assertNull(router.getName());
         }
 

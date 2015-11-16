@@ -23,7 +23,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
 import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import com.google.common.base.MoreObjects;
 
@@ -34,10 +33,6 @@ import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil;
 
 
-/**
- * Class representing a IP address group.
- */
-@XmlRootElement
 @ZoomClass(clazz = Topology.IPAddrGroup.class)
 public class IpAddrGroup extends UriResource {
 

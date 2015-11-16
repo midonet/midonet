@@ -20,6 +20,6 @@ public class SystemState {
 
     public String state = null;
     public String availability = null;
-    public String writeVersion = "1.9";
+    public String writeVersion = "5.0";
 
 }

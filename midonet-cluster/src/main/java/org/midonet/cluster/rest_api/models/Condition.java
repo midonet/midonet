@@ -23,7 +23,6 @@ import java.util.UUID;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
-import javax.xml.bind.annotation.XmlTransient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects.ToStringHelper;
@@ -68,7 +67,7 @@ public class Condition extends UriResource {
         @ZoomEnumValue(value = "UNFRAGMENTED") unfragmented
     }
 
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "nw_dst_ip", converter = IPSubnetUtil.Converter.class)
     public IPSubnet<?> nwDst;
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
@@ -76,7 +75,7 @@ public class Condition extends UriResource {
     @Min(0)
     @Max(32)
     public int nwDstLength;
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "nw_src_ip", converter = IPSubnetUtil.Converter.class)
     public IPSubnet<?> nwSrc;
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
