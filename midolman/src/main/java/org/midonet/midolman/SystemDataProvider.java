@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman;
 
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 /**
  * This interface defines methods to provide system data information.

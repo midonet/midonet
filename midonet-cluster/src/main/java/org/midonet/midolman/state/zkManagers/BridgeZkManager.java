@@ -24,10 +24,10 @@ import com.google.inject.Inject;
 
 import org.midonet.cluster.WatchableZkManager;
 import org.midonet.cluster.backend.Directory;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.nsdb.ConfigWithProperties;
 

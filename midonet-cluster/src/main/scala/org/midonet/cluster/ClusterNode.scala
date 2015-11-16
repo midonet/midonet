@@ -33,15 +33,14 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.AuthModule
 import org.midonet.cluster.backend.Directory
-import org.midonet.cluster.backend.zookeeper.ZkConnection
+import org.midonet.cluster.backend.zookeeper.{ZookeeperConnectionWatcher, ZkConnectionProvider, ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage._
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule.ZookeeperReactorProvider
-import org.midonet.midolman.cluster.zookeeper.{DirectoryProvider, ZkConnectionProvider}
-import org.midonet.midolman.state.{ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
+import org.midonet.midolman.cluster.zookeeper.DirectoryProvider
 import org.midonet.southbound.vtep.OvsdbVtepConnectionProvider
 import org.midonet.util.eventloop.Reactor
 

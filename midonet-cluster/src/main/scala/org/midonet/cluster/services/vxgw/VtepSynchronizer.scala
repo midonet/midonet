@@ -34,6 +34,7 @@ import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer}
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.{DataClient, vxgwVtepControlLog}
 import org.midonet.cluster.data.storage.{NotFoundException, StateStorage, Storage}
 import org.midonet.cluster.data.vtep.VtepStateException
