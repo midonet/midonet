@@ -40,7 +40,7 @@ import org.midonet.cluster.rest_api.neutron.models.Subnet;
 import org.midonet.cluster.services.rest_api.neutron.plugin.NetworkApi;
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;

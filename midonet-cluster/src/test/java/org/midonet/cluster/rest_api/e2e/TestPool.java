@@ -37,7 +37,7 @@ import org.midonet.client.dto.l4lb.LBStatus;
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;

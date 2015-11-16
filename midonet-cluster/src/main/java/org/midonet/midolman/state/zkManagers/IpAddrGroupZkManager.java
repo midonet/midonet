@@ -27,7 +27,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.nsdb.ConfigWithProperties;
 
@@ -72,7 +72,7 @@ public class IpAddrGroupZkManager extends
      * @param id
      *            IP addr group ID to check
      * @return True if exists
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws StateAccessException
      */
     public boolean exists(UUID id) throws StateAccessException {
         return zk.exists(paths.getIpAddrGroupPath(id));
@@ -84,7 +84,7 @@ public class IpAddrGroupZkManager extends
      * @param id
      *            The ID of the ip addr group.
      * @return IpAddrGroupConfig object
-     * @throws org.midonet.midolman.state.StateAccessException
+     * @throws StateAccessException
      */
     public IpAddrGroupConfig get(UUID id) throws StateAccessException,
             SerializationException {

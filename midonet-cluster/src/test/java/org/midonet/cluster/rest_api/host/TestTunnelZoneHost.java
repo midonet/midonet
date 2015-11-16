@@ -51,7 +51,7 @@ import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.TunnelZone;
 import org.midonet.client.resource.TunnelZoneHost;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.MatcherAssert.assertThat;

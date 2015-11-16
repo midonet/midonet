@@ -24,6 +24,7 @@ import akka.actor._
 import com.google.inject.Inject
 import rx.Subscription
 
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.data.storage.StateStorage
 import org.midonet.cluster.data.Route
 import org.midonet.cluster.models.Topology.{Port, BgpPeer}
@@ -36,7 +37,6 @@ import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
 import org.midonet.midolman.services.SelectLoopService.ZEBRA_SERVER_LOOP
-import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.topology.{Converter, LocalPortActive, VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}

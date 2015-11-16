@@ -23,7 +23,7 @@ import com.google.inject.name.Names;
 import org.midonet.cluster.backend.Directory;
 import org.midonet.cluster.backend.zookeeper.ZkConnection;
 import org.midonet.cluster.storage.MidonetBackendConfig;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.TryCatchReactor;
 

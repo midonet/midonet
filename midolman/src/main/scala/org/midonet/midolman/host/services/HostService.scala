@@ -34,6 +34,7 @@ import com.google.inject.name.Named
 import com.google.protobuf.TextFormat
 import rx.{Observer, Subscription}
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.State
@@ -51,7 +52,6 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.services.HostIdProvider
-import org.midonet.midolman.state.StateAccessException
 import org.midonet.packets.MAC
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.reactivex._

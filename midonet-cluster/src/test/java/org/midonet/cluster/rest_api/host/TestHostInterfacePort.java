@@ -50,7 +50,7 @@ import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterfacePort;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
