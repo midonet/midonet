@@ -29,6 +29,7 @@ import org.apache.commons.cli._
 import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.backend.zookeeper.{ZookeeperConnectionWatcher, StateAccessException}
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Port
@@ -39,7 +40,6 @@ import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
-import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.concurrent.toFutureOps
 
 

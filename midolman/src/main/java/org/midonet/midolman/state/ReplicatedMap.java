@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.backend.Directory;
 import org.midonet.cluster.backend.DirectoryCallback;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
 
 public abstract class ReplicatedMap<K, V> {
     private final static Logger log =
