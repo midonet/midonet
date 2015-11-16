@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+
 /**
  * Base class for Zookeeper exceptions arising from a node either
  * existing when not expected (StatePathExistsException) or not
