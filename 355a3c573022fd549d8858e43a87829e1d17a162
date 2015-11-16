@@ -22,6 +22,30 @@
       "revId": "355a3c573022fd549d8858e43a87829e1d17a162",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_b4d8bc1e",
+        "filename": "tests/mdts/tests/utils/utils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-16T15:54:00Z",
+      "side": 1,
+      "message": "afaik mn-conf is not installed in the host, I\u0027m using midolman1 just because, it will always have midonet-tools installed.",
+      "parentUuid": "7ac7a964_a9f9454f",
+      "range": {
+        "startLine": 265,
+        "startChar": 46,
+        "endLine": 265,
+        "endChar": 55
+      },
+      "revId": "355a3c573022fd549d8858e43a87829e1d17a162",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
