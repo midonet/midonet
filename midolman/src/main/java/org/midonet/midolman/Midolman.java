@@ -41,6 +41,7 @@ import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.conf.HostIdGenerator;
@@ -53,7 +54,6 @@ import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.util.cLibrary;
 
 public class Midolman {

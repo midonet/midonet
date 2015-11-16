@@ -23,14 +23,11 @@ import java.util.UUID;
 
 import com.google.inject.Inject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.IPv6Subnet;

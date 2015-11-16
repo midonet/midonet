@@ -33,13 +33,13 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.neutron.NeutronMediaType;
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroup;
 import org.midonet.cluster.services.rest_api.neutron.plugin.SecurityGroupApi;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
 
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;

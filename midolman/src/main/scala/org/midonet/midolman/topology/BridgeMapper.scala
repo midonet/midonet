@@ -36,6 +36,7 @@ import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.VlanPortMapImpl
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.util.UUIDUtil._
@@ -43,7 +44,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.Bridge.{MacFlowCount, RemoveFlowCallbackGenerator, UntaggedVlanId}
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, _}
 import org.midonet.midolman.state.ReplicatedMap.Watcher
-import org.midonet.midolman.state.{ReplicatedMap, StateAccessException}
+import org.midonet.midolman.state.ReplicatedMap
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.collection.Reducer
