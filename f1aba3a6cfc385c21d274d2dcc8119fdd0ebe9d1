@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_f025e70a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-16T11:11:29Z",
+      "side": 1,
+      "message": "nit^2: I learned Style actually wants this in a new line, but it\u0027s my fault so I should fix all in the codebase.",
+      "range": {
+        "startLine": 49,
+        "startChar": 58,
+        "endLine": 49,
+        "endChar": 61
+      },
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_d011cbad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-16T11:11:29Z",
+      "side": 1,
+      "message": "debug?",
+      "range": {
+        "startLine": 54,
+        "startChar": 24,
+        "endLine": 54,
+        "endChar": 28
+      },
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_d088ebe9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-16T11:11:29Z",
+      "side": 1,
+      "message": "any chance that route is null here?",
+      "range": {
+        "startLine": 175,
+        "startChar": 20,
+        "endLine": 175,
+        "endChar": 25
+      },
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_10518362",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 620,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-16T11:11:29Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 620,
+        "startChar": 16,
+        "endLine": 620,
+        "endChar": 21
+      },
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
