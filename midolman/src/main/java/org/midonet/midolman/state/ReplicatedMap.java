@@ -32,6 +32,9 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.Directory;
+import org.midonet.cluster.backend.DirectoryCallback;
+
 public abstract class ReplicatedMap<K, V> {
     private final static Logger log =
         LoggerFactory.getLogger(ReplicatedMap.class);
