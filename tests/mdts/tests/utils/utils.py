@@ -262,15 +262,15 @@ def with_mn_conf(switch_flag, switch_id, config):
     return decorated
 
 def execute_mn_conf(switch_flag, switch_id, config):
+    host = service.get_container_by_hostname("midolman1")
     conf_file = tempfile.NamedTemporaryFile()
-    for k,v in config.items():
+    for k, v in config.items():
         conf_file.write("%s=%s\n" % (k, v))
     conf_file.flush()
-    process = subprocess.Popen("mn-conf set %s %s < %s" % (switch_flag,
-                                                           switch_id,
-                                                           conf_file.name),
-                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
+    cmd = "mn-conf set %s %s < %s" % (switch_flag,
+                                      switch_id,
+                                      conf_file.name)
+    host.exec_command(cmd, stream=False)
     conf_file.close()
 
 def clear_virtual_topology_for_tenants(tenant_name_prefix):
