@@ -30,13 +30,13 @@ import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 import rx.subjects.Subject
 
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
-import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag

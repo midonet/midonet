@@ -31,8 +31,8 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.cluster.data.Route
-import org.midonet.midolman.state.StateAccessException
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.RoutingStorage
 import org.midonet.midolman.simulation.RouterPort
