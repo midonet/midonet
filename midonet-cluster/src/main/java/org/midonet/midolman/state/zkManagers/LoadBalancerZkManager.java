@@ -16,23 +16,16 @@
 
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
 
-import org.apache.zookeeper.Op;
-
-import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.nsdb.BaseConfig;
-
-import static java.util.Arrays.asList;
 
 /**
  * Class to manage the LoadBalancer ZooKeeper data.

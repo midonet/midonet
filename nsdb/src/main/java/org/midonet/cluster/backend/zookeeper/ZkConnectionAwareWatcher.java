@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.state;
+package org.midonet.cluster.backend.zookeeper;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
-
-import org.midonet.cluster.backend.zookeeper.ZkConnection;
 
 public interface ZkConnectionAwareWatcher extends Watcher {
 

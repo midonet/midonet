@@ -22,6 +22,7 @@ import scala.collection.JavaConversions._
 import org.apache.zookeeper.CreateMode
 
 import org.midonet.cluster.backend.Directory
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.packets.{IPv4Addr, MAC}
 
 class Ip4ToMacReplicatedMap(dir: Directory)
