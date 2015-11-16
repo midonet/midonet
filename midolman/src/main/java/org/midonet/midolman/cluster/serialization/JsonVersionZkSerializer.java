@@ -34,10 +34,10 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.version.state.VersionConfig;
 import org.midonet.util.version.VersionCheckAnnotationIntrospector;
 

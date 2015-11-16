@@ -16,8 +16,8 @@
 
 package org.midonet.midolman.state.zkManagers;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
 
 public interface ConfigGetter<K, CFG> {
     CFG get(K key) throws StateAccessException, SerializationException;

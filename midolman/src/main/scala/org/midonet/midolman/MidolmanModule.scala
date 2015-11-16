@@ -33,6 +33,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.slf4j.{LoggerFactory, Logger}
 
 import org.midonet.cluster.backend.cassandra.CassandraClient
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.storage.MidonetBackendConfig

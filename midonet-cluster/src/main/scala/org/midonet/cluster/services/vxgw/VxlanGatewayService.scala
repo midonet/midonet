@@ -19,7 +19,6 @@ package org.midonet.cluster.services.vxgw
 import java.util
 import java.util.UUID
 import java.util.concurrent.Executors.newSingleThreadExecutor
-import java.util.concurrent.TimeUnit.SECONDS
 
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
@@ -32,13 +31,13 @@ import rx.schedulers.Schedulers
 import rx.{Observable, Observer, Subscription}
 
 import org.midonet.cluster._
+import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Vtep
 import org.midonet.cluster.services.MidonetBackend.VtepVxgwManager
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{Snatcher, UUIDUtil, selfHealingTypeObservable}
-import org.midonet.midolman.state.ZookeeperConnectionWatcher
 import org.midonet.packets.IPv4Addr
 import org.midonet.southbound.vtep.{OvsdbVtepConnectionProvider, OvsdbVtepDataClient}
 import org.midonet.util.concurrent.NamedThreadFactory

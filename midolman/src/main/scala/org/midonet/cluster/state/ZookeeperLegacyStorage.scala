@@ -21,6 +21,7 @@ import javax.annotation.Nonnull
 
 import com.google.inject.Inject
 import org.midonet.cluster.backend.Directory
+import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, StateAccessException}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.Serializer
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
