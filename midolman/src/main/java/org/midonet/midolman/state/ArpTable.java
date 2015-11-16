@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.state;
 
+import org.midonet.cluster.backend.Directory;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.packets.IPv4Addr;
 
