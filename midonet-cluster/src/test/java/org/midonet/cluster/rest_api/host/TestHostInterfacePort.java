@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.rest_api.host.rest_api.HostTopology;
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
@@ -50,7 +51,6 @@ import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterfacePort;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;

@@ -21,16 +21,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
-import org.midonet.cluster.rest_api.rest_api.FuncTest;
-import org.midonet.cluster.rest_api.rest_api.TopologyBackdoor;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
+import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
+import org.midonet.cluster.rest_api.rest_api.FuncTest;
+import org.midonet.cluster.rest_api.rest_api.TopologyBackdoor;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
 
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HOST_INTERFACE_PORT_JSON;

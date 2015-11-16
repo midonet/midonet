@@ -19,9 +19,9 @@ import javax.inject.Singleton;
 
 import com.google.inject.name.Names;
 import org.midonet.cluster.backend.Directory;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
 import org.midonet.midolman.state.MockDirectory;
 import org.midonet.midolman.state.SessionUnawareConnectionWatcher;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.CallingThreadReactor;

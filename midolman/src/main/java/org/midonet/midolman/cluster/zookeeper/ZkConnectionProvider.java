@@ -21,8 +21,8 @@ import com.google.inject.name.Named;
 import org.slf4j.Logger;
 
 import org.midonet.cluster.backend.zookeeper.ZkConnection;
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
 import org.midonet.cluster.storage.MidonetBackendConfig;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.util.eventloop.Reactor;
 
 import static org.slf4j.LoggerFactory.getLogger;

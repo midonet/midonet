@@ -19,8 +19,8 @@ package org.midonet.cluster.util
 import org.apache.zookeeper.{KeeperException, WatchedEvent}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.backend.zookeeper.ZkConnection
-import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
+import org.midonet.cluster.backend.zookeeper.{StateAccessException, ZkConnection}
+import org.midonet.midolman.state.ZookeeperConnectionWatcher
 
 object TestZkTools {
     def instantZkConnWatcher = new ZookeeperConnectionWatcher {

@@ -26,6 +26,7 @@ import rx.subjects.PublishSubject
 import rx.{Subscriber, Observable}
 import rx.Observable.OnSubscribe
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{MAC, IPv4Addr}
