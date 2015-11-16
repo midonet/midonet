@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.data.TraceRequest.DeviceType;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.rest_api.models.Condition;
@@ -40,7 +41,6 @@ import org.midonet.cluster.rest_api.models.TraceRequest;
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
 import org.midonet.cluster.rest_api.rest_api.Topology;
-import org.midonet.midolman.state.StateAccessException;
 
 import static java.lang.System.currentTimeMillis;
 import static org.hamcrest.MatcherAssert.assertThat;

@@ -19,7 +19,8 @@ import java.util.UUID
 
 import javax.annotation.Nonnull
 
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, StateAccessException, _}
+import org.midonet.cluster.backend.zookeeper.StateAccessException
+import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, _}
 
 /**
  * A trait defining the cluster state API. Currently, this trait represents a

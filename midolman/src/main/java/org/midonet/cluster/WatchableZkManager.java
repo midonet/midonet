@@ -15,8 +15,8 @@
  */
 package org.midonet.cluster;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
 
 /**
  * This interface defines the contract required to any device ZkManager that
@@ -32,6 +32,6 @@ public interface WatchableZkManager<K, T> {
      * @return the item data, or null if it does not exist.
      */
     T get(K key, Runnable watcher) throws StateAccessException,
-                                            SerializationException;
+                                          SerializationException;
 }
 
