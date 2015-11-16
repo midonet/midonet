@@ -26,8 +26,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.backend.zookeeper.ZkConnection
-import org.midonet.midolman.state.{StateAccessException, ZkConnectionAwareWatcher}
+import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, StateAccessException, ZkConnection}
 import org.midonet.util.UnixClock
 
 @RunWith(classOf[JUnitRunner])
