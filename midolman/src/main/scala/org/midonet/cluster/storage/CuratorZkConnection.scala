@@ -18,15 +18,14 @@ package org.midonet.cluster.storage
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.zookeeper.WatchedEvent
-
-import org.midonet.midolman.state.ZkConnection
+import org.midonet.cluster.backend.zookeeper.{ZkDirectory, ZkConnection}
 import org.midonet.util.eventloop.Reactor
 
 /**
  * Provides an implementation of the legacy [[ZkConnection]] to use with
  * Curator. Because the Curator connection lifecycle is handled separately,
  * the corresponding connection methods are overwritten in this implementation.
- * This allows the creation of a [[org.midonet.midolman.state.ZkDirectory]]
+ * This allows the creation of a [[ZkDirectory]]
  * based on Curator.
  */
 class CuratorZkConnection(curator: CuratorFramework, reactor: Reactor)

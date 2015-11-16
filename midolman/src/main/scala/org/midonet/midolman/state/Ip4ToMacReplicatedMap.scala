@@ -18,13 +18,13 @@ package org.midonet.midolman.state
 import java.util
 
 import org.apache.zookeeper.CreateMode
+import org.midonet.cluster.backend.Directory
 import org.midonet.packets.{IPv4Addr, MAC}
 
 import scala.collection.JavaConversions._
 
 class Ip4ToMacReplicatedMap(dir: Directory)
-    extends ReplicatedMap[IPv4Addr, MAC](dir)
-{
+    extends ReplicatedMap[IPv4Addr, MAC](dir) {
     def putPersistent(key: IPv4Addr, value: MAC): Unit = {
         Ip4ToMacReplicatedMap.addPersistentEntry(dir, key, value)
     }
