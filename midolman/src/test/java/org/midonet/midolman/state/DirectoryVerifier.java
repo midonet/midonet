@@ -30,6 +30,8 @@ import com.jayway.jsonpath.PathNotFoundException;
 import org.apache.zookeeper.Watcher;
 import org.junit.Assert;
 
+import org.midonet.cluster.backend.Directory;
+
 /**
  * Test helper class to verify the directory content.
  *

@@ -25,6 +25,8 @@ import org.apache.curator.utils.ZKPaths
 
 import rx.Observable
 
+import org.midonet.cluster.backend.Directory
+import org.midonet.cluster.backend.zookeeper.ZkDirectory
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.data.storage.StateTable.Update
 import org.midonet.midolman.state._
