@@ -21,6 +21,8 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 
+import org.midonet.cluster.backend.zookeeper.ZkConnection;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
