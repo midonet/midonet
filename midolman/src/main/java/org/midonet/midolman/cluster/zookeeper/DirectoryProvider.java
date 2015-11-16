@@ -19,8 +19,8 @@ import javax.inject.Inject;
 
 import com.google.inject.Provider;
 
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.ZkConnection;
+import org.midonet.cluster.backend.Directory;
+import org.midonet.cluster.backend.zookeeper.ZkConnection;
 
 /**
  * Provides an {@link Directory} implementation which is backed up by a
