@@ -19,6 +19,8 @@ package org.midonet.midolman.state;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 
+import org.midonet.cluster.backend.zookeeper.ZkConnection;
+
 public interface ZkConnectionAwareWatcher extends Watcher {
 
     void setZkConnection(ZkConnection conn);

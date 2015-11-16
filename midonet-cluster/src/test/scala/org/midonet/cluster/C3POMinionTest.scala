@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit
 
 import javax.sql.DataSource
 
+import org.midonet.cluster.backend.zookeeper.ZkConnection
 import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 
@@ -63,7 +64,7 @@ import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
-import org.midonet.midolman.state.{PathBuilder, ZkConnection, ZookeeperConnectionWatcher}
+import org.midonet.midolman.state.{PathBuilder, ZookeeperConnectionWatcher}
 import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps

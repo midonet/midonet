@@ -31,6 +31,8 @@ import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.backend.Directory;
+import org.midonet.cluster.backend.DirectoryCallback;
 /**
  *  Class that provides data access methods to Zookeeper as a wrapper of
  *  Directory class.
