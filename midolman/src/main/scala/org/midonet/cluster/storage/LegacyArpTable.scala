@@ -44,6 +44,12 @@ final class LegacyArpTable(bridgeId: UUID, curator: CuratorFramework,
     private val reactor = new CallingThreadReactor
     private val curatorConnection = new CuratorZkConnection(curator, reactor)
 
+    /** Starts the synchronization of the state table. */
+    def start(): Unit = ???
+
+    /** Stops the synchronization of the state table. */
+    def stop(): Unit = ???
+
     /** Adds an opinion key MAC pair to the state table. */
     def add(address: IPv4Addr, mac: MAC): Unit = ???
 
@@ -62,12 +68,16 @@ final class LegacyArpTable(bridgeId: UUID, curator: CuratorFramework,
     }
 
     /** Removes the opinion for the specified address from the state table. */
-    def remove(address: IPv4Addr): Unit = ???
+    def remove(address: IPv4Addr): MAC = ???
 
     /** Removes an address MAC pair from the state table, either learned or
       * persistent. */
     @throws[StateAccessException]
-    def remove(address: IPv4Addr, mac: MAC): Unit = {
+    def remove(address: IPv4Addr, mac: MAC): MAC = ???
+
+    /** Removes a persistent key value pair from the state table. */
+    @throws[StateAccessException]
+    def removePersistent(address: IPv4Addr, mac: MAC): MAC = {
         Ip4ToMacReplicatedMap.deleteEntry(createDirectory(), address, mac)
     }
 
@@ -88,7 +98,7 @@ final class LegacyArpTable(bridgeId: UUID, curator: CuratorFramework,
     def containsPersistent(address: IPv4Addr, mac: MAC): Boolean = ???
 
     /** Gets the MAC for the specified address. */
-    def get(address: IPv4Addr): Option[MAC] = ???
+    def get(address: IPv4Addr): MAC = ???
 
     /** Gets the set of addresses corresponding the specified MAC. */
     def getByValue(value: MAC): Set[IPv4Addr] = ???
