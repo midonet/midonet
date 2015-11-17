@@ -160,7 +160,8 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             throw new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID)))
 
         tryLegacyWrite {
-            resContext.stateTables.bridgeArpTable(bridgeId).remove(address, mac)
+            resContext.stateTables.bridgeArpTable(bridgeId)
+                                  .removePersistent(address, mac)
             Response.noContent().build()
         }
     }
