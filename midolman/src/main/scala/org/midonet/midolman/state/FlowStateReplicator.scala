@@ -215,7 +215,9 @@ class FlowStateReplicator(
     def accumulateNewKeys(context: PacketContext): Unit = {
         val ingressPort = context.inputPort
         val egressPorts = context.outPorts
-        resolvePeers(ingressPort, egressPorts, txPeers, txPorts, context.flowTags)
+        val servicePorts = context.servicePorts
+        resolvePeers(ingressPort, egressPorts, servicePorts,
+                     txPeers, txPorts, context.flowTags)
         txIngressPort = ingressPort
         val callbacks = context.flowRemovedCallbacks
 
@@ -335,6 +337,7 @@ class FlowStateReplicator(
     @throws(classOf[NotYetException])
     protected def resolvePeers(ingressPort: UUID,
                                egressPorts: ArrayList[UUID],
+                               servicePorts: ArrayList[UUID],
                                hosts: JSet[UUID],
                                ports: JSet[UUID],
                                tags: Collection[FlowTag]): Unit = {
@@ -349,7 +352,13 @@ class FlowStateReplicator(
             peerResolver.collectPeersForPort(port, hosts, ports, tags)
             i += 1
         }
-
+        i = 0
+        while (i < servicePorts.size) {
+            val port = servicePorts.get(i)
+            ports.add(port)
+            peerResolver.collectPeersForPort(port, hosts, ports, tags)
+            i += 1
+        }
         log.debug("Resolved peers {}", hosts)
     }
 }

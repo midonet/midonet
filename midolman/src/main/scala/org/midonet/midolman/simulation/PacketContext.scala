@@ -216,8 +216,10 @@ trait RedirectContext extends Clearable {
     var redirectedOut = false
     var redirectFailOpen = false
 
-    def isRedirectedOut(): Boolean = redirectedOut
-    def isRedirectFailOpen(): Boolean = redirectFailOpen
+    val servicePorts = new ArrayList[UUID]()
+
+    def isRedirectedOut: Boolean = redirectedOut
+    def isRedirectFailOpen: Boolean = redirectFailOpen
 
     def redirectOut(failOpen: Boolean): Unit = {
         redirectedOut = true
@@ -231,6 +233,7 @@ trait RedirectContext extends Clearable {
 
     override def clear(): Unit = {
         clearRedirect()
+        servicePorts.clear()
         super.clear()
     }
 }
