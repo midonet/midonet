@@ -18,6 +18,8 @@ package org.midonet.cluster.storage
 
 import java.util.UUID
 
+import scala.reflect.ClassTag
+
 import com.google.inject.Inject
 
 import org.apache.curator.framework.CuratorFramework
@@ -35,8 +37,18 @@ final class LegacyStateTableStorage @Inject()(curator: CuratorFramework,
     extends StateTableStorage {
 
     /** Returns the IPv4 ARP table for the specified bridge. */
+    @Deprecated
     def bridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC] = {
         new LegacyArpTable(bridgeId, curator, paths)
     }
+
+    def registerTable[K, V](clazz: Class[_], key: Class[K], value: Class[V],
+                            name: String,
+                            provider: Class[_ <: StateTable[K,V]]): Unit = ???
+
+    def getTable[K, V](clazz: Class[_], id: Any, name: String, args: Any*)
+                      (implicit key: ClassTag[K], value: ClassTag[V])
+    : StateTable[K, V] = ???
+
 
 }
