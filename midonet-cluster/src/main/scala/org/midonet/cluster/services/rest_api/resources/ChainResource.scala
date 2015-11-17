@@ -56,11 +56,13 @@ class ChainResource @Inject()(resContext: ResourceContext)
         else chains filter { _.tenantId == tenantId }
     }
 
-    protected override def deleteFilter(chainId: String): Seq[Multi] = {
-        val chain = getResource(classOf[Chain], chainId)
+    protected override def deleteFilter(chainId: String,
+                                        tx: ResourceTransaction): Unit = {
+        val chain = tx.get(classOf[Chain], chainId)
         // Deletes the jump rules that reference a chain.
         for (ruleId <- chain.jumpRuleIds.asScala)
-            yield Delete(classOf[Rule], ruleId)
+            tx.delete(classOf[Rule], ruleId)
+        tx.delete(classOf[Chain], chainId)
     }
 
 }

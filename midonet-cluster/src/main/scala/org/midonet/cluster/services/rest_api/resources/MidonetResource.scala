@@ -68,12 +68,6 @@ object MidonetResource {
     final val OkNoContentResponse = Response.noContent().build()
     final def OkCreated(uri: URI) = Response.created(uri).build()
 
-    sealed trait Multi
-    case class Create[T <: UriResource](resource: T) extends Multi
-    case class Update[T <: UriResource](resource: T) extends Multi
-    case class Delete(clazz: Class[_ <: UriResource], id: Any) extends Multi
-    case class CreateNode(path: String) extends Multi
-
     final val DefaultHandler: PartialFunction[Response, Response] = {
         case r => r
     }
@@ -196,12 +190,54 @@ abstract class MidonetResource[T >: Null <: UriResource]
         Logger(getLogger(restApiResourceLog(getClass)))
 
     private val validator = resContext.validator
-    protected val backend = resContext.backend
+    protected val store = resContext.backend.store
+    protected val stateStore = resContext.backend.stateStore
     protected val uriInfo = resContext.uriInfo
 
     /* Determines whether a zookeeper lock is needed when performing
        CRUD operations. This variable can be overridden in subclasses. */
     protected val zkLockNeeded = true
+
+    class ResourceTransaction(val tx: Transaction) {
+
+        def get[U >: Null <: UriResource](clazz: Class[U], id: Any): U = tryRead {
+            fromProto(tx.get(UriResource.getZoomClass(clazz), id), clazz)
+        }
+
+        def list[U >: Null <: UriResource](clazz: Class[U]): Seq[U] = tryRead {
+            tx.getAll(UriResource.getZoomClass(clazz))
+                .map(fromProto(_, clazz))
+        }
+
+        def list[U >: Null <: UriResource](clazz: Class[U], ids: Seq[Any])
+        : Seq[U] = tryRead {
+            tx.getAll(UriResource.getZoomClass(clazz), ids)
+                .map(fromProto(_, clazz))
+        }
+
+        def create[U >: Null <: UriResource](resource: U): Unit = {
+            val message = toProto(resource)
+            log.debug("TX CREATE: {}", makeReadable(message))
+            tx.create(message)
+        }
+
+        def update[U >: Null <: UriResource](resource: U): Unit = {
+            val message = toProto(resource)
+            log.debug("TX UPDATE: {}", makeReadable(message))
+            tx.update(message, null)
+        }
+
+        def delete(clazz: Class[_ <: UriResource], id: Any): Unit = {
+            log.debug("TX DELETE: {}: {}", UriResource.getZoomClass(clazz),
+                      id.asInstanceOf[AnyRef])
+            tx.delete(UriResource.getZoomClass(clazz), id, ignoresNeo = true)
+        }
+
+        def commit(): Unit = {
+            tx.commit()
+        }
+
+    }
 
     @GET
     @Path("{id}")
@@ -236,7 +272,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
       * This is to prevent races with other components modifying the topology
       * concurrently that may result in a [[ConcurrentModificationException]].
       */
-    protected[resources] def zkLock[R](f: => Response): Response = {
+    private def zkLock[R](f: => Response): Response = {
         val lock = new ZkOpLock(resContext.lockFactory, lockOpNumber.getAndIncrement,
                                 ZookeeperLockFactory.ZOOM_TOPOLOGY)
 
@@ -289,11 +325,12 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
         t.setBaseUri(uriInfo.getBaseUri)
 
-        zkLock {
-            tryResponse(handleCreate, catchCreate) {
-                val ops = createFilter(t)
+        tryResponse(handleCreate, catchCreate) {
+            tryTx { tx =>
+                t.create()
                 throwIfViolationsOn(t)
-                multiResource(Seq(Create(t)) ++ ops, OkCreated(t.getUri))
+                createFilter(t, tx)
+                OkCreated(t.getUri)
             }
         }
     }
@@ -309,24 +346,25 @@ abstract class MidonetResource[T >: Null <: UriResource]
             throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
         }
 
-        zkLock {
-            val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
-            tryResponse(handleUpdate, catchUpdate) {
-                val current = getResource(clazz, id)
+        val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
+        tryResponse(handleUpdate, catchUpdate) {
+            tryTx { tx =>
+                val current = tx.get(clazz, id)
                 throwIfViolationsOn(t)
-                val ops = updateFilter(t, current)
-                multiResource(ops :+ Update(t), OkNoContentResponse)
+                updateFilter(t, current, tx)
+                OkNoContentResponse
             }
         }
     }
 
     @DELETE
     @Path("{id}")
-    def delete(@PathParam("id") id: String): Response = zkLock {
-        val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
+    def delete(@PathParam("id") id: String): Response = {
         tryResponse(handleDelete, catchDelete) {
-            val ops = deleteFilter(id)
-            multiResource(ops :+ Delete(clazz, id), OkNoContentResponse)
+            tryTx { tx =>
+                deleteFilter(id, tx)
+                OkNoContentResponse
+            }
         }
     }
 
@@ -347,11 +385,17 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected def listFilter(list: Seq[T]): Seq[T] = list
 
-    protected def createFilter(t: T): Seq[Multi] = { t.create(); Seq.empty }
+    protected def createFilter(t: T, tx: ResourceTransaction): Unit = {
+        tx.create(t)
+    }
 
-    protected def updateFilter(to: T, from: T): Seq[Multi] = { Seq.empty }
+    protected def updateFilter(to: T, from: T, tx: ResourceTransaction): Unit = {
+        tx.update(to)
+    }
 
-    protected def deleteFilter(id: String): Seq[Multi] = { Seq.empty }
+    protected def deleteFilter(id: String, tx: ResourceTransaction): Unit = {
+        tx.delete(tag.runtimeClass.asInstanceOf[Class[T]], id)
+    }
 
     protected def handleCreate: PartialFunction[Response, Response] =
         DefaultHandler
@@ -371,106 +415,47 @@ abstract class MidonetResource[T >: Null <: UriResource]
     protected def catchDelete: PartialFunction[Throwable, Response] =
         DefaultCatcher
 
+
+    protected def transaction(): ResourceTransaction = {
+        new ResourceTransaction(store.transaction())
+    }
+
     protected def listResources[U >: Null <: UriResource](clazz: Class[U])
     : Seq[U] = {
-        backend.store.getAll(UriResource.getZoomClass(clazz))
-                     .map(_.map(fromProto(_, clazz)))
-                     .getOrThrow
+        store.getAll(UriResource.getZoomClass(clazz))
+             .map(_.map(fromProto(_, clazz)))
+             .getOrThrow
     }
 
     protected def listResources[U >: Null <: UriResource](clazz: Class[U],
                                                           ids: Seq[Any])
     : Seq[U] = {
-        backend.store.getAll(UriResource.getZoomClass(clazz), ids)
-                     .map(_.map(fromProto(_, clazz)))
-                     .getOrThrow
+        store.getAll(UriResource.getZoomClass(clazz), ids)
+             .map(_.map(fromProto(_, clazz)))
+             .getOrThrow
     }
 
     protected def getResource[U >: Null <: UriResource](clazz: Class[U], id: Any)
     : U = {
-        backend.store.get(UriResource.getZoomClass(clazz), id)
-                     .map(fromProto(_, clazz))
-                     .getOrThrow
+        store.get(UriResource.getZoomClass(clazz), id)
+             .map(fromProto(_, clazz))
+             .getOrThrow
     }
 
     protected def getResources[U >: Null <: UriResource](clazz: Class[U], ids: Seq[Any])
     : Seq[U] = {
-        backend.store.getAll(UriResource.getZoomClass(clazz), ids)
-                     .map { r => r.map(fromProto(_, clazz)) }
-                     .getOrThrow
+        store.getAll(UriResource.getZoomClass(clazz), ids)
+             .map { r => r.map(fromProto(_, clazz)) }
+             .getOrThrow
     }
 
     protected def getResourceState[U >: Null <: UriResource](host: String,
                                                              clazz: Class[U],
                                                              id: Any, key: String)
     : StateKey = {
-        backend.stateStore.getKey(host, UriResource.getZoomClass(clazz), id, key)
-            .asFuture
-            .getOrThrow
-    }
-
-    protected def hasResource[U >: Null <: UriResource](clazz: Class[U],
-                                                        id: Any)
-    : Future[Boolean] = {
-        backend.store.exists(UriResource.getZoomClass(clazz), id)
-    }
-
-    protected def createResource[U >: Null <: UriResource](resource: U)
-    : Response = {
-        val message = toProto(resource)
-        log.debug("CREATE: {}", makeReadable(message))
-        tryWrite {
-            backend.store.create(message)
-            OkCreated(resource.getUri)
-        }
-    }
-
-    protected def updateResource[U >: Null <: UriResource]
-                                (resource: U,
-                                 response: Response = OkNoContentResponse)
-    : Response = {
-        val message = toProto(resource)
-        log.debug("UPDATE: {}", makeReadable(message))
-        tryWrite {
-            backend.store.update(message)
-            response
-        }
-    }
-
-    protected def deleteResource(clazz: Class[_ <: UriResource], id: Any,
-                                 response: Response = OkNoContentResponse)
-    : Response = {
-        log.debug("DELETE: {}: {}", UriResource.getZoomClass(clazz),
-                 id.asInstanceOf[AnyRef])
-        tryWrite {
-            backend.store.delete(UriResource.getZoomClass(clazz), id)
-            response
-        }
-    }
-
-    protected def multiResource(ops: Seq[Multi], r: Response = OkResponse)
-    : Response = {
-        val zoomOps = ops.map {
-            case Create(resource) =>
-                val msg = toProto(resource)
-                log.debug("CREATE: {}", makeReadable(msg))
-                CreateOp(msg)
-            case Update(resource) =>
-                val msg = toProto(resource)
-                log.debug("UPDATE: {}", makeReadable(msg))
-                UpdateOp(msg)
-            case Delete(clazz, id) =>
-                log.debug("DELETE: {}:{}", UriResource.getZoomClass(clazz),
-                         id.asInstanceOf[AnyRef])
-                DeleteOp(UriResource.getZoomClass(clazz), id)
-            case CreateNode(path) =>
-                log.debug("CREATE NODE: {}", path)
-                CreateNodeOp(path, null)
-        }
-        tryWrite {
-            backend.store.multi(zoomOps)
-            r
-        }
+        stateStore.getKey(host, UriResource.getZoomClass(clazz), id, key)
+                  .asFuture
+                  .getOrThrow
     }
 
     private def fromProto[U >: Null <: UriResource](message: Message,
@@ -509,5 +494,45 @@ abstract class MidonetResource[T >: Null <: UriResource]
             c = c.getSuperclass
         }
         null
+    }
+
+    protected def tryTx(f: (ResourceTransaction) => Response): Response = {
+        var attempt = 1
+        while (attempt <= StorageAttempts) {
+            try {
+                return zkLock {
+                    val tx = transaction()
+                    val response = f(tx)
+                    tx.commit()
+                    response
+                }
+            } catch {
+                case e: WebApplicationException => throw e
+                case e: NotFoundException =>
+                    log.warn(e.getMessage)
+                    return buildErrorResponse(Status.NOT_FOUND, e.getMessage)
+                case e: ObjectReferencedException =>
+                    log.warn(e.getMessage)
+                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                case e: ReferenceConflictException =>
+                    log.warn(e.getMessage)
+                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                case e: ObjectExistsException =>
+                    log.warn(e.getMessage)
+                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                case e: ConcurrentModificationException =>
+                    log.warn(s"Write $attempt of $StorageAttempts failed " +
+                             "due to a concurrent modification ({}): retrying",
+                             e.getMessage)
+                    Thread.sleep(10)
+                    attempt += 1
+                case NonFatal(e) =>
+                    log.error("Unhandled exception", e)
+                    return buildErrorResponse(Status.INTERNAL_SERVER_ERROR,
+                                              e.getMessage)
+            }
+        }
+        log.error(s"Failed to write to store after $StorageAttempts attempts")
+        Response.status(Status.CONFLICT).build()
     }
 }

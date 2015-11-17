@@ -34,6 +34,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException}
 
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.ResourceUris.{macPortUriToMac, macPortUriToPort}
 import org.midonet.cluster.rest_api.annotation._
@@ -63,8 +64,6 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                                pathBuilder: PathBuilder,
                                curator: CuratorFramework)
     extends MidonetResource[Bridge](resContext) {
-
-    private val store = resContext.backend.store
 
     @Path("{id}/ports")
     def ports(@PathParam("id") id: UUID): BridgePortResource = {
@@ -210,7 +209,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
     @DELETE
     @Path("{id}/mac_table/{mac_port_uri}")
     def deleteMacPort(@PathParam("id") id: UUID,
-                      @PathParam("mac_port_uri") s: String): Unit = {
+                      @PathParam("mac_port_uri") s: String): Response = {
         val split = s.split("_")
         val mac = MAC.fromString(split(0).replaceAll("-", ":"))
         doDeleteMacPort(id, mac, UNTAGGED_VLAN_ID,
@@ -221,7 +220,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
     @Path("{id}/vlans/{vlan}/mac_table/{mac_port_uri}")
     def deleteMacPort(@PathParam("id") id: UUID,
                       @PathParam("vlan") vlan: Short,
-                      @PathParam("mac_port_uri") s: String): Unit = {
+                      @PathParam("mac_port_uri") s: String): Response = {
         val split = s.split("_")
         val mac = MAC.fromString(split(0).replaceAll("-", ":"))
         doDeleteMacPort(id, mac, vlan, UUID.fromString(split(1)))
@@ -258,13 +257,14 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         macPortsNoVlan(id, isV1 = false) ++ entriesWithVlan
     }
 
-    protected override def deleteFilter(id: String): Seq[Multi] = {
-        val b = store.get(classOf[Topology.Network], id).getOrThrow
-        if (!b.getVxlanPortIdsList.isEmpty) {
+    protected override def deleteFilter(id: String,
+                                        tx: ResourceTransaction): Unit = {
+        val bridge = tx.get(classOf[Bridge], id)
+        if ((bridge.vxLanPortIds ne null) && !bridge.vxLanPortIds.isEmpty) {
             throw new ConflictHttpException("The bridge still has VTEP " +
                     "bindings, please remove them before deleting the bridge")
         }
-        Seq.empty
+        tx.delete(classOf[Bridge], id)
     }
 
 
@@ -275,26 +275,28 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         else bridges filter { _.tenantId == tenantId }
     }
 
-    protected override def createFilter(bridge: Bridge): Seq[Multi] = {
+    protected override def createFilter(bridge: Bridge,
+                                        tx: ResourceTransaction): Unit = {
         if (bridge.vxLanPortIds != null) {
             throw new BadRequestHttpException(
                 getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
         }
-        bridge.create()
+        tx.create(bridge)
 
         // Create replicated map nodes.
-        Seq(CreateNode(pathBuilder.getBridgeIP4MacMapPath(bridge.id)),
-            CreateNode(pathBuilder.getBridgeMacPortsPath(bridge.id)),
-            CreateNode(pathBuilder.getBridgeVlansPath(bridge.id)))
+        tx.tx.createNode(pathBuilder.getBridgeIP4MacMapPath(bridge.id), null)
+        tx.tx.createNode(pathBuilder.getBridgeMacPortsPath(bridge.id), null)
+        tx.tx.createNode(pathBuilder.getBridgeVlansPath(bridge.id), null)
     }
 
-    protected override def updateFilter(to: Bridge, from: Bridge): Seq[Multi] = {
+    protected override def updateFilter(to: Bridge, from: Bridge,
+                                        tx: ResourceTransaction): Unit = {
         if (to.vxLanPortIds != null && to.vxLanPortIds != from.vxLanPortIds) {
             throw new BadRequestHttpException(
                 getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
         }
         to.update(from)
-        Seq.empty
+        tx.update(to)
     }
 
     // All methods below can easily be extracted to a separate class behind an
@@ -336,26 +338,25 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         mp
     }
 
-    private def putMacTableEntry(macPort: MacPort): Response = {
+    private def putMacTableEntry(macPort: MacPort): Response = tryTx { tx =>
         throwIfViolationsOn(macPort)
-        val bridge = store.get(classOf[Topology.Network], macPort.bridgeId)
-                          .getOrThrow
 
         try {
-            val p = store.get(classOf[Topology.Port], macPort.portId).getOrThrow
-            if (!bridge.getId.equals(p.getNetworkId)) {
+            val bridge = tx.tx.get(classOf[Topology.Network], macPort.bridgeId)
+            val port = tx.tx.get(classOf[Topology.Port], macPort.portId)
+            if (!bridge.getId.equals(port.getNetworkId)) {
                 throw new BadRequestHttpException(
                     getMessage(MAC_PORT_ON_BRIDGE))
             }
-            if (p.hasVlanId &&
-                p.getVlanId != UNTAGGED_VLAN_ID &&
-                p.getVlanId != macPort.vlanId) {
+            if (port.hasVlanId &&
+                port.getVlanId != UNTAGGED_VLAN_ID &&
+                port.getVlanId != macPort.vlanId) {
                 throw new BadRequestHttpException(
                     getMessage(VLAN_ID_MATCHES_PORT_VLAN_ID,
-                               Int.box(p.getVlanId)))
+                               Int.box(port.getVlanId)))
             }
         } catch {
-            case _: NotFoundHttpException =>
+            case _: NotFoundException =>
                 throw new BadRequestHttpException(
                     s"Port ${macPort.portId} doesn't exist")
         }
@@ -376,10 +377,10 @@ class BridgeResource @Inject()(resContext: ResourceContext,
     }
 
 
-    private def doDeleteMacPort(bridgeId: UUID, mac: MAC,
-                                vlan: Short, portId: UUID): Response = {
-        store.get(classOf[Topology.Port], portId).getOrThrow
-        store.get(classOf[Topology.Network], bridgeId).getOrThrow
+    private def doDeleteMacPort(bridgeId: UUID, mac: MAC, vlan: Short,
+                                portId: UUID): Response = tryTx { tx =>
+        tx.tx.get(classOf[Topology.Port], portId)
+        tx.tx.get(classOf[Topology.Network], bridgeId)
 
         val vlanPath = if (vlan == UNTAGGED_VLAN_ID)
                             pathBuilder.getBridgeMacPortsPath(bridgeId)

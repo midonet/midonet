@@ -144,11 +144,11 @@ public abstract class Rule extends Condition {
     }
 
     @JsonIgnore
-    public void create(UUID chainId) {
+    public void create() {
         if (null == id) {
             id = UUID.randomUUID();
         }
-        this.chainId = chainId;
+        chainId = null;
         if (0 == position) {
             position = 1;
         }

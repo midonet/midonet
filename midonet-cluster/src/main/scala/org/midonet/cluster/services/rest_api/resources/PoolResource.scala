@@ -27,14 +27,13 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
-import org.midonet.cluster.models.Topology.{Pool => TopPool}
-import org.midonet.cluster.rest_api.ServiceUnavailableHttpException
+import org.midonet.cluster.rest_api.{NotFoundHttpException, ServiceUnavailableHttpException}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{HealthMonitor, LoadBalancer, Pool}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus._
 
 @ApiResource(version = 1, name = "pools", template = "poolTemplate")
 @Path("pools")
@@ -51,8 +50,6 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 class PoolResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Pool](resContext) {
 
-    private val store = resContext.backend.store
-
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): PoolVipResource = {
         getResource(classOf[Pool], id)
@@ -65,8 +62,8 @@ class PoolResource @Inject()(resContext: ResourceContext)
         new PoolPoolMemberResource(id, resContext)
     }
 
-    def checkMappingStatus(p: TopPool): Unit = {
-        val s = p.getMappingStatus
+    def checkMappingStatus(pool: Pool): Unit = {
+        val s = pool.mappingStatus
         if (s == PENDING_UPDATE ||
             s == PENDING_DELETE ||
             s == PENDING_CREATE) {
@@ -75,19 +72,19 @@ class PoolResource @Inject()(resContext: ResourceContext)
         }
     }
 
-    protected override def updateFilter(to: Pool, from: Pool): Seq[Multi] = {
-        val p = store.get(classOf[TopPool], from.id).getOrThrow
-        checkMappingStatus(p)
+    protected override def updateFilter(to: Pool, from: Pool,
+                                        tx: ResourceTransaction): Unit = {
+        val pool = tx.get(classOf[Pool], from.id)
+        checkMappingStatus(pool)
         to.update(from)
-        Seq.empty
+        tx.update(to)
     }
 
-    protected override def deleteFilter(id: String): Seq[Multi] = {
-        if (store.exists(classOf[TopPool], id).getOrThrow) {
-            val p = store.get(classOf[TopPool], id).getOrThrow
-            checkMappingStatus(p)
-        }
-        Seq.empty
+    protected override def deleteFilter(id: String,
+                                        tx: ResourceTransaction): Unit = {
+        try { checkMappingStatus(tx.get(classOf[Pool], id)) }
+        catch { case e: NotFoundHttpException => }
+        tx.delete(classOf[Pool], id)
     }
 
     protected override def handleDelete = {
@@ -124,9 +121,10 @@ class LoadBalancerPoolResource @Inject()(loadBalancerId: UUID,
         getResource(classOf[LoadBalancer], loadBalancerId).poolIds.asScala
     }
 
-    protected override def createFilter(pool: Pool): Seq[Multi] = {
+    protected override def createFilter(pool: Pool, tx: ResourceTransaction)
+    : Unit = {
         pool.create(loadBalancerId)
-        Seq.empty
+        tx.create(pool)
     }
 }
 
