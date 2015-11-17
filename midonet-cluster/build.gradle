@@ -94,6 +94,8 @@ cobertura {
     coverageExcludes = [
             '.*org.midonet.client.*',
             '.*org.midonet.migrator.*',
+            // Keystone excluded, this is tested in MDTS
+            '.*org.midonet.cluster.auth.keystone.v2_0.*',
             '.*org.midonet.midolman.state.*',
             '.*org.midonet.midolman.state.zkManagers.*',
             '.*org.midonet.cluster.LocalDataClientImpl.*',
@@ -101,8 +103,10 @@ cobertura {
             // Cassandra is tested in Integration tests from another
             // module, so coverage doesn't show up
             '.*org.midonet.cluster.backend.cassandra.*',
-            '.*org.midonet.cluster.services.topology.client*',
-            '.*org.midonet.cluster.services.topology.TopologyServiceApp*',
+            // The TopologySnooopy is a dev tool
+            '.*org.midonet.cluster.tools.TopologySnoopy.*',
+            '.*org.midonet.cluster.services.topology.client.*',
+            '.*org.midonet.cluster.services.topology.TopologyServiceApp.*',
     ]
 }
 
