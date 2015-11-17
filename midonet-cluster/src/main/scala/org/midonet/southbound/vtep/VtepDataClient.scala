@@ -169,10 +169,6 @@ trait VtepData {
       * VTEP. */
     //def macRemoteUpdates: Observable[MacLocation]
 
-    /** Returns an [[Observer]] that will write updates to the local MACs in the
-      * `Ucast_Mac_Local` or `Mcast_Mac_Local` tables. */
-    def macLocalUpdater: Future[Observer[MacLocation]]
-
     /** Returns an [[Observer]] that will write updates to the remote MACs in
       * the `Ucast_Mac_Remote` or `Mcast_Mac_Remote` tables. */
     def macRemoteUpdater: Future[Observer[MacLocation]]

@@ -261,12 +261,6 @@ class OvsdbVtepData(val client: OvsdbClient, val dbSchema: DatabaseSchema,
             .observeOn(vtepScheduler)
             .concatMap(macUpdateToMacLocationsFunc)
 
-    /** Returns an [[Observer]] that will write updates to the local MACs in the
-      * `Ucast_Mac_Local` or `Mcast_Mac_Local` tables. */
-    override def macLocalUpdater: Future[Observer[MacLocation]] = {
-        macUpdater(new MacUpdater("local", uLocalTable, mLocalTable))
-    }
-
     /** Returns an [[Observer]] that will write updates to the remote MACs in
       * the `Ucast_Mac_Remote` or `Mcast_Mac_Remote` tables. */
     override def macRemoteUpdater: Future[Observer[MacLocation]] = {
