@@ -18,10 +18,8 @@ package org.midonet.midolman.host.scanner
 
 import java.net.InetAddress
 import java.nio.ByteBuffer
-import java.nio.channels.{ClosedChannelException, AsynchronousCloseException, ClosedByInterruptException}
+import java.nio.channels.{AsynchronousCloseException, ClosedByInterruptException, ClosedChannelException}
 import java.util
-
-import org.midonet.packets.MAC
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -34,9 +32,9 @@ import org.midonet.Util
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.netlink._
 import org.midonet.netlink.rtnetlink._
+import org.midonet.packets.MAC
 import org.midonet.util.concurrent.NanoClock
 import org.midonet.util.functors._
-import org.midonet.util.reactivex.RequestObserver
 
 object DefaultInterfaceScanner {
     val NotificationSeq = 0
@@ -419,9 +417,12 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                 filteredIfDescSet
             })).subscribe(initialScan)
 
-        val linkListRequestObserver = RequestObserver(linkListSubject)
+        var done = false
+        val markDone = makeAction0 { done = true }
+
+        linkListSubject.finallyDo(markDone)
         linksList(linkListSubject)
-        while (!linkListRequestObserver.isCompleted) {
+        while (!done) {
             try {
                 requestBroker.readReply()
             } catch {
@@ -429,9 +430,11 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                     log.error("Error occurred on listing links", e)
             }
         }
-        val addrListRequestObserver = RequestObserver(addrListSubject)
+
+        done = false
+        addrListSubject.finallyDo(markDone)
         addrsList(addrListSubject)
-        while (!addrListRequestObserver.isCompleted) {
+        while (!done) {
             try {
                 requestBroker.readReply()
             } catch {

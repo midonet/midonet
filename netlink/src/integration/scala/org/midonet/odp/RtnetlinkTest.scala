@@ -20,16 +20,15 @@ import java.nio.ByteBuffer
 import java.nio.channels.{AsynchronousCloseException, ClosedByInterruptException}
 
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Promise
 import scala.sys.process._
 
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfterAll, FeatureSpec, Matchers}
 import org.scalatest.concurrent._
+import org.scalatest.junit.JUnitRunner
 import org.scalatest.time._
+import org.scalatest.{BeforeAndAfterAll, FeatureSpec, Matchers}
 import org.slf4j.LoggerFactory
 import rx.subjects.PublishSubject
 import rx.{Observable, Observer}
@@ -41,7 +40,6 @@ import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.IntegrationTests._
 import org.midonet.util.concurrent.NanoClock
 import org.midonet.util.functors._
-import org.midonet.util.reactivex.RequestObserver
 
 private[odp] object NotificationTestObserver {
     def apply(condition: ByteBuffer => Boolean)
@@ -616,8 +614,12 @@ class RtnetlinkTest extends FeatureSpec
                 .subscribe(obs)
 
             conn.linksList(linksSubject)
-            val linksListRequestObserver = RequestObserver(linksSubject)
-            while (!linksListRequestObserver.isCompleted) {
+
+            var done = false
+            val markDone = makeAction0 { done = true }
+
+            linksSubject.finallyDo(markDone)
+            while (!done) {
                 try {
                     conn.requestBroker.readReply()
                 } catch {
@@ -626,9 +628,11 @@ class RtnetlinkTest extends FeatureSpec
                             "messages", ex)
                 }
             }
+
+            done = false
             conn.addrsList(addrsSubject)
-            val addrsListRequestObserver = RequestObserver(addrsSubject)
-            while (!addrsListRequestObserver.isCompleted) {
+            addrsSubject.finallyDo(markDone)
+            while (!done) {
                 try {
                     conn.requestBroker.readReply()
                 } catch {
