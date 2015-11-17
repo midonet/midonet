@@ -16,7 +16,6 @@
 package org.midonet.midolman.state;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -24,9 +23,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.util.functors.Functor;
 
 /**
  * Contains common functionality for interacting with ZkManager. When
@@ -90,64 +87,10 @@ public abstract class BaseZkManager {
             } catch (IllegalArgumentException ex) {
                 // Nothing we can do but log an error and move on.
                 log.error("'{}' at path '{}' is not a valid UUID. Zookeeper " +
-                        "data may be corrupted.",
-                        new Object[]{idStr, path, ex});
+                        "data may be corrupted.", idStr, path, ex);
             }
         }
         return ids;
-    }
-
-    /**
-     * Gets the children of the specified node and converts them
-     * to a set of UUIDs. Logs an error for, but otherwise ignores,
-     * any children which are not valid UUIDs.
-     *
-     * @param watcher Optional watcher, to be notified of a future update.
-     */
-    protected Set<UUID> getUuidSet(String path, Runnable watcher)
-            throws StateAccessException {
-        Set<String> idStrs = zk.getChildren(path, watcher);
-        Set<UUID> ids = new HashSet<>(idStrs.size());
-        for (String idStr : idStrs) {
-            try {
-                ids.add(UUID.fromString(idStr));
-            } catch (IllegalArgumentException ex) {
-                // Nothing we can do but log an error and move on.
-                log.error("'{}' at path '{}' is not a valid UUID. Zookeeper" +
-                        "data may be corrupted.",
-                        new Object[]{idStr, path, ex});
-            }
-        }
-        return ids;
-    }
-
-    /**
-     * Gets the config for the specified resource ID asynchronously.
-     *
-     * @param clazz Class used for deserializing the config.
-     * @param callback Receives the config when available.
-     * @param watcher Optional watcher to be notified of a future update.
-     */
-    protected <T> void getAsync(String path, final Class<T> clazz,
-                                DirectoryCallback<T> callback,
-                                Directory.TypedWatcher watcher) {
-        zk.asyncGet(
-                path,
-                DirectoryCallbackFactory.transform(
-                        callback,
-                        new Functor<byte[], T>() {
-                            @Override
-                            public T apply(byte[] arg0) {
-                                try {
-                                    return serializer.deserialize(arg0, clazz);
-                                } catch (SerializationException e) {
-                                    log.warn("Could not deserialize " +
-                                            clazz.getSimpleName() + " data");
-                                    return null;
-                                }
-                            }
-                        }),
-                watcher);
     }
 
 }

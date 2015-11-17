@@ -15,12 +15,9 @@
  */
 package org.midonet.midolman.state;
 
-import java.util.UUID;
-
 import com.google.inject.Inject;
 
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.packets.IPv4Addr;
 
 /**
  * This class was created to have all state classes share the Zk path

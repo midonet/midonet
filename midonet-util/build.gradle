@@ -59,6 +59,12 @@ task jarTest (type: Jar, dependsOn: testClasses) {
     classifier = 'test'
 }
 
+cobertura {
+    coverageExcludes = [
+        '.*org.midonet.util.http.HttpSupport.*',
+    ]
+}
+
 artifacts {
     tests jarTest
 }

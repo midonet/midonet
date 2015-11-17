@@ -26,9 +26,6 @@ import org.midonet.midolman.simulation.PacketContext;
 
 public class LiteralRule extends Rule {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(LiteralRule.class);
-
     public LiteralRule(Condition condition, Action action) {
         super(condition, action);
         if (action != Action.ACCEPT && action != Action.DROP
