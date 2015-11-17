@@ -57,7 +57,7 @@ public class ZkDirectory implements Directory {
                        List<ACL> acl, Reactor reactor) {
         this.zk = zk;
         this.basePath = basePath;
-        this.acl = Ids.OPEN_ACL_UNSAFE;
+        this.acl = acl;
         this.reactor = reactor;
     }
 
