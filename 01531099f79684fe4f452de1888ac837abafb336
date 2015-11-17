@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "7ac7a964_f787930d",
+        "filename": "midonet-cluster/conf/logback.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-17T14:38:09Z",
+      "side": 1,
+      "message": "all of these should go away, please look at the agent logback.xml. Log levels should only be set up in one place. In this case mn-conf as per this patch.",
+      "revId": "01531099f79684fe4f452de1888ac837abafb336",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_05f95c4d",
         "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 1
@@ -43,6 +60,47 @@
         "endLine": 232,
         "endChar": 13
       },
+      "revId": "01531099f79684fe4f452de1888ac837abafb336",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_978f3f23",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-17T14:38:09Z",
+      "side": 1,
+      "message": "@nicolas: It is, any logger names configured though mn-conf in this section, even if they are not pre-defined in the schema, will be honored.\n\n@alex: While that\u0027s true. We should discourage it, it can only create confusion.",
+      "parentUuid": "7ac7a964_60a03bf5",
+      "range": {
+        "startLine": 232,
+        "startChar": 4,
+        "endLine": 232,
+        "endChar": 13
+      },
+      "revId": "01531099f79684fe4f452de1888ac837abafb336",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_5776873f",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/LoggerLevelWatcher.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-17T14:38:09Z",
+      "side": 1,
+      "message": "nice work around, thanks! May we require ROOT to be in all caps so as to prevent conflicts with real logger names?",
       "revId": "01531099f79684fe4f452de1888ac837abafb336",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
