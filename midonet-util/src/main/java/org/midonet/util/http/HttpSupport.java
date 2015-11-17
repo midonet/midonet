@@ -30,7 +30,6 @@ public class HttpSupport {
     public final static String SET_COOKIE_EXPIRES_FORMAT =
             "EEE, dd-MM-yyyy HH:mm:ss z";
     public final static String WWW_AUTHENTICATE = "WWW-Authenticate";
-    public final static String AUTH_REALM = "Midonet";
     public final static String BASIC_AUTH = "Basic";
     public final static String BASIC_AUTH_PREFIX = BASIC_AUTH + " ";
     public final static String BASIC_AUTH_REALM_FIELD =

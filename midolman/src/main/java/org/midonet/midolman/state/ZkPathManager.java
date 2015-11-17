@@ -45,10 +45,6 @@ public class ZkPathManager {
         setBasePath(basePath);
     }
 
-    public String getBasePath() {
-        return basePath;
-    }
-
     private StringBuilder basePath() {
         return new StringBuilder(basePath);
     }
@@ -60,42 +56,12 @@ public class ZkPathManager {
         }
     }
 
-    public String getVersionPath(String version) {
-        return getVersionsPath() + "/" + version;
-    }
-
-
-    public String getHostVersionPath(UUID uuid, String version) {
-        return getVersionPath(version) + "/" + uuid;
-    }
-
     public String getTraceRequestsPath() {
         return basePath().append("/traces").toString();
     }
 
     public String getTraceRequestPath(UUID uuid) {
         return getTraceRequestsPath() + "/" + uuid;
-    }
-
-    private StringBuilder buildHealthMonitorLeaderDirPath() {
-        return new StringBuilder(getBasePath()).append("/hm_leader");
-    }
-
-    public String getHealthMonitorLeaderDirPath() {
-        return buildHealthMonitorLeaderDirPath().toString();
-    }
-
-    public String getTunnelPath() {
-        return buildTunnelPath().toString();
-    }
-
-    protected StringBuilder buildTunnelPath() {
-        // XXX(guillermo) s/"gre"/"tunnel"/ ?
-        return basePath().append("/gre");
-    }
-
-    public String getDeviceStatusPath() {
-        return buildDeviceStatusPath().toString();
     }
 
     protected StringBuilder buildDeviceStatusPath() {
@@ -108,21 +74,6 @@ public class ZkPathManager {
 
     protected StringBuilder buildBgpStatusPath() {
         return buildDeviceStatusPath().append("/bgp");
-    }
-
-    /**
-     * Get tunnel (GRE) key path.
-     *
-     * @param tunnelKeyId is the tunnel key ID
-     * @return /gre/tunnelKeyId
-     */
-    public String getTunnelPath(int tunnelKeyId) {
-        return buildTunnelPath(tunnelKeyId).toString();
-    }
-
-    protected StringBuilder buildTunnelPath(int tunnelKeyId) {
-        return buildTunnelPath().append("/").append(
-            String.format("%010d", tunnelKeyId));
     }
 
     /**
@@ -228,85 +179,12 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK path for filtering state
-     *
-     * @return /filters
-     */
-    public String getFiltersPath() {
-        return buildFiltersPath().toString();
-    }
-
-    protected StringBuilder buildFiltersPath() {
-        return basePath().append("/filters");
-    }
-
-    /**
-     * Get ZK path for a port, bridge or router's filtering state.
-     *
-     * @param id Router, bridge or port UUID
-     * @return /filters/parentId
-     */
-    public String getFilterPath(UUID id) {
-        return buildFilterPath(id).toString();
-    }
-
-    private StringBuilder buildFilterPath(UUID id) {
-        return buildFiltersPath().append("/").append(id);
-    }
-
-    /**
-     * Get Versions path.
-     *
-     * @return /version
-     */
-    public String getVersionsPath() {
-        return basePath().append("/versions").toString();
-    }
-
-    /**
      * Get write-version path.
      *
      * @return /write_version
      */
     public String getWriteVersionPath() {
         return basePath().append("/write_version").toString();
-    }
-
-    /**
-     * build system-state path.
-     *
-     * @return /system_state StringBuilder
-     */
-    public StringBuilder buildSystemStatePath() {
-        return basePath().append("/system_state");
-    }
-
-    /**
-     * Get system-state path.
-     *
-     * @return /system_state
-     */
-    public String getSystemStatePath() {
-        return basePath().append("/system_state").toString();
-    }
-
-
-    /**
-     * Get system-state path.
-     *
-     * @return /system_state/UPGRADE
-     */
-    public String getSystemStateUpgradePath() {
-        return buildSystemStatePath().append("/UPGRADE").toString();
-    }
-
-    /**
-     * Get system-state path.
-     *
-     * @return /system_state/API_RESTRICTED
-     */
-    public String getConfigReadOnlyPath() {
-        return buildSystemStatePath().append("/CONFIG_READ_ONLY").toString();
     }
 
     /**
@@ -379,82 +257,6 @@ public class ZkPathManager {
 
     private StringBuilder buildRouterPortsPath(UUID routerId) {
         return buildRouterPath(routerId).append("/ports");
-    }
-
-    /**
-     * Get ZK router port path.
-     *
-     * @param routerId Router UUID
-     * @param portId   Port UUID.
-     * @return /routers/routerId/ports/portId
-     */
-    public String getRouterPortPath(UUID routerId, UUID portId) {
-        return buildRouterPortPath(routerId, portId).toString();
-    }
-
-    private StringBuilder buildRouterPortPath(UUID routerId, UUID portId) {
-        return buildRouterPortsPath(routerId)
-            .append("/").append(portId);
-    }
-
-    /**
-     * Get ZK bridge port path.
-     *
-     * @param bridgeId Bridge UUID
-     * @return /bridges/bridgeId/ports
-     */
-    public String getBridgePortsPath(UUID bridgeId) {
-        return buildBridgePortsPath(bridgeId).toString();
-    }
-
-    private StringBuilder buildBridgePortsPath(UUID bridgeId) {
-        return buildBridgePath(bridgeId).append("/ports");
-    }
-
-    /**
-     * Get ZK bridge port path.
-     *
-     * @param bridgeId Bridge UUID
-     * @return /bridges/bridgeId/logical-ports
-     */
-    public String getBridgeLogicalPortsPath(UUID bridgeId) {
-        return buildBridgeLogicalPortsPath(bridgeId).toString();
-    }
-
-    private StringBuilder buildBridgeLogicalPortsPath(UUID bridgeId) {
-        return buildBridgePath(bridgeId).append("/logical-ports");
-    }
-
-    /**
-     * Get ZK bridge port path.
-     *
-     * @param bridgeId Bridge UUID
-     * @param portId   Port UUID.
-     * @return /bridges/bridgeId/ports/portId
-     */
-    public String getBridgePortPath(UUID bridgeId, UUID portId) {
-        return buildBridgePortPath(bridgeId, portId).toString();
-    }
-
-    private StringBuilder buildBridgePortPath(UUID bridgeId, UUID portId) {
-        return buildBridgePortsPath(bridgeId).append("/")
-            .append(portId);
-    }
-
-    /**
-     * Get ZK bridge port path.
-     *
-     * @param bridgeId Bridge UUID
-     * @param portId   Port UUID.
-     * @return /bridges/bridgeId/logical-ports/portId
-     */
-    public String getBridgeLogicalPortPath(UUID bridgeId, UUID portId) {
-        return buildBridgeLogicalPortPath(bridgeId, portId).toString();
-    }
-
-    private StringBuilder buildBridgeLogicalPortPath(UUID bridgeId, UUID portId) {
-        return buildBridgeLogicalPortsPath(bridgeId)
-            .append("/").append(portId);
     }
 
     /**
@@ -586,30 +388,8 @@ public class ZkPathManager {
             .append('/').append(clientId);
     }
 
-    public String getVlanBridgesPath() {
-        return buildVlanBridgesPath().toString();
-    }
-
     protected StringBuilder buildBridgesPath() {
         return basePath().append("/bridges");
-    }
-
-    protected StringBuilder buildVlanBridgesPath() {
-        return basePath().append("/vlan-bridges");
-    }
-
-    /**
-     * Get ZK bridge tags path.
-     *
-     * @param bridgeId Bridge UUID
-     * @return /bridges/bridgeId/tags
-     */
-    public String getBridgeTagsPath(UUID bridgeId) {
-        return buildBridgeTagsPath(bridgeId).toString();
-    }
-
-    private StringBuilder buildBridgeTagsPath(UUID bridgeId) {
-        return buildBridgePath(bridgeId).append("/tags");
     }
 
     /**
@@ -654,22 +434,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK router routes path.
-     *
-     * @param routerId Router UUID
-     * @param routeId  Route UUID
-     * @return /routers/routerId/routes/routeId
-     */
-    public String getRouterRoutePath(UUID routerId, UUID routeId) {
-        return buildRouterRoutePath(routerId, routeId).toString();
-    }
-
-    private StringBuilder buildRouterRoutePath(UUID routerId, UUID routeId) {
-        return buildRouterRoutesPath(routerId).append("/")
-            .append(routeId);
-    }
-
-    /**
      * Get ZK port routes path.
      *
      * @param portId Port UUID
@@ -681,22 +445,6 @@ public class ZkPathManager {
 
     private StringBuilder buildPortRoutesPath(UUID portId) {
         return buildPortPath(portId).append("/routes");
-    }
-
-    /**
-     * Get ZK port routes path.
-     *
-     * @param portId  Port UUID
-     * @param routeId Route ID.
-     * @return /ports/portId/routes/routeId
-     */
-    public String getPortRoutePath(UUID portId, UUID routeId) {
-        return buildPortRoutePath(portId, routeId).toString();
-    }
-
-    private StringBuilder buildPortRoutePath(UUID portId, UUID routeId) {
-        return buildPortRoutesPath(portId).append("/")
-            .append(routeId);
     }
 
     /**
@@ -725,52 +473,6 @@ public class ZkPathManager {
 
     private StringBuilder buildPortGroupPath(UUID id) {
         return new StringBuilder(getPortGroupsPath()).append("/").append(id);
-    }
-
-    /**
-     * Get ZK port group ports path.
-     *
-     * @param id Group UUID.
-     * @return /port_groups/groupId/ports
-     */
-    public String getPortGroupPortsPath(UUID id) {
-        return buildPortGroupPortsPath(id).toString();
-    }
-
-    private StringBuilder buildPortGroupPortsPath(UUID id) {
-        return buildPortGroupPath(id).append("/ports");
-    }
-
-    /**
-     * Get ZK port group port path.
-     *
-     * @param id Group UUID.
-     * @return /port_groups/groupId/ports/portId
-     */
-    public String getPortGroupPortPath(UUID id, UUID portId) {
-        return buildPortGroupPortPath(id, portId).toString();
-    }
-
-    private StringBuilder buildPortGroupPortPath(UUID id, UUID portId) {
-        return buildPortGroupPortsPath(id).append("/").append(portId);
-    }
-
-    private StringBuilder buildPortGroupRulesPath(UUID id) {
-        return buildPortGroupPath(id).append("/rules");
-    }
-
-    /**
-     * Get ZK port group rule path.
-     *
-     * @param id Group UUID.
-     * @return /port_groups/groupId/rules/ruleId
-     */
-    public String getPortGroupRulePath(UUID id, UUID ruleId) {
-        return buildPortGroupRulePath(id, ruleId).toString();
-    }
-
-    private StringBuilder buildPortGroupRulePath(UUID id, UUID ruleId) {
-        return buildPortGroupRulesPath(id).append("/").append(ruleId);
     }
 
     public String getChainsPath() {
@@ -837,45 +539,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK chain refs path.
-     *
-     * @param chainId Chain UUID
-     * @return /chains/chainId/refs
-     */
-    public String getChainBackRefsPath(UUID chainId) {
-        return buildChainBackRefsPath(chainId).toString();
-    }
-
-    private StringBuilder buildChainBackRefsPath(UUID chainId) {
-        return buildChainPath(chainId).append("/refs");
-    }
-
-    /**
-     * Get ZK chain ref path.
-     *
-     * @param chainId Chain UUID
-     * @return /chains/chainId/refs/type:deviceId
-     */
-    public String getChainBackRefPath(UUID chainId, String deviceType,
-                                      UUID deviceId) {
-        return buildChainBackRefPath(chainId, deviceType, deviceId).toString();
-    }
-
-    private StringBuilder buildChainBackRefPath(UUID chainId, String deviceType,
-                                                UUID deviceId) {
-        return buildChainBackRefsPath(chainId)
-                .append("/").append(deviceType).append(":").append(deviceId);
-    }
-
-    public String getTypeFromBackRef(String backRef) {
-        return backRef.split(":")[0];
-    }
-
-    public UUID getUUIDFromBackRef(String backRef) {
-        return UUID.fromString(backRef.split(":")[1]);
-    }
-
-    /**
      * Get ZK router routing table path.
      *
      * @param routerId Router UUID
@@ -939,22 +602,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK port BGP path.
-     *
-     * @param portId Port UUID
-     * @param bgpId  BGP UUID
-     * @return /ports/portId/bgps/bgpId
-     */
-    public String getPortBgpPath(UUID portId, UUID bgpId) {
-        return buildPortBgpPath(portId, bgpId).toString();
-    }
-
-    private StringBuilder buildPortBgpPath(UUID portId, UUID bgpId) {
-        return buildPortBgpPath(portId).append("/")
-            .append(bgpId);
-    }
-
-    /**
      * Get ZK advertising routes path.
      *
      * @return /ad_routes
@@ -996,48 +643,6 @@ public class ZkPathManager {
         return buildBgpPath(bgpId).append("/ad_routes");
     }
 
-    /**
-     * Get ZK bgp advertising route path.
-     *
-     * @param bgpId     BGP UUID
-     * @param adRouteId Advertising route UUID
-     * @return /bgps/bgpId/ad_routes/adRouteId
-     */
-    public String getBgpAdRoutePath(UUID bgpId, UUID adRouteId) {
-        return buildBgpAdRoutePath(bgpId, adRouteId).toString();
-    }
-
-    private StringBuilder buildBgpAdRoutePath(UUID bgpId, UUID adRouteId) {
-        return buildBgpAdRoutesPath(bgpId).append("/")
-            .append(adRouteId);
-    }
-
-    /**
-     * Get ZK agent path.
-     *
-     * @return /agents
-     */
-    public String getAgentPath() {
-        return buildAgentPath().toString();
-    }
-
-    private StringBuilder buildAgentPath() {
-        return basePath().append("/agents");
-    }
-
-    /**
-     * Get ZK agent port path.
-     *
-     * @return /agents/ports
-     */
-    public String getAgentPortPath() {
-        return buildAgentPortPath().toString();
-    }
-
-    private StringBuilder buildAgentPortPath() {
-        return new StringBuilder(getAgentPath()).append("/ports");
-    }
-
     public String getTunnelZonesPath() {
         return buildTunnelZonesPath().toString();
     }
@@ -1065,34 +670,6 @@ public class ZkPathManager {
 
     private StringBuilder buildHostsPath() {
         return basePath().append("/hosts");
-    }
-
-    /**
-     * Get ZK host commands path.
-     *
-     * @param hostId Host UUID
-     * @return /hosts/&lt;hostId&gt;/commands
-     */
-    public String getHostCommandsPath(UUID hostId) {
-        return buildHostCommandsPath(hostId).toString();
-    }
-
-    private StringBuilder buildHostCommandsPath(UUID hostId) {
-        return buildHostPath(hostId).append("/commands");
-    }
-
-    /**
-     * Get ZK commands error log path
-     *
-     * @param hostId Host UUID
-     * @return /hosts/&lt;hostId&gt;/errors
-     */
-    public String getHostCommandErrorLogsPath(UUID hostId) {
-        return buildHostCommandErrorLogsPath(hostId).toString();
-    }
-
-    private StringBuilder buildHostCommandErrorLogsPath(UUID hostId) {
-        return buildHostPath(hostId).append("/errors");
     }
 
     /**
@@ -1153,56 +730,6 @@ public class ZkPathManager {
             .append(name);
     }
 
-    public String getHostTunnelZonesPath(UUID hostId) {
-        return buildHostTunnelZonesPath(hostId).toString();
-    }
-
-    private StringBuilder buildHostTunnelZonesPath(UUID hostId) {
-        return buildHostPath(hostId).append("/").append(TUNNEL_ZONES);
-    }
-
-    public String getHostTunnelZonePath(UUID hostId, UUID zoneId) {
-        return buildHostTunnelZonePath(hostId, zoneId).toString();
-    }
-
-    private StringBuilder buildHostTunnelZonePath(UUID hostId, UUID zoneId) {
-        return buildHostTunnelZonesPath(hostId).append("/").append(zoneId);
-    }
-
-    public String getHostVrnMappingsPath(UUID hostId) {
-        return buildHostVrnMappingsPath(hostId).toString();
-    }
-
-    private StringBuilder buildHostVrnMappingsPath(UUID hostId) {
-        return buildHostPath(hostId).append("/vrnMappings");
-    }
-
-    public String getHostVrnPortMappingsPath(UUID hostIdentifier) {
-        return buildHostVrnPortMappingsPath(hostIdentifier).toString();
-    }
-
-    private StringBuilder buildHostVrnPortMappingsPath(UUID hostIdentifier) {
-        return buildHostVrnMappingsPath(hostIdentifier).append("/ports");
-    }
-
-    public String getHostVrnPortMappingPath(UUID hostIdentifier, UUID virtualPortId) {
-        return buildHostVrnPortMappingPath(hostIdentifier,
-                                           virtualPortId).toString();
-    }
-
-    private StringBuilder buildHostVrnPortMappingPath(UUID hostIdentifier, UUID virtualPortId) {
-        return buildHostVrnPortMappingsPath(hostIdentifier).append("/")
-            .append(virtualPortId);
-    }
-
-    public String getHostVrnDatapathMappingPath(UUID hostIdentifier) {
-        return buildHostVrnDatapathMappingPath(hostIdentifier).toString();
-    }
-
-    private StringBuilder buildHostVrnDatapathMappingPath(UUID hostIdentifier) {
-        return buildHostVrnMappingsPath(hostIdentifier).append("/datapath");
-    }
-
     public String getTunnelZoneMembershipsPath(UUID zoneId) {
         return buildTunnelZoneMembershipsPath(zoneId).toString();
     }
@@ -1246,38 +773,12 @@ public class ZkPathManager {
         return new StringBuilder(getIpAddrGroupsPath()).append("/").append(id);
     }
 
-    private StringBuilder buildIpAddrGroupRulesPath(UUID id) {
-        return buildIpAddrGroupPath(id).append("/rules");
-    }
-
-    /**
-     * Get ZK port group rule path.
-     *
-     * @param id Group UUID.
-     * @return /port_groups/groupId/rules/ruleId
-     */
-    public String getIpAddrGroupRulePath(UUID id, UUID ruleId) {
-        return buildIpAddrGroupRulePath(id, ruleId).toString();
-    }
-
-    private StringBuilder buildIpAddrGroupRulePath(UUID id, UUID ruleId) {
-        return buildIpAddrGroupRulesPath(id).append("/").append(ruleId);
-    }
-
     public StringBuilder buildIpAddrGroupAddrsPath(UUID id) {
         return buildIpAddrGroupPath(id).append("/addrs");
     }
 
     public String getIpAddrGroupAddrsPath(UUID id) {
         return buildIpAddrGroupAddrsPath(id).toString();
-    }
-
-    public StringBuilder buildIpAddrGroupAddrPath(UUID id, String addr) {
-        return buildIpAddrGroupAddrsPath(id).append("/").append(addr);
-    }
-
-    public String getIpAddrGroupAddrPath(UUID id, String addr) {
-        return buildIpAddrGroupAddrPath(id, addr).toString();
     }
 
     private StringBuilder buildLoadBalancersPath() {
@@ -1296,22 +797,6 @@ public class ZkPathManager {
         return buildLoadBalancerPath(loadBalancerId).toString();
     }
 
-    private StringBuilder buildLoadBalancerPoolsPath(UUID loadBalancerId) {
-        return buildLoadBalancerPath(loadBalancerId).append("/pools");
-    }
-
-    public String getLoadBalancerPoolsPath(UUID loadBalancerId) {
-        return buildLoadBalancerPoolsPath(loadBalancerId).toString();
-    }
-
-    private StringBuilder buildLoadBalancerVipsPath(UUID loadBalancerId){
-        return buildLoadBalancerPath(loadBalancerId).append("/vips");
-    }
-
-    public String getLoadBalancerVipsPath(UUID loadBalancerId) {
-        return buildLoadBalancerVipsPath(loadBalancerId).toString();
-    }
-
     private StringBuilder buildHealthMonitorsPath() {
         return basePath().append("/health_monitors");
     }
@@ -1328,14 +813,6 @@ public class ZkPathManager {
         return buildHealthMonitorPath(healthMonitorId).toString();
     }
 
-    private StringBuilder buildHealthMonitorPoolsPath(UUID healthMonitorId) {
-        return buildHealthMonitorPath(healthMonitorId).append("/pools");
-    }
-
-    public String getHealthMonitorPoolsPath(UUID healthMonitorId) {
-        return buildHealthMonitorPoolsPath(healthMonitorId).toString();
-    }
-
     private StringBuilder buildPoolMembersPath() {
         return basePath().append("/pool_members");
     }
@@ -1346,10 +823,6 @@ public class ZkPathManager {
 
     public String getPoolMemberPath(UUID poolMemberId) {
         return buildPoolMemberPath(poolMemberId).toString();
-    }
-
-    public String getPoolMembersPath() {
-        return buildPoolMembersPath().toString();
     }
 
     private StringBuilder buildPoolsPath() {
@@ -1376,14 +849,6 @@ public class ZkPathManager {
         return buildPoolMembersPath(poolId).toString();
     }
 
-    public StringBuilder buildPoolVipsPath(UUID poolId) {
-        return buildPoolPath(poolId).append("/vips");
-    }
-
-    public String getPoolVipsPath(UUID poolId) {
-        return buildPoolVipsPath(poolId).toString();
-    }
-
     private StringBuilder buildVipsPath() {
         return basePath().append("/vips");
     }
@@ -1399,26 +864,6 @@ public class ZkPathManager {
 
     public String getVipPath(UUID vipId) {
         return buildVipPath(vipId).toString();
-    }
-
-    public StringBuilder buildPoolHealthMonitorMappingsPath() {
-        return basePath().append("/pool_health_monitor_mappings");
-    }
-
-    public String getPoolHealthMonitorMappingsPath() {
-        return buildPoolHealthMonitorMappingsPath().toString();
-    }
-
-    public StringBuilder buildPoolHealthMonitorMappingPath(
-            UUID poolId, UUID healthMonitorId) {
-        return buildPoolHealthMonitorMappingsPath().append("/").append(
-                poolId).append("_").append(healthMonitorId);
-    }
-
-    public String getPoolHealthMonitorMappingsPath(UUID poolId,
-                                                   UUID healthMonitorId) {
-        return buildPoolHealthMonitorMappingPath(
-            poolId, healthMonitorId).toString();
     }
 
     private StringBuilder buildVtepsPath() {
@@ -1445,32 +890,8 @@ public class ZkPathManager {
         return buildVtepBindingsPath(ipAddr).toString();
     }
 
-    private StringBuilder buildVxLanPortIdsPath() {
-        return basePath().append("/vxlan_port_ids");
-    }
-
-    public String getVxLanPortIdsPath() {
-        return buildVxLanPortIdsPath().toString();
-    }
-
-    private StringBuilder buildVxLanPortIdPath(UUID id) {
-        return buildVxLanPortIdsPath().append("/").append(id);
-    }
-
-    public String getVxLanPortIdPath(UUID id) {
-        return buildVxLanPortIdPath(id).toString();
-    }
-
-    public String getVniCounterPath() {
-        return basePath().append("/vniCounter").toString();
-    }
-
     private StringBuilder buildLocksPath() {
         return basePath().append("/locks");
-    }
-
-    public String getLocksPath() {
-        return buildLocksPath().toString();
     }
 
     public StringBuilder buildLockPath(String lockName) {
@@ -1479,112 +900,6 @@ public class ZkPathManager {
 
     public String getLockPath(String lockName) {
         return buildLockPath(lockName).toString();
-    }
-
-    // Neutron specific paths
-    private StringBuilder buildNeutronPath() {
-        return basePath().append("/neutron");
-    }
-
-    public String getNeutronPath() {
-        return buildNeutronPath().toString();
-    }
-
-    private StringBuilder buildNeutronNetworksPath() {
-        return buildNeutronPath().append("/networks");
-    }
-
-    public String getNeutronNetworksPath() {
-        return buildNeutronNetworksPath().toString();
-    }
-
-    private StringBuilder buildNeutronSubnetsPath() {
-        return buildNeutronPath().append("/subnets");
-    }
-
-    public String getNeutronSubnetsPath() {
-        return buildNeutronSubnetsPath().toString();
-    }
-
-    private StringBuilder buildNeutronPortsPath() {
-        return buildNeutronPath().append("/ports");
-    }
-
-    public String getNeutronPortsPath() {
-        return buildNeutronPortsPath().toString();
-    }
-
-    private StringBuilder buildNeutronRoutersPath() {
-        return buildNeutronPath().append("/routers");
-    }
-
-    public String getNeutronRoutersPath() {
-        return buildNeutronRoutersPath().toString();
-    }
-
-    private StringBuilder buildNeutronFloatingIpsPath() {
-        return buildNeutronPath().append("/floating_ips");
-    }
-
-    public String getNeutronFloatingIpsPath() {
-        return buildNeutronFloatingIpsPath().toString();
-    }
-
-    private StringBuilder buildNeutronSecurityGroupsPath() {
-        return buildNeutronPath().append("/security_groups");
-    }
-
-    public String getNeutronSecurityGroupsPath() {
-        return buildNeutronSecurityGroupsPath().toString();
-    }
-
-    private StringBuilder buildNeutronSecurityGroupRulesPath() {
-        return buildNeutronPath().append("/security_group_rules");
-    }
-
-    public String getNeutronSecurityGroupRulesPath() {
-        return buildNeutronSecurityGroupRulesPath().toString();
-    }
-
-    // Neutron Load Balancer Paths
-    private StringBuilder buildNeutronLoadBalancerPath() {
-        return buildNeutronPath().append("/loadbalancer");
-    }
-
-    public String getNeutronLoadBalancerPath() {
-        return buildNeutronLoadBalancerPath().toString();
-    }
-
-    private StringBuilder buildNeutronPoolsPath() {
-        return buildNeutronLoadBalancerPath().append("/pools");
-    }
-
-    public String getNeutronPoolsPath() {
-        return buildNeutronPoolsPath().toString();
-    }
-
-    private StringBuilder buildNeutronVipsPath() {
-        return buildNeutronLoadBalancerPath().append("/vips");
-    }
-
-    public String getNeutronVipsPath() {
-        return buildNeutronVipsPath().toString();
-    }
-
-    private StringBuilder buildNeutronMembersPath() {
-        return buildNeutronLoadBalancerPath().append("/members");
-    }
-
-    public String getNeutronMembersPath() {
-        return buildNeutronMembersPath().toString();
-    }
-
-    private StringBuilder buildNeutronHealthMonitorsPath() {
-        return buildNeutronLoadBalancerPath().append("/health_monitors");
-    }
-
-    public String getNeutronHealthMonitorsPath() {
-        return buildNeutronHealthMonitorsPath().toString();
     }
 
     /**
