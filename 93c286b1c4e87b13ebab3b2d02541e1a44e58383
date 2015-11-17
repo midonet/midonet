@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_b7bfdbcf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ObjectReferenceTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-17T14:31:36Z",
+      "side": 0,
+      "message": "isn\u0027t interpolation more readable?",
+      "revId": "93c286b1c4e87b13ebab3b2d02541e1a44e58383",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

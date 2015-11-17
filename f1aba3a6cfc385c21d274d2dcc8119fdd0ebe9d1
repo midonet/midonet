@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "7ac7a964_f7e23302",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-17T14:31:36Z",
+      "side": 1,
+      "message": "why was this necessary, is there a scala \"ArrayList\"?",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_f025e70a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
         "patchSetId": 1
@@ -48,6 +65,40 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_d7dd3744",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-17T14:31:36Z",
+      "side": 1,
+      "message": "warn or info",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_17cecf83",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-17T14:31:36Z",
+      "side": 1,
+      "message": "this message may be redundant. But, if it\u0027s not, didn\u0027t it just become less informative? Also, printing full objects like this, I\u0027m not a fan of.",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_d088ebe9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 1
@@ -65,6 +116,23 @@
         "endLine": 175,
         "endChar": 25
       },
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_77c5435a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-17T14:31:36Z",
+      "side": 1,
+      "message": "This message, when seen in a log by a user, sounds mystifying. Is it an error that a route was removed? sounds like something that may happen.",
       "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
