@@ -35,6 +35,12 @@ object StateTable {
  */
 trait StateTable[K, V] {
 
+    /** Starts the synchronization of the state table. */
+    def start(): Unit
+
+    /** Stops the synchronization of the state table. */
+    def stop(): Unit
+
     /** Adds an opinion key value pair to the state table. */
     def add(key: K, value: V): Unit
 
@@ -42,11 +48,13 @@ trait StateTable[K, V] {
     def addPersistent(key: K, value: V): Unit
 
     /** Removes the opinion for the specified key from the state table. */
-    def remove(key: K): Unit
+    def remove(key: K): V
 
-    /** Removes a key value pair from the state table, either learned or
-      * persistent. */
-    def remove(key: K, value: V): Unit
+    /** Removes a key value pair from the state table. */
+    def remove(key: K, value: V): V
+
+    /** Removes a persistent key value pair from the state table. */
+    def removePersistent(key: K, value: V): V
 
     /** Returns whether the table contains a value for the specified key,
       * either learned or persistent. */
@@ -60,7 +68,7 @@ trait StateTable[K, V] {
     def containsPersistent(key: K, value: V): Boolean
 
     /** Gets the value for the specified key. */
-    def get(key: K): Option[V]
+    def get(key: K): V
 
     /** Gets the set of keys corresponding the specified value. */
     def getByValue(value: V): Set[K]
