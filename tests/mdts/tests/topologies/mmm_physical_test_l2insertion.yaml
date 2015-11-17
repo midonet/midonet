@@ -82,7 +82,7 @@ physical_topology:
               id: 1
               ifname: null
               type: "netns"
-              ipv4_addr: [172.16.1.254/24]
+              ipv4_addr: [172.16.1.1/24]
               ipv4_gw: 172.16.1.254
               ipv6_addr: []
               hw_addr: aa:bb:cc:00:11:11
