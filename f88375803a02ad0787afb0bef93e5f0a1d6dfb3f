@@ -52,6 +52,24 @@
       "revId": "f88375803a02ad0787afb0bef93e5f0a1d6dfb3f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_5a814e8e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-17T18:20:32Z",
+      "side": 1,
+      "message": "It\u0027s not. The specific cases we have now are IPS and DPI. I couldn\u0027t expect load balancing to be handled like this either, but it\u0027s out of scope at this stage anyhow.",
+      "parentUuid": "7ac7a964_ba7ee2e2",
+      "revId": "f88375803a02ad0787afb0bef93e5f0a1d6dfb3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
