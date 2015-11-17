@@ -16,6 +16,24 @@
       "revId": "f88375803a02ad0787afb0bef93e5f0a1d6dfb3f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_ba30a257",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-17T17:48:28Z",
+      "side": 1,
+      "message": "Then all bets are off. The services I\u0027ve seen so far just bounce back the packet unmodified, and this is the only model we\u0027ve taken into account. \n\nThese services sit right in front of the port (they get the packet before infilters, and after outfilters). Modifying the 5tuple would make no sense.",
+      "parentUuid": "7ac7a964_3ace525b",
+      "revId": "f88375803a02ad0787afb0bef93e5f0a1d6dfb3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
