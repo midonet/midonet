@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_f79eb355",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-17T14:40:49Z",
+      "side": 1,
+      "message": "It may be implicitly tested on the current tests but I\u0027m missing a tx.delete after a tx.get (cachedGet) object (should pass and commiting should not write anything).",
+      "revId": "32eba2abbbda39db44ba1a4428be91edf3e068ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
