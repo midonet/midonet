@@ -18,14 +18,11 @@ package org.midonet.midolman.state;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.annotation.Nonnull;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -188,21 +185,6 @@ public class MockDirectory implements Directory {
             }
             return n;
         }
-
-        /*
-         * convert this node and all of its children to a path -> data map.
-         * This is useful for whitebox testing of what has been added or
-         * deleted to the Directory structure.
-         */
-        public Map<String, String> toStringMap() {
-            Map<String, String> map = new HashMap<>();
-            map.put(this.path, this.data == null ? "" : new String(this.data));
-            for (String k : this.children.keySet()) {
-                Node n = this.children.get(k);
-                map.putAll(n.toStringMap());
-            }
-            return map;
-        }
     }
 
     private Node rootNode;
@@ -320,16 +302,6 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public void asyncGetChildren(String relativePath, DirectoryCallback<Set<String>> childrenCallback, TypedWatcher watcher) {
-        try {
-            childrenCallback.onSuccess(
-                getNode(relativePath).getChildren(watcher));
-        } catch (NoNodeException e) {
-            childrenCallback.onError(e);
-        }
-    }
-
-    @Override
     public void asyncGet(String relativePath, DirectoryCallback<byte[]> dataCb, TypedWatcher watcher) {
         try {
             dataCb.onSuccess(getNode(relativePath).getData(wrapCallback(watcher)));
@@ -359,15 +331,6 @@ public class MockDirectory implements Directory {
     @Override
     public boolean exists(String path, Runnable watcher) {
         return exists(path, wrapCallback(watcher));
-    }
-
-    @Override
-    public void asyncExists(String path, DirectoryCallback<Boolean> cb) {
-        try {
-            cb.onSuccess(getNode(path).exists(null));
-        } catch (NoNodeException e) {
-            cb.onSuccess(false);
-        }
     }
 
     @Override
@@ -404,16 +367,6 @@ public class MockDirectory implements Directory {
          } catch (KeeperException ex) {
              callback.onError(ex);
          }
-    }
-
-    @Override
-    public void asyncDelete(String relativePath) {
-        try {
-            delete(relativePath, false);
-        } catch (KeeperException e) {
-            log.debug("asyncDelete got exception", e);
-        }
-
     }
 
     @Override
@@ -511,52 +464,6 @@ public class MockDirectory implements Directory {
         }
     }
 
-    @Override
-    public void asyncMultiPathGet(@Nonnull final Set<String> relativePaths,
-                                  final DirectoryCallback<Set<byte[]>> cb) {
-        if(relativePaths.isEmpty()){
-            log.debug("Empty set of paths, is that OK?");
-            cb.onSuccess(Collections.<byte[]>emptySet());
-        }
-        // Map to keep track of the callbacks that returned
-        final Map<String, byte[]> callbackResults =
-            new HashMap<>();
-        for(final String path: relativePaths){
-            asyncGet(path, new DirectoryCallback<byte[]>(){
-
-                @Override
-                public void onTimeout(){
-                    synchronized (callbackResults){
-                        callbackResults.put(path, null);
-                    }
-                    log.error("asyncMultiPathGet - Timeout {}", path);
-                }
-
-                @Override
-                public void onError(KeeperException e) {
-                    synchronized (callbackResults){
-                        callbackResults.put(path, null);
-                    }
-                    log.error("asyncMultiPathGet - Exception {}", path, e);
-                }
-
-                @Override
-                public void onSuccess(byte[] data) {
-                    synchronized (callbackResults) {
-                        callbackResults.put(path, data);
-                            if(callbackResults.size() == relativePaths.size()) {
-                                Set<byte[]> results = new HashSet<>();
-                                for(Map.Entry entry : callbackResults.entrySet()) {
-                                    if(entry != null)
-                                        results.add((byte[])entry.getValue());
-                                }
-                                cb.onSuccess(results);
-                            }
-                    }
-                }
-            }, null);
-        }
-    }
 
     private static class MyTypedWatcher implements Watcher, Runnable {
         TypedWatcher watcher;

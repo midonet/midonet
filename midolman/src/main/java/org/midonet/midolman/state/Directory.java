@@ -68,17 +68,11 @@ public interface Directory {
     Set<String> getChildren(String relativePath, Runnable watcher)
             throws KeeperException, InterruptedException;
 
-    void asyncGetChildren(String relativePath,
-                          DirectoryCallback<Set<String>> childrenCallback,
-                          TypedWatcher watcher);
-
     boolean exists(String path, Watcher watcher) throws KeeperException,
             InterruptedException;
 
     boolean exists(String path, Runnable watcher)
             throws KeeperException, InterruptedException;
-
-    void asyncExists(String path, DirectoryCallback<Boolean> cb);
 
     boolean has(String relativePath) throws KeeperException,
             InterruptedException;
@@ -88,15 +82,10 @@ public interface Directory {
 
     void asyncDelete(String relativePath, DirectoryCallback<Void> callback);
 
-    void asyncDelete(String relativePath);
-
     Directory getSubDirectory(String relativePath) throws KeeperException;
 
     List<OpResult> multi(List<Op> ops) throws InterruptedException,
             KeeperException;
-
-    void asyncMultiPathGet(final Set<String> paths,
-                                  final DirectoryCallback<Set<byte[]>> cb);
 
     void closeConnection();
 
