@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_3ace525b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-17T17:44:52Z",
+      "side": 1,
+      "message": "What if the first service modifies the packet headers such that we can\u0027t properly find the flow state on the other services?",
+      "revId": "f88375803a02ad0787afb0bef93e5f0a1d6dfb3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
