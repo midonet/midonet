@@ -28,7 +28,7 @@ import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.LoadBalancer
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
 
 @ApiResource(version = 1, name = "loadBalancers", template = "loadBalancerTemplate")
 @Path("load_balancers")
@@ -56,12 +56,12 @@ class LoadBalancerResource @Inject()(resContext: ResourceContext)
     }
 
     protected override def updateFilter(to: LoadBalancer, from: LoadBalancer)
-    : Ops = {
+    : Seq[Multi] = {
         if (to.routerId != from.routerId) {
             throw new BadRequestHttpException("Router cannot be modified")
         }
         to.update(from)
-        NoOps
+        Seq.empty
     }
 
 }

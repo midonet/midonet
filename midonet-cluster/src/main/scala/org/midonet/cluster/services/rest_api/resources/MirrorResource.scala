@@ -42,8 +42,8 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 class MirrorResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Mirror](resContext) {
 
-    protected override def updateFilter(to: Mirror, from: Mirror): Ops = {
+    protected override def updateFilter(to: Mirror, from: Mirror): Seq[Multi] = {
         to.update(from)
-        NoOps
+        Seq.empty
     }
 }

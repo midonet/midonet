@@ -23,7 +23,6 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -33,7 +32,7 @@ import org.midonet.cluster.rest_api.annotation.AllowCreate
 import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet6}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{NoOps, Ops, ResourceContext}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Multi, ResourceContext}
 import org.midonet.packets.IPv6Subnet
 
 @RequestScoped
@@ -50,7 +49,6 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
     override def get(@PathParam("subnetAddress") subnetAddress: String,
                      @HeaderParam("Accept") accept: String): DhcpSubnet6 = {
         getSubnet(IPv6Subnet.fromString(subnetAddress))
-            .getOrThrow
             .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
     }
 
@@ -58,11 +56,8 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
     @Produces(Array(APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[DhcpSubnet6] = {
-        getResource(classOf[Bridge], bridgeId)
-            .flatMap(bridge => listResources(classOf[DhcpSubnet6],
-                                             bridge.dhcpv6Ids.asScala))
-            .getOrThrow
-            .asJava
+        val bridge = getResource(classOf[Bridge], bridgeId)
+        listResources(classOf[DhcpSubnet6], bridge.dhcpv6Ids.asScala).asJava
     }
 
     private def subnetNotFoundResp(subnetAddr: String): Response =
@@ -78,23 +73,19 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
                         subnet: DhcpSubnet6,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        getSubnet(IPv6Subnet.fromString(subnetAddress)).map(_.map(current => {
+        getSubnet(IPv6Subnet.fromString(subnetAddress)).map(current => {
             subnet.update(current)
             updateResource(subnet)
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp(subnetAddress))
+        }).getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
     @DELETE
     @Path("{subnetAddress}")
     override def delete(@PathParam("subnetAddress") subnetAddress: String)
     : Response = {
-        getSubnet(IPv6Subnet.fromString(subnetAddress)).map(_.map(subnet => {
+        getSubnet(IPv6Subnet.fromString(subnetAddress)).map(subnet => {
             deleteResource(classOf[DhcpSubnet6], subnet.id)
-        }))
-            .getOrThrow
-            .getOrElse(subnetNotFoundResp(subnetAddress))
+        }).getOrElse(subnetNotFoundResp(subnetAddress))
     }
 
     @Path("{subnetAddress}/hostsV6")
@@ -103,17 +94,15 @@ class DhcpV6SubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext
         new DhcpV6HostResource(bridgeId, subnetAddress, resContext)
     }
 
-    protected override def createFilter(subnet: DhcpSubnet6): Ops = {
+    protected override def createFilter(subnet: DhcpSubnet6): Seq[Multi] = {
         subnet.create(bridgeId)
-        NoOps
+        Seq.empty
     }
 
-    private def getSubnet(subnetAddress: IPv6Subnet)
-    : Future[Option[DhcpSubnet6]] = {
-        getResource(classOf[Bridge], bridgeId)
-            .flatMap(bridge => listResources(classOf[DhcpSubnet6],
-                                             bridge.dhcpv6Ids.asScala))
-            .map(_.find(_.subnetAddress == subnetAddress))
+    private def getSubnet(subnetAddress: IPv6Subnet): Option[DhcpSubnet6] = {
+        val bridge = getResource(classOf[Bridge], bridgeId)
+        listResources(classOf[DhcpSubnet6], bridge.dhcpv6Ids.asScala)
+            .find(_.subnetAddress == subnetAddress)
     }
 
 }
