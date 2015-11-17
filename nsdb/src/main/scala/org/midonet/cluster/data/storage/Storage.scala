@@ -194,6 +194,15 @@ trait Storage extends ReadOnlyStorage {
     def multi(ops: Seq[PersistenceOp]): Unit
 
     /**
+     * Creates a new storage transaction that allows multiple read and write
+     * operations to be executed atomically. The transaction guarantees that
+     * the value of an object is not modified until the transaction is
+     * completed or that the transaction will fail with a
+     * [[java.util.ConcurrentModificationException]].
+     */
+    def transaction(): Transaction
+
+    /**
      * Provide an Observable that emits updates to the specified object
      * asynchronously. Note that an implementation may chose to cache
      * the observable for each given object in order for several callers
