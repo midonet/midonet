@@ -34,6 +34,24 @@
       "revId": "32eba2abbbda39db44ba1a4428be91edf3e068ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_777463fd",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-17T15:18:31Z",
+      "side": 1,
+      "message": "Yes, but I now realize that committing in that case should actually delete the object. But this is implicitly tested in \"Delete fails of the object is modified before commit\".",
+      "parentUuid": "7ac7a964_f7031371",
+      "revId": "32eba2abbbda39db44ba1a4428be91edf3e068ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
