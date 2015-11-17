@@ -68,14 +68,15 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             bridgeId = Some(bridge.getId.asJava))
     }
 
-    def addServiceToPort(id: PUUID): L2Insertion = {
+    def addServiceToPort(portId: PUUID, srvPortId: PUUID = null): L2Insertion = {
+        val srvPortId2 = if (srvPortId == null) { portId } else { srvPortId }
         // isn't actually translated to anything, just here
         // to convert port to service port
         L2Insertion.newBuilder
             .setId(UUID.randomUUID().asProto)
             .setMac(mac1)
-            .setPortId(id)
-            .setSrvPortId(id)
+            .setPortId(portId)
+            .setSrvPortId(srvPortId2)
             .setPosition(1)
             .setVlan(10)
             .build
@@ -497,5 +498,62 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
             portIds.count({ _.getMostSignificantBits == 0 }) shouldBe 0
         }
 
+        scenario("Redirecting sends flow state to all ports") {
+            Given("A port with 4 services")
+
+            val bridge0: TopoBridge = createBridge(name = Some("bridge"),
+                                                   adminStateUp = true)
+            store.create(bridge0)
+
+            val srcPort = makePort(new UUID(0, 1), "src_port", bridge0)
+            store.create(srcPort)
+            materializePort(srcPort.getId, hostId, "src_port_$i")
+
+            val filter = createChain(name = Some(s"outfilter"))
+            store.create(filter)
+
+            val id = new UUID(0, 2)
+            val dstPort = makePort(id, "dst_port", bridge0,
+                                   outfilter=Some(filter.getId))
+            store.create(dstPort)
+            materializePort(dstPort.getId, hostId, "dst_port_$i")
+
+            val srvPort0 = new UUID(1,0)
+            val srvPort1 = new UUID(1,1)
+            val srvPort2 = new UUID(1,2)
+            val srvPort3 = new UUID(1,3)
+            val srvPorts = Seq(srvPort0, srvPort1, srvPort2, srvPort3)
+            for (i <- srvPorts) {
+                val p = makePort(i, s"srv_port_$i", bridge0)
+                store.create(p)
+                materializePort(i, hostId, s"srv_port_$i")
+                store.create(addServiceToPort(dstPort.getId, i))
+            }
+
+            val rule = redirectRuleBuilder(
+                    chainId = Some(filter.getId),
+                    targetPortId = Some(srvPort0)).build()
+            store.create(rule)
+
+            fetchPorts(srcPort.getId, dstPort.getId,
+                       srvPort0, srvPort1,
+                       srvPort2, srvPort3)
+            fetchDevice[Chain](filter.getId)
+            fetchDevice[Bridge](bridge0.getId)
+
+            // seed the macs
+            simulate(packetContextFor(packet(mac1, mac2), srcPort.getId))
+            simulate(packetContextFor(packet(mac2, mac1), dstPort.getId))
+
+            When("A packet goes through")
+            val packetContext = packetContextFor(packet(mac1,mac2),
+                                                 srcPort.getId)
+            val result = simulate(packetContext)
+
+            Then("The service ports should be set on the context")
+            val expectedPorts = srvPorts :+ dstPort.getId.asJava
+            packetContext.servicePorts should contain theSameElementsAs expectedPorts
+        }
     }
+
 }

@@ -120,6 +120,27 @@ bindings_spread2 = {
     ]
 }
 
+bindings_spread3 = {
+    'description': 'on 3 MM, super complicated config for flow state',
+    'bindings': [
+        {'binding':
+             {'device_name': 'bridge-000-001', 'port_id': 1,
+              'host_id': 2, 'interface_id': 1}},
+        {'binding':
+             {'device_name': 'bridge-000-001', 'port_id': 2,
+              'host_id': 2, 'interface_id': 2}},
+        {'binding':
+             {'device_name': 'bridge-000-001', 'port_id': 3,
+              'host_id': 3, 'interface_id': 3}},
+        {'binding':
+             {'device_name': 'bridge-000-001', 'port_id': 4,
+              'host_id': 3, 'interface_id': 4}},
+        {'binding':
+             {'device_name': 'bridge-000-002', 'port_id': 1,
+              'host_id': 1, 'interface_id': 5}},
+    ]
+}
+
 
 @attr(version="v1.2.0", slow=False)
 @failures(NoFailure())
@@ -326,7 +347,7 @@ def test_multi_l2insertion():
 
 @attr(version="v1.2.0", slow=False)
 @failures(NoFailure())
-@bindings(bindings_split, bindings_spread) # bindings_spread2)
+@bindings(bindings_split, bindings_spread, bindings_spread2, bindings_spread3)
 def test_l2insertion_with_flowstate():
     """
     Title: Test insertions with flow state

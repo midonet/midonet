@@ -285,6 +285,22 @@ trait InAndOutFilters extends SimDevice {
     def redirect(context: PacketContext, ruleResult: RuleResult): Result = {
         val targetPort = tryGet[Port](ruleResult.redirectPort)
 
+        this match {
+            case p: Port => {
+                var i = 0
+                while (i < p.servicePorts.size) {
+                    context.servicePorts.add(p.servicePorts.get(i))
+                    i += 1
+                }
+                // also send flow state to the host of the
+                // port which the redirect is on, so that if
+                // all service ports are down and failOpen, packets
+                // will have access to the flow state.
+                context.servicePorts.add(p.id)
+            }
+            case _ =>
+        }
+
         if (ruleResult.redirectIngress) {
             targetPort.ingress(context)
         } else {
