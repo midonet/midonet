@@ -115,11 +115,12 @@ object Ip4ToMacReplicatedMap {
     /**
      * Deletes an entry forcefully (either learned or explicitly set).
      */
-    def deleteEntry(dir: Directory, key: IPv4Addr, mac: MAC) = {
+    def deleteEntry(dir: Directory, key: IPv4Addr, mac: MAC): MAC = {
         getAsMapWithVersion(dir).get(key) match {
             case (m, ver) if m.equals(mac) =>
                 dir.delete(encodePath(key, mac, ver))
-            case _ => ()
+                mac
+            case _ => null
         }
     }
 
