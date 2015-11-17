@@ -52,6 +52,24 @@
       "revId": "32eba2abbbda39db44ba1a4428be91edf3e068ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_17540f53",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-17T15:21:12Z",
+      "side": 1,
+      "message": "Sorry, similar to \"Delete succeeds on existing object\", so no need to add the test I mention.",
+      "parentUuid": "7ac7a964_777463fd",
+      "revId": "32eba2abbbda39db44ba1a4428be91edf3e068ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
