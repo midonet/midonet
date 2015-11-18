@@ -66,6 +66,9 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
     val egressHost1Id = UUID.randomUUID()
     val egressHost2Id = UUID.randomUUID()
 
+    val serviceHost1Id = UUID.randomUUID()
+    val serviceHost2Id = UUID.randomUUID()
+
     val ingressGroupId = UUID.randomUUID()
     val egressGroupId = UUID.randomUUID()
 
@@ -104,6 +107,9 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
     val egressHost1 = makeHost(egressHost1Id)
     val egressHost2 = makeHost(egressHost2Id)
 
+    val serviceHost1 = makeHost(serviceHost1Id)
+    val serviceHost2 = makeHost(serviceHost2Id)
+
     var ingressPortNoGroup: Port = _
     var egressPortNoGroup: Port = _
 
@@ -111,6 +117,9 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
     val ingressPortGroupMember = makePort(ingressGroupMemberHostId, ingressGroupId)
     val egressPort1 = makePort(egressHost1Id, egressGroupId)
     val egressPort2 = makePort(egressHost2Id, egressGroupId)
+
+    val servicePort1 = makePort(serviceHost1Id)
+    val servicePort2 = makePort(serviceHost2Id)
 
     val ingressGroup = makePortGroup(ingressGroupId, "ingress")
     val egressGroup = makePortGroup(egressGroupId, "egress")
@@ -177,7 +186,11 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         store.create(ingressGroupMemberHost)
         store.create(egressHost1)
         store.create(egressHost2)
-        fetchHosts(hostId, ingressGroupMemberHostId, egressHost1Id, egressHost2Id)
+        store.create(serviceHost1)
+        store.create(serviceHost2)
+        fetchHosts(hostId, ingressGroupMemberHostId,
+                   egressHost1Id, egressHost2Id,
+                   serviceHost1Id, serviceHost2Id)
 
         store.create(ingressGroup)
         store.create(egressGroup)
@@ -191,9 +204,12 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         store.create(ingressPortGroupMember)
         store.create(egressPort1)
         store.create(egressPort2)
+        store.create(servicePort1)
+        store.create(servicePort2)
         fetchPorts(ingressPortNoGroup.getId, egressPortNoGroup.getId,
                    ingressPort.getId, ingressPortGroupMember.getId,
-                   egressPort1.getId, egressPort2.getId)
+                   egressPort1.getId, egressPort2.getId,
+                   servicePort1.getId, servicePort2.getId)
 
 
 
@@ -399,7 +415,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             sender.resolvePeers(
                 ingressPort.getId, new ArrayList[UUID]() {
                     add(egressPort1.getId)
-                }, hosts, ports, tags)
+                }, new ArrayList[UUID](), hosts, ports, tags)
 
             Then("Hosts in the ingress port's port group should be included")
             hosts should contain (ingressGroupMemberHostId)
@@ -465,7 +481,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             sender.resolvePeers(
                 ingressPort.getId, new ArrayList[UUID]() {
                     add(vxlanPort.getId)
-                }, hosts, ports, tags)
+                }, new ArrayList[UUID](), hosts, ports, tags)
 
             Then("Hosts in the ingress port's port group should be included")
             hosts should contain (ingressGroupMemberHostId)
@@ -486,6 +502,27 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             tags should contain (FlowTagger.tagForFlowStateDevice(ingressGroup.getId))
             tags should contain (FlowTagger.tagForFlowStateDevice(vxlanPort.getId))
             tags should have size 4
+        }
+
+        scenario("State is sent to service ports") {
+            val tags = new JHashSet[FlowTag]()
+
+            When("The flow replicator resolves peers for a flow's state")
+            val hosts = new JHashSet[UUID]()
+            val ports = new JHashSet[UUID]()
+            sender.resolvePeers(
+                ingressPort.getId, new ArrayList[UUID](0),
+                new ArrayList[UUID]() {
+                    add(servicePort1.getId)
+                    add(servicePort2.getId)
+                }, hosts, ports, tags)
+
+            Then("Hosts in the ingress port's port group should be included")
+            hosts should contain (ingressGroupMemberHostId)
+
+            And("The hosts that owns the service ports should be included")
+            hosts should contain (serviceHost1Id)
+            hosts should contain (serviceHost2Id)
         }
     }
 
@@ -541,10 +578,12 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
 
         override def resolvePeers(ingressPort: UUID,
                                   egressPorts: ArrayList[UUID],
+                                  servicePorts: ArrayList[UUID],
                                   peers: JSet[UUID],
                                   ports: JSet[UUID],
                                   tags: Collection[FlowTag]) {
-            super.resolvePeers(ingressPort, egressPorts, peers, ports, tags)
+            super.resolvePeers(ingressPort, egressPorts, servicePorts,
+                               peers, ports, tags)
         }
     }
 
