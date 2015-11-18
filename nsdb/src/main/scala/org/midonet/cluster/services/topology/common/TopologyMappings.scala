@@ -33,6 +33,7 @@ object TopologyMappings {
         Topology.Type.DHCP_V6 -> classOf[Topology.DhcpV6],
         Topology.Type.HEALTH_MONITOR -> classOf[Topology.HealthMonitor],
         Topology.Type.HOST -> classOf[Topology.Host],
+        Topology.Type.HOST_GROUP -> classOf[Topology.HostGroup],
         Topology.Type.IP_ADDR_GROUP -> classOf[Topology.IPAddrGroup],
         Topology.Type.LOAD_BALANCER -> classOf[Topology.LoadBalancer],
         Topology.Type.L2INSERTION -> classOf[Topology.L2Insertion],
