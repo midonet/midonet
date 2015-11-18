@@ -44,7 +44,10 @@ enum Type {
     VIP = 20;
     VTEP = 21;
     MIRROR = 22;
+    HOST_GROUP = 23;
     L2INSERTION = 31;
+    SERVICE_CONTAINER = 32;
+    SERVICE_CONTAINER_GROUP = 33;
 }
 
 message BgpNetwork {
@@ -158,11 +161,19 @@ message Host {
 
     optional int32 flooding_proxy_weight = 3 [default = 1];
 
-    // Backreference. Expected to be set from the Tunnel Zone side.
+    // Backreferences
     repeated UUID tunnel_zone_ids = 101;
-
-    // Backreference. Expected to be set from the Port side.
     repeated UUID port_ids = 102;
+    repeated UUID host_group_ids = 103;
+}
+
+message HostGroup {
+    optional UUID id = 1;
+    optional string name = 2;
+
+    // Backreferences
+    repeated UUID host_ids = 101;
+    repeated UUID service_group_ids = 102;
 }
 
 message IPAddrGroup {
@@ -245,6 +256,7 @@ message Network {
     repeated UUID dhcp_ids = 103;
     repeated UUID dhcpv6_ids = 104;
     repeated UUID trace_request_ids = 105;
+    repeated UUID service_container_ids = 106;
 }
 
 message Pool {
@@ -350,6 +362,7 @@ message PortGroup {
 
     // Backreferences
     repeated UUID port_ids = 101;
+    repeated UUID service_group_ids = 102;
 }
 
 message Route {
@@ -394,6 +407,7 @@ message Router {
     // Backreferences
     repeated UUID port_ids = 101;
     repeated UUID trace_request_ids = 102;
+    repeated UUID service_container_ids = 103;
 }
 
 message Rule {
@@ -460,6 +474,32 @@ message Rule {
         NatRuleData nat_rule_data = 101;
         TraceRuleData trace_rule_data = 102;
         L2TransformRuleData transform_rule_data = 103;
+    }
+}
+
+message ServiceContainer {
+    optional UUID id = 1;
+    optional UUID service_group_id = 2;
+    optional UUID router_id = 3;
+    optional UUID network_id = 4;
+}
+
+message ServiceContainerGroup {
+    optional UUID id = 1;
+    optional Service service_type = 2;
+
+    // Allocation policy.
+    // both unset == ANYWHERE
+    optional UUID host_group_id = 4;
+    optional UUID port_group_id = 5;
+
+    // Backreferences
+    repeated UUID service_container_ids = 101;
+
+    enum Service {
+        IPSEC = 0;
+        QUAGGA = 1;
+        HAPROXY = 2;
     }
 }
 
