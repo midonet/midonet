@@ -250,14 +250,6 @@ message Network {
 message Pool {
     enum PoolProtocol { TCP = 1; }
     enum PoolLBMethod { ROUND_ROBIN = 1; }
-    enum PoolHealthMonitorMappingStatus {
-        ACTIVE = 1;
-        INACTIVE = 2;
-        PENDING_CREATE = 3;
-        PENDING_UPDATE = 4;
-        PENDING_DELETE = 5;
-        ERROR = 6;
-    }
 
     optional UUID id = 1;
     optional UUID health_monitor_id = 2;
@@ -268,7 +260,6 @@ message Pool {
     optional PoolProtocol protocol = 5 [default = TCP];
     optional PoolLBMethod lb_method = 6 [default = ROUND_ROBIN];
     optional LBStatus status = 7 [default = ACTIVE];
-    optional PoolHealthMonitorMappingStatus mapping_status = 8;
 
     // Backreferences
     repeated UUID pool_member_ids = 101;

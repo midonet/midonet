@@ -24,7 +24,7 @@ import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
-import scala.concurrent.duration._
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Success
 import scala.util.control.NonFatal
 
@@ -102,7 +102,8 @@ class HostService @Inject()(config: MidolmanConfig,
 
     private final val hostId = hostIdProvider.hostId()
 
-    private final val timeout = 5 seconds
+    private final val timeout = new FiniteDuration(config.zookeeper.readTimeout,
+                                                   TimeUnit.MILLISECONDS)
     @volatile private var hostName: String = "UNKNOWN"
 
     private val interfacesLatch = new CountDownLatch(1)

@@ -120,6 +120,10 @@ public class TestPool {
             newPool = getPool(pool2.getUri());
             Assert.assertEquals(newPool, pool2);
 
+            /* This ensures that the deletePool calls below succeed. */
+            activatePoolHMMappingStatus(pool.getId());
+            activatePoolHMMappingStatus(pool2.getId());
+
             // Delete
             deletePool(pool.getUri());
             verifyNumberOfPools(1);
@@ -144,11 +148,17 @@ public class TestPool {
             DtoPool pool = createStockPool(loadBalancer.getId());
             assertNull(pool.getHealthMonitor());
 
+            /* This ensures that the updatePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
+
             // Clear reference.
             pool.setHealthMonitorId(null);
             pool = updatePool(pool);
             // Check if the reference is gone.
             assertNull(pool.getHealthMonitor());
+
+            /* This ensures that the updatePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
 
             // Add a health monitor.
             DtoHealthMonitor healthMonitor1 = createStockHealthMonitor();
@@ -168,6 +178,9 @@ public class TestPool {
             DtoVip vip = createStockVip(pool.getId());
             DtoVip vip2 = createStockVip(pool.getId());
             checkVipBackrefs(pool, vip.getUri(), vip2.getUri());
+
+            /* This ensures that the deletePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
 
             deletePool(pool.getUri());
             // Strongly associated resources are deleted by cascading.
@@ -234,6 +247,9 @@ public class TestPool {
         public void testUpdateWithBadHealthMonitorId() {
             DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
+            /* This ensures that the put call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
+
             ClientResponse res = dtoResource.putAndVerifyStatus(
                 pool.getUri(), APPLICATION_POOL_JSON(), pool,
                 NOT_FOUND.getStatusCode());
@@ -351,6 +367,9 @@ public class TestPool {
             DtoPool pool = createStockPool(loadBalancer.getId());
             assertEquals(LBStatus.ACTIVE, pool.getStatus());
 
+            /* This ensures that the updatePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
+
             pool.setStatus(LBStatus.INACTIVE);
             pool = updatePool(pool);
             assertEquals(LBStatus.ACTIVE, pool.getStatus());
@@ -359,7 +378,11 @@ public class TestPool {
         @Test
         public void testServiceUnavailableWithNullHealthMonitor()
                 throws Exception {
+
             DtoPool pool = createStockPool(loadBalancer.getId());
+            /* This ensures that the updatePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
+
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
             pool.setHealthMonitorId(healthMonitor.getId());
             pool = updatePool(pool);

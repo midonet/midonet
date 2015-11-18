@@ -49,6 +49,7 @@ object MidonetBackend {
     final val BgpKey = "bgp"
     final val FloodingProxyKey = "flooding_proxy"
     final val HostKey = "host"
+    final val PoolMappingStatus = "pool_mapping_status"
     final val RoutesKey = "routes"
     final val VtepConfig = "config"
     final val VtepConnState = "connection_state"
@@ -208,6 +209,7 @@ object MidonetBackend {
         stateStore.registerKey(classOf[Host], HostKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Port], ActiveKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Port], BgpKey, SingleLastWriteWins)
+        stateStore.registerKey(classOf[Pool], PoolMappingStatus, SingleLastWriteWins)
         stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
         stateStore.registerKey(classOf[TunnelZone], FloodingProxyKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepConfig, SingleLastWriteWins)

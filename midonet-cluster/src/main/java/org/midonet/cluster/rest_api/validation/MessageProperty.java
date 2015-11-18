@@ -70,6 +70,8 @@ public class MessageProperty {
             "{midokura.javarx.MappingDisassociationIsRequired.message}";
     public static final String MAPPING_STATUS_IS_PENDING =
             "{midokura.javarx.MappingStatusIsPending.message}";
+    public static final String MAPPING_STATUS_ABSENT =
+            "{midokura.javarx.MappingStatusAbsent.message}";
     public static final String MAX_VALUE =
             "{midokura.javarx.MaxValue.message}";
     public static final String MIN_VALUE =
