@@ -16,29 +16,15 @@
 
 package org.midonet.midolman.state;
 
-import org.midonet.cluster.data.ZoomEnum;
-import org.midonet.cluster.data.ZoomEnumValue;
-import org.midonet.cluster.models.Topology;
-
 /**
  * Status property used in MidoNet resources. They mirror statuses defined in
  * Neutron.
  */
-@ZoomEnum(clazz = Topology.Pool.PoolHealthMonitorMappingStatus.class)
 public enum PoolHealthMonitorMappingStatus {
-    @ZoomEnumValue("ACTIVE") ACTIVE,
-    @ZoomEnumValue("INACTIVE") INACTIVE,
-    @ZoomEnumValue("PENDING_CREATE") PENDING_CREATE,
-    @ZoomEnumValue("PENDING_UPDATE") PENDING_UPDATE,
-    @ZoomEnumValue("PENDING_DELETE") PENDING_DELETE,
-    @ZoomEnumValue("ERROR") ERROR;
-
-    public static PoolHealthMonitorMappingStatus fromProto(
-            Topology.Pool.PoolHealthMonitorMappingStatus proto) {
-        return PoolHealthMonitorMappingStatus.valueOf(proto.toString());
-    }
-
-    public Topology.Pool.PoolHealthMonitorMappingStatus toProto() {
-        return Topology.Pool.PoolHealthMonitorMappingStatus.valueOf(toString());
-    }
+    ACTIVE,
+    INACTIVE,
+    PENDING_CREATE,
+    PENDING_UPDATE,
+    PENDING_DELETE,
+    ERROR;
 }

@@ -16,25 +16,31 @@
 package org.midonet.midolman.l4lb
 
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
-import akka.actor.{ActorRef, Props, ActorSystem}
+import scala.concurrent.duration.FiniteDuration
+
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{TestActorRef, TestKit}
-
 import org.junit.runner.RunWith
-import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.packets.IPv4Addr
-import org.mockito.Mockito.{mock, verify, times}
+import org.mockito.Mockito.{mock, times, verify}
 import org.scalatest._
 import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.SpanSugar
 
-import org.midonet.cluster.models.Topology.{HealthMonitor => topHM, Router, Pool => topPool, Host}
+import org.midonet.cluster.data.storage.SingleValueKey
+import org.midonet.cluster.models.Topology.{HealthMonitor => topHM, Pool => topPool, Router}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.cluster.services.MidonetBackend.PoolMappingStatus
+import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.{HealthMonitor => HMSystem}
-
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus._
+import org.midonet.midolman.state.{PoolHealthMonitorMappingStatus => PoolHMStatus}
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.packets.IPv4Addr
+import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
@@ -47,6 +53,7 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
     var hmSystem: ActorRef = _
     var backend: MidonetBackend = _
     var conf = mock(classOf[MidolmanConfig])
+    val zkReadTimeout = new FiniteDuration(5, TimeUnit.MILLISECONDS)
 
     def makeRouter(): UUID = {
         val rid = UUID.randomUUID()
@@ -101,18 +108,36 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
         backend.store.get(classOf[Router], routerId).value.get.get
     }
 
+    def checkPoolMappingStatus(poolId: UUID, status: Option[PoolHMStatus])
+    : Unit = {
+        val state = backend.stateStore.getKey(classOf[topPool], poolId,
+                                              PoolMappingStatus)
+                                      .await(zkReadTimeout)
+        state match {
+            case SingleValueKey(_, Some(value), _) =>
+                value shouldBe status.get.name
+            case SingleValueKey(_, value, _) => // Check passes
+            case _ =>
+                fail("State key for pool mapping is absent, has the state " +
+                     "key been registered?")
+        }
+    }
+
     class TestableHealthMonitor extends HMSystem(conf, backend, null) {
         override def getHostId = hostId
 
-        override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
-                                     routerId: UUID) = {
+        override def startChildHaproxyMonitor(poolId: UUID,
+                                              config: MidolmanConfig,
+                                              poolConfig: PoolConfig,
+                                              routerId: UUID) = {
             context.actorOf(
                 Props(
-                    new HaproxyHealthMonitor(config, self, routerId, store, hostId) {
+                    new HaproxyHealthMonitor(conf, poolConfig, self, routerId,
+                                             backend, hostId) {
                         override def writeConf(config: PoolConfig): Unit = {}
                     }
                 ).withDispatcher(context.props.dispatcher),
-                config.id.toString)
+                poolConfig.id.toString)
         }
     }
 
@@ -136,23 +161,22 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
 
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 0 }
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 0 }
+            // No state key should be present before creating the pool.
+            eventually(to) {
+                checkPoolMappingStatus(UUID.randomUUID, status = None)
+            }
 
             val lbId = makeLB(routerId)
             val hmId = makeHM(2, 2, 2)
             val vipId = makeVip(80, "10.0.0.1")
             val poolId = makePool(hmId, lbId, vipId)
-
-
             val poolName = poolId.toString.substring(0, 8) + "_hm"
 
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 1 }
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 1 }
+            eventually(to) { checkPoolMappingStatus(poolId, Some(ACTIVE)) }
 
-            /* TODO: find out why the mapper sends 3 notifications.
-             * This is not expected: a single pool-health monitor config
-             * should result in a single mapper notification.
-             */
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName)
+            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName)
 
             backend.store.delete(classOf[topPool], poolId)
             backend.store.delete(classOf[topHM], hmId)
@@ -160,7 +184,23 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 0 }
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 0 }
 
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName)
+            verify(HMSystem.ipCommand, times(1)).namespaceExist(poolName)
+        }
+        scenario("Pool mapping status is removed after deleting the router") {
+            val to = timeout(10 seconds)
+
+            val routerId = makeRouter()
+            val lbId = makeLB(routerId)
+            val hmId = makeHM(2, 2, 2)
+            val vipId = makeVip(80, "10.0.0.1")
+            val poolId = makePool(hmId, lbId, vipId)
+
+            eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 1 }
+            eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 1 }
+            eventually(to) { checkPoolMappingStatus(poolId, Some(ACTIVE)) }
+
+            backend.store.delete(classOf[Router], routerId)
+            eventually(to) { checkPoolMappingStatus(poolId, status = None) }
         }
         scenario("ports and routes are created on separate routers") {
 
@@ -185,10 +225,11 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId1).getRouteIdsCount shouldBe 1 }
             eventually(to) { getRouter(routerId2).getPortIdsCount shouldBe 0 }
             eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 0 }
+            eventually(to) { checkPoolMappingStatus(poolId1, Some(ACTIVE)) }
 
             val poolName1 = poolId1.toString.substring(0, 8) + "_hm"
 
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName1)
 
             val lbId2 = makeLB(routerId2)
             val hmId2 = makeHM(2, 2, 2)
@@ -201,9 +242,11 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId1).getRouteIdsCount shouldBe 1 }
             eventually(to) { getRouter(routerId2).getPortIdsCount shouldBe 1 }
             eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 1 }
+            eventually(to) { checkPoolMappingStatus(poolId1, Some(ACTIVE)) }
+            eventually(to) { checkPoolMappingStatus(poolId2, Some(ACTIVE)) }
 
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName2)
+            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName2)
 
             backend.store.delete(classOf[topPool], poolId1)
             backend.store.delete(classOf[topHM], hmId1)
@@ -213,8 +256,8 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId2).getPortIdsCount shouldBe 1 }
             eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 1 }
 
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName1)
-            verify(HMSystem.ipCommand, times(2)).namespaceExist(poolName2)
+            verify(HMSystem.ipCommand, times(1)).namespaceExist(poolName1)
+            verify(HMSystem.ipCommand, times(0)).namespaceExist(poolName2)
 
             backend.store.delete(classOf[topPool], poolId2)
             backend.store.delete(classOf[topHM], hmId2)
@@ -224,8 +267,8 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId2).getPortIdsCount shouldBe 0 }
             eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 0 }
 
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName1)
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName2)
+            verify(HMSystem.ipCommand, times(1)).namespaceExist(poolName1)
+            verify(HMSystem.ipCommand, times(1)).namespaceExist(poolName2)
         }
     }
 
@@ -245,9 +288,10 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
 
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 1 }
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 1 }
+            eventually(to) { checkPoolMappingStatus(poolId1, Some(ACTIVE)) }
 
             val poolName1 = poolId1.toString.substring(0, 8) + "_hm"
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName1)
 
             val hmId2 = makeHM(2, 2, 2)
             val vipId2 = makeVip(80, "10.0.0.2")
@@ -255,9 +299,11 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
 
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 2 }
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 2 }
+            eventually(to) { checkPoolMappingStatus(poolId1, Some(ACTIVE)) }
+            eventually(to) { checkPoolMappingStatus(poolId2, Some(ACTIVE)) }
 
             val poolName2 = poolId2.toString.substring(0, 8) + "_hm"
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName1)
             verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName2)
 
             backend.store.delete(classOf[topPool], poolId1)
@@ -266,9 +312,9 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 1 }
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 1 }
 
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName1)
             verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName2)
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName1)
+            verify(HMSystem.ipCommand, times(1)).namespaceExist(poolName1)
             verify(HMSystem.ipCommand, times(0)).namespaceExist(poolName2)
 
             backend.store.delete(classOf[topPool], poolId2)
@@ -277,9 +323,9 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 0 }
             eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 0 }
 
-            verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
+            verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName1)
             verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName2)
-            verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName1)
+            verify(HMSystem.ipCommand, times(1)).namespaceExist(poolName1)
             verify(HMSystem.ipCommand, times(1)).namespaceExist(poolName2)
         }
     }

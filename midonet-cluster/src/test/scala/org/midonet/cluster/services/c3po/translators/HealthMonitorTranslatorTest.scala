@@ -69,12 +69,10 @@ class HealthMonitorTranslatorTestBase extends TranslatorTestBase {
     protected val poolWithHmId1 = mPoolFromTxt(s"""
             id { $poolId1 }
             health_monitor_id: { $hmId }
-            mapping_status: PENDING_CREATE
             """)
     protected val poolWithHmId2 = mPoolFromTxt(s"""
             id { $poolId2 }
             health_monitor_id: { $hmId }
-            mapping_status: PENDING_CREATE
             """)
 }
 

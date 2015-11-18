@@ -17,14 +17,14 @@
 package org.midonet.midolman.host.services
 
 import java.net.{InetAddress, UnknownHostException}
+import java.util.ConcurrentModificationException
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{CountDownLatch, TimeUnit, TimeoutException}
-import java.util.ConcurrentModificationException
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
-import scala.concurrent.duration._
+import scala.concurrent.duration.DurationLong
 import scala.util.Success
 import scala.util.control.NonFatal
 
@@ -102,7 +102,7 @@ class HostService @Inject()(config: MidolmanConfig,
 
     private final val hostId = hostIdProvider.hostId()
 
-    private final val timeout = 5 seconds
+    private final val timeout = config.zookeeper.opTimeout millis
     @volatile private var hostName: String = "UNKNOWN"
 
     private val interfacesLatch = new CountDownLatch(1)

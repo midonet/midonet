@@ -162,6 +162,9 @@ public class TestPoolMember {
             assertEquals(pool.getId(), member2.getPoolId());
             assertEquals(pool.getUri(), member2.getPool());
 
+            /* This ensures that the deletePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
+
             deletePool(pool.getUri());
             // Strongly associated resources are deleted by cascading.
             dtoResource.getAndVerifyNotFound(member.getUri(),

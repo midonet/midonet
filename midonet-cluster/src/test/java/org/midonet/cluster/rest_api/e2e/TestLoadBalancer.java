@@ -155,6 +155,9 @@ public class TestLoadBalancer {
             vip = getVip(vip.getUri());
             assertEquals(vip.getLoadBalancerId(), loadBalancer.getId());
 
+            /* This ensures that the updatePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
+
             // Update the pool associating it with another load balancer and
             // see if it is moved appropriately.
             pool.setLoadBalancerId(loadBalancer2.getId());
