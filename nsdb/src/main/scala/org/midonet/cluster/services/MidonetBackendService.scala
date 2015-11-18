@@ -67,6 +67,7 @@ object MidonetBackend {
              classOf[FloatingIp],
              classOf[HealthMonitor],
              classOf[Host],
+             classOf[HostGroup],
              classOf[IPAddrGroup],
              classOf[LoadBalancer],
              classOf[L2Insertion],
@@ -144,6 +145,8 @@ object MidonetBackend {
 
         store.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
                              classOf[TunnelZone], "host_ids", CLEAR)
+        store.declareBinding(classOf[Host], "host_group_ids", CLEAR,
+                             classOf[HostGroup], "host_ids", CLEAR)
 
         store.declareBinding(classOf[LoadBalancer], "pool_ids", CASCADE,
                              classOf[Pool], "load_balancer_id", CLEAR)
