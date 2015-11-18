@@ -16,8 +16,6 @@
 
 package org.midonet.midolman.rules;
 
-import java.util.UUID;
-
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 

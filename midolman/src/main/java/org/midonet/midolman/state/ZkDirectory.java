@@ -17,14 +17,10 @@
 package org.midonet.midolman.state;
 
 import java.util.AbstractMap;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import javax.annotation.Nonnull;
 
 import org.apache.zookeeper.AsyncCallback;
 import org.apache.zookeeper.CreateMode;
@@ -263,25 +259,6 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
-    public void asyncGetChildren(String relativePath,
-                                 final DirectoryCallback<Set<String>> cb,
-                                 TypedWatcher watcher) {
-        zk.getZooKeeper().getChildren(
-            getAbsolutePath(relativePath), wrapCallback(watcher),
-            new AsyncCallback.Children2Callback() {
-                @Override
-                public void processResult(int rc, String path, Object ctx,
-                                          List<String> children, Stat stat) {
-                    if (rc == KeeperException.Code.OK.intValue()) {
-                        cb.onSuccess(new HashSet<>(children));
-                    } else {
-                        cb.onError(KeeperException.create(KeeperException.Code.get(rc), path));
-                    }
-                }
-            }, null);
-    }
-
-    @Override
     public boolean exists(String path, Watcher watcher)
             throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(path);
@@ -292,25 +269,6 @@ public class ZkDirectory implements Directory {
     public boolean exists(String path, Runnable watcher)
             throws KeeperException, InterruptedException {
         return exists(path, wrapCallback(watcher));
-    }
-
-    @Override
-    public void asyncExists(String path, final DirectoryCallback<Boolean> cb) {
-        zk.getZooKeeper().exists(path, false,
-                new AsyncCallback.StatCallback() {
-                    @Override
-                    public void processResult(int rc, String path,
-                                              Object ctx, Stat stat) {
-                        if (rc == KeeperException.Code.OK.intValue()) {
-                            cb.onSuccess(true);
-                        } else if (rc == KeeperException.Code.NONODE.intValue()) {
-                            cb.onSuccess(false);
-                        } else {
-                            cb.onError(KeeperException.create(
-                                KeeperException.Code.get(rc)));
-                        }
-                    }
-            }, null);
     }
 
     @Override
@@ -343,17 +301,6 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
-    public void asyncDelete(String relativePath) {
-        String absPath = getAbsolutePath(relativePath);
-        zk.getZooKeeper().delete(absPath, -1, new AsyncCallback.VoidCallback() {
-            @Override
-            public void processResult(int rc, String path, Object ctx) {
-
-            }
-        }, null);
-    }
-
-    @Override
     public Directory getSubDirectory(String relativePath) {
         return new ZkDirectory(zk, getAbsolutePath(relativePath), null,
                                reactor);
@@ -371,55 +318,6 @@ public class ZkDirectory implements Directory {
     public List<OpResult> multi(List<Op> ops)
         throws InterruptedException, KeeperException {
         return zk.getZooKeeper().multi(ops);
-    }
-
-    public void asyncMultiPathGet(@Nonnull final Set<String> relativePaths,
-                                  final DirectoryCallback<Set<byte[]>> cb){
-        if(relativePaths.isEmpty()){
-            log.debug("Empty set of paths, is that OK?");
-            cb.onSuccess(Collections.<byte[]>emptySet());
-        }
-        // Map to keep track of the callbacks that returned
-        // TODO(rossella) probably it's better to return a ConcurrentMap and make
-        // sure that all the updates are seen
-        // (http://www.javamex.com/tutorials/synchronization_concurrency_8_hashmap2.shtml)
-        final Map<String, byte[]> callbackResults =
-            new HashMap<>();
-        for(final String path: relativePaths){
-            asyncGet(path, new DirectoryCallback<byte[]>(){
-
-                @Override
-                public void onTimeout(){
-                    synchronized (callbackResults){
-                        callbackResults.put(path, null);
-                    }
-                    log.error("asyncMultiPathGet - Timeout {}", path);
-                }
-
-                @Override
-                public void onError(KeeperException e) {
-                    synchronized (callbackResults){
-                        callbackResults.put(path, null);
-                    }
-                    log.error("asyncMultiPathGet - Exception {}", path, e);
-                }
-
-                @Override
-                public void onSuccess(byte[] data) {
-                    synchronized (callbackResults){
-                        callbackResults.put(path, data);
-                        if(callbackResults.size() == relativePaths.size()){
-                            Set<byte[]> results = new HashSet<>();
-                            for(Map.Entry entry : callbackResults.entrySet()){
-                                if(entry != null)
-                                    results.add((byte[])entry.getValue());
-                            }
-                            cb.onSuccess(results);
-                        }
-                    }
-                }
-            }, null);
-        }
     }
 
     @Override

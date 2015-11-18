@@ -155,7 +155,7 @@ public enum ErrorCode {
 
     private String message;
 
-    private ErrorCode(String message) {
+    ErrorCode(String message) {
         this.message = message;
     }
 
