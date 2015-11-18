@@ -16,6 +16,24 @@
       "revId": "93c286b1c4e87b13ebab3b2d02541e1a44e58383",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_46f5f381",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ObjectReferenceTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-18T11:07:16Z",
+      "side": 0,
+      "message": "It was for the reason of not generating additional garbage due to the string concatenation when the log level is not debug.",
+      "parentUuid": "7ac7a964_b7bfdbcf",
+      "revId": "93c286b1c4e87b13ebab3b2d02541e1a44e58383",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

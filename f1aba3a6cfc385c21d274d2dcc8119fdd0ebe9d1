@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_06121bb1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-18T11:07:16Z",
+      "side": 1,
+      "message": "This was to remove a scala warning about the class not being prefixed.",
+      "parentUuid": "7ac7a964_f7e23302",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_f025e70a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2015-11-16T11:11:29Z",
       "side": 1,
       "message": "nit^2: I learned Style actually wants this in a new line, but it\u0027s my fault so I should fix all in the codebase.",
+      "range": {
+        "startLine": 49,
+        "startChar": 58,
+        "endLine": 49,
+        "endChar": 61
+      },
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_c6090397",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-18T11:07:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_f025e70a",
       "range": {
         "startLine": 49,
         "startChar": 58,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_26d1d7fb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-18T11:07:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_d011cbad",
+      "range": {
+        "startLine": 54,
+        "startChar": 24,
+        "endLine": 54,
+        "endChar": 28
+      },
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_d7dd3744",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
         "patchSetId": 1
@@ -82,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_06edbbc3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-18T11:07:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_d7dd3744",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_17cecf83",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
         "patchSetId": 1
@@ -93,6 +177,24 @@
       "writtenOn": "2015-11-17T14:31:36Z",
       "side": 1,
       "message": "this message may be redundant. But, if it\u0027s not, didn\u0027t it just become less informative? Also, printing full objects like this, I\u0027m not a fan of.",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_86462bbe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-18T11:07:16Z",
+      "side": 1,
+      "message": "I misunderstood the meaning of the original message: undid.\n\nRef 2nd point: do you mean printing the whole object, rather than just - say - the UUID?",
+      "parentUuid": "7ac7a964_17cecf83",
       "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -122,6 +224,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_a61247b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-18T11:07:16Z",
+      "side": 1,
+      "message": "route should never be null (it is the route state) - I will rename\nroute.route can be null, route.isReady checks this",
+      "parentUuid": "7ac7a964_d088ebe9",
+      "range": {
+        "startLine": 175,
+        "startChar": 20,
+        "endLine": 175,
+        "endChar": 25
+      },
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_77c5435a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 1
@@ -139,6 +265,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_e60c3f97",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-18T11:07:16Z",
+      "side": 1,
+      "message": "Should I leave just `Route {} error`?",
+      "parentUuid": "7ac7a964_77c5435a",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_10518362",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 1
@@ -150,6 +294,30 @@
       "writtenOn": "2015-11-16T11:11:29Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 620,
+        "startChar": 16,
+        "endLine": 620,
+        "endChar": 21
+      },
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_c61743a2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 620,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-18T11:07:16Z",
+      "side": 1,
+      "message": "same as above",
+      "parentUuid": "7ac7a964_10518362",
       "range": {
         "startLine": 620,
         "startChar": 16,
