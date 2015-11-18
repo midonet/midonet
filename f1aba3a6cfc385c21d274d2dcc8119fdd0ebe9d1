@@ -201,6 +201,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_c69ae313",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-18T11:22:45Z",
+      "side": 1,
+      "message": "Yes, indeed. The whole object should be printed at most once. It creates a *lot* of noise in the logs. Specially, now it\u0027s multiline (something we need to fix), so every extra time we print it is *bad* for legibility.",
+      "parentUuid": "7ac7a964_86462bbe",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_d088ebe9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 1
