@@ -16,23 +16,28 @@
 package org.midonet.cluster.services.c3po.translators
 
 import java.util.UUID
+import java.util.concurrent.TimeUnit
+
+import scala.concurrent.duration.FiniteDuration
 
 import com.fasterxml.jackson.databind.JsonNode
 
 import org.junit.runner.RunWith
+import org.midonet.cluster.services.MidonetBackend
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{HealthMonitor => HealthMonitorType, Pool => PoolType, PoolMember => PoolMemberType, Router => RouterType, VIP => VIPType}
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType.TCP
-import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus.{ACTIVE, PENDING_CREATE}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.packets.MAC
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.util.concurrent.toFutureOps
+import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
@@ -191,7 +196,6 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
         eventually {
             val pool = storage.get(classOf[Pool], poolId).await()
             pool.getHealthMonitorId shouldBe toProto(hmId)
-            pool.getMappingStatus shouldBe PENDING_CREATE
         }
 
         // Update the Health Monitor's max retries, etc.
@@ -277,8 +281,9 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
         }
 
         // Simulate HAProxy updating pool-HM mapping status.
-        val activePool = poolWMember2.toBuilder.setMappingStatus(ACTIVE).build()
-        storage.update(activePool)
+        stateStorage.addValue(classOf[Pool], poolWMember2.getId,
+                              MidonetBackend.PoolMappingStatus, ACTIVE.name)
+            .await(new FiniteDuration(5, TimeUnit.SECONDS))
 
         // Pool update via C3PO should only affect adminStateUp.
         val downPoolJson = lbPoolJson(id = poolId, routerId = null,
@@ -288,8 +293,8 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
             val pool = storage.get(classOf[Pool], poolId).await()
             pool.getAdminStateUp shouldBe false
 
-            // Should otherwise be the same as activePool.
-            pool.toBuilder.setAdminStateUp(true).build() shouldBe activePool
+            // Should otherwise be the same as poolWMember2.
+            pool.toBuilder.setAdminStateUp(true).build() shouldBe poolWMember2
         }
 
         // Delete the Health Monitor

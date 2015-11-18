@@ -41,7 +41,6 @@ import org.midonet.midolman.state.StateAccessException;
 
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
@@ -120,6 +119,10 @@ public class TestPool {
             newPool = getPool(pool2.getUri());
             Assert.assertEquals(newPool, pool2);
 
+            /* This ensures that the deletePool calls below succeed. */
+            activatePoolHMMappingStatus(pool.getId());
+            activatePoolHMMappingStatus(pool2.getId());
+
             // Delete
             deletePool(pool.getUri());
             verifyNumberOfPools(1);
@@ -144,11 +147,17 @@ public class TestPool {
             DtoPool pool = createStockPool(loadBalancer.getId());
             assertNull(pool.getHealthMonitor());
 
+            /* This ensures that the updatePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
+
             // Clear reference.
             pool.setHealthMonitorId(null);
             pool = updatePool(pool);
             // Check if the reference is gone.
             assertNull(pool.getHealthMonitor());
+
+            /* This ensures that the updatePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
 
             // Add a health monitor.
             DtoHealthMonitor healthMonitor1 = createStockHealthMonitor();
@@ -168,6 +177,9 @@ public class TestPool {
             DtoVip vip = createStockVip(pool.getId());
             DtoVip vip2 = createStockVip(pool.getId());
             checkVipBackrefs(pool, vip.getUri(), vip2.getUri());
+
+            /* This ensures that the deletePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
 
             deletePool(pool.getUri());
             // Strongly associated resources are deleted by cascading.
@@ -234,6 +246,9 @@ public class TestPool {
         public void testUpdateWithBadHealthMonitorId() {
             DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
+            /* This ensures that the put call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
+
             ClientResponse res = dtoResource.putAndVerifyStatus(
                 pool.getUri(), APPLICATION_POOL_JSON(), pool,
                 NOT_FOUND.getStatusCode());
@@ -351,32 +366,12 @@ public class TestPool {
             DtoPool pool = createStockPool(loadBalancer.getId());
             assertEquals(LBStatus.ACTIVE, pool.getStatus());
 
+            /* This ensures that the updatePool call below succeeds. */
+            activatePoolHMMappingStatus(pool.getId());
+
             pool.setStatus(LBStatus.INACTIVE);
             pool = updatePool(pool);
             assertEquals(LBStatus.ACTIVE, pool.getStatus());
-        }
-
-        @Test
-        public void testServiceUnavailableWithNullHealthMonitor()
-                throws Exception {
-            DtoPool pool = createStockPool(loadBalancer.getId());
-            DtoHealthMonitor healthMonitor = createStockHealthMonitor();
-            pool.setHealthMonitorId(healthMonitor.getId());
-            pool = updatePool(pool);
-
-            // PUT the pool during its mappingStatus is PENDING_*, which triggers
-            // 503 Service Unavailable.
-            pool.setHealthMonitorId(null);
-            ClientResponse response = dtoResource.putAndVerifyStatus(
-                    pool.getUri(), APPLICATION_POOL_JSON(), pool,
-                    SERVICE_UNAVAILABLE.getStatusCode());
-            MultivaluedMap<String, String> headers = response.getHeaders();
-            String expectedRetryAfterHeaderValue = ServiceUnavailableHttpException
-                    .RETRY_AFTER_HEADER_DEFAULT_VALUE.toString();
-            String actualRetryAfterHeaderValue = headers.get(
-                    ServiceUnavailableHttpException.RETRY_AFTER_HEADER_KEY).get(0);
-            assertEquals(expectedRetryAfterHeaderValue,
-                    actualRetryAfterHeaderValue);
         }
     }
 }

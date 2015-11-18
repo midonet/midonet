@@ -27,14 +27,20 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
+import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
+import org.midonet.cluster.models.Services.ServiceContainer
 import org.midonet.cluster.models.Topology.{Pool => TopPool}
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{HealthMonitor, LoadBalancer, Pool}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
+import org.midonet.cluster.services.MidonetBackend.{AliveKey, ClusterNamespaceId, PoolMappingStatus}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.l4lb
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus._
+import org.midonet.util.reactivex._
 
 @ApiResource(version = 1, name = "pools", template = "poolTemplate")
 @Path("pools")
@@ -52,6 +58,9 @@ class PoolResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Pool](resContext) {
 
     private val store = resContext.backend.store
+    private val stateStore = resContext.backend.stateStore
+
+    private val timeout = MidonetResource.Timeout
 
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): PoolVipResource = {
@@ -65,27 +74,59 @@ class PoolResource @Inject()(resContext: ResourceContext)
         new PoolPoolMemberResource(id, resContext)
     }
 
-    def checkMappingStatus(p: TopPool): Unit = {
-        val s = p.getMappingStatus
-        if (s == PENDING_UPDATE ||
-            s == PENDING_DELETE ||
-            s == PENDING_CREATE) {
-            throw new ServiceUnavailableHttpException(
-                getMessage(MAPPING_STATUS_IS_PENDING, s))
+    /**
+      * Returns the namespace in which the pool mapping status state key
+      * resides. This is the agent ID that is managing the health monitor
+      * service.
+      */
+    private def namespace(poolId: UUID, healthMonitorId: UUID): StateKey = {
+        val containerId =
+            l4lb.HealthMonitor.containerId(poolId, healthMonitorId)
+        stateStore.getKey(ClusterNamespaceId.toString,
+                          classOf[ServiceContainer],
+                          containerId, AliveKey).await(timeout)
+    }
+
+    def checkMappingStatus(poolId: UUID): Unit = {
+        val pool = store.get(classOf[TopPool], poolId).getOrThrow
+        val healthMonitorId = pool.getHealthMonitorId.asJava
+
+        var stateKey: StateKey = null
+
+        namespace(poolId, healthMonitorId) match {
+            case SingleValueKey(key, Some(name), owner) =>
+                stateKey = stateStore.getKey(name, classOf[TopPool], poolId,
+                                             PoolMappingStatus).await(timeout)
+            case SingleValueKey(key, None, owner) =>
+                stateKey = stateStore.getKey(classOf[TopPool], poolId,
+                                             PoolMappingStatus).await(timeout)
+            case _ => // This cannot happen.
+        }
+
+        stateKey match {
+            case SingleValueKey(key, Some(status), owner) =>
+                if (status == PENDING_UPDATE.name ||
+                    status == PENDING_DELETE.name ||
+                    status == PENDING_CREATE.name) {
+                    throw new ServiceUnavailableHttpException(
+                        getMessage(MAPPING_STATUS_IS_PENDING, status))
+                }
+            case SingleValueKey(key, None, owner) =>
+                throw new ServiceUnavailableHttpException(
+                    getMessage(MAPPING_STATUS_IS_PENDING, PENDING_CREATE))
+            case _ => // This cannot happen.
         }
     }
 
     protected override def updateFilter(to: Pool, from: Pool): Seq[Multi] = {
-        val p = store.get(classOf[TopPool], from.id).getOrThrow
-        checkMappingStatus(p)
+        checkMappingStatus(to.id)
         to.update(from)
         Seq.empty
     }
 
     protected override def deleteFilter(id: String): Seq[Multi] = {
         if (store.exists(classOf[TopPool], id).getOrThrow) {
-            val p = store.get(classOf[TopPool], id).getOrThrow
-            checkMappingStatus(p)
+            checkMappingStatus(UUID.fromString(id))
         }
         Seq.empty
     }

@@ -33,8 +33,11 @@ import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.HealthMonitorType;
 import org.midonet.client.dto.l4lb.PoolProtocol;
 import org.midonet.client.dto.l4lb.VipSessionPersistence;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
 import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
+import org.midonet.cluster.services.MidonetBackend;
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 
 import static org.junit.Assert.assertEquals;
 import static org.midonet.cluster.services.rest_api.MidonetMediaTypes.APPLICATION_HEALTH_MONITOR_JSON;
@@ -341,5 +344,20 @@ public class L4LBTestBase extends RestApiTestBase {
         Set<T> expectedSet = new HashSet<>(Arrays.asList(expected));
         Set<T> actualSet = new HashSet<>(Arrays.asList(actual));
         assertEquals(expectedSet, actualSet);
+    }
+
+    /**
+     * This method sets the pool-health monitor mapping status to ACTIVE. This
+     * is used in the tests to ensure that updates and deletions of pools is
+     * possible (other statuses such as PENDING_CREATE forbid pool changes).
+     */
+    protected void activatePoolHMMappingStatus(UUID poolId) {
+        MidonetBackend backend =
+            FuncTest._injector.getInstance(MidonetBackend.class);
+        backend.stateStore()
+               .addValue(Topology.Pool.class, poolId,
+                         MidonetBackend.PoolMappingStatus(),
+                         PoolHealthMonitorMappingStatus.ACTIVE.name())
+               .toBlocking().first();
     }
 }

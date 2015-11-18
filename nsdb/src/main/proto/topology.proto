@@ -280,6 +280,8 @@ message Pool {
     optional PoolProtocol protocol = 5 [default = TCP];
     optional PoolLBMethod lb_method = 6 [default = ROUND_ROBIN];
     optional LBStatus status = 7 [default = ACTIVE];
+    /* This is not used anymore but kept for backward compatibility with
+       MidoNet 5.x. Remove for versions >= 6. */
     optional PoolHealthMonitorMappingStatus mapping_status = 8;
 
     // Backreferences

@@ -34,6 +34,7 @@ class MidonetBackendConfig(val conf: Config) {
     def maxRetries = conf.getInt("zookeeper.max_retries")
     def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
     def bufferSize = conf.getInt("zookeeper.buffer_size")
+    def opTimeout = conf.getDuration("zookeeper.operation_timeout", TimeUnit.MILLISECONDS)
 }
 
 class CassandraConfig(val conf: Config) {
