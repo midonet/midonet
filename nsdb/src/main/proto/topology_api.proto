@@ -201,7 +201,10 @@ message Response {
             Vip vip = 20;
             Vtep vtep = 21;
             Mirror mirror = 22;
-	    L2Insertion l2insertion = 23;
+            L2Insertion l2insertion = 23;
+            HostGroup host_group = 24;
+            ServiceContainer service_container = 25;
+            ServiceContainerGroup service_container_group= 26;
         }
     }
     message Snapshot {
