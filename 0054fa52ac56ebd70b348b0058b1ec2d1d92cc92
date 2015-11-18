@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_0b06a3ce",
+        "filename": "nsdb/src/main/proto/service.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-18T17:21:00Z",
+      "side": 1,
+      "message": "Not sure if this belongs in topology.proto, even if it\u0027s a physical element it actually gets embedded in the virtual topology. But not a strong opinion, let\u0027s see what others say.",
+      "revId": "0054fa52ac56ebd70b348b0058b1ec2d1d92cc92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_abf68fd5",
+        "filename": "nsdb/src/main/proto/service.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-18T17:21:00Z",
+      "side": 1,
+      "message": "+1 newline",
+      "revId": "0054fa52ac56ebd70b348b0058b1ec2d1d92cc92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_cb6cab9f",
+        "filename": "nsdb/src/main/proto/service.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-18T17:21:00Z",
+      "side": 1,
+      "message": "nit: Services?",
+      "range": {
+        "startLine": 21,
+        "startChar": 31,
+        "endLine": 21,
+        "endChar": 38
+      },
+      "revId": "0054fa52ac56ebd70b348b0058b1ec2d1d92cc92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_8bf9d3ca",
+        "filename": "nsdb/src/main/proto/service.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-18T17:21:00Z",
+      "side": 1,
+      "message": "these would be fine nested in ServiceContainerGroup\n\nI\u0027d also remove Type, seems redundant?",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 1
+      },
+      "revId": "0054fa52ac56ebd70b348b0058b1ec2d1d92cc92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
