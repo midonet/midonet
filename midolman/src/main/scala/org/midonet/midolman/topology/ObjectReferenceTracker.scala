@@ -36,33 +36,32 @@ import org.midonet.util.functors.makeAction1
  * updates for this object. The observable completes either when the object
  * is deleted, or when calling the complete() method, which is used to
  * signal that an object no longer belongs to the containing device.
- */
-class TopologyObjectState[D >: Null <: Device](val id: UUID)(implicit tag: ClassTag[D]) {
-    private var currentObj: D = null
-    private val mark = PublishSubject.create[D]()
+  */
+trait ObjectStateBase[D >: Null] {
+    protected var currentObj: D = null
+    protected val mark = PublishSubject.create[D]()
 
-    val observable = VirtualTopology.observable[D](id)
-        .doOnNext(makeAction1(currentObj = _:D))
-        .takeUntil(mark)
+    val observable: Observable[D]
 
     /** Completes the observable corresponding to this obj state. */
     def complete(): Unit = mark.onCompleted()
     /** Get the chain for this obj state. */
     def dereference: D = currentObj
     /** Indicates whether the obj state has received the obj data. */
-    def isReady: Boolean = currentObj ne null
+    def isReady: Boolean = currentObj != null
 }
 
-class ObjectReferenceTracker[D >: Null <: Device](val vt: VirtualTopology)
-        (implicit tag: ClassTag[D]) extends MidolmanLogging {
+abstract class ObjectReferenceTrackerBase[D >: Null, StateType <: ObjectStateBase[D]]
+        extends MidolmanLogging {
 
-    type State = TopologyObjectState[D]
+    val vt: VirtualTopology
+    protected def newState(id: UUID): StateType
 
     @throws[DeviceMapperException]
     @inline private def assertThread(): Unit = vt.assertThread()
 
     private val refsSubject = PublishSubject.create[Observable[D]]
-    private val refs = new mutable.HashMap[UUID, State]
+    private val refs = new mutable.HashMap[UUID, StateType]
 
     @NotThreadSafe
     final def requestRefs(ids: Set[UUID]): Unit = {
@@ -74,10 +73,10 @@ class ObjectReferenceTracker[D >: Null <: Device](val vt: VirtualTopology)
             refs -= id
         }
         // Create the state and emit observables for the new refs.
-        val addedRefs = new mutable.MutableList[State]
+        val addedRefs = new mutable.MutableList[StateType]
 
         for (id <- ids if !refs.contains(id)) {
-            val state = new State(id)
+            val state = newState(id)
             refs += id -> state
             addedRefs += state
         }
@@ -137,4 +136,37 @@ class ObjectReferenceTracker[D >: Null <: Device](val vt: VirtualTopology)
      * An observable that emits notifications for the chains.
      */
     final val refsObservable: Observable[D] = Observable.merge(refsSubject)
+}
+
+class TopologyObjectState[D >: Null <: Device](val id: UUID)
+                         (implicit tag: ClassTag[D])
+        extends ObjectStateBase[D] {
+    override val observable = VirtualTopology.observable[D](id)
+        .doOnNext(makeAction1(currentObj = _:D))
+        .takeUntil(mark)
+}
+
+
+class ObjectReferenceTracker[D >: Null <: Device](override val vt: VirtualTopology)
+                            (implicit tag: ClassTag[D])
+        extends ObjectReferenceTrackerBase[D, TopologyObjectState[D]] {
+
+    override def newState(id: UUID) = new TopologyObjectState[D](id)
+}
+
+class StoreObjectState[D >: Null](val clazz: Class[D],
+                                  val id: UUID,
+                                  val vt: VirtualTopology)
+        extends ObjectStateBase[D] {
+    override val observable = vt.store.observable(clazz, id)
+        .observeOn(vt.vtScheduler)
+        .doOnNext(makeAction1(currentObj = _))
+        .takeUntil(mark)
+}
+
+class StoreObjectReferenceTracker[D >: Null](val clazz: Class[D],
+                                             val vt: VirtualTopology)
+        extends ObjectReferenceTrackerBase[D, StoreObjectState[D]] {
+
+    override def newState(id: UUID) = new StoreObjectState[D](clazz, id, vt)
 }
