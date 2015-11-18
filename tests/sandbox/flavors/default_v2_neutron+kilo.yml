@@ -1,0 +1,289 @@
+zookeeper1:
+  extends:
+    file: $BASE/zookeeper.yml
+    service: zookeeper
+  hostname: zookeeper1
+  image: sandbox/zookeeper:3.4.5
+  labels:
+      interface: mdts.services.zookeeper.ZookeeperHost
+      type: zookeeper
+  volumes:
+  - /zoo/conf/
+  environment:
+  - ZOO_ID=1
+
+zookeeper2:
+  extends:
+    file: $BASE/zookeeper.yml
+    service: zookeeper
+  image: sandbox/zookeeper:3.4.5
+  hostname: zookeeper2
+  labels:
+      interface: mdts.services.zookeeper.ZookeeperHost
+      type: zookeeper
+  environment:
+  - ZOO_ID=2
+  volumes_from:
+  - zookeeper1
+
+zookeeper3:
+  extends:
+    file: $BASE/zookeeper.yml
+    service: zookeeper
+  image: sandbox/zookeeper:3.4.5
+  hostname: zookeeper3
+  labels:
+      interface: mdts.services.zookeeper.ZookeeperHost
+      type: zookeeper
+  environment:
+  - ZOO_ID=3
+  volumes_from:
+  - zookeeper1
+  links:
+  - zookeeper1:zookeeper1
+  - zookeeper2:zookeeper2
+
+cluster1:
+  extends:
+    file: $BASE/midonet-cluster.yml
+    service: cluster
+  image: sandbox/midonet-cluster:master
+  hostname: cluster1
+  labels:
+      interface: mdts.services.midonet_cluster.MidonetClusterHost
+      type: midonet-cluster
+  links:
+  - "zookeeper1:zk1"
+  - "zookeeper2:zk2"
+  - "zookeeper3:zk3"
+  - "keystone:keystone"
+
+cassandra1:
+  extends:
+    file: $BASE/cassandra.yml
+    service: cassandra
+  image: sandbox/cassandra:2.0
+  hostname: cassandra1
+  labels:
+      interface: mdts.services.cassandra.CassandraHost
+      type: cassandra
+
+midolman1:
+  extends:
+    file: $BASE/midolman.yml
+    service: midolman
+  image: sandbox/midolman:master
+  hostname: midolman1
+  environment:
+  # Edge bgp interface peering with quagga bgpeth0 interface, 10.1.0.1/24
+  - BGP0_IFACE=bgp0
+  - BGP0_IP_AS=10.1.0.1:64513
+  # l2gw trunk interface
+  - L2GWETH0_IFACE=l2gw0
+  labels:
+      interface: mdts.services.midonet_agent.MidonetAgentHost
+      type: midolman
+  links:
+  - "zookeeper1:zk1"
+  - "zookeeper2:zk2"
+  - "zookeeper3:zk3"
+  - "cassandra1:cs1"
+
+midolman2:
+  extends:
+    file: $BASE/midolman.yml
+    service: midolman
+  image: sandbox/midolman:master
+  hostname: midolman2
+  environment:
+  # Edge bgp interface peering with quagga bgpeth1 interface, 10.2.0.1/24
+  - BGP0_IFACE=bgp0
+  - BGP0_IP_AS=10.2.0.1:64513
+  # l2gw trunk interface
+  - L2GWETH0_IFACE=l2gw0
+  labels:
+      interface: mdts.services.midonet_agent.MidonetAgentHost
+      type: midolman
+  links:
+  - "zookeeper1:zk1"
+  - "zookeeper2:zk2"
+  - "zookeeper3:zk3"
+  - "cassandra1:cs1"
+
+midolman3:
+  extends:
+    file: $BASE/midolman.yml
+    service: midolman
+  image: sandbox/midolman:master
+  hostname: midolman3
+  labels:
+      interface: mdts.services.midonet_agent.MidonetAgentHost
+      type: midolman
+  links:
+  - "zookeeper1:zk1"
+  - "zookeeper2:zk2"
+  - "zookeeper3:zk3"
+  - "cassandra1:cs1"
+
+quagga0:
+  extends:
+    file: $BASE/quagga.yml
+    service: quagga
+  image: sandbox/quagga:0.99.22
+  hostname: quagga0
+  labels:
+    interface: mdts.services.quagga.QuaggaHost
+    type: quagga
+  environment:
+  - BGP_ROUTER_ID=1.1.1.1
+  # Interface to the other quagga peers
+  - BGP0_IFACE=bgp0
+  # Neighbors
+  - BGPPEER1_IP_AS=10.10.0.2:64511
+  - BGPPEER2_IP_AS=10.10.0.3:64512
+  # AS numbers
+  - BGP_AS=64510
+  # Advertise "inet" network
+  - ADVERTISED_NETWORK=1.1.1.1/32
+
+quagga1:
+  extends:
+    file: $BASE/quagga.yml
+    service: quagga
+  image: sandbox/quagga:0.99.22
+  hostname: quagga1
+  labels:
+      interface: mdts.services.quagga.QuaggaHost
+      type: quagga
+  environment:
+  - BGP_ROUTER_ID=2.2.2.2
+  # Interface to bgpmaster
+  - BGP0_IFACE=bgp0
+  # Neighbors
+  - BGPPEER1_IP_AS=10.10.0.1:64510
+  # Edge1 interface peering midolman1 at 10.1.0.240/24
+  - BGP1_IFACE=bgp1
+  # Edge2 interface peering midolman2 at 10.2.0.241/24
+  - BGP2_IFACE=bgp2
+  # AS number
+  - BGP_AS=64511
+  links:
+  - "midolman1:bgppeer1"
+  - "midolman2:bgppeer2"
+
+quagga2:
+  extends:
+    file: $BASE/quagga.yml
+    service: quagga
+  image: sandbox/quagga:0.99.22
+  hostname: quagga2
+  labels:
+      interface: mdts.services.quagga.QuaggaHost
+      type: quagga
+  environment:
+  - BGP_ROUTER_ID=3.3.3.3
+  # Interface to bgpmaster
+  - BGP0_IFACE=bgp0
+  # Neighbors
+  - BGPPEER1_IP_AS=10.10.0.1:64510
+  # Edge1 interface peering midolman1 at 10.2.0.240/24
+  - BGP1_IFACE=bgp1
+  # Edge2 interface peering midolman2 at 10.1.0.241/24
+  - BGP2_IFACE=bgp2
+  # AS number
+  - BGP_AS=64512
+  links:
+  - "midolman1:bgppeer1"
+  - "midolman2:bgppeer2"
+
+externalhost1:
+  image: sandbox/externalhost:master
+  hostname: externalhost1
+  privileged: true
+  labels:
+      interface: mdts.services.service.Service
+      type: externalhost
+  environment:
+  # VLAN 0 interface, 172.16.0.224/24
+  - L2GWETH0_IFACE=l2gw0
+  # VLAN 1 interface, 172.16.0.224/24
+  - L2GWETH0_IFACE=l2gw1
+
+externalhost2:
+  image: sandbox/externalhost:master
+  hostname: externalhost2
+  privileged: true
+  labels:
+      interface: mdts.services.service.Service
+      type: externalhost
+  environment:
+  # VLAN 0 interface, 172.16.0.225/24
+  - L2GWETH0_IFACE=l2gw0
+  # VLAN 1 interface, 172.16.0.225/24
+  - L2GWETH0_IFACE=l2gw1
+
+vtep1:
+  extends:
+    file: $BASE/vtep.yml
+    service: vtep
+  image: sandbox/vtep:2.0
+  hostname: vtep1
+  privileged: true
+  labels:
+      interface: mdts.services.vtep.VtepHost
+      type: vtep
+  volumes:
+  - /lib/modules:/lib/modules
+  environment:
+  - VTEP_PORTS=4
+  - VTEP_HOST_SUBNET=10.0.1.0
+
+vtep2:
+  extends:
+    file: $BASE/vtep.yml
+    service: vtep
+  image: sandbox/vtep:2.0
+  hostname: vtep2
+  privileged: true
+  labels:
+      interface: mdts.services.vtep.VtepHost
+      type: vtep
+  volumes:
+  - /lib/modules:/lib/modules
+  environment:
+  - VTEP_PORTS=4
+  - VTEP_HOST_SUBNET=10.0.2.0
+
+
+#########################################
+## OpenStack Components                ##
+#########################################
+keystone:
+  extends:
+    file: $BASE/keystone.yml
+    service: keystone
+  image: sandbox/keystone:kilo
+  hostname: keystone
+  labels:
+    interface: mdts.services.keystone.KeystoneHost
+    type: keystone
+
+mariadb:
+  image: mariadb:5.5
+  hostname: mariadb
+  environment:
+  - MYSQL_ROOT_PASSWORD=root
+
+neutron:
+  extends:
+    file: $BASE/neutron.yml
+    service: neutron
+  image: sandbox/neutron:kilo
+  hostname: neutron
+  labels:
+    interface: mdts.services.neutron.NeutronHost
+    type: neutron
+  links:
+  - "keystone:keystone"
+  - "cluster1:midonetapi"
+  - "mariadb:mariadb"
