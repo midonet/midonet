@@ -70,6 +70,23 @@
       "revId": "f88375803a02ad0787afb0bef93e5f0a1d6dfb3f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_0b7306ea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-18T09:05:37Z",
+      "side": 1,
+      "message": "Do we need a case _  to prevent throwing if unexpected types?",
+      "revId": "f88375803a02ad0787afb0bef93e5f0a1d6dfb3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
