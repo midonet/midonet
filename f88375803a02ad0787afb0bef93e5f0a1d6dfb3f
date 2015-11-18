@@ -87,6 +87,24 @@
       "revId": "f88375803a02ad0787afb0bef93e5f0a1d6dfb3f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_0615bbf0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-18T10:09:20Z",
+      "side": 1,
+      "message": "Good point. right now it\u0027s only ports, but it could in theory be a router.",
+      "parentUuid": "7ac7a964_0b7306ea",
+      "revId": "f88375803a02ad0787afb0bef93e5f0a1d6dfb3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
