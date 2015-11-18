@@ -32,24 +32,23 @@ import com.google.inject.Inject
 import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.restApiNeutronLog
-import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, PersistenceOp, _}
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.data.{ZoomClass, ZoomConvert, ZoomObject}
 import org.midonet.cluster.models.Commons
+import org.midonet.cluster.{ZookeeperLockFactory, restApiNeutronLog}
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.c3po.translators.TranslationException
 import org.midonet.cluster.services.c3po.{C3POStorageManager, neutron}
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
 
+// All the dependants should be reimplemented as TranslatedResource
+@Deprecated
 class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
-                                  pathBuilder: PathBuilder,
                                   c3po: C3POStorageManager,
                                   lockFactory: ZookeeperLockFactory)
     extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi
