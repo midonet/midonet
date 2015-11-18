@@ -307,3 +307,78 @@ message NeutronFirewallRule {
         DENY = 1;
     }
 }
+
+message VPNService {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional string description = 3;
+    optional bool admin_state_up = 4;
+    optional string tenant_id = 5;
+    optional UUID subnet_id = 6;
+    optional UUID router_id = 7;
+    optional string status = 8;
+    repeated IPAddress external_ips = 9;
+}
+
+message IKEPolicy {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string description = 4;
+    optional IPSecAuthAlgorithm auth_algorithm = 5;
+    optional IPSecEncryptionAlgorithm encryption_algorithm = 6;
+    optional Phase1NegotiationMode phase1NegMode = 7;
+    optional Version ike_version = 8;
+    repeated string lifetime = 9; // [units:value]*
+    optional IPSecPFS pfs = 10;
+
+    enum Version {
+        V1 = 0;
+        V2 = 1;
+    }
+
+    enum Phase1NegotiationMode {
+        MAIN = 0;
+    }
+}
+
+message IPSecPolicy {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string description = 4;
+    optional TransformProtocol transform_protocol = 5;
+    optional IPSecAuthAlgorithm auth_algorithm = 6;
+    optional IPSecEncryptionAlgorithm encryption_algorithm = 7;
+    optional EncapsulationMode encapsulation_mode = 8;
+    optional IPSecPFS pfs = 9;
+    repeated string lifetime = 10; // [units:value]*
+
+    enum TransformProtocol {
+        ESP = 0;
+        AH = 1;
+        AH_ESP = 2;
+    }
+
+    enum EncapsulationMode {
+        TUNNEL = 0;
+        TRANSPORT = 1;
+    }
+}
+
+enum IPSecPFS {
+    group2 = 0;
+    group5 = 1;
+    group14 = 2;
+}
+
+enum IPSecAuthAlgorithm {
+    SHA1 = 0;
+}
+
+enum IPSecEncryptionAlgorithm {
+    DES_3 = 0;
+    AES_128 = 1;
+    AES_192 = 2;
+    AES_256 = 3;
+}
