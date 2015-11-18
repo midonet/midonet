@@ -301,6 +301,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_4686d3ba",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-18T11:24:43Z",
+      "side": 1,
+      "message": "i don\u0027t know. Depends on what errors are possible, on whether some exceptions are legit and thus do not deserve to be logged, etc.\n\nFrom a user\u0027s point of view. Is this really a warning, something they should worry or learn about? What would a user understand if he reads \"route error\" in the log?",
+      "parentUuid": "7ac7a964_e60c3f97",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_10518362",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 1
