@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_6b2c7748",
+        "filename": "build.gradle",
+        "patchSetId": 7
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-18T17:26:28Z",
+      "side": 1,
+      "message": "why not do the copy commands here?",
+      "range": {
+        "startLine": 549,
+        "startChar": 4,
+        "endLine": 549,
+        "endChar": 58
+      },
+      "revId": "538ff0f348ba97471d34f96ee70fbfcf596c0446",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
