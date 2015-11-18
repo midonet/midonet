@@ -1,0 +1,47 @@
+//
+// Copyright 2015 Midokura SARL
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+import "commons.proto";
+
+package org.midonet.cluster.models;
+option java_package = "org.midonet.cluster.models";
+option java_outer_classname = "Service";
+
+message ServiceContainer {
+    optional UUID id = 1;
+    optional string service_group = 2;
+}
+
+message ServiceContainerGroup {
+    optional UUID id = 1;
+    optional ServiceType service_type = 2;
+    optional AllocationType allocation_type = 3;
+    optional UUID host_group_id = 4;
+    optional UUID port_group_id = 5;
+}
+
+enum ServiceType {
+    IPSEC = 0;
+    QUAGGA = 1;
+    HAPROXY = 2;
+}
+
+enum AllocationType {
+    HOST_GROUP = 0;
+    PORT_GROUP = 1;
+    ANYWHERE = 2;
+}
+
