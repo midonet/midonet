@@ -23,11 +23,11 @@ import java.util.concurrent.locks.ReentrantLock
 import scala.async.Async.async
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.junit.runner.RunWith
-import org.mockito.{Matchers, Mockito}
+import org.mockito.Mockito
+import org.mockito.Matchers.{any => Any}
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
@@ -35,13 +35,11 @@ import rx.Observable
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.{PersistenceOp, Storage}
-import org.midonet.cluster.models.Neutron.{SecurityGroup => NeutronSecurityGroup}
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.C3POStorageManager
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
-import org.midonet.cluster.util.UUIDUtil.{toProto => toPuuid}
 import org.midonet.midolman.state.PathBuilder
 
 @RunWith(classOf[JUnitRunner])
@@ -91,11 +89,11 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
         override def getAll[T](clazz: Class[T]): Future[Seq[T]] = ???
     }
 
-    Mockito.when(lockFactory.createShared(Matchers.any())).thenReturn(mutex)
+    Mockito.when(lockFactory.createShared(Any())).thenReturn(mutex)
     Mockito.when(backend.store).thenReturn(store)
 
     val plugin: NeutronZoomPlugin =
-        new NeutronZoomPlugin(resContext, paths, c3po, lockFactory)
+        new NeutronZoomPlugin(resContext, c3po, lockFactory)
 
     def makePort: Port = {
         val p = new Port

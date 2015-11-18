@@ -76,7 +76,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         val c3po = C3POMinion.initDataManager(backend.store,
                                               sequenceDispenser,
                                               paths)
-        plugin = new NeutronZoomPlugin(resContext, paths, c3po, lockFactory)
+        plugin = new NeutronZoomPlugin(resContext, c3po, lockFactory)
     }
 
     override def teardown(): Unit = {
