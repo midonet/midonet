@@ -1,0 +1,135 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_48e8a1b4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-18T15:01:18Z",
+      "side": 1,
+      "message": "typo in \"previously\"",
+      "revId": "cccb3e90a162acc19baecdcffd371b4a9ba5c0bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_e8efadae",
+        "filename": "tests/mdts/lib/bindings.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-18T15:01:18Z",
+      "side": 1,
+      "message": "2015?",
+      "revId": "cccb3e90a162acc19baecdcffd371b4a9ba5c0bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_48ffc167",
+        "filename": "tests/mdts/lib/bindings.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-18T15:01:18Z",
+      "side": 1,
+      "message": "Suggestion:  order the imports properly , first imports, then the from, etc.",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 52
+      },
+      "revId": "cccb3e90a162acc19baecdcffd371b4a9ba5c0bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_88f8f97d",
+        "filename": "tests/mdts/lib/bindings.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-18T15:01:18Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "cccb3e90a162acc19baecdcffd371b4a9ba5c0bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_c8f2f199",
+        "filename": "tests/mdts/lib/bindings.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-18T15:01:18Z",
+      "side": 1,
+      "message": "not used",
+      "revId": "cccb3e90a162acc19baecdcffd371b4a9ba5c0bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_2831a55a",
+        "filename": "tests/mdts/lib/topology_manager.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-18T15:01:18Z",
+      "side": 1,
+      "message": "imports ordering",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 34
+      },
+      "revId": "cccb3e90a162acc19baecdcffd371b4a9ba5c0bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_08614939",
+        "filename": "tests/mdts/tests/utils/utils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-18T15:01:18Z",
+      "side": 1,
+      "message": "Suggestion: hostname should be passed by parameter",
+      "revId": "cccb3e90a162acc19baecdcffd371b4a9ba5c0bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
