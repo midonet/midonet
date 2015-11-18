@@ -49,7 +49,6 @@ import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
 
 class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
-                                  pathBuilder: PathBuilder,
                                   c3po: C3POStorageManager,
                                   lockFactory: ZookeeperLockFactory)
     extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi
