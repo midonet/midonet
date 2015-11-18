@@ -22,7 +22,6 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
-import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => MappingStatus}
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
@@ -59,8 +58,7 @@ class LoadBalancerPoolTranslatorTestBase extends TranslatorTestBase
         """)
 
     protected def midoPoolProtoStr(adminStateUp: Boolean = true,
-                                   healthMonitorId: UUID = null,
-                                   mappingStatus: MappingStatus = null)
+                                   healthMonitorId: UUID = null)
     : String = {
         val bldr = new StringBuilder
         bldr ++= s"""
@@ -70,8 +68,6 @@ class LoadBalancerPoolTranslatorTestBase extends TranslatorTestBase
             """
         if (healthMonitorId != null)
             bldr ++= s"health_monitor_id { $healthMonitorId }\n"
-        if (mappingStatus != null)
-            bldr ++= s"mapping_status: $mappingStatus\n"
         bldr.toString()
     }
     protected def midoPool(adminStateUp: Boolean = true,

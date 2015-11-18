@@ -43,7 +43,6 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
 import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, IPv4Subnet, MAC}
 
@@ -676,13 +675,6 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         store.update(builder.build())
     }
 
-    override def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit = {
-        val p = Await.result(store.get(classOf[Pool], pool), awaitTimeout)
-        store.update(p.toBuilder
-                         .setMappingStatus(status)
-                         .build())
-    }
-
     override def newPoolMember(pool: UUID, address: String, port: Int,
                                weight: Int = 1): UUID = {
         val id = UUID.randomUUID
@@ -802,9 +794,6 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
 
     implicit def convertLbStatus(from: LBStatus): Commons.LBStatus = from.toProto()
-
-    implicit def convertHmStatus(from: PoolHealthMonitorMappingStatus): Pool.PoolHealthMonitorMappingStatus =
-        from.toProto()
 
     def setConditionFromCondition(builder: Condition.Builder,
                                   condition: rules.Condition): Condition.Builder = {

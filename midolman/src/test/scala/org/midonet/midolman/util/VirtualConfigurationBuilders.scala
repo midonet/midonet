@@ -209,7 +209,6 @@ trait VirtualConfigurationBuilders {
     def setPoolHealthMonitor(pool: UUID, hmId: UUID): Unit
     def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit
     def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit
-    def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit
 
     final def newPoolMember(pool: UUID): UUID = newPoolMember(pool, "10.10.10.10", 10)
     def newPoolMember(pool: UUID, address: String, port: Int,
@@ -433,8 +432,6 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.setPoolAdminStateUp(pool, adminStateUp)
     override def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit =
         virtConfBuilderImpl.setPoolLbMethod(pool, lbMethod)
-    override def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit =
-        virtConfBuilderImpl.setPoolMapStatus(pool, status)
     override def newPoolMember(pool: UUID, address: String, port: Int,
                                weight: Int = 1): UUID =
         virtConfBuilderImpl.newPoolMember(pool, address, port, weight)

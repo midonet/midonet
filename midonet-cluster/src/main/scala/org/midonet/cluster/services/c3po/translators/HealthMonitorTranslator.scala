@@ -21,7 +21,6 @@ import scala.collection.JavaConverters._
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
-import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus.PENDING_CREATE
 import org.midonet.cluster.models.Topology.{HealthMonitor, Pool}
 import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.util.concurrent.toFutureOps
@@ -56,9 +55,7 @@ class HealthMonitorTranslator(storage: ReadOnlyStorage)
 
         val pools = for (pool <- nhm.getPoolsList.asScala) yield {
             val pb = storage.get(classOf[Pool], pool.getPoolId).await().toBuilder
-            pb.setMappingStatus(PENDING_CREATE)
-                .setHealthMonitorId(hm.getId)
-                .build()
+            pb.setHealthMonitorId(hm.getId).build()
         }
 
         List(Create(hm)) ++ pools.map(Update(_))

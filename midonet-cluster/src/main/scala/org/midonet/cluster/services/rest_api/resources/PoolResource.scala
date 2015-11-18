@@ -27,13 +27,19 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
+import org.midonet.cluster.models.Services.ServiceContainer
+import org.midonet.cluster.models.Topology.{Pool => TopPool}
+import org.midonet.cluster.rest_api.{NotFoundHttpException, ServiceUnavailableHttpException}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{HealthMonitor, LoadBalancer, Pool}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{NotFoundHttpException, ServiceUnavailableHttpException}
+import org.midonet.cluster.services.MidonetBackend.{AliveKey, ClusterNamespaceId, PoolMappingStatus}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
+import org.midonet.midolman.l4lb
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus._
+import org.midonet.util.reactivex._
 
 @ApiResource(version = 1, name = "pools", template = "poolTemplate")
 @Path("pools")
@@ -50,6 +56,8 @@ import org.midonet.midolman.state.PoolHealthMonitorMappingStatus._
 class PoolResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Pool](resContext) {
 
+    private val timeout = MidonetResource.Timeout
+
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): PoolVipResource = {
         getResource(classOf[Pool], id)
@@ -62,27 +70,62 @@ class PoolResource @Inject()(resContext: ResourceContext)
         new PoolPoolMemberResource(id, resContext)
     }
 
-    def checkMappingStatus(pool: Pool): Unit = {
-        val s = pool.mappingStatus
-        if (s == PENDING_UPDATE ||
-            s == PENDING_DELETE ||
-            s == PENDING_CREATE) {
-            throw new ServiceUnavailableHttpException(
-                getMessage(MAPPING_STATUS_IS_PENDING, s))
+    /**
+      * Returns the namespace in which the pool mapping status state key
+      * resides. This is the agent ID that is managing the health monitor
+      * service.
+      */
+    private def namespace(poolId: UUID, healthMonitorId: UUID): StateKey = {
+        val containerId =
+            l4lb.HealthMonitor.containerId(poolId, healthMonitorId)
+        // TODO: This is done outside of the transaction, support transactions
+        //       across Zoom and the state store?
+        stateStore.getKey(ClusterNamespaceId.toString,
+                          classOf[ServiceContainer],
+                          containerId, AliveKey).await(timeout)
+    }
+
+    def checkMappingStatus(poolId: UUID, tx: ResourceTransaction): Unit = {
+        val pool = tx.get(classOf[Pool], poolId)
+        val healthMonitorId = pool.healthMonitorId
+
+        var stateKey: StateKey = null
+
+        namespace(poolId, healthMonitorId) match {
+            case SingleValueKey(key, Some(name), owner) =>
+                stateKey = stateStore.getKey(name, classOf[TopPool], poolId,
+                                             PoolMappingStatus).await(timeout)
+            case SingleValueKey(key, None, owner) =>
+                stateKey = stateStore.getKey(classOf[TopPool], poolId,
+                                             PoolMappingStatus).await(timeout)
+            case _ => // This cannot happen.
+        }
+
+        stateKey match {
+            case SingleValueKey(key, Some(status), owner) =>
+                if (status == PENDING_UPDATE.name ||
+                    status == PENDING_DELETE.name ||
+                    status == PENDING_CREATE.name) {
+                    throw new ServiceUnavailableHttpException(
+                        getMessage(MAPPING_STATUS_IS_PENDING, status))
+                }
+            case SingleValueKey(key, None, owner) =>
+                throw new ServiceUnavailableHttpException(
+                    getMessage(MAPPING_STATUS_IS_PENDING, PENDING_CREATE))
+            case _ => // This cannot happen.
         }
     }
 
     protected override def updateFilter(to: Pool, from: Pool,
                                         tx: ResourceTransaction): Unit = {
-        val pool = tx.get(classOf[Pool], from.id)
-        checkMappingStatus(pool)
+        checkMappingStatus(to.id, tx)
         to.update(from)
         tx.update(to)
     }
 
-    protected override def deleteFilter(id: String,
-                                        tx: ResourceTransaction): Unit = {
-        try { checkMappingStatus(tx.get(classOf[Pool], id)) }
+    protected override def deleteFilter(id: String, tx: ResourceTransaction)
+    : Unit = {
+        try { checkMappingStatus(UUID.fromString(id), tx) }
         catch { case e: NotFoundHttpException => }
         tx.delete(classOf[Pool], id)
     }
