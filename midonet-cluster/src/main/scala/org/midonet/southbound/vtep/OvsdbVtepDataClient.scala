@@ -164,12 +164,6 @@ class OvsdbVtepDataClient(cnxn: VtepConnection)
     }
 
     /** Returns an [[Observer]] that will write updates to the remote MACs in
-      * the `Ucast_Mac_Local` or `Mcast_Mac_Local` tables. */
-    override def macLocalUpdater: Future[Observer[MacLocation]] = {
-        onReady { _.macLocalUpdater }
-    }
-
-    /** Returns an [[Observer]] that will write updates to the remote MACs in
       * the `Ucast_Mac_Remote` or `Mcast_Mac_Remote` tables. */
     override def macRemoteUpdater: Future[Observer[MacLocation]] = {
         onReady { _.macRemoteUpdater }
