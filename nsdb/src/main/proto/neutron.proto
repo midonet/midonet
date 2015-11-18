@@ -307,3 +307,122 @@ message NeutronFirewallRule {
         DENY = 1;
     }
 }
+
+message VPNService {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional string description = 3;
+    optional bool admin_state_up = 4;
+    optional string tenant_id = 5;
+    optional UUID subnet_id = 6;
+    optional UUID router_id = 7;
+    optional string status = 8;
+    repeated IPAddress external_ips = 9;
+}
+
+message IKEPolicy {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string description = 4;
+    optional IPSecAuthAlgorithm auth_algorithm = 5;
+    optional IPSecEncryptionAlgorithm encryption_algorithm = 6;
+    optional Phase1NegotiationMode phase1NegMode = 7;
+    optional Version ike_version = 8;
+    repeated string lifetime = 9; // [(units:value)]*
+    optional IPSecPFS pfs = 10;
+
+    enum Version {
+        V1 = 0;
+        V2 = 1;
+    }
+
+    enum Phase1NegotiationMode {
+        MAIN = 0;
+    }
+}
+
+message IPSecPolicy {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string description = 4;
+    optional TransformProtocol transform_protocol = 5;
+    optional IPSecAuthAlgorithm auth_algorithm = 6;
+    optional IPSecEncryptionAlgorithm encryption_algorithm = 7;
+    optional EncapsulationMode encapsulation_mode = 8;
+    optional IPSecPFS pfs = 9;
+    repeated string lifetime = 10; // [(units:value)]*
+
+    enum TransformProtocol {
+        ESP = 0;
+        AH = 1;
+        AH_ESP = 2;
+    }
+
+    enum EncapsulationMode {
+        TUNNEL = 0;
+        TRANSPORT = 1;
+    }
+}
+
+message IPSecSiteConnection {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string peer_address = 4;
+    optional string peer_id = 5;
+    repeated IPSubnet peer_cidrs = 6;
+    optional RouteMode route_mode = 7;
+    optional uint32 mtu = 8;
+    optional Initiator initiator = 9;
+    optional AuthMode auth_mode = 10;
+    optional string psk = 11;
+    repeated string actions = 12; // [(actions, interval, timeout)]*
+    optional bool admin_state_up = 13;
+    optional Status status = 14;
+
+    optional UUID vpn_service_id = 15;
+    optional UUID ike_policy_id = 16;
+    optional UUID ipsec_policy_id = 17;
+
+    enum Status {
+        ACTIVE = 0;
+        DOWN = 1;
+        BUILD = 2;
+        ERROR = 3;
+        PENDING_CREATE = 4;
+        PENDING_UPDATE = 5;
+        PENDING_DELETE= 6;
+    }
+
+    enum AuthMode {
+        PSK = 0;
+    }
+
+    enum Initiator {
+        BI_DIRECTIONAL = 0;
+        RESPONSE_ONLY = 1;
+    }
+
+    enum RouteMode {
+        STATIC = 0;
+    }
+}
+
+enum IPSecPFS {
+    group2 = 0;
+    group5 = 1;
+    group14 = 2;
+}
+
+enum IPSecAuthAlgorithm {
+    SHA1 = 0;
+}
+
+enum IPSecEncryptionAlgorithm {
+    DES_3 = 0;
+    AES_128 = 1;
+    AES_192 = 2;
+    AES_256 = 3;
+}
