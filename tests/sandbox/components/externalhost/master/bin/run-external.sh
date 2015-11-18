@@ -12,7 +12,7 @@ sysctl -w net.ipv6.conf.lo.disable_ipv6=1
 for IFACE in `env | grep _IFACE | cut -d= -f2`; do
     # TODO: change pipework by native docker networking once stable
     echo "Waiting for interface $IFACE to be up"
-    timeout 120s pipework --wait -i $IFACE
+    timeout 300s pipework --wait -i $IFACE
     if [ $? -eq 124 ]; then
         echo "Interface $IFACE was not ready after 120s. Exiting..."
         exit 1
