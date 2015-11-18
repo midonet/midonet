@@ -30,6 +30,7 @@ import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.models.Services.ServiceContainer
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
@@ -67,6 +68,7 @@ object MidonetBackend {
              classOf[FloatingIp],
              classOf[HealthMonitor],
              classOf[Host],
+             classOf[HostGroup],
              classOf[IPAddrGroup],
              classOf[LoadBalancer],
              classOf[L2Insertion],
@@ -92,6 +94,7 @@ object MidonetBackend {
              classOf[Router],
              classOf[Rule],
              classOf[SecurityGroup],
+             classOf[ServiceContainer],
              classOf[SecurityGroupRule],
              classOf[TraceRequest],
              classOf[TunnelZone],
@@ -103,6 +106,12 @@ object MidonetBackend {
                              classOf[L2Insertion], "port_id", CLEAR)
         store.declareBinding(classOf[Port], "srv_insertion_ids", CASCADE,
                              classOf[L2Insertion], "srv_port_id", CLEAR)
+
+        store.declareBinding(classOf[Network], "service_container_ids", CASCADE,
+                             classOf[ServiceContainer], "network_id", CLEAR)
+
+        store.declareBinding(classOf[Router], "service_container_ids", CASCADE,
+                             classOf[ServiceContainer], "router_id", CLEAR)
 
         store.declareBinding(classOf[Network], "port_ids", CASCADE,
                              classOf[Port], "network_id", CLEAR)
@@ -144,6 +153,8 @@ object MidonetBackend {
 
         store.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
                              classOf[TunnelZone], "host_ids", CLEAR)
+        store.declareBinding(classOf[Host], "host_group_ids", CLEAR,
+                             classOf[HostGroup], "host_ids", CLEAR)
 
         store.declareBinding(classOf[LoadBalancer], "pool_ids", CASCADE,
                              classOf[Pool], "load_balancer_id", CLEAR)
