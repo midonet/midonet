@@ -164,8 +164,7 @@ object MidonetResource {
                                           lockFactory: ZookeeperLockFactory,
                                           uriInfo: UriInfo,
                                           validator: Validator,
-                                          seqDispenser: SequenceDispenser,
-                                          stateTables: StateTableStorage)
+                                          seqDispenser: SequenceDispenser)
 
 }
 

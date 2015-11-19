@@ -59,7 +59,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.ResourceProvider
 import org.midonet.cluster.services.rest_api.resources._
-import org.midonet.cluster.storage.{LegacyStateTableStorage, MidonetBackendConfig, MidonetBackendModule}
+import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule}
 import org.midonet.cluster.{DataClient, LocalDataClientImpl}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
@@ -194,8 +194,6 @@ object Migrator extends App {
                     .asEagerSingleton()
                 bind(classOf[ResourceProvider])
                     .toInstance(new ResourceProvider(log))
-                bind(classOf[StateTableStorage])
-                    .to(classOf[LegacyStateTableStorage]).asEagerSingleton()
                 bind(classOf[UriInfo]).toInstance(MockUriInfo)
                 bind(classOf[Validator])
                     .toProvider(classOf[ValidatorProvider])
