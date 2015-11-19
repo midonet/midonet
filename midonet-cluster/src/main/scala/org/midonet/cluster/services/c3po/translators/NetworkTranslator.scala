@@ -20,7 +20,8 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
@@ -30,17 +31,17 @@ class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
     extends Translator[NeutronNetwork] {
     import NetworkTranslator._
 
-    override protected def translateCreate(nn: NeutronNetwork): MidoOpList = {
+    override protected def translateCreate(nn: NeutronNetwork): OperationList = {
         // Uplink networks don't exist in Midonet.
         if (isUplinkNetwork(nn)) return List()
 
-        val ops = new MidoOpListBuffer
+        val ops = new OperationListBuffer
         ops += Create(translate(nn))
         ops ++= replMapPaths(nn.getId).map(CreateNode(_, null))
         ops.toList
     }
 
-    override protected def translateUpdate(nn: NeutronNetwork): MidoOpList = {
+    override protected def translateUpdate(nn: NeutronNetwork): OperationList = {
         // Uplink networks don't exist in Midonet, and regular networks can't
         // be turned into uplink networks via update.
         if (isUplinkNetwork(nn)) return List()
@@ -53,12 +54,12 @@ class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
         List(Update(bldr.build()))
     }
 
-    override protected def translateDelete(id: UUID): MidoOpList = {
+    override protected def translateDelete(id: UUID): OperationList = {
         // Uplink networks don't exist in Midonet.
         val nn = storage.get(classOf[NeutronNetwork], id).await()
         if (isUplinkNetwork(nn)) return List()
 
-        val ops = new MidoOpListBuffer
+        val ops = new OperationListBuffer
         ops += Delete(classOf[Network], id)
         ops ++= replMapPaths(id).map(DeleteNode)
         ops.toList
