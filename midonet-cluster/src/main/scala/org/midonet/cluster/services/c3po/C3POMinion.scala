@@ -27,15 +27,16 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode, c3poLog}
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.cluster.services.c3po.translators._
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, ScheduledMinion}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{SequenceDispenser, UUIDUtil}
+import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode, c3poLog}
 import org.midonet.midolman.state.PathBuilder
 
 /** The service that translates and imports neutron models into the MidoNet
@@ -129,23 +130,23 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
     }
 
     private def translateTxn(txn: importer.Transaction) =
-        neutron.Transaction(txn.id, txn.tasks.map(translateTask))
+        Transaction(txn.id, txn.tasks.map(translateTask))
 
     private def translateTask(task: importer.Task)
-    : neutron.Task[_ <: Message] = {
-        val c3poOp: neutron.NeutronOp[_ <: Message] = task match {
+    : Task[_ <: Message] = {
+        val c3poOp: Operation[_ <: Message] = task match {
             case importer.Create(_, rsrcType, json) =>
-                neutron.Create(toMessage(json, rsrcType.clazz))
+                Create(toMessage(json, rsrcType.clazz))
             case importer.Update(_, rsrcType, json) =>
-                neutron.Update(toMessage(json, rsrcType.clazz))
+                Update(toMessage(json, rsrcType.clazz))
             case importer.Delete(_, rsrcType, objId) =>
-                neutron.Delete(rsrcType.clazz, UUIDUtil.toProto(objId))
+                Delete(rsrcType.clazz, UUIDUtil.toProto(objId))
             case importer.Flush(_) =>
                 // TODO: Trigger a rebuild, because this shouldn't happen.
                 throw new IllegalArgumentException(
                     "Flush operation not in its own transaction: " + task)
         }
-        neutron.Task(task.taskId, c3poOp)
+        Task(task.taskId, c3poOp)
     }
 }
 

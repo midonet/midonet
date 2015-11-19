@@ -33,8 +33,7 @@ import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, PersistenceOp, Stor
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute}
 import org.midonet.cluster.models.Topology.{Network, Port}
-import org.midonet.cluster.services.c3po.midonet.Create
-import org.midonet.cluster.services.c3po.translators.{NetworkTranslator, Translator, TranslationException}
+import org.midonet.cluster.services.c3po.translators.{NetworkTranslator, TranslationException, Translator}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.midolman.state.PathBuilder
 
@@ -112,17 +111,17 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     }
 
     private def c3poCreate(taskId: Int, model: Message) =
-        neutron.Task(taskId, neutron.Create(model))
+        Task(taskId, Create(model))
 
     private def c3poUpdate(taskId: Int, model: Message) =
-        neutron.Task(taskId, neutron.Update(model))
+        Task(taskId, Update(model))
 
     private def c3poDelete(taskId: Int, clazz: Class[_ <: Message],
                            id: Commons.UUID) =
-        neutron.Task(taskId, neutron.Delete(clazz, id))
+        Task(taskId, Delete(clazz, id))
 
-    private def txn(txnId: String, task: neutron.Task[_ <: Message]*) =
-        neutron.Transaction(txnId, task.toList)
+    private def txn(txnId: String, task: Task[_ <: Message]*) =
+        Transaction(txnId, task.toList)
 
     "C3POStorageManager" should "make sure C3POStageManager data exists in " +
     "Storage in initialization." in {
@@ -208,11 +207,11 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     "Neutron transaction" should " execute each task as a separate " +
                                  " multi call." in {
         when(mockNetworkTranslator
-                .translateNeutronOp(neutron.Create(neutronNetwork)))
+                .translateOp(Create(neutronNetwork)))
                 .thenReturn(List(Create(neutronNetwork),
                                  Create(midoNetwork)))
         when(mockPortTranslator
-                .translateNeutronOp(neutron.Create(neutronNetworkPort)))
+                .translateOp(Create(neutronNetworkPort)))
                 .thenReturn(List(Create(neutronNetworkPort),
                                  Create(midoPort)))
 
@@ -238,10 +237,10 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     }
 
     "Model translation failure" should "throw C3PODataManagerException" in {
-        doThrow(new TranslationException(new neutron.Create(neutronNetwork),
+        doThrow(new TranslationException(new Create(neutronNetwork),
                                          null, "Translation failure test"))
             .when(mockNetworkTranslator)
-            .translateNeutronOp(neutron.Create(neutronNetwork))
+            .translateOp(Create(neutronNetwork))
 
         val translators: TranslatorMap = new util.HashMap()
         translators.put(classOf[NeutronNetwork], mockNetworkTranslator)
@@ -255,7 +254,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     "Storage failure" should "throw C3PODataManagerException" in {
         when(mockNetworkTranslator
-                .translateNeutronOp(neutron.Create(neutronNetwork)))
+                .translateOp(Create(neutronNetwork)))
                 .thenReturn(List(Create(neutronNetwork), Create(midoNetwork)))
         doThrow(new StorageException("Storage failure test"))
                 .when(storage).multi(any(classOf[Seq[PersistenceOp]]))

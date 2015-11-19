@@ -20,13 +20,11 @@ import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
 
-import org.midonet.cluster.services.c3po.midonet.MidoOp
-import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Topology.Chain
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-
+import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
 
 package object translators {
-    type MidoOpList = List[MidoOp[_ <: Message]]
-    type MidoOpListBuffer = ListBuffer[MidoOp[_ <: Message]]
+
+    type OperationList = List[Operation[_ <: Message]]
+    type OperationListBuffer = ListBuffer[Operation[_ <: Message]]
+
 }
