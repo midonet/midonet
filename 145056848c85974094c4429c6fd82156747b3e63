@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_0f8ea82e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "You could use:\n\n  config.zookeeper.readTimeout millis",
+      "range": {
+        "startLine": 105,
+        "startChar": 22,
+        "endLine": 105,
+        "endChar": 29
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_6f7c7c21",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "Nit: Keep the old shorter name?",
+      "range": {
+        "startLine": 128,
+        "startChar": 12,
+        "endLine": 128,
+        "endChar": 37
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_af76943c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "Indent",
+      "range": {
+        "startLine": 134,
+        "startChar": 40,
+        "endLine": 134,
+        "endChar": 62
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_0fe308da",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "Does this need to be an option? You could use:\n\n  if (status !\u003d INACTIVE) stateStore.addValue\n  else stateStore.removeValue",
+      "range": {
+        "startLine": 483,
+        "startChar": 42,
+        "endLine": 483,
+        "endChar": 70
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_9dacb5ef",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HaproxyTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "This can be:\n\n  case SingleValueKey(_, Some(value), _) \u003d\u003e\n    value shouldBe status.get.name",
+      "range": {
+        "startLine": 117,
+        "startChar": 12,
+        "endLine": 118,
+        "endChar": 52
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_ddb62d3d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "Use MidonetResource.Timeout (the timeout is 30s)",
+      "range": {
+        "startLine": 64,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 35
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_4f8980ea",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "As discussed, this needs to read from the namespace of the agent where the HM is running.",
+      "range": {
+        "startLine": 79,
+        "startChar": 8,
+        "endLine": 80,
+        "endChar": 74
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_af777401",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "Here the cluster should write to the agent namespace, however this is not supported now and also not preferred - these nodes are ephemeral indicating that agent is alive. Hence, if possible the lack of a state key should indicate a default value (e.g. if pool has health monitor \u003d\u003e PENDING_CREATE else ACTIVE).",
+      "range": {
+        "startLine": 102,
+        "startChar": 12,
+        "endLine": 103,
+        "endChar": 59
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_bde7b13f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "If there is an exception, should we fail the request?",
+      "range": {
+        "startLine": 104,
+        "startChar": 8,
+        "endLine": 104,
+        "endChar": 17
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_bd909196",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "My opinion is that we shouldn\u0027t log errors such as these in the api, unless they indicate a problem with the api itself. If here there is an error, it was more likely caused by a bad request by the user, and request/responses are already logged.",
+      "range": {
+        "startLine": 105,
+        "startChar": 12,
+        "endLine": 106,
+        "endChar": 79
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_7ddd1970",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "You can use !\u003d",
+      "range": {
+        "startLine": 114,
+        "startChar": 12,
+        "endLine": 114,
+        "endChar": 69
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_2f836405",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T21:49:04Z",
+      "side": 1,
+      "message": "The name is a bit misleading since this is use for both reading and writing. Also, could these changes have been a different patch?",
+      "range": {
+        "startLine": 57,
+        "startChar": 4,
+        "endLine": 57,
+        "endChar": 25
+      },
+      "revId": "145056848c85974094c4429c6fd82156747b3e63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
