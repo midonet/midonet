@@ -27,7 +27,7 @@ import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronHealthMonitor. */
 class HealthMonitorTranslator(protected val storage: ReadOnlyStorage)
-    extends NeutronTranslator[NeutronHealthMonitor]{
+    extends Translator[NeutronHealthMonitor]{
 
     private def translate(nhm: NeutronHealthMonitor, setPoolId: Boolean = false)
     : HealthMonitor = {

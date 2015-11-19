@@ -27,7 +27,7 @@ import org.midonet.cluster.util.UUIDUtil.fromProto
  * Translator for Neutron's Tunnel Zone Host.
  */
 class AgentMembershipTranslator(protected val storage: ReadOnlyStorage)
-    extends NeutronTranslator[AgentMembership]
+    extends Translator[AgentMembership]
     with TunnelZoneManager {
     /**
      * Translates a Create operation on Neutron's AgentMembership. Agent

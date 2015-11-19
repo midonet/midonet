@@ -57,7 +57,7 @@ object PortTranslator {
 class PortTranslator(protected val storage: ReadOnlyStorage,
                      protected val pathBldr: PathBuilder,
                      sequenceDispenser: SequenceDispenser)
-        extends NeutronTranslator[NeutronPort]
+        extends Translator[NeutronPort]
         with ChainManager with PortManager with RouteManager with RuleManager
         with BridgeStateTableManager {
     import RouterInterfaceTranslator._

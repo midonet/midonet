@@ -25,7 +25,7 @@ import org.midonet.cluster.services.c3po.midonet._
 import org.midonet.util.concurrent.toFutureOps
 
 class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
-    extends NeutronTranslator[SecurityGroupRule] with ChainManager {
+    extends Translator[SecurityGroupRule] with ChainManager {
 
     /*
      * Need to create the rule, but also need to add it to the security

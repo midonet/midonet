@@ -35,7 +35,7 @@ import org.midonet.util.concurrent.toFutureOps
 class RouterTranslator(protected val storage: ReadOnlyStorage,
                        protected val pathBldr: PathBuilder,
                        config: ClusterConfig)
-    extends NeutronTranslator[NeutronRouter]
+    extends Translator[NeutronRouter]
     with ChainManager with PortManager with RouteManager with RuleManager
     with BridgeStateTableManager {
     import RouterTranslator._

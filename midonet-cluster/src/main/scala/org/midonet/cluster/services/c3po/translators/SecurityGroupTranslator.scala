@@ -33,7 +33,7 @@ import org.midonet.util.StringUtil.indent
 import org.midonet.util.concurrent.toFutureOps
 
 class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
-    extends NeutronTranslator[SecurityGroup] with ChainManager
+    extends Translator[SecurityGroup] with ChainManager
             with RuleManager {
     import org.midonet.cluster.services.c3po.translators.SecurityGroupTranslator._
 

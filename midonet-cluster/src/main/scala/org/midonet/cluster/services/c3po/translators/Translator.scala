@@ -36,7 +36,7 @@ import org.midonet.util.concurrent.toFutureOps
 
 /** Defines a class that is able to translate from an operation on the Neutron
   * model to a set of operations on the MidoNet model. */
-abstract class NeutronTranslator[NeutronModel <: Message](
+abstract class Translator[NeutronModel <: Message](
     implicit ct: ClassTag[NeutronModel]) {
 
     protected type MidoOpList = List[MidoOp[_ <: Message]]
