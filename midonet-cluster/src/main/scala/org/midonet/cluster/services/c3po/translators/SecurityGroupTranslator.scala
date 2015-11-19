@@ -25,9 +25,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
 import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
-import org.midonet.cluster.services.c3po.midonet._
-import org.midonet.cluster.services.c3po.neutron
-import org.midonet.cluster.services.c3po.neutron.NeutronOp
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.StringUtil.indent
 import org.midonet.util.concurrent.toFutureOps
@@ -95,11 +93,11 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
     }
 
     protected override def translateCreate(sg: SecurityGroup)
-    : List[MidoOp[_ <: Message]] = {
+    : OperationList = {
 
         val translatedSg = translate(sg)
 
-        val ops = new ListBuffer[MidoOp[_ <: Message]]
+        val ops = new ListBuffer[Operation[_ <: Message]]
 
         ops ++= sg.getSecurityGroupRulesList.asScala map(Create(_))
 
@@ -112,7 +110,7 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
     }
 
     protected override def translateUpdate(newSg: SecurityGroup)
-    : List[MidoOp[_ <: Message]] = {
+    : OperationList = {
         // Neutron doesn't modify rules via SecurityGroup update, but instead
         // always passes in an empty list of rules. The only property modifiable
         // via a Neutron SecurityGroup update that gets copied to a Midonet
@@ -125,9 +123,9 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
 
     /* Keep the original model as is by default. Override if the model does not
      * need to be maintained, or need some special handling. */
-    override protected def retainNeutronModel(op: NeutronOp[SecurityGroup])
-    : List[MidoOp[SecurityGroup]] = op match {
-        case neutron.Update(newSg) =>
+    override protected def retainHighLevelModel(op: Operation[SecurityGroup])
+    : List[Operation[SecurityGroup]] = op match {
+        case Update(newSg, _) =>
             // Neutron doesn't specify rules in update. Name and description
             // are the only properties that can actually be updated, so we can
             // just update the old SecurityGroup with them.
@@ -136,12 +134,12 @@ class SecurityGroupTranslator(protected val storage: ReadOnlyStorage)
                             .setName(newSg.getName)
                             .setDescription(newSg.getDescription)
                             .build()))
-        case _ => super.retainNeutronModel(op)
+        case _ => super.retainHighLevelModel(op)
     }
 
     protected override def translateDelete(sg: SecurityGroup)
-    : List[MidoOp[_ <: Message]] = {
-        val ops = new MidoOpListBuffer
+    : List[Operation[_ <: Message]] = {
+        val ops = new OperationListBuffer
 
         // Delete associated SecurityGroupRules.
         ops ++= sg.getSecurityGroupRulesList.asScala map (

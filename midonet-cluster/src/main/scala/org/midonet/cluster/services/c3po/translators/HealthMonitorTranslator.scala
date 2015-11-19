@@ -22,7 +22,7 @@ import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus.PENDING_CREATE
 import org.midonet.cluster.models.Topology.{HealthMonitor, Pool}
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronHealthMonitor. */
@@ -49,7 +49,7 @@ class HealthMonitorTranslator(protected val storage: ReadOnlyStorage)
     }
 
     override protected def translateCreate(nhm: NeutronHealthMonitor)
-    : MidoOpList = {
+    : OperationList = {
         val hm = translate(nhm)
 
         val pools = for (pool <- nhm.getPoolsList.asScala) yield {
@@ -63,12 +63,12 @@ class HealthMonitorTranslator(protected val storage: ReadOnlyStorage)
     }
 
     override protected def translateDelete(nhm: NeutronHealthMonitor)
-    : MidoOpList = {
+    : OperationList = {
         List(Delete(classOf[HealthMonitor], nhm.getId))
     }
 
     override protected def translateUpdate(nhm: NeutronHealthMonitor)
-    : MidoOpList = {
+    : OperationList = {
         List(Update(translate(nhm, setPoolId = true),
                     HealthMonitorUpdateValidator))
     }

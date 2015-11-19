@@ -18,13 +18,13 @@ package org.midonet.cluster.services.c3po.translators
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.midonet.cluster.services.c3po.{midonet, neutron}
+
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Topology.{Host, Port}
-import org.midonet.cluster.util.UUIDUtil.randomUuidProto
-import org.midonet.cluster.util.UUIDUtil.toProtoFromProtoStr
+import org.midonet.cluster.services.c3po.C3POStorageManager._
+import org.midonet.cluster.util.UUIDUtil.{randomUuidProto, toProtoFromProtoStr}
 
 /**
  * Tests port binding translation.
@@ -114,25 +114,24 @@ class PortBindingTranslatorTest extends TranslatorTestBase {
     "Port binding" should "add a new PortToInterface entry" in {
         setUpPortGet(newPortId, null, null)
 
-        val midoOps = translator.translate(neutron.Create(binding1))
+        val midoOps = translator.translate(Create(binding1))
 
         midoOps should contain only
-            midonet.Update(portWithHost(newPortId, host1NoBindingsId, newIface))
+            Update(portWithHost(newPortId, host1NoBindingsId, newIface))
     }
 
     it should "add a new mapping at the end of the existing mappings" in {
         setUpPortGet(newPortId, null, null)
         val midoOps = translator.translate(
-                neutron.Create(bindingHost2NewPortInterface))
+                Create(bindingHost2NewPortInterface))
 
         midoOps should contain only
-            midonet.Update(
-                portWithHost(newPortId, host2With2BindingsId, newIface))
+            Update(portWithHost(newPortId, host2With2BindingsId, newIface))
     }
 
     "Port binding to a non-existing port" should "throw an exception" in {
         intercept[TranslationException] {
-            translator.translate(neutron.Create(bindingToNonExistingPort))
+            translator.translate(Create(bindingToNonExistingPort))
         }
     }
 
@@ -142,7 +141,7 @@ class PortBindingTranslatorTest extends TranslatorTestBase {
                      hostId = toProtoFromProtoStr("msb: 1 lsb: 1"),
                      ifaceName = "bound interface")
         val te = intercept[TranslationException] {
-            translator.translate(neutron.Create(binding1))
+            translator.translate(Create(binding1))
         }
         te.getCause match {
             case ise: IllegalStateException =>
@@ -153,17 +152,17 @@ class PortBindingTranslatorTest extends TranslatorTestBase {
 
     "Attempting to update a port binding" should "throw an exception" in {
         intercept[TranslationException] {
-            translator.translate(neutron.Update(bindingHost2NewPortInterface))
+            translator.translate(Update(bindingHost2NewPortInterface))
         }
     }
 
     "Port binding delete" should "remove port/interface mapping from Host" in {
         setUpPortGet(portYOnHost2Id, host2With2BindingsId, host2InterfaceA)
 
-        val midoOps = translator.translate(neutron.Delete(
+        val midoOps = translator.translate(Delete(
                 classOf[PortBinding], bindingHost2PortYInterfaceBId))
 
         midoOps should contain only
-            midonet.Update(portWithNoHost(portYOnHost2Id))
+        Update(portWithNoHost(portYOnHost2Id))
     }
 }

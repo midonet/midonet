@@ -27,7 +27,7 @@ import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Topology.{Dhcp, Host, Port, PortOrBuilder, _}
 import org.midonet.cluster.models.Neutron.NeutronPort.ExtraDhcpOpts
-import org.midonet.cluster.services.c3po.midonet.{Delete, MidoOp, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Update, Delete, Operation}
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
@@ -77,11 +77,11 @@ trait PortManager extends ChainManager with RouteManager {
      * Does not set peer's peerId. Storage engine is assumed to handle this.
      */
     protected def linkPortOps(port: Port, peer: PortOrBuilder)
-    : MidoOpList = {
+    : OperationList = {
         checkNoPeerId(port)
         checkNoPeerId(peer)
 
-        val ops = new MidoOpListBuffer
+        val ops = new OperationListBuffer
 
         val portBldr = Port.newBuilder(port)
         portBldr.setPeerId(peer.getId)
@@ -103,7 +103,7 @@ trait PortManager extends ChainManager with RouteManager {
      * the port nor the interface may already be bound on the specified host.
      */
     protected def bindPortOps(port: Port, hostId: UUID, ifName: String)
-    : MidoOpList = {
+    : OperationList = {
         if (port.hasHostId) throw new IllegalStateException(
             s"Port ${port.getId} is already bound.")
 
@@ -167,7 +167,7 @@ trait PortManager extends ChainManager with RouteManager {
 
     /** Operations to delete a port's security chains (in, out, antispoof). */
     protected def deleteSecurityChainsOps(portId: UUID)
-    : Seq[MidoOp[Chain]] = {
+    : Seq[Operation[Chain]] = {
         Seq(Delete(classOf[Chain], inChainId(portId)),
             Delete(classOf[Chain], outChainId(portId)),
             Delete(classOf[Chain], antiSpoofChainId(portId)))
@@ -175,7 +175,7 @@ trait PortManager extends ChainManager with RouteManager {
 
     /** Operations to remove a port's IP addresses from its IPAddrGroups */
     protected def removeIpsFromIpAddrGroupsOps(port: NeutronPort)
-    : Seq[MidoOp[IPAddrGroup]] = {
+    : Seq[Operation[IPAddrGroup]] = {
         // Remove the fixed IPs from IP Address Groups
         val ips = port.getFixedIpsList.asScala.map(_.getIpAddress)
         val sgIds = port.getSecurityGroupsList.asScala.toList

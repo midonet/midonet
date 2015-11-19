@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.{Chain, Rule}
-import org.midonet.cluster.services.c3po.midonet.Delete
+import org.midonet.cluster.services.c3po.C3POStorageManager.Delete
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 
 /**

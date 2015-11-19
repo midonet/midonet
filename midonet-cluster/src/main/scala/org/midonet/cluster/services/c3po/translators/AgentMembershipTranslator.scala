@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.AgentMembership
-import org.midonet.cluster.services.c3po.midonet.Update
+import org.midonet.cluster.services.c3po.C3POStorageManager.Update
 import org.midonet.cluster.util.UUIDUtil.fromProto
 
 /**
@@ -35,7 +35,7 @@ class AgentMembershipTranslator(protected val storage: ReadOnlyStorage)
      * TunnelZone in MidoNet.
      */
     override protected def translateCreate(membership: AgentMembership)
-    : MidoOpList = {
+    : OperationList = {
         val tz = getNeutronDefaultTunnelZone(storage)
         val tzWithHost = tz.toBuilder
         tzWithHost.addHostsBuilder()
@@ -61,8 +61,8 @@ class AgentMembershipTranslator(protected val storage: ReadOnlyStorage)
      * corresponding HostToIp mapping with the Host ID and deletes it,
      */
     override protected def translateDelete(membership: AgentMembership)
-    : MidoOpList = {
-        val midoOps = new MidoOpListBuffer()
+    : OperationList = {
+        val midoOps = new OperationListBuffer()
         val tz = getNeutronDefaultTunnelZone(storage)
         val hostId = membership.getId  // Membership ID is equal to Host ID.
 

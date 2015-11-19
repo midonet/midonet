@@ -24,7 +24,8 @@ import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.FloatingIp
 import org.midonet.cluster.models.Topology.{Port, Router, Rule}
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
-import org.midonet.cluster.services.c3po.{midonet, neutron}
+import org.midonet.cluster.services.c3po.C3POStorageManager._
+import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 
@@ -241,20 +242,20 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
     }
 
     "Unassociated floating IP" should "not create anything" in {
-        val midoOps = translator.translate(neutron.Create(unboundFip))
+        val midoOps = translator.translate(Create(unboundFip))
 
         midoOps shouldBe empty
     }
 
     "Associated floating IP" should "create ARP entry and NAT rules" in {
-        val midoOps = translator.translate(neutron.Create(boundFip))
+        val midoOps = translator.translate(Create(boundFip))
 
-        midoOps should contain inOrderOnly (midonet.CreateNode(fipArpEntryPath),
-                                            midonet.Create(snat),
-                                            midonet.Create(dnat),
-                                            midonet.Create(icmpReverseDnat),
-                                            midonet.Update(inChainWithDnat),
-                                            midonet.Update(outChainWithSnatAndReverseIcmpDnat))
+        midoOps should contain inOrderOnly (CreateNode(fipArpEntryPath),
+                                            Create(snat),
+                                            Create(dnat),
+                                            Create(icmpReverseDnat),
+                                            Update(inChainWithDnat),
+                                            Update(outChainWithSnatAndReverseIcmpDnat))
     }
 
     "Tenant router for floating IP" should "throw an exception if it doesn't " +
@@ -262,7 +263,7 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
         bind(tntRouterId, nTntRouterNoGwPort)
         bind(tntRouterId, mTntRouterNoGwPort)
         val te = intercept[TranslationException] {
-            translator.translate(neutron.Create(boundFip))
+            translator.translate(Create(boundFip))
         }
         te.getCause should not be null
         te.getCause match {
@@ -367,7 +368,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 
     "FIP UPDATE that keeps the floating IP unbound" should "do nothing" in {
         bind(fipId, unboundFip)
-        val midoOps = translator.translate(neutron.Update(unboundFip))
+        val midoOps = translator.translate(Update(unboundFip))
 
         midoOps shouldBe empty
     }
@@ -375,15 +376,15 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "Associating a floating IP to a port" should "add an ARP entry and NAT " +
     "rules" in {
         bind(fipId, unboundFip)
-        val midoOps = translator.translate(neutron.Update(boundFip))
+        val midoOps = translator.translate(Update(boundFip))
 
         midoOps should contain inOrderOnly (
-            midonet.CreateNode(fipArpEntryPath),
-            midonet.Create(snat),
-            midonet.Create(dnat),
-            midonet.Create(icmpReverseDnat),
-            midonet.Update(inChainWithDnat),
-            midonet.Update(outChainWithSnatAndReverseIcmpDnat))
+            CreateNode(fipArpEntryPath),
+            Create(snat),
+            Create(dnat),
+            Create(icmpReverseDnat),
+            Update(inChainWithDnat),
+            Update(outChainWithSnatAndReverseIcmpDnat))
     }
 
     "Associating a floating IP to a port" should "throw an exception if the " +
@@ -392,7 +393,7 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bind(tntRouterId, nTntRouterNoGwPort)
         bind(tntRouterId, mTntRouterNoGwPort)
         val te = intercept[TranslationException] {
-                translator.translate(neutron.Update(boundFip))
+                translator.translate(Update(boundFip))
         }
 
         te.getCause should not be null
@@ -408,19 +409,19 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "SNAT/DNAT rules, and remove the IDs fo those rules from the inbound / " +
     "outbound chains of the tenant router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(neutron.Update(unboundFip))
+        val midoOps = translator.translate(Update(unboundFip))
 
         midoOps should contain inOrderOnly (
-            midonet.DeleteNode(fipArpEntryPath),
-            midonet.Delete(classOf[Rule], snatRuleId),
-            midonet.Delete(classOf[Rule], dnatRuleId),
-            midonet.Delete(classOf[Rule], reverseIcmpDnatRuleId))
+            DeleteNode(fipArpEntryPath),
+            Delete(classOf[Rule], snatRuleId),
+            Delete(classOf[Rule], dnatRuleId),
+            Delete(classOf[Rule], reverseIcmpDnatRuleId))
     }
 
     "UPDATE that keeps the floating IP on the same port/router " should
     "do nothing" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(neutron.Update(boundFip))
+        val midoOps = translator.translate(Update(boundFip))
 
         midoOps shouldBe empty
     }
@@ -429,55 +430,55 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "delete the old ARP entry and NAT rules and create new ones on the new " +
     "router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(neutron.Update(fipMovedRtr2))
+        val midoOps = translator.translate(Update(fipMovedRtr2))
 
         midoOps should contain inOrderOnly (
-            midonet.DeleteNode(fipArpEntryPath),
-            midonet.CreateNode(fipArpEntryPath2),
-            midonet.Delete(classOf[Rule], snatRuleId),
-            midonet.Delete(classOf[Rule], dnatRuleId),
-            midonet.Delete(classOf[Rule], reverseIcmpDnatRuleId),
-            midonet.Create(snatRtr2),
-            midonet.Create(dnatRtr2),
-            midonet.Create(icmpReverseDNatRtr2),
-            midonet.Update(tntRouter2InChainWithDnat),
-            midonet.Update(tntRouter2OutChainWithSnatAndReverseIcmpDnat))
+            DeleteNode(fipArpEntryPath),
+            CreateNode(fipArpEntryPath2),
+            Delete(classOf[Rule], snatRuleId),
+            Delete(classOf[Rule], dnatRuleId),
+            Delete(classOf[Rule], reverseIcmpDnatRuleId),
+            Create(snatRtr2),
+            Create(dnatRtr2),
+            Create(icmpReverseDNatRtr2),
+            Update(tntRouter2InChainWithDnat),
+            Update(tntRouter2OutChainWithSnatAndReverseIcmpDnat))
     }
 
     "UpdateOp that moves the floating IP to a different port on the same " +
     "router" should "delete the old NAT rules and create new ones on the " +
     "same router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(neutron.Update(fipMovedPort2))
+        val midoOps = translator.translate(Update(fipMovedPort2))
 
         midoOps should contain inOrderOnly (
-            midonet.Delete(classOf[Rule], snatRuleId),
-            midonet.Delete(classOf[Rule], dnatRuleId),
-            midonet.Delete(classOf[Rule], reverseIcmpDnatRuleId),
-            midonet.Create(snatPort2),
-            midonet.Create(dnatPort2),
-            midonet.Create(icmpReverseDNatPort2),
-            midonet.Update(inChainWithDnat),
-            midonet.Update(outChainWithSnatAndReverseIcmpDnat))
+            Delete(classOf[Rule], snatRuleId),
+            Delete(classOf[Rule], dnatRuleId),
+            Delete(classOf[Rule], reverseIcmpDnatRuleId),
+            Create(snatPort2),
+            Create(dnatPort2),
+            Create(icmpReverseDNatPort2),
+            Update(inChainWithDnat),
+            Update(outChainWithSnatAndReverseIcmpDnat))
     }
 
     "UpdateOp that moves the floating IP to a different port on a different " +
     "router" should "delete the old ARP entry and NAT rules and create new " +
     "ones on the destination router" in {
         bind(fipId, boundFip)
-        val midoOps = translator.translate(neutron.Update(fipMovedRtr2Port2))
+        val midoOps = translator.translate(Update(fipMovedRtr2Port2))
 
         midoOps should contain inOrderOnly (
-            midonet.DeleteNode(fipArpEntryPath),
-            midonet.CreateNode(fipArpEntryPath2),
-            midonet.Delete(classOf[Rule], snatRuleId),
-            midonet.Delete(classOf[Rule], dnatRuleId),
-            midonet.Delete(classOf[Rule], reverseIcmpDnatRuleId),
-            midonet.Create(snatRtr2Port2),
-            midonet.Create(dnatRtr2Port2),
-            midonet.Create(icmpReverseDNatRtr2Port2),
-            midonet.Update(tntRouter2InChainWithDnat),
-            midonet.Update(tntRouter2OutChainWithSnatAndReverseIcmpDnat))
+            DeleteNode(fipArpEntryPath),
+            CreateNode(fipArpEntryPath2),
+            Delete(classOf[Rule], snatRuleId),
+            Delete(classOf[Rule], dnatRuleId),
+            Delete(classOf[Rule], reverseIcmpDnatRuleId),
+            Create(snatRtr2Port2),
+            Create(dnatRtr2Port2),
+            Create(icmpReverseDNatRtr2Port2),
+            Update(tntRouter2InChainWithDnat),
+            Update(tntRouter2OutChainWithSnatAndReverseIcmpDnat))
     }
 }
 
@@ -492,7 +493,7 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
 
     "Deleting an unassociated floating IP" should "not create anything" in {
         bind(fipId, unboundFip)
-        val midoOps = translator.translate(neutron.Delete(classOf[FloatingIp],
+        val midoOps = translator.translate(Delete(classOf[FloatingIp],
                                                           fipId))
         midoOps shouldBe empty
     }
@@ -506,19 +507,19 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
         bind(mTntRouterGatewayPortId, mTntRouterGatwewayPort)
         bind(tntRouterInChainId, inChainWithDnat)
         bind(tntRouterOutChainId, outChainWithSnatAndReverseIcmpDnat)
-        val midoOps = translator.translate(neutron.Delete(classOf[FloatingIp],
-                                                          fipId))
+        val midoOps = translator.translate(Delete(classOf[FloatingIp],
+                                                  fipId))
 
         midoOps should contain inOrderOnly (
-            midonet.DeleteNode(fipArpEntryPath),
-            midonet.Delete(classOf[Rule], snatRuleId),
-            midonet.Delete(classOf[Rule], dnatRuleId),
-            midonet.Delete(classOf[Rule], reverseIcmpDnatRuleId))
+            DeleteNode(fipArpEntryPath),
+            Delete(classOf[Rule], snatRuleId),
+            Delete(classOf[Rule], dnatRuleId),
+            Delete(classOf[Rule], reverseIcmpDnatRuleId))
     }
 
     "Deleting a non-existent FIP" should "not raise an error" in {
         val midoOps = translator.translate(
-            neutron.Delete(classOf[FloatingIp], fipIdThatDoesNotExist))
+            Delete(classOf[FloatingIp], fipIdThatDoesNotExist))
         midoOps shouldBe empty
     }
 }

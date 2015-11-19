@@ -23,8 +23,8 @@ import org.midonet.cluster.models.Commons.{Protocol, UUID}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Delete, Create}
 import org.midonet.cluster.services.c3po.OpType
-import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
@@ -95,7 +95,7 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
         val nSshInRule = nSecurityGroupRuleFromTxt(sshInRuleText)
         val mSshInRule = SecurityGroupRuleManager.translate(nSshInRule)
 
-        val midoOps = translator.translate(neutron.Create(nSshInRule))
+        val midoOps = translator.translate(Create(nSshInRule))
 
         val inChain = findChainOp(midoOps, OpType.Update,
                                   inChainId(defaultSg.getId))
@@ -107,7 +107,7 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
 
     "SSH rule" should "be deleted when deleting the rule" in {
         val midoOps = translator.translate(
-            neutron.Delete(classOf[SecurityGroupRule], sgrId))
+            Delete(classOf[SecurityGroupRule], sgrId))
 
         val chain = findChainOp(midoOps, OpType.Update, mChainId)
         chain shouldBe null

@@ -21,8 +21,8 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Topology.Rule
-import org.midonet.cluster.services.c3po.midonet._
 import org.midonet.util.concurrent.toFutureOps
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 
 class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[SecurityGroupRule] with ChainManager {
@@ -32,7 +32,7 @@ class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
      * group chain that it is assigned to.
      */
     protected override def translateCreate(sgr: SecurityGroupRule)
-    : MidoOpList = {
+    : OperationList = {
         val sgId = sgr.getSecurityGroupId
         val sg = storage.get(classOf[SecurityGroup], sgId).await()
         val updatedSg = sg.toBuilder.addSecurityGroupRules(sgr).build()
@@ -41,7 +41,7 @@ class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
     }
 
     protected override def translateUpdate(newSgr: SecurityGroupRule)
-    : MidoOpList = {
+    : OperationList = {
         throw new IllegalArgumentException(
             "SecurityGroupRule update not supported.")
     }
@@ -54,8 +54,8 @@ class SecurityGroupRuleTranslator(protected val storage: ReadOnlyStorage)
     // that sometimes we'll get a request to delete a SecurityGroupRule that
     // doesn't exist as a top-level SGR in ZK, but we still need to delete the
     // corresponding Midonet rules.
-    protected override def translateDelete(sgrId: UUID): MidoOpList = {
-        val ops = new MidoOpListBuffer
+    protected override def translateDelete(sgrId: UUID): OperationList = {
+        val ops = new OperationListBuffer
         if (storage.exists(classOf[SecurityGroupRule], sgrId).await()) {
             val sgr = storage.get(classOf[SecurityGroupRule], sgrId).await()
             val sgId = sgr.getSecurityGroupId
