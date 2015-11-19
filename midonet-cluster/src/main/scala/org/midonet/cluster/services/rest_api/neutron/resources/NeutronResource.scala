@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.neutron.resources
 
+import java.net.URI
 import javax.ws.rs.core.{UriBuilder, UriInfo}
 import javax.ws.rs.{GET, Path, Produces}
 
@@ -23,9 +24,9 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation.ApiResource
-import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder.{getAddRouterInterfaceTemplate, getFirewallTemplate, getFirewalls, getFloatingIpTemplate, getFloatingIps, getNetworkTemplate, getNetworks, getNeutron, getPortTemplate, getPorts, getRemoveRouterInterfaceTemplate, getRouterTemplate, getRouters, getSecurityGroupRuleTemplate, getSecurityGroupRules, getSecurityGroupTemplate, getSecurityGroups, getSubnetTemplate, getSubnets}
+import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder._
 import org.midonet.cluster.rest_api.neutron.models.Neutron
-import org.midonet.cluster.rest_api.neutron.resources.{FirewallResource, FloatingIpResource, LBResource, NetworkResource, PortResource, RouterResource, SecurityGroupResource, SecurityGroupRuleResource, SubnetResource}
+import org.midonet.cluster.rest_api.neutron.resources._
 import org.midonet.cluster.services.c3po.C3POStorageManager
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
@@ -66,11 +67,14 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     @Path("firewalls")
     def firewallResource: FirewallResource = new FirewallResource(uriInfo, api)
 
+    @Path("vpnservices")
+    def vpnServicesResource: VPNServiceResource = new VPNServiceResource(resContext)
+
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def getV3: Neutron = {
         val neutron: Neutron = new Neutron
-        val baseUri = uriInfo.getBaseUri
-        val baseUriBuilder = UriBuilder.fromUri(baseUri)
+        val baseUri: URI = uriInfo.getBaseUri
+        val vpnUri: UriBuilder = UriBuilder.fromUri(baseUri).path("vpnservices")
         neutron.uri = getNeutron(baseUri)
         neutron.networks = getNetworks(baseUri)
         neutron.networkTemplate = getNetworkTemplate(baseUri)
@@ -95,6 +99,8 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.loadBalancer = LBResource.buildLoadBalancer(baseUri)
         neutron.firewalls = getFirewalls(baseUri)
         neutron.firewallTemplate = getFirewallTemplate(baseUri)
+        neutron.vpnServices = vpnUri.build()
+        neutron.vpnServicesTemplate = neutron.vpnServices.toString + "/{id}"
         neutron
     }
 }
