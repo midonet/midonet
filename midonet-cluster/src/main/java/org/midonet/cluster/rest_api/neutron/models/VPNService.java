@@ -49,11 +49,10 @@ public class VPNService extends UriResource {
         if (getBaseUri() == null) {
             return null;
         } else {
-            // TODO: make relative based on Neutron.getUri()
             return UriBuilder.fromUri(getBaseUri())
-                .path("neutron")
-                .path("vpnservices")
-                .path(id.toString()).build();
+                             .path("neutron")
+                             .path("vpnservices")
+                             .path(id.toString()).build();
         }
     }
 
