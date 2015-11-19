@@ -20,10 +20,9 @@ import java.lang.annotation.Annotation
 import java.net.URI
 import java.util.concurrent.Executors.newCachedThreadPool
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
-
 import javax.validation.{ConstraintViolation, Validator}
 import javax.ws.rs._
-import javax.ws.rs.core.Response.Status
+import javax.ws.rs.core.Response.Status._
 import javax.ws.rs.core._
 
 import scala.collection.JavaConverters._
@@ -36,11 +35,9 @@ import com.google.inject.Inject
 import com.google.protobuf.Message
 import com.lmax.disruptor.util.DaemonThreadFactory
 import com.typesafe.scalalogging.Logger
-
 import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
 
-import org.midonet.cluster.{restApiLog, restApiResourceLog}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
@@ -52,6 +49,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.logging.ProtoTextPrettifier.makeReadable
+import org.midonet.cluster.{restApiLog, restApiResourceLog}
 import org.midonet.midolman.state._
 import org.midonet.util.reactivex._
 
@@ -95,7 +93,7 @@ object MidonetResource {
             case e: NotFoundException =>
                 throw new NotFoundHttpException(e.getMessage)
             case e: ObjectReferencedException =>
-                throw new WebApplicationException(e, Status.NOT_ACCEPTABLE)
+                throw new WebApplicationException(e, NOT_ACCEPTABLE)
             case e: ReferenceConflictException =>
                 throw new ConflictHttpException(e.getMessage)
             case e: ObjectExistsException =>
@@ -115,27 +113,27 @@ object MidonetResource {
             } catch {
                 case e: NotFoundException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.NOT_FOUND, e.getMessage)
+                    return buildErrorResponse(NOT_FOUND, e.getMessage)
                 case e: ObjectReferencedException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                    return buildErrorResponse(CONFLICT, e.getMessage)
                 case e: ReferenceConflictException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                    return buildErrorResponse(CONFLICT, e.getMessage)
                 case e: ObjectExistsException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                    return buildErrorResponse(CONFLICT, e.getMessage)
                 case e: ConcurrentModificationException =>
                     log.error(s"Write $attempt of $StorageAttempts failed " +
                               "due to a concurrent modification: retrying", e)
                     attempt += 1
                 case NonFatal(e) =>
                     log.error("Unhandled exception", e)
-                    return buildErrorResponse(Status.INTERNAL_SERVER_ERROR,
+                    return buildErrorResponse(INTERNAL_SERVER_ERROR,
                                               e.getMessage)
             }
         }
-        Response.status(Status.CONFLICT).build()
+        Response.status(CONFLICT).build()
     }
 
     protected[resources] def tryLegacyRead[T](f: => T): T = {
@@ -153,13 +151,13 @@ object MidonetResource {
             f
         } catch {
             case e: NoStatePathException =>
-                buildErrorResponse(Status.NOT_FOUND, "Resource not found")
+                buildErrorResponse(NOT_FOUND, "Resource not found")
             case e: NodeNotEmptyStateException =>
-                buildErrorResponse(Status.CONFLICT, "Conflicting write")
+                buildErrorResponse(CONFLICT, "Conflicting write")
             case e: StatePathExistsException =>
-                buildErrorResponse(Status.CONFLICT, "Conflicting write")
+                buildErrorResponse(CONFLICT, "Conflicting write")
             case e: StateVersionException =>
-                buildErrorResponse(Status.CONFLICT, "Conflicting write")
+                buildErrorResponse(CONFLICT, "Conflicting write")
         }
     }
 
@@ -198,7 +196,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         val produces = getAnnotation(classOf[AllowGet])
         if ((produces eq null) || !produces.value().contains(accept)) {
             log.info("Media type {} not acceptable", accept)
-            throw new WebApplicationException(Status.NOT_ACCEPTABLE)
+            throw new WebApplicationException(NOT_ACCEPTABLE)
         }
         getResource(tag.runtimeClass.asInstanceOf[Class[T]], id)
             .flatMap(getFilter)
@@ -210,7 +208,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         val produces = getAnnotation(classOf[AllowList])
         if ((produces eq null) || !produces.value().contains(accept)) {
             log.info("Media type {} not acceptable", accept)
-            throw new WebApplicationException(Status.NOT_ACCEPTABLE)
+            throw new WebApplicationException(NOT_ACCEPTABLE)
         }
         val list = listIds flatMap { ids =>
             if (ids eq null) {
@@ -231,7 +229,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         val consumes = getAnnotation(classOf[AllowCreate])
         if ((consumes eq null) || !consumes.value().contains(contentType)) {
             log.info("Media type {} not supported", contentType)
-            throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
+            throw new WebApplicationException(UNSUPPORTED_MEDIA_TYPE)
         }
 
         t.setBaseUri(uriInfo.getBaseUri)
@@ -251,7 +249,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         val consumes = getAnnotation(classOf[AllowUpdate])
         if ((consumes eq null) || !consumes.value().contains(contentType)) {
             log.info("Media type {} not supported", contentType)
-            throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
+            throw new WebApplicationException(UNSUPPORTED_MEDIA_TYPE)
         }
 
         val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
@@ -425,7 +423,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
             case e: ConvertException =>
                 log.error("Failed to convert message {} to class {}", message,
                           clazz, e)
-                throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+                throw new WebApplicationException(INTERNAL_SERVER_ERROR)
         }
         resource.setBaseUri(uriInfo.getBaseUri)
         resource

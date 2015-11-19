@@ -20,6 +20,13 @@ package org.midonet.cluster.services.rest_api
   * between domains. */
 object MidonetMediaTypes {
 
+    // NEUTRON MODELS
+    // ongoing, we're moving them here from NeutronMediaTypes (java) as they
+    // are migrated to Scala.
+    final val NEUTRON_JSON_V3 = "application/vnd.org.midonet.neutron.Neutron-v3+json"
+
+    // MIDONET MODELS
+
     final val APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"
 
     final val APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json"
