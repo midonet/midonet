@@ -29,22 +29,23 @@ enum Type {
     DHCP_V6 = 5;
     HEALTH_MONITOR = 6;
     HOST = 7;
-    IP_ADDR_GROUP = 8;
-    LOAD_BALANCER = 9;
-    NETWORK = 10;
-    POOL = 11;
-    POOL_MEMBER = 12;
-    PORT = 13;
-    PORT_GROUP = 14;
-    ROUTE = 15;
-    ROUTER = 16;
-    RULE = 17;
-    TRACE_REQUEST = 18;
-    TUNNEL_ZONE = 19;
-    VIP = 20;
-    VTEP = 21;
-    MIRROR = 22;
-    L2INSERTION = 31;
+    HOST_GROUP = 8;
+    IP_ADDR_GROUP = 9;
+    L2INSERTION = 10;
+    LOAD_BALANCER = 11;
+    MIRROR = 12;
+    NETWORK = 13;
+    POOL = 14;
+    POOL_MEMBER = 15;
+    PORT = 16;
+    PORT_GROUP = 17;
+    ROUTE = 18;
+    ROUTER = 19;
+    RULE = 20;
+    TRACE_REQUEST = 21;
+    TUNNEL_ZONE = 22;
+    VIP = 23;
+    VTEP = 24;
 }
 
 message BgpNetwork {
@@ -158,11 +159,19 @@ message Host {
 
     optional int32 flooding_proxy_weight = 3 [default = 1];
 
-    // Backreference. Expected to be set from the Tunnel Zone side.
+    // Backreferences
     repeated UUID tunnel_zone_ids = 101;
-
-    // Backreference. Expected to be set from the Port side.
     repeated UUID port_ids = 102;
+    repeated UUID host_group_ids = 103;
+}
+
+message HostGroup {
+    optional UUID id = 1;
+    optional string name = 2;
+
+    // Backreferences
+    repeated UUID host_ids = 101;
+    repeated UUID service_group_ids = 102;
 }
 
 message IPAddrGroup {
@@ -350,6 +359,7 @@ message PortGroup {
 
     // Backreferences
     repeated UUID port_ids = 101;
+    repeated UUID service_group_ids = 102;
 }
 
 message Route {
