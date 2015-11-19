@@ -27,7 +27,7 @@ import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for Network. */
 class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
-    extends NeutronTranslator[NeutronNetwork] {
+    extends Translator[NeutronNetwork] {
     import NetworkTranslator._
 
     override protected def translateCreate(nn: NeutronNetwork): MidoOpList = {
