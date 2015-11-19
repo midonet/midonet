@@ -31,7 +31,7 @@ import org.midonet.util.concurrent.toFutureOps
 
 // TODO: add code to handle connection to provider router.
 class SubnetTranslator(val storage: ReadOnlyStorage)
-    extends NeutronTranslator[NeutronSubnet] with RouteManager {
+    extends Translator[NeutronSubnet] with RouteManager {
 
     override protected def translateCreate(ns: NeutronSubnet): MidoOpList = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
