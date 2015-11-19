@@ -18,9 +18,11 @@ package org.midonet.cluster.storage
 import com.typesafe.config.Config
 import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
 
+import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, Storage}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.MidoTestConfigurator
+import org.midonet.util.eventloop.Reactor
 
 /* In the main source tree to allow usage by other module's tests, without
  * creating a jar. */
@@ -35,6 +37,9 @@ class MidonetTestBackend extends MidonetBackend {
     override def store: Storage = inMemoryZoom
     override def stateStore: StateStorage = inMemoryZoom
     override def curator: CuratorFramework = null
+    override def reactor: Reactor = null
+    override def connection: ZkConnection = null
+    override def connectionWatcher: ZkConnectionAwareWatcher = null
 
     override def doStart(): Unit = {
         MidonetBackend.setupBindings(store, stateStore)
