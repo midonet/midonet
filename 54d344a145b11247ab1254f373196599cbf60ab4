@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_fc74cf9d",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-11-19T10:08:46Z",
+      "side": 1,
+      "message": "I suggest to have this object incorporated into IPSecConnection",
+      "revId": "54d344a145b11247ab1254f373196599cbf60ab4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_1c7a6b88",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-11-19T10:08:46Z",
+      "side": 1,
+      "message": "Ditto",
+      "revId": "54d344a145b11247ab1254f373196599cbf60ab4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_3c6f27c7",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-11-19T10:08:46Z",
+      "side": 1,
+      "message": "This status is of the neutron object. I do not think we need all values for MidoNet",
+      "revId": "54d344a145b11247ab1254f373196599cbf60ab4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
