@@ -32,7 +32,7 @@ class ZoomNodeTests extends Suite with CuratorTestFramework with Matchers {
     private val Bridge1Path = "/maps/bridge/1"
 
     override protected def setup(): Unit = {
-        zom = new ZookeeperObjectMapper(zkRoot, "host", curator)
+        zom = new ZookeeperObjectMapper(config, "zoom", "host", curator)
         zom.build()
     }
 

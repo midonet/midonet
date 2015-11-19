@@ -19,11 +19,15 @@ import java.util.concurrent.TimeUnit
 
 import scala.collection.concurrent.TrieMap
 
+import com.typesafe.config.ConfigFactory
+
 import org.apache.curator.RetryPolicy
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.RetryNTimes
 import org.apache.curator.test.TestingServer
 import org.scalatest.{BeforeAndAfterEach, BeforeAndAfterAll, Suite}
+
+import org.midonet.cluster.storage.MidonetBackendConfig
 
 /**
  * Provides boilerplate for:
@@ -48,6 +52,10 @@ trait CuratorTestFramework extends BeforeAndAfterEach
     import org.midonet.cluster.util.CuratorTestFramework.testServers
 
     protected val zkRoot = "/test"
+    protected val config = new MidonetBackendConfig(ConfigFactory.parseString(
+        s"""
+          |zookeeper.root_key : $zkRoot
+        """.stripMargin))
     protected var zk: TestingServer = _
     implicit protected var curator: CuratorFramework = _
 

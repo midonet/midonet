@@ -44,7 +44,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
     }
 
     protected override def createStorage = {
-        new ZookeeperObjectMapper(zkRoot, hostId, curator)
+        new ZookeeperObjectMapper(config, "zoom", hostId, curator)
     }
 
     feature("Test subscribe") {
@@ -148,7 +148,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
     feature("Test Zookeeper") {
         scenario("Test get path") {
             val zoom = storage.asInstanceOf[ZookeeperObjectMapper]
-            zoom.classPath(classOf[PojoBridge]) shouldBe s"${zkRoot}/${zoom.version}/models/PojoBridge"
+            zoom.classPath(classOf[PojoBridge]) shouldBe s"$zkRoot/zoom/${zoom.version}/models/PojoBridge"
         }
     }
 }

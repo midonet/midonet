@@ -50,7 +50,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(zkRoot, namespaceId, curator)
+        storage = new ZookeeperObjectMapper(config, "zoom", namespaceId, curator)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }
@@ -75,7 +75,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
             fail("Curator did not connect to the test ZK server")
         val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
         val namespaceId2 = if (sameNamespace) namespaceId else UUID.randomUUID().toString
-        val storage2 = new ZookeeperObjectMapper(zkRoot, namespaceId2, curator2)
+        val storage2 = new ZookeeperObjectMapper(config, "zoom", namespaceId2, curator2)
         initAndBuildStorage(storage2)
 
         (curator2, ownerId2, namespaceId2, storage2)

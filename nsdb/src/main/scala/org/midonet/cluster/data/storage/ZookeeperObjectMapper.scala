@@ -50,6 +50,7 @@ import rx.{Notification, Observable}
 
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException}
 import org.midonet.util.functors.makeFunc1
 
@@ -100,7 +101,8 @@ import org.midonet.util.functors.makeFunc1
  * Port.class, "peerId", CLEAR);
  *
  */
-class ZookeeperObjectMapper(protected override val rootPath: String,
+class ZookeeperObjectMapper(val config: MidonetBackendConfig,
+                            val zoomPath: String,
                             protected override val namespace: String,
                             protected override val curator: CuratorFramework,
                             metricsRegistry: MetricRegistry = null)
@@ -110,6 +112,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
     protected[storage] override val version = new AtomicLong(0)
 
+    override val rootPath = s"${config.rootKey}/$zoomPath"
     private[storage] val basePath = s"$rootPath/" + version.get
     private[storage] val locksPath = basePath + s"/zoomlocks/lock"
     private[storage] val modelPath = basePath + s"/models"

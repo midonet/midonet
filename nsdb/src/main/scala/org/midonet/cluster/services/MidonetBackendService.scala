@@ -234,7 +234,7 @@ abstract class MidonetBackend extends AbstractService {
 
 /** Class responsible for providing services to access to the new Storage
   * services. */
-class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
+class MidonetBackendService @Inject() (config: MidonetBackendConfig,
                                        override val curator: CuratorFramework,
                                        metricRegistry: MetricRegistry)
     extends MidonetBackend {
@@ -246,8 +246,8 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
         else HostIdGenerator.getHostId
 
     private val zoom =
-        new ZookeeperObjectMapper(s"${cfg.rootKey}/zoom", namespaceId.toString,
-                                  curator, metricRegistry)
+        new ZookeeperObjectMapper(config, "zoom", namespaceId.toString, curator,
+                                  metricRegistry)
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
