@@ -30,7 +30,7 @@ import org.midonet.util.netty.{ProtoBufSocketAdapter, ProtoBufWebSocketServerAda
 /**
  * Topology api service minion
  */
-@ClusterService(name = "topology_api")
+@ClusterService(name = "topology-api")
 class TopologyApiService @Inject()(val nodeContext: ClusterNode.Context,
                                    val backend: MidonetBackend,
                                    val cfg: ClusterConfig)

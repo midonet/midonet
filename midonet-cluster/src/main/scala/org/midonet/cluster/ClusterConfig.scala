@@ -18,7 +18,7 @@ package org.midonet.cluster
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{ConfigFactory, Config}
-
+import org.midonet.cluster.services.containers.ContainerService
 import org.midonet.cluster.services.rest_api.Vladimir
 import org.midonet.cluster.services.{ScheduledMinionConfig, MinionConfig}
 import org.midonet.cluster.services.c3po.C3POMinion
@@ -58,6 +58,7 @@ class ClusterConfig(_conf: Config) {
     val vxgw = new VxGwConfig(conf)
     val topologyApi = new TopologyApiConfig(conf)
     val restApi = new RestApiConfig(conf)
+    val containers = new ContainersConfig(conf)
 }
 
 class AuthConfig(val conf: Config) {
@@ -119,4 +120,10 @@ class RestApiConfig(val conf: Config) extends MinionConfig[Vladimir] {
     def httpPort = conf.getInt(s"$Prefix.http_port")
     def httpsPort = conf.getInt(s"$Prefix.https_port")
     def rootUri = conf.getString(s"$Prefix.root_uri")
+}
+
+class ContainersConfig(val conf: Config) extends MinionConfig[ContainerService] {
+    final val Prefix = "cluster.containers"
+
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
 }
