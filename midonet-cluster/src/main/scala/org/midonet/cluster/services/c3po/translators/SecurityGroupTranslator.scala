@@ -32,7 +32,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
 class SecurityGroupTranslator(storage: ReadOnlyStorage)
-    extends NeutronTranslator[SecurityGroup] with ChainManager
+    extends Translator[SecurityGroup] with ChainManager
             with RuleManager {
     import org.midonet.cluster.services.c3po.translators.SecurityGroupTranslator._
 

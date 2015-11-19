@@ -29,10 +29,10 @@ import org.midonet.util.concurrent.toFutureOps
 /** Provides a Neutron model translator for FloatingIp. */
 class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
                            protected val pathBldr: PathBuilder)
-        extends NeutronTranslator[FloatingIp] with ChainManager
-                                              with RouteManager
-                                              with RuleManager
-                                              with BridgeStateTableManager {
+        extends Translator[FloatingIp] with ChainManager
+                with RouteManager
+                with RuleManager
+                with BridgeStateTableManager {
     import RouterTranslator.tenantGwPortId
     import org.midonet.cluster.services.c3po.translators.RouteManager._
 
