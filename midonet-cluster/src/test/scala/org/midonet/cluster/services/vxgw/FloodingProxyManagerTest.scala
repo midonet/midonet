@@ -26,6 +26,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
 import org.midonet.cluster.data.storage.{ZookeeperObjectMapper, SingleValueKey}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
@@ -57,6 +58,7 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
     // version.
 
     var backend: MidonetBackend = _
+    var connectionWatcher: ZkConnectionAwareWatcher = _
     var fpManager: FloodingProxyManager = _
     var obs: TestAwaitableObserver[FloodingProxy] = _
 
@@ -87,7 +89,8 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
     }
 
     override def afterAll() {
-         zkClient.close()
+        zkClient.close()
+        backend.stopAsync().awaitTerminated()
     }
 
     private def currentFp(tzId: UUID): Option[FloodingProxy] = {
@@ -338,7 +341,8 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         // Create a private store with the host ID as namespace.
         val hostStore =
             new ZookeeperObjectMapper(backendCfg.rootKey + "/zoom", id.toString,
-                                      backend.curator)
+                                      backend.curator, backend.reactor,
+                                      backend.connection, backend.connectionWatcher)
         MidonetBackend.setupBindings(hostStore, hostStore)
         if (isAlive) {
             hostStore.addValue(classOf[Host], id, AliveKey, AliveKey)
