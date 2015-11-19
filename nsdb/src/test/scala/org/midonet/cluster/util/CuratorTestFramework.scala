@@ -79,7 +79,7 @@ trait CuratorTestFramework extends BeforeAndAfterEach
                                                     retryPolicy)
     }
 
-    override def beforeEach() {
+    override def beforeEach(): Unit = {
         setUpCurator()
         curator.start()
         if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
@@ -92,7 +92,7 @@ trait CuratorTestFramework extends BeforeAndAfterEach
         setup()
     }
 
-    override def afterEach() {
+    override def afterEach(): Unit = {
         clearZookeeper()
         teardown()
         curator.close()
