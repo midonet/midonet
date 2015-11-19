@@ -24,7 +24,7 @@ import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => MappingStatus}
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
-import org.midonet.cluster.services.c3po.{midonet, neutron}
+import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.util.UUIDUtil
 
 class LoadBalancerPoolTranslatorTestBase extends TranslatorTestBase
@@ -101,23 +101,22 @@ class LoadBalancerPoolTranslatorCreateTest
 
     "Creation of a Pool" should "create an LB if it does not exists." in {
         bind(lbId, null, classOf[LoadBalancer])
-        val midoOps = translator.translate(neutron.Create(poolNoHm))
+        val midoOps = translator.translate(Create(poolNoHm))
 
-        midoOps should contain inOrderOnly (
-                midonet.Create(lb), midonet.Create(mPoolNoHm))
+        midoOps should contain inOrderOnly (Create(lb), Create(mPoolNoHm))
     }
 
     it should "create just a Pool if an LB already exists." in {
         bind(lbId, lb)
-        val midoOps = translator.translate(neutron.Create(poolNoHm))
+        val midoOps = translator.translate(Create(poolNoHm))
 
-        midoOps should contain only midonet.Create(mPoolNoHm)
+        midoOps should contain only Create(mPoolNoHm)
     }
 
     "Creation of a Pool with a Health Monitor ID" should "fail" in {
         bind(lbId, lb)
         val ex = the [TranslationException] thrownBy
-                 translator.translate(neutron.Create(poolWithHm))
+                 translator.translate(Create(poolWithHm))
         ex.getMessage should include ("A health monitor may be associated")
     }
 
@@ -125,7 +124,7 @@ class LoadBalancerPoolTranslatorCreateTest
     "IllegalArgumentException." in {
         bind(lbId, null, classOf[LoadBalancer])
         val te = intercept[TranslationException] {
-            translator.translate(neutron.Create(poolNoRouterId))
+            translator.translate(Create(poolNoRouterId))
         }
 
         te.getCause match {
@@ -151,9 +150,9 @@ class LoadBalancerPoolTranslatorUpdateTest
     "UPDATE of a Pool with no Health Monitor ID" should "not add a Health " +
     "Monitor ID to the MidoNet Pool." in {
         bind(poolId, mPoolNoHm)
-        val midoOps = translator.translate(neutron.Update(poolNoHm))
+        val midoOps = translator.translate(Update(poolNoHm))
 
-        midoOps should contain only midonet.Update(mPoolNoHm)
+        midoOps should contain only Update(mPoolNoHm)
     }
 
     private val poolDown = neutronPool(adminStateUp = false,
@@ -164,9 +163,9 @@ class LoadBalancerPoolTranslatorUpdateTest
     "Pool UPDATE, setting admin state down" should "produce a corresponding " +
     "UPDATE" in {
         bind(poolId, mPoolWithHm)
-        val midoOps = translator.translate(neutron.Update(poolDown))
+        val midoOps = translator.translate(Update(poolDown))
 
-        midoOps should contain only midonet.Update(mPoolDown)
+        midoOps should contain only Update(mPoolDown)
     }
 }
 
@@ -183,7 +182,7 @@ class LoadBalancerPoolTranslatorDeleteTest
 
     "Pool Delete" should "delete the corresponding MidoNet Pool." in {
         val midoOps = translator.translate(
-                neutron.Delete(classOf[NeutronLoadBalancerPool], poolId))
-        midoOps should contain only midonet.Delete(classOf[Pool], poolId)
+                Delete(classOf[NeutronLoadBalancerPool], poolId))
+        midoOps should contain only Delete(classOf[Pool], poolId)
     }
 }

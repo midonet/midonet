@@ -24,7 +24,7 @@ import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Topology.{Dhcp, Host, Port, PortOrBuilder}
-import org.midonet.cluster.services.c3po.midonet.Update
+import org.midonet.cluster.services.c3po.C3POStorageManager.Update
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.MAC
 import org.midonet.util.concurrent.toFutureOps
@@ -66,11 +66,11 @@ trait PortManager extends RouteManager {
      * Does not set peer's peerId. Storage engine is assumed to handle this.
      */
     protected def linkPortOps(port: Port, peer: PortOrBuilder)
-    : MidoOpList = {
+    : OperationList = {
         checkNoPeerId(port)
         checkNoPeerId(peer)
 
-        val ops = new MidoOpListBuffer
+        val ops = new OperationListBuffer
 
         val portBldr = Port.newBuilder(port)
         portBldr.setPeerId(peer.getId)
@@ -92,7 +92,7 @@ trait PortManager extends RouteManager {
      * the port nor the interface may already be bound on the specified host.
      */
     protected def bindPortOps(port: Port, hostId: UUID, ifName: String)
-    : MidoOpList = {
+    : OperationList = {
         if (port.hasHostId) throw new IllegalStateException(
             s"Port ${port.getId} is already bound.")
 
