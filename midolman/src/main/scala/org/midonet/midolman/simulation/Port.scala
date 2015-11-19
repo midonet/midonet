@@ -47,13 +47,14 @@ object Port {
 
     def apply(proto: Topology.Port,
               infilters: JList[UUID],
-              outfilters: JList[UUID]): Port = {
+              outfilters: JList[UUID],
+              servicePorts: JList[UUID] = new JArrayList[UUID](0)): Port = {
         if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
             servicePort(proto, infilters)
         else if (proto.hasVtepId)
             vxLanPort(proto, infilters, outfilters)
         else if (proto.hasNetworkId)
-            bridgePort(proto, infilters, outfilters)
+            bridgePort(proto, infilters, outfilters, servicePorts)
         else if (proto.hasRouterId)
             routerPort(proto, infilters, outfilters)
         else
@@ -62,7 +63,8 @@ object Port {
 
     private def bridgePort(p: Topology.Port,
                            infilters: JList[UUID],
-                           outfilters: JList[UUID]) = new BridgePort(
+                           outfilters: JList[UUID],
+                           servicePorts: JList[UUID]) = new BridgePort(
             p.getId,
             infilters,
             outfilters,
@@ -74,7 +76,8 @@ object Port {
             p.getPortGroupIdsList, false, p.getVlanId.toShort,
             if (p.hasNetworkId) p.getNetworkId else null,
             p.getInboundMirrorIdsList,
-            p.getOutboundMirrorIdsList)
+            p.getOutboundMirrorIdsList,
+            servicePorts)
 
     private def routerPort(p: Topology.Port,
                            infilters: JList[UUID],
@@ -147,6 +150,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
     def isActive: Boolean = false
     def deviceId: UUID
     def vlanId: Short = Bridge.UntaggedVlanId
+    def servicePorts: JList[UUID]
 
     override def infilters = inboundFilters
     override def outfilters = outboundFilters
@@ -268,12 +272,13 @@ class BridgePort(override val id: UUID,
                  override val vlanId: Short = Bridge.UntaggedVlanId,
                  val networkId: UUID,
                  override val inboundMirrors: JArrayList[UUID] = NO_MIRRORS,
-                 override val outboundMirrors: JArrayList[UUID] = NO_MIRRORS)
+                 override val outboundMirrors: JArrayList[UUID] = NO_MIRRORS,
+                 override val servicePorts: JList[UUID] = new JArrayList(0))
         extends Port {
     override def toggleActive(active: Boolean) = new BridgePort(
         id, inboundFilters, outboundFilters, tunnelKey, peerId, hostId,
         interfaceName, adminStateUp, portGroups, active, vlanId,
-        networkId, inboundMirrors, outboundMirrors)
+        networkId, inboundMirrors, outboundMirrors, servicePorts)
     override def toString =
         s"BridgePort [${super.toString} networkId=$networkId]"
 
@@ -332,7 +337,7 @@ class ServicePort(override val id: UUID,
 
     override def egressCommon(context: PacketContext, as: ActorSystem,
                               next: SimStep): SimulationResult = {
-        if (context.isRedirectedOut()) {
+        if (context.isRedirectedOut) {
             val result = if (!realAdminStateUp || !isActive) {
                 /* If a service port is down, what happens to the packet depends
                  * on whether the redirect has a FAIL_OPEN flag or not.
@@ -344,7 +349,7 @@ class ServicePort(override val id: UUID,
                  * ingress, as we always report admin state as true for the
                  * port, and active is only considered on egress.
                  */
-                if (context.isRedirectFailOpen()) {
+                if (context.isRedirectFailOpen) {
                     context.clearRedirect()
                     super.ingress(context, as)
                 } else {
@@ -383,6 +388,8 @@ case class RouterPort(override val id: UUID,
                       override val inboundMirrors: JList[UUID] = NO_MIRRORS,
                       override val outboundMirrors: JList[UUID] = NO_MIRRORS)
     extends Port {
+
+    override val servicePorts: JList[UUID] = new JArrayList(0)
 
     protected def device(implicit as: ActorSystem) = tryGet[Router](routerId)
 
@@ -432,6 +439,7 @@ case class VxLanPort(override val id: UUID,
     override def isExterior = true
     override def isInterior = false
     override def isActive = true
+    override def servicePorts: JList[UUID] = new JArrayList(0)
 
     protected def device(implicit as: ActorSystem) = tryGet[Bridge](networkId)
 
