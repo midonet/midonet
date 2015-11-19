@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_11ded411",
+        "filename": "nsdb/src/main/proto/service.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-19T08:40:47Z",
+      "side": 1,
+      "message": "I followed the convention in other proto models. Should we change all of them?",
+      "parentUuid": "7ac7a964_abf68fd5",
+      "revId": "0054fa52ac56ebd70b348b0058b1ec2d1d92cc92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_cb6cab9f",
         "filename": "nsdb/src/main/proto/service.proto",
         "patchSetId": 1
@@ -59,6 +77,30 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_b1ce0059",
+        "filename": "nsdb/src/main/proto/service.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-19T08:40:47Z",
+      "side": 1,
+      "message": "Done. Also changed the file name for coherence.",
+      "parentUuid": "7ac7a964_cb6cab9f",
+      "range": {
+        "startLine": 21,
+        "startChar": 31,
+        "endLine": 21,
+        "endChar": 38
+      },
+      "revId": "0054fa52ac56ebd70b348b0058b1ec2d1d92cc92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_8bf9d3ca",
         "filename": "nsdb/src/main/proto/service.proto",
         "patchSetId": 1
@@ -70,6 +112,30 @@
       "writtenOn": "2015-11-18T17:21:00Z",
       "side": 1,
       "message": "these would be fine nested in ServiceContainerGroup\n\nI\u0027d also remove Type, seems redundant?",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 1
+      },
+      "revId": "0054fa52ac56ebd70b348b0058b1ec2d1d92cc92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_71ed48c3",
+        "filename": "nsdb/src/main/proto/service.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-19T08:40:47Z",
+      "side": 1,
+      "message": "Done (also necessery as PORT_GROUP conflicted).",
+      "parentUuid": "7ac7a964_8bf9d3ca",
       "range": {
         "startLine": 36,
         "startChar": 0,
