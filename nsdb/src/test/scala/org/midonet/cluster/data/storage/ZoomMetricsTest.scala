@@ -31,15 +31,15 @@ import rx.Observable
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage.StorageTest._
 import org.midonet.cluster.data.storage.StorageTestClasses._
-import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.cluster.util.{MidonetBackendTest, CuratorTestFramework}
 import org.midonet.util.reactivex.{TestAwaitableObserver, richObservable}
 
 @RunWith(classOf[JUnitRunner])
 class ZoomMetricsTest extends FeatureSpec
-                      with BeforeAndAfter
-                      with Matchers
-                      with CuratorTestFramework
-                      with GivenWhenThen {
+                              with BeforeAndAfter
+                              with Matchers
+                              with MidonetBackendTest
+                              with GivenWhenThen {
 
     private val timeout = 5 seconds
     private var registry: MetricRegistry = _
@@ -49,7 +49,8 @@ class ZoomMetricsTest extends FeatureSpec
     protected override def setup(): Unit = {
         registry = new MetricRegistry()
         zoom = new ZookeeperObjectMapper(zkRoot, UUID.randomUUID().toString,
-                                         curator, registry)
+                                         curator, reactor, connection,
+                                         connectionWatcher, registry)
         initAndBuildStorage(zoom)
         assert = () => {}
     }
