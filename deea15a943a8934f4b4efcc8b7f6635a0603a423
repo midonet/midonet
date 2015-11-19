@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_ddaaad6f",
+        "filename": "nsdb/src/main/proto/services.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T17:53:34Z",
+      "side": 1,
+      "message": "Should this be:\n\n  UUID service_group_id",
+      "range": {
+        "startLine": 25,
+        "startChar": 13,
+        "endLine": 25,
+        "endChar": 33
+      },
+      "revId": "deea15a943a8934f4b4efcc8b7f6635a0603a423",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_fdb689db",
+        "filename": "nsdb/src/main/proto/services.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T17:53:34Z",
+      "side": 1,
+      "message": "Add backreferences to the service container:\n\n  repeated UUID service_container_ids \u003d 101;",
+      "range": {
+        "startLine": 33,
+        "startChar": 4,
+        "endLine": 33,
+        "endChar": 36
+      },
+      "revId": "deea15a943a8934f4b4efcc8b7f6635a0603a423",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
