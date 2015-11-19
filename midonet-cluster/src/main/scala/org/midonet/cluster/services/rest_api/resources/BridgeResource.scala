@@ -35,11 +35,13 @@ import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsExceptio
 
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.rest_api.ResourceUris.{macPortUriToMac, macPortUriToPort}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
+import org.midonet.cluster.services.MidonetBackend.Ip4MacTable
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.midolman.state.MacPortMap.encodePersistentPath
@@ -104,8 +106,10 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             throw new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID)))
 
         tryLegacyRead {
-            if (resContext.stateTables.bridgeArpTable(bridgeId)
-                .contains(address, mac)) {
+            val table = resContext.backend.stateTableStore
+                .getTable[IPv4Addr, MAC](classOf[Network], bridgeId, Ip4MacTable)
+
+            if (table.containsRemote(address, mac)) {
                 new Ip4MacPair(resContext.uriInfo.getBaseUri, bridgeId,
                                address.toString, mac.toString)
             } else {
@@ -120,7 +124,10 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                     APPLICATION_JSON))
     def listArpEntries(@PathParam("id") bridgeId: UUID): util.List[Ip4MacPair] = {
         val entries = tryLegacyRead {
-            resContext.stateTables.bridgeArpTable(bridgeId).snapshot
+            val table = resContext.backend.stateTableStore
+                .getTable[IPv4Addr, MAC](classOf[Network], bridgeId, Ip4MacTable)
+
+            table.remoteSnapshot
         }
         for ((ip, mac) <- entries.toList)
             yield new Ip4MacPair(resContext.uriInfo.getBaseUri, bridgeId,
@@ -144,8 +151,9 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             throw new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID)))
 
         tryLegacyWrite {
-            resContext.stateTables.bridgeArpTable(bridgeId)
-                      .addPersistent(address, mac)
+            val table = resContext.backend.stateTableStore
+                .getTable[IPv4Addr, MAC](classOf[Network], bridgeId, Ip4MacTable)
+            table.addPersistent(address, mac)
             Response.created(arpEntry.getUri).build()
         }
     }
@@ -161,8 +169,9 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             throw new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID)))
 
         tryLegacyWrite {
-            resContext.stateTables.bridgeArpTable(bridgeId)
-                                  .removePersistent(address, mac)
+            val table = resContext.backend.stateTableStore
+                .getTable[IPv4Addr, MAC](classOf[Network], bridgeId, Ip4MacTable)
+            table.removePersistent(address, mac)
             Response.noContent().build()
         }
     }
