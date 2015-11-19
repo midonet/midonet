@@ -97,13 +97,13 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         obs.getOnNextEvents.get(0) shouldBe Update(ip1, null, mac1)
 
         And("The table should contain the value")
-        table.get(ip1) shouldBe mac1
+        table.getLocal(ip1) shouldBe mac1
 
         And("ZooKeeper contains the node")
         hasNode(ip1, mac1, 0) shouldBe true
 
         And("The table snapshot should have all entries")
-        table.snapshot shouldBe Map(ip1 -> mac1)
+        table.localSnapshot shouldBe Map(ip1 -> mac1)
 
         When("Updating the IP-MAC pair")
         val mac2 = MAC.random()
@@ -114,13 +114,13 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         obs.getOnNextEvents.get(1) shouldBe Update(ip1, mac1, mac2)
 
         And("The table should contain the value")
-        table.get(ip1) shouldBe mac2
+        table.getLocal(ip1) shouldBe mac2
 
         And("ZooKeeper contains the node")
         hasNode(ip1, mac2, 1) shouldBe true
 
         And("The table snapshot should have all entries")
-        table.snapshot shouldBe Map(ip1 -> mac2)
+        table.localSnapshot shouldBe Map(ip1 -> mac2)
 
         When("Deleting the IP-MAC pair")
         eventually { table.remove(ip1) shouldBe mac2 }
@@ -130,10 +130,10 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         obs.getOnNextEvents.get(2) shouldBe Update(ip1, mac2, null)
 
         And("The table should not contain the value")
-        table.get(ip1) shouldBe null
+        table.getLocal(ip1) shouldBe null
 
         And("The table snapshot should be empty")
-        table.snapshot shouldBe empty
+        table.localSnapshot shouldBe empty
     }
 
     "State table" should "support ephemeral CRUD operations for multiple entries" in {
@@ -154,13 +154,13 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         obs.getOnNextEvents.get(0) shouldBe Update(ip1, null, mac1)
 
         And("The table should contain the value")
-        table.get(ip1) shouldBe mac1
+        table.getLocal(ip1) shouldBe mac1
 
         And("ZooKeeper contains the node")
         hasNode(ip1, mac1, 0) shouldBe true
 
         And("The table snapshot should have all entries")
-        table.snapshot shouldBe Map(ip1 -> mac1)
+        table.localSnapshot shouldBe Map(ip1 -> mac1)
 
         When("Adding another IP-MAC pair to the table")
         val ip2 = IPv4Addr.random
@@ -172,13 +172,13 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         obs.getOnNextEvents.get(1) shouldBe Update(ip2, null, mac2)
 
         And("The table should contain the value")
-        table.get(ip2) shouldBe mac2
+        table.getLocal(ip2) shouldBe mac2
 
         And("ZooKeeper contains the node")
         hasNode(ip2, mac2, 1) shouldBe true
 
         And("The table snapshot should have all entries")
-        table.snapshot shouldBe Map(ip1 -> mac1, ip2 -> mac2)
+        table.localSnapshot shouldBe Map(ip1 -> mac1, ip2 -> mac2)
 
         When("Adding another IP-MAC pair to the table")
         val ip3 = IPv4Addr.random
@@ -190,13 +190,13 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         obs.getOnNextEvents.get(2) shouldBe Update(ip3, null, mac3)
 
         And("The table should contain the value")
-        table.get(ip3) shouldBe mac3
+        table.getLocal(ip3) shouldBe mac3
 
         And("ZooKeeper contains the node")
         hasNode(ip3, mac3, 2) shouldBe true
 
         And("The table snapshot should have all entries")
-        table.snapshot shouldBe Map(ip1 -> mac1, ip2 -> mac2, ip3 -> mac3)
+        table.localSnapshot shouldBe Map(ip1 -> mac1, ip2 -> mac2, ip3 -> mac3)
 
         When("Updating the first IP-MAC pair")
         val mac4 = MAC.random()
@@ -207,13 +207,13 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         obs.getOnNextEvents.get(3) shouldBe Update(ip1, mac1, mac4)
 
         And("The table should contain the value")
-        table.get(ip1) shouldBe mac4
+        table.getLocal(ip1) shouldBe mac4
 
         And("ZooKeeper contains the node")
         hasNode(ip1, mac4, 3) shouldBe true
 
         And("The table snapshot should have all entries")
-        table.snapshot shouldBe Map(ip1 -> mac4, ip2 -> mac2, ip3 -> mac3)
+        table.localSnapshot shouldBe Map(ip1 -> mac4, ip2 -> mac2, ip3 -> mac3)
 
         When("Deleting the secindIP-MAC pair")
         eventually { table.remove(ip2) shouldBe mac2 }
@@ -223,7 +223,7 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         obs.getOnNextEvents.get(4) shouldBe Update(ip2, mac2, null)
 
         And("The table should not contain the value")
-        table.snapshot shouldBe Map(ip1 -> mac4, ip3 -> mac3)
+        table.localSnapshot shouldBe Map(ip1 -> mac4, ip3 -> mac3)
     }
 
 
@@ -245,13 +245,13 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         obs.getOnNextEvents.get(0) shouldBe Update(ip1, null, mac1)
 
         And("The table should contain the value")
-        table.get(ip1) shouldBe mac1
+        table.getLocal(ip1) shouldBe mac1
 
         And("ZooKeeper contains the node")
         hasPersistentNode(ip1, mac1) shouldBe true
 
         And("The table snapshot should have all entries")
-        table.snapshot shouldBe Map(ip1 -> mac1)
+        table.localSnapshot shouldBe Map(ip1 -> mac1)
 
         // TODO: Updating the persistent entry does not notify the updates,
         // TODO: because in the underlying implementation the version number
@@ -265,10 +265,10 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
         obs.getOnNextEvents.get(1) shouldBe Update(ip1, mac1, null)
 
         And("The table should not contain the value")
-        table.get(ip1) shouldBe null
+        table.getLocal(ip1) shouldBe null
 
         And("The table snapshot should be empty")
-        table.snapshot shouldBe empty
+        table.localSnapshot shouldBe empty
     }
 
     "State table" should "support get by value" in {
@@ -290,13 +290,13 @@ class Ip4MacStateTableTest extends FlatSpec with GivenWhenThen with Matchers
 
         Then("The table should contain all values")
         eventually {
-            println(table.snapshot)
-            table.snapshot shouldBe Map(ip1 -> mac1, ip2 -> mac2, ip3 -> mac2,
-                                        ip4 -> mac2)
+            println(table.localSnapshot)
+            table.localSnapshot shouldBe Map(ip1 -> mac1, ip2 -> mac2,
+                                             ip3 -> mac2, ip4 -> mac2)
         }
 
         And("The table should return the keys by value")
-        table.getByValue(mac1) shouldBe Set(ip1)
-        table.getByValue(mac2) shouldBe Set(ip2, ip3, ip4)
+        table.getLocalByValue(mac1) shouldBe Set(ip1)
+        table.getLocalByValue(mac2) shouldBe Set(ip2, ip3, ip4)
     }
 }

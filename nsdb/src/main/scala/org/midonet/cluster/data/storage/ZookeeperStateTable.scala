@@ -117,9 +117,6 @@ trait ZookeeperStateTable extends StateTableStorage with Storage {
 
     protected def connectionWatcher: ZkConnectionAwareWatcher
 
-    @Deprecated
-    override def bridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC] = ???
-
     /**
       * Registers a new state table for the given class. The state table is
       * identified by the given key class, value class and name, and it

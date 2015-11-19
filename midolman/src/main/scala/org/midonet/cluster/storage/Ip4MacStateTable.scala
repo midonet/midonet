@@ -159,7 +159,7 @@ final class Ip4MacStateTable @Inject()(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def contains(address: IPv4Addr): Boolean = {
+    override def containsLocal(address: IPv4Addr): Boolean = {
         map.containsKey(address)
     }
 
@@ -170,8 +170,30 @@ final class Ip4MacStateTable @Inject()(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def contains(address: IPv4Addr, mac: MAC): Boolean = {
+    override def containsLocal(address: IPv4Addr, mac: MAC): Boolean = {
         map.containsKey(address)
+    }
+
+    /**
+      * Returns whether the remote table contains a MAC for the specified
+      * address either learned or persistent.
+      */
+    @throws[StateAccessException]
+    @inline
+    override def containsRemote(address: IPv4Addr): Boolean = {
+        // Not implemented
+        ???
+    }
+
+    /**
+      * Returns whether the remote table contains the address MAC pair, either
+      * learned or persistent. The method reads synchronously from ZooKeeper.
+      */
+    @throws[StateAccessException]
+    @inline
+    override def containsRemote(address: IPv4Addr, mac: MAC): Boolean = {
+        Ip4ToMacReplicatedMap.hasPersistentEntry(directory, address, mac) ||
+        Ip4ToMacReplicatedMap.hasLearnedEntry(directory, address, mac)
     }
 
     /**
@@ -189,8 +211,17 @@ final class Ip4MacStateTable @Inject()(directory: Directory,
       * underlying map cache and it requires the table to be started.
       */
     @inline
-    override def get(address: IPv4Addr): MAC = {
+    override def getLocal(address: IPv4Addr): MAC = {
         map.get(address)
+    }
+
+    /**
+      * Gets the MAC for the specified address.
+      */
+    @inline
+    override def getRemote(address: IPv4Addr): MAC = {
+        // Not implemented
+        ???
     }
 
     /**
@@ -199,8 +230,16 @@ final class Ip4MacStateTable @Inject()(directory: Directory,
       * started.
       */
     @inline
-    override def getByValue(value: MAC): Set[IPv4Addr] = {
+    override def getLocalByValue(value: MAC): Set[IPv4Addr] = {
         map.getByValue(value).asScala.toSet
+    }
+    /**
+      * Gets the set of addresses corresponding the specified MAC.
+      */
+    @inline
+    override def getRemoteByValue(value: MAC): Set[IPv4Addr] = {
+        // Not implemented
+        ???
     }
 
     /**
@@ -208,8 +247,17 @@ final class Ip4MacStateTable @Inject()(directory: Directory,
       * from the underlying map cache and it requires the map to be started.
       */
     @inline
-    override def snapshot: Map[IPv4Addr, MAC] = {
+    override def localSnapshot: Map[IPv4Addr, MAC] = {
         map.getMap.asScala.toMap
+    }
+
+    /**
+      * Gets a read-only snapshot for the current state table. The method reads
+      * synchronously from ZooKeeper.
+      */
+    @inline
+    override def remoteSnapshot: Map[IPv4Addr, MAC] = {
+        Ip4ToMacReplicatedMap.getAsMap(directory).asScala.toMap
     }
 
     /**
