@@ -21,12 +21,12 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
-import org.midonet.cluster.models.Neutron.{NeutronLoadBalancerPool, NeutronVIP}
+import org.midonet.cluster.models.Neutron.NeutronVIP
 import org.midonet.cluster.models.Topology.{Pool, Vip}
-import org.midonet.cluster.services.c3po.{midonet, neutron}
-import org.midonet.cluster.util.IPAddressUtil
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 
 class VipTranslatorTestBase extends TranslatorTestBase
                             with LoadBalancerManager {
@@ -148,29 +148,29 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
     "Neutron VIP CREATE" should "create a Midonet VIP." in {
         bindLb()
         bindVipNetwork(external = false)
-        val midoOps = translator.translate(neutron.Create(neutronVip()))
+        val midoOps = translator.translate(Create(neutronVip()))
 
-        midoOps should contain only midonet.Create(midoVip())
+        midoOps should contain only Create(midoVip())
     }
 
     it should "set MidoNet VIP source IP session persistence as specified." in {
         bindLb()
         bindVipNetwork(external = false)
         val midoOps = translator.translate(
-                neutron.Create(neutronVip(sourceIpSessionPersistence = true)))
+                Create(neutronVip(sourceIpSessionPersistence = true)))
 
         midoOps should contain only
-                midonet.Create(midoVip(sourceIpSessionPersistence = true))
+                Create(midoVip(sourceIpSessionPersistence = true))
     }
 
     it should "associate Mido VIP with the LB Pool as specified." in {
         bindLb()
         bindVipNetwork(external = false)
         val midoOps = translator.translate(
-                neutron.Create(neutronVip(poolId = poolId)))
+                Create(neutronVip(poolId = poolId)))
 
         midoOps should contain only
-                midonet.Create(midoVip(poolId = poolId, lbId = lbId))
+                Create(midoVip(poolId = poolId, lbId = lbId))
     }
 
     it should "add an ARP entry when it is associated with a Pool and is on " +
@@ -178,11 +178,11 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
         bindLb()
         bindVipNetwork(external = true)
         val midoOps = translator.translate(
-                neutron.Create(neutronVip(poolId = poolId)))
+                Create(neutronVip(poolId = poolId)))
 
-        midoOps should contain (midonet.Create(
+        midoOps should contain (Create(
                 midoVip(poolId = poolId, lbId = lbId, gwPortId = gwPortId)))
-        midoOps should contain (midonet.CreateNode(
+        midoOps should contain (CreateNode(
                 arpEntryPath(networkId, vipIpAddr, gwPortMac), null))
     }
 
@@ -191,10 +191,10 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
         bindLb()
         bindVipNetwork(external = false)
         val midoOps = translator.translate(
-                neutron.Create(neutronVip(poolId = poolId)))
+                Create(neutronVip(poolId = poolId)))
 
         midoOps should contain only
-                midonet.Create(midoVip(poolId = poolId, lbId = lbId))
+                Create(midoVip(poolId = poolId, lbId = lbId))
     }
 
     it should "not add an ARP entry when the tenant Router does not have a " +
@@ -202,10 +202,10 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase
         bindLb(gwPortId = null)
         bindVipNetwork(external = true)
         val midoOps = translator.translate(
-                neutron.Create(neutronVip(poolId = poolId)))
+                Create(neutronVip(poolId = poolId)))
 
         midoOps should contain only
-                midonet.Create(midoVip(poolId = poolId, lbId = lbId))
+                Create(midoVip(poolId = poolId, lbId = lbId))
     }
 }
 
@@ -247,9 +247,9 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
         """)
 
     "Neutron VIP Update" should "update a Midonet VIP." in {
-        val midoOps = translator.translate(neutron.Update(updatedNeutronVip))
+        val midoOps = translator.translate(Update(updatedNeutronVip))
 
-        midoOps should contain only midonet.Update(updatedMidoVip,
+        midoOps should contain only Update(updatedMidoVip,
                                                    VipUpdateValidator)
     }
 
@@ -260,7 +260,7 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
 
     it should "throws an exception when the VIP's IP address is changed" in {
         val te = intercept[TranslationException] {
-            translator.translate(neutron.Update(vipWithDifferentIp))
+            translator.translate(Update(vipWithDifferentIp))
         }
         te.getCause should not be null
         te.getCause match {
@@ -284,10 +284,10 @@ class VipTranslatorDeleteTest extends VipTranslatorTestBase {
     "Neutron VIP Delete" should "delete a Midonet VIP." in {
         bind(vipId, midoVip())
         val midoOps = translator.translate(
-                neutron.Delete(classOf[NeutronVIP], vipId))
+                Delete(classOf[NeutronVIP], vipId))
 
         midoOps should contain only
-                midonet.Delete(classOf[Vip], vipId)
+                Delete(classOf[Vip], vipId)
     }
 
     it should "also delete an ARP entry when VIP is associated with a " +
@@ -295,9 +295,9 @@ class VipTranslatorDeleteTest extends VipTranslatorTestBase {
         bind(vipId, midoVip(gwPortId = gwPortId))
         bind(gwPortId, neutronRouterGwPort)
         val midoOps = translator.translate(
-                neutron.Delete(classOf[NeutronVIP], vipId))
+                Delete(classOf[NeutronVIP], vipId))
 
-        midoOps should contain (midonet.DeleteNode(
+        midoOps should contain (DeleteNode(
                 arpEntryPath(networkId, vipIpAddr, gwPortMac)))
     }
 }

@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronR
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
 import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 import org.midonet.util.concurrent.toFutureOps
 
@@ -33,7 +33,7 @@ import org.midonet.util.concurrent.toFutureOps
 class SubnetTranslator(val storage: ReadOnlyStorage)
     extends Translator[NeutronSubnet] with RouteManager {
 
-    override protected def translateCreate(ns: NeutronSubnet): MidoOpList = {
+    override protected def translateCreate(ns: NeutronSubnet): OperationList = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
         if (isOnUplinkNetwork(ns)) return List()
 
@@ -61,11 +61,11 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
         List(Create(dhcp.build))
     }
 
-    override protected def translateDelete(id: UUID): MidoOpList = {
+    override protected def translateDelete(id: UUID): OperationList = {
         List(Delete(classOf[Dhcp], id))
     }
 
-    override protected def translateUpdate(ns: NeutronSubnet): MidoOpList = {
+    override protected def translateUpdate(ns: NeutronSubnet): OperationList = {
         // Uplink networks don't exist in Midonet, nor do their subnets.
         if (isOnUplinkNetwork(ns)) return List()
 
@@ -143,7 +143,7 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
      */
     private def updateRouteNextHopIps(oldGwIp: IPAddress, newGwIp: IPAddress,
                                       routeIds: Seq[UUID])
-    : MidoOpList = {
+    : OperationList = {
         if (oldGwIp == newGwIp) return List()
         val routes = storage.getAll(classOf[Route], routeIds).await()
         routes.map { r =>

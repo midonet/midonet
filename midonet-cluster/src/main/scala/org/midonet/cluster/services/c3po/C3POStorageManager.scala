@@ -24,13 +24,12 @@ import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
-
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.c3poStorageManagerLog
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.services.c3po.neutron.NeutronOp
-import org.midonet.cluster.services.c3po.translators.{Translator, TranslationException}
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.services.c3po.translators.{TranslationException, Translator}
 
 object C3POStorageManager {
 
@@ -40,10 +39,39 @@ object C3POStorageManager {
     private val TIMEOUT = Duration.create(10, TimeUnit.SECONDS)
 
     /** A generic operation on a model */
-    trait Operation {
+    trait Operation[T <: Message] {
         def opType: OpType.OpType
         def toPersistenceOp: PersistenceOp
     }
+
+    case class Create[T <: Message](model: T) extends Operation[T] {
+        override val opType = OpType.Create
+        override def toPersistenceOp = CreateOp(model)
+    }
+
+    case class Update[T <: Message](model: T,
+                                    validator: UpdateValidator[T] = null)
+        extends Operation[T] {
+        override val opType = OpType.Update
+        override def toPersistenceOp = UpdateOp(model, validator)
+    }
+
+    case class Delete[T <: Message](clazz: Class[T], id: Commons.UUID) extends Operation[T] {
+        override val opType = OpType.Delete
+        /* C3PODataManager's deletion semantics is delete-if-exists by default
+         * and no-op if the object doesn't exist. Revisit if we need to make
+         * this configurable.
+         */
+        override def toPersistenceOp = DeleteOp(clazz, id,
+                                                ignoreIfNotExists = true)
+    }
+
+    sealed case class Transaction(txnId: String,
+                                  tasks: List[Task[_ <: Message]]) {
+        def lastTaskId = tasks.last.taskId
+    }
+
+    sealed case class Task[T <: Message](taskId: Int, op: Operation[T])
 
     /** A failure occurred when interpreting or executing an operation. */
     class ProcessingException(msg: String = "", cause: Throwable = null)
@@ -149,14 +177,14 @@ class C3POStorageManager(storage: Storage) {
       * translating into the corresponding operations in the internal model, and
       * executing them. */
     @throws[ProcessingException]
-    def interpretAndExecTxn(txn: neutron.Transaction): Unit = {
+    def interpretAndExecTxn(txn: Transaction): Unit = {
         assert(initialized)
 
         // Changing this to process one task at a time instead of processing
         // all tasks in a transaction atomically. Although the latter would
-        // technically be more correct, the tasks within multi-task Neutron
-        // transactions are ordered such that there's no problem with executing
-        // them non-atomically.
+        // technically be more correct, the tasks within multi-task
+        // high-level operation transactions are ordered such that there's no
+        // problem with executing them non-atomically.
         //
         // For example, adding a gateway port to a router consists of two tasks:
         // creating the gateway port and then updating the router to use it.
@@ -191,17 +219,17 @@ class C3POStorageManager(storage: Storage) {
     }
 
     @throws[ProcessingException]
-    private def toPersistenceOps[T <: Message](task: neutron.Task[T])
+    private def toPersistenceOps[T <: Message](task: Task[T])
     : Seq[PersistenceOp] = {
         toPersistenceOps(task.op)
     }
 
-    def toPersistenceOps[T <: Message](neutronOp: NeutronOp[T])
+    def toPersistenceOps[T <: Message](highLevelOp: Operation[T])
     : Seq[PersistenceOp] = {
-        val modelClass = neutronOp match {
-            case c: neutron.Create[T] => c.model.getClass
-            case u: neutron.Update[T] => u.model.getClass
-            case d: neutron.Delete[T] => d.clazz
+        val modelClass = highLevelOp match {
+            case c: Create[T] => c.model.getClass
+            case u: Update[T] => u.model.getClass
+            case d: Delete[T] => d.clazz
         }
         if (!apiTranslators.containsKey(modelClass)) {
             throw new ProcessingException(s"No translator for $modelClass.")
@@ -209,7 +237,7 @@ class C3POStorageManager(storage: Storage) {
 
         apiTranslators.get(modelClass)
             .asInstanceOf[Translator[T]]
-            .translateNeutronOp(neutronOp)
+            .translateOp(highLevelOp)
             .map { midoOp => midoOp.toPersistenceOp }
     }
 }

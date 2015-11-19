@@ -17,12 +17,11 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Commons.LBStatus.ACTIVE
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.models.Commons.{LBStatus, UUID}
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 import org.midonet.cluster.models.Topology.PoolMember
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPoolMember. */
@@ -45,13 +44,13 @@ class LoadBalancerPoolMemberTranslator(protected val storage: ReadOnlyStorage)
     }
 
     override protected def translateCreate(nm: NeutronLoadBalancerPoolMember)
-    : MidoOpList = List(Create(translate(nm)))
+    : OperationList = List(Create(translate(nm)))
 
     override protected def translateDelete(id: UUID)
-    : MidoOpList = List(Delete(classOf[PoolMember], id))
+    : OperationList = List(Delete(classOf[PoolMember], id))
 
     override protected def translateUpdate(nm: NeutronLoadBalancerPoolMember)
-    : MidoOpList = {
+    : OperationList = {
         // Load Balancer Pool status is set to ACTIVE upon creation by default,
         // and it is to be updated only by Health Monitor. Therefore when we
         // update Pool, we need to look up the current status and explicitly

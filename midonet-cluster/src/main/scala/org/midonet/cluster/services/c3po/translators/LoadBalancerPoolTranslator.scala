@@ -20,7 +20,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPool. */
@@ -29,7 +29,7 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
                 with LoadBalancerManager {
 
     override protected def translateCreate(nPool: NeutronLoadBalancerPool)
-    : MidoOpList = {
+    : OperationList = {
         if (!nPool.hasRouterId)
             throw new IllegalArgumentException("No router ID is specified.")
         if (nPool.getHealthMonitorsCount > 0)
@@ -39,7 +39,7 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
 
         // If no Load Balancer has been created for the Router, create one.
         val lbId = loadBalancerId(nPool.getRouterId)
-        val midoOps = new MidoOpListBuffer
+        val midoOps = new OperationListBuffer
         if (!storage.exists(classOf[LoadBalancer], lbId).await()) {
             val lb = LoadBalancer.newBuilder()
                                  .setId(lbId)
@@ -57,10 +57,10 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
     /* The translator will keep around the Load Balancer when the last Pool
      * is deleted in order to keep the implementation simple. */
     override protected def translateDelete(id: UUID)
-    : MidoOpList = List(Delete(classOf[Pool], id))
+    : OperationList = List(Delete(classOf[Pool], id))
 
     override protected def translateUpdate(nPool: NeutronLoadBalancerPool)
-    : MidoOpList = {
+    : OperationList = {
         val oldPool = storage.get(classOf[Pool], nPool.getId).await()
         val updatedPool = oldPool.toBuilder
             .setAdminStateUp(nPool.getAdminStateUp)
