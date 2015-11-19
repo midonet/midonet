@@ -158,11 +158,19 @@ message Host {
 
     optional int32 flooding_proxy_weight = 3 [default = 1];
 
-    // Backreference. Expected to be set from the Tunnel Zone side.
+    // Backreferences
     repeated UUID tunnel_zone_ids = 101;
-
-    // Backreference. Expected to be set from the Port side.
     repeated UUID port_ids = 102;
+    repeated UUID host_group_ids = 103;
+}
+
+message HostGroup {
+    optional UUID id = 1;
+    optional string name = 2;
+
+    // Backreferences
+    repeated UUID host_ids = 101;
+    repeated UUID service_group_ids = 102;
 }
 
 message IPAddrGroup {
@@ -350,6 +358,7 @@ message PortGroup {
 
     // Backreferences
     repeated UUID port_ids = 101;
+    repeated UUID service_group_ids = 102;
 }
 
 message Route {
