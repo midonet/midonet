@@ -50,6 +50,16 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     @Inject
     MidonetBackendConfig config;
 
+    public ZookeeperConnectionWatcher() { }
+
+    public ZookeeperConnectionWatcher(MidonetBackendConfig config,
+                                      Reactor reactor,
+                                      ZkConnection connection) {
+        this.config = config;
+        this.reactorLoop = reactor;
+        setZkConnection(connection);
+    }
+
     @Override
     public void setZkConnection(ZkConnection conn) {
         this.conn = conn;

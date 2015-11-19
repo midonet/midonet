@@ -33,16 +33,19 @@ import org.slf4j.LoggerFactory
 
 import rx.{Observable, Observer}
 
+import org.midonet.cluster.backend.zookeeper.SessionUnawareConnectionWatcher
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage.{StateResult, ZookeeperObjectMapper}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.state.RoutingTableStorage._
+import org.midonet.cluster.storage.CuratorZkConnection
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.util.concurrent._
+import org.midonet.util.eventloop.CallingThreadReactor
 import org.midonet.util.reactivex._
 
 import ch.qos.logback.classic.Logger
@@ -59,6 +62,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
     private final val zkRoot = "/midonet/benchmark"
     private final val hostId = UUID.randomUUID()
 
+    private val reactor = new CallingThreadReactor
     private var curator: CuratorFramework = _
     private var storage: ZookeeperObjectMapper = _
 
@@ -102,7 +106,11 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
                                                     cnxnTimeoutMs,
                                                     retryPolicy)
         curator.start()
-        storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator)
+        val connection = new CuratorZkConnection(curator, reactor)
+        val connectionWatcher = new SessionUnawareConnectionWatcher
+        connectionWatcher.setZkConnection(connection)
+        storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator,
+                                            reactor, connection, connectionWatcher)
         storage.registerClass(classOf[Port])
         storage.registerKey(classOf[Port], RoutesKey, Multiple)
         storage.build()
