@@ -29,8 +29,8 @@ import org.midonet.util.concurrent.toFutureOps
 /** Provides a Neutron model translator for VIP. */
 class VipTranslator(protected val storage: ReadOnlyStorage,
                     protected val pathBldr: PathBuilder)
-        extends NeutronTranslator[NeutronVIP]
-        with BridgeStateTableManager {
+        extends Translator[NeutronVIP]
+                with BridgeStateTableManager {
 
     private def translate(nVip: NeutronVIP): Vip.Builder = {
         val mVipBldr = Vip.newBuilder
