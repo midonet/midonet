@@ -26,14 +26,16 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.slf4j.LoggerFactory.getLogger
 
+import org.midonet.cluster.backend.zookeeper.{ZookeeperConnectionWatcher, ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.storage.{CuratorZkConnection, MidonetBackendConfig}
 import org.midonet.conf.HostIdGenerator
+import org.midonet.util.eventloop.{TryCatchReactor, Reactor}
 
 object MidonetBackend {
 
@@ -247,11 +249,18 @@ abstract class MidonetBackend extends AbstractService {
     def stateStore: StateStorage
     /** The Curator instance being used */
     def curator: CuratorFramework
+    /** Provides an executor for handing of asynchronous storage events. */
+    def reactor: Reactor
+    /** Wraps the legacy ZooKeeper connection around the Curator instance. */
+    @Deprecated
+    def connection: ZkConnection
+    /** Watches the storage connection. */
+    def connectionWatcher: ZkConnectionAwareWatcher
 }
 
 /** Class responsible for providing services to access to the new Storage
   * services. */
-class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
+class MidonetBackendService @Inject() (config: MidonetBackendConfig,
                                        override val curator: CuratorFramework,
                                        metricRegistry: MetricRegistry)
     extends MidonetBackend {
@@ -262,9 +271,15 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
         if (MidonetBackend.isCluster) MidonetBackend.ClusterNamespaceId
         else HostIdGenerator.getHostId
 
+    override val reactor = new TryCatchReactor("nsdb", 1)
+    override val connection = new CuratorZkConnection(curator, reactor)
+    override val connectionWatcher =
+        ZookeeperConnectionWatcher.createWith(config, reactor, connection)
+
     private val zoom =
-        new ZookeeperObjectMapper(s"${cfg.rootKey}/zoom", namespaceId.toString,
-                                  curator, metricRegistry)
+        new ZookeeperObjectMapper(s"${config.rootKey}/zoom", namespaceId.toString,
+                                  curator, reactor, connection,
+                                  connectionWatcher, metricRegistry)
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
@@ -287,6 +302,7 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
 
     protected def doStop(): Unit = {
         log.info("Stopping backend store for host {}", namespaceId)
+        reactor.shutDownNow()
         curator.close()
         notifyStopped()
     }
