@@ -24,6 +24,7 @@ object MidonetMediaTypes {
     // ongoing, we're moving them here from NeutronMediaTypes (java) as they
     // are migrated to Scala.
     final val NEUTRON_JSON_V3 = "application/vnd.org.midonet.neutron.Neutron-v3+json"
+    final val NEUTRON_VPN_SERVICE_JSON_V1 = "application/vnd.org.midonet.neutron.VPNService-v1+json"
 
     // MIDONET MODELS
 
