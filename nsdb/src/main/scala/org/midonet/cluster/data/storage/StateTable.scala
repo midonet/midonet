@@ -56,25 +56,42 @@ trait StateTable[K, V] {
     /** Removes a persistent key value pair from the state table. */
     def removePersistent(key: K, value: V): V
 
-    /** Returns whether the table contains a value for the specified key,
+    /** Returns whether the cached version of the table contains a value for the
+      * specified key, either learned or persistent. */
+    def containsLocal(key: K): Boolean
+
+    /** Returns whether the cached version of the table contains the key value
+      * pair, either learned or persistent. */
+    def containsLocal(key: K, value: V): Boolean
+
+    /** Returns whether the remote table contains a value for the specified key,
       * either learned or persistent. */
-    def contains(key: K): Boolean
+    def containsRemote(key: K): Boolean
 
-    /** Returns whether the table contains the key value pair, either learned or
-      * persistent. */
-    def contains(key: K, value: V): Boolean
+    /** Returns whether the remote table contains a value for the specified key,
+      * either learned or persistent. */
+    def containsRemote(key: K, value: V): Boolean
 
-    /** Returns whether the table contains the persistent key value pair. */
+    /** Returns whether the remote table contains the persistent key value pair. */
     def containsPersistent(key: K, value: V): Boolean
 
-    /** Gets the value for the specified key. */
-    def get(key: K): V
+    /** Gets the local cached value for the specified key. */
+    def getLocal(key: K): V
 
-    /** Gets the set of keys corresponding the specified value. */
-    def getByValue(value: V): Set[K]
+    /** Gets the remote value for the specified key. */
+    def getRemote(key: K): V
+
+    /** Gets the local cached set of keys corresponding to the specified value. */
+    def getLocalByValue(value: V): Set[K]
+
+    /** Gets the remote set of keys corresponding to the specified value. */
+    def getRemoteByValue(value: V): Set[K]
 
     /** Gets a read-only snapshot for the current state table. */
-    def snapshot: Map[K, V]
+    def localSnapshot: Map[K, V]
+
+    /** Gets a read-only snapshot for the current state table. */
+    def remoteSnapshot: Map[K, V]
 
     /** Returns an observable that notifies the updates to the current state
       * table. */

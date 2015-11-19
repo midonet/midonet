@@ -41,12 +41,19 @@ import org.apache.curator.test.TestingServer;
 import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
+import org.midonet.cluster.data.storage.StateTableStorage;
+import org.midonet.cluster.models.*;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 import org.midonet.cluster.rest_api.serialization.MidonetObjectMapper;
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
+import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.services.rest_api.Vladimir;
+import org.midonet.cluster.storage.Ip4MacStateTable;
 import org.midonet.conf.HostIdGenerator;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
 import org.midonet.southbound.vtep.MockOvsdbVtepConnectionProvider;
 import org.midonet.southbound.vtep.OvsdbVtepConnectionProvider;
 
@@ -140,7 +147,14 @@ public class FuncTest {
 
             MidonetBackendService backend =
                 new MidonetBackendService(cfg.backend(), curator,
-                                          null /* metricRegistry */);
+                                          null /* metricRegistry */) {
+                    @Override
+                    public void setup(StateTableStorage storage) {
+                        storage.registerTable(
+                            Topology.Network.class, IPv4Addr.class, MAC.class,
+                            MidonetBackend.Ip4MacTable(), Ip4MacStateTable.class);
+                    }
+                };
             backend.startAsync().awaitRunning();
 
             FuncTest._injector = Guice.createInjector(
