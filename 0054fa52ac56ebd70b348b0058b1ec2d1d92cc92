@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "7ac7a964_17888470",
+        "filename": "nsdb/src/main/proto/service.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-19T13:52:33Z",
+      "side": 1,
+      "message": "Ah nevermind then, I didn\u0027t notice.",
+      "parentUuid": "7ac7a964_11ded411",
+      "revId": "0054fa52ac56ebd70b348b0058b1ec2d1d92cc92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_cb6cab9f",
         "filename": "nsdb/src/main/proto/service.proto",
         "patchSetId": 1
