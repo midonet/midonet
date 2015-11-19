@@ -23,7 +23,10 @@ import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
 import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.data.storage.StateTableStorage
+import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
+import org.midonet.packets.{IPv4Addr, MAC}
 
 /** This Guice module is dedicated to declare general-purpose dependencies that
   * are exposed to MidoNet components that need to access the various storage
@@ -50,8 +53,18 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
         bind(classOf[ZookeeperLockFactory]).asEagerSingleton()
     }
 
-    protected def backend(curatorFramework: CuratorFramework): MidonetBackend =
-        new MidonetBackendService(conf, curatorFramework, metricRegistry)
+    protected def backend(curatorFramework: CuratorFramework): MidonetBackend = {
+        new MidonetBackendService(conf, curatorFramework, metricRegistry) {
+            protected override def setup(storage: StateTableStorage): Unit = {
+                // Setup state tables (note: we do this here because the tables
+                // backed by the replicated maps are not available to the nsdb
+                // module).
+                storage.registerTable(classOf[Network], classOf[IPv4Addr],
+                                      classOf[MAC], MidonetBackend.Ip4MacTable,
+                                      classOf[Ip4MacStateTable])
+            }
+        }
+    }
 
     protected def bindCuratorFramework() = {
         val curator = CuratorFrameworkFactory.newClient(
