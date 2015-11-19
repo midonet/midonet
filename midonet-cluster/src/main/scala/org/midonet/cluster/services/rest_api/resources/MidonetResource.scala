@@ -68,6 +68,9 @@ object MidonetResource {
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
     final def OkCreated(uri: URI) = Response.created(uri).build()
+    final def OkCreated(uri: URI, entity: UriResource) = {
+        Response.created(uri).entity(entity).build()
+    }
 
     sealed trait Multi
     case class Create[T <: UriResource](resource: T) extends Multi
@@ -239,7 +242,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         tryResponse(handleCreate, catchCreate) {
             createFilter(t) map { ops =>
                 throwIfViolationsOn(t)
-                multiResource(Seq(Create(t)) ++ ops, OkCreated(t.getUri))
+                multiResource(Seq(Create(t)) ++ ops, OkCreated(t.getUri, t))
             } getOrThrow
         }
     }
