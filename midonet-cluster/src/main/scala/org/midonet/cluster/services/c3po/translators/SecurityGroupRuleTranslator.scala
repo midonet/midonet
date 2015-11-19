@@ -20,7 +20,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Topology.Rule
-import org.midonet.cluster.services.c3po.midonet._
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
 
 class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
     extends Translator[SecurityGroupRule] with ChainManager {
@@ -30,17 +30,17 @@ class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
      * group chain that it is assigned to.
      */
     protected override def translateCreate(sgr: SecurityGroupRule)
-    : MidoOpList = {
+    : OperationList = {
         List(Create(SecurityGroupRuleManager.translate(sgr)))
     }
 
     protected override def translateUpdate(newSgr: SecurityGroupRule)
-    : MidoOpList = {
+    : OperationList = {
         throw new IllegalArgumentException(
             "SecurityGroupRule update not supported.")
     }
 
-    protected override def translateDelete(sgrId: UUID) : MidoOpList = {
+    protected override def translateDelete(sgrId: UUID) : OperationList = {
         List(Delete(classOf[Rule], sgrId))
     }
 }

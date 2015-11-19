@@ -20,53 +20,48 @@ import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 
 import com.google.protobuf.Message
-
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.c3poNeutronTranslatorLog
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
-import org.midonet.cluster.services.c3po.midonet.MidoOp
-import org.midonet.cluster.services.c3po.neutron.NeutronOp
-import org.midonet.cluster.services.c3po.{midonet, neutron}
+import org.midonet.cluster.services.c3po.C3POStorageManager._
 
-/** Defines a class that is able to translate from an operation on the Neutron
-  * model to a set of operations on the MidoNet model. */
-trait Translator[NeutronModel <: Message] {
-
-    protected type MidoOpList = List[MidoOp[_ <: Message]]
-    protected type MidoOpListBuffer = ListBuffer[MidoOp[_ <: Message]]
+/** Defines a class that is able to translate from an operation from a high
+  * level model to a set of operations on the MidoNet model.
+  */
+trait Translator[HighLevelModel <: Message] {
 
     protected val log =
         LoggerFactory.getLogger(c3poNeutronTranslatorLog(getClass))
 
     /**
-     * Translate the Neutron operation on NeutronModel to a list of MidoNet
-     * operations that:
+     * Translate the operation on a high level model to a list of
+     * operations on translated models that:
+     *
      * - maintain (if necessary) the original model,
      * - and translate the model into a corresponding representation made up of
-     * various MidoNet models.
+     *   various derived models.
      */
     @throws[TranslationException]
-    def translateNeutronOp(op: NeutronOp[NeutronModel]): List[Operation] =
-        retainNeutronModel(op) ++ translate(op)
+    def translateOp(op: Operation[HighLevelModel]): OperationList =
+        retainHighLevelModel(op) ++ translate(op)
 
     /* Keep the original model as is by default. Override if the model does not
      * need to be maintained, or need some special handling. */
-    protected def retainNeutronModel(op: NeutronOp[NeutronModel])
-    : List[MidoOp[NeutronModel]] = {
+    protected def retainHighLevelModel(op: Operation[HighLevelModel])
+    : List[Operation[HighLevelModel]] = {
         op match {
-            case neutron.Create(nm) => List(midonet.Create(nm))
-            case neutron.Update(nm) => List(midonet.Update(nm))
-            case neutron.Delete(clazz, id) => List(midonet.Delete(clazz, id))
+            case Create(nm) => List(Create(nm))
+            case Update(nm, _) => List(Update(nm))
+            case Delete(clazz, id) => List(Delete(clazz, id))
         }
     }
 
-    def translate(op: NeutronOp[NeutronModel]): List[Operation] = try {
+    def translate(op: Operation[HighLevelModel]): OperationList = try {
         op match {
-            case neutron.Create(nm) => translateCreate(nm)
-            case neutron.Update(nm) => translateUpdate(nm)
-            case neutron.Delete(_, id) => translateDelete(id)
+            case Create(nm) => translateCreate(nm)
+            case Update(nm, _) => translateUpdate(nm)
+            case Delete(_, id) => translateDelete(id)
         }
     } catch {
         case NonFatal(ex) =>
@@ -74,13 +69,13 @@ trait Translator[NeutronModel <: Message] {
     }
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
-    protected def translateCreate(nm: NeutronModel): MidoOpList
-    protected def translateUpdate(nm: NeutronModel): MidoOpList
-    protected def translateDelete(id: UUID): MidoOpList
+    protected def translateCreate(nm: HighLevelModel): OperationList
+    protected def translateUpdate(nm: HighLevelModel): OperationList
+    protected def translateDelete(id: UUID): OperationList
 }
 
 /** Thrown by by implementations when they fail to perform the requested
   * operation on the source model. */
-class TranslationException(val op: neutron.NeutronOp[_],
+class TranslationException(val op: Operation[_],
                            val cause: Throwable = null, val msg: String = null)
     extends RuntimeException (s"Failed to $op; $msg", cause)

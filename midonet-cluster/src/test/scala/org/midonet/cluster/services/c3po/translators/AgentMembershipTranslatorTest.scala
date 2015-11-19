@@ -22,10 +22,9 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito.when
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{AgentMembership, NeutronConfig}
-import org.midonet.cluster.models.Topology.TunnelZone
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.cluster.util.IPAddressUtil.toProto
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
@@ -78,9 +77,9 @@ class AgentMembershipTranslatorTest extends TranslatorTestBase {
     "TunnelZoneHost Create" should "Update the corresponding TunnelZone " +
     "with a corresponding host-IP address mapping." in {
         bind(tunnelZoneId, mTunnelZone)
-        val midoOps = translator.translate(neutron.Create(nAgentMembership))
+        val midoOps = translator.translate(Create(nAgentMembership))
 
-        midoOps should contain (midonet.Update(mTunnelZoneWithHost))
+        midoOps should contain (Update(mTunnelZoneWithHost))
     }
 
     private val nAgentMembershipToDelete = nAgentMembershipFromTxt(s"""
@@ -121,15 +120,15 @@ class AgentMembershipTranslatorTest extends TranslatorTestBase {
         bind(tunnelZoneId, mTunnelZoneWith2Hosts)
 
         val midoOps = translator.translate(
-                neutron.Delete(classOf[AgentMembership], hostId))
+                Delete(classOf[AgentMembership], hostId))
 
-        midoOps should contain (midonet.Update(mTunnelZoneAfterDelete))
+        midoOps should contain (Update(mTunnelZoneAfterDelete))
     }
 
     "TunnelZoneHost Update" should "throw TranslationException as Update " +
     "is not supported." in {
         intercept[TranslationException] {
-            translator.translate(neutron.Update(nAgentMembership))
+            translator.translate(Update(nAgentMembership))
         }
     }
 }

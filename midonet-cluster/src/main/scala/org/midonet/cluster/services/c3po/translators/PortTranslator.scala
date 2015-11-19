@@ -24,9 +24,8 @@ import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, Upd
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
-import org.midonet.cluster.services.c3po.neutron
-import org.midonet.cluster.services.c3po.neutron.NeutronOp
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
+import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
@@ -57,22 +56,21 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         extends Translator[NeutronPort]
                 with ChainManager with PortManager with RouteManager with RuleManager
                 with BridgeStateTableManager {
-    import org.midonet.cluster.services.c3po.translators.PortTranslator._
     import RouterInterfaceTranslator._
+    import org.midonet.cluster.services.c3po.translators.PortTranslator._
 
     /* Neutron does not maintain the back reference to the Floating IP, so we
      * need to do that by ourselves. */
-    override protected def retainNeutronModel(op: NeutronOp[NeutronPort])
-    : List[MidoOp[NeutronPort]] = {
+    override protected def retainHighLevelModel(op: Operation[NeutronPort])
+    : List[Operation[NeutronPort]] = {
         op match {
-            case neutron.Create(nm) => List(Create(nm))
-            case neutron.Update(nm) => List(Update(nm,
-                                                   NeutronPortUpdateValidator))
-            case neutron.Delete(clazz, id) => List(Delete(clazz, id))
+            case Create(nm) => List(Create(nm))
+            case Update(nm, _) => List(Update(nm, NeutronPortUpdateValidator))
+            case Delete(clazz, id) => List(Delete(clazz, id))
         }
     }
 
-    override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
+    override protected def translateCreate(nPort: NeutronPort): OperationList = {
         // Floating IPs, VIPs, and ports on uplink networks have no
         // corresponding Midonet port.
         if (isVipPort(nPort) || isFloatingIpPort(nPort) ||
@@ -86,7 +84,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         midoPortBldr.setTunnelKey(tk)
 
         val portId = nPort.getId
-        val midoOps = new MidoOpListBuffer
+        val midoOps = new OperationListBuffer
         val portContext = initPortContext
         if (isVifPort(nPort)) {
             // Generate in/outbound chain IDs from Port ID.
@@ -123,14 +121,14 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         midoOps.toList
     }
 
-    override protected def translateDelete(id: UUID): MidoOpList = {
+    override protected def translateDelete(id: UUID): OperationList = {
         val nPort = storage.get(classOf[NeutronPort], id).await()
 
         // Nothing to do for floating IPs or VIPs, since we didn't create
         // anything.
         if (isVipPort(nPort) || isFloatingIpPort(nPort)) return List()
 
-        val midoOps = new MidoOpListBuffer
+        val midoOps = new OperationListBuffer
 
         // No corresponding Midonet port for ports on uplink networks.
         if (isOnUplinkNetwork(nPort)) {
@@ -203,14 +201,14 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         midoOps.toList
     }
 
-    override protected def translateUpdate(nPort: NeutronPort): MidoOpList = {
+    override protected def translateUpdate(nPort: NeutronPort): OperationList = {
         // If the equivalent Midonet port doesn't exist, then it's either a
         // floating IP, VIP,  or port on an uplink network. In either case, we
         // don't create anything in the Midonet topology for this Neutron port,
         // so there's nothing to update.
         if(!storage.exists(classOf[Port], nPort.getId).await()) return List()
 
-        val midoOps = new MidoOpListBuffer
+        val midoOps = new OperationListBuffer
 
         // It is assumed that the fixed IPs assigned to a Neutron Port will not
         // be changed.
@@ -259,23 +257,23 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     /* A container class holding context associated with a Neutron Port CRUD. */
     private case class PortContext(
             midoDhcps: mutable.Map[UUID, Dhcp.Builder],
-            inRules: ListBuffer[MidoOp[Rule]],
-            outRules: ListBuffer[MidoOp[Rule]],
-            antiSpoofRules: ListBuffer[MidoOp[Rule]],
-            chains: ListBuffer[MidoOp[Chain]],
-            updatedIpAddrGrps: ListBuffer[MidoOp[IPAddrGroup]])
+            inRules: ListBuffer[Operation[Rule]],
+            outRules: ListBuffer[Operation[Rule]],
+            antiSpoofRules: ListBuffer[Operation[Rule]],
+            chains: ListBuffer[Operation[Chain]],
+            updatedIpAddrGrps: ListBuffer[Operation[IPAddrGroup]])
 
     private def initPortContext =
         PortContext(mutable.Map[UUID, Dhcp.Builder](),
-                    ListBuffer[MidoOp[Rule]](),
-                    ListBuffer[MidoOp[Rule]](),
-                    ListBuffer[MidoOp[Rule]](),
-                    ListBuffer[MidoOp[Chain]](),
-                    ListBuffer[MidoOp[IPAddrGroup]]())
+                    ListBuffer[Operation[Rule]](),
+                    ListBuffer[Operation[Rule]](),
+                    ListBuffer[Operation[Rule]](),
+                    ListBuffer[Operation[Chain]](),
+                    ListBuffer[Operation[IPAddrGroup]]())
 
 
     private def addMidoOps(portContext: PortContext,
-                           midoOps: MidoOpListBuffer) {
+                           midoOps: OperationListBuffer) {
             midoOps ++= portContext.midoDhcps.values.map(d => Update(d.build))
             midoOps ++= portContext.chains
             midoOps ++= portContext.inRules
@@ -515,7 +513,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     /* If the first fixed IP address is configured with a gateway IP address,
      * create a route to Meta Data Service.*/
-    private def configureMetaDataService(nPort: NeutronPort): MidoOpList =
+    private def configureMetaDataService(nPort: NeutronPort): OperationList =
         findGateway(nPort).toList.flatMap { gateway =>
             val route = newMetaDataServiceRoute(
                 srcSubnet = gateway.nextHopDhcp.getSubnetAddress,
@@ -526,7 +524,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     /* Deletes the meta data service route for the deleted Neutron Port if the
      * first fixed IP address is configured with a gateway IP address.*/
-    private def deleteMetaDataServiceRoute(nPort: NeutronPort): MidoOpList = {
+    private def deleteMetaDataServiceRoute(nPort: NeutronPort): OperationList = {
         val gateway = findGateway(nPort, ignoreDeletedDhcp = true)
                       .getOrElse(return List())
         val port = storage.get(classOf[Port], gateway.peerRouterPortId).await()
@@ -571,8 +569,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     }
 
     private def macTableUpdateOps(oldPort: NeutronPort,
-                                  newPort: NeutronPort): MidoOpList = {
-        val ops = new MidoOpListBuffer
+                                  newPort: NeutronPort): OperationList = {
+        val ops = new OperationListBuffer
         if (newPort.getMacAddress != oldPort.getMacAddress) {
             if (oldPort.hasMacAddress)
                 ops += DeleteNode(pathBldr.getBridgeMacPortEntryPath(oldPort))
@@ -583,14 +581,14 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     }
 
     private def arpTableUpdateOps(oldPort: NeutronPort,
-                                  newPort: NeutronPort): MidoOpList = {
+                                  newPort: NeutronPort): OperationList = {
         // TODO: Support multiple fixed IPs.
         val oldIp = if (oldPort.getFixedIpsCount == 0) null
                     else oldPort.getFixedIps(0).getIpAddress.getAddress
         val newIp = if (newPort.getFixedIpsCount == 0) null
                     else newPort.getFixedIps(0).getIpAddress.getAddress
 
-        val ops = new MidoOpListBuffer
+        val ops = new OperationListBuffer
         if (oldIp != newIp) {
             if (oldIp != null) ops += DeleteNode(arpEntryPath(oldPort))
             if (newIp != null) ops += CreateNode(arpEntryPath(newPort))
@@ -628,7 +626,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
-    private def deleteRouterSnatRulesOps(rPortId: UUID): MidoOpList = {
+    private def deleteRouterSnatRulesOps(rPortId: UUID): OperationList = {
         import RouterTranslator._
         val rPort = storage.get(classOf[Port], rPortId).await()
         val rtrId = rPort.getRouterId
