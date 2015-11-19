@@ -25,11 +25,11 @@ import org.scalatest.junit.JUnitRunner
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.StorageTestClasses._
-import org.midonet.cluster.util.{ClassAwaitableObserver, CuratorTestFramework, PathCacheDisconnectedException}
+import org.midonet.cluster.util.{MidonetBackendTest, ClassAwaitableObserver, PathCacheDisconnectedException}
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
+class ZookeeperObjectMapperTest extends StorageTest with MidonetBackendTest
                                 with GivenWhenThen {
 
     import StorageTest._
@@ -44,7 +44,8 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
     }
 
     protected override def createStorage = {
-        new ZookeeperObjectMapper(zkRoot, hostId, curator)
+        new ZookeeperObjectMapper(zkRoot, hostId, curator, reactor,
+                                  connection, connectionWatcher)
     }
 
     feature("Test subscribe") {
