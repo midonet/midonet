@@ -65,6 +65,9 @@ object MidonetResource {
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
     final def OkCreated(uri: URI) = Response.created(uri).build()
+    final def OkCreated(uri: URI, entity: UriResource) = {
+        Response.created(uri).entity(entity).build()
+    }
 
     final val DefaultHandler: PartialFunction[Response, Response] = {
         case r => r
