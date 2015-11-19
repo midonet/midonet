@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_1d050511",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/VPNService.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-19T17:03:09Z",
+      "side": 1,
+      "message": "it",
+      "range": {
+        "startLine": 52,
+        "startChar": 25,
+        "endLine": 52,
+        "endChar": 26
+      },
+      "revId": "145abebc101346882835436e4fc092557ed1fa5b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_3d21e19f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/MidonetMediaTypes.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-19T17:03:09Z",
+      "side": 1,
+      "message": "remove empty line?",
+      "revId": "145abebc101346882835436e4fc092557ed1fa5b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_dd5f0d0d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/NeutronResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-19T17:03:09Z",
+      "side": 1,
+      "message": "Some of these imports are not needed.",
+      "range": {
+        "startLine": 27,
+        "startChar": 62,
+        "endLine": 27,
+        "endChar": 86
+      },
+      "revId": "145abebc101346882835436e4fc092557ed1fa5b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
