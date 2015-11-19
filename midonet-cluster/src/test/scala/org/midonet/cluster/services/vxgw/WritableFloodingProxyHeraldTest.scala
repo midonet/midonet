@@ -30,6 +30,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 import rx.subjects.PublishSubject
 
+import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.cluster.models.Topology.TunnelZone.Type
@@ -39,6 +40,7 @@ import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.packets.IPv4Addr
+import org.midonet.util.eventloop.Reactor
 
 @RunWith(classOf[JUnitRunner])
 class WritableFloodingProxyHeraldTest extends FeatureSpec
@@ -68,6 +70,9 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             override def stateStore: StateStorage = _stateStore
             override def store: Storage = _store
             override def curator: CuratorFramework = ???
+            override def reactor: Reactor = ???
+            override def connection: ZkConnection = ???
+            override def connectionWatcher: ZkConnectionAwareWatcher = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
         }
