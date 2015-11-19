@@ -34,7 +34,7 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute}
 import org.midonet.cluster.models.Topology.{Network, Port}
 import org.midonet.cluster.services.c3po.midonet.Create
-import org.midonet.cluster.services.c3po.translators.{NetworkTranslator, NeutronTranslator, TranslationException}
+import org.midonet.cluster.services.c3po.translators.{NetworkTranslator, Translator, TranslationException}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.midolman.state.PathBuilder
 
@@ -85,9 +85,9 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
 
     var storage: Storage = _
     var storageManager: C3POStorageManager = _
-    var mockNetworkTranslator: NeutronTranslator[NeutronNetwork] = _
-    var mockPortTranslator: NeutronTranslator[NeutronPort] = _
-    var mockExtraTranslator: NeutronTranslator[NeutronRoute] = _
+    var mockNetworkTranslator: Translator[NeutronNetwork] = _
+    var mockPortTranslator: Translator[NeutronPort] = _
+    var mockExtraTranslator: Translator[NeutronRoute] = _
 
     override def beforeEach() = {
         storage = mock(classOf[Storage])
@@ -97,12 +97,12 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
             .thenReturn(statePromise.future)
         storageManager.init()
 
-        mockNetworkTranslator = mock(classOf[NeutronTranslator[NeutronNetwork]])
-        mockPortTranslator = mock(classOf[NeutronTranslator[NeutronPort]])
-        mockExtraTranslator = mock(classOf[NeutronTranslator[NeutronRoute]])
+        mockNetworkTranslator = mock(classOf[Translator[NeutronNetwork]])
+        mockPortTranslator = mock(classOf[Translator[NeutronPort]])
+        mockExtraTranslator = mock(classOf[Translator[NeutronRoute]])
     }
 
-    type TranslatorMap = JMap[Class[_], NeutronTranslator[_]]
+    type TranslatorMap = JMap[Class[_], Translator[_]]
 
     def setUpNetworkTranslator() = {
         val translators: TranslatorMap = new util.HashMap()

@@ -24,8 +24,8 @@ import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a translator for Neutron Config. */
 class ConfigTranslator(storage: ReadOnlyStorage)
-    extends NeutronTranslator[NeutronConfig]
-    with TunnelZoneManager {
+    extends Translator[NeutronConfig]
+            with TunnelZoneManager {
 
     override protected def translateCreate(c: NeutronConfig): MidoOpList = {
 
