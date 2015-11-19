@@ -28,18 +28,18 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.ZoomConvert.toProto
-import org.midonet.cluster.data.storage.{ObjectExistsException, NotFoundException}
+import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRouter, NeutronRouterInterface, NeutronSubnet, SecurityGroup => NeutronSecurityGroup}
 import org.midonet.cluster.models.{Commons, Topology}
-import org.midonet.cluster.rest_api.{ConflictHttpException, BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.neutron.models._
+import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.{SequenceDispenser, IPSubnetUtil, CuratorTestFramework}
 import org.midonet.cluster.util.UUIDUtil.{toProto => toPuuid}
+import org.midonet.cluster.util.{CuratorTestFramework, IPSubnetUtil, SequenceDispenser}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
