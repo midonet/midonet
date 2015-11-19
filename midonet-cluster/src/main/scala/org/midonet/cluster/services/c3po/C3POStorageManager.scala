@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.c3poStorageManagerLog
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
-import org.midonet.cluster.services.c3po.translators.{NeutronTranslator, TranslationException}
+import org.midonet.cluster.services.c3po.translators.{Translator, TranslationException}
 
 object C3POStorageManager {
 
@@ -77,14 +77,14 @@ class C3POStorageManager(storage: Storage) {
 
     private val log = LoggerFactory.getLogger(c3poStorageManagerLog)
 
-    private val apiTranslators = new JHashMap[Class[_], NeutronTranslator[_]]()
+    private val apiTranslators = new JHashMap[Class[_], Translator[_]]()
     private var initialized = false
 
     def registerTranslator[T <: Message](clazz: Class[T],
-                                         translator: NeutronTranslator[T])
+                                         translator: Translator[T])
     : Unit = apiTranslators.put(clazz, translator)
 
-    def registerTranslators(translators: JMap[Class[_], NeutronTranslator[_]])
+    def registerTranslators(translators: JMap[Class[_], Translator[_]])
     : Unit = apiTranslators.putAll(translators)
 
     def clearTranslators(): Unit = apiTranslators.clear()
@@ -208,7 +208,7 @@ class C3POStorageManager(storage: Storage) {
         }
 
         apiTranslators.get(modelClass)
-            .asInstanceOf[NeutronTranslator[T]]
+            .asInstanceOf[Translator[T]]
             .translateNeutronOp(neutronOp)
             .map { midoOp => midoOp.toPersistenceOp }
     }
