@@ -48,7 +48,7 @@ import org.midonet.cluster.rest_api.validation.ValidatorProvider
 import org.midonet.cluster.services.c3po.{C3POMinion, C3POStorageManager}
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
-import org.midonet.cluster.storage.{LegacyStateTableStorage, MidonetBackendConfig}
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.conf.MidoNodeConfigurator
@@ -84,8 +84,6 @@ object Vladimir {
             bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
             bind(classOf[CorsFilter])
             bind(classOf[PathBuilder]).toInstance(paths)
-            bind(classOf[StateTableStorage])
-                .toInstance(new LegacyStateTableStorage(curator, paths))
             bind(classOf[CuratorFramework]).toInstance(curator)
             bind(classOf[MidonetBackend]).toInstance(backend)
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)

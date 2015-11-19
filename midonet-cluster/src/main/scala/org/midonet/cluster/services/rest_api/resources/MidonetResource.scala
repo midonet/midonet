@@ -172,8 +172,7 @@ object MidonetResource {
     case class ResourceContext @Inject() (backend: MidonetBackend,
                                           uriInfo: UriInfo,
                                           validator: Validator,
-                                          seqDispenser: SequenceDispenser,
-                                          stateTables: StateTableStorage)
+                                          seqDispenser: SequenceDispenser)
 
 }
 
