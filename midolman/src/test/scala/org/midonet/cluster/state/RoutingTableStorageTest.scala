@@ -32,15 +32,15 @@ import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend.RoutesKey
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.{ParentDeletedException, CuratorTestFramework}
+import org.midonet.cluster.util.{MidonetBackendTest, ParentDeletedException, CuratorTestFramework}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.util.reactivex._
 
-class RoutingTableStorageTest extends FlatSpec with CuratorTestFramework
-                              with Matchers with GivenWhenThen
-                              with TopologyBuilder {
+class RoutingTableStorageTest extends FlatSpec with MidonetBackendTest
+                                      with Matchers with GivenWhenThen
+                                      with TopologyBuilder {
 
     private var storage: ZookeeperObjectMapper = _
     private val hostId = UUID.randomUUID
@@ -49,7 +49,8 @@ class RoutingTableStorageTest extends FlatSpec with CuratorTestFramework
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator)
+        storage = new ZookeeperObjectMapper(zkRoot, hostId.toString, curator,
+                                            reactor, connection, connectionWatcher)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }
