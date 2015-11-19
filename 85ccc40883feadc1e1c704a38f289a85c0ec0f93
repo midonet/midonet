@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_2fd284d2",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/HttpRequestChecks.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-19T22:07:33Z",
+      "side": 1,
+      "message": "Should this be CREATED? Anyway, maybe the name of the method can reflect the status code, e.g.:\n\n  postAndAssertNoContent",
+      "range": {
+        "startLine": 47,
+        "startChar": 43,
+        "endLine": 47,
+        "endChar": 53
+      },
+      "revId": "85ccc40883feadc1e1c704a38f289a85c0ec0f93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
