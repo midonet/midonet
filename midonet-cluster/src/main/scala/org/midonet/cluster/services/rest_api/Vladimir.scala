@@ -119,7 +119,7 @@ object Vladimir {
     }
 }
 
-@ClusterService(name = "rest_api")
+@ClusterService(name = "rest-api")
 class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                          backend: MidonetBackend,
                          curator: CuratorFramework,

@@ -36,9 +36,11 @@ package object cluster {
     def c3poNeutronTranslatorLog(clazz: Class[_]) =
         s"org.midonet.cluster.services.neutron-importer.importer-${clazz.getSimpleName}"
 
+    final val conmanLog =
+        "org.midonet.cluster.services.container-manager"
+
     final val heartbeatLog =
         "org.midonet.cluster.services.heartbeat"
-
 
     final val restApiLog =
         "org.midonet.cluster.services.rest-api"
