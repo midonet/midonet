@@ -20,7 +20,8 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{Condition, UUID}
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.{Chain, Rule}
-import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state.PathBuilder
@@ -38,17 +39,17 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
 
     implicit val storage: ReadOnlyStorage = readOnlyStorage
 
-    override protected def translateCreate(fip: FloatingIp): MidoOpList = {
+    override protected def translateCreate(fip: FloatingIp): OperationList = {
         // If a port is not assigned, there's nothing to do.
         if (!fip.hasPortId) List() else associateFipOps(fip)
     }
 
-    override protected def translateDelete(id: UUID): MidoOpList = {
+    override protected def translateDelete(id: UUID): OperationList = {
         val fip = storage.get(classOf[FloatingIp], id).await()
         if (!fip.hasPortId) List() else disassociateFipOps(fip)
     }
 
-    override protected def translateUpdate(fip: FloatingIp): MidoOpList = {
+    override protected def translateUpdate(fip: FloatingIp): OperationList = {
         val oldFip = storage.get(classOf[FloatingIp], fip.getId).await()
         if ((!oldFip.hasPortId && !fip.hasPortId) ||
             (oldFip.hasPortId && fip.hasPortId &&
@@ -64,7 +65,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             associateFipOps(fip)
         } else {
             val newGwPortId = getRouterGwPortId(fip.getRouterId)
-            val midoOps = new MidoOpListBuffer
+            val midoOps = new OperationListBuffer
             if (oldFip.getRouterId != fip.getRouterId) {
                 val oldGwPortId = getRouterGwPortId(oldFip.getRouterId)
                 midoOps += removeArpEntry(fip, oldGwPortId)
@@ -89,7 +90,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         CreateNode(fipArpEntryPath(fip, gwPortId))
 
     /* Generate Create Ops for SNAT and DNAT for the floating IP address. */
-    private def addNatRules(fip: FloatingIp, gwPortId: UUID): MidoOpList = {
+    private def addNatRules(fip: FloatingIp, gwPortId: UUID): OperationList = {
         val iChainId = inChainId(fip.getRouterId)
         val oChainId = outChainId(fip.getRouterId)
         val routerGwPortId = tenantGwPortId(gwPortId)
@@ -121,7 +122,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         val inChain = storage.get(classOf[Chain], iChainId).await()
         val outChain = storage.get(classOf[Chain], oChainId).await()
 
-        val ops = new MidoOpListBuffer
+        val ops = new OperationListBuffer
         ops += Create(snatRule)
         ops += Create(dnatRule)
 
@@ -156,12 +157,12 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         router.getGwPortId
     }
 
-    private def associateFipOps(fip: FloatingIp): MidoOpList = {
+    private def associateFipOps(fip: FloatingIp): OperationList = {
         val rGwPortId = getRouterGwPortId(fip.getRouterId)
         addArpEntry(fip, rGwPortId) +: addNatRules(fip, rGwPortId)
     }
 
-    private def disassociateFipOps(fip: FloatingIp): MidoOpList = {
+    private def disassociateFipOps(fip: FloatingIp): OperationList = {
         val rGwPortId = getRouterGwPortId(fip.getRouterId)
         removeArpEntry(fip, rGwPortId) +: removeNatRules(fip)
     }
@@ -171,7 +172,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         DeleteNode(fipArpEntryPath(fip, gwPortId))
 
     /* Since Delete is idempotent, it is fine if those rules don't exist. */
-    private def removeNatRules(fip: FloatingIp): MidoOpList = {
+    private def removeNatRules(fip: FloatingIp): OperationList = {
         List(Delete(classOf[Rule], fipSnatRuleId(fip.getId)),
              Delete(classOf[Rule], fipDnatRuleId(fip.getId)))
     }

@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.models.Commons.{Protocol, Condition, Int32Range, RuleDirection}
+import org.midonet.cluster.models.Commons.{Condition, Int32Range, Protocol, RuleDirection}
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.util.IPSubnetUtil
