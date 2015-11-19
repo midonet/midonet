@@ -67,6 +67,7 @@ object SessionInventory {
             case h: DhcpV6 => Update.newBuilder().setDhcpV6(h).build()
             case h: HealthMonitor => Update.newBuilder().setHealthMonitor(h).build()
             case h: Host => Update.newBuilder().setHost(h).build()
+            case h: HostGroup => Update.newBuilder().setHostGroup(h).build()
             case h: IPAddrGroup => Update.newBuilder().setIpAddrGroup(h).build()
             case h: L2Insertion => Update.newBuilder().setL2Insertion(h).build()
             case h: Mirror => Update.newBuilder().setMirror(h).build()
