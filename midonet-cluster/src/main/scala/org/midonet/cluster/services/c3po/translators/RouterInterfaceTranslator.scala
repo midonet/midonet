@@ -45,7 +45,7 @@ object RouterInterfaceTranslator {
 }
 
 class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
-    extends NeutronTranslator[NeutronRouterInterface]
+    extends Translator[NeutronRouterInterface]
             with ChainManager
             with PortManager
             with RuleManager {
