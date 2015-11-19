@@ -32,14 +32,14 @@ import org.midonet.cluster.models.State.{VtepConfiguration, VtepConnectionState}
 import org.midonet.cluster.models.Topology.Vtep
 import org.midonet.cluster.services.MidonetBackend.{ClusterNamespaceId, VtepConfig, VtepConnState}
 import org.midonet.cluster.services.vxgw.data.VtepStateStorage._
-import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.cluster.util.{MidonetBackendTest, CuratorTestFramework}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
-class VtepStateStorageTest extends FlatSpec with CuratorTestFramework
+class VtepStateStorageTest extends FlatSpec with MidonetBackendTest
                                    with Matchers with GivenWhenThen {
 
     private var storage: ZookeeperObjectMapper = _
@@ -49,7 +49,8 @@ class VtepStateStorageTest extends FlatSpec with CuratorTestFramework
 
     protected override def setup(): Unit = {
         storage = new ZookeeperObjectMapper(zkRoot, ClusterNamespaceId.toString,
-                                            curator)
+                                            curator, reactor, connection,
+                                            connectionWatcher)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }

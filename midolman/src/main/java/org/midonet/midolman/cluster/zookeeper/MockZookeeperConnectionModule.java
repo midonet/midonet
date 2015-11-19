@@ -23,7 +23,7 @@ import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher;
 import org.midonet.cluster.backend.zookeeper.ZkConnectionProvider;
 import org.midonet.cluster.backend.zookeeper.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.MockDirectory;
-import org.midonet.midolman.state.SessionUnawareConnectionWatcher;
+import org.midonet.cluster.backend.zookeeper.SessionUnawareConnectionWatcher;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.CallingThreadReactor;
 

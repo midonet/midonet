@@ -48,9 +48,11 @@ import org.slf4j.LoggerFactory
 import rx.functions.Func1
 import rx.{Notification, Observable}
 
+import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException}
+import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeFunc1
 
 /**
@@ -103,6 +105,9 @@ import org.midonet.util.functors.makeFunc1
 class ZookeeperObjectMapper(protected override val rootPath: String,
                             protected override val namespace: String,
                             protected override val curator: CuratorFramework,
+                            reactor: Reactor,
+                            connection: ZkConnection,
+                            connectionWatcher: ZkConnectionAwareWatcher,
                             metricsRegistry: MetricRegistry = null)
     extends ZookeeperObjectState with Storage {
 

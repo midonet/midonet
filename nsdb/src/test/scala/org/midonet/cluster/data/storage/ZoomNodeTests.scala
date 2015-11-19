@@ -21,10 +21,10 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{Matchers, Suite}
 
-import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.cluster.util.{MidonetBackendTest, CuratorTestFramework}
 
 @RunWith(classOf[JUnitRunner])
-class ZoomNodeTests extends Suite with CuratorTestFramework with Matchers {
+class ZoomNodeTests extends Suite with MidonetBackendTest with Matchers {
     private var zom: ZookeeperObjectMapper = _
 
     override protected val zkRoot = "/maps"
@@ -32,7 +32,8 @@ class ZoomNodeTests extends Suite with CuratorTestFramework with Matchers {
     private val Bridge1Path = "/maps/bridge/1"
 
     override protected def setup(): Unit = {
-        zom = new ZookeeperObjectMapper(zkRoot, "host", curator)
+        zom = new ZookeeperObjectMapper(zkRoot, "host", curator, reactor,
+                                        connection, connectionWatcher)
         zom.build()
     }
 
