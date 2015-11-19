@@ -32,15 +32,17 @@ import rx.Observable
 import rx.observers.TestObserver
 import rx.subjects.PublishSubject
 
+import org.midonet.cluster.backend.zookeeper.{SessionUnawareConnectionWatcher, ZkConnection}
 import org.midonet.cluster.data.storage.StorageTestClasses.State
 import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
-import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.cluster.storage.CuratorZkConnection
+import org.midonet.cluster.util.MidonetBackendTest
 import org.midonet.cluster.data.storage.KeyType.{Multiple, SingleFirstWriteWins, SingleLastWriteWins}
 import org.midonet.util.reactivex._
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
+class ZookeeperObjectStateTest extends FeatureSpec with MidonetBackendTest
                                with Matchers with GivenWhenThen
                                with Eventually {
 
@@ -50,7 +52,8 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
     private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(zkRoot, namespaceId, curator)
+        storage = new ZookeeperObjectMapper(zkRoot, namespaceId, curator,
+                                            reactor, connection, connectionWatcher)
         ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
         initAndBuildStorage(storage)
     }
@@ -73,9 +76,14 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
         curator2.start()
         if (!curator2.blockUntilConnected(1000, TimeUnit.SECONDS))
             fail("Curator did not connect to the test ZK server")
+        val connection2 = new CuratorZkConnection(curator2, reactor)
+        val connectionWatcher2 = new SessionUnawareConnectionWatcher()
+        connectionWatcher2.setZkConnection(connection)
         val ownerId2 = curator2.getZookeeperClient.getZooKeeper.getSessionId
         val namespaceId2 = if (sameNamespace) namespaceId else UUID.randomUUID().toString
-        val storage2 = new ZookeeperObjectMapper(zkRoot, namespaceId2, curator2)
+        val storage2 = new ZookeeperObjectMapper(zkRoot, namespaceId2, curator2,
+                                                 reactor, connection2,
+                                                 connectionWatcher2)
         initAndBuildStorage(storage2)
 
         (curator2, ownerId2, namespaceId2, storage2)
