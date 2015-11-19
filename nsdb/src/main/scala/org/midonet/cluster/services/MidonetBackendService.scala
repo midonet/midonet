@@ -56,9 +56,13 @@ object MidonetBackend {
     final val VtepConnState = "connection_state"
     final val VtepVxgwManager = "vxgw_manager"
 
+    final val Ip4MacTable = "ip4_mac_table"
+
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
-    final def setupBindings(store: Storage, stateStore: StateStorage): Unit = {
+    final def setupBindings(store: Storage, stateStore: StateStorage,
+                            setup: () => Unit = () => {})
+    : Unit = {
         List(classOf[AgentMembership],
              classOf[BgpNetwork],
              classOf[BgpPeer],
@@ -233,6 +237,8 @@ object MidonetBackend {
         stateStore.registerKey(classOf[Vtep], VtepConnState, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepVxgwManager, SingleFirstWriteWins)
 
+        setup()
+
         store.build()
     }
 
@@ -247,6 +253,8 @@ abstract class MidonetBackend extends AbstractService {
     def store: Storage
     /** Provides access to the Topology State API */
     def stateStore: StateStorage
+    /** Provides access to the Topology State Tables API */
+    def stateTableStore: StateTableStorage
     /** The Curator instance being used */
     def curator: CuratorFramework
     /** Provides an executor for handing of asynchronous storage events. */
@@ -283,6 +291,9 @@ class MidonetBackendService @Inject() (config: MidonetBackendConfig,
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
+    override def stateTableStore: StateTableStorage = zoom
+
+    protected def setup(stateTableStorage: StateTableStorage): Unit = { }
 
     protected override def doStart(): Unit = {
         log.info("Starting backend store for host {}", namespaceId)
@@ -290,9 +301,9 @@ class MidonetBackendService @Inject() (config: MidonetBackendConfig,
             if (curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()
             }
-            log.info("Setting up storage bindings")
-            MidonetBackend.setupBindings(zoom, zoom)
             notifyStarted()
+            log.info("Setting up storage bindings")
+            MidonetBackend.setupBindings(zoom, zoom, () => setup(zoom))
         } catch {
             case NonFatal(e) =>
                 log.error("Failed to start backend service", e)
