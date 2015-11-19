@@ -46,12 +46,17 @@ object ZookeeperStateTableTest {
         override def remove(key: Int): String = ???
         override def remove(key: Int, value: String): String = ???
         override def removePersistent(key: Int, value: String): String = ???
-        override def contains(key: Int): Boolean = ???
-        override def contains(key: Int, value: String): Boolean = ???
+        override def containsLocal(key: Int): Boolean = ???
+        override def containsLocal(key: Int, value: String): Boolean = ???
+        override def containsRemote(key: Int): Boolean = ???
+        override def containsRemote(key: Int, value: String): Boolean = ???
         override def containsPersistent(key: Int, value: String): Boolean = ???
-        override def get(key: Int): String = ???
-        override def getByValue(value: String): Set[Int] = ???
-        override def snapshot: Map[Int, String] = ???
+        override def getLocal(key: Int): String = ???
+        override def getLocalByValue(value: String): Set[Int] = ???
+        override def getRemote(key: Int): String = ???
+        override def getRemoteByValue(value: String): Set[Int] = ???
+        override def localSnapshot: Map[Int, String] = ???
+        override def remoteSnapshot: Map[Int, String] = ???
         override def observable: Observable[Update[Int, String]] = ???
     }
 }

@@ -47,10 +47,6 @@ trait StateTableStorage {
 
     protected[this] val tableInfo = new TrieMap[Class[_], TableInfo]
 
-    /** Returns the IPv4 ARP table for the specified bridge. */
-    @Deprecated
-    def bridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC]
-
     /**
       * Registers a new state table for the given class. The state table is
       * identified by the given key class, value class and name, and it
