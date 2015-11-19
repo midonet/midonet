@@ -22,7 +22,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
 import org.midonet.cluster.models.Topology.HealthMonitor
-import org.midonet.cluster.services.c3po.{midonet, neutron}
+import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.util.UUIDUtil
 
 class HealthMonitorTranslatorTestBase extends TranslatorTestBase {
@@ -90,18 +90,18 @@ class HealthMonitorTranslatorCreateTest
     "CREATE for Neutron Health Monitor with no pool associated" should
     "create a HealthMonitor" in {
         val midoOps = translator.translate(
-            neutron.Create(neutronHealthMonitor))
-        midoOps should contain only midonet.Create(midoHealthMonitorNoPool)
+            Create(neutronHealthMonitor))
+        midoOps should contain only Create(midoHealthMonitorNoPool)
     }
 
     "CREATE for Neutron Health Monitor with a pool associated" should
     "create a HealthMonitor" in {
         bind(poolId1, poolWithHmId1)
         val midoOps = translator.translate(
-            neutron.Create(neutronHealthMonitorWithPool))
+            Create(neutronHealthMonitorWithPool))
         midoOps should contain inOrderOnly(
-            midonet.Create(midoHealthMonitorNoPool),
-            midonet.Update(poolWithHmId1))
+            Create(midoHealthMonitorNoPool),
+            Update(poolWithHmId1))
     }
 
     "CREATE for Neutron Health Monitor with two pools associated" should
@@ -109,11 +109,11 @@ class HealthMonitorTranslatorCreateTest
         bind(poolId1, poolWithHmId1)
         bind(poolId2, poolWithHmId2)
         val midoOps = translator.translate(
-            neutron.Create(neutronHealthMonitorWithPools))
+            Create(neutronHealthMonitorWithPools))
         midoOps should contain inOrderOnly(
-            midonet.Create(midoHealthMonitorNoPool),
-            midonet.Update(poolWithHmId1),
-            midonet.Update(poolWithHmId2))
+            Create(midoHealthMonitorNoPool),
+            Update(poolWithHmId1),
+            Update(poolWithHmId2))
     }
 }
 
@@ -146,9 +146,9 @@ class HealthMonitorTranslatorUpdateTest
 
     "Neutron Health Monitor UPDATE" should "update a Midonet Health Monitor " +
     "except for its status and pool IDs" in {
-        val midoOps = translator.translate(neutron.Update(nHealthMonitor))
+        val midoOps = translator.translate(Update(nHealthMonitor))
 
-        midoOps should contain only midonet.Update(
+        midoOps should contain only Update(
                 mHealthMonitor, HealthMonitorUpdateValidator)
     }
 }
@@ -163,9 +163,9 @@ class HealthMonitorTranslatorDeleteTest
     "Neutron Health Monitor DELETE" should "delete the corresponding Midonet " +
     "Health Monitor." in {
         val midoOps = translator.translate(
-                neutron.Delete(classOf[NeutronHealthMonitor], hmId))
+                Delete(classOf[NeutronHealthMonitor], hmId))
 
         midoOps should contain only
-                midonet.Delete(classOf[HealthMonitor], hmId)
+                Delete(classOf[HealthMonitor], hmId)
     }
 }

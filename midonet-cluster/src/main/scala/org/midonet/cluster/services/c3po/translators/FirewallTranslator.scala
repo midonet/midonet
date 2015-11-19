@@ -25,7 +25,7 @@ import org.midonet.cluster.models.Neutron.NeutronFirewallRule.FirewallRuleAction
 import org.midonet.cluster.models.Neutron.{NeutronFirewall, NeutronFirewallRule}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
 import org.midonet.cluster.util.RangeUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.util.concurrent.toFutureOps
@@ -77,8 +77,8 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
     private def translateRuleChainUpdate(fw: NeutronFirewall,
                                          chain: Chain,
                                          generateFirewallChainRules:
-                                             NeutronFirewall => List[Rule]): MidoOpList = {
-        val ops = new MidoOpListBuffer
+                                             NeutronFirewall => List[Rule]): OperationList = {
+        val ops = new OperationListBuffer
         val oldRules = storage.getAll(classOf[Rule],
                                       chain.getRuleIdsList.asScala).await()
         val newRules = generateFirewallChainRules(fw)
@@ -96,8 +96,8 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         ops.toList
     }
 
-    private def translateRouterAssocs(fw: NeutronFirewall): MidoOpList = {
-        val ops = new MidoOpListBuffer
+    private def translateRouterAssocs(fw: NeutronFirewall): OperationList = {
+        val ops = new OperationListBuffer
 
         // Neutron guarantees that the router IDs in add-router-ids and
         // del-router-ids do not overlap, so there should never be a case
@@ -147,7 +147,7 @@ class FirewallTranslator(protected val storage: ReadOnlyStorage)
         postRoutingRules(fw).map(Create(_)) ++
         translateRouterAssocs(fw)
 
-    private def translateFwJumpRuleDel(fwId: UUID): MidoOpList = {
+    private def translateFwJumpRuleDel(fwId: UUID): OperationList = {
         // Delete the firewall jump rules manually since ZOOM currently does
         // not delete them automatically.
         val fw = storage.get(classOf[NeutronFirewall], fwId).await()

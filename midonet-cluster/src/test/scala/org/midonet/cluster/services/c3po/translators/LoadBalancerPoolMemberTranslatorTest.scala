@@ -22,9 +22,8 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 import org.midonet.cluster.models.Topology.PoolMember
-import org.midonet.cluster.services.c3po.{midonet, neutron}
-import org.midonet.cluster.util.IPAddressUtil
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.services.c3po.C3POStorageManager._
+import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerPoolMemberTranslatorTest extends TranslatorTestBase {
@@ -96,35 +95,33 @@ class LoadBalancerPoolMemberTranslatorTest extends TranslatorTestBase {
     """)
 
     "Creation of a Neutron Member" should "create a MidoNet Member" in {
-        val midoOps = translator.translate(neutron.Create(nMember))
-        midoOps should contain only midonet.Create(mMember)
+        val midoOps = translator.translate(Create(nMember))
+        midoOps should contain only Create(mMember)
     }
 
     "Creation of a Neutron Member without Pool ID / address" should "create " +
     "a MidoNet Member without Pool ID / address" in {
-        val midoOps = translator.translate(neutron.Create(
+        val midoOps = translator.translate(Create(
                 nMemberNoPoolNoAddress))
-        midoOps should contain only midonet.Create(
+        midoOps should contain only Create(
                 mMemberNoPoolNoAddress)
     }
 
     "Update of a Neutron Member" should "update a MidoNet Member" in {
         bind(memberId, mMember)
-        val midoOps = translator.translate(neutron.Update(nMember))
-        midoOps should contain only midonet.Update(mMember)
+        val midoOps = translator.translate(Update(nMember))
+        midoOps should contain only Update(mMember)
     }
 
     "Update of a Neutron Member" should "not modify the Member status" in {
         bind(memberId, mMemberInactive)
-        val midoOps = translator.translate(neutron.Update(nMemberUpdated))
-        midoOps should contain only midonet.Update(mMemberUpdated)
+        val midoOps = translator.translate(Update(nMemberUpdated))
+        midoOps should contain only Update(mMemberUpdated)
     }
 
     "Deletion of a Neutron Member" should "delete the MidoNet Member" in {
         val midoOps = translator.translate(
-                neutron.Delete(classOf[NeutronLoadBalancerPoolMember],
-                               memberId))
-        midoOps should contain only midonet.Delete(classOf[PoolMember],
-                                                   memberId)
+                Delete(classOf[NeutronLoadBalancerPoolMember], memberId))
+        midoOps should contain only Delete(classOf[PoolMember], memberId)
     }
 }
