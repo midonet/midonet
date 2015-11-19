@@ -54,9 +54,9 @@ object PortTranslator {
 class PortTranslator(protected val storage: ReadOnlyStorage,
                      protected val pathBldr: PathBuilder,
                      sequenceDispenser: SequenceDispenser)
-        extends NeutronTranslator[NeutronPort]
-        with ChainManager with PortManager with RouteManager with RuleManager
-        with BridgeStateTableManager {
+        extends Translator[NeutronPort]
+                with ChainManager with PortManager with RouteManager with RuleManager
+                with BridgeStateTableManager {
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
     import RouterInterfaceTranslator._
 

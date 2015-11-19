@@ -23,7 +23,7 @@ import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.services.c3po.midonet._
 
 class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
-    extends NeutronTranslator[SecurityGroupRule] with ChainManager {
+    extends Translator[SecurityGroupRule] with ChainManager {
 
     /*
      * Need to create the rule, but also need to add it to the security
