@@ -156,7 +156,8 @@ project.ext {
         aspectj: "org.aspectj:aspectjrt:1.8.0",
         protobuf: "com.google.protobuf:protobuf-java:2.6.1",
         sbe: "uk.co.real-logic:sbe:1.0.3-RC2",
-        disruptor: "com.lmax:disruptor:3.3.0"
+        disruptor: "com.lmax:disruptor:3.3.0",
+        reflections: "org.reflections:reflections:0.9.10"
     ]
 
     timestamp = new Date().format("yyyyMMddHHmm")
