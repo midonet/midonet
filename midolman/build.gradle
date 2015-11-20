@@ -69,6 +69,7 @@ dependencies {
             libraries.curator_test,
             libraries.jersey_client,
             libraries.jetty_server,
+            "org.reflections:reflections:0.9.10",
             "com.fasterxml.jackson.core:jackson-databind:2.3.0"
 
     testCompile project(':midonet-cluster')
