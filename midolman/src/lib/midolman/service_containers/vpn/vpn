@@ -1,0 +1,207 @@
+#!/bin/bash -x
+
+# Copyright 2015 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#!/bin/bash -x
+
+"
+This is a script that will set up a VPN service and multiple endpoints
+inside of a namespace, and set up routes and interfaces in that
+namespace so that it can be used by the host as a VPN router.
+
+Why is this useful? 2 reasons:
+
+1) It can be plugged into a Midonet as a VPN service that won't affect (or be
+   affected by) the configuration of the host.
+
+2) We can use this in automated tests that use a VPN service. This way we can
+   pretend that we have some distant remote VPN outside of our system, but
+   actually it is completely local and controlled via a script.
+
+Mechanics:
+    The mechanics of the script is as follows:
+    1) set up a network namespace, with routes and interfaces
+    2) Write an ipsec.conf and ipsec.secrets file based on the configs
+       provided by the user.
+    2) start an openswan/libreswan IKE daemon in namespaces
+    3) For each connection we should set up, use 'ipsec whack' to notify
+       the running daemon that it should start the connection that should
+       already be defined in the ipsec.conf file.
+
+Updates:
+    Right now this script does not support updates to the config. Your only
+    option is to stop it and start a new one with the config you want.
+
+TODO: Add support for LibreSwan on RedHat/Centos
+TODO: Add support for health checks
+"
+
+# Create the namespace that will house the VPN service
+makens() {
+    DP=${NAME}_dp
+    NS=${NAME}_ns
+    ip netns add $NAME
+    ip link add name $DP type veth peer name $NS
+    ip link set $DP up
+    ip link set $NS netns $NAME
+    ip netns exec $NAME ip link set $NS up
+    ip netns exec $NAME ip address add $LEFT_IP/$LEFT_SUB_LEN dev $NS
+    ip netns exec $NAME ifconfig lo up
+    ip netns exec $NAME ip route add default via $UPLINK_IP dev $NS
+}
+
+# Start the IKE daemon
+start_pluto() {
+    ip netns exec $NAME ipsec pluto --ctlbase $PLUTO_DIR \
+                                    --ipsecdir $IPSEC_DIR \
+                                    --use-netkey \
+                                    --uniqueids \
+                                    --secretsfile $SECRETS_FILE
+}
+
+# Add the connections to the running daemon
+add_conns() {
+    for ((i=${ARG_START};i<=$SIZE;i++)) do
+        read -ra PARAMS <<< ${ARGS[$i]}
+        ip netns exec $NAME ipsec addconn --ctlbase ${PLUTO_DIR}.ctl \
+                                          --defaultroutenexthop $UPLINK_IP \
+                                          --config $CONF_FILE \
+                                          ${PARAMS[0]}
+    done
+}
+
+start_listen() {
+    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
+                                    --listen
+}
+
+initiate_conns() {
+    for ((i=${ARG_START};i<=$SIZE;i++)) do
+        read -ra PARAMS <<< ${ARGS[$i]}
+        ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
+                                        --name ${PARAMS[0]} \
+                                        --asynchronous \
+                                        --initiate
+    done
+}
+
+# Kill all processes running inside the namespace before deleting the
+# namespace itself
+cleanns() {
+    for pid in $(ip netns pids $NAME)
+    do
+        kill -9 $pid
+    done
+    ip netns del $NAME
+}
+
+
+make_ipsec_conf() {
+    cat << EOF > $CONF_FILE
+config setup
+    nat_traversal=yes
+conn %default
+    ikelifetime=480m
+    keylife=60m
+    keyingtries=%forever
+EOF
+    for ((i=${ARG_START};i<=$SIZE;i++)) do
+        read -ra PARAMS <<< ${ARGS[$i]}
+        ENCRYPT_ALG=${PARAMS[10]}
+        AUTH_ALG=${PARAMS[11]}
+        PFS=${PARAMS[12]}
+        TX_PROT=${PARAMS[13]}
+        if [ $TX_PROT == "ah" ]; then
+            PHASE_2_ALG_STR="${AUTH_ALG};${PFS}"
+        else
+            PHASE_2_ALG_STR="${ENCRYPT_ALG}-${AUTH_ALG};${PFS}"
+        fi
+
+        cat << EOF >> $CONF_FILE
+conn ${PARAMS[0]}
+    leftnexthop=%defaultroute
+    rightnexthop=%defaultroute
+    left=$LEFT_IP
+    leftid=$LEFT_IP
+    auto=${PARAMS[2]}
+    leftsubnets={ ${PARAMS[3]} }
+    leftupdown="ipsec _updown --route yes"
+    right=${PARAMS[1]}
+    rightid=${PARAMS[1]}
+    rightsubnets={ ${PARAMS[4]} }
+    mtu=${PARAMS[5]}
+    dpdaction=${PARAMS[6]}
+    dpddelay=${PARAMS[7]}
+    dpdtimeout=${PARAMS[8]}
+    authby=secret
+    ikev2=${PARAMS[9]}
+    ike=$ENCRYPT_ALG-$AUTH_ALG;$PFS
+    ikelifetime=${PARAMS[14]}s
+    auth=$TX_PROT
+    phase2alg=$PHASE_2_ALG_STR
+    type=${PARAMS[15]}
+    lifetime=${PARAMS[16]}s
+EOF
+
+    done
+}
+
+kill_pluto() {
+    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
+                                    --shutdown
+}
+
+make_ipsec_secrets() {
+    echo "" > $SECRETS_FILE
+    for ((i=${ARG_START};i<=$SIZE;i++)) do
+        echo "$LEFT_IP ${PARAMS[1]} : PSK \"${PARAMS[17]}\"" >> $SECRETS_FILE
+    done
+}
+
+
+case "$1" in
+    start)
+        NAME=${2}
+        FILES_PATH=${3}
+        LEFT_IP=${4}
+        LEFT_SUB_LEN=${5}
+        UPLINK_IP=${6}
+        IPSEC_DIR=$FILES_PATH/$NAME/etc
+        CONF_FILE=$IPSEC_DIR/ipsec.conf
+        SECRETS_FILE=$IPSEC_DIR/ipsec.secrets
+        PLUTO_DIR=$FILES_PATH/$NAME/ipsec/var/run/pluto
+        ARG_START=7
+        SIZE=$#
+        declare -A ARGS
+        for ((i=${ARG_START};i<=$SIZE;i++)) do
+            ARGS[$i]=${!i}
+        done
+        mkdir -p $IPSEC_DIR
+        mkdir -p $PLUTO_DIR
+        makens
+        make_ipsec_conf
+        make_ipsec_secrets
+        start_pluto
+        start_listen
+        add_conns
+        initiate_conns
+        ;;
+    stop)
+        NAME=${2}
+        FILES_PATH=${3}
+        PLUTO_DIR=$FILES_PATH/$NAME/ipsec/var/run/pluto
+        kill_pluto
+        cleanns
+        ;;
+esac
