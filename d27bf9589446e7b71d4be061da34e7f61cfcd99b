@@ -46,6 +46,23 @@
       "revId": "d27bf9589446e7b71d4be061da34e7f61cfcd99b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_08f4de59",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-20T18:00:15Z",
+      "side": 1,
+      "message": "A conman is someone who\u0027ll rip you off. Contman sounds much worse though. I\u0027d actually call it ContainerManagerConfig. Long winded, but it wasn\u0027t clear what the con in conman meant even.",
+      "revId": "d27bf9589446e7b71d4be061da34e7f61cfcd99b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
