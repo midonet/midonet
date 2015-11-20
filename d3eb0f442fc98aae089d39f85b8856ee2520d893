@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_88d8eef0",
+        "filename": "nsdb/src/main/proto/services.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-20T17:54:21Z",
+      "side": 1,
+      "message": "can\u0027t this be deduces by whether host_group_id or port_group_id are set?",
+      "revId": "d3eb0f442fc98aae089d39f85b8856ee2520d893",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_a8776a01",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-20T17:54:21Z",
+      "side": 1,
+      "message": "don\u0027t change numbers here. it breaks compatability.",
+      "revId": "d3eb0f442fc98aae089d39f85b8856ee2520d893",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_a8e5aaa9",
+        "filename": "nsdb/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-20T17:54:21Z",
+      "side": 1,
+      "message": "don\u0027t change numbers in protobuf files.",
+      "revId": "d3eb0f442fc98aae089d39f85b8856ee2520d893",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
