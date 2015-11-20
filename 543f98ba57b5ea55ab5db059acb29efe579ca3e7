@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_25ff0369",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpHostResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-20T11:49:05Z",
+      "side": 1,
+      "message": "This should probably be two different functions.",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 154,
+        "endChar": 5
+      },
+      "revId": "543f98ba57b5ea55ab5db059acb29efe579ca3e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_a5f23398",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpSubnetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-20T11:49:05Z",
+      "side": 1,
+      "message": "This one, too.",
+      "range": {
+        "startLine": 105,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 5
+      },
+      "revId": "543f98ba57b5ea55ab5db059acb29efe579ca3e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_c5ef2faf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpV6HostResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-20T11:49:05Z",
+      "side": 1,
+      "message": "And here.",
+      "range": {
+        "startLine": 130,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 5
+      },
+      "revId": "543f98ba57b5ea55ab5db059acb29efe579ca3e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_e52b4be9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpV6SubnetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-20T11:49:05Z",
+      "side": 1,
+      "message": "And here.",
+      "range": {
+        "startLine": 105,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 5
+      },
+      "revId": "543f98ba57b5ea55ab5db059acb29efe579ca3e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_25838305",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-20T11:49:05Z",
+      "side": 1,
+      "message": "Class.toString() (\"class fully.qualified.ClassName\") is probably not what you want here. I would add .getName or .getSimpleName. I would also remove the colon after \"DELETE\". \"TX DELETE Port: UUID\" would look good.",
+      "range": {
+        "startLine": 221,
+        "startChar": 43,
+        "endLine": 221,
+        "endChar": 74
+      },
+      "revId": "543f98ba57b5ea55ab5db059acb29efe579ca3e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_e5dd0b16",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-20T11:49:05Z",
+      "side": 1,
+      "message": "I\u0027m not sure that this is necessarily the right error code. For example, if you create a port and specify the bridge ID but the bridge doesn\u0027t exist, then maybe that should be Conflict rather than NotFound.\n\nThat is, I think NotFound should only be for get. I could be wrong about that, though.",
+      "range": {
+        "startLine": 500,
+        "startChar": 0,
+        "endLine": 502,
+        "endChar": 70
+      },
+      "revId": "543f98ba57b5ea55ab5db059acb29efe579ca3e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_85ce1759",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-20T11:49:05Z",
+      "side": 1,
+      "message": "Delete.",
+      "range": {
+        "startLine": 147,
+        "startChar": 0,
+        "endLine": 148,
+        "endChar": 49
+      },
+      "revId": "543f98ba57b5ea55ab5db059acb29efe579ca3e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_c5d80f20",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-20T11:49:05Z",
+      "side": 1,
+      "message": "Change to \". T\"",
+      "range": {
+        "startLine": 218,
+        "startChar": 38,
+        "endLine": 218,
+        "endChar": 41
+      },
+      "revId": "543f98ba57b5ea55ab5db059acb29efe579ca3e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
