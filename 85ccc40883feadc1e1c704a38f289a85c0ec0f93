@@ -70,6 +70,30 @@
       "revId": "85ccc40883feadc1e1c704a38f289a85c0ec0f93",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_05a127f8",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/HttpRequestChecks.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-20T10:50:50Z",
+      "side": 1,
+      "message": "OH this is the POST, true, I\u0027ll fix.",
+      "parentUuid": "7ac7a964_b2aa7b17",
+      "range": {
+        "startLine": 47,
+        "startChar": 43,
+        "endLine": 47,
+        "endChar": 53
+      },
+      "revId": "85ccc40883feadc1e1c704a38f289a85c0ec0f93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
