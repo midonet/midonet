@@ -16,8 +16,6 @@
 
 package org.midonet.midolman.containers
 
-import java.util.NoSuchElementException
-
 import scala.concurrent.Future
 
 import com.google.inject.Inject
@@ -32,26 +30,18 @@ import org.slf4j.LoggerFactory
 import rx.Observable
 
 import org.midonet.containers.Container
-import org.midonet.midolman.containers.ContainerHandlerProviderTest.{ContainerB, ContainerA2}
+import org.midonet.midolman.containers.ContainerHandlerProviderTest.TestContainer
 import org.midonet.midolman.topology.VirtualTopology
 
 object ContainerHandlerProviderTest {
 
-    class TestContainer extends ContainerHandler {
+    @Container(name = "test-handler", version = 1)
+    class TestContainer @Inject()(vt: VirtualTopology) extends ContainerHandler {
         override def create(port: ContainerPort): Future[String] = ???
         override def updated(port: ContainerPort): Future[Unit] = ???
         override def delete(): Future[Unit] = ???
         override def health: Observable[ContainerHealth] = ???
     }
-
-    @Container(name = "test-a", version = 1)
-    class ContainerA1 @Inject() extends TestContainer
-
-    @Container(name = "test-a", version = 2)
-    class ContainerA2 extends TestContainer
-
-    @Container(name = "test-b", version = 1)
-    class ContainerB extends TestContainer
 
 }
 
@@ -61,8 +51,8 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
 
     private val log = Logger(LoggerFactory.getLogger(getClass))
 
-    "Container provider" should "load all containers" in {
-        Given("A mock cluster configuration and backend")
+    "Container provider" should "load a container with the VT as argument" in {
+        Given("A mock virtual topology")
         val vt = Mockito.mock(classOf[VirtualTopology])
 
         And("A provider for the current class path")
@@ -70,16 +60,10 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
             "org.midonet.midolman.containers", vt, log)
 
         Then("The provider should load all classes")
-        provider.current.size should be >= 2
+        provider.current.size should be >= 1
 
         And("The loaded classes should have the last version")
-        provider.getInstance("test-a").getClass shouldBe classOf[ContainerA2]
-        provider.getInstance("test-b").getClass shouldBe classOf[ContainerB]
-
-        And("The provider fails on non-existing classes")
-        intercept[NoSuchElementException] {
-            provider.getInstance("test-none")
-        }
+        provider.getInstance("test-handler").getClass shouldBe classOf[TestContainer]
     }
 
 }
