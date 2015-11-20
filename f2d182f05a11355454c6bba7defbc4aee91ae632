@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_a8904a96",
+        "filename": "tests/ci-start.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-20T14:20:19Z",
+      "side": 1,
+      "message": "RFC: we add here some internal info and as the warning says, it should only be used in the CI as artifactory is only accessible inside the CI network. sandbox-manage pull/push won\u0027t work from the outside as we don\u0027t have our images published anyway (external users should build them themselves).",
+      "revId": "f2d182f05a11355454c6bba7defbc4aee91ae632",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
