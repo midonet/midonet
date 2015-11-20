@@ -22,6 +22,30 @@
       "revId": "85ccc40883feadc1e1c704a38f289a85c0ec0f93",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_d24617bf",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/HttpRequestChecks.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-20T07:27:59Z",
+      "side": 1,
+      "message": "My rationale was to give devs a method that says OK, and hide here the details of what does OK mean in an update (thinking it as a standard applicable to all resources).  In other words, the Ok in the method is not meant to represent HTTP 200.  Does that make sense? Either way the Javadoc should state this more clearly, I can fix in a later patch since I have a long branch already up.",
+      "parentUuid": "7ac7a964_2fd284d2",
+      "range": {
+        "startLine": 47,
+        "startChar": 43,
+        "endLine": 47,
+        "endChar": 53
+      },
+      "revId": "85ccc40883feadc1e1c704a38f289a85c0ec0f93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
