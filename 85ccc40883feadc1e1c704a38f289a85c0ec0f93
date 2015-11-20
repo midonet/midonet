@@ -46,6 +46,30 @@
       "revId": "85ccc40883feadc1e1c704a38f289a85c0ec0f93",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_b2aa7b17",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/HttpRequestChecks.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-20T09:19:06Z",
+      "side": 1,
+      "message": "Oh, the method name is fine, less important anyway.\n\nMy question was whether the status that we check should be CREATED (201) rather than NO_CONTENT (204), since this is the usual API response for a successful POST (unless it\u0027s different for Neutron - didn\u0027t check)",
+      "parentUuid": "7ac7a964_d24617bf",
+      "range": {
+        "startLine": 47,
+        "startChar": 43,
+        "endLine": 47,
+        "endChar": 53
+      },
+      "revId": "85ccc40883feadc1e1c704a38f289a85c0ec0f93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
