@@ -20,6 +20,7 @@ import java.util.UUID
 
 import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.Topology.{ServiceContainerGroup, ServiceContainer}
+import org.midonet.containers.Container
 
 /**
   * Allows the implementation of custom handlers for the service containers.
@@ -29,7 +30,7 @@ import org.midonet.cluster.models.Topology.{ServiceContainerGroup, ServiceContai
   *
   * The cluster Container Management service will load from the current class
   * path all service containers that are annotated with a
-  * [[org.midonet.cluster.services.Container]] annotation, indicating
+  * [[Container]] annotation, indicating
   * the container type name and version.
   *
   * The lifetime of a service container is the following:
