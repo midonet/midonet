@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "7ac7a964_48eed689",
+        "filename": "nsdb/src/main/proto/services.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-20T18:02:58Z",
+      "side": 1,
+      "message": "needs a ref. to the device that holds it",
+      "revId": "d3eb0f442fc98aae089d39f85b8856ee2520d893",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_88d8eef0",
         "filename": "nsdb/src/main/proto/services.proto",
         "patchSetId": 4
@@ -30,6 +47,24 @@
       "writtenOn": "2015-11-20T17:54:21Z",
       "side": 1,
       "message": "don\u0027t change numbers here. it breaks compatability.",
+      "revId": "d3eb0f442fc98aae089d39f85b8856ee2520d893",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_c8f9064f",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-20T18:02:58Z",
+      "side": 1,
+      "message": "Not sure, these are not in storage.\n\nBut it\u0027s probably a good idea to get used to not touching them.",
+      "parentUuid": "7ac7a964_a8776a01",
       "revId": "d3eb0f442fc98aae089d39f85b8856ee2520d893",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
