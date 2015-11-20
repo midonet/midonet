@@ -14,29 +14,36 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.containers
+package org.midonet.cluster.services.containers
 
 import scala.reflect.classTag
 
 import com.google.inject.{AbstractModule, Guice}
 import com.typesafe.scalalogging.Logger
 
+import org.midonet.cluster.ClusterConfig
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.containers.ContainerDelegateProvider.Prefix
 import org.midonet.containers.ContainerProvider
-import org.midonet.midolman.topology.VirtualTopology
+
+object ContainerDelegateProvider {
+    val Prefix = "org.midonet.cluster.services"
+}
 
 /**
-  * Scans the current classpath of the package specified by the `prefix`
-  * argument for service container handlers.
+  * Scans the current classpath of the package
+  * `org.midonet.cluster.services` for service container delegates.
   */
-class ContainerHandlerProvider(prefix: String, vt: VirtualTopology,
-                               log: Logger)
-    extends ContainerProvider[ContainerHandler](prefix, log)(classTag[ContainerHandler]) {
+class ContainerDelegateProvider(backend: MidonetBackend, config: ClusterConfig,
+                                log: Logger)
+    extends ContainerProvider[ContainerDelegate](Prefix, log)(classTag[ContainerDelegate]) {
 
-    log info s"Scanning classpath $prefix for service container handler"
+    log info "Scanning classpath for service container delegates"
 
     protected override val injector = Guice.createInjector(new AbstractModule() {
         override def configure(): Unit = {
-            bind(classOf[VirtualTopology]).toInstance(vt)
+            bind(classOf[MidonetBackend]).toInstance(backend)
+            bind(classOf[ClusterConfig]).toInstance(config)
         }
     })
 
