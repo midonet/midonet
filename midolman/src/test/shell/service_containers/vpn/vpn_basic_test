@@ -1,0 +1,120 @@
+#!/bin/bash -x
+
+# Copyright 2015 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+if [ $1 -eq "dev" ]; then
+    # Pass "dev" as the first arg, and the script will abort as soon as
+    # an error happens.
+    set -e
+fi
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+VPN=$DIR/../../../../../src/lib/midolman/service_containers/vpn/vpn-helper
+
+LEFT_DIR=$(mktemp -d)
+mkdir -p $LEFT_DIR/LEFT/etc
+cp $DIR/ipsec.conf $LEFT_DIR/LEFT/etc/ipsec.conf
+cp $DIR/ipsec.secrets $LEFT_DIR/LEFT/etc/ipsec.secrets
+
+RIGHT_DIR=$(mktemp -d)
+mkdir -p $RIGHT_DIR/RIGHT/etc
+cp $DIR/ipsec.conf $RIGHT_DIR/RIGHT/etc/ipsec.conf
+cp $DIR/ipsec.secrets $RIGHT_DIR/RIGHT/etc/ipsec.secrets
+
+$VPN prepare
+
+# Start the LEFT service
+$VPN makens -n LEFT -g 100.100.100.1 -l 100.100.100.2/24 -i 169.254.17.17/24 -m ca:08:1a:94:29:0e
+$VPN start_service -n LEFT -p $LEFT_DIR
+$VPN init_conns -n LEFT -p $LEFT_DIR -g 100.100.100.1 -c test_conn
+
+# Start the RIGHT service
+$VPN makens -n RIGHT -g 200.200.200.1 -l 200.200.200.2/24 -i 169.254.17.17/24 -m ca:08:1a:94:29:0d
+$VPN start_service -n RIGHT -p $RIGHT_DIR
+$VPN init_conns -n RIGHT -p $RIGHT_DIR -g 200.200.200.1 -c test_conn
+
+# Create the "router"
+ip netns add ROUTER
+
+# Add black-hole interface to router
+ip link add name BH_dp type veth peer name BH_ns
+ip link set BH_dp up
+ip link set BH_ns netns ROUTER
+ip netns exec ROUTER ip link set BH_ns up
+ip netns exec ROUTER ip address add 210.210.210.2/24 dev BH_ns
+
+# Blackhole traffic that is sent to the default route
+ip netns exec ROUTER ip route add default via 210.210.210.1 dev BH_ns
+
+# Hook the router up to a bridge that connects it with LEFT
+ip link add name R_LEFT_dp type veth peer name R_LEFT_ns
+ip link set R_LEFT_dp up
+ip link set R_LEFT_ns netns ROUTER
+ip netns exec ROUTER ip link set R_LEFT_ns up
+ip netns exec ROUTER ip address add 100.100.100.1/24 dev R_LEFT_ns
+
+brctl addbr LEFTBR
+ifconfig LEFTBR up
+brctl addif LEFTBR LEFT_dp R_LEFT_dp
+
+# Hook the router up to a bridge that connects it with RIGHT
+ip link add name R_RIGHT_dp type veth peer name R_RIGHT_ns
+ip link set R_RIGHT_dp up
+ip link set R_RIGHT_ns netns ROUTER
+ip netns exec ROUTER ip link set R_RIGHT_ns up
+ip netns exec ROUTER ip address add 200.200.200.1/24 dev R_RIGHT_ns
+
+brctl addbr RIGHTBR
+ifconfig RIGHTBR up
+brctl addif RIGHTBR RIGHT_dp R_RIGHT_dp
+
+# Add the VPN subnets, so we can ping FROM the appropriate source
+ip netns exec LEFT ip addr add 10.1.0.1/24 dev lo
+ip netns exec RIGHT ip addr add 10.2.0.1/24 dev lo
+
+sleep 3
+ip netns exec LEFT ping -I 10.1.0.1 10.2.0.1 -c1
+FROM_LEFT=$?
+ip netns exec RIGHT ping -I 10.2.0.1 10.1.0.1 -c1
+FROM_RIGHT=$?
+
+$VPN stop_service -n LEFT -p $LEFT_DIR
+$VPN cleanns -n LEFT
+
+$VPN stop_service -n RIGHT -p $RIGHT_DIR
+$VPN cleanns -n RIGHT
+
+rm -rf /opt/stack/data/neutron/
+
+ifconfig LEFTBR down
+brctl delbr LEFTBR
+
+ifconfig RIGHTBR down
+brctl delbr RIGHTBR
+
+ip netns del ROUTER
+
+if [ $FROM_LEFT -eq 0 ] && [ $FROM_RIGHT -eq 0 ]; then
+    echo "!!!!!!!!!PASS!!!!!!!!!!"
+    exit 0
+elif [ $FROM_LEFT -eq 1 ]; then
+    echo "The right side could not ping the left side."
+    echo "!!!!!!!!!FAIL!!!!!!!!!!"
+    exit 1
+elif [ $FROM_RIGHT -eq 1 ]; then
+    echo "The left side could not ping the right side."
+    echo "!!!!!!!!!FAIL!!!!!!!!!!"
+    exit 1
+fi

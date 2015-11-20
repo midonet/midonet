@@ -1,0 +1,216 @@
+#!/bin/bash -x
+
+# Copyright 2015 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This is a script that will set up a VPN service and multiple endpoints
+# inside of a namespace, and set up routes and interfaces in that
+# namespace so that it can be used by the host as a VPN router.
+#
+# Why is this useful? 2 reasons:
+#
+# 1) It can be plugged into a Midonet as a VPN service that won't affect (or be
+#    affected by) the configuration of the host.
+#
+# 2) We can use this in automated tests that use a VPN service. This way we can
+#    pretend that we have some distant remote VPN outside of our system, but
+#   actually it is completely local and controlled via a script.
+#
+# Mechanics:
+#     The mechanics of the script is as follows:
+#     1) set up a network namespace, with routes and interfaces
+#     2) Write an ipsec.conf and ipsec.secrets file based on the configs
+#        provided by the user.
+#     2) start an openswan/libreswan IKE daemon in namespaces
+#     3) For each connection we should set up, use 'ipsec whack' to notify
+#        the running daemon that it should start the connection that should
+#        already be defined in the ipsec.conf file.
+#
+# TODO: Add support for health checks
+
+exec 2>&1
+
+prepare_host() {
+    service ipsec start
+}
+
+define_paths() {
+    if [ -z ${NAME} ]; then
+        echo "name of service not specified (-n)"
+        exit 1
+    elif [ -z ${FILES_PATH} ]; then
+        echo "location of files not specified (-f)"
+        exit 1
+    fi
+    IPSEC_DIR=$FILES_PATH/$NAME/etc
+    CONF_FILE=$IPSEC_DIR/ipsec.conf
+    SECRETS_FILE=$IPSEC_DIR/ipsec.secrets
+    PLUTO_DIR=$FILES_PATH/$NAME/var/run/pluto
+    mkdir -p $PLUTO_DIR
+}
+
+# Create the namespace that will house the VPN service
+makens() {
+    if [ -z ${NAME} ]; then
+        echo "name of service not specified (-n)"
+        exit 1
+    elif [ -z ${MAC} ]; then
+        echo "mac address of namespace not specified (-m)"
+        exit 1
+    elif [ -z ${GATEWAY_IP} ]; then
+        echo "no gateway ip specified (-g)"
+        exit 1
+    elif [ -z ${LOCAL_ENDPOINT_IP} ]; then
+        echo "no ip specified for VPN endpoint (-l)"
+        exit 1
+    elif [ -z ${LOCAL_INTF_IP} ]; then
+        echo "no ip specified for interface (-l)"
+        exit 1
+    fi
+    DP=${NAME}_dp
+    NS=${NAME}_ns
+    ip netns add $NAME
+    ip link add name $DP type veth peer name $NS
+    ip link set $DP up
+    ip link set $NS netns $NAME
+    ip netns exec $NAME ip link set dev $NS address $MAC
+    ip netns exec $NAME ip link set up dev $NS
+    ip netns exec $NAME ip address add $LOCAL_ENDPOINT_IP dev $NS
+    ip netns exec $NAME ip address add $LOCAL_INTF_IP dev $NS
+    ip netns exec $NAME ip link set up dev lo
+    ip netns exec $NAME ip route add default via $GATEWAY_IP dev $NS
+}
+
+# Start the IKE daemon
+start_service() {
+    ip netns exec $NAME ipsec pluto --ctlbase $PLUTO_DIR \
+                                    --use-netkey \
+                                    --uniqueids \
+                                    --secretsfile $SECRETS_FILE
+    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
+                                    --listen
+}
+
+init_conns() {
+    if [ -z ${GATEWAY_IP} ]; then
+        echo "no gateway ip specified (-g)"
+        exit 1
+    fi
+    for ((i=0;i<$MAX_CONNS;i++)) do
+        ip netns exec $NAME ipsec addconn --ctlbase ${PLUTO_DIR}.ctl \
+                                          --defaultroutenexthop $GATEWAY_IP \
+                                          --config $CONF_FILE \
+                                          ${CONNS[$i]}
+        ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
+                                        --name ${CONNS[$i]} \
+                                        --asynchronous \
+                                        --initiate
+    done
+}
+
+# Kill all processes running inside the namespace before deleting the
+# namespace itself
+cleanns() {
+    if [ -z ${NAME} ]; then
+        echo "no name specified (-n)"
+        exit 1
+    fi
+    for pid in $(ip netns pids $NAME)
+    do
+        kill -9 $pid
+    done
+    ip link del ${NAME}_dp
+    ip netns del $NAME
+}
+
+
+stop_service() {
+    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
+                                    --shutdown
+}
+
+MAX_CONNS=0
+declare -A CONNS
+
+ACTION=$1
+shift
+while getopts ":n:p:g:l:c:m:i:" opt; do
+    case $opt in
+        n)
+            NAME=$OPTARG
+            ;;
+        p)
+            FILES_PATH=$OPTARG
+            ;;
+        g)
+            GATEWAY_IP=$OPTARG
+            ;;
+        l)
+            LOCAL_ENDPOINT_IP=$OPTARG
+            ;;
+        i)
+            LOCAL_INTF_IP=$OPTARG
+            ;;
+        m)
+            MAC=$OPTARG
+            ;;
+        c)
+            CONNS[$MAX_CONNS]=$OPTARG
+            ((MAX_CONNS++))
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument."
+            ;;
+    esac
+done
+
+if [ -z ${ACTION} ]; then
+    echo "no action specified. What do you want me to do?"
+    exit 1
+fi
+
+case $ACTION in
+    prepare)
+        prepare_host
+        ;;
+    makens)
+        makens
+        ;;
+    start_service)
+        define_paths
+        start_service
+        ;;
+    init_conns)
+        define_paths
+        init_conns
+        ;;
+    stop_service)
+        define_paths
+        stop_service
+        ;;
+    cleanns)
+        cleanns
+        ;;
+    up) # For testing
+        prepare_host
+        define_paths
+        start_service
+        init_conns
+        ;;
+    down) # For testing
+        define_paths
+        stop_service
+        cleanns
+        ;;
+esac
