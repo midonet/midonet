@@ -544,3 +544,25 @@ task wrapper(type: Wrapper) {
     description 'Generate wrapper, which is distributed as part of source to alleviate the need of installing gradle'
     gradleVersion = '2.2'
 }
+
+task copy_to_override(type:Exec) {
+    commandLine 'tests/copy_to_override.sh', 'override_v2'
+}
+
+task sandbox(type:Exec, dependsOn: copy_to_override) {
+    workingDir './tests/'
+    commandLine 'sandbox-manage', '-c', 'sandbox.conf', 'run', 'default_v2'
+    commandLine += '--name=mdts'
+    commandLine += '--override=sandbox/override_v2'
+    commandLine += '--provision=sandbox/provisioning/all-provisioning.sh'
+}
+
+task sandbox_stop(type:Exec) {
+    workingDir './tests/'
+    commandLine 'sandbox-manager', 'stop-all', '--remove'
+}
+
+task mdts(type:Exec) {
+    workingDir './tests/mdts/tests/functional_tests'
+    commandLine './run_tests.sh'
+}
