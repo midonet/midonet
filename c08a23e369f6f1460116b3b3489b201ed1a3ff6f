@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_4888961f",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-20T16:27:58Z",
+      "side": 1,
+      "message": "also delete the _dp veth. It\u0027s possible that the namespace could be created, then the veth created, but something bad happened before putting the veth in the namespace. By explicitly cleaning up the veth, you\u0027ll cover this case.",
+      "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_08e3fed9",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-20T16:27:58Z",
+      "side": 1,
+      "message": "I think it would be better to leave the writing of the config file to the java process that would be calling this script. It would mean a lot fewer parameters needing to be passed in, and it would be easier to change in future when we want to add/delete options.",
+      "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_8879ce31",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-20T16:27:58Z",
+      "side": 1,
+      "message": "this space probably shouldn\u0027t be here.",
+      "range": {
+        "startLine": 139,
+        "startChar": 21,
+        "endLine": 139,
+        "endChar": 22
+      },
+      "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_28e8bab3",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-20T16:27:58Z",
+      "side": 1,
+      "message": "I\u0027d be nicer to actually call the individual steps from the caller java process, like how is done for midolman/src/lib/midolman/bgpd-helper. It would allow us to log a message in midolman.log at the specific failed step. One problem with calling out to bash scripts like this is that error visibility is terrible.",
+      "range": {
+        "startLine": 174,
+        "startChar": 4,
+        "endLine": 174,
+        "endChar": 9
+      },
+      "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_28835a05",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-20T16:27:58Z",
+      "side": 1,
+      "message": "Perhaps you could use bash\u0027s getopt to make this more readable.",
+      "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
