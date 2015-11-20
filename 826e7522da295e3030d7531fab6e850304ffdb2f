@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_e8824251",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-20T14:18:48Z",
+      "side": 1,
+      "message": "In method publishRequest (used by linksList), it says that the reply will be streamed through the passed observer. Why can we use it then instead of looping through the replies?",
+      "range": {
+        "startLine": 424,
+        "startChar": 8,
+        "endLine": 424,
+        "endChar": 17
+      },
+      "revId": "826e7522da295e3030d7531fab6e850304ffdb2f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_08885e70",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-20T14:18:48Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 436,
+        "startChar": 8,
+        "endLine": 436,
+        "endChar": 17
+      },
+      "revId": "826e7522da295e3030d7531fab6e850304ffdb2f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
