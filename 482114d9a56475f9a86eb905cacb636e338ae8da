@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_253c63e2",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-20T13:51:09Z",
+      "side": 1,
+      "message": "ditto. this works just because they are not stored.",
+      "revId": "482114d9a56475f9a86eb905cacb636e338ae8da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_e5318b0c",
+        "filename": "nsdb/src/main/proto/topology_api.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-20T13:51:09Z",
+      "side": 1,
+      "message": "note: this is ok because these messages are ephemeral.\n\nIn topology changing the number breaks things",
+      "range": {
+        "startLine": 189,
+        "startChar": 11,
+        "endLine": 192,
+        "endChar": 33
+      },
+      "revId": "482114d9a56475f9a86eb905cacb636e338ae8da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
