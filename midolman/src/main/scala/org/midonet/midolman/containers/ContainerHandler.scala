@@ -42,11 +42,20 @@ trait ContainerHandler {
     def create(port: ContainerPort): Future[String]
 
     /**
+      * Indicates that the configuration identifier for an existing container
+      * has changed. This method is called only when the reference to the
+      * configuration changes and not when the data of the existing configuration
+      * objects change. It is the responsibility of the classes implementing
+      * this interface to monitor their configuration.
+      */
+    def updated(port: ContainerPort): Future[Unit]
+
+    /**
       * Deletes the container for the specified exterior port and namespace
       * information. The method returns a future that completes when the
       * container has been deleted.
       */
-    def delete(): Future[Void]
+    def delete(): Future[Unit]
 
     /**
       * An observable that reports the health status of the container, which
