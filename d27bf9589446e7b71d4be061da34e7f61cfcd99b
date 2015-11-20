@@ -22,6 +22,30 @@
       "revId": "d27bf9589446e7b71d4be061da34e7f61cfcd99b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_e84de273",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-20T14:06:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_a52f93a0",
+      "range": {
+        "startLine": 181,
+        "startChar": 31,
+        "endLine": 181,
+        "endChar": 63
+      },
+      "revId": "d27bf9589446e7b71d4be061da34e7f61cfcd99b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
