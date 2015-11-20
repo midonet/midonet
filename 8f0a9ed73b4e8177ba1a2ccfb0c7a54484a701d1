@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_48e33607",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-20T15:29:14Z",
+      "side": 1,
+      "message": "maybe we should have the container id here?",
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
