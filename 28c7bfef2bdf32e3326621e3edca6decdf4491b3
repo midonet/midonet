@@ -22,6 +22,30 @@
       "revId": "28c7bfef2bdf32e3326621e3edca6decdf4491b3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac7a964_c5556f1e",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-20T13:51:09Z",
+      "side": 1,
+      "message": "New fields are fine",
+      "parentUuid": "7ac7a964_9dd835f1",
+      "range": {
+        "startLine": 164,
+        "startChar": 4,
+        "endLine": 164,
+        "endChar": 39
+      },
+      "revId": "28c7bfef2bdf32e3326621e3edca6decdf4491b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
