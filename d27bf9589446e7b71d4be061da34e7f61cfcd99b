@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ac7a964_a52f93a0",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-20T13:52:57Z",
+      "side": 1,
+      "message": "this is probably misleading as we\u0027re not migrating it yet",
+      "range": {
+        "startLine": 181,
+        "startChar": 31,
+        "endLine": 181,
+        "endChar": 63
+      },
+      "revId": "d27bf9589446e7b71d4be061da34e7f61cfcd99b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
