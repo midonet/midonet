@@ -1,0 +1,103 @@
+#!/bin/bash -x
+
+# Copyright 2015 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#!/bin/bash -x
+
+set -e
+
+LEFT_DIR=$(mktemp -d)
+mkdir -p $LEFT_DIR/LEFT/etc
+cp ipsec.conf.LEFT $LEFT_DIR/LEFT/etc/ipsec.conf
+cp ipsec.secrets.LEFT $LEFT_DIR/LEFT/etc/ipsec.secrets
+
+RIGHT_DIR=$(mktemp -d)
+mkdir -p $RIGHT_DIR/RIGHT/etc
+cp ipsec.conf.RIGHT $RIGHT_DIR/RIGHT/etc/ipsec.conf
+cp ipsec.secrets.RIGHT $RIGHT_DIR/RIGHT/etc/ipsec.secrets
+
+./vpn -a prepare
+
+# Start the LEFT service
+./vpn -a makens -n LEFT -u 100.100.100.1 -l 100.100.100.2 -s 24 -m ca:08:1a:94:29:0e
+./vpn -a start_service -n LEFT -p $LEFT_DIR
+./vpn -a init_conns -n LEFT -p $LEFT_DIR -u 100.100.100.1 -c left
+
+# Start the RIGHT service
+./vpn -a makens -n RIGHT -u 200.200.200.1 -l 200.200.200.2 -s 24 -m ca:08:1a:94:29:0d
+./vpn -a start_service -n RIGHT -p $RIGHT_DIR
+./vpn -a init_conns -n RIGHT -p $RIGHT_DIR -u 200.200.200.1 -c right
+
+# Create the "router"
+ip netns add ROUTER
+
+# Add black-hole interface to router
+ip link add name BH_dp type veth peer name BH_ns
+ip link set BH_dp up
+ip link set BH_ns netns ROUTER
+ip netns exec ROUTER ip link set BH_ns up
+ip netns exec ROUTER ip address add 210.210.210.2/24 dev BH_ns
+
+# Blackhole traffic that is sent to the default route
+ip netns exec ROUTER ip route add default via 210.210.210.1 dev BH_ns
+
+# Hook the router up to a bridge that connects it with LEFT
+ip link add name R_LEFT_dp type veth peer name R_LEFT_ns
+ip link set R_LEFT_dp up
+ip link set R_LEFT_ns netns ROUTER
+ip netns exec ROUTER ip link set R_LEFT_ns up
+ip netns exec ROUTER ip address add 100.100.100.1/24 dev R_LEFT_ns
+
+brctl addbr LEFTBR
+ifconfig LEFTBR up
+brctl addif LEFTBR LEFT_dp R_LEFT_dp
+
+# Hook the router up to a bridge that connects it with RIGHT
+ip link add name R_RIGHT_dp type veth peer name R_RIGHT_ns
+ip link set R_RIGHT_dp up
+ip link set R_RIGHT_ns netns ROUTER
+ip netns exec ROUTER ip link set R_RIGHT_ns up
+ip netns exec ROUTER ip address add 200.200.200.1/24 dev R_RIGHT_ns
+
+brctl addbr RIGHTBR
+ifconfig RIGHTBR up
+brctl addif RIGHTBR RIGHT_dp R_RIGHT_dp
+
+# Add the VPN subnets, so we can ping FROM the appropriate source
+ip netns exec LEFT ip addr add 10.1.0.1/24 dev lo
+ip netns exec RIGHT ip addr add 10.2.0.1/24 dev lo
+
+sleep 3
+ip netns exec LEFT ping -I 10.1.0.1 10.2.0.1 -c1
+ip netns exec RIGHT ping -I 10.2.0.1 10.1.0.1 -c1
+
+./vpn -a stop_service -n LEFT -p $LEFT_DIR
+./vpn -a cleanns -n LEFT
+
+./vpn -a stop_service -n RIGHT -p $RIGHT_DIR
+./vpn -a cleanns -n RIGHT
+
+rm -rf /opt/stack/data/neutron/
+
+ifconfig LEFTBR down
+brctl delbr LEFTBR
+
+ifconfig RIGHTBR down
+brctl delbr RIGHTBR
+
+ip netns del ROUTER
+
+echo ""
+echo "!!!!!!!!!PASS!!!!!!!!!!"
+echo ""

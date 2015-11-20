@@ -1,0 +1,29 @@
+config setup
+    nat_traversal=yes
+conn %default
+    ikelifetime=480m
+    keylife=60m
+    keyingtries=%forever
+conn right
+    leftnexthop=%defaultroute
+    rightnexthop=%defaultroute
+    left=200.200.200.2
+    leftid=200.200.200.2
+    auto=start
+    leftsubnets={ 10.2.0.0/24 }
+    leftupdown="ipsec _updown --route yes"
+    right=100.100.100.2
+    rightid=100.100.100.2
+    rightsubnets={ 10.1.0.0/24 }
+    mtu=1500
+    dpdaction=hold
+    dpddelay=30
+    dpdtimeout=120
+    authby=secret
+    ikev2=never
+    ike=aes128-sha1;modp1536
+    ikelifetime=3600s
+    auth=esp
+    phase2alg=aes128-sha1;modp1536
+    type=tunnel
+    lifetime=3600s
