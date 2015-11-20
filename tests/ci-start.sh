@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# WARNING: this script is meant to be used on the CI, as it pulls images from
+# the CI infrastructure (artifactory)
+
 sudo modprobe openvswitch
 sudo modprobe 8021q
 # install python dependencies (may have changed since image build)
@@ -24,6 +27,9 @@ popd
 
 # Start sandbox
 pushd tests/
+echo "docker_registry=artifactory.bcn.midokura.com" >> sandbox.conf
+echo "docker_insecure_registry=True" >> sandbox.conf
+sudo sandbox-manage -c sandbox.conf pull-all default_v2
 sudo sandbox-manage -c sandbox.conf \
                     run default_v2 \
                     --name=mdts \
