@@ -17,7 +17,9 @@
 package org.midonet.cluster
 
 import java.net.URI
+import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
+import javax.ws.rs.core.Response.Status.{NO_CONTENT, CREATED}
 
 import scala.reflect.ClassTag
 
@@ -43,12 +45,35 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
       */
     def postAndAssertOk(dto: UriResource,
                         typeUri: URI, mediaType: String): URI = {
-        val postResp = resource().uri(typeUri)
-                                 .`type`(mediaType)
-                                 .post(classOf[ClientResponse], dto)
-        postResp.getStatus shouldBe Status.CREATED.getStatusCode
+        val postResp = postAndAssertStatus(dto, typeUri, mediaType, CREATED)
         postResp.getLocation shouldBe dto.getUri
         postResp.getLocation
+    }
+
+    def postAndAssertStatus(dto: UriResource, typeUri: URI, mediaType: String,
+                            status: Response.Status): ClientResponse = {
+        val postResp = resource().uri(typeUri)
+            .`type`(mediaType)
+            .post(classOf[ClientResponse], dto)
+        postResp.getStatus shouldBe status.getStatusCode
+        postResp
+    }
+
+    def putAndAssertStatus(dto: UriResource, mediaType: String,
+                           status: Int): ClientResponse = {
+        val postResp = resource().uri(dto.getUri)
+            .`type`(mediaType)
+            .put(classOf[ClientResponse], dto)
+        postResp.getStatus shouldBe status
+        postResp
+    }
+
+    def get[T](uri: URI, mediaType: String)(implicit ct: ClassTag[T]): T = {
+        val r = resource().uri(uri)
+            .accept(mediaType)
+            .get(classOf[ClientResponse])
+        r.getStatus shouldBe Status.OK.getStatusCode
+        r.getEntity(ct.runtimeClass.asInstanceOf[Class[T]])
     }
 
     /** Assert a successful GET the resource at the given DTO, checking that
@@ -56,11 +81,7 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
       */
     def getAndAssertOk[T <: UriResource](uri: URI, mediaType: String)
                                         (implicit ct: ClassTag[T]): T = {
-        val r = resource().uri(uri)
-            .accept(mediaType)
-            .get(classOf[ClientResponse])
-        r.getStatus shouldBe Status.OK.getStatusCode
-        val e = r.getEntity(ct.runtimeClass.asInstanceOf[Class[T]])
+        val e = get(uri, mediaType)(ct)
         e.setBaseUri(resource().getURI)
         e.getUri shouldBe uri
         e
@@ -70,10 +91,7 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
       * headers are set correctly and the status code meets the standard.
       */
     def putAndAssertOk(dto: UriResource, mediaType: String): Unit = {
-        val r = resource().uri(dto.getUri)
-            .`type`(mediaType)
-            .put(classOf[ClientResponse], dto)
-        r.getStatus shouldBe Status.NO_CONTENT.getStatusCode
+        putAndAssertStatus(dto, mediaType, NO_CONTENT.getStatusCode)
     }
 
     /** Assert a successful DELETE of the resource, checking that the
@@ -81,7 +99,7 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
       */
     def deleteAndAssertOk(uri: URI): Unit = {
         val delResp = resource().uri(uri).delete(classOf[ClientResponse])
-        delResp.getStatus shouldBe Status.NO_CONTENT.getStatusCode
+        delResp.getStatus shouldBe NO_CONTENT.getStatusCode
     }
 
 }
