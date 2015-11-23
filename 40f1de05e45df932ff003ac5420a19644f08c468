@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_3b659f45",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-23T12:28:11Z",
+      "side": 1,
+      "message": "please add the tests to the \u0027integration\u0027 gradle task.",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9b6cf338",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-23T12:28:11Z",
+      "side": 1,
+      "message": "please support a single ipsec implementation, we shouldn\u0027t QA two of them.",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_db766b06",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-23T12:28:11Z",
+      "side": 1,
+      "message": "it sounds like libreswan is what we should use everywhere, as openswan is mostly abandoned.",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1b60e334",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn_basic_test",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-23T12:28:11Z",
+      "side": 1,
+      "message": "shouldn\u0027t this be in a test directory, separate from the source, which will be packaged?",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
