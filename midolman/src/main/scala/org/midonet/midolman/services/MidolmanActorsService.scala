@@ -40,7 +40,6 @@ import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService._
-import org.midonet.midolman.topology.VirtualToPhysicalMapper
 
 object MidolmanActorsService {
 
@@ -76,9 +75,6 @@ class MidolmanActorsService extends AbstractService {
 
     protected def actorSpecs = {
         val actors = ListBuffer(
-            (propsFor(classOf[VirtualToPhysicalMapper]).
-                withDispatcher("actors.stash-dispatcher"),
-                VirtualToPhysicalMapper.Name),
             (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
             (propsFor(classOf[DatapathController]), DatapathController.Name),
             (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name),

@@ -130,7 +130,7 @@ public class MidolmanService extends AbstractService {
     }
 
     private List<AbstractService> services() {
-        ArrayList<AbstractService> services = new ArrayList<>(6);
+        ArrayList<AbstractService> services = new ArrayList<>(5);
         services.add(datapathConnectionService);
         services.add(selectLoopService);
         if (hostService != null)

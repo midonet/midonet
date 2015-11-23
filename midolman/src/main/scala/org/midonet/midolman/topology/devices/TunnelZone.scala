@@ -18,17 +18,14 @@ package org.midonet.midolman.topology.devices
 
 import java.util.{Objects, UUID}
 
-import org.midonet.cluster.data.TunnelZone.HostConfig
-import org.midonet.cluster.data.{TunnelZone => OldTunnelZone, _}
+import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
 import org.midonet.cluster.util.{IPAddressUtil, MapConverter}
-import org.midonet.midolman.topology.HostConfigOperation
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.devices.TunnelZone.{toOldTunnelZoneType, HostIpConverter}
-import org.midonet.packets.{IPAddr, IPv4Addr}
+import org.midonet.midolman.topology.devices.TunnelZone.HostIpConverter
+import org.midonet.packets.IPAddr
 
 object TunnelZone {
 
@@ -52,19 +49,6 @@ object TunnelZone {
         }
     }
 
-    /**
-     * This method is only to be used during the transition between the old and
-     * the new cluster design.
-     */
-    @Deprecated
-    def toOldTunnelZoneType(newType: TunnelZoneType): OldTunnelZone.Type =
-        newType match {
-            case TunnelZoneType.GRE => OldTunnelZone.Type.gre
-            case TunnelZoneType.VTEP => OldTunnelZone.Type.vtep
-            case TunnelZoneType.VXLAN => OldTunnelZone.Type.vxlan
-            case _ => throw new IllegalArgumentException("Unsupported tunnel type: "
-                                                         + s"$newType")
-        }
 }
 
 @ZoomClass(clazz = classOf[Topology.TunnelZone])
@@ -81,50 +65,6 @@ class TunnelZone extends ZoomObject with Device {
 
     override def toString =
         s"TunnelZone [id=$id name=$name type=$zoneType hosts=$hosts]"
-
-    /**
-     * Extracts the hosts field of the tunnel zone as a ZoneMembers object.
-     * This method is only to be used during the transition between the old and
-     * the new cluster design.
-     */
-    @Deprecated
-    def toZoneMembers: ZoneMembers = {
-        val hostSet = hosts.map({
-            case (k, v) => new HostConfig(k).setIp(v.asInstanceOf[IPv4Addr])
-        }).toSet
-        new ZoneMembers(id, toOldTunnelZoneType(zoneType), hostSet)
-    }
-
-    /**
-     * Extracts the difference in one host between this TunnelZone and the zone
-     * members passed as parameter.
-     * This method is only to be used during the transition between the old and
-     * the new cluster design.
-     */
-    @Deprecated
-    def diffMembers(oldZone: ZoneMembers): ZoneChanged = {
-        val oldZoneSize = oldZone.members.size
-
-        if (oldZoneSize > hosts.keySet.size) {
-            val removed = oldZone.members.map(_.getId).diff(hosts.keySet)
-            if (removed.nonEmpty) {
-                val removedMember = oldZone.members.find(_.getId == removed.head).get
-                return new ZoneChanged(id, toOldTunnelZoneType(zoneType),
-                                       removedMember, HostConfigOperation.Deleted)
-            }
-        } else {
-            val added = hosts.keySet.diff(oldZone.members.map(_.getId))
-            if (added.nonEmpty) {
-                val addedId = added.head
-                val addedHostIp = hosts.get(addedId).get.asInstanceOf[IPv4Addr]
-                val addedMember = new HostConfig(addedId).setIp(addedHostIp)
-                return new ZoneChanged(id, toOldTunnelZoneType(zoneType),
-                                       addedMember, HostConfigOperation.Added)
-            }
-        }
-
-        null
-    }
 
     override def equals(obj: Any): Boolean = obj match {
         case tunnelZone: TunnelZone =>

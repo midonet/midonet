@@ -25,10 +25,11 @@ import akka.actor._
 import com.google.inject.Inject
 
 import rx.Subscription
+import rx.subscriptions.CompositeSubscription
 
 import org.midonet.cluster.data.storage.StateStorage
 import org.midonet.cluster.data.Route
-import org.midonet.cluster.models.Topology.{Port, BgpPeer}
+import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.BgpKey
 import org.midonet.cluster.state.LegacyStorage
@@ -39,8 +40,9 @@ import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
 import org.midonet.midolman.topology.devices._
-import org.midonet.midolman.topology.{Converter, LocalPortActive, VirtualToPhysicalMapper, VirtualTopology}
+import org.midonet.midolman.topology.{Converter, VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
 import org.midonet.util.concurrent.ReactiveActor
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
@@ -123,6 +125,8 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
 
     private var bgpPortIdx = 0
 
+    private val portsSubscription = new CompositeSubscription()
+
     private val activePorts = mutable.Map[UUID, Subscription]()
     private val portHandlers = mutable.Map[UUID, ActorRef]()
 
@@ -197,11 +201,15 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
         case _ => log.error("Unknown message")
     }
 
-    override def preStart() {
+    override def preStart(): Unit = {
         super.preStart()
         routingStorage = new RoutingStorageImpl(backend.stateStore)
 
-        VirtualToPhysicalMapper.localPortActiveObservable.subscribe(this)
+        portsSubscription add VirtualToPhysicalMapper.portsActive.subscribe(this)
+    }
+
+    override def postStop(): Unit = {
+        portsSubscription.unsubscribe()
     }
 
     /** Stops the routing handler for the specified port identifier. Upon
