@@ -23,6 +23,7 @@ import scala.util.Random
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
+import org.midonet.midolman.topology.devices.TunnelZoneType
 import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.odp.ports.{GreTunnelPort, VxLanTunnelPort}
 import org.midonet.sdn.flows.FlowTagger
@@ -44,8 +45,8 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     val peerIps = List.fill(1000) { r.nextInt }
     val ipPairs = (myIps zip peerIps).toSet.toList
 
-    val gre = TunnelType.gre
-    val vxlan = TunnelType.vxlan
+    val gre = TunnelZoneType.GRE
+    val vxlan = TunnelZoneType.VXLAN
 
     implicit val log = Logger(NOPLogger.NOP_LOGGER)
 

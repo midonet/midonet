@@ -46,7 +46,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.openstack.metadata.{DatapathInterface, Plumber}
 import org.midonet.midolman.services._
 import org.midonet.midolman.state._
-import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.netlink.{NetlinkUtil, NetlinkProtocol, NetlinkChannelFactory}
 import org.midonet.odp.OvsNetlinkFamilies
 import org.midonet.Util
@@ -136,6 +136,7 @@ class MidolmanModule(config: MidolmanConfig,
         bindNatAllocator()
         bindSelectLoopService()
         bindVirtualTopology()
+        bindVirtualToPhysicalMapper()
 
         bind(classOf[MidolmanService]).asEagerSingleton()
     }
@@ -333,7 +334,7 @@ class MidolmanModule(config: MidolmanConfig,
         bind(classOf[SelectLoopService]).asEagerSingleton()
     }
 
-    protected def bindVirtualTopology() {
+    protected def bindVirtualTopology(): Unit = {
         val vtThread: AtomicLong = new AtomicLong(-1)
         bind(classOf[ExecutorService])
             .annotatedWith(Names.named(VirtualTopology.VtExecutorName))
@@ -358,6 +359,10 @@ class MidolmanModule(config: MidolmanConfig,
                 }
             }))
         bind(classOf[VirtualTopology]).asEagerSingleton()
+    }
+
+    protected def bindVirtualToPhysicalMapper(): Unit = {
+        bind(classOf[VirtualToPhysicalMapper]).asEagerSingleton()
     }
 
     protected def crashStrategy(): SupervisorStrategy =
