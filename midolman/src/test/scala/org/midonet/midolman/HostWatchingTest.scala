@@ -24,19 +24,16 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.topology.devices.Host
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.util.MidonetEventually
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class HostWatchingTest extends MidolmanSpec
                        with MidonetEventually {
 
     implicit val askTimeout: Timeout = 1 second
-
-    registerActors(VTPM -> (() => new VTPM with MessageAccumulator))
 
     val hostToWatch = UUID.randomUUID()
     val hostName = "foo"
@@ -45,20 +42,22 @@ class HostWatchingTest extends MidolmanSpec
         newHost(hostName, hostToWatch)
     }
 
-    private def interceptHost(): Host = {
-        VTPM.tryAsk(VTPM.HostRequest(hostToWatch, true))
-    }
-
     feature("midolman tracks hosts in the cluster correctly") {
-        scenario("VTPM gets a host and receives updates from its manager") {
-            VTPM ! HostRequest(hostToWatch)
+        scenario("The virtual to physical mapper relays host updates") {
+            Given("A host observer")
+            val obs = new TestAwaitableObserver[Host]
 
-            val host = interceptHost()
-            host.id should equal (hostToWatch)
-            host should not be ('alive)
+            When("The observer subscribes to the host updates")
+            VirtualToPhysicalMapper.hosts(hostToWatch).subscribe(obs)
 
+            Then("The observer receives the host")
+            obs.getOnNextEvents.get(0).id shouldBe hostToWatch
+            obs.getOnNextEvents.get(0) should not be 'alive
+
+            When("Making the port alive")
             makeHostAlive(hostToWatch)
-            eventually { interceptHost() should be ('alive) }
+            obs.getOnNextEvents.get(1).id shouldBe hostToWatch
+            obs.getOnNextEvents.get(1) shouldBe 'alive
         }
     }
 }
