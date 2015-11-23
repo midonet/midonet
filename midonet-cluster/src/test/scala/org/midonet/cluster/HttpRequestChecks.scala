@@ -17,6 +17,7 @@
 package org.midonet.cluster
 
 import java.net.URI
+import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 
 import scala.reflect.ClassTag
@@ -51,16 +52,38 @@ trait HttpRequestChecks extends JerseyTest with ShouldMatchers {
         postResp.getLocation
     }
 
+    def postAndAssertStatus(dto: UriResource, typeUri: URI, mediaType: String,
+                            status: Response.Status): ClientResponse = {
+        val postResp = resource().uri(typeUri)
+            .`type`(mediaType)
+            .post(classOf[ClientResponse], dto)
+        postResp.getStatus shouldBe status.getStatusCode
+        postResp
+    }
+
+    def putAndAssertStatus(dto: UriResource, mediaType: String,
+                           status: Int): ClientResponse = {
+        val postResp = resource().uri(dto.getUri)
+            .`type`(mediaType)
+            .put(classOf[ClientResponse], dto)
+        postResp.getStatus shouldBe status
+        postResp
+    }
+
+    def get[T](uri: URI, mediaType: String)(implicit ct: ClassTag[T]): T = {
+        val r = resource().uri(uri)
+            .accept(mediaType)
+            .get(classOf[ClientResponse])
+        r.getStatus shouldBe Status.OK.getStatusCode
+        r.getEntity(ct.runtimeClass.asInstanceOf[Class[T]])
+    }
+
     /** Assert a successful GET the resource at the given DTO, checking that
       * the relevant headers and result codes are set.
       */
     def getAndAssertOk[T <: UriResource](uri: URI, mediaType: String)
                                         (implicit ct: ClassTag[T]): T = {
-        val r = resource().uri(uri)
-            .accept(mediaType)
-            .get(classOf[ClientResponse])
-        r.getStatus shouldBe Status.OK.getStatusCode
-        val e = r.getEntity(ct.runtimeClass.asInstanceOf[Class[T]])
+        val e = get(uri, mediaType)(ct)
         e.setBaseUri(resource().getURI)
         e.getUri shouldBe uri
         e

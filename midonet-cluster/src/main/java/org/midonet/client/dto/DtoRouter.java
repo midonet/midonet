@@ -47,6 +47,24 @@ public class DtoRouter {
     private Integer asNumber;
     private UUID localRedirectChainId;
     private URI localRedirectChain;
+    private List<UUID> serviceContainerIds;
+    private List<URI> serviceContainers;
+
+    public List<UUID> getServiceContainerIds() {
+        return serviceContainerIds;
+    }
+
+    public void setServiceContainerIds(List<UUID> ids) {
+        this.serviceContainerIds = ids;
+    }
+
+    public List<URI> getServiceContainers() {
+        return serviceContainers;
+    }
+
+    public void setServiceContainers(List<URI> uri) {
+        this.serviceContainers = uri;
+    }
 
     public URI getBgpPeers() {
         return bgpPeers;
@@ -279,6 +297,11 @@ public class DtoRouter {
         if (!Objects.equal(this.inboundMirrorIds, otherRouter.getInboundMirrorIds()))
             return false;
         if (!Objects.equal(this.outboundMirrorIds, otherRouter.getOutboundMirrorIds()))
+            return false;
+
+        if (!Objects.equal(this.serviceContainerIds, otherRouter.getServiceContainerIds()))
+            return false;
+        if (!Objects.equal(this.serviceContainers, otherRouter.getServiceContainers()))
             return false;
 
         if (!Objects.equal(localRedirectChainId, otherRouter.getLocalRedirectChainId()))
