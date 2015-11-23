@@ -35,6 +35,6 @@ case class ContainerPort(portId: UUID,
             .add("hostId", hostId)
             .add("interfaceName", interfaceName)
             .add("containerId", containerId)
-            .add("configurationId", configurationId)
+            .add("vpnServiceId", configurationId)
             .toString
 }
