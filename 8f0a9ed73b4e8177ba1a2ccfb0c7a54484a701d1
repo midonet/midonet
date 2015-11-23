@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "5ac4a560_a9aec5e5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/conman/containers/AbstractContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-23T15:58:24Z",
+      "side": 1,
+      "message": "implementing?",
+      "range": {
+        "startLine": 24,
+        "startChar": 12,
+        "endLine": 24,
+        "endChar": 20
+      },
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_697cad73",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/conman/containers/AbstractContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-23T15:58:24Z",
+      "side": 1,
+      "message": "are?",
+      "range": {
+        "startLine": 66,
+        "startChar": 70,
+        "endLine": 66,
+        "endChar": 73
+      },
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_48e33607",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 1
