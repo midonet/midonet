@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_fed795eb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-23T14:45:27Z",
+      "side": 1,
+      "message": "it looks like this should go in newRouterPortBldr to unify the code?",
+      "range": {
+        "startLine": 203,
+        "startChar": 9,
+        "endLine": 204,
+        "endChar": 43
+      },
+      "revId": "e188bf0ee921278cb6f8c323877fefb14dd49dc5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
