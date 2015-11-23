@@ -16,15 +16,17 @@
 
 package org.midonet.midolman.openstack.metadata
 
-import akka.actor._
 import com.google.inject.Inject
+
+import rx.Subscription
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.Referenceable
-import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.util.concurrent.SubscriberActor
+import org.midonet.midolman.topology.VirtualToPhysicalMapper
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortActive
+import org.midonet.util.concurrent.ReactiveActor
 
 object MetadataServiceManagerActor extends Referenceable {
     override val Name = "MetadataServiceManager"
@@ -37,21 +39,29 @@ class MetadataServiceManagerActor @Inject() (
             private val config: MidolmanConfig,
             private val plumber: Plumber,
             private val datapathInterface: DatapathInterface
-        ) extends SubscriberActor with ActorLogWithoutPath {
+        ) extends ReactiveActor[LocalPortActive] with ActorLogWithoutPath {
     import context.system
 
     var store: StorageClient = null
     var mdInfo: ProxyInfo = null
+    private var subscription: Subscription = null
 
-    override def subscribedClasses = Seq(classOf[LocalPortActive])
-
-    override def preStart() {
+    override def preStart(): Unit = {
         log info "Starting metadata service"
         super.preStart
+        subscription = VirtualToPhysicalMapper.portsActive.subscribe(this)
         store = new StorageClient(backend.store)
         mdInfo = datapathInterface.init
         MetadataServiceWorkflow.mdInfo = mdInfo
         Proxy start config
+    }
+
+    override def postStop(): Unit = {
+        super.postStop()
+        if (subscription ne null) {
+            subscription.unsubscribe()
+            subscription = null
+        }
     }
 
     override def receive = {

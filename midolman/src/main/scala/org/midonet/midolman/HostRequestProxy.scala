@@ -21,7 +21,9 @@ import scala.collection.mutable
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.ActorRef
+
+import rx.Subscription
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.Port
@@ -29,10 +31,10 @@ import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.FlowStateStorage
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe}
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTopology}
+import org.midonet.util.concurrent.ReactiveActor.{OnError, OnCompleted}
 import org.midonet.util.concurrent._
 
 object HostRequestProxy {
@@ -74,9 +76,9 @@ object HostRequestProxy {
 class HostRequestProxy(hostId: UUID,
                        backChannel: SimulationBackChannel,
                        storageFuture: Future[FlowStateStorage],
-                       subscriber: ActorRef) extends Actor
-                                                 with ActorLogWithoutPath
-                                                 with SingleThreadExecutionContextProvider {
+                       subscriber: ActorRef) extends ReactiveActor[DevicesHost]
+                                             with ActorLogWithoutPath
+                                             with SingleThreadExecutionContextProvider {
 
     override def logSource = "org.midonet.datapath-control.host-proxy"
 
@@ -88,9 +90,17 @@ class HostRequestProxy(hostId: UUID,
 
     var lastPorts: Set[UUID] = Set.empty
     val belt = new ConveyorBelt(_ => {})
+    private var subscription: Subscription = null
 
-    override def preStart() {
-        VTPM ! HostRequest(hostId)
+    override def preStart(): Unit = {
+        VTPM.hosts(hostId).subscribe(this)
+    }
+
+    override def postStop(): Unit = {
+        if (subscription ne null) {
+            subscription.unsubscribe()
+            subscription = null
+        }
     }
 
     private def stateForPort(storage: FlowStateStorage,
@@ -148,8 +158,10 @@ class HostRequestProxy(hostId: UUID,
     override def receive = super.receive orElse {
         case ReSync =>
             log.debug("Re-syncing port bindings")
-            VTPM ! HostUnsubscribe(hostId)
-            VTPM ! HostRequest(hostId)
+            if (subscription ne null) {
+                subscription.unsubscribe()
+            }
+            subscription = VTPM.hosts(hostId).subscribe(this)
 
         case h: DevicesHost =>
             log.debug("Received host update with bindings {}", h.portBindings)
@@ -167,5 +179,13 @@ class HostRequestProxy(hostId: UUID,
                         log.warn("Failed to fetch state", e)
                 }(singleThreadExecutionContext)
             })
+
+        case OnCompleted =>
+            log.warn("Host deleted in storage: this is unexpected and the " +
+                     "agent will stop processing host updates")
+
+        case OnError(e) =>
+            log.error("Host emitted error: this is unexpected and the agent" +
+                      "will stop processing host updates", e)
     }
 }

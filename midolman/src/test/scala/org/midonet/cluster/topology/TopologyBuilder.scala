@@ -114,32 +114,18 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    private def tunnelZoneBuilder(id: UUID = UUID.randomUUID,
+    def createTunnelZone(id: UUID = UUID.randomUUID,
                          tzType: TunnelZone.Type,
                          name: Option[String] = None,
-                         hosts: Map[UUID, IPAddr] = Map.empty) = {
+                         hosts: Map[UUID, IPAddr] = Map.empty): TunnelZone = {
         val builder = TunnelZone.newBuilder
             .setId(id.asProto)
             .setType(tzType)
             .addAllHosts(hosts.map(e => HostToIp.newBuilder
                 .setHostId(e._1.asProto).setIp(e._2.asProto).build()).asJava)
+            .addAllHostIds(hosts.keys.map(_.asProto).asJava)
         if (name.isDefined) builder.setName(name.get)
-        builder
-    }
-
-    def createTunnelZone(id: UUID = UUID.randomUUID,
-                         tzType: TunnelZone.Type,
-                         name: Option[String] = None,
-                         hosts: Map[UUID, IPAddr] = Map.empty): TunnelZone =
-        tunnelZoneBuilder(id, tzType, name, hosts).build()
-
-    def createTunnelZoneAndAddHostIds(
-            id: UUID = UUID.randomUUID,
-            tzType: TunnelZone.Type,
-            name: Option[String] = None,
-            hosts: Map[UUID, IPAddr] = Map.empty): TunnelZone = {
-        tunnelZoneBuilder(id, tzType, name, hosts)
-            .addAllHostIds(hosts.keys.map(_.asProto).asJava).build()
+        builder.build()
     }
 
     def createHost(id: UUID = UUID.randomUUID,
@@ -868,6 +854,32 @@ trait TopologyBuilder {
 
 object TopologyBuilder {
 
+    final class RichHost(val host: Host) extends AnyVal {
+        def setName(name: String): Host =
+            host.toBuilder.setName(name).build()
+        def setFloodingProxyWeight(weight: Int): Host =
+            host.toBuilder.setFloodingProxyWeight(weight).build()
+        def addPortId(portId: UUID): Host =
+            host.toBuilder.addPortIds(portId.asProto).build()
+        def addTunnelZoneId(tunnelZoneId: UUID): Host =
+            host.toBuilder.addTunnelZoneIds(tunnelZoneId.asProto).build()
+    }
+
+    final class RichTunnelZone(val tunnelZone: TunnelZone) extends AnyVal {
+        def setType(zoneType: TunnelZone.Type): TunnelZone =
+            tunnelZone.toBuilder.setType(zoneType).build()
+        def addMember(hostId: UUID, address: IPAddr): TunnelZone =
+            tunnelZone.toBuilder
+                      .addHostIds(hostId.asProto)
+                      .addHosts(TunnelZone.HostToIp.newBuilder()
+                                                   .setHostId(hostId.asProto)
+                                                   .setIp(address.asProto)
+                                                   .build())
+                      .build()
+        def clearMembers(): TunnelZone =
+            tunnelZone.toBuilder.clearHostIds().clearHosts().build()
+    }
+
     final class RichPort(val port: Port) extends AnyVal {
         def setBridgeId(bridgeId: UUID): Port =
             port.toBuilder.setNetworkId(bridgeId.asProto).build()
@@ -1168,6 +1180,11 @@ object TopologyBuilder {
     private val random = new Random()
 
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
+
+    implicit def asRichHost(host: Host): RichHost = new RichHost(host)
+
+    implicit def asRichTunnelZone(tunnelZone: TunnelZone): RichTunnelZone =
+        new RichTunnelZone(tunnelZone)
 
     implicit def asRichPort(port: Port): RichPort = new RichPort(port)
 

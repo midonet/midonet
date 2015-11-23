@@ -26,6 +26,7 @@ import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Commons.{Condition => TopologyCondition}
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain,
                                             HealthMonitor => TopologyHealthMonitor,
+                                            Host => TopologyHost,
                                             IPAddrGroup => TopologyIpAddrGroup,
                                             LoadBalancer => TopologyLB,
                                             Mirror => TopologyMirror,
@@ -38,11 +39,9 @@ import org.midonet.cluster.models.Topology.{Chain => TopologyChain,
                                             Router => TopologyRouter,
                                             Rule => TopologyRule,
                                             Vip => TopologyVip}
-import org.midonet.cluster.topology.TopologyMatchers._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
@@ -104,6 +103,14 @@ object TopologyMatchers {
         override def shouldBeDeviceOf(p: TopologyPort): Unit = {
             super.shouldBeDeviceOf(p)
             port.vtepId shouldBe (if (p.hasVtepId) p.getVtepId.asJava else null)
+        }
+    }
+
+    class HostMatcher(host: Host) extends DeviceMatcher[TopologyHost] {
+        override def shouldBeDeviceOf(h: TopologyHost): Unit = {
+            host.id shouldBe h.getId.asJava
+            host.portIds should contain theSameElementsAs h.getPortIdsList.asScala.map(_.asJava)
+            host.tunnelZoneIds should contain theSameElementsAs h.getTunnelZoneIdsList.asScala.map(_.asJava)
         }
     }
 
@@ -320,6 +327,10 @@ object TopologyMatchers {
 }
 
 trait TopologyMatchers {
+
+    implicit def asHost(host: Host): DeviceMatcher[TopologyHost] = {
+        new HostMatcher(host)
+    }
 
     implicit def asMatcher(port: Port): DeviceMatcher[TopologyPort] = {
         port match {
