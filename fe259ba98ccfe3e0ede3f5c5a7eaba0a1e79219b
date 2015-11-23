@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_db02ebb3",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-23T11:10:33Z",
+      "side": 1,
+      "message": "Is this text that needs to be parsed?",
+      "revId": "fe259ba98ccfe3e0ede3f5c5a7eaba0a1e79219b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
