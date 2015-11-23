@@ -67,6 +67,23 @@
       "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7b5f1773",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn_basic_test",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-23T12:29:35Z",
+      "side": 1,
+      "message": "if the test fails here, do the clean up tasks below run?",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
