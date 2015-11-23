@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_5b417b0a",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-23T10:53:34Z",
+      "side": 1,
+      "message": "Should the port have a `service_container_id` field to indicate this port is attached to a service container?",
+      "range": {
+        "startLine": 334,
+        "startChar": 4,
+        "endLine": 334,
+        "endChar": 48
+      },
+      "revId": "8dd7545f42055e2d0451364a7f65ef2a51473d73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
