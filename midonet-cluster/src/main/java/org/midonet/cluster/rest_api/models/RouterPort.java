@@ -67,6 +67,10 @@ public class RouterPort extends Port {
     @ZoomField(name = "route_ids")
     public List<UUID> routeIds;
 
+    @JsonIgnore
+    @ZoomField(name = "service_container_id", converter = UUIDUtil.Converter.class)
+    public UUID serviceContainerId;
+
     public String bgpStatus;
 
     @Override
@@ -82,6 +86,10 @@ public class RouterPort extends Port {
     @Override
     public URI getDevice() {
         return absoluteUri(ResourceUris.ROUTERS, routerId);
+    }
+
+    public URI getServiceContainer() {
+        return absoluteUri(ResourceUris.SERVICE_CONTAINERS, serviceContainerId);
     }
 
     @Override
@@ -114,6 +122,7 @@ public class RouterPort extends Port {
         RouterPort routerPort = (RouterPort)from;
         routerId = routerPort.routerId;
         routeIds = routerPort.routeIds;
+        serviceContainerId = routerPort.serviceContainerId;
     }
 
     @Override
@@ -126,6 +135,7 @@ public class RouterPort extends Port {
             .add("portMac", portMac)
             .add("routerId", routerId)
             .add("routeIds", routeIds)
+            .add("serviceContainerIds", serviceContainerId)
             .toString();
     }
 }
