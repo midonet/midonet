@@ -454,7 +454,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
             store.create(fpHost)
             fetchHosts(fpHostId)
 
-            val tzone = createTunnelZoneAndAddHostIds(
+            val tzone = createTunnelZone(
                 tzType = TunnelZone.Type.VTEP,
                 hosts = Map(hostId -> IPv4Addr.random, fpHostId -> IPv4Addr.random))
             store.create(tzone)

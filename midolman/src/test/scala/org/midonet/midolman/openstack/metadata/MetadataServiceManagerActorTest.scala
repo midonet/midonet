@@ -36,8 +36,7 @@ import org.scalatest.mock.MockitoSugar
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.topology.LocalPortActive
-
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortStatus
 
 @RunWith(classOf[JUnitRunner])
 class MetadataServiceManagerActorTest extends FeatureSpecLike
@@ -84,7 +83,7 @@ class MetadataServiceManagerActorTest extends FeatureSpecLike
 
             when(mockStore.getComputePortInfo(portJId)).thenReturn(infoOpt)
             when(mockPlumber.plumb(mockEq(info), any())).thenReturn(addr)
-            actorRef ! LocalPortActive(portJId, true)
+            actorRef ! LocalPortStatus(portJId, true)
             verify(mockStore).getComputePortInfo(portJId)
             InstanceInfoMap getByAddr addr shouldBe Some(info)
         }
@@ -94,7 +93,7 @@ class MetadataServiceManagerActorTest extends FeatureSpecLike
             val infoOpt = None
 
             when(mockStore.getComputePortInfo(portJId)).thenReturn(infoOpt)
-            actorRef ! LocalPortActive(portJId, true)
+            actorRef ! LocalPortStatus(portJId, true)
             verify(mockStore).getComputePortInfo(portJId)
             verify(mockPlumber, never()).plumb(any(), any())
         }
@@ -105,7 +104,7 @@ class MetadataServiceManagerActorTest extends FeatureSpecLike
             val info = mock[InstanceInfo]
 
             InstanceInfoMap.put(addr, portJId, info)
-            actorRef ! LocalPortActive(portJId, false)
+            actorRef ! LocalPortStatus(portJId, false)
             verify(mockPlumber).unplumb(mockEq(addr), mockEq(info), any())
             InstanceInfoMap getByAddr addr shouldBe None
             verify(mockStore, never()).getComputePortInfo(any())
@@ -114,7 +113,7 @@ class MetadataServiceManagerActorTest extends FeatureSpecLike
         scenario("port inactive not found") {
             val portJId = UUID.randomUUID
 
-            actorRef ! LocalPortActive(portJId, false)
+            actorRef ! LocalPortStatus(portJId, false)
             verify(mockPlumber, never()).unplumb(any(), any(), any())
             verify(mockStore, never()).getComputePortInfo(any())
         }

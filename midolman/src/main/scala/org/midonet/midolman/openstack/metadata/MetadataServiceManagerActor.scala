@@ -23,7 +23,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.Referenceable
-import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.LocalPortStatus
 import org.midonet.util.concurrent.SubscriberActor
 
 object MetadataServiceManagerActor extends Referenceable {
@@ -43,7 +43,7 @@ class MetadataServiceManagerActor @Inject() (
     var store: StorageClient = null
     var mdInfo: ProxyInfo = null
 
-    override def subscribedClasses = Seq(classOf[LocalPortActive])
+    override def subscribedClasses = Seq(classOf[LocalPortStatus])
 
     override def preStart() {
         log info "Starting metadata service"
@@ -55,7 +55,7 @@ class MetadataServiceManagerActor @Inject() (
     }
 
     override def receive = {
-        case LocalPortActive(portId, true) =>
+        case LocalPortStatus(portId, true) =>
             log debug s"Metadata: port $portId became active"
             /*
              * XXX Theoretically, this can race with metadata requests
@@ -72,7 +72,7 @@ class MetadataServiceManagerActor @Inject() (
                     log debug s"Non-compute port? ${portId}"
             }
 
-        case LocalPortActive(portId, false) =>
+        case LocalPortStatus(portId, false) =>
             log debug s"Metadata: port $portId became inactive"
             InstanceInfoMap getByPortId portId match {
                 case Some(remoteAddr) =>
