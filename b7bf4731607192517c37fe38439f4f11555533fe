@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_fe9b1570",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/conman/ConmanService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-23T14:28:28Z",
+      "side": 1,
+      "message": "Conman /noun/ /informal/\na man who cheats or tricks someone by means of a confidence trick.\n\nNicely played.",
+      "revId": "b7bf4731607192517c37fe38439f4f11555533fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
