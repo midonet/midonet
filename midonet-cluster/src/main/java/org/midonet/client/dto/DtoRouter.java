@@ -45,6 +45,8 @@ public class DtoRouter {
     private URI bgpNetworks;
     private URI bgpPeers;
     private Integer asNumber;
+    private UUID localRedirectChainId;
+    private URI localRedirectChain;
 
     public URI getBgpPeers() {
         return bgpPeers;
@@ -166,6 +168,14 @@ public class DtoRouter {
         this.loadBalancer = loadBalancer;
     }
 
+    public URI getLocalRedirectChain() {
+        return localRedirectChain;
+    }
+
+    public void setLocalRedirectChain() {
+        this.localRedirectChain = localRedirectChain;
+    }
+
     public URI getUri() {
         return uri;
     }
@@ -196,6 +206,14 @@ public class DtoRouter {
 
     public void setPeerPorts(URI peerPorts) {
         this.peerPorts = peerPorts;
+    }
+
+    public UUID getLocalRedirectChainId() {
+        return localRedirectChainId;
+    }
+
+    public void setLocalRedirectChainId(UUID localRedirectChainId) {
+        this.localRedirectChainId = localRedirectChainId;
     }
 
     @Override
@@ -261,6 +279,9 @@ public class DtoRouter {
         if (!Objects.equal(this.inboundMirrorIds, otherRouter.getInboundMirrorIds()))
             return false;
         if (!Objects.equal(this.outboundMirrorIds, otherRouter.getOutboundMirrorIds()))
+            return false;
+
+        if (!Objects.equal(localRedirectChainId, otherRouter.getLocalRedirectChainId()))
             return false;
 
         if (adminStateUp != otherRouter.adminStateUp) {

@@ -55,6 +55,9 @@ class Router(resource_base.ResourceBase,
     def get_asn(self):
         return self.dto['asNumber']
 
+    def get_local_redirect_chain_id(self):
+        return self.dto['localRedirectChainId']
+
     def id(self, id):
         self.dto['id'] = id
         return self
@@ -81,6 +84,10 @@ class Router(resource_base.ResourceBase,
 
     def asn(self, asn):
         self.dto['asNumber'] = asn
+        return self
+
+    def local_redirect_chain_id(self, id_):
+        self.dto['localRedirectChainId'] = id_
         return self
 
     def get_inbound_mirrors(self, query=None):

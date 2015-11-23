@@ -533,6 +533,9 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         if (router.hasInboundFilterId) {
             infilters.add(router.getInboundFilterId)
         }
+        if (router.hasLocalRedirectChainId) {
+            infilters.add(router.getLocalRedirectChainId)
+        }
         if (router.hasOutboundFilterId) {
             outfilters.add(router.getOutboundFilterId)
         }
@@ -574,9 +577,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
                                 .asScala.map(_.asJava).toList)
 
         // Request the chains for this router.
-        chainsTracker.requestRefs(
-            if (router.hasInboundFilterId) router.getInboundFilterId else null,
-            if (router.hasOutboundFilterId) router.getOutboundFilterId else null)
+        chainsTracker.requestRefs((infilters.asScala ++ outfilters.asScala) :_*)
 
         // Request the mirrors for this router.
         mirrorsTracker.requestRefs(router.getInboundMirrorIdsList.asScala map (_.asJava) :_*)

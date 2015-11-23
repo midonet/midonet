@@ -1736,6 +1736,11 @@ class Router(ObjectType):
                                  setter = 'outbound_mirrors',
                                  unsetter = 'outbound_mirrors',
                                  optional = True))
+        self.put_attr(SingleAttr(name = 'local-redirect-chain',
+                                 value_type = ObjectRef('chain'),
+                                 getter = 'get_local_redirect_chain_id',
+                                 setter = 'local_redirect_chain_id',
+                                 unsetter = 'local_redirect_chain_id'))
 
     def type_name(self):
         return "router"
