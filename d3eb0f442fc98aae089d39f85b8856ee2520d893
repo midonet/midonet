@@ -71,6 +71,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_fb5167d9",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-23T11:04:08Z",
+      "side": 1,
+      "message": "they\u0027re used by the api. It mean different versions of the api would be incompatible with each other which could be bad for rolling upgrades.",
+      "parentUuid": "7ac7a964_c8f9064f",
+      "revId": "d3eb0f442fc98aae089d39f85b8856ee2520d893",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_a8e5aaa9",
         "filename": "nsdb/src/main/proto/topology_api.proto",
         "patchSetId": 4
