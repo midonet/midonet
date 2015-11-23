@@ -28,6 +28,8 @@ import org.midonet.cluster.services.c3po.midonet.{Create, Delete, MidoOp, Update
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
 import org.midonet.cluster.util.IPSubnetUtil._
+import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.util.concurrent.toFutureOps
@@ -44,7 +46,8 @@ object RouterInterfaceTranslator {
             .xorWith(0x3bcf2eb64be211e5L, 0x84ae0242ac110003L)
 }
 
-class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
+class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
+                                sequenceDispenser: SequenceDispenser)
     extends NeutronTranslator[NeutronRouterInterface]
             with ChainManager
             with PortManager
@@ -197,6 +200,8 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
             // The port will be bound to a host rather than connected to a
             // network port. Add it to the edge router's port group.
             routerPortBldr.addPortGroupIds(PortManager.portGroupId(routerId))
+            val tk = sequenceDispenser.next(OverlayTunnelKey).await()
+            routerPortBldr.setTunnelKey(tk)
         } else {
             // Connect the router port to the network port, which has the same
             // ID as nPort. Also add a reference to the DHCP. Zoom will add a
