@@ -29,7 +29,6 @@ import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
-import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
 import org.midonet.cluster.util._
 import org.midonet.midolman.state.PathBuilder
@@ -81,9 +80,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         // All other ports have a corresponding Midonet network (bridge) port.
         val midoPortBldr = translateNeutronPort(nPort)
 
-        // Generate a new tunnel key
-        val tk = sequenceDispenser.next(OverlayTunnelKey).await()
-        midoPortBldr.setTunnelKey(tk)
+        assignTunnelKey(midoPortBldr, sequenceDispenser)
 
         val portId = nPort.getId
         val midoOps = new MidoOpListBuffer
