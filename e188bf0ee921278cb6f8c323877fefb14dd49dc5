@@ -22,6 +22,30 @@
       "revId": "e188bf0ee921278cb6f8c323877fefb14dd49dc5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9e25c10c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-23T14:49:42Z",
+      "side": 1,
+      "message": "but that\u0027s called also for interior ports, from gatewayPortCreateOps. I can move it there, but it will be less precise.",
+      "parentUuid": "5ac4a560_fed795eb",
+      "range": {
+        "startLine": 203,
+        "startChar": 9,
+        "endLine": 204,
+        "endChar": 43
+      },
+      "revId": "e188bf0ee921278cb6f8c323877fefb14dd49dc5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
