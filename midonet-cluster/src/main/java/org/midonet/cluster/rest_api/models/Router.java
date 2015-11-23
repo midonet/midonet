@@ -27,7 +27,8 @@ import com.google.common.base.MoreObjects;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.ResourceUris;
+
+import static org.midonet.cluster.rest_api.ResourceUris.*;
 
 @ZoomClass(clazz = Topology.Router.class)
 public class Router extends UriResource {
@@ -99,43 +100,43 @@ public class Router extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.ROUTERS, id);
+        return absoluteUri(ROUTERS, id);
     }
 
     public URI getInboundFilter() {
-        return absoluteUri(ResourceUris.CHAINS, inboundFilterId);
+        return absoluteUri(CHAINS, inboundFilterId);
     }
 
     public URI getOutboundFilter() {
-        return absoluteUri(ResourceUris.CHAINS, outboundFilterId);
+        return absoluteUri(CHAINS, outboundFilterId);
     }
 
     public URI getPorts() {
-        return relativeUri(ResourceUris.PORTS);
+        return relativeUri(PORTS);
     }
 
     public URI getPeerPorts() {
-        return relativeUri(ResourceUris.PEER_PORTS);
+        return relativeUri(PEER_PORTS);
     }
 
     public URI getRoutes() {
-        return relativeUri(ResourceUris.ROUTES);
+        return relativeUri(ROUTES);
     }
 
     public URI getLoadBalancer() {
-        return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
+        return absoluteUri(LOAD_BALANCERS, loadBalancerId);
     }
 
     public URI getBgpNetworks() {
-        return relativeUri(ResourceUris.BGP_NETWORKS);
+        return relativeUri(BGP_NETWORKS);
     }
 
     public URI getBgpPeers() {
-        return relativeUri(ResourceUris.BGP_PEERS);
+        return relativeUri(BGP_PEERS);
     }
 
     public URI getLocalRedirectChain() {
-        return absoluteUri(ResourceUris.CHAINS, localRedirectChainId);
+        return absoluteUri(CHAINS, localRedirectChainId);
     }
 
     @JsonIgnore
