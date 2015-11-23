@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_7b0e3736",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/ipsec.conf.LEFT",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "Used as examples and also the test script.",
+      "parentUuid": "5ac4a560_58126163",
+      "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_58b6e18b",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2015-11-23T09:41:31Z",
       "side": 1,
       "message": "does this work? I\u0027ve been using ip link set address $MAC dev $NS",
+      "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_db610bd5",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "oops, this doesn\u0027t work, but also doesn\u0027t return an error code for some reason. Anyways, fixed.",
+      "parentUuid": "5ac4a560_58b6e18b",
       "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_7baab7d5",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 3
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_78bb9d72",
+      "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_d880318e",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 3
@@ -64,6 +118,24 @@
       "writtenOn": "2015-11-23T09:41:31Z",
       "side": 1,
       "message": "you need to specify 2 ip addresses. One is the address of the router uplink, one is actual ip of the interface.\n\nFor example, in the mockup I had, the veth peer had the address 169.254.1.1/24 \u0026 169.254.1.2/24. The router ip was 200.200.200.1, so the vpn namespace interface was configured like:\n\n15: ext0: \u003cBROADCAST,MULTICAST,UP,LOWER_UP\u003e mtu 1500 qdisc pfifo_fast state UP group default qlen 1000\n    link/ether ac:ca:ba:4a:61:c5 brd ff:ff:ff:ff:ff:ff\n    inet 169.254.1.2/24 scope global ext0\n       valid_lft forever preferred_lft forever\n    inet 200.200.200.1/24 scope global ext0\n       valid_lft forever preferred_lft forever\n\nAnd the routes like:\ndefault via 169.254.1.1 dev ext0 \n169.254.1.0/24 dev ext0  proto kernel  scope link  src 169.254.1.2 \n\nThe caller needs to pass in 3 pieces of info for L3.\n1. router ip (maybe call vpn endpoint ip to avoid confusion).\n2. interface ip\n3. gateway ip\n\nI don\u0027t think it\u0027s worth keeping the ip and subnet as separate variables. Less work just to pass it in as a string.",
+      "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9bcdd389",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 3
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "Added an option for the \"interface ip\".",
+      "parentUuid": "5ac4a560_d880318e",
       "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_3b791f94",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 3
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_18bc696c",
+      "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_184aa983",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 3
@@ -98,6 +188,24 @@
       "writtenOn": "2015-11-23T09:41:31Z",
       "side": 1,
       "message": "rename to MAX_CONNS",
+      "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_db33cbf4",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 3
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_184aa983",
       "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -121,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_1b74639b",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 3
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_1818e983",
+      "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_38c125e5",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 3
@@ -132,6 +258,24 @@
       "writtenOn": "2015-11-23T09:41:31Z",
       "side": 1,
       "message": "what do you mean by \u0027left\u0027 here? are we left or right? Openswan always uses this left/right terminology, but I find it confusing. It give no indication of which endpoint is remote and which is local. \n\nThe neutron models don\u0027t use it, so perhaps we should avoid it too. \n\nPerhaps it\u0027d be better to name this local_peer_ip.",
+      "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb5ec711",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 3
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "Yeah openswan uses \"left\" to mean \"local\" and \"right\" to mean \"peer\". I changed the name to \"local_endpoint_ip\" because I thought using \"local\" and \"peer\" together would be confusing.",
+      "parentUuid": "5ac4a560_38c125e5",
       "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -155,6 +299,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_9b95d38a",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "no, removed.",
+      "parentUuid": "5ac4a560_384f6594",
+      "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_58442174",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 3
@@ -166,6 +328,24 @@
       "writtenOn": "2015-11-23T09:41:31Z",
       "side": 1,
       "message": "make a comment that these should only be used for testing",
+      "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9baeb3e6",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 3
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_58442174",
       "revId": "f7ea250b583cc4530dc95cde5bf07c0969a11405",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
