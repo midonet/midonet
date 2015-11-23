@@ -25,6 +25,8 @@ import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Topology.{Dhcp, Host, Port, PortOrBuilder}
 import org.midonet.cluster.services.c3po.midonet.Update
+import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.MAC
 import org.midonet.util.concurrent.toFutureOps
@@ -57,6 +59,12 @@ trait PortManager extends RouteManager {
     : Port.Builder = Port.newBuilder.setId(id)
                                     .setRouterId(routerId)
                                     .setAdminStateUp(adminStateUp)
+
+    protected def setExterior(port: Port.Builder,
+                              sequenceDispenser: SequenceDispenser): Unit = {
+        val tk = sequenceDispenser.next(OverlayTunnelKey).await()
+        port.setTunnelKey(tk)
+    }
 
     /**
      * Modifies port to set its peerId to peer's ID, and returns list of
