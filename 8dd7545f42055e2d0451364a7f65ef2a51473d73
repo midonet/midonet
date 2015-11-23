@@ -22,6 +22,30 @@
       "revId": "8dd7545f42055e2d0451364a7f65ef2a51473d73",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_097419fc",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-23T18:05:00Z",
+      "side": 1,
+      "message": "yes, but I\u0027ll add it later when I implement the actual translations which create such port",
+      "parentUuid": "5ac4a560_5b417b0a",
+      "range": {
+        "startLine": 334,
+        "startChar": 4,
+        "endLine": 334,
+        "endChar": 48
+      },
+      "revId": "8dd7545f42055e2d0451364a7f65ef2a51473d73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
