@@ -59,6 +59,9 @@ public class MidolmanService extends AbstractService {
     @Inject
     PeerResolver resolver;
 
+    @Inject
+    VirtualToPhysicalMapper virtualToPhysicalMapper;
+
     private JmxReporter jmxReporter = null;
 
     @Override
@@ -136,6 +139,7 @@ public class MidolmanService extends AbstractService {
         if (hostService != null)
             services.add(hostService);
         services.add(actorsService);
+        services.add(virtualToPhysicalMapper);
         return services;
     }
 }

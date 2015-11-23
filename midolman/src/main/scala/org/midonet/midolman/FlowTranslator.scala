@@ -29,9 +29,9 @@ import akka.util.Timeout
 
 import org.midonet.midolman.simulation.{VxLanPort, PacketContext}
 import org.midonet.midolman.topology.{VxLanPortMappingService, VirtualToPhysicalMapper}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.midolman.simulation.Port
+import org.midonet.midolman.topology.devices.Host
 import org.midonet.odp.flows.FlowActions.{output, setKey}
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr}
@@ -160,7 +160,7 @@ trait FlowTranslator {
                 return
         }
 
-        val host = VirtualToPhysicalMapper.tryAsk(new HostRequest(hostId))
+        val host = tryGet[Host](hostId)
         val tzMembership = host.tunnelZones.get(tunnel.tunnelZoneId)
 
         if (tzMembership eq None) {
