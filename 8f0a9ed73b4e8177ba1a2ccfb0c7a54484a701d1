@@ -16,6 +16,24 @@
       "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_db4d8bc6",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-23T12:36:01Z",
+      "side": 1,
+      "message": "+1, that\u0027s what the scheduler will emit upon creation/reconfiguration right?",
+      "parentUuid": "7ac7a964_48e33607",
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
