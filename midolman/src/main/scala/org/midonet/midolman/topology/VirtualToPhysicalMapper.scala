@@ -15,44 +15,31 @@
  */
 package org.midonet.midolman.topology
 
-import java.util.concurrent.ConcurrentHashMap
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.{ClassTag, classTag}
-import scala.util.{Failure, Success}
+import scala.util.control.NonFatal
 
-import akka.actor._
-import akka.util.Timeout
+import com.google.common.util.concurrent.AbstractService
+import com.google.common.util.concurrent.Service.State
 import com.google.inject.Inject
-import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
+
 import rx.Observable
+import rx.functions.Func1
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.storage.StateResult
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
-import org.midonet.midolman._
-import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.HostIdProvider
-import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.devices.{Host, TunnelZone => NewTunnelZone}
+import org.midonet.midolman.topology.devices.{TunnelZoneType, Host, TunnelZone}
+import org.midonet.packets.IPAddr
 import org.midonet.util.concurrent._
+import org.midonet.util.functors.makeAction1
 import org.midonet.util.reactivex._
-
-object HostConfigOperation extends Enumeration {
-    val Added, Deleted = Value
-}
-
-sealed trait VtpmRequest[D] {
-    protected[topology] val tag: ClassTag[D]
-    def getCached: Option[D]
-}
 
 /**
  * Send this message to the VirtualToPhysicalMapper to let it know when
@@ -63,12 +50,201 @@ sealed trait VtpmRequest[D] {
  * the corresponding OVS datapath port) any tunneled packet whose tunnel
  * key encodes the port's ID.
  *
- * @param portID The uuid of the port that is to marked as active/inactive
+ * @param portId The uuid of the port that is to marked as active/inactive
  * @param active True if the port is ready to emit/receive; false
  *               otherwise.
  */
-case class LocalPortActive(portID: UUID, active: Boolean)
+case class LocalPortActive(portId: UUID, active: Boolean)
 
+object VirtualToPhysicalMapper extends MidolmanLogging {
+
+    object TunnelZoneMemberOp extends Enumeration {
+        val Added, Deleted = Value
+    }
+
+    case class TunnelZoneUpdate(zoneId: UUID,
+                                zoneType: TunnelZoneType,
+                                hostId: UUID,
+                                address: IPAddr,
+                                op: TunnelZoneMemberOp.Value)
+
+    private class TunnelZoneDiff
+        extends Func1[TunnelZone, Observable[TunnelZoneUpdate]] {
+
+        private var last: TunnelZone = null
+
+        override def call(tunnelZone: TunnelZone): Observable[TunnelZoneUpdate] = {
+            val observable = if (last ne null) {
+                val added =
+                    (tunnelZone.hosts -- last.hosts.keySet).toSeq map { host =>
+                        TunnelZoneUpdate(tunnelZone.id,
+                                         tunnelZone.zoneType,
+                                         host._1,
+                                         host._2,
+                                         TunnelZoneMemberOp.Added)
+                    }
+                val removed =
+                    (last.hosts -- tunnelZone.hosts.keySet).toSeq map { host =>
+                        TunnelZoneUpdate(tunnelZone.id,
+                                         tunnelZone.zoneType,
+                                         host._1,
+                                         host._2,
+                                         TunnelZoneMemberOp.Added)
+                    }
+                Observable.from((added ++ removed).asJava)
+            } else {
+                val updates = tunnelZone.hosts.toSeq.map { host =>
+                    TunnelZoneUpdate(tunnelZone.id,
+                                     tunnelZone.zoneType,
+                                     host._1,
+                                     host._2,
+                                     TunnelZoneMemberOp.Added)
+                }
+                Observable.from(updates.asJava)
+            }
+            last = tunnelZone
+            observable
+        }
+    }
+
+    private[topology] var self: VirtualToPhysicalMapper = _
+
+    def setPortActive(portId: UUID, active: Boolean): Future[StateResult] = {
+        self.setPortActive(portId, active)
+    }
+
+    def portsActive: Observable[LocalPortActive] = {
+        self.portsActive
+    }
+
+    def hosts(hostId: UUID): Observable[Host] = {
+        self.hosts(hostId)
+    }
+
+    def tunnelZones(tunnelZoneId: UUID): Observable[TunnelZoneUpdate] = {
+        self.tunnelZones(tunnelZoneId)
+    }
+
+    /**
+      * Registers a virtual to physical mapper instance to this companion
+      * object.
+      */
+    private def register(vtpm: VirtualToPhysicalMapper): Unit = {
+        self = vtpm
+    }
+
+}
+
+class VirtualToPhysicalMapper @Inject() (val backend: MidonetBackend,
+                                         val vt: VirtualTopology,
+                                         val hostIdProvider: HostIdProvider)
+    extends AbstractService with MidolmanLogging {
+
+    import VirtualToPhysicalMapper._
+
+    override def logSource = "org.midonet.devices.underlay"
+
+    private val vxlanPortMapping = new VxLanPortMappingService(vt)
+
+    private val activePorts = new ConcurrentHashMap[UUID, Boolean]
+    private val portsActiveSubject = PublishSubject.create[LocalPortActive]
+
+    private implicit val ec = ExecutionContext.fromExecutor(vt.vtExecutor)
+
+    register(this)
+
+    override def doStart(): Unit = {
+        try {
+            vxlanPortMapping.startAsync().awaitRunning()
+        } catch {
+            case NonFatal(e) =>
+                log.error("Failed to start the VXLAN port mapping service", e)
+                notifyFailed(e)
+                doStop()
+                return
+        }
+        notifyStarted()
+    }
+
+    override def doStop(): Unit = {
+        clearPortsActive().await()
+
+        try {
+            vxlanPortMapping.stopAsync().awaitTerminated()
+        } catch {
+            case NonFatal(e) =>
+                log.error("Failed to stop the VXLAN port mapping service", e)
+                notifyFailed(e)
+        }
+
+        if (state() != State.FAILED) {
+            notifyStopped()
+        }
+    }
+
+    /**
+      * Sets the active flag for the specified local port. The method returns
+      * a future that indicate the completion of the operation. The future will
+      * complete on the virtual topology thread.
+      */
+    private def setPortActive(portId: UUID, active: Boolean): Future[StateResult] = {
+        val hostId = hostIdProvider.hostId()
+
+        backend.stateStore.setPortActive(portId, hostId, active)
+               .observeOn(vt.vtScheduler)
+               .doOnNext(makeAction1 { result =>
+                   log.debug("Port {} active to {} (owner {})", portId,
+                             Boolean.box(active), Long.box(result.ownerId))
+                   activePorts.putIfAbsent(portId, true)
+                   portsActiveSubject onNext LocalPortActive(portId, active = true)
+               })
+               .doOnError(makeAction1 { e =>
+                   log.error("Failed to set port {} active to {}", portId,
+                             Boolean.box(active), e)
+               })
+               .asFuture
+    }
+
+    /**
+      * An observable that emits notifications when the status of a local port
+      * has been updated in the backend storage. The observable will not emit
+      * an update if a request to update the local port active status has
+      * failed. Updates emitted by this observable are scheduled on the virtual
+      * topology thread.
+      */
+    private def portsActive: Observable[LocalPortActive] = {
+        portsActiveSubject.asObservable()
+    }
+
+    /**
+      * An observable that emits updates for the specified host.
+      */
+    private def hosts(hostId: UUID): Observable[Host] = {
+        VirtualTopology.observable[Host](hostId)
+    }
+
+    /**
+      * An observable that emits updates for the specified tunnel zone.
+      */
+    private def tunnelZones(tunnelZoneId: UUID): Observable[TunnelZoneUpdate] = {
+        VirtualTopology.observable[TunnelZone](tunnelZoneId)
+                       .flatMap(new TunnelZoneDiff)
+    }
+
+    /**
+      * Clears the active flag from all current local ports and returns a future
+      * that completes when the update has finished.
+      */
+    private def clearPortsActive(): Future[_] = {
+        val futures = for (portId: UUID <- activePorts.keySet().asScala.toSet) yield {
+            setPortActive(portId, active = false)
+        }
+        Future.sequence(futures)
+    }
+
+}
+
+/*
 object VirtualToPhysicalMapper extends Referenceable {
 
     val log = LoggerFactory.getLogger("org.midonet.devices.underlay")
@@ -286,27 +462,6 @@ trait DataClientLink {
 
     protected def log: Logger
 
-    def notifyLocalPortActive(portId: UUID, active: Boolean): Unit = {
-        val hostId = hostIdProvider.hostId()
-
-        backend.stateStore.setPortActive(portId, hostId, active) andThen {
-            case Success(StateResult(ownerId)) =>
-                log.debug("Port {} active to {} (owner {})", portId,
-                          Boolean.box(active), Long.box(ownerId))
-                activeLocalPorts.putIfAbsent(portId, true)
-                VirtualToPhysicalMapper.subjectLocalPortActive.onNext(
-                    LocalPortActive(portId, active = true))
-            case Failure(e) =>
-                log.error("Failed to set port {} active to {}", portId,
-                          Boolean.box(active), e)
-        }
-    }
-
-    def clearLocalPortActive(): Unit = {
-        for (portId: UUID <- activeLocalPorts.keySet().asScala.toSet) {
-            notifyLocalPortActive(portId, active = false)
-        }
-    }
 
 }
 
@@ -481,3 +636,4 @@ abstract class VirtualToPhysicalMapperBase
 
 class VirtualToPhysicalMapper
     extends VirtualToPhysicalMapperBase with DataClientLink with DeviceManagement
+*/

@@ -40,7 +40,6 @@ import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockStateStorage}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
@@ -87,10 +86,10 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     def fetchHosts(hosts: UUID*): Seq[Host] =
         hosts map fetchDevice[Host]
 
-    def fetchHost(hostId: UUID): Host =
-        Await.result(
-            ask(VirtualToPhysicalMapper, HostRequest(hostId)),
-            timeout.duration).asInstanceOf[Host]
+    //def fetchHost(hostId: UUID): Host =
+    //    Await.result(
+    //        ask(VirtualToPhysicalMapper, HostRequest(hostId)),
+    //        timeout.duration).asInstanceOf[Host]
 
     def fetchPortGroups(portGroups: UUID*): Seq[PortGroup] =
         portGroups map fetchDevice[PortGroup]

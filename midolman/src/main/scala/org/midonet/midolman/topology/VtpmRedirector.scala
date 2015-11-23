@@ -27,7 +27,7 @@ import rx.{Observable, Subscriber}
 import org.midonet.cluster.data.storage.{TransactionManager, NotFoundException}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe, TunnelZoneRequest, TunnelZoneUnsubscribe}
+//import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe, TunnelZoneRequest, TunnelZoneUnsubscribe}
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{Host, TunnelZone}
 import org.midonet.util.functors.makeFunc1
@@ -46,6 +46,7 @@ import org.midonet.util.functors.makeFunc1
  * section of the configuration will make the VTPMRedirector use the new storage
  * stack.  Otherwise, it'll use the old stack.
  */
+/*
 abstract class VtpmRedirector extends Actor with MidolmanLogging {
 
     override def logSource = "org.midonet.devices.underlay"
@@ -188,4 +189,4 @@ abstract class VtpmRedirector extends Actor with MidolmanLogging {
             log.debug("Device {} update", deviceId)
             deviceUpdated(device)
     }
-}
+}*/

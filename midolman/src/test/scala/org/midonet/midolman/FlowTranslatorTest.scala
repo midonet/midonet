@@ -50,7 +50,6 @@ import org.midonet.util.concurrent.ExecutionContextOps
 
 @RunWith(classOf[JUnitRunner])
 class FlowTranslatorTest extends MidolmanSpec {
-    registerActors(VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
 
     trait TranslationContext {
         protected val dpState: TestDatapathState
@@ -118,7 +117,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def activatePorts(localPorts: Seq[UUID]): Unit = {
         localPorts foreach { p =>
-            VirtualToPhysicalMapper ! LocalPortActive(p, active = true)
+            VirtualToPhysicalMapper.setPortActive(p, active = true)
         }
     }
 
@@ -185,7 +184,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             addTunnelZoneMember(id, hostId, ip)
         }
         bindings foreach { case (id, name) => materializePort(id, hostId, name) }
-        fetchHost(hostId)
+        //fetchHost(hostId)
     }
 
     feature("FlowActionUserspace goes through untouched") {

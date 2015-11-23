@@ -56,6 +56,7 @@ import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.reactivex._
 import org.midonet.util.reactivex.AwaitableObserver
 
+/*
 @RunWith(classOf[JUnitRunner])
 class VtpmRedirectorTest extends TestKit(ActorSystem("VtpmRedirectorTest"))
                          with MidolmanSpec
@@ -445,3 +446,4 @@ class VtpmRedirectorTest extends TestKit(ActorSystem("VtpmRedirectorTest"))
         }
     }
 }
+*/
