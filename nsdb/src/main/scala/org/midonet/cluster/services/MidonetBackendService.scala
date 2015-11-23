@@ -30,7 +30,7 @@ import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.models.Services.ServiceContainer
+import org.midonet.cluster.models.Services._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
@@ -95,6 +95,7 @@ object MidonetBackend {
              classOf[Rule],
              classOf[SecurityGroup],
              classOf[ServiceContainer],
+             classOf[ServiceContainerGroup],
              classOf[SecurityGroupRule],
              classOf[TraceRequest],
              classOf[TunnelZone],
@@ -106,6 +107,9 @@ object MidonetBackend {
                              classOf[L2Insertion], "port_id", CLEAR)
         store.declareBinding(classOf[Port], "srv_insertion_ids", CASCADE,
                              classOf[L2Insertion], "srv_port_id", CLEAR)
+
+        store.declareBinding(classOf[ServiceContainer], "service_group_id", CLEAR,
+                             classOf[ServiceContainerGroup], "service_container_ids", CASCADE)
 
         store.declareBinding(classOf[Network], "service_container_ids", CASCADE,
                              classOf[ServiceContainer], "network_id", CLEAR)
