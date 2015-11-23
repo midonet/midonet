@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_e94d1dc6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-23T21:40:24Z",
+      "side": 1,
+      "message": "SC group missing",
+      "range": {
+        "startLine": 97,
+        "startChar": 21,
+        "endLine": 97,
+        "endChar": 37
+      },
+      "revId": "f0e939197e88576ec4b27f7e5faeba5cba7bcb66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
