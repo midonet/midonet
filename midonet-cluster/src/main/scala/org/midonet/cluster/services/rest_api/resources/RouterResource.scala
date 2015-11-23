@@ -73,6 +73,12 @@ class RouterResource @Inject()(resContext: ResourceContext,
         new RouterBgpPeerResource(id, resContext)
     }
 
+    @Path("{id}/service_containers")
+    def service_containers(@PathParam("id") id: UUID): ServiceContainerResource = {
+        val router = getResource(classOf[Router], id).getOrThrow
+        new ServiceContainerResource(router, resContext)
+    }
+
     protected override def listFilter(routers: Seq[Router]): Future[Seq[Router]] = {
         val tenantId = resContext.uriInfo.getQueryParameters
                                          .getFirst("tenant_id")
