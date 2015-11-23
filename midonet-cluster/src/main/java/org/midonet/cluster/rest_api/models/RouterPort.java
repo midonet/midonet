@@ -31,8 +31,6 @@ import org.apache.commons.lang.StringUtils;
 
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.MAC;
@@ -48,12 +46,12 @@ public class RouterPort extends Port {
     public int networkLength;
 
     @JsonIgnore
-    @ZoomField(name = "port_subnet", converter = IPSubnetUtil.Converter.class)
+    @ZoomField(name = "port_subnet")
     public IPSubnet<?> portSubnet;
 
     @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
-    @ZoomField(name = "port_address", converter = IPAddressUtil.Converter.class)
+    @ZoomField(name = "port_address")
     public String portAddress;
 
     @ZoomField(name = "port_mac")
@@ -66,6 +64,10 @@ public class RouterPort extends Port {
     @JsonIgnore
     @ZoomField(name = "route_ids")
     public List<UUID> routeIds;
+
+    @JsonIgnore
+    @ZoomField(name = "service_container_id")
+    public UUID serviceContainerId;
 
     public String bgpStatus;
 
@@ -82,6 +84,10 @@ public class RouterPort extends Port {
     @Override
     public URI getDevice() {
         return absoluteUri(ResourceUris.ROUTERS, routerId);
+    }
+
+    public URI getServiceContainer() {
+        return absoluteUri(ResourceUris.SERVICE_CONTAINERS, serviceContainerId);
     }
 
     @Override
@@ -114,6 +120,7 @@ public class RouterPort extends Port {
         RouterPort routerPort = (RouterPort)from;
         routerId = routerPort.routerId;
         routeIds = routerPort.routeIds;
+        serviceContainerId = routerPort.serviceContainerId;
     }
 
     @Override
@@ -126,6 +133,7 @@ public class RouterPort extends Port {
             .add("portMac", portMac)
             .add("routerId", routerId)
             .add("routeIds", routeIds)
+            .add("serviceContainerIds", serviceContainerId)
             .toString();
     }
 }

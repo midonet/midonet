@@ -107,11 +107,11 @@ object MidonetBackend {
         store.declareBinding(classOf[Port], "srv_insertion_ids", CASCADE,
                              classOf[L2Insertion], "srv_port_id", CLEAR)
 
-        store.declareBinding(classOf[Network], "service_container_ids", CASCADE,
-                             classOf[ServiceContainer], "network_id", CLEAR)
+        store.declareBinding(classOf[ServiceContainer], "service_group_id", CLEAR,
+                             classOf[ServiceContainerGroup], "service_container_ids", CASCADE)
 
-        store.declareBinding(classOf[Router], "service_container_ids", CASCADE,
-                             classOf[ServiceContainer], "router_id", CLEAR)
+        store.declareBinding(classOf[Port], "service_container_id", CASCADE,
+                             classOf[ServiceContainer], "port_id", CLEAR)
 
         store.declareBinding(classOf[ServiceContainerGroup], "host_group_id", CLEAR,
                              classOf[HostGroup], "service_group_ids", CLEAR)

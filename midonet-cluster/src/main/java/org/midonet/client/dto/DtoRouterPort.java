@@ -17,6 +17,7 @@
 package org.midonet.client.dto;
 
 import java.net.URI;
+import java.util.UUID;
 
 public class DtoRouterPort extends DtoPort {
 
@@ -25,6 +26,15 @@ public class DtoRouterPort extends DtoPort {
     private String portAddress;
     private String portMac;
     private URI bgps;
+    private URI serviceContainer;
+
+    public void setServiceContainer(URI uri) {
+        this.serviceContainer = uri;
+    }
+
+    public URI getServiceContainer() {
+        return this.serviceContainer;
+    }
 
     @Override
     public String getNetworkAddress() {
