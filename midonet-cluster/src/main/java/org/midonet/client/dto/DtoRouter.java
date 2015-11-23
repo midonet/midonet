@@ -45,6 +45,7 @@ public class DtoRouter {
     private URI bgpNetworks;
     private URI bgpPeers;
     private Integer asNumber;
+    private UUID localRedirectChainId;
 
     public URI getBgpPeers() {
         return bgpPeers;
@@ -198,6 +199,14 @@ public class DtoRouter {
         this.peerPorts = peerPorts;
     }
 
+    public UUID getLocalRedirectChainId() {
+        return localRedirectChainId;
+    }
+
+    public void setLocalRedirectChainId(UUID localRedirectChainId) {
+        this.localRedirectChainId = localRedirectChainId;
+    }
+
     @Override
     public boolean equals(Object other) {
 
@@ -261,6 +270,9 @@ public class DtoRouter {
         if (!Objects.equal(this.inboundMirrorIds, otherRouter.getInboundMirrorIds()))
             return false;
         if (!Objects.equal(this.outboundMirrorIds, otherRouter.getOutboundMirrorIds()))
+            return false;
+
+        if (!Objects.equal(localRedirectChainId, otherRouter.getLocalRedirectChainId()))
             return false;
 
         if (adminStateUp != otherRouter.adminStateUp) {
