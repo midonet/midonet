@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.state.PeerResolver;
+import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 
 /**
  * Basic controller of the internal midolman services.
@@ -55,6 +56,9 @@ public class MidolmanService extends AbstractService {
 
     @Inject(optional = true)
     HostService hostService;
+
+    @Inject
+    VirtualToPhysicalMapper virtualToPhysicalMapper;
 
     @Inject
     PeerResolver resolver;
@@ -130,11 +134,12 @@ public class MidolmanService extends AbstractService {
     }
 
     private List<Service> services() {
-        ArrayList<Service> services = new ArrayList<>(6);
+        ArrayList<Service> services = new ArrayList<>(5);
         services.add(datapathConnectionService);
         services.add(selectLoopService);
         if (hostService != null)
             services.add(hostService);
+        services.add(virtualToPhysicalMapper);
         services.add(actorsService);
         return services;
     }

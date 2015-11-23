@@ -42,6 +42,7 @@ import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.devices.{Host => SimHost}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPAddr
+import org.midonet.util.concurrent._
 import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
@@ -569,7 +570,6 @@ class HostMapperTest extends MidolmanSpec
         val newTZId = newProtoTunnelZone.getId.asJava
         val updatedHost = newHost(protoHost.getId,
                                   Set(oldTZId, newTZId))
-        store.update(updatedHost)
         (updatedHost, newProtoTunnelZone)
     }
 
@@ -606,11 +606,11 @@ class HostMapperTest extends MidolmanSpec
     private def createHostAndTunnelZone(): (Host, TunnelZone) = {
         val hostId = UUID.randomUUID
         val tunnelZone = newTunnelZone(hostId)
-        val host = newHost(hostId, Set(tunnelZone.getId.asJava))
-        store.multi(Seq(CreateOp(tunnelZone), CreateOp(host)))
+        val host = createHost(hostId)
+        store.multi(Seq(CreateOp(host), CreateOp(tunnelZone)))
         stateStore.addValue(classOf[Host], hostId, AliveKey, AliveKey)
                   .await(timeout)
-        (host, tunnelZone)
+        (store.get(classOf[Host], hostId).await(), tunnelZone)
     }
 
     private def createRouterWithPorts(numPorts: Int): Seq[Port] = {

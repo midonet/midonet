@@ -22,6 +22,7 @@ import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.reflect._
@@ -36,7 +37,6 @@ import org.slf4j.LoggerFactory
 
 import rx.{Observer, Subscription}
 
-import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -45,8 +45,9 @@ import org.midonet.midolman.io._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.state.FlowStateStorageFactory
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneMemberOp, TunnelZoneUpdate}
 import org.midonet.midolman.topology._
+import org.midonet.midolman.topology.devices.TunnelZoneType
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.netlink._
 import org.midonet.odp.flows.FlowActionOutput
@@ -55,6 +56,7 @@ import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
 import org.midonet.util.concurrent._
 
 object UnderlayResolver {
@@ -146,14 +148,13 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                                     clock: NanoClock,
                                     storageFactory: FlowStateStorageFactory,
                                     val netlinkChannelFactory: NetlinkChannelFactory)
-        extends Actor
+        extends ReactiveActor[TunnelZoneUpdate]
         with ActorLogWithoutPath
         with SingleThreadExecutionContextProvider
         with DatapathPortEntangler
         with MtuIncreaser {
 
     import org.midonet.midolman.DatapathController._
-    import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
 
     import context.{dispatcher, system}
 
@@ -162,6 +163,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     var zones = Map[UUID, IPAddr]()
 
     var portWatcher: Subscription = null
+    private val tzSubscriptions = new mutable.HashMap[UUID, Subscription]
 
     override def preStart(): Unit = {
         super.preStart()
@@ -236,13 +238,17 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             newZones: Map[UUID, IPAddr]): Unit =  {
         val dropped = oldZones.keySet.diff(newZones.keySet)
         for (zone <- dropped) {
-            VirtualToPhysicalMapper ! TunnelZoneUnsubscribe(zone)
+            tzSubscriptions.remove(zone) match {
+                case Some(subscription) => subscription.unsubscribe()
+                case None =>
+            }
             driver.removePeersForZone(zone).foreach(backChannel.tell)
         }
 
         val added = newZones.keySet.diff(oldZones.keySet)
-        for (zone <- added) {
-            VirtualToPhysicalMapper ! TunnelZoneRequest(zone)
+        for (zone <- added if !tzSubscriptions.contains(zone)) {
+            tzSubscriptions += zone -> VirtualToPhysicalMapper.tunnelZones(zone)
+                                                              .subscribe(this)
         }
     }
 
@@ -256,35 +262,31 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             updateVPortInterfaceBindings(host.ports)
             doDatapathZonesUpdate(oldZones, newZones)
 
-        case m@ZoneMembers(zone, zoneType, members) =>
-            log.debug("ZoneMembers event: {}", m)
-            if (zones contains zone) {
-                for (m <- members) {
-                    handleZoneChange(zone, zoneType, m, HostConfigOperation.Added)
-                }
-            }
-
-        case m@ZoneChanged(zone, zoneType, hostConfig, op) =>
-            log.debug("ZoneChanged event: {}", m)
+        case m@TunnelZoneUpdate(zone, zoneType, hostId, address, op) =>
+            log.debug("Tunnel zone changed: {}", m)
             if (zones contains zone)
-                handleZoneChange(zone, zoneType, hostConfig, op)
+                handleZoneChange(zone, zoneType, hostId, address, op)
+
+        case OnCompleted => // A tunnel-zone was deleted
+
+        case OnError(e) => // A tunnel-zone emitted an error
 
         case InterfacesUpdate_(interfaces) =>
             updateInterfaces(interfaces)
             setTunnelMtu(interfaces)
     }
 
-    def handleZoneChange(zone: UUID, t: TunnelType, config: TZHostConfig,
-                         op: HostConfigOperation.Value) {
+    def handleZoneChange(zone: UUID, zoneType: TunnelZoneType, hostId: UUID,
+                         address: IPAddr, op: TunnelZoneMemberOp.Value) {
 
-        if (config.getId == hostIdProvider.hostId)
+        if (hostId == hostIdProvider.hostId)
             return
 
-        val peerUUID = config.getId
+        val peerUUID = hostId
 
         op match {
-            case HostConfigOperation.Added => processAddPeer()
-            case HostConfigOperation.Deleted => processDelPeer()
+            case TunnelZoneMemberOp.Added => processAddPeer()
+            case TunnelZoneMemberOp.Deleted => processDelPeer()
         }
 
         def processTags(tags: TraversableOnce[FlowTag]): Unit =
@@ -294,11 +296,15 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             processTags(driver.removePeer(peerUUID, zone))
 
         def processAddPeer() =
-            zones.get(zone) match {
-                case Some(srcIp: IPv4Addr) =>
-                    val dstIp = config.getIp.toInt
-                    val tags = driver.addPeer(peerUUID, zone, srcIp.toInt, dstIp, t)
+            (zones.get(zone), address) match {
+                case (Some(srcIp: IPv4Addr), ipv4Address: IPv4Addr) =>
+                    val dstIp = ipv4Address.toInt
+                    val tags = driver.addPeer(peerUUID, zone, srcIp.toInt, dstIp,
+                                              zoneType)
                     processTags(tags)
+                case (Some(_), _) =>
+                    log.info("IPv6 addresses are not supported for tunnel zone " +
+                             s"members in tunnel zone $zone for host $hostId")
                 case _ =>
                     log.info("Could not find this host's ip for zone {}", zone)
             }
@@ -320,7 +326,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                                 isActive: Boolean): Unit = {
         log.info(s"Port ${port.getPortNo}/${port.getName}/$vport " +
                  s"became ${if (isActive) "active" else "inactive"}")
-        system.eventStream.publish(LocalPortActive(vport, isActive))
+        VirtualToPhysicalMapper.setPortActive(vport, isActive)
         invalidateTunnelKeyFlows(port, tunnelKey, isActive)
         if (isActive)
             increaseMtu(vport)
@@ -416,11 +422,11 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
      *  @return possible tags to send to the FlowController for invalidation
      */
     def addPeer(peer: UUID, zone: UUID,
-                srcIp: Int, dstIp: Int, t: TunnelType): Seq[FlowTag] = {
+                srcIp: Int, dstIp: Int, t: TunnelZoneType): Seq[FlowTag] = {
         val outputAction = t match {
-            case TunnelType.vtep => return Seq.empty[FlowTag]
-            case TunnelType.gre => tunnelOverlayGre.toOutputAction
-            case TunnelType.vxlan => tunnelOverlayVxLan.toOutputAction
+            case TunnelZoneType.VTEP => return Seq.empty[FlowTag]
+            case TunnelZoneType.GRE => tunnelOverlayGre.toOutputAction
+            case TunnelZoneType.VXLAN => tunnelOverlayVxLan.toOutputAction
         }
 
         val newRoute = Route(srcIp, dstIp, outputAction)
