@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
@@ -69,6 +68,12 @@ class RouterResource @Inject()(resContext: ResourceContext,
     @Path("{id}/bgp_peers")
     def bgpPeers(@PathParam("id") id: UUID): RouterBgpPeerResource = {
         new RouterBgpPeerResource(id, resContext)
+    }
+
+    @Path("{id}/service_containers")
+    def service_containers(@PathParam("id") id: UUID): ServiceContainerResource = {
+        val router = getResource(classOf[Router], id)
+        new ServiceContainerResource(router, resContext)
     }
 
     protected override def listFilter(routers: Seq[Router]): Seq[Router] = {

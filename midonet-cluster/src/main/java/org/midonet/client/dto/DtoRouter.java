@@ -32,6 +32,7 @@ public class DtoRouter {
     private String tenantId;
     private List<UUID> inboundMirrorIds;
     private List<UUID> outboundMirrorIds;
+    private List<UUID> serviceContainerIds;
     private UUID inboundFilterId;
     private UUID outboundFilterId;
     private URI inboundFilter;
@@ -47,6 +48,23 @@ public class DtoRouter {
     private Integer asNumber;
     private UUID localRedirectChainId;
     private URI localRedirectChain;
+    private URI serviceContainers;
+
+    public List<UUID> getServiceContainerIds() {
+        return serviceContainerIds;
+    }
+
+    public void setServiceContainerIds(List<UUID> ids) {
+        this.serviceContainerIds = ids;
+    }
+
+    public URI getServiceContainers() {
+        return serviceContainers;
+    }
+
+    public void setServiceContainers(URI uri) {
+        this.serviceContainers = uri;
+    }
 
     public URI getBgpPeers() {
         return bgpPeers;

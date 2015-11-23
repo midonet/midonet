@@ -16,6 +16,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -89,6 +90,9 @@ public class Router extends UriResource {
     @ZoomField(name = "local_redirect_chain_id", converter = UUIDUtil.Converter.class)
     public UUID localRedirectChainId;
 
+    @ZoomField(name = "service_container_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> serviceContainerIds;
+
     public Router() {
         adminStateUp = true;
     }
@@ -109,6 +113,10 @@ public class Router extends UriResource {
 
     public URI getOutboundFilter() {
         return absoluteUri(ResourceUris.CHAINS, outboundFilterId);
+    }
+
+    public URI getServiceContainers() {
+        return relativeUri(ResourceUris.SERVICE_CONTAINERS);
     }
 
     public URI getPorts() {
@@ -174,6 +182,7 @@ public class Router extends UriResource {
             .add("bgpPeerIds", bgpPeerIds)
             .add("traceRequestIds", traceRequestIds)
             .add("localRedirectChainId", localRedirectChainId)
+            .add("serviceContainerIds", serviceContainerIds)
             .toString();
     }
 }
