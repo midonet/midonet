@@ -48,9 +48,6 @@ import org.midonet.sdn.flows.FlowTagger
 class AdminStateTest extends MidolmanSpec {
     implicit val askTimeout: Timeout = 1 second
 
-    registerActors(VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
-                                                     with MessageAccumulator))
-
     /*
      * The topology for this test consists of one bridge and one router,
      * each with two ports, one interior and another exterior.
@@ -131,8 +128,7 @@ class AdminStateTest extends MidolmanSpec {
         bca = new BackChannelAccessor(injector.getInstance(classOf[VirtualTopology]))
         bca.getAndClearBC()
 
-        VirtualToPhysicalMapper ! LocalPortActive(exteriorBridgePort,
-                                                  active = true)
+        VirtualToPhysicalMapper.setPortActive(exteriorBridgePort, active = true)
     }
 
     lazy val fromBridgeSide = (exteriorBridgePort, bridgeSidePkt)
