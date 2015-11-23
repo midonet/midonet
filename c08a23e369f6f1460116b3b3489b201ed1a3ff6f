@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_58ab4189",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "I have added the mac address setting.\n\nIsn\u0027t only one IP necessary? We can still route packets to this port be simply adding routes to the router that direct traffic to the \"right-side subnets\" to this namespace port.",
+      "parentUuid": "7ac7a964_48a5f651",
+      "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_4888961f",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_d89e7163",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_4888961f",
+      "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_08e3fed9",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2015-11-20T16:27:58Z",
       "side": 1,
       "message": "I think it would be better to leave the writing of the config file to the java process that would be calling this script. It would mean a lot fewer parameters needing to be passed in, and it would be easier to change in future when we want to add/delete options.",
+      "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b891b554",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 1
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "I have taken this part out of the script, so that we can do it in the agent. I will leave the agent changes to a future patch.",
+      "parentUuid": "7ac7a964_08e3fed9",
       "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -99,6 +153,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_9894f945",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "I have broken the script up into more fine grade steps so that the caller can call the script step by step. Please refer to the test file to see how these should be called.",
+      "parentUuid": "7ac7a964_28e8bab3",
+      "range": {
+        "startLine": 174,
+        "startChar": 4,
+        "endLine": 174,
+        "endChar": 9
+      },
+      "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_28835a05",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 1
@@ -110,6 +188,24 @@
       "writtenOn": "2015-11-20T16:27:58Z",
       "side": 1,
       "message": "Perhaps you could use bash\u0027s getopt to make this more readable.",
+      "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_78b0fdf4",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-23T11:22:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ac7a964_28835a05",
       "revId": "c08a23e369f6f1460116b3b3489b201ed1a3ff6f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
