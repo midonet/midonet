@@ -89,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_2960f534",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-23T18:05:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_fb5167d9",
+      "revId": "d3eb0f442fc98aae089d39f85b8856ee2520d893",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_a8e5aaa9",
         "filename": "nsdb/src/main/proto/topology_api.proto",
         "patchSetId": 4
