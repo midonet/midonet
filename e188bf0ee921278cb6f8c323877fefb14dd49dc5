@@ -46,6 +46,30 @@
       "revId": "e188bf0ee921278cb6f8c323877fefb14dd49dc5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ca0f6f2d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T09:43:24Z",
+      "side": 1,
+      "message": "this might need a bit more code reorg, my point is that this patch makes the multiple-code-paths problem worse than it is, as it\u0027s doing exterior port creation on different places.  At least, a routerMgr.assignTunnelKey(routerPortBldr) from both places would allow some degree of centralisation",
+      "parentUuid": "5ac4a560_9e25c10c",
+      "range": {
+        "startLine": 203,
+        "startChar": 9,
+        "endLine": 204,
+        "endChar": 43
+      },
+      "revId": "e188bf0ee921278cb6f8c323877fefb14dd49dc5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
