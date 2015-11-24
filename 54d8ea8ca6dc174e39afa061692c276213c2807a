@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_2ae9c31a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-24T10:32:25Z",
+      "side": 1,
+      "message": "Do we need this? Is there ever a time when it makes sense to have a collection of Operation[Network] or Operation[Router], as opposed to Operation[_]? Usually when we have multiple operations, it\u0027s a mix of types. If we never specialize, do we need to have the parameter?",
+      "range": {
+        "startLine": 42,
+        "startChar": 19,
+        "endLine": 42,
+        "endChar": 33
+      },
+      "revId": "54d8ea8ca6dc174e39afa061692c276213c2807a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6acadba2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-24T10:32:25Z",
+      "side": 1,
+      "message": "C3POStorageManager?",
+      "range": {
+        "startLine": 61,
+        "startChar": 11,
+        "endLine": 61,
+        "endChar": 26
+      },
+      "revId": "54d8ea8ca6dc174e39afa061692c276213c2807a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6a41fb0a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-24T10:32:25Z",
+      "side": 1,
+      "message": "Not in this patch, but now that we allow control of Zoom transactions outside of Zoom, we can fix this.",
+      "range": {
+        "startLine": 197,
+        "startChar": 0,
+        "endLine": 202,
+        "endChar": 54
+      },
+      "revId": "54d8ea8ca6dc174e39afa061692c276213c2807a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
