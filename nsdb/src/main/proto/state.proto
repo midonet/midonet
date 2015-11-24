@@ -20,6 +20,19 @@ package org.midonet.cluster.models;
 option java_package = "org.midonet.cluster.models";
 option java_outer_classname = "State";
 
+message ContainerAgent {
+    optional UUID host_id = 2;
+}
+
+message ContainerStatus {
+    enum Code {
+        CONTAINER_UP = 1;
+        CONTAINER_DOWN = 2;
+    }
+    optional Code status_code = 1;
+    optional string status_message = 2;
+}
+
 message HostState {
     message Interface {
         enum Type {
