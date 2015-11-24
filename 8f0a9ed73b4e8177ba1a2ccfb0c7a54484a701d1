@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_de91f453",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/conman/containers/AbstractContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T14:15:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_a9aec5e5",
+      "range": {
+        "startLine": 24,
+        "startChar": 12,
+        "endLine": 24,
+        "endChar": 20
+      },
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_5ed88453",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/conman/containers/AbstractContainer.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_1e9c4c69",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/conman/containers/AbstractContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T14:15:35Z",
+      "side": 1,
+      "message": "Renamed to ContainerDelegate to express that an implementation should provide that code that responds to changes in container configuration/status.",
+      "parentUuid": "5ac4a560_5ed88453",
+      "range": {
+        "startLine": 56,
+        "startChar": 6,
+        "endLine": 56,
+        "endChar": 23
+      },
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_697cad73",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/conman/containers/AbstractContainer.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-11-23T15:58:24Z",
       "side": 1,
       "message": "are?",
+      "range": {
+        "startLine": 66,
+        "startChar": 70,
+        "endLine": 66,
+        "endChar": 73
+      },
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bef7d88b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/conman/containers/AbstractContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T14:15:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_697cad73",
       "range": {
         "startLine": 66,
         "startChar": 70,
@@ -106,6 +178,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_fef070cb",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T14:15:35Z",
+      "side": 1,
+      "message": "So because now the container assignment is done via the port bindings, this state object is not needed, right?",
+      "parentUuid": "5ac4a560_db4d8bc6",
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_4a099f94",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 1
@@ -123,6 +213,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_fec79062",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T14:15:35Z",
+      "side": 1,
+      "message": "Now it\u0027s not needed since it will be notified via the port bindings.",
+      "parentUuid": "5ac4a560_4a099f94",
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_9ee21c02",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 1
@@ -134,6 +242,30 @@
       "writtenOn": "2015-11-24T13:47:08Z",
       "side": 1,
       "message": "nit: UP / DOWN (to get ContainerStatus.Code.UP, which seems equally informative and more concise)",
+      "range": {
+        "startLine": 30,
+        "startChar": 8,
+        "endLine": 30,
+        "endChar": 20
+      },
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5ebfa4d0",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T14:15:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_9ee21c02",
       "range": {
         "startLine": 30,
         "startChar": 8,
