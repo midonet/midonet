@@ -17,13 +17,18 @@ package org.midonet.cluster.data.storage
 
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
+import java.util.concurrent.atomic.{AtomicLong, AtomicInteger, AtomicReference}
+
+import org.midonet.cluster.backend.Directory
+import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
+import org.midonet.midolman.state.MockDirectory
 
 import scala.collection.JavaConversions._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 import org.apache.zookeeper.KeeperException.{BadVersionException, Code}
@@ -45,7 +50,9 @@ import org.midonet.util.functors._
  * A simple in-memory implementation of the [[Storage]] trait, equivalent to
  * the [[ZookeeperObjectMapper]] to use within unit tests.
  */
-class InMemoryStorage extends Storage with StateStorage {
+class InMemoryStorage extends Storage with StateStorage with StateTableStorage with StateTablePaths {
+    override protected val version = new AtomicLong(1)
+    override protected val rootPath = "/inMemoryStorage"
 
     private class ClassNode[T](val clazz: Class[T]) {
 
@@ -676,6 +683,58 @@ class InMemoryStorage extends Storage with StateStorage {
     }
 
     override def ownerId = DefaultOwnerId
+
+    val tablesDirectory = new MockDirectory()
+
+    override def registerTable[K, V](clazz: Class[_], key: Class[K],
+                            value: Class[V], name: String,
+                            provider: Class[_ <: StateTable[K,V]]): Unit = {
+        val newProvider = TableProvider(key, value, provider)
+        tableInfo.putIfAbsent(clazz, new TableInfo)
+        tableInfo(clazz).tables.getOrElse(name, {
+            tableInfo(clazz).tables.putIfAbsent(name, newProvider)
+                .getOrElse(newProvider)
+        })
+    }
+
+    override def getTable[K, V](clazz: Class[_], id: ObjId, name: String, args: Any*)
+                      (implicit key: ClassTag[K], value: ClassTag[V]): StateTable[K, V] = {
+        val path = "/" + ((if (args.nonEmpty) {
+            tablePath(clazz, id, name, version.longValue(), args: _*)
+        } else {
+            tableRootPath(clazz, id, name)
+        }).replace('/', '_'))
+
+        val provider = getProvider(clazz, key.runtimeClass, value.runtimeClass, name)
+        tablesDirectory.ensureHas(path, "".getBytes)
+        val directory = tablesDirectory.getSubDirectory(path)
+
+        val constructor = provider.clazz.getConstructor(classOf[Directory],
+                                                        classOf[ZkConnectionAwareWatcher])
+        constructor.newInstance(directory, null).asInstanceOf[StateTable[K, V]]
+    }
+
+    /** Gets the table provider for the given object, key and value classes. */
+    @throws[IllegalArgumentException]
+    private def getProvider(clazz: Class[_], key: Class[_], value: Class[_],
+                            name: String): TableProvider = {
+        val provider = tableInfo.getOrElse(clazz, throw new IllegalArgumentException(
+            s"Class ${clazz.getSimpleName} is not registered")).tables
+            .getOrElse(name, throw new IllegalArgumentException(
+            s"Table $name is not registered for class ${clazz.getSimpleName}"))
+
+        if (provider.key != key) {
+            throw new IllegalArgumentException(
+                s"Table $name for class ${clazz.getSimpleName} has different " +
+                    s"key class ${provider.key.getSimpleName}")
+        }
+        if (provider.value != value) {
+            throw new IllegalArgumentException(
+                s"Table $name for class ${clazz.getSimpleName} has different " +
+                    s"value class ${provider.value.getSimpleName}")
+        }
+        provider
+    }
 }
 
 object InMemoryStorage {

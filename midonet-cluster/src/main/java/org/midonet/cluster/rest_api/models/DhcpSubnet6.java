@@ -73,15 +73,15 @@ public class DhcpSubnet6 extends UriResource {
 
     public URI getHosts() {
         return UriBuilder.fromUri(getUri())
-                         .path(ResourceUris.DHCPV6_HOSTS)
+                         .path(ResourceUris.DHCPV6_HOSTS())
                          .build();
     }
 
     public URI getUri() {
         IPv6Subnet subnetAddr = new IPv6Subnet(IPv6Addr.fromString(prefix),
                                                prefixLength);
-        return absoluteUri(ResourceUris.BRIDGES, bridgeId,
-                           ResourceUris.DHCPV6, subnetAddr.toZkString());
+        return absoluteUri(ResourceUris.BRIDGES(), bridgeId,
+                           ResourceUris.DHCPV6(), subnetAddr.toZkString());
     }
 
     @JsonIgnore

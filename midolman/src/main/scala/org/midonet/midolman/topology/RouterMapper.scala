@@ -487,7 +487,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
      * load-balancer (if any), and the states for all router's ports are ready.
      */
     private def isRouterReady(cfg: Config): JBoolean = {
-        ready = (config ne null) && (arpCache ne null) &&
+        ready = (config ne null) &&
+                (arpCache ne null) &&
                 (if (loadBalancer ne null) loadBalancer.isReady else true) &&
                 ports.forall(_._2.isReady) && localRoutes.forall(_._2.isReady) &&
                 chainsTracker.areRefsReady && mirrorsTracker.areRefsReady && isTracingReady

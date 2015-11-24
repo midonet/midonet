@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.base.Objects;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "type")
@@ -50,6 +51,7 @@ public abstract class DtoPort {
     private UUID peerId;
     private URI peer;
     private URI link;
+    private URI peeringTable;
 
     public UUID getId() {
         return id;
@@ -62,6 +64,14 @@ public abstract class DtoPort {
     public UUID getDeviceId() {
 
         return deviceId;
+    }
+
+    public URI getPeeringTable() {
+        return peeringTable;
+    }
+
+    public void setPeeringTable(URI arpTable) {
+        this.peeringTable = peeringTable;
     }
 
     public boolean isAdminStateUp() {
@@ -297,6 +307,6 @@ public abstract class DtoPort {
             return false;
         }
 
-        return true;
+        return Objects.equal(this.peeringTable, that.getPeeringTable());
     }
 }

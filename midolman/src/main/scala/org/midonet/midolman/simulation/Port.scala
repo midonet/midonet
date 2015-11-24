@@ -18,6 +18,8 @@ package org.midonet.midolman.simulation
 
 import java.util.{ArrayList => JArrayList, List => JList, UUID}
 
+import org.midonet.cluster.data.storage.{NoOpStateTable, StateTable}
+
 import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.ZoomConvert.ConvertException
@@ -30,11 +32,13 @@ import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 
+
 object Port {
     import IPAddressUtil._
     import IPSubnetUtil._
     import UUIDUtil.{fromProto, fromProtoList}
 
+    val EMPTY_PEERING_TABLE: StateTable[IPv4Addr, MAC] = new NoOpStateTable()
     val NO_MIRRORS = new JArrayList[UUID]()
 
     private implicit def jlistToSSet(from: java.util.List[Commons.UUID]): Set[UUID] =
@@ -46,7 +50,8 @@ object Port {
     def apply(proto: Topology.Port,
               infilters: JList[UUID],
               outfilters: JList[UUID],
-              servicePorts: JList[UUID] = new JArrayList[UUID](0)): Port = {
+              servicePorts: JList[UUID] = new JArrayList[UUID](0),
+              peeringTable: StateTable[IPv4Addr, MAC] = EMPTY_PEERING_TABLE): Port = {
         if (proto.getSrvInsertionIdsCount > 0 && proto.hasNetworkId)
             servicePort(proto, infilters)
         else if (proto.hasVtepId)
@@ -54,7 +59,7 @@ object Port {
         else if (proto.hasNetworkId)
             bridgePort(proto, infilters, outfilters, servicePorts)
         else if (proto.hasRouterId)
-            routerPort(proto, infilters, outfilters)
+            routerPort(proto, infilters, outfilters, peeringTable)
         else
             throw new ConvertException("Unknown port type")
     }
@@ -79,7 +84,8 @@ object Port {
 
     private def routerPort(p: Topology.Port,
                            infilters: JList[UUID],
-                           outfilters: JList[UUID]) = new RouterPort(
+                           outfilters: JList[UUID],
+                           peeringTable: StateTable[IPv4Addr, MAC]) = new RouterPort(
             p.getId,
             infilters,
             outfilters,
@@ -381,7 +387,8 @@ case class RouterPort(override val id: UUID,
                       portMac: MAC,
                       routeIds: Set[UUID] = Set.empty,
                       override val inboundMirrors: JList[UUID] = NO_MIRRORS,
-                      override val outboundMirrors: JList[UUID] = NO_MIRRORS)
+                      override val outboundMirrors: JList[UUID] = NO_MIRRORS,
+                      val peeringTable: StateTable[IPv4Addr, MAC] = Port.EMPTY_PEERING_TABLE)
     extends Port {
 
     override val servicePorts: JList[UUID] = new JArrayList(0)

@@ -17,6 +17,9 @@ package org.midonet.midolman.topology
 
 import java.util.{ArrayList => JArrayList, List => JList, UUID}
 
+import org.midonet.cluster.util.UUIDUtil
+import org.midonet.packets.{MAC, IPv4Addr}
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -25,9 +28,11 @@ import rx.Observable
 import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.data.storage.{NoOpStateTable, StateTable}
 import org.midonet.cluster.models.Topology.{Port => TopologyPort, L2Insertion}
 import org.midonet.cluster.services.MidonetBackend.ActiveKey
 import org.midonet.midolman.simulation.{Port => SimulationPort, Mirror, Chain}
+import org.midonet.midolman.simulation.Port.EMPTY_PEERING_TABLE
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1, makeFunc4}
 
 /**
@@ -67,6 +72,8 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     private val portStateSubject = PublishSubject.create[String]
     private var portStateReady = false
 
+    private var peeringTable: StateTable[IPv4Addr, MAC] = EMPTY_PEERING_TABLE
+
     private val chainsTracker = new ObjectReferenceTracker[Chain](vt)
     private val mirrorsTracker = new ObjectReferenceTracker[Mirror](vt)
     private val l2insertionsTracker = new StoreObjectReferenceTracker(
@@ -77,6 +84,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                   TopologyPort, SimulationPort](
             (active: Boolean, traceChain: Option[UUID],
              servicePorts: JList[UUID], port: TopologyPort) => {
+
                 val infilters = new JArrayList[UUID](1)
                 val outfilters = new JArrayList[UUID](1)
                 traceChain.foreach(infilters.add)
@@ -93,7 +101,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
                     outfilters.add(port.getL2InsertionOutfilterId)
                 }
 
-                SimulationPort(port, infilters, outfilters, servicePorts)
+                SimulationPort(port, infilters, outfilters, servicePorts, peeringTable)
                     .toggleActive(active && portStateReady)
             })
 
@@ -144,6 +152,12 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
             portStateSubject onNext hostId.asNullableString
         }
 
+        if (port.hasVni && (peeringTable eq EMPTY_PEERING_TABLE)) {
+            val id = fromProto(port.getId)
+            peeringTable = vt.stateTables.routerPortPeeringTable(id)
+            peeringTable.start()
+        }
+
         mirrorsTracker.requestRefs(port.getInboundMirrorIdsList :_*)
         mirrorsTracker.requestRefs(port.getOutboundMirrorIdsList :_*)
 
@@ -162,6 +176,10 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     }
 
     private def topologyPortDeleted(): Unit = {
+        if (peeringTable ne EMPTY_PEERING_TABLE) {
+            peeringTable.stop()
+            peeringTable = EMPTY_PEERING_TABLE
+        }
         portStateSubject.onCompleted()
         completeTraceChain()
         l2insertionsTracker.completeRefs()

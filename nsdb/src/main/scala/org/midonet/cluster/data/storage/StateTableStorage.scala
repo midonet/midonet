@@ -22,6 +22,8 @@ import scala.collection.concurrent.TrieMap
 import scala.reflect.ClassTag
 
 import org.midonet.cluster.data.ObjId
+import org.midonet.cluster.models.Topology
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.packets.{IPv4Addr, MAC}
 
 /**
@@ -43,24 +45,44 @@ private[storage] class TableInfo {
   * A trait that complements the [[Storage]] trait with support for high
   * performance state tables.
   */
-trait StateTableStorage {
+trait StateTableStorage extends Storage {
 
     protected[this] val tableInfo = new TrieMap[Class[_], TableInfo]
 
     /**
-      * Registers a new state table for the given class. The state table is
-      * identified by the given key class, value class and name, and it
-      * associated with the specified provider class. The method throws an
-      * [[IllegalStateException]] if the storage was already built, and an
-      * [[IllegalArgumentException]] if the specified object class was not
-      * previously registered, or if a state table with same parameters was
-      * already registered.
-      */
+     * Registers a new state table for the given class. The state table is
+     * identified by the given key class, value class and name, and it
+     * associated with the specified provider class. The method throws an
+     * [[IllegalStateException]] if the storage was already built, and an
+     * [[IllegalArgumentException]] if the specified object class was not
+     * previously registered, or if a state table with same parameters was
+     * already registered.
+     */
     @throws[IllegalStateException]
     @throws[IllegalArgumentException]
-    def registerTable[K, V](clazz: Class[_], key: Class[K], value: Class[V],
-                            name: String,
-                            provider: Class[_ <: StateTable[K,V]]): Unit
+    def registerTable[K, V](clazz: Class[_], key: Class[K],
+                            value: Class[V], name: String,
+                            provider: Class[_ <: StateTable[K,V]]): Unit = {
+        if (isBuilt) {
+            throw new IllegalStateException(
+                "Cannot register a state table after building the storage")
+        }
+        if (!isRegistered(clazz)) {
+            throw new IllegalArgumentException(
+                s"Class ${clazz.getSimpleName} is not registered")
+        }
+        val newProvider = TableProvider(key, value, provider)
+        val oldProvider = tableInfo(clazz).tables.getOrElse(name, {
+            tableInfo(clazz).tables.putIfAbsent(name, newProvider)
+                .getOrElse(newProvider)
+        })
+        if (newProvider != oldProvider) {
+            throw new IllegalArgumentException(
+                s"Table for class ${clazz.getSimpleName} key ${key.getSimpleName} " +
+                    s"value ${value.getSimpleName} name $name is already " +
+                    "registered to a different provider")
+        }
+    }
 
     /**
       * Returns a [[StateTable]] instance for the specified object class,
@@ -69,7 +91,20 @@ trait StateTableStorage {
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
     def getTable[K, V](clazz: Class[_], id: ObjId, name: String, args: Any*)
-                      (implicit key: ClassTag[K], value: ClassTag[V])
-    : StateTable[K, V]
+                      (implicit key: ClassTag[K], value: ClassTag[V]): StateTable[K, V]
 
+    @throws[IllegalArgumentException]
+    def tablePath(clazz: Class[_], id: ObjId, name: String, args: Any*): String
+
+    def bridgeArpTable(id: UUID) = getTable[IPv4Addr, MAC](
+            classOf[Topology.Network], id, MidonetBackend.Ip4MacTable)
+
+    def routerPortPeeringTable(id: UUID) = getTable[IPv4Addr, MAC](
+            classOf[Topology.Port], id, MidonetBackend.PeeringTable)
+
+    def bridgeArpTablePath(id: UUID) = tablePath(
+            classOf[Topology.Network], id, MidonetBackend.Ip4MacTable)
+
+    def routerPortPeeringTablePath(id: UUID) = tablePath(
+            classOf[Topology.Port], id, MidonetBackend.PeeringTable)
 }

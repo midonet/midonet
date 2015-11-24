@@ -19,7 +19,7 @@ package org.midonet.cluster.services.rest_api.resources
 import java.util.{List => JList, UUID}
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.Response
+import javax.ws.rs.core.{UriBuilder, Response}
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.Response.Status._
 
@@ -27,6 +27,7 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
+import scala.util.Try
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -35,16 +36,18 @@ import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.storage.SingleValueKey
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.ResponseUtils._
+import org.midonet.cluster.rest_api.ResourceUris._
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Route.NextHop
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, InternalServerErrorHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api._
 import org.midonet.cluster.services.MidonetBackend.{ActiveKey, BgpKey}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.packets.{IPv4Addr, MAC}
 
 class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                                               (implicit tag: ClassTag[P])
@@ -247,6 +250,87 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
                               null, false)
         route.setBaseUri(resContext.uriInfo.getBaseUri)
         tx.create(route)
+    }
+
+    protected override def updateFilter(to: RouterPort, from: RouterPort,
+                                        tx: ResourceTransaction): Unit = {
+        super.updateFilter(to, from, tx)
+        if ((to.rtrPortVni != null) && (from.rtrPortVni == null))
+            tx.tx.createNode(resContext.backend.stateTableStore.routerPortPeeringTablePath(to.id), "")
+    }
+
+    private def peeringTable(id: UUID) = resContext.backend.stateTableStore.routerPortPeeringTable(id)
+
+    @GET
+    @Path("{id}/peering_table/{pair}")
+    @Produces(Array(APPLICATION_MAC_IP_JSON,
+        APPLICATION_JSON))
+    def getPeeringEntry(@PathParam("id") portId: UUID,
+                        @PathParam("pair") pair: String): MacIpPair = {
+        val (address, mac) = parseMacIpPair(pair)
+
+        def trimmedPath = resContext.uriInfo.getRequestUri.getPath.replaceFirst("\\/" + pair, "")
+
+        tryLegacyRead {
+            val table = peeringTable(portId)
+            if (table.containsRemote(address, mac)) {
+                new MacIpPair(resContext.uriInfo.getRequestUriBuilder.replacePath(trimmedPath).build(),
+                              address.toString, mac.toString)
+            } else {
+                throw new NotFoundHttpException(getMessage(PEERING_ENTRY_NOT_FOUND))
+            }
+        }
+    }
+
+    @GET
+    @Path("{id}/peering_table")
+    @Produces(Array(APPLICATION_MAC_IP_COLLECTION_JSON,
+        APPLICATION_JSON))
+    def listPeeringEntries(@PathParam("id") portId: UUID): JList[MacIpPair] = {
+        import scala.collection.JavaConversions._
+
+        val entries = tryLegacyRead {
+            val table = peeringTable(portId)
+
+            table.remoteSnapshot
+        }
+
+        for ((ip, mac) <- entries.toList)
+            yield new MacIpPair(resContext.uriInfo.getRequestUri, ip.toString, mac.toString)
+    }
+
+    @POST
+    @Path("{id}/peering_table")
+    @Consumes(Array(APPLICATION_MAC_IP_JSON))
+    def addPeeringEntry(@PathParam("id") portId: UUID, entry: MacIpPair) : Response = {
+
+        throwIfViolationsOn(entry)
+
+        entry.setBaseUri(resContext.uriInfo.getRequestUri)
+
+        val address = Try(IPv4Addr.fromString(entry.ip)).getOrElse(
+            throw new BadRequestHttpException(getMessage(IP_ADDR_INVALID)))
+        val mac = Try(MAC.fromString(entry.mac)).getOrElse(
+            throw new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID)))
+
+        tryLegacyWrite {
+            val table = peeringTable(portId)
+            table.addPersistent(address, mac)
+            Response.created(entry.getUri).build()
+        }
+    }
+
+    @DELETE
+    @Path("{id}/peering_table/{pair}")
+    def deletePeeringEntry(@PathParam("id") portId: UUID,
+                           @PathParam("pair") pair: String): Response = {
+        val (address, mac) = parseMacIpPair(pair)
+
+        tryLegacyWrite {
+            val table = peeringTable(portId)
+            table.removePersistent(address, mac)
+            Response.noContent().build()
+        }
     }
 
 }

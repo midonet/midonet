@@ -317,6 +317,14 @@ class L4PortNumber(ValueType):
         except:
             return False
 
+class VNI(ValueType):
+    def is_valid(self, value):
+        try:
+            vni = int(value)
+            return  vni >= 0 and vni <= (2**24 - 1)
+        except:
+            return False
+
 class IPv4Subnet(ValueType):
     def is_valid(self, value):
         values = value.split('/')
@@ -833,7 +841,11 @@ class BooleanAttr(SingleAttr):
     def fetch(self, obj):
         try:
             func = obj.reflect(self.getter)
-            return str(func()).lower()
+            val = func()
+            if val is not None:
+                return str(val).lower()
+            else:
+                return None
         except KeyError:
             return None
 
@@ -1382,9 +1394,9 @@ class ObjectType(object):
         val = self.fetch_field(field_name)
         if val is None:
             return None
-
-        spec = self.attrs()[field_name]
-        return FieldType(field_name, spec, val)
+        else:
+            spec = self.attrs()[field_name]
+            return FieldType(field_name, spec, val)
 
     def _value_to_str(self, value):
         if isinstance(value, ObjectType):
@@ -1669,6 +1681,24 @@ class BgpPeer(ObjectType):
         return "peer"
 
 
+class MacIp(ObjectType):
+    def type_name(self):
+        return "macip"
+
+    def __init__(self, obj):
+        super(MacIp, self).__init__(obj)
+        self.clear_attrs()
+        self.put_attr(SingleAttr(name = 'mac',
+                                 value_type = MacAddress(),
+                                 getter = 'get_mac',
+                                 setter = 'mac',
+                                 optional = False))
+        self.put_attr(SingleAttr(name = 'ip',
+                                 value_type = IPv4Address(),
+                                 getter = 'get_ip',
+                                 setter = 'ip',
+                                 optional = False))
+
 class Router(ObjectType):
     def __init__(self, obj):
         super(Router, self).__init__(obj)
@@ -1741,7 +1771,6 @@ class Router(ObjectType):
                                  getter = 'get_local_redirect_chain_id',
                                  setter = 'local_redirect_chain_id',
                                  unsetter = 'local_redirect_chain_id'))
-
     def type_name(self):
         return "router"
 
@@ -2301,6 +2330,17 @@ class RouterPort(ObjectType):
                                  setter = 'outbound_mirrors',
                                  unsetter = 'outbound_mirrors',
                                  optional = True))
+        self.put_attr(SingleAttr(name = 'vni',
+                                 value_type = VNI(),
+                                 getter = 'get_rtr_port_vni',
+                                 setter = 'rtr_port_vni'))
+        self.put_attr(BooleanAttr(name = 'vxlan-off-ramp',
+                                  getter = 'can_off_ramp_vxlan',
+                                  setter = 'off_ramp_vxlan'))
+        self.put_attr(Collection(name = 'remote-peers',
+                                 element_type = MacIp,
+                                 list_method = 'get_remote_peers',
+                                 factory_method = 'add_remote_peer'))
 
 
 # L4LB features

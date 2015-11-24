@@ -13,52 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import org.midonet.cluster.data.ZoomClass;
-import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.MAC;
 
-@ZoomClass(clazz = Topology.Port.class)
-public class HostInterfacePort extends UriResource {
-
-    @NotNull
-    @ZoomField(name = "id")
-    public UUID portId;
+public class MacIpPair extends UriResource {
 
     @NotNull
-    @ZoomField(name = "host_id")
-    public UUID hostId;
+    @Pattern(regexp = IPv4.regex)
+    public String ip;
 
     @NotNull
-    @ZoomField(name = "interface_name")
-    public String interfaceName;
+    @Pattern(regexp = MAC.regex)
+    public String mac;
+
+    /* Default constructor - for deserialization. */
+    @SuppressWarnings("unused")
+    public MacIpPair() {
+    }
+
+    public MacIpPair(URI uri, String ip, String mac) {
+        setBaseUri(uri);
+        this.ip = ip;
+        this.mac = mac;
+    }
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.HOSTS(), hostId,
-                           ResourceUris.PORTS(), portId);
+        return UriBuilder.fromUri(getBaseUri()).
+                path(ip + "_" + ResourceUris.macToUri(mac)).build();
     }
-
-    public URI getHost() {
-        return absoluteUri(ResourceUris.HOSTS(), hostId);
-    }
-
-    public URI getPort() {
-        return absoluteUri(ResourceUris.PORTS(), portId);
-    }
-
-    @JsonIgnore
-    public void create(UUID hostId) {
-        this.hostId = hostId;
-    }
-
 }

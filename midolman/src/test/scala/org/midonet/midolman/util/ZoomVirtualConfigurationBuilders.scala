@@ -304,8 +304,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
 
     override def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit = {
-        val map = legacyStorage.bridgeIp4MacMap(bridge)
-        map.putPersistent(ip, mac)
+        val map = backend.stateTableStore.bridgeArpTable(bridge)
+        map.addPersistent(ip, mac)
     }
 
     override def deleteBridge(bridge: UUID): Unit = {
