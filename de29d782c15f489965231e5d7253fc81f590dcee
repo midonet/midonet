@@ -348,6 +348,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_81447d75",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T17:05:43Z",
+      "side": 1,
+      "message": "I missed the whole service container discussions, but I liked how ports were being announced, by emitting to the actor system\u0027s event stream, which can be easily replaced by an observable stream. that way, interested components, namely one responsible for starting a service, can hook themselves and react to port activation appropriately.",
+      "parentUuid": "5ac4a560_ea4d0bc6",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_eaf18b96",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
         "patchSetId": 1
