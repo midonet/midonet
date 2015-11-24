@@ -62,11 +62,11 @@ public class HealthMonitor extends UriResource {
     public List<UUID> poolIds;
 
     public URI getUri() {
-        return absoluteUri(ResourceUris.HEALTH_MONITORS, id);
+        return absoluteUri(ResourceUris.HEALTH_MONITORS(), id);
     }
 
     public URI getPools() {
-        return absoluteUri(ResourceUris.HEALTH_MONITORS, id, ResourceUris.POOLS);
+        return absoluteUri(ResourceUris.HEALTH_MONITORS(), id, ResourceUris.POOLS());
     }
 
     @Override

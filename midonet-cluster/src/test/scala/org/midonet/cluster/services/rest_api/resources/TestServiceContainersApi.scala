@@ -77,6 +77,7 @@ class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
     def makePort(onRouter: Router): Port = {
         val p = new RouterPort
         p.id = UUID.randomUUID()
+        p.routerId = onRouter.id
         p.setBaseUri(app.getUri)
         p.portAddress = IPv4Addr.random.toString
         p.networkAddress = p.portAddress

@@ -26,13 +26,13 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, StateAccessException}
 import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.data.storage.StateTable.Update
-import org.midonet.cluster.storage.Ip4MacStateTable.OnTableSubscribe
+import org.midonet.cluster.storage.MacIp4StateTable.OnTableSubscribe
 import org.midonet.midolman.state.ReplicatedMap.Watcher
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap
+import org.midonet.midolman.state.{MacToIp4ReplicatedMap, Ip4ToMacReplicatedMap}
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.functors.makeAction0
 
-object Ip4MacStateTable {
+object MacIp4StateTable {
 
     /**
       * Implements the [[OnSubscribe]] interface for subscriptions to updates
@@ -40,17 +40,17 @@ object Ip4MacStateTable {
       * table, add a new watcher to the underlying replicated map, and an
       * unsubscribe hook that removes the watcher.
       */
-    protected class OnTableSubscribe(table: Ip4MacStateTable)
-        extends OnSubscribe[Update[IPv4Addr, MAC]] {
+    protected class OnTableSubscribe(table: MacIp4StateTable)
+        extends OnSubscribe[Update[MAC, IPv4Addr]] {
 
         private val sync = new Object
 
-        override def call(child: Subscriber[_ >: Update[IPv4Addr, MAC]]): Unit = {
-            val watcher = new Watcher[IPv4Addr, MAC] {
-                override def processChange(address: IPv4Addr, oldMac: MAC,
-                                           newMac: MAC): Unit = {
+        override def call(child: Subscriber[_ >: Update[MAC, IPv4Addr]]): Unit = {
+            val watcher = new Watcher[MAC, IPv4Addr] {
+                override def processChange(k: MAC, oldV: IPv4Addr,
+                                           newV: IPv4Addr): Unit = {
                     if (!child.isUnsubscribed) {
-                        child onNext Update(address, oldMac, newMac)
+                        child onNext Update(k, oldV, newV)
                     }
                 }
             }
@@ -67,7 +67,7 @@ object Ip4MacStateTable {
 }
 
 /**
-  * Wraps an IPv4-MAC [[org.midonet.midolman.state.ReplicatedMap]] to a
+  * Wraps an MAC-IPv4 [[org.midonet.midolman.state.ReplicatedMap]] to a
   * [[StateTable]], where state tables are intended as backend-agnostic
   * counterparts for replicated maps. This provides an implementation using
   * ZooKeeper as backend.
@@ -77,11 +77,11 @@ object Ip4MacStateTable {
   * Therefore, to modify an existing persisting entry, first delete the entry
   * and then add a new one with the same IP address.
   */
-final class Ip4MacStateTable(directory: Directory,
+final class MacIp4StateTable(directory: Directory,
                              zkConnWatcher: ZkConnectionAwareWatcher)
-    extends StateTable[IPv4Addr, MAC] {
+    extends StateTable[MAC, IPv4Addr] {
 
-    private val map = new Ip4ToMacReplicatedMap(directory)
+    private val map = new MacToIp4ReplicatedMap(directory)
     private val onSubscribe = new OnTableSubscribe(this)
     if (zkConnWatcher ne null)
         map.setConnectionWatcher(zkConnWatcher)
@@ -108,8 +108,8 @@ final class Ip4MacStateTable(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def add(address: IPv4Addr, mac: MAC): Unit = {
-        map.put(address, mac)
+    override def add(k: MAC, v: IPv4Addr): Unit = {
+        map.put(k, v)
     }
 
     /**
@@ -118,8 +118,8 @@ final class Ip4MacStateTable(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def addPersistent(address: IPv4Addr, mac: MAC): Unit = {
-        map.putPersistent(address, mac)
+    override def addPersistent(k: MAC, v: IPv4Addr): Unit = {
+        map.putPersistent(k, v)
     }
 
     /**
@@ -128,8 +128,8 @@ final class Ip4MacStateTable(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def remove(address: IPv4Addr): MAC = {
-        map.removeIfOwner(address)
+    override def remove(k: MAC): IPv4Addr = {
+        map.removeIfOwner(k)
     }
 
     /**
@@ -138,8 +138,8 @@ final class Ip4MacStateTable(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def remove(address: IPv4Addr, mac: MAC): MAC = {
-        map.removeIfOwnerAndValue(address, mac)
+    override def remove(k: MAC, v: IPv4Addr): IPv4Addr = {
+        map.removeIfOwnerAndValue(k, v)
     }
 
     /**
@@ -147,8 +147,8 @@ final class Ip4MacStateTable(directory: Directory,
       * is synchronous.
       */
     @throws[StateAccessException]
-    def removePersistent(address: IPv4Addr, mac: MAC): MAC = {
-        Ip4ToMacReplicatedMap.deleteEntry(directory, address, mac)
+    def removePersistent(k: MAC, v: IPv4Addr): IPv4Addr = {
+        MacToIp4ReplicatedMap.deleteEntry(directory, k, v)
     }
 
     /**
@@ -158,8 +158,8 @@ final class Ip4MacStateTable(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def containsLocal(address: IPv4Addr): Boolean = {
-        map.containsKey(address)
+    override def containsLocal(k: MAC): Boolean = {
+        map.containsKey(k)
     }
 
     /**
@@ -169,8 +169,8 @@ final class Ip4MacStateTable(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def containsLocal(address: IPv4Addr, mac: MAC): Boolean = {
-        map.containsKey(address)
+    override def containsLocal(k: MAC, v: IPv4Addr): Boolean = {
+        map.containsKey(k)
     }
 
     /**
@@ -179,7 +179,7 @@ final class Ip4MacStateTable(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def containsRemote(address: IPv4Addr): Boolean = {
+    override def containsRemote(address: MAC): Boolean = {
         // Not implemented
         ???
     }
@@ -190,9 +190,9 @@ final class Ip4MacStateTable(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def containsRemote(address: IPv4Addr, mac: MAC): Boolean = {
-        Ip4ToMacReplicatedMap.hasPersistentEntry(directory, address, mac) ||
-        Ip4ToMacReplicatedMap.hasLearnedEntry(directory, address, mac)
+    override def containsRemote(k: MAC, v: IPv4Addr): Boolean = {
+        MacToIp4ReplicatedMap.hasPersistentEntry(directory, k, v) ||
+        MacToIp4ReplicatedMap.hasLearnedEntry(directory, k, v)
     }
 
     /**
@@ -201,8 +201,8 @@ final class Ip4MacStateTable(directory: Directory,
       */
     @throws[StateAccessException]
     @inline
-    override def containsPersistent(address: IPv4Addr, mac: MAC): Boolean = {
-        Ip4ToMacReplicatedMap.hasPersistentEntry(directory, address, mac)
+    override def containsPersistent(k: MAC, v: IPv4Addr): Boolean = {
+        MacToIp4ReplicatedMap.hasPersistentEntry(directory, k, v)
     }
 
     /**
@@ -210,7 +210,7 @@ final class Ip4MacStateTable(directory: Directory,
       * underlying map cache and it requires the table to be started.
       */
     @inline
-    override def getLocal(address: IPv4Addr): MAC = {
+    override def getLocal(address: MAC): IPv4Addr = {
         map.get(address)
     }
 
@@ -218,7 +218,7 @@ final class Ip4MacStateTable(directory: Directory,
       * Gets the MAC for the specified address.
       */
     @inline
-    override def getRemote(address: IPv4Addr): MAC = {
+    override def getRemote(address: MAC): IPv4Addr = {
         // Not implemented
         ???
     }
@@ -229,14 +229,14 @@ final class Ip4MacStateTable(directory: Directory,
       * started.
       */
     @inline
-    override def getLocalByValue(value: MAC): Set[IPv4Addr] = {
+    override def getLocalByValue(value: IPv4Addr): Set[MAC] = {
         map.getByValue(value).asScala.toSet
     }
     /**
       * Gets the set of addresses corresponding the specified MAC.
       */
     @inline
-    override def getRemoteByValue(value: MAC): Set[IPv4Addr] = {
+    override def getRemoteByValue(value: IPv4Addr): Set[MAC] = {
         // Not implemented
         ???
     }
@@ -246,7 +246,7 @@ final class Ip4MacStateTable(directory: Directory,
       * from the underlying map cache and it requires the map to be started.
       */
     @inline
-    override def localSnapshot: Map[IPv4Addr, MAC] = {
+    override def localSnapshot: Map[MAC, IPv4Addr] = {
         map.getMap.asScala.toMap
     }
 
@@ -255,8 +255,8 @@ final class Ip4MacStateTable(directory: Directory,
       * synchronously from ZooKeeper.
       */
     @inline
-    override def remoteSnapshot: Map[IPv4Addr, MAC] = {
-        Ip4ToMacReplicatedMap.getAsMap(directory).asScala.toMap
+    override def remoteSnapshot: Map[MAC, IPv4Addr] = {
+        MacToIp4ReplicatedMap.getAsMap(directory).asScala.toMap
     }
 
     /**
@@ -265,7 +265,7 @@ final class Ip4MacStateTable(directory: Directory,
       * not started.
       */
     @inline
-    override val observable: Observable[Update[IPv4Addr, MAC]] = {
+    override val observable: Observable[Update[MAC, IPv4Addr]] = {
         Observable.create(onSubscribe)
     }
 

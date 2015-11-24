@@ -89,8 +89,10 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     def fetchPortGroups(portGroups: UUID*): Seq[PortGroup] =
         portGroups map fetchDevice[PortGroup]
 
-    def feedArpCache(bridge: SimBridge, ip: IPv4Addr, mac: MAC): Unit =
-        virtualTopology.state.bridgeIp4MacMap(bridge.id).putPersistent(ip, mac)
+    def feedArpCache(bridge: SimBridge, ip: IPv4Addr, mac: MAC): Unit = {
+        val map = virtualTopology.backend.stateTableStore.bridgeArpTable(bridge.id)
+        map.addPersistent(ip, mac)
+    }
 
     def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
         ArpCacheHelper.feedArpCache(router.arpCache, ip, mac)

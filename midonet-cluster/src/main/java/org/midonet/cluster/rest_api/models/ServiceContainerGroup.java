@@ -58,11 +58,11 @@ public class ServiceContainerGroup extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.SERVICE_CONTAINER_GROUPS, id);
+        return absoluteUri(ResourceUris.SERVICE_CONTAINER_GROUPS(), id);
     }
 
     public URI getServiceContainers() {
-        return relativeUri(SERVICE_CONTAINERS);
+        return relativeUri(SERVICE_CONTAINERS());
     }
 
     @JsonIgnore
