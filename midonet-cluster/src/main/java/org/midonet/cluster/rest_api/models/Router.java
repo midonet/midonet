@@ -100,43 +100,47 @@ public class Router extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.ROUTERS, id);
+        return absoluteUri(ResourceUris.ROUTERS(), id);
     }
 
     public URI getInboundFilter() {
-        return absoluteUri(ResourceUris.CHAINS, inboundFilterId);
+        return absoluteUri(ResourceUris.CHAINS(), inboundFilterId);
     }
 
     public URI getOutboundFilter() {
-        return absoluteUri(ResourceUris.CHAINS, outboundFilterId);
+        return absoluteUri(ResourceUris.CHAINS(), outboundFilterId);
     }
 
     public URI getPorts() {
-        return relativeUri(ResourceUris.PORTS);
+        return relativeUri(ResourceUris.PORTS());
     }
 
     public URI getPeerPorts() {
-        return relativeUri(ResourceUris.PEER_PORTS);
+        return relativeUri(ResourceUris.PEER_PORTS());
     }
 
     public URI getRoutes() {
-        return relativeUri(ResourceUris.ROUTES);
+        return relativeUri(ResourceUris.ROUTES());
     }
 
     public URI getLoadBalancer() {
-        return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
+        return absoluteUri(ResourceUris.LOAD_BALANCERS(), loadBalancerId);
     }
 
     public URI getBgpNetworks() {
-        return relativeUri(ResourceUris.BGP_NETWORKS);
+        return relativeUri(ResourceUris.BGP_NETWORKS());
     }
 
     public URI getBgpPeers() {
-        return relativeUri(ResourceUris.BGP_PEERS);
+        return relativeUri(ResourceUris.BGP_PEERS());
     }
 
     public URI getLocalRedirectChain() {
-        return absoluteUri(ResourceUris.CHAINS, localRedirectChainId);
+        return absoluteUri(ResourceUris.CHAINS(), localRedirectChainId);
+    }
+
+    public URI getPeeringTable() {
+        return relativeUri(ResourceUris.PEERING_TABLE());
     }
 
     @JsonIgnore

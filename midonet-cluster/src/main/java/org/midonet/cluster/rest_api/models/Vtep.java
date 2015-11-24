@@ -76,15 +76,15 @@ public class Vtep extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.VTEPS, id);
+        return absoluteUri(ResourceUris.VTEPS(), id);
     }
 
     public URI getBindings() {
-        return relativeUri(ResourceUris.BINDINGS);
+        return relativeUri(ResourceUris.BINDINGS());
     }
 
     public URI getPorts() {
-        return relativeUri(ResourceUris.PORTS);
+        return relativeUri(ResourceUris.PORTS());
     }
 
     public String getVtepBindingTemplate() {

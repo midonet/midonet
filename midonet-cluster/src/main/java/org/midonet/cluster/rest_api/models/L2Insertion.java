@@ -62,7 +62,7 @@ public class L2Insertion extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.L2INSERTIONS, id);
+        return absoluteUri(ResourceUris.L2INSERTIONS(), id);
     }
 
     @JsonIgnore

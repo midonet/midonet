@@ -71,13 +71,13 @@ public class Host extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.HOSTS, id);
+        return absoluteUri(ResourceUris.HOSTS(), id);
     }
 
     @Until("3")
-    public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES); }
+    public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES()); }
 
-    public URI getPorts() { return relativeUri(ResourceUris.PORTS); }
+    public URI getPorts() { return relativeUri(ResourceUris.PORTS()); }
 
     @Override
     public String toString() {

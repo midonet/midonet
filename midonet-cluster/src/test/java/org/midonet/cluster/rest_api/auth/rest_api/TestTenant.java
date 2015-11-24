@@ -98,7 +98,7 @@ public class TestTenant extends JerseyTest {
                               id, id + "-name", id + "-description", true);
         assertEquals(t.getUri().toString(),
                      topology.getApplication().getUri() +
-                     ResourceUris.TENANTS + "/" + id);
+                     ResourceUris.TENANTS() + "/" + id);
     }
 
     @Test

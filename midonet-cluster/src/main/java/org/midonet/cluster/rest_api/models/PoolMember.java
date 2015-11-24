@@ -69,11 +69,11 @@ public class PoolMember extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.POOL_MEMBERS, id);
+        return absoluteUri(ResourceUris.POOL_MEMBERS(), id);
     }
 
     public URI getPool() {
-        return absoluteUri(ResourceUris.POOLS, poolId);
+        return absoluteUri(ResourceUris.POOLS(), poolId);
     }
 
     @Override

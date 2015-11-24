@@ -49,17 +49,17 @@ public class PortGroupPort extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.PORT_GROUPS, portGroupId,
-                           ResourceUris.PORTS, portId);
+        return absoluteUri(ResourceUris.PORT_GROUPS(), portGroupId,
+                           ResourceUris.PORTS(), portId);
     }
 
     public URI getPort() {
-        return absoluteUri(ResourceUris.PORTS, portId);
+        return absoluteUri(ResourceUris.PORTS(), portId);
     }
 
     @SuppressWarnings("unused")
     public URI getPortGroup() {
-        return absoluteUri(ResourceUris.PORT_GROUPS, portGroupId);
+        return absoluteUri(ResourceUris.PORT_GROUPS(), portGroupId);
     }
 
 }
