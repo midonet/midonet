@@ -57,6 +57,7 @@ object MidonetBackend {
     final val VtepVxgwManager = "vxgw_manager"
 
     final val Ip4MacTable = "ip4_mac_table"
+    final val PeeringTable = "peering_table"
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */

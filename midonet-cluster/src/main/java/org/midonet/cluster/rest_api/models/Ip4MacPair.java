@@ -55,8 +55,8 @@ public class Ip4MacPair extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.BRIDGES, bridgeId,
-                           ResourceUris.ARP_TABLE,
+        return absoluteUri(ResourceUris.BRIDGES(), bridgeId,
+                           ResourceUris.ARP_TABLE(),
                            ip + "_" + ResourceUris.macToUri(mac));
     }
 }

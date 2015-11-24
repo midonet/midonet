@@ -133,36 +133,36 @@ public abstract class Port extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.PORTS, id);
+        return absoluteUri(ResourceUris.PORTS(), id);
     }
 
     public URI getHost() {
-        return absoluteUri(ResourceUris.HOSTS, hostId);
+        return absoluteUri(ResourceUris.HOSTS(), hostId);
     }
 
     public URI getPeer() {
-        return absoluteUri(ResourceUris.PORTS, peerId);
+        return absoluteUri(ResourceUris.PORTS(), peerId);
     }
 
     public URI getLink() {
-        return relativeUri(ResourceUris.LINK);
+        return relativeUri(ResourceUris.LINK());
     }
 
     public URI getPortGroups() {
-        return relativeUri(ResourceUris.PORT_GROUPS);
+        return relativeUri(ResourceUris.PORT_GROUPS());
     }
 
     public URI getHostInterfacePort() {
-        return absoluteUri(ResourceUris.HOSTS, hostId,
-                           ResourceUris.PORTS, id);
+        return absoluteUri(ResourceUris.HOSTS(), hostId,
+                           ResourceUris.PORTS(), id);
     }
 
     public URI getInboundFilter() {
-        return absoluteUri(ResourceUris.CHAINS, inboundFilterId);
+        return absoluteUri(ResourceUris.CHAINS(), inboundFilterId);
     }
 
     public URI getOutboundFilter() {
-        return absoluteUri(ResourceUris.CHAINS, outboundFilterId);
+        return absoluteUri(ResourceUris.CHAINS(), outboundFilterId);
     }
 
     @JsonIgnore

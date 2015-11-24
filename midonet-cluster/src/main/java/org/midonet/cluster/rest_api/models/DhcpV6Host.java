@@ -44,7 +44,7 @@ public class DhcpV6Host extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.DHCPV6_HOSTS, clientIdToUri(clientId));
+        return absoluteUri(ResourceUris.DHCPV6_HOSTS(), clientIdToUri(clientId));
     }
 
     public static String clientIdToUri(String clientId) {

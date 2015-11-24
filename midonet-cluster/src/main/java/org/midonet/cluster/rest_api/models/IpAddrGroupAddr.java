@@ -61,9 +61,9 @@ public abstract class IpAddrGroupAddr extends UriResource {
         try {
             URI ipAddrGroupUri = getIpAddrGroup();
             return UriBuilder.fromUri(ipAddrGroupUri)
-                             .path(ResourceUris.VERSIONS)
+                             .path(ResourceUris.VERSIONS())
                              .path(Integer.toString(getVersion()))
-                             .path(ResourceUris.IP_ADDRS)
+                             .path(ResourceUris.IP_ADDRS())
                              .path(URLEncoder.encode(addr, "UTF-8"))
                              .build();
         } catch (UnsupportedEncodingException e) {
@@ -72,7 +72,7 @@ public abstract class IpAddrGroupAddr extends UriResource {
     }
 
     public URI getIpAddrGroup() {
-        return absoluteUri(ResourceUris.IP_ADDR_GROUPS, ipAddrGroupId);
+        return absoluteUri(ResourceUris.IP_ADDR_GROUPS(), ipAddrGroupId);
     }
 
     @Override

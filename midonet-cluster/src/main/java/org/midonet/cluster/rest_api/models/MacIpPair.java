@@ -20,30 +20,39 @@ import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.ws.rs.core.UriBuilder;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.MAC;
 
-public class Link extends UriResource {
+public class MacIpPair extends UriResource {
 
-    // TODO: @IsValidPortId
     @NotNull
-    public UUID portId;
+    @Pattern(regexp = IPv4.regex)
+    public String ip;
 
-    // TODO: @IsValidPortId
     @NotNull
-    public UUID peerId;
+    @Pattern(regexp = MAC.regex)
+    public String mac;
+
+    /* Default constructor - for deserialization. */
+    @SuppressWarnings("unused")
+    public MacIpPair() {
+    }
+
+    public MacIpPair(URI uri, String ip, String mac) {
+        setBaseUri(uri);
+        this.ip = ip;
+        this.mac = mac;
+    }
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.PORTS(), portId, ResourceUris.LINK());
+        return UriBuilder.fromUri(getBaseUri()).
+                path(ip + "_" + ResourceUris.macToUri(mac)).build();
     }
-
-    public URI getPort() {
-        return absoluteUri(ResourceUris.PORTS(), portId);
-    }
-
-    public URI getPeer() {
-        return absoluteUri(ResourceUris.PORTS(), peerId);
-    }
-
 }
