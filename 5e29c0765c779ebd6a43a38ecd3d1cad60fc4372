@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5ac4a560_aa7b1328",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T10:44:09Z",
+      "side": 1,
+      "message": "For a later patch: does this need also a port_id to keep a reference to the port created/chosen for this container + bindings to the Port.service_container_id?",
+      "range": {
+        "startLine": 487,
+        "startChar": 4,
+        "endLine": 487,
+        "endChar": 33
+      },
+      "revId": "5e29c0765c779ebd6a43a38ecd3d1cad60fc4372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_8acf37b0",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 9
