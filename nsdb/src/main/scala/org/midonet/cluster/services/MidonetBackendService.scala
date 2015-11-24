@@ -17,6 +17,8 @@ package org.midonet.cluster.services
 
 import java.util.UUID
 
+import org.midonet.cluster.models.State.ContainerAgent
+
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
@@ -53,6 +55,7 @@ object MidonetBackend {
     final val VtepConfig = "config"
     final val VtepConnState = "connection_state"
     final val VtepVxgwManager = "vxgw_manager"
+    final val ContainerLocation = "container_location"
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
@@ -230,6 +233,7 @@ object MidonetBackend {
         stateStore.registerKey(classOf[Vtep], VtepConfig, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepConnState, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepVxgwManager, SingleFirstWriteWins)
+        stateStore.registerKey(classOf[ContainerAgent], ContainerLocation, SingleLastWriteWins)
 
         store.build()
     }
