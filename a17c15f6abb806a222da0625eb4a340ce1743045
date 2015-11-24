@@ -46,6 +46,47 @@
       "revId": "a17c15f6abb806a222da0625eb4a340ce1743045",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9e0e9c33",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T12:02:07Z",
+      "side": 1,
+      "message": "some documentation \u0026 links to relevant kernel sources would also be very welcome.",
+      "parentUuid": "5ac4a560_ca85afae",
+      "range": {
+        "startLine": 94,
+        "startChar": 24,
+        "endLine": 94,
+        "endChar": 40
+      },
+      "revId": "a17c15f6abb806a222da0625eb4a340ce1743045",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_de0f342d",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/RtnetlinkProtocol.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T12:02:07Z",
+      "side": 1,
+      "message": "curious: what was the ACK doing?",
+      "revId": "a17c15f6abb806a222da0625eb4a340ce1743045",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
