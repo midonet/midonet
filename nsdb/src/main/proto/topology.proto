@@ -323,6 +323,10 @@ message Port {
     optional UUID l2insertion_infilter_id = 23;
     optional UUID l2insertion_outfilter_id = 24;
 
+    // Overlay VTEP on Routers
+    optional uint32 vni = 40;
+    optional bool off_ramp_vxlan = 41;
+
     // Backreferences
 
     // For Router gateway port only. Back-references to VIPs that are associated

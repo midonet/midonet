@@ -22,6 +22,8 @@ import scala.collection.concurrent.TrieMap
 import scala.reflect.ClassTag
 
 import org.midonet.cluster.data.ObjId
+import org.midonet.cluster.models.Topology
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.packets.{IPv4Addr, MAC}
 
 /**
@@ -69,7 +71,12 @@ trait StateTableStorage {
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
     def getTable[K, V](clazz: Class[_], id: ObjId, name: String, args: Any*)
-                      (implicit key: ClassTag[K], value: ClassTag[V])
-    : StateTable[K, V]
+                      (implicit key: ClassTag[K], value: ClassTag[V]): StateTable[K, V]
 
+
+    def bridgeArpTable(id: UUID) = getTable[IPv4Addr, MAC](
+            classOf[Topology.Network], id, MidonetBackend.Ip4MacTable)
+
+    def routerPeeringTable(id: UUID) = getTable[IPv4Addr, MAC](
+            classOf[Topology.Router], id, MidonetBackend.PeeringTable)
 }

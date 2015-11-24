@@ -19,6 +19,9 @@ package org.midonet.midolman.topology
 import java.lang.{Boolean => JBoolean}
 import java.util.{ArrayList => JArrayList, UUID}
 
+import org.midonet.cluster.data.storage.StateTable
+import org.midonet.cluster.storage.Ip4MacStateTable
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -39,7 +42,7 @@ import org.midonet.midolman.SimulationBackChannel.{Broadcast, BackChannelMessage
 import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.RouterMapper._
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{IPAddr, IPv4Addr}
+import org.midonet.packets.{MAC, IPAddr, IPv4Addr}
 import org.midonet.util.collection.IPv4InvalidationArray
 import org.midonet.util.functors._
 
@@ -391,6 +394,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
     private val localRoutes = new mutable.HashMap[UUID, RouteState]
     private var arpCache: ArpCache = null
     private var traceChain: Option[UUID] = None
+    private var peeringTable: StateTable[IPv4Addr, MAC] = null
 
     // Provides an implementation of the tag manager for the current router
     private val tagManager = new TagManager {
@@ -487,7 +491,9 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
      * load-balancer (if any), and the states for all router's ports are ready.
      */
     private def isRouterReady(cfg: Config): JBoolean = {
-        ready = (config ne null) && (arpCache ne null) &&
+        ready = (config ne null) &&
+                (arpCache ne null) &&
+                (peeringTable ne null) &&
                 (if (loadBalancer ne null) loadBalancer.isReady else true) &&
                 ports.forall(_._2.isReady) && localRoutes.forall(_._2.isReady) &&
                 chainsTracker.areRefsReady && mirrorsTracker.areRefsReady && isTracingReady
@@ -508,6 +514,10 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
         completeTraceChain()
         chainsTracker.completeRefs()
         mirrorsTracker.completeRefs()
+        if (peeringTable ne null) {
+            peeringTable.stop()
+            peeringTable = null
+        }
         mark.onCompleted()
     }
 
@@ -615,6 +625,11 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
             routesSubject onNext routeState.observable
         }
 
+        if (peeringTable ne null) {
+            peeringTable = vt.stateTables.routerPeeringTable(id)
+            peeringTable.start()
+        }
+
         // Update the router configuration.
         config = cfg
         config
@@ -694,7 +709,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
             config2,
             new RouterRoutingTable(routes),
             tagManager,
-            arpCache)
+            arpCache,
+            peeringTable)
         log.debug("Build router: {} {}", device, routes)
 
         device

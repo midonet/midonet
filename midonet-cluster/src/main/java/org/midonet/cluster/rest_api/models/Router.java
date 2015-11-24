@@ -139,6 +139,10 @@ public class Router extends UriResource {
         return absoluteUri(ResourceUris.CHAINS, localRedirectChainId);
     }
 
+    public URI getPeeringTable() {
+        return relativeUri(ResourceUris.PEERING_TABLE);
+    }
+
     @JsonIgnore
     @Override
     public void create() {

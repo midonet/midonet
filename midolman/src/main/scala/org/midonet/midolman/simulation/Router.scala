@@ -22,6 +22,7 @@ import scala.concurrent.ExecutionContext
 
 import com.typesafe.scalalogging.Logger
 
+import org.midonet.cluster.data.storage.StateTable
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route
@@ -71,7 +72,8 @@ class Router(override val id: UUID,
              override val cfg: Config,
              override val rTable: RoutingTable,
              override val routerMgrTagger: TagManager,
-             val arpCache: ArpCache)
+             val arpCache: ArpCache,
+             val peeringTable: StateTable[IPv4Addr, MAC])
         extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) with MirroringDevice {
 
     override def inboundMirrors = cfg.inboundMirrors

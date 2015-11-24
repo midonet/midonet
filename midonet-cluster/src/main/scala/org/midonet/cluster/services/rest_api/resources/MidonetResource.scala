@@ -29,6 +29,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
+import scala.util.Try
 import scala.util.control.NonFatal
 
 import com.google.inject.Inject
@@ -45,12 +46,14 @@ import org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowGet, AllowList, AllowUpdate}
 import org.midonet.cluster.rest_api.models.UriResource
+import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.util.logging.ProtoTextPrettifier.makeReadable
 import org.midonet.cluster.{restApiLog, restApiResourceLog}
 import org.midonet.midolman.state._
+import org.midonet.packets.{MAC, IPv4Addr}
 import org.midonet.util.reactivex._
 
 object MidonetResource {
@@ -187,6 +190,16 @@ abstract class MidonetResource[T >: Null <: UriResource]
     private val validator = resContext.validator
     protected val backend = resContext.backend
     protected val uriInfo = resContext.uriInfo
+
+    protected def parseMacIpPair(pair: String): (IPv4Addr, MAC) = {
+        val parts = pair.split("_")
+        val address = Try(IPv4Addr.fromString(parts(0))).getOrElse(
+            throw new BadRequestHttpException(getMessage(IP_ADDR_INVALID)))
+        val mac = Try(MAC.fromString(parts(1).replace('-', ':'))).getOrElse(
+            throw new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID)))
+        (address, mac)
+    }
+
 
     @GET
     @Path("{id}")

@@ -61,6 +61,14 @@ public class RouterPort extends Port {
     @ZoomField(name = "port_mac")
     public String portMac;
 
+    @Min(0)
+    @Max(2^24 - 1)
+    @ZoomField(name = "vni")
+    public int rtrPortVni;
+
+    @ZoomField(name = "off_ramp_vxlan")
+    public boolean offRampVxlan;
+
     @JsonIgnore
     @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     public UUID routerId;
