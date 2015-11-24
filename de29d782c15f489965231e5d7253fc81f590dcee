@@ -254,6 +254,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_ea57cb24",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T11:42:01Z",
+      "side": 1,
+      "message": "Ok, so if you don\u0027t mind I left as is since in the only place where this is used other than tests - in the DatapathController - the active is passed as parameter.",
+      "parentUuid": "5ac4a560_aa53136b",
+      "range": {
+        "startLine": 130,
+        "startChar": 15,
+        "endLine": 130,
+        "endChar": 21
+      },
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_0a69678b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
         "patchSetId": 1
