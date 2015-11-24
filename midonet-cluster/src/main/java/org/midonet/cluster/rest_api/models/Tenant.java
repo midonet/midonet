@@ -54,34 +54,34 @@ public class Tenant extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(TENANTS, id);
+        return absoluteUri(TENANTS(), id);
     }
 
     public URI getRouters() {
         return UriBuilder.fromUri(getBaseUri())
-                         .path(ROUTERS)
-                         .queryParam(TENANT_ID_PARAM, id)
+                         .path(ROUTERS())
+                         .queryParam(TENANT_ID_PARAM(), id)
                          .build();
     }
 
     public URI getBridges() {
         return UriBuilder.fromUri(getBaseUri())
-                         .path(BRIDGES)
-                         .queryParam(TENANT_ID_PARAM, id)
+                         .path(BRIDGES())
+                         .queryParam(TENANT_ID_PARAM(), id)
                          .build();
     }
 
     public URI getChains() {
         return UriBuilder.fromUri(getBaseUri())
-                         .path(CHAINS)
-                         .queryParam(TENANT_ID_PARAM, id)
+                         .path(CHAINS())
+                         .queryParam(TENANT_ID_PARAM(), id)
                          .build();
     }
 
     public URI getPortGroups() {
         return UriBuilder.fromUri(getBaseUri())
-                         .path(PORT_GROUPS)
-                         .queryParam(TENANT_ID_PARAM, id)
+                         .path(PORT_GROUPS())
+                         .queryParam(TENANT_ID_PARAM(), id)
                          .build();
     }
 

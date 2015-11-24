@@ -28,7 +28,7 @@ import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.MAC;
 
-public class Ip4MacPair extends UriResource {
+public class MacIpPair extends UriResource {
 
     @NotNull
     @Pattern(regexp = IPv4.regex)
@@ -39,24 +39,24 @@ public class Ip4MacPair extends UriResource {
     public String mac;
 
     @JsonIgnore
-    public UUID bridgeId;
+    public UUID deviceId;
 
     /* Default constructor - for deserialization. */
     @SuppressWarnings("unused")
-    public Ip4MacPair() {
+    public MacIpPair() {
     }
 
-    public Ip4MacPair(URI baseUri, UUID bridgeId, String ip, String mac) {
+    public MacIpPair(URI baseUri, UUID deviceId, String ip, String mac) {
         setBaseUri(baseUri);
-        this.bridgeId = bridgeId;
+        this.deviceId = deviceId;
         this.ip = ip;
         this.mac = mac;
     }
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.BRIDGES(), bridgeId,
-                           ResourceUris.ARP_TABLE(),
+        return absoluteUri(ResourceUris.ROUTERS(), deviceId,
+                           ResourceUris.PEERING_TABLE(),
                            ip + "_" + ResourceUris.macToUri(mac));
     }
 }

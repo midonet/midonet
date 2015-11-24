@@ -44,9 +44,18 @@ public class DtoRouter {
     private URI loadBalancer;
     private URI bgpNetworks;
     private URI bgpPeers;
+    private URI peeringTable;
     private Integer asNumber;
     private UUID localRedirectChainId;
     private URI localRedirectChain;
+
+    public URI getPeeringTable() {
+        return peeringTable;
+    }
+
+    public void setPeeringTable(URI arpTable) {
+        this.peeringTable = peeringTable;
+    }
 
     public URI getBgpPeers() {
         return bgpPeers;
@@ -233,6 +242,10 @@ public class DtoRouter {
         }
 
         if (!Objects.equal(this.name, otherRouter.getName())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.peeringTable, otherRouter.getPeeringTable())) {
             return false;
         }
 

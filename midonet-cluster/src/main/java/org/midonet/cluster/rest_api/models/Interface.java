@@ -108,8 +108,8 @@ public class Interface extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.HOSTS, hostId,
-                           ResourceUris.INTERFACES, name);
+        return absoluteUri(ResourceUris.HOSTS(), hostId,
+                           ResourceUris.INTERFACES(), name);
     }
 
     @JsonIgnore

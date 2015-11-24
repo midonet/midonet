@@ -81,11 +81,11 @@ public class Chain extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.CHAINS, id);
+        return absoluteUri(ResourceUris.CHAINS(), id);
     }
 
     public URI getRules() {
-        return relativeUri(ResourceUris.RULES);
+        return relativeUri(ResourceUris.RULES());
     }
 
     @JsonIgnore

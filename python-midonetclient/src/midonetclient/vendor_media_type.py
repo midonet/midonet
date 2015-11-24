@@ -69,6 +69,9 @@ APPLICATION_RULE_JSON = "application/vnd.org.midonet.Rule-v2+json"
 APPLICATION_RULE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Rule-v2+json"
 
+APPLICATION_MAC_IP_JSON = "application/vnd.org.midonet.MacIp-v1+json"
+APPLICATION_MAC_IP_COLLECTION_JSON = "application/vnd.org.midonet.MacIp-v1+json"
+
 APPLICATION_BGP_NETWORK_JSON = "application/vnd.org.midonet.BgpNetwork-v1+json"
 APPLICATION_BGP_NETWORK_COLLECTION_JSON =\
     "application/vnd.org.midonet.collection.BgpNetwork-v1+json"

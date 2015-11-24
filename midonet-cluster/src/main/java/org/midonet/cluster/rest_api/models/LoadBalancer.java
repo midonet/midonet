@@ -48,19 +48,19 @@ public class LoadBalancer extends UriResource {
     public List<UUID> poolIds;
 
     public URI getUri() {
-        return absoluteUri(ResourceUris.LOAD_BALANCERS, id);
+        return absoluteUri(ResourceUris.LOAD_BALANCERS(), id);
     }
 
     public URI getRouter() {
-        return absoluteUri(ResourceUris.ROUTERS, routerId);
+        return absoluteUri(ResourceUris.ROUTERS(), routerId);
     }
 
     public URI getPools() {
-        return relativeUri(ResourceUris.POOLS);
+        return relativeUri(ResourceUris.POOLS());
     }
 
     public URI getVips() {
-        return relativeUri(ResourceUris.VIPS);
+        return relativeUri(ResourceUris.VIPS());
     }
 
     @Override

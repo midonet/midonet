@@ -53,7 +53,7 @@ public class DhcpHost extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.DHCP_HOSTS, macAddr);
+        return absoluteUri(ResourceUris.DHCP_HOSTS(), macAddr);
     }
 
     @Override
