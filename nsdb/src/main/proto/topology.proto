@@ -488,6 +488,7 @@ message ServiceContainer {
     optional UUID router_id = 3;
     optional UUID network_id = 4;
     optional UUID configuration_id = 5;
+    optional UUID port_id = 6;
 }
 
 message ServiceContainerGroup {
