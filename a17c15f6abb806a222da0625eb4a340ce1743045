@@ -22,6 +22,30 @@
       "revId": "a17c15f6abb806a222da0625eb4a340ce1743045",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ca85afae",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T11:36:40Z",
+      "side": 1,
+      "message": "unrelated to this patch. i\u0027ll fix that in a new one.",
+      "parentUuid": "5ac4a560_0a4b27b1",
+      "range": {
+        "startLine": 94,
+        "startChar": 24,
+        "endLine": 94,
+        "endChar": 40
+      },
+      "revId": "a17c15f6abb806a222da0625eb4a340ce1743045",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
