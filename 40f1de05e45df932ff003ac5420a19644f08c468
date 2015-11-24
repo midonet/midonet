@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_0fe4193a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "I took a look into doing this, but it looks like the \"integration\" task might use a little bit of built-in magic to make the tests run (at least I couldn\u0027t figure it out). It might be worth adding a completely new task for running script-based tests.\n\nCan we do this as a separate commit? I need to look into how to accomplish this and don\u0027t want this patch blocked on that.",
+      "parentUuid": "5ac4a560_3b659f45",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_fee1559b",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/ipsec.conf.LEFT",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2015-11-23T15:01:31Z",
       "side": 1,
       "message": "both endpoints can use the same configuration file. They\u0027ll figure out which side they are by matching their ips to either left or write.\n\nFor example, on both ends im using.\n\nconfig setup\n    nat_traversal\u003dyes\nconn %default\n    ikelifetime\u003d480m\n    keylife\u003d60m\n    keyingtries\u003d%forever\nconn iketest\n    leftnexthop\u003d%defaultroute\n    rightnexthop\u003d%defaultroute\n    left\u003d201.201.201.2\n    leftid\u003d201.201.201.2\n    auto\u003dstart\n    leftsubnets\u003d{ 192.168.30.0/24 }\n    leftupdown\u003d\"ipsec_updown --route yes\"\n    right\u003d201.201.201.1\n    rightid\u003d201.201.201.1\n    rightsubnets\u003d{ 192.168.40.0/24 }\n    mtu\u003d1500\n    dpdaction\u003dhold\n    dpddelay\u003d30\n    dpdtimeout\u003d120\n    authby\u003dsecret\n    ikev2\u003dnever\n    ike\u003daes128-sha1;modp1536\n    ikelifetime\u003d3600s\n    auth\u003desp\n    phase2alg\u003daes128-sha1;modp1536\n    type\u003dtunnel\n    lifetime\u003d3600s",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6f7cad73",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/ipsec.conf.LEFT",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "oh, cool. Done.",
+      "parentUuid": "5ac4a560_fee1559b",
       "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_6fcaeda2",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/ipsec.conf.LEFT",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "I\u0027ve never seen a segfault, so I guess it does.",
+      "parentUuid": "5ac4a560_3ef3cd74",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_5ee8897c",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 4
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_ef027db3",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_5ee8897c",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_9b6cf338",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 4
@@ -81,6 +153,24 @@
       "writtenOn": "2015-11-23T12:28:11Z",
       "side": 1,
       "message": "please support a single ipsec implementation, we shouldn\u0027t QA two of them.",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8fcf49b0",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "As Ivan mentioned, libreswan is not in ubuntu, and we have to support libreswan on redhat. The difference in managing libreswan vs openswan is small, and we have to QA VPNaaS on both redhat and ubuntu anyway (but we don\u0027t have to QA both libreswan and openswan on both), so I think supporting both is less overhead than maintaining our own package.",
+      "parentUuid": "5ac4a560_9b6cf338",
       "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -139,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_4f3c5194",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "woops. Fixed.",
+      "parentUuid": "5ac4a560_de765906",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_be50bd5f",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 4
@@ -150,6 +258,30 @@
       "writtenOn": "2015-11-23T15:01:31Z",
       "side": 1,
       "message": "Much better call this GATEWAY_IP as that is what we are using it as. It may or may not be the actual uplink. More than likely not.",
+      "range": {
+        "startLine": 166,
+        "startChar": 12,
+        "endLine": 166,
+        "endChar": 21
+      },
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6f410d0b",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_be50bd5f",
       "range": {
         "startLine": 166,
         "startChar": 12,
@@ -179,6 +311,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8f466922",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "I left that to the caller to specify.",
+      "parentUuid": "5ac4a560_9e53016c",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_fe4a35ab",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
         "patchSetId": 4
@@ -190,6 +340,24 @@
       "writtenOn": "2015-11-23T15:01:31Z",
       "side": 1,
       "message": "are we supporting more than 1 connection per namespace?",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_af4a4525",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "5ac4a560_fe4a35ab",
       "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -219,6 +387,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_cf47811c",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_5e5a4984",
+      "range": {
+        "startLine": 191,
+        "startChar": 59,
+        "endLine": 191,
+        "endChar": 61
+      },
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_1b60e334",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn_basic_test",
         "patchSetId": 4
@@ -236,6 +428,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_ef543dcc",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn_basic_test",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_1b60e334",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_7b5f1773",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn_basic_test",
         "patchSetId": 4
@@ -247,6 +457,24 @@
       "writtenOn": "2015-11-23T12:29:35Z",
       "side": 1,
       "message": "if the test fails here, do the clean up tasks below run?",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0f5259dd",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn_basic_test",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-24T06:23:55Z",
+      "side": 1,
+      "message": "They do not. Leaving them is helpful for debugging.",
+      "parentUuid": "5ac4a560_7b5f1773",
       "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
