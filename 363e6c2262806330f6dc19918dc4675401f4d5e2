@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_81b47df3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HaproxyTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T16:12:20Z",
+      "side": 1,
+      "message": "MidolmanSpec uses the in-memory storage, a timeout is not really needed.",
+      "range": {
+        "startLine": 56,
+        "startChar": 4,
+        "endLine": 56,
+        "endChar": 68
+      },
+      "revId": "363e6c2262806330f6dc19918dc4675401f4d5e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c194b546",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T16:12:20Z",
+      "side": 1,
+      "message": "This first needs the implementation of service containers, doesn\u0027t it?",
+      "range": {
+        "startLine": 88,
+        "startChar": 8,
+        "endLine": 90,
+        "endChar": 63
+      },
+      "revId": "363e6c2262806330f6dc19918dc4675401f4d5e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_61a681c3",
+        "filename": "midonet-sandbox",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T16:12:20Z",
+      "side": 1,
+      "message": "git submodule update",
+      "revId": "363e6c2262806330f6dc19918dc4675401f4d5e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
