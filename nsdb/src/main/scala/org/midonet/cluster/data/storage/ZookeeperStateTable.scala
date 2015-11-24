@@ -188,6 +188,12 @@ trait ZookeeperStateTable extends StateTableStorage with Storage {
                    .asInstanceOf[StateTable[K, V]]
     }
 
+    override def tablePath(clazz: Class[_], id: ObjId, name: String,
+                           args: Any*): String = {
+        tablePath(clazz, id, name, version.longValue(), args)
+    }
+
+
     @inline
     private[storage] def tablesPath(version: Long = version.longValue())
     : String = {
@@ -221,7 +227,6 @@ trait ZookeeperStateTable extends StateTableStorage with Storage {
         tableRootPath(clazz, id, name, version) + "/" +
         StringUtils.join(args.asJava, '/')
     }
-
     /** Gets the table provider for the given object, key and value classes. */
     @throws[IllegalArgumentException]
     private def getProvider(clazz: Class[_], key: Class[_], value: Class[_],

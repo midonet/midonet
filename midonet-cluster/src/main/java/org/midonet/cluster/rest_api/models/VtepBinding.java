@@ -52,8 +52,8 @@ public class VtepBinding extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.VTEPS, vtepId,
-                           ResourceUris.BINDINGS, portName,
+        return absoluteUri(ResourceUris.VTEPS(), vtepId,
+                           ResourceUris.BINDINGS(), portName,
                            Short.toString(vlanId));
     }
 

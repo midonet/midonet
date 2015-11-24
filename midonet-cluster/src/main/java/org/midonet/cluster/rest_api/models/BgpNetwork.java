@@ -61,11 +61,11 @@ public class BgpNetwork extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.BGP_NETWORKS, id);
+        return absoluteUri(ResourceUris.BGP_NETWORKS(), id);
     }
 
     public URI getRouter() {
-        return absoluteUri(ResourceUris.ROUTERS, routerId);
+        return absoluteUri(ResourceUris.ROUTERS(), routerId);
     }
 
     @Override

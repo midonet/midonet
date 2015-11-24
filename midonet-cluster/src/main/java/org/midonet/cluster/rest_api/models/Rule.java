@@ -141,7 +141,7 @@ public abstract class Rule extends Condition {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.RULES, id);
+        return absoluteUri(ResourceUris.RULES(), id);
     }
 
     @JsonIgnore

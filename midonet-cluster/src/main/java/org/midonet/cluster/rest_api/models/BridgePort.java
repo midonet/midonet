@@ -50,7 +50,7 @@ public class BridgePort extends Port {
 
     @Override
     public URI getDevice() {
-        return absoluteUri(ResourceUris.BRIDGES, bridgeId);
+        return absoluteUri(ResourceUris.BRIDGES(), bridgeId);
     }
 
     @JsonIgnore

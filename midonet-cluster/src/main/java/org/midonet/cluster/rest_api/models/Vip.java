@@ -65,15 +65,15 @@ public class Vip extends UriResource {
     public VipSessionPersistence sessionPersistence;
 
     public URI getUri() {
-        return absoluteUri(ResourceUris.VIPS, id);
+        return absoluteUri(ResourceUris.VIPS(), id);
     }
 
     public URI getLoadBalancer() {
-        return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
+        return absoluteUri(ResourceUris.LOAD_BALANCERS(), loadBalancerId);
     }
 
     public URI getPool() {
-        return absoluteUri(ResourceUris.POOLS, poolId);
+        return absoluteUri(ResourceUris.POOLS(), poolId);
     }
 
     @Override

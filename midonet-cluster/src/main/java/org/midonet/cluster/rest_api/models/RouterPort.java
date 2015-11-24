@@ -23,6 +23,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
@@ -61,6 +62,14 @@ public class RouterPort extends Port {
     @ZoomField(name = "port_mac")
     public String portMac;
 
+    @Min(0)
+    @Max(0xFFFFFF)
+    @ZoomField(name = "vni")
+    public Integer rtrPortVni;
+
+    @ZoomField(name = "off_ramp_vxlan")
+    public Boolean offRampVxlan;
+
     @JsonIgnore
     @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     public UUID routerId;
@@ -83,7 +92,14 @@ public class RouterPort extends Port {
 
     @Override
     public URI getDevice() {
-        return absoluteUri(ResourceUris.ROUTERS, routerId);
+        return absoluteUri(ResourceUris.ROUTERS(), routerId);
+    }
+
+    public URI getPeeringTable() {
+        return UriBuilder.fromUri(getDevice()).
+                path(ResourceUris.PORTS()).
+                path(id.toString()).
+                path(ResourceUris.PEERING_TABLE()).build();
     }
 
     @Override

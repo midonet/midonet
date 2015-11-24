@@ -45,16 +45,16 @@ public class HostInterfacePort extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.HOSTS, hostId,
-                           ResourceUris.PORTS, portId);
+        return absoluteUri(ResourceUris.HOSTS(), hostId,
+                           ResourceUris.PORTS(), portId);
     }
 
     public URI getHost() {
-        return absoluteUri(ResourceUris.HOSTS, hostId);
+        return absoluteUri(ResourceUris.HOSTS(), hostId);
     }
 
     public URI getPort() {
-        return absoluteUri(ResourceUris.PORTS, portId);
+        return absoluteUri(ResourceUris.PORTS(), portId);
     }
 
     @JsonIgnore
