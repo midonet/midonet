@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_0ac1672e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/TransactionManager.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-24T10:55:35Z",
+      "side": 1,
+      "message": "Should we make a non-blocking version of cachedGet() to support doing this in parallel?",
+      "range": {
+        "startLine": 230,
+        "startChar": 8,
+        "endLine": 230,
+        "endChar": 44
+      },
+      "revId": "fa52f80452c28c4bba0bc2ab27124439f36cf2c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
