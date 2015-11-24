@@ -391,6 +391,8 @@ message Router {
     repeated UUID inbound_mirror_ids = 12;
     repeated UUID outbound_mirror_ids = 13;
 
+    optional UUID local_redirect_chain_id = 14;
+
     // Backreferences
     repeated UUID port_ids = 101;
     repeated UUID trace_request_ids = 102;

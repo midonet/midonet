@@ -1183,5 +1183,46 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             And("The virtual topology should not have the chain")
             VirtualTopology.tryGet[Chain](chain.getId)
         }
+
+        scenario("The router receives local redirect chain") {
+            val obs = createObserver()
+
+            Given("A router mapper")
+            val routerId = UUID.randomUUID
+            val mapper = new RouterMapper(routerId, vt, metricRegistry, mutable.Map())
+
+            And("A chain")
+            val chain = createChain()
+            store.create(chain)
+
+            And("A local redirect chain")
+            val redirectChain = createChain()
+            store.create(redirectChain)
+
+            And("A router with the chain")
+            val router = createRouter(id = routerId,
+                                      inboundFilterId = Some(chain.getId))
+                .toBuilder.setLocalRedirectChainId(redirectChain.getId).build()
+            When("The router is created")
+            store.create(router)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the router")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device shouldBeDeviceOf router
+
+            And("The router should have both chain, in correct order")
+            device.cfg.inboundFilters.size() shouldBe 2
+            device.cfg.inboundFilters.get(0) shouldBe chain.getId.asJava
+            device.cfg.inboundFilters.get(1) shouldBe redirectChain.getId.asJava
+
+            And("The virtual topology should have prefetched both chains")
+            VirtualTopology.tryGet[Chain](chain.getId) shouldBeDeviceOf chain
+            VirtualTopology.tryGet[Chain](redirectChain.getId) shouldBeDeviceOf redirectChain
+        }
+
     }
 }
