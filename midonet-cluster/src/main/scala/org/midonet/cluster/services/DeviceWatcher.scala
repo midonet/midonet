@@ -22,6 +22,7 @@ import com.google.protobuf.Message
 import org.slf4j.{LoggerFactory, Logger}
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer}
+import org.midonet.util.functors._
 
 import org.midonet.cluster.data.storage.Storage
 
@@ -34,7 +35,8 @@ import org.midonet.cluster.data.storage.Storage
  */
 class DeviceWatcher[T <: Message](store: Storage,
                                   updateHandler: T => Unit,
-                                  deleteHandler: Object => Unit)
+                                  deleteHandler: Object => Unit,
+                                  filterHandler: T => java.lang.Boolean = true)
                                  (implicit private val ct: ClassTag[T]) {
 
     private val log = LoggerFactory.getLogger("org.midonet.cluster")
@@ -69,7 +71,9 @@ class DeviceWatcher[T <: Message](store: Storage,
             log.warn(s"$deviceType stream emits an error: ", t)
         }
         override def onNext(o: Observable[T]): Unit = {
-            deviceSubscriptions.add(o.subscribe(new DeviceObserver))
+            deviceSubscriptions.add(o
+                    .filter(makeFunc1[T, java.lang.Boolean](filterHandler))
+                    .subscribe(new DeviceObserver))
         }
     }
 
