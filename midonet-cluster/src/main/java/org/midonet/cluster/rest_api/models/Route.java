@@ -134,11 +134,11 @@ public class Route extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.ROUTES, id);
+        return absoluteUri(ResourceUris.ROUTES(), id);
     }
 
     public URI getRouter() {
-        return absoluteUri(ResourceUris.ROUTERS, routerId);
+        return absoluteUri(ResourceUris.ROUTERS(), routerId);
     }
 
     @JsonIgnore

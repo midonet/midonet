@@ -72,11 +72,11 @@ public class BgpPeer extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.BGP_PEERS, id);
+        return absoluteUri(ResourceUris.BGP_PEERS(), id);
     }
 
     public URI getRouter() {
-        return absoluteUri(ResourceUris.ROUTERS, routerId);
+        return absoluteUri(ResourceUris.ROUTERS(), routerId);
     }
 
     @Override

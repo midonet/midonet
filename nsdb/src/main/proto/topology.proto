@@ -338,6 +338,10 @@ message Port {
     // service containers
     optional UUID service_container_id = 25;
 
+    // Overlay VTEP on Routers
+    optional uint32 vni = 40;
+    optional bool off_ramp_vxlan = 41;
+
     // Backreferences
 
     // For Router gateway port only. Back-references to VIPs that are associated

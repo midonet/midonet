@@ -42,6 +42,8 @@ object MidonetMediaTypes {
     final val APPLICATION_L2SERVICE_COLLECTION_JSON = "application/vnd.org.midonet.collection.L2Service-v1+json"
     final val APPLICATION_MAC_PORT_JSON_V2 = "application/vnd.org.midonet.MacPort-v2+json"
     final val APPLICATION_MAC_PORT_COLLECTION_JSON_V2 = "application/vnd.org.midonet.collection.MacPort-v2+json"
+    final val APPLICATION_MAC_IP_JSON = "application/vnd.org.midonet.MacIp-v1+json"
+    final val APPLICATION_MAC_IP_COLLECTION_JSON = "application/vnd.org.midonet.MacIp-v1+json"
     final val APPLICATION_IP4_MAC_JSON = "application/vnd.org.midonet.IP4Mac-v1+json"
     final val APPLICATION_IP4_MAC_COLLECTION_JSON = "application/vnd.org.midonet.collection.IP4Mac-v1+json"
     final val APPLICATION_HOST_JSON_V3 = "application/vnd.org.midonet.Host-v3+json"

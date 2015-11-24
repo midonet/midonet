@@ -48,7 +48,7 @@ public class VxLanPort extends Port {
 
     @Override
     public URI getDevice() {
-        return absoluteUri(ResourceUris.BRIDGES, networkId);
+        return absoluteUri(ResourceUris.BRIDGES(), networkId);
     }
 
     @JsonIgnore

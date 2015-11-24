@@ -15,6 +15,7 @@
 
 
 from midonetclient import admin_state_up_mixin
+from midonetclient import mac_ip
 from midonetclient import port_group_port
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
@@ -76,6 +77,12 @@ class Port(resource_base.ResourceBase,
     def get_port_mac(self):
         return self.dto['portMac']
 
+    def get_rtr_port_vni(self):
+        return self.dto['rtrPortVni']
+
+    def can_off_ramp_vxlan(self):
+        return self.dto['offRampVxlan']
+
     def get_vtep(self):
         return self.dto['vtepId']
 
@@ -121,6 +128,14 @@ class Port(resource_base.ResourceBase,
         self.dto['portMac'] = port_mac
         return self
 
+    def rtr_port_vni(self, vni):
+        self.dto['rtrPortVni'] = vni
+        return self
+
+    def off_ramp_vxlan(self, ramp):
+        self.dto['offRampVxlan'] = ramp
+        return self
+
     def type(self, type_):
         self.dto['type'] = type_
         return self
@@ -158,3 +173,12 @@ class Port(resource_base.ResourceBase,
     def outbound_mirrors(self, outMirrors):
         self.dto['outboundMirrorIds'] = outMirrors
         return self
+
+    def add_remote_peer(self):
+        return mac_ip.MacIp(self.dto['peeringTable'], {}, self.auth)
+
+    def get_remote_peers(self, query=None):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_MAC_IP_COLLECTION_JSON}
+        return self.get_children(self.dto['peeringTable'], query, headers,
+                                 mac_ip.MacIp)

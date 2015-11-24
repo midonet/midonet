@@ -47,16 +47,16 @@ public class TunnelZoneHost extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.TUNNEL_ZONES, tunnelZoneId,
-                           ResourceUris.HOSTS, hostId);
+        return absoluteUri(ResourceUris.TUNNEL_ZONES(), tunnelZoneId,
+                           ResourceUris.HOSTS(), hostId);
     }
 
     public URI getHost() {
-        return absoluteUri(ResourceUris.HOSTS, hostId);
+        return absoluteUri(ResourceUris.HOSTS(), hostId);
     }
 
     public URI getTunnelZone() {
-        return absoluteUri(ResourceUris.TUNNEL_ZONES, tunnelZoneId);
+        return absoluteUri(ResourceUris.TUNNEL_ZONES(), tunnelZoneId);
     }
 
     @JsonIgnore

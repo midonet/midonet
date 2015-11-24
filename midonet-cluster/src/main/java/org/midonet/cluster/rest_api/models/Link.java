@@ -35,15 +35,15 @@ public class Link extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.PORTS, portId, ResourceUris.LINK);
+        return absoluteUri(ResourceUris.PORTS(), portId, ResourceUris.LINK());
     }
 
     public URI getPort() {
-        return absoluteUri(ResourceUris.PORTS, portId);
+        return absoluteUri(ResourceUris.PORTS(), portId);
     }
 
     public URI getPeer() {
-        return absoluteUri(ResourceUris.PORTS, peerId);
+        return absoluteUri(ResourceUris.PORTS(), peerId);
     }
 
 }
