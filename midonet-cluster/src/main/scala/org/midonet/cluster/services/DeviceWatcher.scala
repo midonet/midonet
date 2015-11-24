@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services
 
+import rx.functions.Func1
+
 import scala.reflect.ClassTag
 
 import com.google.protobuf.Message
@@ -34,7 +36,8 @@ import org.midonet.cluster.data.storage.Storage
  */
 class DeviceWatcher[T <: Message](store: Storage,
                                   updateHandler: T => Unit,
-                                  deleteHandler: Object => Unit)
+                                  deleteHandler: Object => Unit,
+                                  filterHandler: Func1[_ >: T, java.lang.Boolean])
                                  (implicit private val ct: ClassTag[T]) {
 
     private val log = LoggerFactory.getLogger("org.midonet.cluster")
@@ -69,7 +72,9 @@ class DeviceWatcher[T <: Message](store: Storage,
             log.warn(s"$deviceType stream emits an error: ", t)
         }
         override def onNext(o: Observable[T]): Unit = {
-            deviceSubscriptions.add(o.subscribe(new DeviceObserver))
+            deviceSubscriptions.add(o
+                    .filter(filterHandler)
+                    .subscribe(new DeviceObserver))
         }
     }
 
