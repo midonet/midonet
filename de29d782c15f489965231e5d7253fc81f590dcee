@@ -36,6 +36,23 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8af817e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T10:54:52Z",
+      "side": 1,
+      "message": "nit: it might be useful to see the uuid of the member that has an ipv6 addr",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_8a465722",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
         "patchSetId": 1
@@ -76,6 +93,47 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_ea48abce",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T10:54:52Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "5ac4a560_4a3c3f94",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0a46c7bf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T10:54:52Z",
+      "side": 1,
+      "message": "nit: I prefer setPortActive / setPortInactive",
+      "range": {
+        "startLine": 130,
+        "startChar": 15,
+        "endLine": 130,
+        "endChar": 21
+      },
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_0a69678b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
         "patchSetId": 1
@@ -104,6 +162,23 @@
       "writtenOn": "2015-11-24T10:36:16Z",
       "side": 1,
       "message": "Does this really need to be a service? why isn\u0027t the  I see the bootstrap mechanism becoming more complicated. \n\nIn fact, this should be a service for port activation. Tunnel zones and hosts should come directly from the virtual topology.",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_eaf18b96",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T10:54:52Z",
+      "side": 1,
+      "message": "If it\u0027s really a TODO, it should have a JIRA #",
       "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
