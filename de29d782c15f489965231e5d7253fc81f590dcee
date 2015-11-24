@@ -1,0 +1,112 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_0ae4073a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T10:36:16Z",
+      "side": 1,
+      "message": "which tunnel zone? maybe this is already logged elsewhere?",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2ad0e352",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T10:36:16Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8a465722",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T10:36:16Z",
+      "side": 1,
+      "message": "not needed anymore if we subscribe to the stream instead. in fact, this class can stop being an actor (but maybe that\u0027s work for a future patch).",
+      "range": {
+        "startLine": 40,
+        "startChar": 18,
+        "endLine": 40,
+        "endChar": 33
+      },
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4a3c3f94",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T10:36:16Z",
+      "side": 1,
+      "message": "can we keep the old name? case LocalPortStatus(..., true) is not readable.",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0a69678b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T10:36:16Z",
+      "side": 1,
+      "message": "not a fan of all this static stuff. the class should just be able to be injected, since it\u0027s no longer an actor (yay!).\n\ni have a patch i\u0027m trying to get merged that should make this easier.",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cac04f7f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T10:36:16Z",
+      "side": 1,
+      "message": "Does this really need to be a service? why isn\u0027t the  I see the bootstrap mechanism becoming more complicated. \n\nIn fact, this should be a service for port activation. Tunnel zones and hosts should come directly from the virtual topology.",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
