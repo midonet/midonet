@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_be88b8c7",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/Ip4MacStateTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T15:59:27Z",
+      "side": 1,
+      "message": "watching for updates made to this state table and locally cache the map\u0027s contents?",
+      "range": {
+        "startLine": 91,
+        "startChar": 15,
+        "endLine": 91,
+        "endChar": 53
+      },
+      "revId": "e8f7563f132e1db4351c3621254c8b6e6c86394b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fe9230f5",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/Ip4MacStateTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T15:59:27Z",
+      "side": 1,
+      "message": "watching for updates made to this state table?",
+      "range": {
+        "startLine": 99,
+        "startChar": 14,
+        "endLine": 99,
+        "endChar": 52
+      },
+      "revId": "e8f7563f132e1db4351c3621254c8b6e6c86394b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fe80708d",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/Ip4MacStateTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T15:59:27Z",
+      "side": 1,
+      "message": "why not also checking that this address is mapped to the given mac?",
+      "range": {
+        "startLine": 174,
+        "startChar": 8,
+        "endLine": 174,
+        "endChar": 32
+      },
+      "revId": "e8f7563f132e1db4351c3621254c8b6e6c86394b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9e177c51",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T15:59:27Z",
+      "side": 1,
+      "message": "Does this table only have persistent entries? I\u0027m asking this because methods that would normally access the local cache are not implemented.",
+      "range": {
+        "startLine": 40,
+        "startChar": 12,
+        "endLine": 40,
+        "endChar": 26
+      },
+      "revId": "e8f7563f132e1db4351c3621254c8b6e6c86394b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_be2438c7",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T15:59:27Z",
+      "side": 1,
+      "message": "Starts watching for updates made to this state table and locally cache the map\u0027s contents?",
+      "range": {
+        "startLine": 47,
+        "startChar": 8,
+        "endLine": 47,
+        "endChar": 53
+      },
+      "revId": "e8f7563f132e1db4351c3621254c8b6e6c86394b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_de21f4b5",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/LegacyArpTable.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T15:59:27Z",
+      "side": 1,
+      "message": "Stops watching for updates made to this state table?",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 52
+      },
+      "revId": "e8f7563f132e1db4351c3621254c8b6e6c86394b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_613cc194",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/storage/Ip4MacStateTableTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T15:59:27Z",
+      "side": 1,
+      "message": "Do you intend to implement addPersistent as: (1) remove any old value, (2) add the new value?",
+      "range": {
+        "startLine": 256,
+        "startChar": 8,
+        "endLine": 258,
+        "endChar": 33
+      },
+      "revId": "e8f7563f132e1db4351c3621254c8b6e6c86394b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
