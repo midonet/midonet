@@ -196,6 +196,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_7e9f0004",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-24T14:40:43Z",
+      "side": 1,
+      "message": "If not this, we may need something alike (ContainerLocation). The service scheduler shouldn\u0027t assume any specific container implementation (e.g. knowing the name of the interface to specify the binding). I guess the schedules just monitors if there\u0027s an allocation of container\u003c-\u003ehost and the ContainerDelegate does service specific operations (like deciding the interface name, which ports to create, etc.).",
+      "parentUuid": "5ac4a560_fef070cb",
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_4a099f94",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 1
