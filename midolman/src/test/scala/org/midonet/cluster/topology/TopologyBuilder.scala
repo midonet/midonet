@@ -27,6 +27,7 @@ import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
+import org.midonet.cluster.models.Topology.ServiceContainerGroup.Service
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology._
@@ -804,6 +805,39 @@ trait TopologyBuilder {
             builder.setTimeout(timeout.get)
         if (maxRetries.isDefined)
             builder.setMaxRetries(maxRetries.get)
+        builder.build()
+    }
+
+    def createServiceContainer(id: UUID = UUID.randomUUID(),
+                               groupId: Option[UUID] = None,
+                               routerId: Option[UUID] = None,
+                               networkId: Option[UUID] = None,
+                               configurationId: Option[UUID] = None)
+    : ServiceContainer = {
+        val builder = ServiceContainer.newBuilder().setId(id.asProto)
+        if (groupId.isDefined)
+            builder.setServiceGroupId(groupId.get.asProto)
+        if (routerId.isDefined)
+            builder.setRouterId(routerId.get.asProto)
+        if (networkId.isDefined)
+            builder.setNetworkId(networkId.get.asProto)
+        if (configurationId.isDefined)
+            builder.setConfigurationId(configurationId.get.asProto)
+        builder.build()
+    }
+
+    def createServiceContainerGroup(id: UUID = UUID.randomUUID(),
+                                    serviceType: Option[Service] = None,
+                                    hostGroupId: Option[UUID] = None,
+                                    portGroupId: Option[UUID] = None)
+    : ServiceContainerGroup = {
+        val builder = ServiceContainerGroup.newBuilder().setId(id.asProto)
+        if (serviceType.isDefined)
+            builder.setServiceType(serviceType.get)
+        if (hostGroupId.isDefined)
+            builder.setHostGroupId(hostGroupId.get.asProto)
+        if (portGroupId.isDefined)
+            builder.setPortGroupId(portGroupId.get.asProto)
         builder.build()
     }
 
