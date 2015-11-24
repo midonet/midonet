@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_b41ff908",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T18:37:23Z",
+      "side": 1,
+      "message": "why do ports have containers? does the simulation need to be aware of this?",
+      "revId": "91d8498d2536a21927753d0e4474514a74742492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_34d3e939",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerHandler.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T18:37:23Z",
+      "side": 1,
+      "message": "why don\u0027t we leverage the port binding infrastructure? the cluster creates the port binding, the agent creates the namespace (ideally this code should live outside of the agent to avoid bloating, but ok), and when both the binding and the namespace are created, the DpC does the port binding.\n\nso, this should just receive a ContainerNamespace.",
+      "revId": "91d8498d2536a21927753d0e4474514a74742492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_94e2fd01",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerHandler.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T18:37:23Z",
+      "side": 1,
+      "message": "the arguments seem redundant.",
+      "revId": "91d8498d2536a21927753d0e4474514a74742492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
