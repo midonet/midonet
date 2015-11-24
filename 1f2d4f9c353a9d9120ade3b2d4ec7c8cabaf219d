@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_8a9e5755",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 5
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-24T10:46:29Z",
+      "side": 1,
+      "message": "Small thing. It\u0027d be better to delete the _dp and do it from outside the namespace. If could happen that there\u0027s an error between creating the veth and putting _ns into the namespace. if you try to delete the veth from _ns inside the namespace, they this\u0027d never get cleaned up.",
+      "revId": "1f2d4f9c353a9d9120ade3b2d4ec7c8cabaf219d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
