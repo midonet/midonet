@@ -18,6 +18,7 @@
 
 from midonetclient import admin_state_up_mixin
 from midonetclient import bgp_network
+from midonetclient import mac_ip
 from midonetclient import bgp_peer
 from midonetclient import mirror
 from midonetclient import port
@@ -133,6 +134,12 @@ class Router(resource_base.ResourceBase,
         return self.get_children(self.dto['bgpNetworks'], query, headers,
                                  bgp_network.BgpNetwork)
 
+    def get_remote_peers(self, query=None):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_MAC_IP_COLLECTION_JSON}
+        return self.get_children(self.dto['peeringTable'], query, headers,
+                                 mac_ip.MacIp)
+
     def get_bgp_peers(self, query=None):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_BGP_PEER_COLLECTION_JSON}
@@ -149,5 +156,11 @@ class Router(resource_base.ResourceBase,
     def add_bgp_network(self):
         return bgp_network.BgpNetwork(self.dto['bgpNetworks'], {}, self.auth)
 
+    def add_remote_peer(self):
+        return mac_ip.MacIp(self.dto['peeringTable'], {}, self.auth)
+
     def add_bgp_peer(self):
         return bgp_peer.BgpPeer(self.dto['bgpPeers'], {}, self.auth)
+
+    def add_remote_peer(self):
+        return mac_ip.MacIp(self.dto['peeringTable'], {}, self.auth)

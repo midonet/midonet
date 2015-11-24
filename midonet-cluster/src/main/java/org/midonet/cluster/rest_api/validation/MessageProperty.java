@@ -22,6 +22,8 @@ public class MessageProperty {
     // Definitions for these strings are in ValidationMessages.properties
     public static final String ALLOWED_VALUES =
             "{midokura.javarx.AllowedValue.message}";
+    public static final String PEERING_ENTRY_NOT_FOUND=
+            "{midokura.javarx.PeeringEntryNotFound.message}";
     public static final String ARP_ENTRY_NOT_FOUND=
             "{midokura.javarx.ArpEntryNotFound.message}";
     public static final String BGP_NOT_UNIQUE =

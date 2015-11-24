@@ -39,6 +39,11 @@ message IPSubnet {
     optional uint32 prefix_length = 3;
 }
 
+message MacIp {
+    optional string mac = 1;
+    optional IPAddress ip = 2;
+}
+
 message Int32Range {
     optional int32 start = 1;
     optional int32 end = 2;
