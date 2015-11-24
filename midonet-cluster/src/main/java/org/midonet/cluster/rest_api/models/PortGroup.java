@@ -54,11 +54,11 @@ public class PortGroup extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.PORT_GROUPS, id);
+        return absoluteUri(ResourceUris.PORT_GROUPS(), id);
     }
 
     public URI getPorts() {
-        return relativeUri(ResourceUris.PORTS);
+        return relativeUri(ResourceUris.PORTS());
     }
 
     @JsonIgnore

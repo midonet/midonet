@@ -68,11 +68,11 @@ public class TunnelZone extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.TUNNEL_ZONES, id);
+        return absoluteUri(ResourceUris.TUNNEL_ZONES(), id);
     }
 
     public URI getHosts() {
-        return relativeUri(ResourceUris.HOSTS);
+        return relativeUri(ResourceUris.HOSTS());
     }
 
     @JsonIgnore

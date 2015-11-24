@@ -224,6 +224,8 @@ class VirtualTopology(
 
     def stateStore = backend.stateStore
 
+    def stateTables = backend.stateTableStore
+
     private def observableOf[D <: Device](key: Key): Observable[D] = {
         var observable = observables get key
         if (observable eq null) {
