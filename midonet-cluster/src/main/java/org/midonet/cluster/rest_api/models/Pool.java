@@ -74,23 +74,23 @@ public class Pool extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.POOLS, id);
+        return absoluteUri(ResourceUris.POOLS(), id);
     }
 
     public URI getHealthMonitor() {
-        return absoluteUri(ResourceUris.HEALTH_MONITORS, healthMonitorId);
+        return absoluteUri(ResourceUris.HEALTH_MONITORS(), healthMonitorId);
     }
 
     public URI getLoadBalancer() {
-        return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
+        return absoluteUri(ResourceUris.LOAD_BALANCERS(), loadBalancerId);
     }
 
     public URI getVips() {
-        return relativeUri(ResourceUris.VIPS);
+        return relativeUri(ResourceUris.VIPS());
     }
 
     public URI getPoolMembers() {
-        return relativeUri(ResourceUris.POOL_MEMBERS);
+        return relativeUri(ResourceUris.POOL_MEMBERS());
     }
 
     @Override

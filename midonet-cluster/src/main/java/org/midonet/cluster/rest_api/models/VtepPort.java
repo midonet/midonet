@@ -55,12 +55,12 @@ public class VtepPort extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.VTEPS, vtepId,
-                           ResourceUris.PORTS, uriName);
+        return absoluteUri(ResourceUris.VTEPS(), vtepId,
+                           ResourceUris.PORTS(), uriName);
     }
 
     public URI getVtep() {
-        return absoluteUri(ResourceUris.VTEPS, vtepId);
+        return absoluteUri(ResourceUris.VTEPS(), vtepId);
     }
 
     public String toString() {

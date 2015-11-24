@@ -94,43 +94,43 @@ public class Bridge extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(BRIDGES, id);
+        return absoluteUri(BRIDGES(), id);
     }
 
     public URI getInboundFilter() {
-        return absoluteUri(CHAINS, inboundFilterId);
+        return absoluteUri(CHAINS(), inboundFilterId);
     }
 
     public URI getOutboundFilter() {
-        return absoluteUri(CHAINS, outboundFilterId);
+        return absoluteUri(CHAINS(), outboundFilterId);
     }
 
     public URI getPorts() {
-        return relativeUri(PORTS);
+        return relativeUri(PORTS());
     }
 
     public URI getPeerPorts() {
-        return relativeUri(PEER_PORTS);
+        return relativeUri(PEER_PORTS());
     }
 
     public URI getVxLanPorts() {
-        return relativeUri(VXLAN_PORTS);
+        return relativeUri(VXLAN_PORTS());
     }
 
     public URI getMacTable() {
-        return relativeUri(MAC_TABLE);
+        return relativeUri(MAC_TABLE());
     }
 
     public URI getArpTable() {
-        return relativeUri(ARP_TABLE);
+        return relativeUri(ARP_TABLE());
     }
 
     public URI getDhcpSubnets() {
-        return relativeUri(DHCP);
+        return relativeUri(DHCP());
     }
 
     public URI getDhcpSubnet6s() {
-        return relativeUri(DHCPV6);
+        return relativeUri(DHCPV6());
     }
 
     public String getVlanMacTableTemplate() {

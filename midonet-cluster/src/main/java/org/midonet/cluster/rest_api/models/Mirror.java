@@ -68,7 +68,7 @@ public class Mirror extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.MIRRORS, id);
+        return absoluteUri(ResourceUris.MIRRORS(), id);
     }
 
     @JsonIgnore

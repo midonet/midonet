@@ -92,7 +92,7 @@ public class TestTraceRequest extends JerseyTest {
 
         topology = builder.build();
 
-        traceResource = resource().path(ResourceUris.TRACE_REQUESTS);
+        traceResource = resource().path(ResourceUris.TRACE_REQUESTS());
     }
 
     private UUID toUUID(URI uri) {
