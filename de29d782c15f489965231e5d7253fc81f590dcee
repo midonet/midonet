@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8a11f7ae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T11:16:23Z",
+      "side": 1,
+      "message": "Yes, it\u0027s logged elsewhere: I will remove here then since this message is not really informative, and I don\u0027t have a quick solution at the moment to show the id for an observer subscribed to multiple observable. I will think about a way, maybe with groupedObservables and make a different patch for it.",
+      "parentUuid": "5ac4a560_0ae4073a",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_2ad0e352",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-11-24T10:36:16Z",
       "side": 1,
       "message": "idem",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_aa25d30b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T11:16:23Z",
+      "side": 1,
+      "message": "Same here",
+      "parentUuid": "5ac4a560_2ad0e352",
       "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_2a79c3fc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T11:16:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_8af817e7",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_8a465722",
         "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
         "patchSetId": 1
@@ -64,6 +118,30 @@
       "writtenOn": "2015-11-24T10:36:16Z",
       "side": 1,
       "message": "not needed anymore if we subscribe to the stream instead. in fact, this class can stop being an actor (but maybe that\u0027s work for a future patch).",
+      "range": {
+        "startLine": 40,
+        "startChar": 18,
+        "endLine": 40,
+        "endChar": 33
+      },
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4a7effe5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/MetadataServiceManagerActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T11:16:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_8a465722",
       "range": {
         "startLine": 40,
         "startChar": 18,
@@ -111,6 +189,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_aa6cf337",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T11:16:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_ea48abce",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_0a46c7bf",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
         "patchSetId": 1
@@ -122,6 +218,30 @@
       "writtenOn": "2015-11-24T10:54:52Z",
       "side": 1,
       "message": "nit: I prefer setPortActive / setPortInactive",
+      "range": {
+        "startLine": 130,
+        "startChar": 15,
+        "endLine": 130,
+        "endChar": 21
+      },
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_aa53136b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T11:16:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_0a46c7bf",
       "range": {
         "startLine": 130,
         "startChar": 15,
@@ -151,6 +271,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_4a651f44",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T11:16:23Z",
+      "side": 1,
+      "message": "I agree on this one: here it was only done to minimize changes throughout the agent code.",
+      "parentUuid": "5ac4a560_0a69678b",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_cac04f7f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
         "patchSetId": 1
@@ -168,6 +306,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_ea4d0bc6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T11:16:23Z",
+      "side": 1,
+      "message": "At the moment, this was only needed to accommodate the VXLAN port mapping service. My proposal for the container management was to do it here, in which case this should be a service to ensure the cleanup upon stop. It can also be external of the VTPM - however, doing it here makes it easier to filter the port bindings corresponding to service containers.\n\nMy understanding now is: the agent monitors the new port bindings, and starts the service containers for those bindings before notifying them to the HostRequestProxy - this is because the interface would only exist after the container is created.\n\nAnyway - suggestions on this approach or alternatives are welcome.",
+      "parentUuid": "5ac4a560_cac04f7f",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_eaf18b96",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
         "patchSetId": 1
@@ -179,6 +335,24 @@
       "writtenOn": "2015-11-24T10:54:52Z",
       "side": 1,
       "message": "If it\u0027s really a TODO, it should have a JIRA #",
+      "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cad76fbe",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T11:16:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_eaf18b96",
       "revId": "de29d782c15f489965231e5d7253fc81f590dcee",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
