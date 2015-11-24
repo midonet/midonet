@@ -80,6 +80,23 @@
       "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4a099f94",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-24T11:21:53Z",
+      "side": 1,
+      "message": "Do we really need the interface_name here? I understand this state key is just the mapping of a container to an agent.",
+      "revId": "8f0a9ed73b4e8177ba1a2ccfb0c7a54484a701d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
