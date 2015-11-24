@@ -60,12 +60,12 @@ public class IpAddrGroup extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.IP_ADDR_GROUPS, id);
+        return absoluteUri(ResourceUris.IP_ADDR_GROUPS(), id);
     }
 
     @SuppressWarnings("unused") // used by serializers
     public URI getAddrs() {
-        return UriBuilder.fromUri(relativeUri(ResourceUris.IP_ADDRS))
+        return UriBuilder.fromUri(relativeUri(ResourceUris.IP_ADDRS()))
                          .build();
     }
 

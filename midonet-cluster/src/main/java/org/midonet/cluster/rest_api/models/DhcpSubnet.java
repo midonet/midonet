@@ -100,12 +100,12 @@ public class DhcpSubnet extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.BRIDGES, bridgeId,
-                           ResourceUris.DHCP, subnetAddress.toZkString());
+        return absoluteUri(ResourceUris.BRIDGES(), bridgeId,
+                           ResourceUris.DHCP(), subnetAddress.toZkString());
     }
 
     public URI getHosts() {
-        return UriBuilder.fromUri(getUri()).path(ResourceUris.HOSTS).build();
+        return UriBuilder.fromUri(getUri()).path(ResourceUris.HOSTS()).build();
     }
 
     @JsonIgnore

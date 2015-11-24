@@ -61,11 +61,11 @@ public class ServiceContainer extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.SERVICE_CONTAINERS, id);
+        return absoluteUri(ResourceUris.SERVICE_CONTAINERS(), id);
     }
 
     public URI getPort() {
-        return absoluteUri(ResourceUris.PORTS, portId);
+        return absoluteUri(ResourceUris.PORTS(), portId);
     }
 
     @JsonIgnore
@@ -83,7 +83,7 @@ public class ServiceContainer extends UriResource {
     }
 
     public URI getServiceContainerGroup() {
-        return absoluteUri(SERVICE_CONTAINER_GROUPS,
+        return absoluteUri(SERVICE_CONTAINER_GROUPS(),
                            serviceGroupId);
     }
 

@@ -70,11 +70,11 @@ public class MacPort extends UriResource {
     @Override
     public URI getUri() {
         UriBuilder builder = UriBuilder.fromUri(getBaseUri());
-        builder.path(BRIDGES).path(bridgeId.toString());
+        builder.path(BRIDGES()).path(bridgeId.toString());
         if (vlanId != null && vlanId != UNTAGGED_VLAN_ID) {
-            builder.path(VLANS).path(vlanId.toString());
+            builder.path(VLANS()).path(vlanId.toString());
         }
-        return builder.path(MAC_TABLE)
+        return builder.path(MAC_TABLE())
                       .path(macToUri(macAddr) + "_" + portId.toString())
                       .build();
     }
