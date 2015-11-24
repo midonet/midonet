@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_6af3bb0a",
+        "filename": "nsdb/src/main/proto/topology_api.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-24T10:04:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_aa3953da",
+      "revId": "811f269651ce74bedd7b5bbe0d9818535f609119",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_4a799f92",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 8
@@ -30,6 +48,24 @@
       "writtenOn": "2015-11-24T09:51:27Z",
       "side": 1,
       "message": "How about the bindings:\n\nServiceContainerGroup.host_group_id \u003c-\u003e HostGroup.service_group_ids\n\nServiceContainerGroup.port_group_id \u003c-\u003e PortGroup.service_group_ids",
+      "revId": "811f269651ce74bedd7b5bbe0d9818535f609119",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4aeeff23",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-24T10:04:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_4a799f92",
       "revId": "811f269651ce74bedd7b5bbe0d9818535f609119",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
