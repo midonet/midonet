@@ -53,6 +53,7 @@ object MidonetBackend {
     final val VtepConfig = "config"
     final val VtepConnState = "connection_state"
     final val VtepVxgwManager = "vxgw_manager"
+    final val ContainerLocation = "container_location"
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
