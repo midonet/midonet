@@ -70,6 +70,30 @@
       "revId": "e188bf0ee921278cb6f8c323877fefb14dd49dc5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4ad8bf53",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T10:34:13Z",
+      "side": 1,
+      "message": "I don\u0027t understand. I didn\u0027t add exterior port creation, I added a call to create the tunnel key from an existing code path. Exactly where it was missing. \n\nWhat is the other place you mention? Where the interior port is being create? Interior ports don\u0027t need tunnel keys.",
+      "parentUuid": "5ac4a560_ca0f6f2d",
+      "range": {
+        "startLine": 203,
+        "startChar": 9,
+        "endLine": 204,
+        "endChar": 43
+      },
+      "revId": "e188bf0ee921278cb6f8c323877fefb14dd49dc5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
