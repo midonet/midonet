@@ -44,7 +44,48 @@ import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
 
-trait ZookeeperStateTable extends StateTableStorage with Storage {
+trait StateTablePaths extends StateTableStorage {
+    protected def version: AtomicLong
+    protected def rootPath: String
+
+    override def tablePath(clazz: Class[_], id: ObjId, name: String,
+                           args: Any*): String = {
+        tablePath(clazz, id, name, version.longValue(), args)
+    }
+
+    @inline
+    private[storage] def tablesPath(version: Long = version.longValue()): String = {
+        s"$rootPath/$version/tables"
+    }
+
+    @inline
+    private[storage] def tablesClassPath(
+                                            clazz: Class[_], version: Long = version.longValue()) : String = {
+        tablesPath(version) + "/" + clazz.getSimpleName
+    }
+
+    @inline
+    private[storage] def tablesObjectPath(clazz: Class[_], id: ObjId,
+                                          version: Long = version.longValue()): String = {
+        tablesClassPath(clazz, version) + "/" + getIdString(clazz, id)
+    }
+
+    @inline
+    private[storage] def tableRootPath(clazz: Class[_], id: ObjId, name: String,
+                                       version: Long = version.longValue()): String = {
+        tablesObjectPath(clazz, id, version) + "/" + name
+    }
+
+    @inline
+    private[storage] def tablePath(clazz: Class[_], id: ObjId, name: String,
+                                   version: Long, args: Any*): String = {
+        tableRootPath(clazz, id, name, version) + "/" +
+            StringUtils.join(args.asJava, '/')
+    }
+
+}
+
+trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with Storage {
 
     protected[storage] trait StateTableTransactionManager {
 
@@ -118,42 +159,6 @@ trait ZookeeperStateTable extends StateTableStorage with Storage {
     protected def connectionWatcher: ZkConnectionAwareWatcher
 
     /**
-      * Registers a new state table for the given class. The state table is
-      * identified by the given key class, value class and name, and it
-      * associated with the specified provider class. The method throws an
-      * [[IllegalStateException]] if the storage was already built, and an
-      * [[IllegalArgumentException]] if the specified object class was not
-      * previously registered, or if a state table with same parameters was
-      * already registered.
-      */
-    @throws[IllegalStateException]
-    @throws[IllegalArgumentException]
-    override def registerTable[K, V](clazz: Class[_], key: Class[K],
-                                     value: Class[V], name: String,
-                                     provider: Class[_ <: StateTable[K,V]])
-    : Unit = {
-        if (isBuilt) {
-            throw new IllegalStateException(
-                "Cannot register a state table after building the storage")
-        }
-        if (!isRegistered(clazz)) {
-            throw new IllegalArgumentException(
-                s"Class ${clazz.getSimpleName} is not registered")
-        }
-        val newProvider = TableProvider(key, value, provider)
-        val oldProvider = tableInfo(clazz).tables.getOrElse(name, {
-            tableInfo(clazz).tables.putIfAbsent(name, newProvider)
-                                   .getOrElse(newProvider)
-        })
-        if (newProvider != oldProvider) {
-            throw new IllegalArgumentException(
-                s"Table for class ${clazz.getSimpleName} key ${key.getSimpleName} " +
-                s"value ${value.getSimpleName} name $name is already " +
-                "registered to a different provider")
-        }
-    }
-
-    /**
       * Returns a [[StateTable]] instance for the specified object class,
       * table name, object identifier and optional table arguments.
       */
@@ -186,40 +191,6 @@ trait ZookeeperStateTable extends StateTableStorage with Storage {
                                           classOf[ZkConnectionAwareWatcher])
         constructor.newInstance(directory, connectionWatcher)
                    .asInstanceOf[StateTable[K, V]]
-    }
-
-    @inline
-    private[storage] def tablesPath(version: Long = version.longValue())
-    : String = {
-        s"$rootPath/$version/tables"
-    }
-
-    @inline
-    private[storage] def tablesClassPath(clazz: Class[_],
-                                         version: Long = version.longValue())
-    : String = {
-        tablesPath(version) + "/" + clazz.getSimpleName
-    }
-
-    @inline
-    private[storage] def tablesObjectPath(clazz: Class[_], id: ObjId,
-                                          version: Long = version.longValue())
-    : String = {
-        tablesClassPath(clazz, version) + "/" + getIdString(clazz, id)
-    }
-
-    @inline
-    private[storage] def tableRootPath(clazz: Class[_], id: ObjId, name: String,
-                                       version: Long = version.longValue())
-    : String = {
-        tablesObjectPath(clazz, id, version) + "/" + name
-    }
-
-    @inline
-    private[storage] def tablePath(clazz: Class[_], id: ObjId, name: String,
-                                   version: Long, args: Any*): String = {
-        tableRootPath(clazz, id, name, version) + "/" +
-        StringUtils.join(args.asJava, '/')
     }
 
     /** Gets the table provider for the given object, key and value classes. */

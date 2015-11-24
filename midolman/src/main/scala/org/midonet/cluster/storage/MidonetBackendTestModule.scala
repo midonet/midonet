@@ -20,8 +20,10 @@ import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
 
 import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.data.storage.{StateTableStorage, InMemoryStorage, StateStorage, Storage}
+import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.MidoTestConfigurator
+import org.midonet.packets.{MAC, IPv4Addr}
 import org.midonet.util.eventloop.Reactor
 
 /* In the main source tree to allow usage by other module's tests, without
@@ -32,11 +34,21 @@ object MidonetBackendTest  {
 
 class MidonetTestBackend extends MidonetBackend {
 
-    private val inMemoryZoom = new InMemoryStorage()
+    private val inMemoryZoom: InMemoryStorage = new InMemoryStorage()
+
+    {
+        inMemoryZoom.registerTable(classOf[Topology.Network], classOf[IPv4Addr],
+            classOf[MAC], MidonetBackend.Ip4MacTable,
+            classOf[Ip4MacStateTable])
+        inMemoryZoom.registerTable(classOf[Topology.Port], classOf[IPv4Addr],
+            classOf[MAC], MidonetBackend.PeeringTable,
+            classOf[Ip4MacStateTable])
+    }
+
 
     override def store: Storage = inMemoryZoom
     override def stateStore: StateStorage = inMemoryZoom
-    override def stateTableStore: StateTableStorage = null
+    override def stateTableStore: StateTableStorage = inMemoryZoom
     override def curator: CuratorFramework = null
     override def reactor: Reactor = null
     override def connection: ZkConnection = null

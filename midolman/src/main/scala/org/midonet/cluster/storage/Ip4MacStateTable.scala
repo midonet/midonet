@@ -83,7 +83,8 @@ final class Ip4MacStateTable(directory: Directory,
 
     private val map = new Ip4ToMacReplicatedMap(directory)
     private val onSubscribe = new OnTableSubscribe(this)
-    map.setConnectionWatcher(zkConnWatcher)
+    if (zkConnWatcher ne null)
+        map.setConnectionWatcher(zkConnWatcher)
 
     /**
       * Starts the synchronization of the state table.

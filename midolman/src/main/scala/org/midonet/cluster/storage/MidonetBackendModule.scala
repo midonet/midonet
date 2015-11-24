@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage.StateTableStorage
+import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -69,6 +70,9 @@ class MidonetBackendModule(val conf: MidonetBackendConfig,
                 // module).
                 storage.registerTable(classOf[Network], classOf[IPv4Addr],
                                       classOf[MAC], MidonetBackend.Ip4MacTable,
+                                      classOf[Ip4MacStateTable])
+                storage.registerTable(classOf[Topology.Port], classOf[IPv4Addr],
+                                      classOf[MAC], MidonetBackend.PeeringTable,
                                       classOf[Ip4MacStateTable])
             }
         }

@@ -84,7 +84,7 @@ public class TraceRequest extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.TRACE_REQUESTS, id);
+        return absoluteUri(ResourceUris.TRACE_REQUESTS(), id);
     }
 
     @Override
