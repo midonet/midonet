@@ -1,0 +1,326 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_01494dd0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "Add logging?",
+      "range": {
+        "startLine": 270,
+        "startChar": 28,
+        "endLine": 270,
+        "endChar": 56
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_214649c0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "Add logging?",
+      "range": {
+        "startLine": 272,
+        "startChar": 27,
+        "endLine": 272,
+        "endChar": 60
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e13b7136",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "Is this still true?",
+      "range": {
+        "startLine": 73,
+        "startChar": 28,
+        "endLine": 73,
+        "endChar": 42
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c1f7558b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "Move to line above?",
+      "range": {
+        "startLine": 54,
+        "startChar": 6,
+        "endLine": 54,
+        "endChar": 8
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a1033972",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "Move to line above?",
+      "range": {
+        "startLine": 58,
+        "startChar": 6,
+        "endLine": 58,
+        "endChar": 8
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e1f45189",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "ce",
+      "range": {
+        "startLine": 65,
+        "startChar": 29,
+        "endLine": 65,
+        "endChar": 30
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_01f22d9a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "addresses have changed?",
+      "range": {
+        "startLine": 90,
+        "startChar": 34,
+        "endLine": 90,
+        "endChar": 41
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e1d7f1bd",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 117,
+        "startChar": 4,
+        "endLine": 121,
+        "endChar": 5
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_816d5d07",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerPortCreationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "There\u0027s a missing obs.awaitOnNext(...) above",
+      "range": {
+        "startLine": 124,
+        "startChar": 12,
+        "endLine": 124,
+        "endChar": 38
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c17675d8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerPortCreationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 134,
+        "startChar": 12,
+        "endLine": 134,
+        "endChar": 38
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_01814d8f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerPortCreationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 150,
+        "startChar": 12,
+        "endLine": 150,
+        "endChar": 38
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_217e49af",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerPortCreationTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 156,
+        "startChar": 12,
+        "endLine": 156,
+        "endChar": 38
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_349be9ca",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "create a jira issue for this?",
+      "range": {
+        "startLine": 237,
+        "startChar": 12,
+        "endLine": 237,
+        "endChar": 74
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9473ddb0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-24T17:29:29Z",
+      "side": 1,
+      "message": "inactive",
+      "range": {
+        "startLine": 447,
+        "startChar": 38,
+        "endLine": 447,
+        "endChar": 45
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
