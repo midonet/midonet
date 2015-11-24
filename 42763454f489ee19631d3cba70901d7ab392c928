@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_9eecdcc9",
+        "filename": "midonet-cluster/src/main/java/org/midonet/client/dto/DtoRouter.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T14:17:24Z",
+      "side": 1,
+      "message": "public and spare the get/setters?",
+      "range": {
+        "startLine": 47,
+        "startChar": 4,
+        "endLine": 47,
+        "endChar": 11
+      },
+      "revId": "42763454f489ee19631d3cba70901d7ab392c928",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_decd745f",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/MacIpPair.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T14:17:24Z",
+      "side": 1,
+      "message": "Maybe this deserves its own method in ResourceUris?",
+      "range": {
+        "startLine": 60,
+        "startChar": 26,
+        "endLine": 60,
+        "endChar": 65
+      },
+      "revId": "42763454f489ee19631d3cba70901d7ab392c928",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1ed8cc1c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T14:17:24Z",
+      "side": 1,
+      "message": "this looks more appropriate for ResourceUris, it\u0027s not related to MidonetResource per se.",
+      "range": {
+        "startLine": 194,
+        "startChar": 4,
+        "endLine": 201,
+        "endChar": 5
+      },
+      "revId": "42763454f489ee19631d3cba70901d7ab392c928",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5e096494",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RouterResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T14:17:24Z",
+      "side": 1,
+      "message": "nit: indent?",
+      "revId": "42763454f489ee19631d3cba70901d7ab392c928",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
