@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_01c4ed3e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-24T16:21:21Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "5ac4a560_1ed8cc1c",
+      "range": {
+        "startLine": 194,
+        "startChar": 4,
+        "endLine": 201,
+        "endChar": 5
+      },
+      "revId": "42763454f489ee19631d3cba70901d7ab392c928",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_5e096494",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RouterResource.scala",
         "patchSetId": 1
