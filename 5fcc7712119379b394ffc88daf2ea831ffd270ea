@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_cfd781be",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 480,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T09:07:38Z",
+      "side": 1,
+      "message": "After talking to Ivan yesterday, we agreed that we might need a UUID configuration_id or similar field, which tells the container implementation the id of the configuration that it needs to load (e.g. the id of the VPN service object)",
+      "range": {
+        "startLine": 480,
+        "startChar": 8,
+        "endLine": 480,
+        "endChar": 24
+      },
+      "revId": "5fcc7712119379b394ffc88daf2ea831ffd270ea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
