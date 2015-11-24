@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_9ed69cc4",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T14:34:52Z",
+      "side": 1,
+      "message": "sure",
+      "parentUuid": "5ac4a560_9e0e9c33",
+      "range": {
+        "startLine": 94,
+        "startChar": 24,
+        "endLine": 94,
+        "endChar": 40
+      },
+      "revId": "a17c15f6abb806a222da0625eb4a340ce1743045",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_de0f342d",
         "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/RtnetlinkProtocol.scala",
         "patchSetId": 1
@@ -84,6 +108,24 @@
       "writtenOn": "2015-11-24T12:02:07Z",
       "side": 1,
       "message": "curious: what was the ACK doing?",
+      "revId": "a17c15f6abb806a222da0625eb4a340ce1743045",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7ee8e07c",
+        "filename": "netlink/src/main/scala/org/midonet/netlink/rtnetlink/RtnetlinkProtocol.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-24T14:34:52Z",
+      "side": 1,
+      "message": "it was letting us know the request was successful, by putting an error with code 0 in the channel. however, we can know the request was successful by the absence of errors, if we do a synchronous write. rtnetlink will also notify us of the result of the newlink. if the need ever arises, i\u0027ll add an argument to let the caller specify additional flags.",
+      "parentUuid": "5ac4a560_de0f342d",
       "revId": "a17c15f6abb806a222da0625eb4a340ce1743045",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
