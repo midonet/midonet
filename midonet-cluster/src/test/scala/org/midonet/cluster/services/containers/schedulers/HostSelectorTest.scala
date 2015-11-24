@@ -1,0 +1,36 @@
+/*
+ * Copyright 2015 Midokura SARL
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+package org.midonet.cluster.services.containers.schedulers
+
+import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.UUIDUtil._
+import org.scalatest._
+
+class HostSelectorTest extends FeatureSpec with Matchers with BeforeAndAfter {
+
+    private var store: InMemoryStorage = _
+
+    before
+    {
+        store = new InMemoryStorage
+        MidonetBackend.setupBindings(store, store)
+    }
+
+
+}
