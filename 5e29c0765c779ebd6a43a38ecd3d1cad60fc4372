@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_8acf37b0",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-24T10:14:07Z",
+      "side": 1,
+      "message": "It\u0027s hard to know what this is for, let\u0027s add a comment on a later patch.",
+      "range": {
+        "startLine": 488,
+        "startChar": 18,
+        "endLine": 488,
+        "endChar": 34
+      },
+      "revId": "5e29c0765c779ebd6a43a38ecd3d1cad60fc4372",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
