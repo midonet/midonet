@@ -52,6 +52,24 @@
       "revId": "93c286b1c4e87b13ebab3b2d02541e1a44e58383",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cffea138",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ObjectReferenceTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T09:20:16Z",
+      "side": 0,
+      "message": "Oh, right. Sometimes we use the scala Loggers, sometimes we don\u0027t: I agree, it can be interpolated then.",
+      "parentUuid": "7ac7a964_46ffb334",
+      "revId": "93c286b1c4e87b13ebab3b2d02541e1a44e58383",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

@@ -219,6 +219,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8fa4a958",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T09:20:16Z",
+      "side": 1,
+      "message": "I checked but I didn\u0027t see that we log when the referenced object becomes available, so we can do it here. These are simulation objects, so they won\u0027t be multiline. However, printing the whole object was intended to help in debugging, sometimes the ids just don\u0027t provide enough information. If you think these messages are too verbose for debug, should we make them trace?",
+      "parentUuid": "7ac7a964_c69ae313",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ac7a964_d088ebe9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 1
@@ -313,6 +331,24 @@
       "side": 1,
       "message": "i don\u0027t know. Depends on what errors are possible, on whether some exceptions are legit and thus do not deserve to be logged, etc.\n\nFrom a user\u0027s point of view. Is this really a warning, something they should worry or learn about? What would a user understand if he reads \"route error\" in the log?",
       "parentUuid": "7ac7a964_e60c3f97",
+      "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ef927df5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-24T09:20:16Z",
+      "side": 1,
+      "message": "Reworded as:\n\n  log.warn(s\"Update stream emitted error for route $routeId: the route will be ignored\", e)",
+      "parentUuid": "7ac7a964_4686d3ba",
       "revId": "f1aba3a6cfc385c21d274d2dcc8119fdd0ebe9d1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
