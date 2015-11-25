@@ -188,7 +188,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
         })
 
     def ingress(implicit context: PacketContext): SimulationResult = {
-        context.log.debug(s"Ingressing port $id")
+        context.log.debug(s"Ingressing port $id at device $deviceId")
         if (context.devicesTraversed >= Simulator.MAX_DEVICES_TRAVERSED) {
             context.log.debug(s"Dropping packet that traversed too many devices "+
                 s"(${context.devicesTraversed}}), possible topology loop.")
