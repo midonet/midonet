@@ -17,8 +17,6 @@ import javax.ws.rs.core.UriBuilder;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import org.slf4j.LoggerFactory;
-
 @ZoomClass(clazz = Neutron.IPSecSiteConnection.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IPSecSiteConnection extends UriResource {
@@ -81,7 +79,7 @@ public class IPSecSiteConnection extends UriResource {
     public UUID ikePolicyId;
 
     @ZoomField(name = "ikepolicy")
-    public IKEPolicy ikePolicy;
+    public IkePolicy ikePolicy;
 
     @ZoomField(name = "ipsecpolicy_id")
     public UUID ipsecPolicyId;

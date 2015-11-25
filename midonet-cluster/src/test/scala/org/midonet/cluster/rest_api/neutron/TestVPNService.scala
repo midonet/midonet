@@ -25,12 +25,12 @@ import org.junit.{Before, Test}
 import org.scalatest.ShouldMatchers
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.rest_api.neutron.models.{Neutron, VPNService}
+import org.midonet.cluster.rest_api.neutron.models.{Neutron, VpnService}
 import org.midonet.cluster.rest_api.rest_api.{DtoWebResource, FuncTest, Topology}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes.NEUTRON_JSON_V3
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes.NEUTRON_VPN_SERVICE_JSON_V1
 
-class TestVPNService extends JerseyTest(FuncTest.getBuilder.build()) with
+class TestVpnService extends JerseyTest(FuncTest.getBuilder.build()) with
                              ShouldMatchers {
 
     private var topology: Topology = null
@@ -54,7 +54,7 @@ class TestVPNService extends JerseyTest(FuncTest.getBuilder.build()) with
 
     @Test
     def testCRUD() {
-        val dto = new VPNService()
+        val dto = new VpnService()
         dto.id = UUID.randomUUID
         dto.name = dto.id + "-name"
         dto.description = dto.id + "-desc"
@@ -71,7 +71,7 @@ class TestVPNService extends JerseyTest(FuncTest.getBuilder.build()) with
 
         val respDto = client().resource(createdUri)
             .accept(NEUTRON_VPN_SERVICE_JSON_V1)
-            .get(classOf[VPNService])
+            .get(classOf[VpnService])
 
         LoggerFactory.getLogger("hello").info(s"${dto.id}")
         LoggerFactory.getLogger("hello").info(s"${respDto.id}")

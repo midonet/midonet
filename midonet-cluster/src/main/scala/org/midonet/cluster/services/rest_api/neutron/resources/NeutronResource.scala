@@ -68,7 +68,7 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def firewallResource: FirewallResource = new FirewallResource(uriInfo, api)
 
     @Path("vpnservices")
-    def vpnServicesResource: VPNServiceResource = new VPNServiceResource(resContext)
+    def vpnServicesResource: VpnServiceResource = new VpnServiceResource(resContext)
 
     @Path("ipsec_site_conns")
     def ipsecSiteConnResource: IpsecSiteConnResource = new IpsecSiteConnResource(resContext)
