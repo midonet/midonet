@@ -22,6 +22,30 @@
       "revId": "8a9ec11599d45e89acacc3082f9fe8a4ed09e0bc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8d83cccb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-25T09:09:12Z",
+      "side": 1,
+      "message": "1. Well, you have 23 bits for the tunnel keys, which are global. You can have millions of interior ports. So yes, I\u0027m worried about it.\n2. Even coming from Neutron? What\u0027s the code path that makes that transition?\n3. Not a problem.\n4. Me neither.",
+      "parentUuid": "5ac4a560_cd95c489",
+      "range": {
+        "startLine": 83,
+        "startChar": 8,
+        "endLine": 83,
+        "endChar": 19
+      },
+      "revId": "8a9ec11599d45e89acacc3082f9fe8a4ed09e0bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
