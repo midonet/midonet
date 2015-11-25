@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e8feee37",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T12:49:19Z",
+      "side": 1,
+      "message": "I was not seeing any explicit reference to Cassandra, that\u0027s why I asked. I see that FlowStateStorage uses it.",
+      "parentUuid": "5ac4a560_48dd2214",
+      "range": {
+        "startLine": 73,
+        "startChar": 28,
+        "endLine": 73,
+        "endChar": 42
+      },
+      "revId": "3883c291b3cf817dcf71af0f1262cf0a662752a9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_c1f7558b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
         "patchSetId": 3
