@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_69badfe2",
+        "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-25T23:59:12Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "5ac4a560_e391b153",
+      "range": {
+        "startLine": 1,
+        "startChar": 20,
+        "endLine": 1,
+        "endChar": 27
+      },
+      "revId": "6a4f47ba3c8d74bb244e8b0f32bd7dc4f3e9e7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_43ba65e2",
         "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
         "patchSetId": 1
@@ -105,6 +129,30 @@
       "writtenOn": "2015-11-25T13:54:49Z",
       "side": 1,
       "message": "doesn\u0027t seem to add much, maybe containers would be clearer",
+      "range": {
+        "startLine": 112,
+        "startChar": 62,
+        "endLine": 112,
+        "endChar": 69
+      },
+      "revId": "6a4f47ba3c8d74bb244e8b0f32bd7dc4f3e9e7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_09e40b0c",
+        "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-25T23:59:12Z",
+      "side": 1,
+      "message": "missing org.",
+      "parentUuid": "5ac4a560_83b47df3",
       "range": {
         "startLine": 112,
         "startChar": 62,
