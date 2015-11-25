@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_cd95c489",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-25T05:24:34Z",
+      "side": 1,
+      "message": "Interior network ports go through this path as well. Also, isn\u0027t being bound to an interface the actual distinguishing characteristic of an external port? Could you rename this function to assignTunnelKey or something like that?\n\nI realize now that we probably shouldn\u0027t be assigning tunnel keys to interior network ports, but:\n\n1. It doesn\u0027t do any harm to have tunnel keys on internal ports (does it?).\n2. Ports can change from internal to external, and we\u0027d have to add a tunnel key then.\n3. We already shipped a release that does this, so there are topologies out there that have internal ports with tunnel keys already.\n4. I\u0027m actually not sure why Galo added this here, so maybe he has another reason.",
+      "range": {
+        "startLine": 83,
+        "startChar": 8,
+        "endLine": 83,
+        "endChar": 19
+      },
+      "revId": "8a9ec11599d45e89acacc3082f9fe8a4ed09e0bc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
