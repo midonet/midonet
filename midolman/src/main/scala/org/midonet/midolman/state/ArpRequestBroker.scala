@@ -380,6 +380,7 @@ class SingleRouterArpRequestBroker(id: UUID,
     private def processNewMacs(): Unit = while (!macsDiscovered.isEmpty) {
         val MacChange(ip, oldMac, newMac) = macsDiscovered.poll()
         if (newMac ne null) {
+            log.debug("Got address for {}: {}", ip, newMac)
             if ((oldMac ne null) && (newMac != oldMac)) {
                 log.debug("Invalidating flows for {} in router {}", ip, id)
                 backChannel.tell(FlowTagger.tagForArpEntry(id, ip))
