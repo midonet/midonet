@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_4d2b74eb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-25T09:09:56Z",
+      "side": 1,
+      "message": "Well, initially the workflow was that the cluster would write to store the agent where the container should be created, agents would monitor this, and the responsible agent create the container, report the status back to the cluster, and the cluster would create the binding.\n\nHowever, on Friday it was decided that the agent notification would be done via the port binding. Ports bound to a container would have a containerId. The agent would detect this as an indication that it needs to create a namespace/interface for this port. Therefore, it will intercept the binding, create the namespace/interface and then notify the binding to the DpC.\n\n-\u003e therefore the cleanup of the VTPM: my intent was the VTPM can intercept ports bound to containers in the host stream, and filter those bindings via a service that creates the container.\n\nI think this approach was chosen for now because it was simpler in terms of messages exchanged between agent/cluster. Does it make sense?",
+      "parentUuid": "5ac4a560_b41ff908",
+      "revId": "91d8498d2536a21927753d0e4474514a74742492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_34d3e939",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerHandler.scala",
         "patchSetId": 4
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_cd6ce439",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerHandler.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-25T09:09:56Z",
+      "side": 1,
+      "message": "You\u0027re right I think: well we\u0027ve been trying different ideas. So I think I need to pass here:\n- the container\n- the interface name\n- the namespace name is selected by the container?",
+      "parentUuid": "5ac4a560_34d3e939",
+      "revId": "91d8498d2536a21927753d0e4474514a74742492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_94e2fd01",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerHandler.scala",
         "patchSetId": 4
@@ -47,6 +83,24 @@
       "writtenOn": "2015-11-24T18:37:23Z",
       "side": 1,
       "message": "the arguments seem redundant.",
+      "revId": "91d8498d2536a21927753d0e4474514a74742492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ed69a026",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerHandler.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-25T09:09:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_94e2fd01",
       "revId": "91d8498d2536a21927753d0e4474514a74742492",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
