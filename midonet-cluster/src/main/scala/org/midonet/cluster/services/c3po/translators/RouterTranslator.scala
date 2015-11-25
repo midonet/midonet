@@ -322,7 +322,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
 object RouterTranslator {
     def preRouteChainName(id: UUID) = "OS_PRE_ROUTING_" + id.asJava
 
-    def postRouteChainName(id: UUID) = "OS_PORT_ROUTING_" + id.asJava
+    def postRouteChainName(id: UUID) = "OS_POST_ROUTING_" + id.asJava
 
     def portGroupName(id: UUID) = "OS_PORT_GROUP_" + id.asJava
 
