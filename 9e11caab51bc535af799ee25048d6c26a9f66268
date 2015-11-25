@@ -1,0 +1,360 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_94811d4d",
+        "filename": "nsdb/build.gradle",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 134,
+        "endChar": 131
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b495398a",
+        "filename": "nsdb/build.gradle",
+        "patchSetId": 6
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "I think this can be removed too.",
+      "range": {
+        "startLine": 136,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 51
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d492b59e",
+        "filename": "nsdb/build.gradle",
+        "patchSetId": 6
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 150,
+        "startChar": 0,
+        "endLine": 150,
+        "endChar": 50
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_f48fb173",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "Why not saying an opinion is a (key, value, owner) triple?",
+      "range": {
+        "startLine": 47,
+        "startChar": 7,
+        "endLine": 47,
+        "endChar": 68
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_adb088f5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 76
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0dc89c73",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "the width of lines should in principle not exceed 80.\nAlso don\u0027t forget the space after the semicolon.",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 48,
+        "endChar": 122
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0dadfc88",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "To fix the problem you were mentioning yesterday (some published messages are lost), the following should solve this:\n-Have JGroupsBus implement the OnSubscribe[Opinion] interface (from the rx library)\n-Implement the following method that is called when a subscriber subscribes to the bus\u0027 opinionObservable:\n\n    override def call(child: Subscriber[_ \u003e: Opinion]): Unit \u003d {\n      -client \u003d new JGroupsClient\n      -client.topicObservable.subscribe(child)\n      -client.subscribe(topic)\n    }\n\nThis ensures that the child is subscribed to the observable before the client receives messages from the broker.",
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4da1b4a8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "Publishing?",
+      "range": {
+        "startLine": 62,
+        "startChar": 23,
+        "endLine": 62,
+        "endChar": 31
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6d8d9031",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "To be safe, I would declare the scheduler used in HeartBeatEnabled in some object JGroups and schedule the observer on this scheduler. Without specifying on which thread notifications are handled, it uses the thread that calls the subscribe. It is thus safer to declare the thread to use.",
+      "range": {
+        "startLine": 67,
+        "startChar": 33,
+        "endLine": 67,
+        "endChar": 42
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ed78c02d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "MessageSerializer?",
+      "range": {
+        "startLine": 41,
+        "startChar": 10,
+        "endLine": 41,
+        "endChar": 42
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0d76dc3e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "there\u0027s a missing space after the \u0027:\u0027",
+      "range": {
+        "startLine": 147,
+        "startChar": 28,
+        "endLine": 147,
+        "endChar": 29
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2d73984e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "single space",
+      "range": {
+        "startLine": 147,
+        "startChar": 43,
+        "endLine": 147,
+        "endChar": 45
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4d8ff423",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "At the moment, this is not used, did you want to check that the client was subscribed to the topic before publishing a message on that topic?",
+      "range": {
+        "startLine": 184,
+        "startChar": 8,
+        "endLine": 184,
+        "endChar": 22
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d4d9d584",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "we could make this private",
+      "range": {
+        "startLine": 213,
+        "startChar": 4,
+        "endLine": 213,
+        "endChar": 15
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b4dc5976",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "add a space after the \u0027:\u0027",
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2daab870",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-25T08:43:43Z",
+      "side": 1,
+      "message": "topicObservable would convey the semantic well enough and be shorter.",
+      "range": {
+        "startLine": 262,
+        "startChar": 8,
+        "endLine": 262,
+        "endChar": 35
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
