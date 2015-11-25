@@ -28,7 +28,7 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.{ChannelType, UpcallDatapathConnectionManager}
 import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.state.{FlowStateStorageFactory, MockStateStorage}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUpdate
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.mock.{MessageAccumulator, MockInterfaceScanner}
 import org.midonet.midolman.util.{MidolmanSpec, MockNetlinkChannelFactory}
@@ -43,13 +43,10 @@ object DatapathControllerActorTest {
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerActorTest extends MidolmanSpec {
-    import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.DatapathControllerActorTest._
-    import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
 
     registerActors(DatapathController -> (() => new TestableDpC
-                                                with MessageAccumulator),
-                   VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
+                                                with MessageAccumulator))
 
     val emptyJSet = new java.util.HashSet[InterfaceDescription]()
 
@@ -132,8 +129,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
         addTunnelZoneMember(tunnelZone, host2, dstIp1)
 
         DatapathController.messages.collect { case p: ResolvedHost => p } should have size 1
-        DatapathController.messages.collect { case p: ZoneMembers => p } should have size 1
-        DatapathController.messages.collect { case p: ZoneChanged => p } should have size 1
+        DatapathController.messages.collect { case p: TunnelZoneUpdate => p } should have size 2
         DatapathController.getAndClear() should have size 3
 
         val output = dpc.driver.asInstanceOf[DatapathStateDriver]
@@ -150,7 +146,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
         deleteTunnelZoneMember(tunnelZone, host2)
         addTunnelZoneMember(tunnelZone, host2, dstIp2)
 
-        DatapathController.messages.collect { case p: ZoneChanged => p } should have size 2
+        DatapathController.messages.collect { case p: TunnelZoneUpdate => p } should have size 2
         DatapathController.getAndClear() should have size 2
 
         val route2 = UnderlayResolver.Route(srcIp.toInt, dstIp2.toInt, output)

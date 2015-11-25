@@ -17,27 +17,20 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.simulation.Simulator.ToPortAction
-import org.slf4j.helpers.NOPLogger
-
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.immutable.List
 import scala.collection.{Set => ROSet, mutable}
-import scala.concurrent.ExecutionContext
 
-import akka.actor.ActorSystem
-import akka.event.{Logging, LoggingAdapter}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.simulation.{VxLanPort, Bridge, PacketContext}
-import org.midonet.midolman.topology.{VirtualTopology, LocalPortActive, VirtualToPhysicalMapper}
-import org.midonet.midolman.simulation.BridgePort
+import org.midonet.midolman.simulation.Simulator.ToPortAction
+import org.midonet.midolman.simulation.{Bridge, BridgePort, PacketContext, VxLanPort}
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions, FlowKeys}
@@ -46,11 +39,9 @@ import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, ICMP, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.concurrent.ExecutionContextOps
 
 @RunWith(classOf[JUnitRunner])
 class FlowTranslatorTest extends MidolmanSpec {
-    registerActors(VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
 
     trait TranslationContext {
         protected val dpState: TestDatapathState
@@ -118,7 +109,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def activatePorts(localPorts: Seq[UUID]): Unit = {
         localPorts foreach { p =>
-            VirtualToPhysicalMapper ! LocalPortActive(p, active = true)
+            VirtualToPhysicalMapper.setPortActive(p, active = true)
         }
     }
 
@@ -185,7 +176,6 @@ class FlowTranslatorTest extends MidolmanSpec {
             addTunnelZoneMember(id, hostId, ip)
         }
         bindings foreach { case (id, name) => materializePort(id, hostId, name) }
-        fetchHost(hostId)
     }
 
     feature("FlowActionUserspace goes through untouched") {
