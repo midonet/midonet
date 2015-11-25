@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_8330fc57",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AbstractScheduler.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-25T17:39:05Z",
+      "side": 1,
+      "message": "Can this be an abstract scheduler? How do you know which type of scheduling to use before loading the service container group? Or does that happen outside of this class?\n\nAnd btw: is it possible to change the allocation policy of the service container group (e.g. switch from a host group to port group)?",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 32
+      },
+      "revId": "8c6c075d227e542a7575988a6ba4bd473b4acf1a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
