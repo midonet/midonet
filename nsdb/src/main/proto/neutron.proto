@@ -308,7 +308,7 @@ message NeutronFirewallRule {
     }
 }
 
-message VPNService {
+message VpnService {
     optional UUID id = 1;
     optional string name = 2;
     optional string description = 3;
@@ -321,7 +321,7 @@ message VPNService {
     optional IPAddress external_v6_ip = 10;
 }
 
-message IKEPolicy {
+message IkePolicy {
     optional UUID id = 1;
     optional string tenant_id = 2;
     optional string name = 3;
@@ -332,7 +332,7 @@ message IKEPolicy {
     optional IkeVersion ike_version = 8;
     optional string lifetime_units = 9;
     optional uint32 lifetime_value = 10;
-    optional IPSecPFS pfs = 11;
+    optional IPSecPfs pfs = 11;
 
     enum Phase1NegotiationMode {
         MAIN = 1;
@@ -353,7 +353,7 @@ message IPSecPolicy {
     optional IPSecAuthAlgorithm auth_algorithm = 6;
     optional IPSecEncryptionAlgorithm encryption_algorithm = 7;
     optional EncapsulationMode encapsulation_mode = 8;
-    optional IPSecPFS pfs = 9;
+    optional IPSecPfs pfs = 9;
     optional string lifetime_units = 10;
     optional uint32 lifetime_value = 11;
 
@@ -391,13 +391,13 @@ message IPSecSiteConnection {
     optional uint32 dpd_interval = 18; // milliseconds
     optional uint32 dpd_timeout = 19; // milliseconds
 
-    optional UUID vpnservice_id = 20;
+    optional UUID vpn_service_id = 20;
 
-    optional UUID ikepolicy_id = 21;
-    optional IKEPolicy ikepolicy = 22;
+    optional UUID ike_policy_id = 21;
+    optional IkePolicy ike_policy = 22;
 
-    optional UUID ipsecpolicy_id = 23;
-    optional IPSecPolicy ipsecpolicy = 24;
+    optional UUID ipsec_policy_id = 23;
+    optional IPSecPolicy ipsec_policy = 24;
 
 
     enum Status {
@@ -432,7 +432,7 @@ message IPSecSiteConnection {
     }
 }
 
-enum IPSecPFS {
+enum IPSecPfs {
     GROUP2 = 1;
     GROUP5 = 2;
     GROUP14 = 3;

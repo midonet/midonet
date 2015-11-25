@@ -4,9 +4,9 @@ import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.models.Neutron;
 
-@ZoomEnum(clazz = Neutron.IPSecPFS.class)
-public enum IPSecPFS {
-    @ZoomEnumValue("GROUP_2") GROUP_2,
-    @ZoomEnumValue("GROUP_5") GROUP_5,
-    @ZoomEnumValue("GROUP_14") GROUP_14
+@ZoomEnum(clazz = Neutron.IPSecPfs.class)
+public enum IPSecPfs {
+    @ZoomEnumValue("GROUP2") GROUP_2,
+    @ZoomEnumValue("GROUP5") GROUP_5,
+    @ZoomEnumValue("GROUP14") GROUP_14
 }

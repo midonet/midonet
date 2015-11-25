@@ -21,8 +21,8 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList, _}
-import org.midonet.cluster.rest_api.neutron.models.VPNService
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
+import org.midonet.cluster.rest_api.neutron.models.VpnService
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
@@ -35,5 +35,5 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 @AllowCreate(Array(NEUTRON_VPN_SERVICE_JSON_V1,
                    APPLICATION_JSON))
 @AllowDelete
-class VPNServiceResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[VPNService](resContext)
+class VpnServiceResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[VpnService](resContext)

@@ -13,8 +13,8 @@ import org.midonet.cluster.rest_api.models.UriResource;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.packets.IPAddr;
 
-@ZoomClass(clazz = Neutron.VPNService.class)
-public class VPNService extends UriResource {
+@ZoomClass(clazz = Neutron.VpnService.class)
+public class VpnService extends UriResource {
     @ZoomField(name = "id")
     public UUID id;
 
@@ -73,7 +73,7 @@ public class VPNService extends UriResource {
             return false;
         }
 
-        VPNService that = (VPNService) o;
+        VpnService that = (VpnService) o;
 
         return Objects.equals(id, that.id) &&
                Objects.equals(name, that.name) &&

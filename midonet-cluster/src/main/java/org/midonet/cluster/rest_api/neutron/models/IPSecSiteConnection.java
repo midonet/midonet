@@ -17,8 +17,6 @@ import javax.ws.rs.core.UriBuilder;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import org.slf4j.LoggerFactory;
-
 @ZoomClass(clazz = Neutron.IPSecSiteConnection.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IPSecSiteConnection extends UriResource {
@@ -29,8 +27,14 @@ public class IPSecSiteConnection extends UriResource {
     @ZoomField(name = "tenant_id")
     public String tenantId;
 
+    @ZoomField(name = "description")
+    public String description;
+
     @ZoomField(name = "name")
     public String name;
+
+    @ZoomField(name = "admin_state_up")
+    public Boolean admin_state_up;
 
     @ZoomField(name = "peer_address")
     public String peerAddress;
@@ -38,11 +42,11 @@ public class IPSecSiteConnection extends UriResource {
     @ZoomField(name = "peer_id")
     public String peerId;
 
-    @ZoomField(name = "peer_cidrs")
-    public List<IPSubnet> peerCidrs;
-
     @ZoomField(name = "local_cidrs")
     public List<IPSubnet> localCidrs;
+
+    @ZoomField(name = "peer_cidrs")
+    public List<IPSubnet> peerCidrs;
 
     @ZoomField(name = "route_mode")
     public RouteMode routeMode;
@@ -59,9 +63,6 @@ public class IPSecSiteConnection extends UriResource {
     @ZoomField(name = "psk")
     public String psk;
 
-    @ZoomField(name = "admin_state_up")
-    public Boolean admin_state_up;
-
     @ZoomField(name = "status")
     public Status status;
 
@@ -74,19 +75,19 @@ public class IPSecSiteConnection extends UriResource {
     @ZoomField(name = "dpd_timeout")
     public Integer dpdTimeout;
 
-    @ZoomField(name = "vpnservice_id")
+    @ZoomField(name = "vpn_service_id")
     public UUID vpnServiceId;
 
-    @ZoomField(name = "ikepolicy_id")
+    @ZoomField(name = "ike_policy_id")
     public UUID ikePolicyId;
 
-    @ZoomField(name = "ikepolicy")
-    public IKEPolicy ikePolicy;
+    @ZoomField(name = "ike_policy")
+    public IkePolicy ikePolicy;
 
-    @ZoomField(name = "ipsecpolicy_id")
+    @ZoomField(name = "ipsec_policy_id")
     public UUID ipsecPolicyId;
 
-    @ZoomField(name = "ipsecpolicy")
+    @ZoomField(name = "ipsec_policy")
     public IPSecPolicy ipsecPolicy;
 
     @ZoomEnum(clazz = Neutron.IPSecSiteConnection.Status.class)

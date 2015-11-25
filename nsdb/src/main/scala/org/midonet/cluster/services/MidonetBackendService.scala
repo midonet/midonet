@@ -75,6 +75,7 @@ object MidonetBackend {
              classOf[Host],
              classOf[HostGroup],
              classOf[IPAddrGroup],
+             classOf[IPSecSiteConnection],
              classOf[LoadBalancer],
              classOf[L2Insertion],
              classOf[Mirror],
@@ -105,9 +106,8 @@ object MidonetBackend {
              classOf[TraceRequest],
              classOf[TunnelZone],
              classOf[Vip],
-             classOf[Vtep],
-             classOf[VPNService],
-             classOf[IPSecSiteConnection]
+             classOf[VpnService],
+             classOf[Vtep]
         ).foreach(store.registerClass)
 
         store.declareBinding(classOf[Port], "insertion_ids", CASCADE,

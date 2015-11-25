@@ -1,6 +1,5 @@
 package org.midonet.cluster.rest_api.neutron.models;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -38,7 +37,7 @@ public class IPSecPolicy extends ZoomObject {
     public EncapsulationMode encapsulationMode;
 
     @ZoomField(name = "pfs")
-    public IPSecPFS pfs;
+    public IPSecPfs pfs;
 
     @ZoomField(name = "lifetime_units")
     public String lifetimeUnits;

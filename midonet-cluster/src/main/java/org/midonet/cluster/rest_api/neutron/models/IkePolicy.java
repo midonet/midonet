@@ -1,6 +1,5 @@
 package org.midonet.cluster.rest_api.neutron.models;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -9,17 +8,17 @@ import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Neutron;
 
-@ZoomClass(clazz = org.midonet.cluster.models.Neutron.IKEPolicy.class)
-public class IKEPolicy {
+@ZoomClass(clazz = org.midonet.cluster.models.Neutron.IkePolicy.class)
+public class IkePolicy {
 
     // TODO: this field and the enum is pointless, leave out and add whenever
     // needed?
-    @ZoomEnum(clazz = Neutron.IKEPolicy.Phase1NegotiationMode.class)
+    @ZoomEnum(clazz = Neutron.IkePolicy.Phase1NegotiationMode.class)
     public enum Phase1NegotiationMode {
         @ZoomEnumValue("MAIN") MAIN
     };
 
-    @ZoomEnum(clazz = Neutron.IKEPolicy.IkeVersion.class)
+    @ZoomEnum(clazz = Neutron.IkePolicy.IkeVersion.class)
     public enum IkeVersion {
         @ZoomEnumValue("V1") V1,
         @ZoomEnumValue("V2") V2
@@ -43,7 +42,7 @@ public class IKEPolicy {
     @ZoomField(name = "encryption_algorithm")
     public IPSecEncryptionAlgorithm encryptionAlgorithm;
 
-    @ZoomField(name = "encryption_algorithm")
+    @ZoomField(name = "phase1_negotiation_mode")
     public Phase1NegotiationMode phase1NegMode;
 
     @ZoomField(name = "ike_version")
@@ -56,5 +55,5 @@ public class IKEPolicy {
     public Integer lifetimeValue;
 
     @ZoomField(name = "pfs")
-    public IPSecPFS pfs;
+    public IPSecPfs pfs;
 }
