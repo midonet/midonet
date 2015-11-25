@@ -19,22 +19,21 @@ package org.midonet.netlink.rtnetlink;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.google.common.base.Objects;
 
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NetlinkSerializable;
 import org.midonet.netlink.Reader;
 import org.midonet.packets.MAC;
 
 /**
  * rtnetlink Link resource representation.
  */
-public class Link implements AttributeHandler, Cloneable {
+public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
 
-    public class IfinfoMsg implements Cloneable {
+    public static class IfinfoMsg implements Cloneable {
         public byte family; /* AF_UNSPEC */
         public short type;   /* Device type */
         public int index;  /* Interface index */
@@ -182,6 +181,16 @@ public class Link implements AttributeHandler, Cloneable {
         int IFF_ECHO = 1<<18;
     }
 
+    public interface OperStatus {
+        byte IF_OPER_UNKNOWN = 0;
+        byte IF_OPER_NOTPRESENT = 1;
+        byte IF_OPER_DOWN = 2;
+        byte IF_OPER_LOWERLAYERDOWN = 3;
+        byte IF_OPER_TESTING = 4;
+        byte IF_OPER_DORMANT = 5;
+        byte IF_OPER_UP = 6;
+    }
+
     public interface Attr {
         byte IFLA_UNSPEC = 0;
         byte IFLA_ADDRESS = 1;
@@ -223,13 +232,11 @@ public class Link implements AttributeHandler, Cloneable {
     }
 
     public interface NestedAttr {
-        public interface LinkInfo {
+         interface LinkInfo {
             byte IFLA_INFO_UNSPEC = 0;
             byte IFLA_INFO_KIND = 1;
             byte IFLA_INFO_DATA = 2;
             byte IFLA_INFO_XSTATS = 3;
-            byte IFLA_INFO_SLAVE_KIND = 4;
-            byte IFLA_INFO_SLAVE_DATA = 5;
         }
     }
 
@@ -242,16 +249,38 @@ public class Link implements AttributeHandler, Cloneable {
         String IFLA_INFO_UNSPEC = "IFLA_INFO_UNSPEC";
         String IFLA_INFO_KIND = "IFLA_INFO_KIND";
         String IFLA_INFO_DATA = "IFLA_INFO_DATA";
-        String IFLA_INFO_XSTATS = "IFLA_INFO_DATA";
+        String IFLA_INFO_XSTATS = "IFLA_INFO_XSTATS";
         String IFLA_INFO_SLAVE_KIND = "IFLA_INFO_SLAVE_KIND";
         String IFLA_INFO_SLAVE_DATA = "IFLA_INFO_SLAVE_DATA";
     }
 
     public interface NestedAttrValue {
-        public interface LinkInfo {
+         interface LinkInfo {
             String KIND_TUN = "tun";
             String KIND_VETH = "veth";
             String KIND_BRIDGE = "bridge";
+            String KIND_GRE = "gre";
+            String KIND_VLAN = "vlan";
+            String KIND_MACVLAN = "macvlan";
+        }
+    }
+
+    public static class LinkInfo implements NetlinkSerializable {
+        public String kind;
+        public ByteBuffer data;
+
+        @Override
+        public int serializeInto(ByteBuffer buffer) {
+            int nbytes = 0;
+            if (kind != null) {
+                nbytes += NetlinkMessage.writeStringAttr(
+                    buffer, NestedAttr.LinkInfo.IFLA_INFO_KIND, kind);
+            }
+            if (data != null) {
+                nbytes += NetlinkMessage.writeRawAttribute(
+                    buffer, NestedAttr.LinkInfo.IFLA_INFO_DATA, data);
+            }
+            return nbytes;
         }
     }
 
@@ -270,13 +299,13 @@ public class Link implements AttributeHandler, Cloneable {
         return sb.toString();
     }
 
-    public IfinfoMsg ifi;
+    public final IfinfoMsg ifi;
     public MAC mac;
-    public String ifname;
+    private String ifname;
     public int mtu;
     public int link;
-
-    public Map<String, Object> attributes = new HashMap<>();
+    public byte operstate = OperStatus.IF_OPER_UNKNOWN;
+    public final LinkInfo info = new LinkInfo();
 
     public Link() {
         this.ifi = new IfinfoMsg();
@@ -284,6 +313,18 @@ public class Link implements AttributeHandler, Cloneable {
 
     public Link(IfinfoMsg ifi) {
         this.ifi = ifi;
+    }
+
+    public String getName() {
+        return ifname;
+    }
+
+    public void setName(String name) {
+        if (name != null && name.length() > 16) {
+            throw new IllegalArgumentException(
+                "Interface name must be smaller or equal to 16 characters");
+        }
+        ifname = name;
     }
 
     @Override
@@ -305,20 +346,19 @@ public class Link implements AttributeHandler, Cloneable {
     };
 
     public static Link buildFrom(ByteBuffer buf) {
-        Link link = new Link();
         try {
+            Link link = new Link();
             link.ifi.family = buf.get();
             buf.get();  // pad
             link.ifi.type = buf.getShort();
             link.ifi.index = buf.getInt();
             link.ifi.flags = buf.getInt();
             link.ifi.change = buf.getInt();
+            NetlinkMessage.scanAttributes(buf, link);
+            return link;
         } catch (BufferUnderflowException ex) {
             return null;
         }
-
-        NetlinkMessage.scanAttributes(buf, link);
-        return link;
     }
 
     @Override
@@ -356,9 +396,7 @@ public class Link implements AttributeHandler, Cloneable {
                         }
                         break;
                     case Attr.IFLA_LINKINFO:
-                        if (buf.remaining() > 4) {
-                            NetlinkMessage.scanNestedAttribute(buf, this);
-                        }
+                        NetlinkMessage.scanNestedAttribute(buf, this);
                         break;
                     default:
                         break;
@@ -368,8 +406,12 @@ public class Link implements AttributeHandler, Cloneable {
                     case NestedAttr.LinkInfo.IFLA_INFO_KIND:
                         byte[] s = new byte[buf.remaining() - 1];
                         buf.get(s);
-                        this.attributes.put(
-                                NestedAttrKey.IFLA_INFO_KIND, new String(s));
+                        info.kind = new String(s);
+                        break;
+                    case NestedAttr.LinkInfo.IFLA_INFO_DATA:
+                        byte[] data =  new byte[buf.remaining() - 1];
+                        buf.get(data);
+                        info.data = ByteBuffer.wrap(data);
                         break;
                     default:
                         break;
@@ -395,8 +437,9 @@ public class Link implements AttributeHandler, Cloneable {
         return buf;
     }
 
-    static public ByteBuffer describeSetRequest(ByteBuffer buf, Link link) {
-        IfinfoMsg ifi = link.ifi;
+    @Override
+    public int serializeInto(ByteBuffer buf) {
+        int start = buf.position();
         buf.put(ifi.family);
         buf.put((byte) 0);
         buf.putShort(ifi.type);
@@ -404,17 +447,30 @@ public class Link implements AttributeHandler, Cloneable {
         buf.putInt(ifi.flags);
         buf.putInt(ifi.change);
 
-        if (link.ifname != null) {
-            NetlinkMessage.writeStringAttr(buf, Attr.IFLA_IFNAME, link.ifname);
-        }
-        if (link.mac != null) {
-            NetlinkMessage.writeRawAttribute(
-                    buf, Attr.IFLA_ADDRESS, link.mac.getAddress());
-        }
-        if (link.mtu > 0) {
-            NetlinkMessage.writeIntAttr(buf, Attr.IFLA_MTU, link.mtu);
+        if (ifname != null) {
+            NetlinkMessage.writeStringAttr(buf, Attr.IFLA_IFNAME, ifname);
         }
 
+        if (mac != null) {
+            NetlinkMessage.writeRawAttribute(
+                    buf, Attr.IFLA_ADDRESS, mac.getAddress());
+        }
+
+        if (mtu > 0) {
+            NetlinkMessage.writeIntAttr(buf, Attr.IFLA_MTU, mtu);
+        }
+
+        if (operstate != OperStatus.IF_OPER_UNKNOWN) {
+            NetlinkMessage.writeByteAttr(buf, Attr.IFLA_OPERSTATE, operstate);
+        }
+
+        NetlinkMessage.writeAttrNested(buf, Attr.IFLA_LINKINFO, info);
+
+        return buf.position() - start;
+    }
+
+    static public ByteBuffer describeSetRequest(ByteBuffer buf, Link link) {
+        link.serializeInto(buf);
         return buf;
     }
 
@@ -430,6 +486,20 @@ public class Link implements AttributeHandler, Cloneable {
 
         NetlinkMessage.writeRawAttribute(
                 buf, Attr.IFLA_ADDRESS, mac.getAddress());
+
+        return buf;
+    }
+
+    static public ByteBuffer describeDelRequest(ByteBuffer buf, Link link) {
+        IfinfoMsg ifi = link.ifi;
+        buf.put(ifi.family);
+        buf.put((byte) 0);
+        buf.putShort(ifi.type);
+        buf.putInt(ifi.index);
+        buf.putInt(ifi.flags);
+        buf.putInt(ifi.change);
+
+        NetlinkMessage.writeAttrNested(buf, Attr.IFLA_LINKINFO, link.info);
 
         return buf;
     }
@@ -452,5 +522,4 @@ public class Link implements AttributeHandler, Cloneable {
     public int hashCode() {
         return Objects.hashCode(ifi, ifname, mac, mtu);
     }
-
 }

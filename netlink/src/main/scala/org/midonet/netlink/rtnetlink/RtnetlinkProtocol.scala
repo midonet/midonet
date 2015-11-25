@@ -46,11 +46,18 @@ final class RtnetlinkProtocol(pid: Int) {
         message.finalize(pid)
     }
 
-   def prepareLinkCreate(buf: ByteBuffer, link: Link): Unit = {
+    def prepareLinkCreate(buf: ByteBuffer, link: Link): Unit = {
         val message = messageFor(buf, Rtnetlink.Type.NEWLINK)
-            .withFlags((NLFlag.REQUEST | NLFlag.ACK |
-                        NLFlag.New.CREATE | NLFlag.New.EXCL).toShort)
+            .withFlags((NLFlag.REQUEST | NLFlag.New.CREATE |
+                        NLFlag.New.EXCL).toShort)
         Link.describeSetRequest(buf, link)
+        message.finalize(pid)
+    }
+
+    def prepareLinkDel(buf: ByteBuffer, link: Link): Unit = {
+        val message = messageFor(buf, Rtnetlink.Type.DELLINK)
+            .withFlags(NLFlag.REQUEST)
+        Link.describeDelRequest(buf, link)
         message.finalize(pid)
     }
 
@@ -63,7 +70,7 @@ final class RtnetlinkProtocol(pid: Int) {
 
     def prepareLinkSet(buf: ByteBuffer, link: Link): Unit = {
         val message = messageFor(buf, Rtnetlink.Type.SETLINK)
-            .withFlags((NLFlag.REQUEST | NLFlag.ACK).toShort)
+            .withFlags(NLFlag.REQUEST)
         Link.describeSetRequest(buf, link)
         message.finalize(pid)
     }
@@ -84,7 +91,7 @@ final class RtnetlinkProtocol(pid: Int) {
 
     def prepareAddrNew(buf: ByteBuffer, addr: Addr): Unit = {
         val message = messageFor(buf, Rtnetlink.Type.NEWADDR)
-            .withFlags((NLFlag.REQUEST | NLFlag.ECHO |
+            .withFlags((NLFlag.REQUEST | NLFlag.New.EXCL |
                         NLFlag.New.CREATE).toShort)
         Addr.describeNewRequest(buf, addr)
         message.finalize(pid)
