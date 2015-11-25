@@ -36,6 +36,7 @@ import com.google.inject.Inject
 import com.google.protobuf.Message
 import com.lmax.disruptor.util.DaemonThreadFactory
 import com.typesafe.scalalogging.Logger
+import org.eclipse.jetty.http.HttpStatus.METHOD_NOT_ALLOWED_405
 import org.slf4j.LoggerFactory.getLogger
 
 import org.midonet.cluster.data.ZoomConvert
@@ -234,9 +235,9 @@ abstract class MidonetResource[T >: Null <: UriResource]
     def get(@PathParam("id") id: String,
             @HeaderParam("Accept") accept: String): T = {
         val produces = getAnnotation(classOf[AllowGet])
-        if ((produces eq null) || !produces.value().contains(accept)) {
+        if (!produces.value().contains(accept)) {
             log.info("Media type {} not acceptable", accept)
-            throw new WebApplicationException(NOT_ACCEPTABLE)
+            throw new WebApplicationException(UNSUPPORTED_MEDIA_TYPE)
         }
         getFilter(getResource(tag.runtimeClass.asInstanceOf[Class[T]], id))
     }
@@ -244,9 +245,9 @@ abstract class MidonetResource[T >: Null <: UriResource]
     @GET
     def list(@HeaderParam("Accept") accept: String): JList[T] = {
         val produces = getAnnotation(classOf[AllowList])
-        if ((produces eq null) || !produces.value().contains(accept)) {
+        if (!produces.value().contains(accept)) {
             log.info("Media type {} not acceptable", accept)
-            throw new WebApplicationException(NOT_ACCEPTABLE)
+            throw new WebApplicationException(UNSUPPORTED_MEDIA_TYPE)
         }
         val ids = listIds
         val list = if (ids eq null) {
@@ -308,7 +309,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     def create(t: T, @HeaderParam("Content-Type") contentType: String)
     : Response = {
         val consumes = getAnnotation(classOf[AllowCreate])
-        if ((consumes eq null) || !consumes.value().contains(contentType)) {
+        if (!consumes.value().contains(contentType)) {
             log.info("Media type {} not supported", contentType)
             throw new WebApplicationException(UNSUPPORTED_MEDIA_TYPE)
         }
@@ -330,7 +331,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     def update(@PathParam("id") id: String, t: T,
                @HeaderParam("Content-Type") contentType: String): Response = {
         val consumes = getAnnotation(classOf[AllowUpdate])
-        if ((consumes eq null) || !consumes.value().contains(contentType)) {
+        if (!consumes.value().contains(contentType)) {
             log.info("Media type {} not supported", contentType)
             throw new WebApplicationException(UNSUPPORTED_MEDIA_TYPE)
         }
@@ -473,6 +474,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
         }
     }
 
+    /** Guaranteed to return a non-null value, or throw 405
+      */
     private def getAnnotation[U >: Null <: Annotation](clazz: Class[U]): U = {
         var c: Class[_] = getClass
         while (classOf[MidonetResource[_]].isAssignableFrom(c)) {
@@ -482,7 +485,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
             }
             c = c.getSuperclass
         }
-        null
+        throw new WebApplicationException(METHOD_NOT_ALLOWED_405)
     }
 
     protected def tryTx(f: (ResourceTransaction) => Response): Response = {
