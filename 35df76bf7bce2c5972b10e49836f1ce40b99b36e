@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_231729ef",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/ServiceContainer.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-25T13:52:11Z",
+      "side": 1,
+      "message": "Do we allow the API to set this? Or should it be inferred from the URI, i.e. which of the following is allowed to create a new service container?\n\n  POST /service_containers\n  POST /service_container_groups/:serviceContainerGroupId/service_container\n  POST /routers/:routerId/service_container",
+      "range": {
+        "startLine": 46,
+        "startChar": 4,
+        "endLine": 46,
+        "endChar": 25
+      },
+      "revId": "35df76bf7bce2c5972b10e49836f1ce40b99b36e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_430505c1",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/ServiceContainerGroup.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-25T13:52:11Z",
+      "side": 1,
+      "message": "Add an update method to copy the serviceContainerIds - we need to replace this with something more elegant in the future.",
+      "revId": "35df76bf7bce2c5972b10e49836f1ce40b99b36e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a3b979eb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-25T13:52:11Z",
+      "side": 1,
+      "message": "So this is related to the previous comment: is this resource allowed both a root resource, as well as a router subresource? Should it also be a service container group subresource?",
+      "range": {
+        "startLine": 47,
+        "startChar": 4,
+        "endLine": 50,
+        "endChar": 5
+      },
+      "revId": "35df76bf7bce2c5972b10e49836f1ce40b99b36e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
