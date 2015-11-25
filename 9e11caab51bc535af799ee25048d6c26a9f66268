@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_ed5a804f",
+        "filename": "nsdb/build.gradle",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_94811d4d",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 134,
+        "endChar": 131
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_b495398a",
         "filename": "nsdb/build.gradle",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-11-25T08:43:43Z",
       "side": 1,
       "message": "I think this can be removed too.",
+      "range": {
+        "startLine": 136,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 51
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0d589c55",
+        "filename": "nsdb/build.gradle",
+        "patchSetId": 6
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_b495398a",
       "range": {
         "startLine": 136,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_2d55581d",
+        "filename": "nsdb/build.gradle",
+        "patchSetId": 6
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_d492b59e",
+      "range": {
+        "startLine": 150,
+        "startChar": 0,
+        "endLine": 150,
+        "endChar": 50
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_f48fb173",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 6
@@ -82,6 +154,30 @@
       "writtenOn": "2015-11-25T08:43:43Z",
       "side": 1,
       "message": "Why not saying an opinion is a (key, value, owner) triple?",
+      "range": {
+        "startLine": 47,
+        "startChar": 7,
+        "endLine": 47,
+        "endChar": 68
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cd5dc44a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_f48fb173",
       "range": {
         "startLine": 47,
         "startChar": 7,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_add6c8c3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_adb088f5",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 76
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_0dc89c73",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
         "patchSetId": 6
@@ -128,6 +248,30 @@
       "writtenOn": "2015-11-25T08:43:43Z",
       "side": 1,
       "message": "the width of lines should in principle not exceed 80.\nAlso don\u0027t forget the space after the semicolon.",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 48,
+        "endChar": 122
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_edd7e0bd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_0dc89c73",
       "range": {
         "startLine": 44,
         "startChar": 4,
@@ -157,6 +301,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_4dee148d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_0dadfc88",
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_4da1b4a8",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
         "patchSetId": 6
@@ -168,6 +330,30 @@
       "writtenOn": "2015-11-25T08:43:43Z",
       "side": 1,
       "message": "Publishing?",
+      "range": {
+        "startLine": 62,
+        "startChar": 23,
+        "endLine": 62,
+        "endChar": 31
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6df3d073",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_4da1b4a8",
       "range": {
         "startLine": 62,
         "startChar": 23,
@@ -203,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8d44ac75",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_6d8d9031",
+      "range": {
+        "startLine": 67,
+        "startChar": 33,
+        "endLine": 67,
+        "endChar": 42
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_ed78c02d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
         "patchSetId": 6
@@ -214,6 +424,30 @@
       "writtenOn": "2015-11-25T08:43:43Z",
       "side": 1,
       "message": "MessageSerializer?",
+      "range": {
+        "startLine": 41,
+        "startChar": 10,
+        "endLine": 41,
+        "endChar": 42
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ed50c060",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_ed78c02d",
       "range": {
         "startLine": 41,
         "startChar": 10,
@@ -272,6 +506,54 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_ad5fa871",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_0d76dc3e",
+      "range": {
+        "startLine": 147,
+        "startChar": 28,
+        "endLine": 147,
+        "endChar": 29
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cd53046b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_2d73984e",
+      "range": {
+        "startLine": 147,
+        "startChar": 43,
+        "endLine": 147,
+        "endChar": 45
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_4d8ff423",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
         "patchSetId": 6
@@ -283,6 +565,30 @@
       "writtenOn": "2015-11-25T08:43:43Z",
       "side": 1,
       "message": "At the moment, this is not used, did you want to check that the client was subscribed to the topic before publishing a message on that topic?",
+      "range": {
+        "startLine": 184,
+        "startChar": 8,
+        "endLine": 184,
+        "endChar": 22
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0d4edcc1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_4d8ff423",
       "range": {
         "startLine": 184,
         "startChar": 8,
@@ -318,6 +624,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8dd10cd0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_d4d9d584",
+      "range": {
+        "startLine": 213,
+        "startChar": 4,
+        "endLine": 213,
+        "endChar": 15
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_b4dc5976",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
         "patchSetId": 6
@@ -335,6 +665,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_6dccb036",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_b4dc5976",
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_2daab870",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
         "patchSetId": 6
@@ -346,6 +694,30 @@
       "writtenOn": "2015-11-25T08:43:43Z",
       "side": 1,
       "message": "topicObservable would convey the semantic well enough and be shorter.",
+      "range": {
+        "startLine": 262,
+        "startChar": 8,
+        "endLine": 262,
+        "endChar": 35
+      },
+      "revId": "9e11caab51bc535af799ee25048d6c26a9f66268",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2d4b98b1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-25T13:27:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_2daab870",
       "range": {
         "startLine": 262,
         "startChar": 8,
