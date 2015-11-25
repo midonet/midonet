@@ -162,7 +162,6 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
     }
 
     private def topologyPortDeleted(): Unit = {
-        log.debug("Port deleted in topology")
         portStateSubject.onCompleted()
         completeTraceChain()
         l2insertionsTracker.completeRefs()
@@ -189,7 +188,6 @@ final class PortMapper(id: UUID, vt: VirtualTopology,
 
     /** Handles the deletion of the simulation port. */
     private def portDeleted(): Unit = {
-        log.debug("Port deleted")
         chainsTracker.completeRefs()
         mirrorsTracker.completeRefs()
     }
