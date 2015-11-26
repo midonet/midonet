@@ -140,8 +140,13 @@ cleanns() {
 
 
 stop_service() {
-    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
-                                    --shutdown
+    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR --shutdown
+}
+
+check_health() {
+    # This health check will only confirm that the IKE daemon is alive and
+    # running inside of the namespace.
+    ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR --status
 }
 
 MAX_CONNS=0
@@ -205,6 +210,10 @@ case $ACTION in
         ;;
     cleanns)
         cleanns
+        ;;
+    check_health)
+        define_paths
+        check_health
         ;;
     up) # For testing
         prepare_host

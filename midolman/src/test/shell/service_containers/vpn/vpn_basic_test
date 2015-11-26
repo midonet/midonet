@@ -81,6 +81,9 @@ ip netns exec LEFT ip addr add 10.1.0.1/24 dev lo
 ip netns exec RIGHT ip addr add 10.2.0.1/24 dev lo
 
 sleep 3
+$VPN check_health -n LEFT -p $LEFT_DIR
+$VPN check_health -n RIGHT -p $RIGHT_DIR
+
 ip netns exec LEFT ping -I 10.1.0.1 10.2.0.1 -c1
 ip netns exec RIGHT ping -I 10.2.0.1 10.1.0.1 -c1
 
