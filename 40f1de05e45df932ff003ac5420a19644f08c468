@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_58c7ab12",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-26T16:48:44Z",
+      "side": 1,
+      "message": "You can add a new task and make \u0027integration\u0027 depend on it, that should be easy.\n\nIf others disagree, feel free to override but I\u0027m not fond of committing the code while the tests are not ready or running on the gate jobs.",
+      "parentUuid": "5ac4a560_0fe4193a",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_fee1559b",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/ipsec.conf.LEFT",
         "patchSetId": 4
@@ -171,6 +189,24 @@
       "side": 1,
       "message": "As Ivan mentioned, libreswan is not in ubuntu, and we have to support libreswan on redhat. The difference in managing libreswan vs openswan is small, and we have to QA VPNaaS on both redhat and ubuntu anyway (but we don\u0027t have to QA both libreswan and openswan on both), so I think supporting both is less overhead than maintaining our own package.",
       "parentUuid": "5ac4a560_9b6cf338",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b8a43f58",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-26T16:48:44Z",
+      "side": 1,
+      "message": "The thing is that they are diverging projects (openswan pretty much frozen) and IMHO this could be a support hazard in the future. My vote goes towards using the same implementation across distributions.\n\nLibreswan provides debian packages already, so we don\u0027t really need to maintain packages, just follow the updates:\n\nftp://ftp.libreswan.org/binaries/debian/",
+      "parentUuid": "5ac4a560_8fcf49b0",
       "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -475,6 +511,24 @@
       "side": 1,
       "message": "They do not. Leaving them is helpful for debugging.",
       "parentUuid": "5ac4a560_7b5f1773",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_58608b35",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn_basic_test",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-26T16:48:44Z",
+      "side": 1,
+      "message": "They may if you are debugging, yes, but it\u0027s not nice on other people\u0027s machines who may be running integration tests for other reason. Or on jenkins.",
+      "parentUuid": "5ac4a560_0f5259dd",
       "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
