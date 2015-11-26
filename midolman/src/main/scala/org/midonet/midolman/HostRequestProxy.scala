@@ -170,7 +170,7 @@ class HostRequestProxy(hostId: UUID,
             subscriber ! resolved
             belt.handle(() => {
                 val ps = h.portBindings.keySet -- lastPorts
-                lastPorts = ps
+                lastPorts = h.portBindings.keySet
                 storageFuture.flatMap(stateForPorts(_, ps)).andThen {
                     case Success(stateBatch) =>
                         log.debug(s"Fetched ${stateBatch.size()} pieces of flow state for ports $ps")
