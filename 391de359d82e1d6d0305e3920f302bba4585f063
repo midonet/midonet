@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_4c4e0cc3",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T22:00:37Z",
+      "side": 1,
+      "message": "all these don\u0027t really need to be defs do they?",
+      "range": {
+        "startLine": 101,
+        "startChar": 4,
+        "endLine": 101,
+        "endChar": 7
+      },
+      "revId": "391de359d82e1d6d0305e3920f302bba4585f063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2c5b9055",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T22:00:37Z",
+      "side": 1,
+      "message": "not needed, you can return true inside the try, return false at the end",
+      "range": {
+        "startLine": 206,
+        "startChar": 8,
+        "endLine": 206,
+        "endChar": 26
+      },
+      "revId": "391de359d82e1d6d0305e3920f302bba4585f063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4c58cc56",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T22:00:37Z",
+      "side": 1,
+      "message": "case NonFatal(t) \u003d\u003e",
+      "range": {
+        "startLine": 211,
+        "startChar": 12,
+        "endLine": 211,
+        "endChar": 37
+      },
+      "revId": "391de359d82e1d6d0305e3920f302bba4585f063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0c5ed445",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T22:00:37Z",
+      "side": 1,
+      "message": "Uninformative. What failed? What does the operator need to do (if anything)? Is it really an error (meaning: report a problem asap) or just a warning?",
+      "range": {
+        "startLine": 212,
+        "startChar": 16,
+        "endLine": 212,
+        "endChar": 43
+      },
+      "revId": "391de359d82e1d6d0305e3920f302bba4585f063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
