@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8c04a47f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T20:28:58Z",
+      "side": 1,
+      "message": "+1, IMO we should not commit untested code.",
+      "parentUuid": "5ac4a560_58c7ab12",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_fee1559b",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/ipsec.conf.LEFT",
         "patchSetId": 4
