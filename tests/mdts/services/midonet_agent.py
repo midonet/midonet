@@ -1,12 +1,12 @@
 #
 # Copyright 2015 Midokura SARL
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,7 @@
 #
 import random
 from mdts.services.interface import Interface
+from mdts.services.jmx_monitor import JMXMonitor
 
 from mdts.services.service import Service
 from mdts.services.vmguest import VMGuest
@@ -62,6 +63,12 @@ class MidonetAgentHost(Service):
         :return: str Name of the service
         """
         return 'midolman'
+
+    def get_jmx_monitor(self):
+        LOG.debug("Creating JMX Monitor for agent")
+        monitor = JMXMonitor()
+        monitor.connect(self.get_ip_address(),7201)
+        return monitor
 
     def get_midonet_host_id(self):
         if not self.midonet_host_id:
