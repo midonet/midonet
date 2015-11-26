@@ -98,6 +98,8 @@ case class VpnServiceConfig(script: String,
 
     def cleanNsCmd = s"""$script cleanns -n ${vpnService.name}"""
 
+    def checkHealthCmd = s"""$script check_health -n ${vpnService.name} -p ${vpnService.filepath}"""
+
     def confLoc = s"""${vpnService.filepath}/${vpnService.name}/etc/ipsec.conf"""
 
     def secretsLoc = s"""${vpnService.filepath}/${vpnService.name}/etc/ipsec.secrets"""
@@ -196,6 +198,18 @@ trait VpnServiceContainerFunctions extends ServiceContainerFunctions {
             case re: RuntimeException =>
                 log.error("command failed")
                 result = false
+        }
+        result
+    }
+
+    def checkHealth(conf: VpnServiceConfig): Boolean = {
+        var result = false
+        try {
+            execCmd(conf.checkHealthCmd)
+            result = true
+        } catch {
+            case re: RuntimeException =>
+                log.error("command failed")
         }
         result
     }

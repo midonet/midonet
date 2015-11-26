@@ -148,16 +148,17 @@ class VpnServiceContainerTest extends FeatureSpecLike
             val secondConn = vpnConn.copy
             secondConn.name = "test_conn2"
             secondConn.remotePeerIp = "230.230.230.230"
-            var conf = new VpnServiceConfig("vpn-helper", vpnService,
+            val conf = new VpnServiceConfig("vpn-helper", vpnService,
                                             List(vpnConn, secondConn))
-            var actualConf = conf.getConfigFileContents
+            val actualConf = conf.getConfigFileContents
             assertEquals(expectedConf, actualConf)
         }
     }
 
     feature("Vpn script starts and stops") {
-        scenario("commands are correctly executred") {
-            var conf = new VpnServiceConfig("vpn-helper", vpnService, List(vpnConn))
+        scenario("start commands are correctly executed") {
+            TestVpnServiceContainter.cmdList = List[String]()
+            val conf = new VpnServiceConfig("vpn-helper", vpnService, List(vpnConn))
             TestVpnServiceContainter.start(conf)
             assertEquals(TestVpnServiceContainter.cmdList(0),
                 "vpn-helper makens -n name -g 1.1.1.1 -l 100.100.100.2 -i 100.100.100.2 -m 09:08:07:06:05:04")
@@ -165,13 +166,27 @@ class VpnServiceContainerTest extends FeatureSpecLike
                 "vpn-helper start_service -n name -p /opt/stack/stuff")
             assertEquals(TestVpnServiceContainter.cmdList(2),
                 "vpn-helper init_conns -n name -p /opt/stack/stuff -c test_conn")
+        }
 
+        scenario("stop commands are correctly executed") {
+            TestVpnServiceContainter.cmdList = List[String]()
+            val conf = new VpnServiceConfig("vpn-helper", vpnService, List(vpnConn))
             TestVpnServiceContainter.stop(conf)
 
-            assertEquals(TestVpnServiceContainter.cmdList(3),
+            assertEquals(TestVpnServiceContainter.cmdList(0),
                 "vpn-helper stop_service -n name -p /opt/stack/stuff")
-            assertEquals(TestVpnServiceContainter.cmdList(4),
+            assertEquals(TestVpnServiceContainter.cmdList(1),
                 "vpn-helper cleanns -n name")
+        }
+
+        scenario("check health commands are correctly executed") {
+            TestVpnServiceContainter.cmdList = List[String]()
+            val conf = new VpnServiceConfig("vpn-helper", vpnService, List(vpnConn))
+            TestVpnServiceContainter.checkHealth(conf)
+
+            assertEquals(TestVpnServiceContainter.cmdList(0),
+                "vpn-helper check_health -n name -p /opt/stack/stuff")
+
         }
     }
 
