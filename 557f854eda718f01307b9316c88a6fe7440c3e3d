@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_1276f43e",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-26T13:24:42Z",
+      "side": 1,
+      "message": "license",
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bd7351b0",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-26T13:24:42Z",
+      "side": 1,
+      "message": "looks like these are coming in as prematerialized strings. It would be better to get a List[IPv4Subnet] and build the strings when writing the files.",
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7d79b992",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-26T13:24:42Z",
+      "side": 1,
+      "message": "Don\u0027t case classes already have a copy method?",
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_528f8c23",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-26T13:24:42Z",
+      "side": 1,
+      "message": "this should actually be ipsec _updown. looks like an error, but apparently not.",
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
