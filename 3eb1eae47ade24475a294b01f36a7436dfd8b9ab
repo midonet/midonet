@@ -39,6 +39,30 @@
       "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a9feb769",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-26T00:03:09Z",
+      "side": 1,
+      "message": "My instinct is to leave everything in its failure state for debugging. when a service fails to deploy, my thinking for the right process is:\n\n1) mark the host as \"failure state\" for this type of namespace.\n2) try to reschedule the service on a different host.\n3) let the operator manually take the host out of failure state when/if he fixes the problem so it gets added back into the HA pool.\n\nIf we try to get too smart with these namespaces, we can really shoot ourselves in the foot.",
+      "parentUuid": "5ac4a560_c3a2f599",
+      "range": {
+        "startLine": 194,
+        "startChar": 8,
+        "endLine": 194,
+        "endChar": 14
+      },
+      "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
