@@ -27,7 +27,6 @@ case class ContainerPort(portId: UUID,
                          hostId: UUID,
                          interfaceName: String,
                          containerId: UUID,
-                         groupId: UUID,
                          configurationId: UUID) {
     override val toString =
         MoreObjects.toStringHelper(this).omitNullValues()

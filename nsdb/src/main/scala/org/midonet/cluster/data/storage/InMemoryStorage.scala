@@ -166,6 +166,13 @@ class InMemoryStorage extends Storage with StateStorage {
             }
         )
 
+        def observableError(id: ObjId, e: Throwable): Unit = {
+            instances.get(getIdString(clazz, id)) match {
+                case Some(node) => node.observableError(e)
+                case None =>
+            }
+        }
+
         /* Emits the updates generated during the last transaction */
         def emitUpdates(): Unit = {
             for (node <- streamUpdates) {
@@ -289,6 +296,10 @@ class InMemoryStorage extends Storage with StateStorage {
         }
 
         def observable = instanceObs
+
+        def observableError(e: Throwable): Unit = {
+            instanceSubject onError e
+        }
 
         def get: Future[T] = Future.successful(value)
 
@@ -565,6 +576,12 @@ class InMemoryStorage extends Storage with StateStorage {
         assertBuilt()
         assert(isRegistered(clazz))
         classes.get(clazz).asInstanceOf[ClassNode[T]].observable
+    }
+
+    def observableError(clazz: Class[_], id: ObjId, e: Throwable): Unit = {
+        assertBuilt()
+        assert(isRegistered(clazz))
+        classes.get(clazz).observableError(id, e)
     }
 
     override def registerClass(clazz: Class[_]): Unit = {
