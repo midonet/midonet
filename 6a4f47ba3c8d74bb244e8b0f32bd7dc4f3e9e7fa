@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_ac6ec5c7",
+        "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-26T04:52:19Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "5ac4a560_69badfe2",
+      "range": {
+        "startLine": 1,
+        "startChar": 20,
+        "endLine": 1,
+        "endChar": 27
+      },
+      "revId": "6a4f47ba3c8d74bb244e8b0f32bd7dc4f3e9e7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_43ba65e2",
         "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
         "patchSetId": 1
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8c790996",
+        "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-26T04:52:19Z",
+      "side": 1,
+      "message": "This class is specific to VPN services. The config of a VPN service will be defined by a Service and a list of connections, hence the two classes. Other services may have something completely different.",
+      "parentUuid": "5ac4a560_43ba65e2",
+      "range": {
+        "startLine": 9,
+        "startChar": 11,
+        "endLine": 9,
+        "endChar": 15
+      },
+      "revId": "6a4f47ba3c8d74bb244e8b0f32bd7dc4f3e9e7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_63bf61d1",
         "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
         "patchSetId": 1
@@ -83,6 +131,30 @@
       "writtenOn": "2015-11-25T13:54:49Z",
       "side": 1,
       "message": "this one belongs to a VPNServiceDef \u003c: ServiceDef",
+      "range": {
+        "startLine": 12,
+        "startChar": 11,
+        "endLine": 12,
+        "endChar": 27
+      },
+      "revId": "6a4f47ba3c8d74bb244e8b0f32bd7dc4f3e9e7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cc7301b0",
+        "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-26T04:52:19Z",
+      "side": 1,
+      "message": "As stated above, VPNServiceDef is not general.",
+      "parentUuid": "5ac4a560_63bf61d1",
       "range": {
         "startLine": 12,
         "startChar": 11,
@@ -188,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_6ce90d1a",
+        "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-26T04:52:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_43a185a8",
+      "range": {
+        "startLine": 155,
+        "startChar": 12,
+        "endLine": 158,
+        "endChar": 67
+      },
+      "revId": "6a4f47ba3c8d74bb244e8b0f32bd7dc4f3e9e7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_63a681c3",
         "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
         "patchSetId": 1
@@ -199,6 +295,30 @@
       "writtenOn": "2015-11-25T13:54:49Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 177,
+        "startChar": 0,
+        "endLine": 177,
+        "endChar": 65
+      },
+      "revId": "6a4f47ba3c8d74bb244e8b0f32bd7dc4f3e9e7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8cee6921",
+        "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-26T04:52:19Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "5ac4a560_63a681c3",
       "range": {
         "startLine": 177,
         "startChar": 0,
