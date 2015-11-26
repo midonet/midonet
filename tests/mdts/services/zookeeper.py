@@ -15,6 +15,7 @@
 #
 
 from mdts.services.service import Service
+from mdts.services.jmx_monitor import JMXMonitor
 
 
 class ZookeeperHost(Service):
@@ -28,6 +29,11 @@ class ZookeeperHost(Service):
 
     def get_service_name(self):
         return 'zookeeper'
+
+    def get_jmx_monitor(self):
+        monitor = JMXMonitor()
+        monitor.connect(self.get_ip_address(),7200)
+        return monitor
 
     def get_service_logs(self):
         return ['/var/log/zookeeper/zookeeper.log']
