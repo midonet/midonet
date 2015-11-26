@@ -196,9 +196,8 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
       * the port identifier. */
     private def portDeleted(): Unit = {
         // Ignore notifications if the mapper is in a terminal state.
-        if (state.get.isTerminal) return
-
-        log.debug("Port deleted")
+        if (state.get.isTerminal)
+            return
         onError(BgpPortDeleted(portId))
     }
 
