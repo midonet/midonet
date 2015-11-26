@@ -264,20 +264,26 @@ class Router(override val id: UUID,
         sendIPPacket(ip, context)
     }
 
-    private def getPeerMac(rtrPort: RouterPort): MAC =
-        tryGet[Port](rtrPort.peerId) match {
+    private def getPeerMac(peer: Port, ipDest: IPv4Addr): MAC =
+        peer match {
            case rtPort: RouterPort => rtPort.portMac
+           case bridgePort: BridgePort => peekBridge(bridgePort, ipDest)
            case _ => null
         }
 
+    private def peekBridge(port: BridgePort, ipDest: IPv4Addr): MAC = {
+        // Fetch the MAC address associated with ipDest in case it
+        // belongs to a router port connected to the bridge or was pre-seeded.
+        val bridge = tryGet[Bridge](port.deviceId)
+        bridge.ipToMac.getOrElse(ipDest, bridge.ip4MacMap.get(ipDest))
+    }
+
     private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr,
                             context: PacketContext): MAC = {
-
+        context.addFlowTag(FlowTagger.tagForArpEntry(id, nextHopIP))
         if (port.isInterior) {
-            return context.arpBroker.get(nextHopIP, port, this, context.cookie)
-        }
-
-        port.portSubnet match {
+            context.arpBroker.get(nextHopIP, port, this, context.cookie)
+        } else port.portSubnet match {
             case extAddr: IPv4Subnet if extAddr.containsAddress(nextHopIP) =>
                 context.arpBroker.get(nextHopIP, port, this, context.cookie)
             case extAddr: IPv4Subnet =>
@@ -297,23 +303,26 @@ class Router(override val id: UUID,
 
         if (outPort.isInterior && outPort.peerId == null) {
             context.log.warn("Packet sent to dangling interior port {}",
-                        rt.nextHopPort)
+                             rt.nextHopPort)
             return null
         }
 
-        (outPort match {
-            case p: Port if p.isInterior => getPeerMac(p)
-            case _ => null // Fall through to ARP'ing below.
-        }) match {
-            case null =>
-                val nextHopInt = rt.nextHopGateway
-                val nextHopIP =
-                    if (nextHopInt == 0 || nextHopInt == -1) ipDest // last hop
-                    else IPv4Addr(nextHopInt)
-                context.addFlowTag(FlowTagger.tagForArpEntry(id, nextHopIP))
-                getMacForIP(outPort, nextHopIP, context)
-            case mac => mac
+        val peer = if (outPort.isInterior) tryGet[Port](outPort.peerId) else null
+        var mac = getPeerMac(peer, ipDest)
+        if (mac eq null) {
+            val nextHopInt = rt.nextHopGateway
+            val nextHopIP =
+                if (nextHopInt == 0 || nextHopInt == -1) {
+                    ipDest // last hop
+                } else {
+                    val ip = IPv4Addr(nextHopInt)
+                    mac = getPeerMac(peer, ip)
+                    ip
+                }
+            if (mac eq null)
+                mac = getMacForIP(outPort, nextHopIP, context)
         }
+        mac
     }
 
     /**

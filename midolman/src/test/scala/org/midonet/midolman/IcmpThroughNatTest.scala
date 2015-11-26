@@ -22,10 +22,8 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
-import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
 import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
@@ -80,8 +78,8 @@ class IcmpThroughNatTest extends MidolmanSpec {
         fetchDevice[Bridge](clusterBridge)
 
         val router = fetchDevice[Router](clusterRouter)
-        feedArpCache(router, IPv4Addr(leftIp), leftMac)
-        feedArpCache(router, IPv4Addr(rightIp), rightMac)
+        feedArpTable(router, IPv4Addr(leftIp), leftMac)
+        feedArpTable(router, IPv4Addr(rightIp), rightMac)
 
         newRoute(clusterRouter,
                  "0.0.0.0", 0,
