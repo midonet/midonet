@@ -55,7 +55,8 @@ FIELDS = [
     'tp_dst',
     'flow_action',
     'nat_targets',
-    'fragment_policy'
+    'fragment_policy',
+    'target_port'
 ]
 
 
@@ -84,7 +85,8 @@ class Rule(ResourceBase):
         self._mn_resource.chain_id(self._chain._mn_resource.get_id())
         for field in FIELDS:
             if field is 'chain_id' or field not in self._data: continue
-            if field in ['in_ports', 'out_ports', 'port_group_src']:
+            if field in ['in_ports', 'out_ports',
+                         'port_group_src', 'target_port']:
                 self._context.look_up_resource(
                         self._mn_resource, field, self._data[field])
             elif field is 'jump_chain_name':

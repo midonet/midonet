@@ -53,6 +53,9 @@ class RouterPort(ResourceBase):
         if 'links_to' in self._data:
             self._context.register_link(self, self._data['links_to'])
 
+        if 'hw_addr' in self._data:
+            mn_router_port.port_mac(self._data['hw_addr'])
+
         mn_router_port.port_address(ipv4_addr)\
                       .network_address(ipv4_net)\
                       .network_length(ipv4_len)\

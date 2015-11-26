@@ -1,0 +1,122 @@
+# Copyright 2014 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# Virtual Topology
+#
+
+virtual_topology:
+  description: Simple configuration with one router and
+               two bridges.
+
+  tenant_name: MMM-TEST-000-001
+
+  routers:
+    - router:
+        name: router-000-001
+        ports:
+          - port:
+              id: 1
+              type: interior
+              ipv4_addr: 172.16.1.254/24
+              ipv6_addr: null
+              hw_addr: aa:bb:cc:00:00:22
+              links_to:
+                  device: bridge-000-001
+                  port_id: 1
+
+          - port:
+              id: 2
+              type: exterior
+              ipv4_addr: 169.254.1.1/30
+              ipv6_addr: null
+              hw_addr: aa:bb:cc:00:11:22
+
+          - port:
+              id: 3
+              type: exterior
+              ipv4_addr: 169.254.2.1/30
+              ipv6_addr: null
+              hw_addr: aa:bb:cc:00:11:33
+               
+        routes:
+          - route:
+              id: 1   # do we need id for route? for sorting?
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 172.16.1.0/24
+              weight: 100
+              next_hop_port: 1
+              next_hop_gw: 0.0.0.0
+          - route:
+              id: 2
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 169.254.1.0/30
+              weight: 100
+              next_hop_port: 2
+              next_hop_gw: 0.0.0.0
+          - route:
+              id: 2
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 169.254.2.0/30
+              weight: 100
+              next_hop_port: 2
+              next_hop_gw: 0.0.0.0
+
+
+  bridges:
+    - bridge:
+        name: bridge-000-001
+        ports:
+          - port:
+              id: 1
+              type: interior
+# links_to above already created a port link
+#              links_to:
+#                  device: router-000-001
+#                  port_id: 1
+          - port:
+              id: 2
+              type: exterior
+
+  chains:
+    - chain:
+        id: 1
+        name: pre_filter_001
+        rules:
+          - rule:
+              id: 1
+              type: l2_transform
+              flow_action: redirect
+              target_port:
+                device_name: router-000-001
+                port_id: 2
+              nw_dst_address: 172.16.1.254
+              nw_dst_length: 32
+              nw_proto: 17
+              tp_dst: {"start":500,"end":500}
+          - rule:
+              id: 2
+              type: l2_transform
+              flow_action: redirect
+              target_port:
+                device_name: router-000-001
+                port_id: 3
+              nw_dst_address: 172.16.1.254
+              nw_dst_length: 32
+              nw_proto: 6
+              tp_dst: {"start":1500,"end":1500}
+
