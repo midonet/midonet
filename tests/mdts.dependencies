@@ -7,3 +7,4 @@ virtualenv
 cassandra-driver
 fixtures
 python-neutronclient
+jpype

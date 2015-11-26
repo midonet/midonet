@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import time
+from mdts.services.midonet_cluster_jmx_monitor import MidonetClusterJMXMonitor
 
 from mdts.services.service import Service
 
@@ -63,4 +64,9 @@ class MidonetClusterHost(Service):
             except:
                 time.sleep(wait_time)
                 timeout -= wait_time
+
+    def get_jmx_monitor(self):
+        monitor = MidonetClusterJMXMonitor()
+        monitor.connect(self.get_ip_address(),7201)
+        return monitor
 

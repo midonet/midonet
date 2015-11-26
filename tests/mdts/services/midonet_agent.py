@@ -15,6 +15,7 @@
 #
 import random
 from mdts.services.interface import Interface
+from mdts.services.midonet_agent_jmx_monitor import MidonetAgentJMXMonitor
 
 from mdts.services.service import Service
 from mdts.services.vmguest import VMGuest
@@ -62,6 +63,12 @@ class MidonetAgentHost(Service):
         :return: str Name of the service
         """
         return 'midolman'
+
+    def get_jmx_monitor(self):
+        LOG.debug("Creating JMX Monitor for cluster")
+        monitor = MidonetAgentJMXMonitor()
+        monitor.connect(self.get_ip_address(),7201)
+        return monitor
 
     def get_midonet_host_id(self):
         if not self.midonet_host_id:
