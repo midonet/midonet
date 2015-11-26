@@ -42,12 +42,14 @@ import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.simulation.Coordinator.Device
+import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitter}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.{ArpRequestBroker, MockStateStorage, HappyGoLuckyLeaser}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
+import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys}
@@ -87,8 +89,12 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                                      { VirtualTopologyActor ? _ }),
                      timeout.duration)
 
+    def feedArpCache(bridge: SimBridge, ip: IPv4Addr, mac: MAC): Unit = {
+        clusterDataClient.bridgeAddIp4Mac(bridge.id, ip, mac)
+    }
+
     def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
-        ArpCacheHelper.feedArpCache(router, ip, mac)
+        ArpCacheHelper.feedArpCache(router.arpCache, ip, mac)
     }
 
     def throwAwayArpBroker(emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList): ArpRequestBroker =
