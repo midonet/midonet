@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_38902fec",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 7
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-11-26T16:55:26Z",
+      "side": 1,
+      "message": "other scripts redirect stderr into stdout, and I think the code in midolman expects that.",
+      "revId": "4c9e8599321560caba5a0b7fe891c3ca8cad634a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
