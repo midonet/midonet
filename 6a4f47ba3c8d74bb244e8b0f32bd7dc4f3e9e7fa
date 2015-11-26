@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_0c6df432",
+        "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T20:44:11Z",
+      "side": 1,
+      "message": "Then the file should be called VPNServiceContainer. Or rather IPSecContainer (which is more accurate, IPSEC is the actual type that we store in the ServiceContainer model)",
+      "parentUuid": "5ac4a560_8c790996",
+      "range": {
+        "startLine": 9,
+        "startChar": 11,
+        "endLine": 9,
+        "endChar": 15
+      },
+      "revId": "6a4f47ba3c8d74bb244e8b0f32bd7dc4f3e9e7fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_63bf61d1",
         "filename": "midolman/src/main/scala/org/midonet/servcon/ServiceContainer.scala",
         "patchSetId": 1
