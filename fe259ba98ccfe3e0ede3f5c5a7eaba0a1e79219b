@@ -16,6 +16,24 @@
       "revId": "fe259ba98ccfe3e0ede3f5c5a7eaba0a1e79219b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6caae871",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T19:53:36Z",
+      "side": 1,
+      "message": "From the spec:\n\nDictionary with dead peer detection (DPD) protocol controls.\nThe DPD action. A valid value is clear, hold, restart,disabled, or restart-by-peer. Default value is hold.\nThe DPD interval, in seconds. A valid value is a positive integer. Default is 30.\nThe DPD timeout in seconds. A valid value is a positive integer that is greater than the DPD interval value. Default is 120\n\n\nWhich is not clear to me (not sure what\u0027s the actual cotent of the json, or the one that\u0027s passed down to us).\n\nIf we can merge let\u0027s leave it like this, we can merge to unblock the models and other people\u0027s taks, and ammend later before release if necessary.",
+      "parentUuid": "5ac4a560_db02ebb3",
+      "revId": "fe259ba98ccfe3e0ede3f5c5a7eaba0a1e79219b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
