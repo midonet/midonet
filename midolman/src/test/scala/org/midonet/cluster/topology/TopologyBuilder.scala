@@ -27,6 +27,7 @@ import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
+import org.midonet.cluster.models.Topology.ServiceContainerGroup.Service
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology._
@@ -55,12 +56,17 @@ trait TopologyBuilder {
                          interfaceName: Option[String] = None,
                          adminStateUp: Boolean = false,
                          portGroupIds: Set[UUID] = Set.empty,
-                         vlanId: Option[Int] = None): Port = {
+                         vlanId: Option[Int] = None,
+                         containerId: Option[UUID] = None): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
-        if (bridgeId.isDefined) builder.setNetworkId(bridgeId.get.asProto)
-        if (vlanId.isDefined) builder.setVlanId(vlanId.get)
+        if (bridgeId.isDefined)
+            builder.setNetworkId(bridgeId.get.asProto)
+        if (vlanId.isDefined)
+            builder.setVlanId(vlanId.get)
+        if (containerId.isDefined)
+            builder.setServiceContainerId(containerId.get.asProto)
         builder.build()
     }
 
@@ -79,7 +85,8 @@ trait TopologyBuilder {
                          portAddress: IPAddr = IPv4Addr.random,
                          portMac: MAC = MAC.random,
                          bgpId: Option[UUID] = None,
-                         routeIds: Set[UUID] = Set.empty): Port = {
+                         routeIds: Set[UUID] = Set.empty,
+                         containerId: Option[UUID] = None): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
@@ -87,7 +94,10 @@ trait TopologyBuilder {
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
             .addAllRouteIds(routeIds.map(_.asProto).asJava)
-        if (routerId.isDefined) builder.setRouterId(routerId.get.asProto)
+        if (routerId.isDefined)
+            builder.setRouterId(routerId.get.asProto)
+        if (containerId.isDefined)
+            builder.setServiceContainerId(containerId.get.asProto)
         builder.build()
     }
 
@@ -590,10 +600,10 @@ trait TopologyBuilder {
         val data = Rule.L2TransformRuleData.newBuilder
         targetPortId foreach {
             (id: UUID) => data.setTargetPortId(id.asProto) }
-        ingress foreach { data.setIngress(_) }
-        failOpen foreach { data.setFailOpen(_) }
+        ingress foreach { data.setIngress }
+        failOpen foreach { data.setFailOpen }
         pushVLan foreach { data.setPushVlan(_) }
-        popVLan foreach { data.setPopVlan(_) }
+        popVLan foreach { data.setPopVlan }
 
         builder.setTransformRuleData(data.build())
         builder
@@ -807,6 +817,39 @@ trait TopologyBuilder {
         builder.build()
     }
 
+    def createServiceContainer(id: UUID = UUID.randomUUID(),
+                               groupId: Option[UUID] = None,
+                               routerId: Option[UUID] = None,
+                               networkId: Option[UUID] = None,
+                               configurationId: Option[UUID] = None)
+    : ServiceContainer = {
+        val builder = ServiceContainer.newBuilder().setId(id.asProto)
+        if (groupId.isDefined)
+            builder.setServiceGroupId(groupId.get.asProto)
+        if (routerId.isDefined)
+            builder.setRouterId(routerId.get.asProto)
+        if (networkId.isDefined)
+            builder.setNetworkId(networkId.get.asProto)
+        if (configurationId.isDefined)
+            builder.setConfigurationId(configurationId.get.asProto)
+        builder.build()
+    }
+
+    def createServiceContainerGroup(id: UUID = UUID.randomUUID(),
+                                    serviceType: Option[Service] = None,
+                                    hostGroupId: Option[UUID] = None,
+                                    portGroupId: Option[UUID] = None)
+    : ServiceContainerGroup = {
+        val builder = ServiceContainerGroup.newBuilder().setId(id.asProto)
+        if (serviceType.isDefined)
+            builder.setServiceType(serviceType.get)
+        if (hostGroupId.isDefined)
+            builder.setHostGroupId(hostGroupId.get.asProto)
+        if (portGroupId.isDefined)
+            builder.setPortGroupId(portGroupId.get.asProto)
+        builder.build()
+    }
+
     def createVtep(id: UUID = UUID.randomUUID(),
                    mgmtIp: IPv4Addr = IPv4Addr.random,
                    mgmtPort: Int = random.nextInt(),
@@ -909,6 +952,8 @@ object TopologyBuilder {
             port.toBuilder.setPortAddress(ipAddress.asProto).build()
         def setPortMac(mac: MAC): Port =
             port.toBuilder.setPortMac(mac.toString).build()
+        def setContainerId(containerId: UUID): Port =
+            port.toBuilder.setServiceContainerId(containerId.asProto).build()
         def clearBridgeId(): Port =
             port.toBuilder.clearNetworkId().build()
         def clearRouterId(): Port =
@@ -933,6 +978,8 @@ object TopologyBuilder {
             port.toBuilder.clearPortAddress().build()
         def clearPortMac(): Port =
             port.toBuilder.clearPortMac().build()
+        def clearContainerId(): Port =
+            port.toBuilder.clearServiceContainerId().build()
         def addRouteId(routeId: UUID): Port =
             port.toBuilder.addRouteIds(routeId.asProto).build()
     }
@@ -1177,6 +1224,19 @@ object TopologyBuilder {
             bgpPeer.toBuilder.clearRouterId().build()
     }
 
+    final class RichServiceContainer(val container: ServiceContainer) extends AnyVal {
+        def setGroupId(groupId: UUID): ServiceContainer =
+            container.toBuilder.setServiceGroupId(groupId.asProto).build()
+        def setRouterId(routerId: UUID): ServiceContainer =
+            container.toBuilder.setRouterId(routerId.asProto).build()
+        def setNetworkId(networkId: UUID): ServiceContainer =
+            container.toBuilder.setNetworkId(networkId.asProto).build()
+        def setConfigurationId(configurationId: UUID): ServiceContainer =
+            container.toBuilder.setConfigurationId(configurationId.asProto).build()
+        def setPortId(portId: UUID): ServiceContainer =
+            container.toBuilder.setPortId(portId.asProto).build()
+    }
+
     private val random = new Random()
 
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
@@ -1223,5 +1283,9 @@ object TopologyBuilder {
 
     implicit def asRichBgpPeer(bgpPeer: BgpPeer): RichBgpPeer =
         new RichBgpPeer(bgpPeer)
+
+    implicit def asRichServiceContainer(container: ServiceContainer)
+    : RichServiceContainer =
+        new RichServiceContainer(container)
 
 }
