@@ -48,6 +48,29 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_0cdb34ee",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-26T20:56:51Z",
+      "side": 1,
+      "message": "of a router port?",
+      "range": {
+        "startLine": 15,
+        "startChar": 18,
+        "endLine": 16,
+        "endChar": 6
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_8c2bc4ea",
         "filename": "docs/ipsec-agent.md",
         "patchSetId": 1
@@ -71,6 +94,75 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_2cd8f0ee",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-26T20:56:51Z",
+      "side": 1,
+      "message": "not sure about this terminology",
+      "range": {
+        "startLine": 25,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 25
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8cee648a",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-26T20:56:51Z",
+      "side": 1,
+      "message": "namespace\u0027s",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 10
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cce85c7f",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-26T20:56:51Z",
+      "side": 1,
+      "message": "not sure what this refers to either",
+      "range": {
+        "startLine": 30,
+        "startChar": 7,
+        "endLine": 30,
+        "endChar": 39
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_ec3a7835",
         "filename": "docs/ipsec-agent.md",
         "patchSetId": 1
@@ -82,6 +174,46 @@
       "writtenOn": "2015-11-26T20:37:07Z",
       "side": 1,
       "message": "to",
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2cff1036",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-26T20:56:51Z",
+      "side": 1,
+      "message": "I don\u0027t think the paragraph below says how this traffic gets routed in midonet to the namespace.",
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8c9584e6",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-26T20:56:51Z",
+      "side": 1,
+      "message": "I\u0027m unsure when we\u0027re talking physical vs virtual.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 42
+      },
       "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
