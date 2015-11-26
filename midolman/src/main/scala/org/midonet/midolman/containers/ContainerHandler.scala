@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.topology.containers
+package org.midonet.midolman.containers
 
 import scala.concurrent.Future
 

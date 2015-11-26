@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.topology.containers
+package org.midonet.midolman.containers
 
 import java.util.UUID
 
@@ -27,6 +27,7 @@ case class ContainerPort(portId: UUID,
                          hostId: UUID,
                          interfaceName: String,
                          containerId: UUID,
+                         serviceType: String,
                          groupId: UUID,
                          configurationId: UUID) {
     override val toString =
@@ -35,6 +36,8 @@ case class ContainerPort(portId: UUID,
             .add("hostId", hostId)
             .add("interfaceName", interfaceName)
             .add("containerId", containerId)
+            .add("serviceType", serviceType)
+            .add("groupId", groupId)
             .add("configurationId", configurationId)
             .toString
 }
