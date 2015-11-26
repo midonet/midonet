@@ -19,6 +19,52 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8c602437",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T20:44:11Z",
+      "side": 1,
+      "message": "Ditto, this should be IPSec as you\u0027re actually materializing ServiceContainer models of IPSEC type, not VPNService models.\n\nSame comment about file name.",
+      "range": {
+        "startLine": 9,
+        "startChar": 11,
+        "endLine": 9,
+        "endChar": 24
+      },
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cc5a1c83",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T20:44:11Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 12,
+        "startChar": 11,
+        "endLine": 12,
+        "endChar": 27
+      },
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_bd7351b0",
         "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
         "patchSetId": 2
