@@ -25,7 +25,6 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Router
-import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
@@ -84,9 +83,8 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
 
         simRouter = fetchDevice[Router](clusterRouter)
         simRouter should not be null
-        feedArpCache(simRouter, IPv4Addr(leftOtherIp), MAC.fromString(leftOtherMac))
-        feedArpCache(simRouter, IPv4Addr(rightOtherIp), MAC.fromString(rightOtherMac))
-
+        feedArpTable(simRouter, IPv4Addr(leftOtherIp), MAC.fromString(leftOtherMac))
+        feedArpTable(simRouter, IPv4Addr(rightOtherIp), MAC.fromString(rightOtherMac))
     }
 
     override def beforeTest() {
@@ -114,7 +112,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
     feature("RouterManager tracks permanent flows but not temporary ones") {
         scenario("blackhole route") {
             When("a packet hits a blackhole route")
-            val (pktContext, action) = simulateDevice(simRouter, frameThatWillBeDropped, leftPort)
+            val (_, action) = simulateDevice(simRouter, frameThatWillBeDropped, leftPort)
             action shouldEqual ErrorDrop
 
             And("the routing table changes")

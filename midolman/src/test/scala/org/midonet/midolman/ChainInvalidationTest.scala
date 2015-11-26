@@ -108,7 +108,7 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
         spec.fetchDevice[Bridge](clusterBridge)
         spec.fetchDevice[Router](clusterRouter)
         bridge.vlanMacTableMap(0.toShort).add(vmMac, vmPort)
-        feedArpCache(router, vmIp, vmMac)
+        spec.feedArpTable(router, vmIp, vmMac)
     }
 }
 

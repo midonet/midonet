@@ -41,6 +41,7 @@ import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
@@ -95,8 +96,11 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     def fetchPortGroups(portGroups: UUID*): Seq[PortGroup] =
         portGroups map fetchDevice[PortGroup]
 
+    def feedArpCache(bridge: SimBridge, ip: IPv4Addr, mac: MAC): Unit =
+        virtualTopology.state.bridgeIp4MacMap(bridge.id).putPersistent(ip, mac)
+
     def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
-        ArpCacheHelper.feedArpCache(router, ip, mac)
+        ArpCacheHelper.feedArpCache(router.arpCache, ip, mac)
     }
 
     def clearMacTable(bridge: SimBridge, vlan: Short, mac: MAC, port: UUID): Unit = {
