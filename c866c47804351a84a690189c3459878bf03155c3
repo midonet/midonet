@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_3d2ca1ab",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-11-26T15:13:11Z",
+      "side": 1,
+      "message": "Maybe it\u0027s not important for now but we are not using transactions for get requests. Meaning that the rule may have been modified between the store.get for the rule and for the chain...",
+      "range": {
+        "startLine": 43,
+        "startChar": 27,
+        "endLine": 43,
+        "endChar": 36
+      },
+      "revId": "c866c47804351a84a690189c3459878bf03155c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
