@@ -113,6 +113,52 @@
       "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6c4bc8b0",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T20:46:45Z",
+      "side": 1,
+      "message": "why defs? they can be constants as they come from vpnService which doens\u0027t change?",
+      "range": {
+        "startLine": 87,
+        "startChar": 4,
+        "endLine": 87,
+        "endChar": 7
+      },
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8cc74412",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T20:46:45Z",
+      "side": 1,
+      "message": "if this is specific to ipsec, I\u0027d do org.midonet.containers.ipsec\n\nThe org. I think is what\u0027s used everywhere (needed to get levels applied)",
+      "range": {
+        "startLine": 112,
+        "startChar": 61,
+        "endLine": 112,
+        "endChar": 71
+      },
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
