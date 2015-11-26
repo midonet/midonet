@@ -234,8 +234,7 @@ trait CustomMatchers {
         def find[T >: Null : ClassTag](): T = {
             while (backChannel.hasMessages) {
                 backChannel.poll() match {
-                    case msg: T =>
-                        return msg
+                    case msg: T => return msg
                     case _ =>
                 }
             }

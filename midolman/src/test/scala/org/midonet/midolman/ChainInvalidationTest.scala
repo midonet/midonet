@@ -23,7 +23,6 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.simulation.{Router, Bridge}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.packets.{IPv4Addr, IPSubnet, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.midolman.layer3.Route.NextHop
@@ -100,7 +99,7 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
         spec.fetchDevice[Bridge](clusterBridge)
         spec.fetchDevice[Router](clusterRouter)
         bridge.vlanMacTableMap(0.toShort).add(vmMac, vmPort)
-        feedArpCache(router, vmIp, vmMac)
+        spec.feedArpTable(router, vmIp, vmMac)
     }
 }
 
