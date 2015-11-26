@@ -33,7 +33,6 @@ import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.services.HostIdProvider
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.{FlowMatch, Packet}
@@ -46,10 +45,8 @@ import org.midonet.sdn.flows.FlowTagger
 class FlowRecorderTest extends MidolmanSpec {
     feature("flow recording construction") {
         scenario("unconfigured flow history yields null recorder") {
-            val factory = injector.getInstance(classOf[FlowRecorderFactory])
-
-            val recorder = factory.newFlowRecorder()
-            recorder.isInstanceOf[NullFlowRecorder] should be (true)
+            val recorder = FlowRecorder(config, hostId)
+            recorder should be (NullFlowRecorder)
         }
     }
 
@@ -101,9 +98,7 @@ class FlowRecorderTest extends MidolmanSpec {
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
 
-            val factory = new FlowRecorderFactory(
-                conf, injector.getInstance(classOf[HostIdProvider]))
-            val recorder = factory.newFlowRecorder()
+            val recorder = FlowRecorder(conf, hostId)
 
             val data = new Array[Byte](4096)
             val datagram = new DatagramPacket(data, data.length)
@@ -150,10 +145,8 @@ class FlowRecorderTest extends MidolmanSpec {
                 |agent.flow_history.udp_endpoint="localhost:50023"
                 """.stripMargin
             val conf = MidolmanConfig.forTests(confStr)
-            val factory = new FlowRecorderFactory(
-                conf, injector.getInstance(classOf[HostIdProvider]))
 
-            val recorder = factory.newFlowRecorder()
+            val recorder = FlowRecorder(conf, hostId)
 
             val data = new Array[Byte](409600)
             val datagram = new DatagramPacket(data, data.length)

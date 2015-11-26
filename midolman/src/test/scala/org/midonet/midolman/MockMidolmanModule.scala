@@ -17,19 +17,20 @@
 package org.midonet.midolman
 
 import java.util.{UUID, LinkedList}
-import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
+import java.util.concurrent.ConcurrentHashMap
 
-import org.midonet.conf.HostIdGenerator
+import org.midonet.midolman.monitoring.NullFlowRecorder
 
 import scala.concurrent.Future
 
 import akka.actor.ActorSystem
 import com.codahale.metrics.MetricRegistry
-import com.google.common.util.concurrent.AbstractService
-import com.google.inject.name.Names
+import com.google.inject.Injector
 import com.lmax.disruptor.{SequenceBarrier, RingBuffer}
 import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
 
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.SimulationBackChannel.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
@@ -38,7 +39,7 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.FlowTracingAppender
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.services.{MidolmanActorsService, HostIdProvider, SelectLoopService}
+import org.midonet.midolman.services.{MidolmanActorsService, SelectLoopService}
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockFlowProcessor, MockDatapathChannel, MockUpcallDatapathConnectionManager}
@@ -47,12 +48,12 @@ import org.midonet.odp.{Flow, FlowMatch, Datapath, OvsNetlinkFamilies}
 import org.midonet.odp.family.{PacketFamily, FlowFamily, PortFamily, DatapathFamily}
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.eventloop.{MockSelectLoop, SelectLoop}
-import org.midonet.util.functors.{Predicate, makePredicate}
 
 class MockMidolmanModule(override val hostId: UUID,
+                         injector: Injector,
                          config: MidolmanConfig,
                          actorService: MidolmanActorsService)
-        extends MidolmanModule(config, new MetricRegistry) {
+        extends MidolmanModule(injector, config, new MetricRegistry) {
 
     val flowsTable = new ConcurrentHashMap[FlowMatch, Flow]
 
@@ -78,25 +79,21 @@ class MockMidolmanModule(override val hostId: UUID,
         })
     }
 
-    protected override def bindNatAllocator() {
-        bind(classOf[NatBlockAllocator]).toInstance(new MockNatBlockAllocator)
-    }
+    protected override def natAllocator() =
+        new MockNatBlockAllocator
 
-    protected override def bindVirtualTopology() {
+    protected override def virtualTopology(simBackChannel: SimulationBackChannel) = {
         val threadId = Thread.currentThread().getId
-        bind(classOf[ExecutorService])
-            .annotatedWith(Names.named(VirtualTopology.VtExecutorName))
-            .toInstance(new SameThreadButAfterExecutorService())
-        bind(classOf[Predicate])
-            .annotatedWith(Names.named(VirtualTopology.VtExecutorCheckerName))
-            .toInstance(makePredicate(
-                            { threadId == Thread.currentThread().getId }))
-        bind(classOf[ExecutorService])
-            .annotatedWith(Names.named(VirtualTopology.IoExecutorName))
-            .toInstance(new SameThreadButAfterExecutorService())
-
-        bind(classOf[VirtualTopology])
-            .asEagerSingleton()
+        new VirtualTopology(
+            injector.getInstance(classOf[MidonetBackend]),
+            config,
+            injector.getInstance(classOf[LegacyStorage]),
+            injector.getInstance(classOf[ZkConnectionAwareWatcher]),
+            simBackChannel,
+            new MetricRegistry,
+            new SameThreadButAfterExecutorService,
+            () => threadId == Thread.currentThread().getId,
+            new SameThreadButAfterExecutorService)
     }
 
     protected override def flowTracingAppender()=
@@ -109,6 +106,9 @@ class MockMidolmanModule(override val hostId: UUID,
             override def create(): Future[FlowStateStorage] =
                 Future.successful(new MockStateStorage)
         }
+
+    protected override def flowRecorder(hostId: UUID) =
+        NullFlowRecorder
 
     protected override def upcallDatapathConnectionManager(
             tbPolicy: TokenBucketPolicy) =
