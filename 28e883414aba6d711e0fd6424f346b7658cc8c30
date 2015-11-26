@@ -22,6 +22,30 @@
       "revId": "28e883414aba6d711e0fd6424f346b7658cc8c30",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_83b0fdde",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T20:21:43Z",
+      "side": 1,
+      "message": "I wanted to avoid more boxing since in practise in most cases the caller will end up just doing a \n\nupdate match {\n  case Update(u) \u003d\u003e updateHandler(u)\n  case Delete(u) \u003d\u003e deleteHandler(u)\n}\n\nwhat do you think?",
+      "parentUuid": "5ac4a560_8a72d7e3",
+      "range": {
+        "startLine": 78,
+        "startChar": 14,
+        "endLine": 78,
+        "endChar": 27
+      },
+      "revId": "28e883414aba6d711e0fd6424f346b7658cc8c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
