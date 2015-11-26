@@ -63,6 +63,30 @@
       "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ac096097",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-26T20:28:58Z",
+      "side": 1,
+      "message": "Well I disagree that not leaving broken things behind is being too clever. For a start, in the best case, this creates manual work for operators. \n\nThe debug info can be provided by the cleanup (e.g.: list all namespaces and along the ip delns issue an echo \"deleting stray namespace $nsName\" to stderr).\n\nThis way you get debug info, and you don\u0027t leave broken stuff behind for others to clean.",
+      "parentUuid": "5ac4a560_a9feb769",
+      "range": {
+        "startLine": 194,
+        "startChar": 8,
+        "endLine": 194,
+        "endChar": 14
+      },
+      "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
