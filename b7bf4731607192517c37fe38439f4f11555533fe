@@ -16,6 +16,24 @@
       "revId": "b7bf4731607192517c37fe38439f4f11555533fe",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d8d01bfa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/conman/ConmanService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-26T16:03:21Z",
+      "side": 1,
+      "message": "Renamed to ContainerService",
+      "parentUuid": "5ac4a560_fe9b1570",
+      "revId": "b7bf4731607192517c37fe38439f4f11555533fe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
