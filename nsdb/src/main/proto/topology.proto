@@ -487,7 +487,12 @@ message ServiceContainer {
     optional UUID service_group_id = 2;
     optional UUID router_id = 3;
     optional UUID network_id = 4;
+    // This field contains the ID of the configuration that originates this
+    // service container.  E.g.: a VPNService
     optional UUID configuration_id = 5;
+    // Each ServiceContainer has a virtual port where it's bound to the
+    // virtual topology
+    optional UUID port_id = 6;
 }
 
 message ServiceContainerGroup {

@@ -35,6 +35,7 @@ case class ContainerPort(portId: UUID,
             .add("hostId", hostId)
             .add("interfaceName", interfaceName)
             .add("containerId", containerId)
+            .add("groupId", groupId)
             .add("configurationId", configurationId)
             .toString
 }
