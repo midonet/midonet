@@ -20,6 +20,7 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import org.midonet.cluster.state.LegacyStorage
+import org.midonet.midolman.topology.VirtualTopology
 
 import scala.concurrent.ExecutionContext
 
@@ -57,6 +58,9 @@ trait MidolmanServices {
 
     def peerResolver =
         injector.getInstance(classOf[PeerResolver])
+
+    def virtualTopology =
+        injector.getInstance(classOf[VirtualTopology])
 
     def virtConfBuilderImpl =
         injector.getInstance(classOf[VirtualConfigurationBuilders])
