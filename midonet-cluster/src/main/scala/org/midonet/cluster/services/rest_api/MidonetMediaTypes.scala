@@ -55,6 +55,8 @@ object MidonetMediaTypes {
     final val APPLICATION_ROUTE_COLLECTION_JSON = "application/vnd.org.midonet.collection.Route-v1+json"
     final val APPLICATION_PORTGROUP_JSON = "application/vnd.org.midonet.PortGroup-v1+json"
     final val APPLICATION_PORTGROUP_COLLECTION_JSON = "application/vnd.org.midonet.collection.PortGroup-v1+json"
+    final val APPLICATION_HOSTGROUP_JSON = "application/vnd.org.midonet.HostGroup-v1+json"
+    final val APPLICATION_HOSTGROUP_COLLECTION_JSON = "application/vnd.org.midonet.collection.HostGroup-v1+json"
     final val APPLICATION_PORTGROUP_PORT_JSON = "application/vnd.org.midonet.PortGroupPort-v1+json"
     final val APPLICATION_PORTGROUP_PORT_COLLECTION_JSON = "application/vnd.org.midonet.collection.PortGroupPort-v1+json"
     final val APPLICATION_CHAIN_JSON = "application/vnd.org.midonet.Chain-v1+json"

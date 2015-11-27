@@ -56,6 +56,7 @@ public final class ResourceUris {
     public static final String SYSTEM_STATE = "system_state";
     public static final String SERVICE_CONTAINERS = "service_containers";
     public static final String SERVICE_CONTAINER_GROUPS = "service_container_groups";
+    public static final String HOST_GROUPS = "host_groups";
     public static final String TENANTS = "tenants";
     public static final String TRACE_REQUESTS = "traces";
     public static final String TUNNEL_ZONES = "tunnel_zones";
