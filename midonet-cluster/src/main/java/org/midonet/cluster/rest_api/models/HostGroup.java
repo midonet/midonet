@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import javax.validation.constraints.NotNull;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -28,35 +29,28 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 
-import static org.midonet.cluster.rest_api.ResourceUris.SERVICE_CONTAINERS;
-
-@ZoomClass(clazz = Topology.ServiceContainerGroup.class)
-public class ServiceContainerGroup extends UriResource {
+@ZoomClass(clazz = Topology.HostGroup.class)
+public class HostGroup extends UriResource {
 
     @ZoomField(name = "id")
     public UUID id;
 
-    @ZoomField(name = "host_group_id")
-    public UUID hostGroupId;
+    @ZoomField(name = "name")
+    public String name;
 
-    @ZoomField(name = "port_group_id")
-    public UUID portGroupId;
+    @ZoomField(name = "host_ids")
+    public List<UUID> hostIds;
 
-    @JsonIgnore
-    @ZoomField(name = "service_container_ids")
-    public List<UUID> serviceContainerIds;
+    @ZoomField(name = "service_group_ids")
+    public List<UUID> serviceGroupIds;
 
-    public ServiceContainerGroup() {
+    public HostGroup() {
         super();
     }
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.SERVICE_CONTAINER_GROUPS, id);
-    }
-
-    public URI getServiceContainers() {
-        return relativeUri(SERVICE_CONTAINERS);
+        return absoluteUri(ResourceUris.HOST_GROUPS, id);
     }
 
     @JsonIgnore
@@ -68,9 +62,11 @@ public class ServiceContainerGroup extends UriResource {
     }
 
     @JsonIgnore
-    public void update(ServiceContainerGroup that) {
+    public void update(HostGroup that) {
         if (that != null) {
-            this.serviceContainerIds = that.serviceContainerIds;
+            this.name = that.name;
+            this.hostIds = that.hostIds;
+            this.serviceGroupIds = that.serviceGroupIds;
         }
     }
 
@@ -83,27 +79,16 @@ public class ServiceContainerGroup extends UriResource {
             return false;
         }
 
-        ServiceContainerGroup that = (ServiceContainerGroup) o;
+        HostGroup that = (HostGroup) o;
         return Objects.equals(this.id, that.id)
-               && Objects.equals(this.hostGroupId, that.hostGroupId)
-               && Objects.equals(this.portGroupId, that.portGroupId)
-               && Objects.equals(this.serviceContainerIds,
-                                 that.serviceContainerIds);
+               && Objects.equals(this.name, that.name)
+               && Objects.equals(this.hostIds, that.hostIds)
+               && Objects.equals(this.serviceGroupIds, that.serviceGroupIds);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, hostGroupId, portGroupId, serviceContainerIds);
-    }
-
-    @Override
-    public String toString() {
-        return "ServiceContainerGroup{" +
-               "id=" + id +
-               ", hostGroupId=" + hostGroupId +
-               ", portGroupId=" + portGroupId +
-               ", serviceContainerIds=" + serviceContainerIds +
-               '}';
+        return Objects.hash(id, name, hostIds, serviceGroupIds);
     }
 }
 

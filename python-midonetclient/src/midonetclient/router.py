@@ -24,6 +24,7 @@ from midonetclient import port
 from midonetclient import port_type
 from midonetclient import resource_base
 from midonetclient import route
+from midonetclient import service_container
 from midonetclient import vendor_media_type
 
 class Router(resource_base.ResourceBase,
@@ -139,6 +140,12 @@ class Router(resource_base.ResourceBase,
         return self.get_children(self.dto['bgpPeers'], query, headers,
                                  bgp_peer.BgpPeer)
 
+    def get_service_containers(self, query=None):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON}
+        return self.get_children(self.dto['serviceContainers'], query, headers,
+                                 service_container.ServiceContainer)
+
     def add_port(self):
         return port.Port(self.dto['ports'],
                          {'type': port_type.ROUTER}, self.auth)
@@ -151,3 +158,7 @@ class Router(resource_base.ResourceBase,
 
     def add_bgp_peer(self):
         return bgp_peer.BgpPeer(self.dto['bgpPeers'], {}, self.auth)
+
+    def add_service_container(self):
+        return service_container.ServiceContainer(self.dto['serviceContainers'],
+                                                  {}, self.auth)

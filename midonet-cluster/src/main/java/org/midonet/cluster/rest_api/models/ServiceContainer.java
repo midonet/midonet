@@ -21,9 +21,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -84,8 +82,7 @@ public class ServiceContainer extends UriResource {
     }
 
     public URI getServiceContainerGroup() {
-        return absoluteUri(SERVICE_CONTAINER_GROUPS,
-                           serviceGroupId);
+        return absoluteUri(SERVICE_CONTAINER_GROUPS, serviceGroupId);
     }
 
     public boolean equals(Object that) {

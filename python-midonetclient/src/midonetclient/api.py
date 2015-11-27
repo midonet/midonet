@@ -193,6 +193,36 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_pool_statistic(id_)
 
+    def get_service_container(self, id_):
+        self._ensure_application()
+        return self.app.get_service_container(id_)
+
+    def get_service_containers(self, query=None):
+        if query is None:
+            query = {}
+        self._ensure_application()
+        return self.app.get_service_containers(query)
+
+    def get_service_container_group(self, id_):
+        self._ensure_application()
+        return self.app.get_service_container_group(id_)
+
+    def get_service_container_groups(self, query=None):
+        if query is None:
+            query = {}
+        self._ensure_application()
+        return self.app.get_service_container_groups(query)
+
+    def get_host_group(self, id_):
+        self._ensure_application()
+        return self.app.get_host_group(id_)
+
+    def get_host_groups(self, query=None):
+        if query is None:
+            query = {}
+        self._ensure_application()
+        return self.app.get_host_groups(query)
+
     def add_load_balancer(self):
         self._ensure_application()
         return self.app.add_load_balancer()
@@ -216,6 +246,30 @@ class MidonetApi(object):
     def add_pool_statistic(self):
         self._ensure_application()
         return self.app.add_pool_statistic()
+
+    def add_service_container(self):
+        self._ensure_application()
+        return self.app.add_service_container()
+
+    def delete_service_container(self, id_):
+        self._ensure_application()
+        return self.app.delete_service_container(id_)
+
+    def add_service_container_group(self):
+        self._ensure_application()
+        return self.app.add_service_container_group()
+
+    def delete_service_container(self, id_):
+        self._ensure_application()
+        return self.app.delete_service_container_group(id_)
+
+    def add_host_group(self):
+        self._ensure_application()
+        return self.app.add_host_group()
+
+    def delete_host_group(self, id_):
+        self._ensure_application()
+        return self.app.delete_host_group(id_)
 
     def delete_load_balancer(self, id_):
         self._ensure_application()
