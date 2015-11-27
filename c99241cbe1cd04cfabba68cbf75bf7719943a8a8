@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a28de933",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_4cf28c9b",
+      "range": {
+        "startLine": 3,
+        "startChar": 56,
+        "endLine": 3,
+        "endChar": 63
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_cc35bc47",
         "filename": "docs/ipsec-agent.md",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-11-26T20:37:07Z",
       "side": 1,
       "message": "MD wants [IKE][1]",
+      "range": {
+        "startLine": 9,
+        "startChar": 28,
+        "endLine": 9,
+        "endChar": 34
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_22c71947",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_cc35bc47",
       "range": {
         "startLine": 9,
         "startChar": 28,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_c2e8257f",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_0cdb34ee",
+      "range": {
+        "startLine": 15,
+        "startChar": 18,
+        "endLine": 16,
+        "endChar": 6
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_8c2bc4ea",
         "filename": "docs/ipsec-agent.md",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-11-26T20:37:07Z",
       "side": 1,
       "message": "typo",
+      "range": {
+        "startLine": 20,
+        "startChar": 28,
+        "endLine": 20,
+        "endChar": 31
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e2ed218d",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_8c2bc4ea",
       "range": {
         "startLine": 20,
         "startChar": 28,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_62f9114d",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "public as opposed to private. Suggestions of better terminology are welcome.",
+      "parentUuid": "5ac4a560_2cd8f0ee",
+      "range": {
+        "startLine": 25,
+        "startChar": 8,
+        "endLine": 25,
+        "endChar": 25
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_8cee648a",
         "filename": "docs/ipsec-agent.md",
         "patchSetId": 1
@@ -128,6 +248,30 @@
       "writtenOn": "2015-11-26T20:56:51Z",
       "side": 1,
       "message": "namespace\u0027s",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 10
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_82954de6",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_8cee648a",
       "range": {
         "startLine": 29,
         "startChar": 0,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a29a4912",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "standardized on public.",
+      "parentUuid": "5ac4a560_cce85c7f",
+      "range": {
+        "startLine": 30,
+        "startChar": 7,
+        "endLine": 30,
+        "endChar": 39
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_ec3a7835",
         "filename": "docs/ipsec-agent.md",
         "patchSetId": 1
@@ -180,6 +348,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_228639ba",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_ec3a7835",
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_2cff1036",
         "filename": "docs/ipsec-agent.md",
         "patchSetId": 1
@@ -191,6 +377,24 @@
       "writtenOn": "2015-11-26T20:56:51Z",
       "side": 1,
       "message": "I don\u0027t think the paragraph below says how this traffic gets routed in midonet to the namespace.",
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_02777dd5",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_2cff1036",
       "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -220,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e27281e4",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_8c9584e6",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 42
+      },
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_ac308057",
         "filename": "docs/ipsec-agent.md",
         "patchSetId": 1
@@ -231,6 +459,24 @@
       "writtenOn": "2015-11-26T20:37:07Z",
       "side": 1,
       "message": "I think refs. in markdown are in the opposite order:\n\n[1]: $url $text\n\nhttps://daringfireball.net/projects/markdown/basics",
+      "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_42c41540",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:18:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_ac308057",
       "revId": "c99241cbe1cd04cfabba68cbf75bf7719943a8a8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
