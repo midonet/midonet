@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory
 
 import rx.Observable
 
-import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.containers.Container
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.topology.containers.ContainerHandlerProviderTest.{ContainerA2, ContainerB}
@@ -42,7 +41,7 @@ object ContainerHandlerProviderTest {
         override def create(port: ContainerPort): Future[String] = ???
         override def updated(port: ContainerPort): Future[Unit] = ???
         override def delete(): Future[Unit] = ???
-        override def health: Observable[ContainerStatus.Code] = ???
+        override def health: Observable[ContainerHealth] = ???
     }
 
     @Container(name = "test-a", version = 1)

@@ -497,21 +497,15 @@ message ServiceContainer {
 
 message ServiceContainerGroup {
     optional UUID id = 1;
-    optional Service service_type = 2;
+    optional string service_type = 2;
 
     // Allocation policy.
     // both unset == ANYWHERE
-    optional UUID host_group_id = 4;
-    optional UUID port_group_id = 5;
+    optional UUID host_group_id = 3;
+    optional UUID port_group_id = 4;
 
     // Backreferences
     repeated UUID service_container_ids = 101;
-
-    enum Service {
-        IPSEC = 0;
-        QUAGGA = 1;
-        HAPROXY = 2;
-    }
 }
 
 message TraceRequest {

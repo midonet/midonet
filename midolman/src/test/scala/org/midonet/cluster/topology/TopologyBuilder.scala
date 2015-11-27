@@ -27,7 +27,6 @@ import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
-import org.midonet.cluster.models.Topology.ServiceContainerGroup.Service
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology._
@@ -836,7 +835,7 @@ trait TopologyBuilder {
     }
 
     def createServiceContainerGroup(id: UUID = UUID.randomUUID(),
-                                    serviceType: Option[Service] = None,
+                                    serviceType: Option[String] = None,
                                     hostGroupId: Option[UUID] = None,
                                     portGroupId: Option[UUID] = None)
     : ServiceContainerGroup = {
