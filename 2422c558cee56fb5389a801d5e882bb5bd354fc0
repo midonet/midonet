@@ -1,0 +1,129 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_80c70512",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-27T17:16:10Z",
+      "side": 1,
+      "message": "blank space",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a0cc0137",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-27T17:16:10Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c0d1fdce",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-27T17:16:10Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e05fd970",
+        "filename": "tests/mdts/services/midonet_agent_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-27T17:16:10Z",
+      "side": 1,
+      "message": "I this class really needed?",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_404ecdc2",
+        "filename": "tests/mdts/services/midonet_cluster_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-27T17:16:10Z",
+      "side": 1,
+      "message": "Why is commented? or What\u0027s the purpose.",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 114,
+        "endChar": 45
+      },
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0054d552",
+        "filename": "tests/mdts/services/midonet_cluster_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-27T17:16:10Z",
+      "side": 1,
+      "message": "remove blank spaces",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_604bc9b0",
+        "filename": "tests/mdts/services/zookeeper_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-11-27T17:16:10Z",
+      "side": 1,
+      "message": "is this class needed?",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
