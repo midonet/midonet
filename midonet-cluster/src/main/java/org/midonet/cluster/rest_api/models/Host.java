@@ -23,6 +23,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -77,4 +78,17 @@ public class Host extends UriResource {
     public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES); }
 
     public URI getPorts() { return relativeUri(ResourceUris.PORTS); }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("id", id)
+            .add("name", name)
+            .add("addresses", addresses)
+            .add("hostInterfaces", hostInterfaces)
+            .add("alive", alive)
+            .add("floodingProxyWeight", floodingProxyWeight)
+            .add("portIds", portIds)
+            .toString();
+    }
 }

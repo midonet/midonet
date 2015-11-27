@@ -22,6 +22,7 @@ import java.util.UUID;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -149,4 +150,22 @@ public class Router extends UriResource {
         traceRequestIds = from.traceRequestIds;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).omitNullValues()
+            .add("id", id)
+            .add("tenantId", tenantId)
+            .add("name", name)
+            .add("adminStateUp", adminStateUp)
+            .add("inboundFilterId", inboundFilterId)
+            .add("outboundFilterId", outboundFilterId)
+            .add("loadBalancerId", loadBalancerId)
+            .add("portIds", portIds)
+            .add("routeIds", routeIds)
+            .add("asNumber", asNumber)
+            .add("bgpNetworkIds", bgpNetworkIds)
+            .add("bgpPeerIds", bgpPeerIds)
+            .add("traceRequestIds", traceRequestIds)
+            .toString();
+    }
 }

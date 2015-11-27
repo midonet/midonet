@@ -24,6 +24,8 @@ import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
 import javax.ws.rs.core.UriBuilder;
 
+import com.google.common.base.MoreObjects;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
@@ -75,11 +77,6 @@ public class IpAddrGroup extends UriResource {
                 .setName(this.name);
     }
 
-    @Override
-    public String toString() {
-        return "id=" + id + ", name=" + name;
-    }
-
     /**
      * Interface used for a Validation group. This group gets triggered after
      * the default validations.
@@ -107,6 +104,15 @@ public class IpAddrGroup extends UriResource {
         if (this.id == null) {
             this.id = UUID.randomUUID();
         }
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("name", name)
+            .toString();
     }
 }
 
