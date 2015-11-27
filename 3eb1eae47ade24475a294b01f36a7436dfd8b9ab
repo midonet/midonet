@@ -105,6 +105,30 @@
       "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_42e7b540",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-27T08:04:17Z",
+      "side": 1,
+      "message": "If a service container fails to deploy, I think that the operator (and midonet support, if necessary) should be getting on the host and finding out what is wrong. There are no expected failures here. If the script fails, there is a problem that needs to be solved, probably by manipulating the host somehow, and a simple retry is probably not going to be good enough.\n\nanyways, this is more of a question of how the script is called, and should be decided in this patch: https://review.gerrithub.io/#/c/253159/",
+      "parentUuid": "5ac4a560_ac096097",
+      "range": {
+        "startLine": 194,
+        "startChar": 8,
+        "endLine": 194,
+        "endChar": 14
+      },
+      "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
