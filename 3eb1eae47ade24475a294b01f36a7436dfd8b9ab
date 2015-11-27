@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_0cc17980",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-27T07:58:58Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "5ac4a560_cd76a4d8",
+      "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_c3a2f599",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
         "patchSetId": 6
