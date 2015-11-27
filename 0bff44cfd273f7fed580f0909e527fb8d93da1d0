@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_45bedf00",
+        "filename": "tests/mdts/tests/functional_tests/test_router_service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:44:14Z",
+      "side": 1,
+      "message": "addressed to 172.16.1.1, with src ip 172.16.1.254. They need to leave the namespace, using 169.254.2.1 as a gateway. So they arp for 169.254.2.1, the arp will have SPA\u003d172.16.1.254, and we never get a response back, because the agent ignores it.\n\n\"Ignoring ARP request from address 172.16.1.254 not in the ingress port network 169.254.2.1/30\"\n\nThe udp parts here work fine without it because macs are explicitly set. The tcp stuff doesn\u0027t though.",
+      "parentUuid": "5ac4a560_85e9d71c",
+      "revId": "0bff44cfd273f7fed580f0909e527fb8d93da1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_a5a093f5",
         "filename": "tests/mdts/tests/functional_tests/test_router_service.py",
         "patchSetId": 1
@@ -53,6 +71,24 @@
       "writtenOn": "2015-11-27T11:28:07Z",
       "side": 1,
       "message": "does this traffic leave the namespace?",
+      "revId": "0bff44cfd273f7fed580f0909e527fb8d93da1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_65bbdb0e",
+        "filename": "tests/mdts/tests/functional_tests/test_router_service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T11:44:14Z",
+      "side": 1,
+      "message": "good point, should be service1",
+      "parentUuid": "5ac4a560_a5a093f5",
       "revId": "0bff44cfd273f7fed580f0909e527fb8d93da1d0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
