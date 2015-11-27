@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_60ee69ee",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/Ip4MacStateTable.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-27T16:41:03Z",
+      "side": 1,
+      "message": "feels like this could be generic. there\u0027s nothing specific to ip mac pairs, is there? only to zk.",
+      "revId": "e0a6b76b2fa3faf90fc54d577207fcbebbd0386c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
