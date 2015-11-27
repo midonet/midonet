@@ -56,6 +56,8 @@ public final class NetlinkMessage {
     static public final int NLMSG_ERROR_HEADER_OFFSET = NLMSG_ERROR_OFFSET + NLMSG_ERROR_SIZE;
     static public final int NLMSG_ERROR_HEADER_SIZE = HEADER_SIZE;
 
+    static public final int ATTR_HEADER_LEN = 4;
+
     /** Write onto a ByteBuffer a netlink attribute header.
      *  @param buffer the ByteBuffer the header is written onto.
      *  @param id the short id associated with the value type (nla_type).
@@ -79,7 +81,7 @@ public final class NetlinkMessage {
 
         NetlinkMessage.setAttrHeader(buffer, id, 0); // space for nl_attr header
 
-        int nbytes = 4 + translator.serializeInto(buffer, value);
+        int nbytes = ATTR_HEADER_LEN + translator.serializeInto(buffer, value);
 
         // write nl_attr length field
         buffer.putShort(start, (short)nbytes);
@@ -91,9 +93,8 @@ public final class NetlinkMessage {
     public static int writeAttr(ByteBuffer buffer, short id,
                                 NetlinkSerializable value) {
         int start = buffer.position(); // save position
-        int nbytes = 4; // header length
         NetlinkMessage.setAttrHeader(buffer, id, 0); // space for nl_attr header
-        nbytes += value.serializeInto(buffer);
+        int nbytes = ATTR_HEADER_LEN + value.serializeInto(buffer);
         buffer.putShort(start, (short) nbytes); // write nl_attr length field
         alignBuffer(buffer);
         return buffer.position() - start;
@@ -142,7 +143,7 @@ public final class NetlinkMessage {
         int start = buffer.position(); // save position for writing the
                                        // nla_len field after iterating
 
-        int nByte = 4; // header length
+        int nByte = ATTR_HEADER_LEN;
 
         // when writing the attribute id of a sequence or compound attribute (a
         // struct of attributes), it needs to be flagged with the "nested" bit.
@@ -293,7 +294,7 @@ public final class NetlinkMessage {
 
             // enforce attribute length to avoid overflow
             int current = buf.position();
-            int next = current + attrLen - 4;
+            int next = current + attrLen - ATTR_HEADER_LEN;
             buf.limit(next);
             handler.use(buf, attrId);
 
@@ -317,12 +318,12 @@ public final class NetlinkMessage {
     public static void scanNestedAttribute(ByteBuffer buf,
                                            AttributeHandler handler) {
         int start = buf.position();
-        int end = buf.limit();
-        short attrLen = buf.getShort();  // This is always 1 for the nested len.
-        short attrId = nested(buf.getShort());
-        buf.limit(end);
-        handler.use(buf, attrId);
-        buf.position(start);
+        if (buf.remaining() > ATTR_HEADER_LEN) {
+            short attrLen = buf.getShort();  // This is always 1 for the nested len.
+            short attrId = nested(buf.getShort());
+            handler.use(buf, attrId);
+            buf.position(start);
+        }
     }
 
     /** Scans through a ByteBuffer containing a sequence of netlink attributes
@@ -346,7 +347,7 @@ public final class NetlinkMessage {
             }
 
             // move to next attr header
-            int next = align(current + attrLen - 4);
+            int next = align(current + attrLen - ATTR_HEADER_LEN);
             if (next >= end)
                 break;  // this can happen with OVS_DP_F_UNALIGNED
             buf.position(next);
@@ -367,7 +368,7 @@ public final class NetlinkMessage {
 
         // preparing buffer before calling handler
         buf.position(pos);
-        buf.limit(pos + buf.getShort(pos - 4) - 4);
+        buf.limit(pos + buf.getShort(pos - ATTR_HEADER_LEN) - ATTR_HEADER_LEN);
         T attr = reader.deserializeFrom(buf);
 
         // restoring buffer
@@ -379,7 +380,7 @@ public final class NetlinkMessage {
     /** Seeks a serialized string by id and reconstruct a java String. */
     public static String readStringAttr(ByteBuffer buf, short id) {
         int pos = seekAttribute(buf, id);
-        if (pos < 4)
+        if (pos < ATTR_HEADER_LEN)
             return null;
         return parseStringAttr(buf, pos);
     }
@@ -392,7 +393,7 @@ public final class NetlinkMessage {
      *  instead of assuming a terminating null byte. */
     public static String parseStringAttr(ByteBuffer buf, int index) {
         int start = buf.position();
-        int slen = buf.getShort(index - 4) - 4;
+        int slen = buf.getShort(index - ATTR_HEADER_LEN) - ATTR_HEADER_LEN;
         byte[] cstring = new byte[slen];
         buf.position(index);
         buf.get(cstring, 0, slen);    // 2nd arg is write offset in the array !
