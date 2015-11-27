@@ -396,7 +396,9 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
                         }
                         break;
                     case Attr.IFLA_LINKINFO:
-                        NetlinkMessage.scanNestedAttribute(buf, this);
+                        if (buf.remaining() != 0) {
+                            NetlinkMessage.scanNestedAttribute(buf, this);
+                        }
                         break;
                     default:
                         break;
