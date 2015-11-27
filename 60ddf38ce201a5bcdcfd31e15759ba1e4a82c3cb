@@ -16,6 +16,40 @@
       "revId": "60ddf38ce201a5bcdcfd31e15759ba1e4a82c3cb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_02969d94",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 29
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-27T07:56:51Z",
+      "side": 1,
+      "message": "This should be uncommented as alex already fixed it by awaiting member status at the beginning of the test.",
+      "revId": "60ddf38ce201a5bcdcfd31e15759ba1e4a82c3cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_628d917b",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 29
+      },
+      "lineNbr": 459,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-11-27T07:56:51Z",
+      "side": 1,
+      "message": "You are considering here only with equal weights. What about different weights? Can we estimate a safe number considering the current weights we currently use? (20,10,5 IIRC).",
+      "revId": "60ddf38ce201a5bcdcfd31e15759ba1e4a82c3cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
