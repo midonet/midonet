@@ -118,6 +118,9 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "srv_insertion_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> serviceInsertionIds;
 
+    @ZoomField(name = "service_container_id", converter = UUIDUtil.Converter.class)
+    public UUID serviceContainerId;
+
     public boolean active;
 
     public Port() {
@@ -193,6 +196,7 @@ public abstract class Port extends UriResource {
         l2insertionInfilterId = from.l2insertionInfilterId;
         l2insertionOutfilterId = from.l2insertionOutfilterId;
         serviceInsertionIds = from.serviceInsertionIds;
+        serviceContainerId = from.serviceContainerId;
     }
 
     protected ToStringHelper toStringHelper() {
@@ -208,6 +212,7 @@ public abstract class Port extends UriResource {
             .add("peerId", peerId)
             .add("portGroupIds", portGroupIds)
             .add("traceRequestIds", traceRequestIds)
-            .add("active", active);
+            .add("active", active)
+            .add("serviceContainerId", serviceContainerId);
     }
 }

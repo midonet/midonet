@@ -34,6 +34,7 @@ from midonetclient import resource_base
 from midonetclient import route
 from midonetclient import router
 from midonetclient import rule
+from midonetclient import service_container
 from midonetclient import system_state
 from midonetclient import tenant
 from midonetclient import tunnel_zone
@@ -92,6 +93,9 @@ class Application(resource_base.ResourceBase):
     def get_rule_template(self):
         return self.dto['ruleTemplate']
 
+    def get_service_container_template(self):
+        return self.dto['serviceContainerTemplate']
+
     def get_tenant_template(self):
         return self.dto['tenantTemplate']
 
@@ -146,6 +150,17 @@ class Application(resource_base.ResourceBase):
 
     def get_pool_statistic_template(self):
         return self.dto['poolStatisticTemplate']
+
+    def get_service_container(self, id_):
+        return self._get_resource_by_id(service_container.ServiceContainer, None,
+                                        self.get_service_container_template(),
+                                        id_)
+
+    def get_service_containers(self, query):
+        headers = {'Accept':
+                   vendor_media_type.APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON}
+        return self.get_children(self.dto['service_containers'], query, headers,
+                                 service_container.ServiceContainer)
 
     def get_tracerequest_template(self):
         return self.dto['traceRequestTemplate']
@@ -335,6 +350,10 @@ class Application(resource_base.ResourceBase):
 
     def add_chain(self):
         return chain.Chain(self.dto['chains'], {}, self.auth)
+
+    def add_service_container(self):
+        return service_container.ServiceContainer(self.dto['pools'], {},
+                                                  self.auth)
 
     def add_tunnel_zone(self):
         return tunnel_zone.TunnelZone(self.dto['tunnelZones'], {}, self.auth)
