@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_c59f4f02",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-27T14:24:43Z",
+      "side": 1,
+      "message": "infinite loop!\n\nalso, the buf.limit is not needed",
+      "revId": "2556041a2d17b4bca31d7726f63615222a29cbcb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
