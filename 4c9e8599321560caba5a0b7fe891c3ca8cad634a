@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e2cfe1ae",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-27T08:10:58Z",
+      "side": 1,
+      "message": "As per Guillermo\u0027s comment, i have redirected everything to stdout. This way, the logs can go right into midolman.log.",
+      "parentUuid": "5ac4a560_ec035871",
+      "revId": "4c9e8599321560caba5a0b7fe891c3ca8cad634a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_38902fec",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2015-11-26T16:55:26Z",
       "side": 1,
       "message": "other scripts redirect stderr into stdout, and I think the code in midolman expects that.",
+      "revId": "4c9e8599321560caba5a0b7fe891c3ca8cad634a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a2d5e944",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 7
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-27T08:10:58Z",
+      "side": 1,
+      "message": "done.",
+      "parentUuid": "5ac4a560_38902fec",
       "revId": "4c9e8599321560caba5a0b7fe891c3ca8cad634a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
