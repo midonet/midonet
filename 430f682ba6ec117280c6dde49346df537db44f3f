@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_00ca154f",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-27T16:57:40Z",
+      "side": 1,
+      "message": "the reason that the namespace has to receive traffic directed at the router port is because it uses that ip address as the source of the encapsulated packets?",
+      "revId": "430f682ba6ec117280c6dde49346df537db44f3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
