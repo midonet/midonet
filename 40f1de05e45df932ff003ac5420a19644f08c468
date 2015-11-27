@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e2aa81d3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-27T07:58:58Z",
+      "side": 1,
+      "message": "I have added the gradle task.",
+      "parentUuid": "5ac4a560_8c04a47f",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_fee1559b",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/ipsec.conf.LEFT",
         "patchSetId": 4
@@ -225,6 +243,24 @@
       "side": 1,
       "message": "The thing is that they are diverging projects (openswan pretty much frozen) and IMHO this could be a support hazard in the future. My vote goes towards using the same implementation across distributions.\n\nLibreswan provides debian packages already, so we don\u0027t really need to maintain packages, just follow the updates:\n\nftp://ftp.libreswan.org/binaries/debian/",
       "parentUuid": "5ac4a560_8fcf49b0",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_02af7de4",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-27T07:58:58Z",
+      "side": 1,
+      "message": "Ok, I have updated the script to work with libreswan, and that is the only version we will support. Thanks for the link.",
+      "parentUuid": "5ac4a560_b8a43f58",
       "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -547,6 +583,24 @@
       "side": 1,
       "message": "They may if you are debugging, yes, but it\u0027s not nice on other people\u0027s machines who may be running integration tests for other reason. Or on jenkins.",
       "parentUuid": "5ac4a560_0f5259dd",
+      "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e2f8c1e7",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn_basic_test",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-27T07:58:58Z",
+      "side": 1,
+      "message": "I have changed the test to continue on even if something fails. This will mean that cleanup is at least attempted.",
+      "parentUuid": "5ac4a560_58608b35",
       "revId": "40f1de05e45df932ff003ac5420a19644f08c468",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
