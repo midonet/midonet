@@ -90,6 +90,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val neutron = new NeutronConfig(conf, schema)
     val openstack = new OpenStackConfig(conf, schema)
     val flowHistory = new FlowHistoryConfig(conf, schema)
+    val containers = new ContainerConfig(conf, schema)
 }
 
 class HostConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
@@ -167,4 +168,10 @@ class FlowHistoryConfig(val conf: Config, val schema: Config) extends TypeFailur
     def enabled = getBoolean("agent.flow_history.enabled")
     def encoding = getString("agent.flow_history.encoding")
     def udpEndpoint = getString("agent.flow_history.udp_endpoint")
+}
+
+class ContainerConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def enabled = getBoolean("agent.containers.enabled")
+    def timeout = getDuration("agent.containers.timeout", TimeUnit.SECONDS)
+    def shutdownGraceTime = getDuration("agent.containers.shutdown_grace_time", TimeUnit.SECONDS).toInt
 }

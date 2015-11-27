@@ -49,9 +49,11 @@ object MidonetBackend {
     final val ActiveKey = "active"
     final val AliveKey = "alive"
     final val BgpKey = "bgp"
+    final val ContainerKey = "container"
     final val FloodingProxyKey = "flooding_proxy"
     final val HostKey = "host"
     final val RoutesKey = "routes"
+    final val StatusKey = "status"
     final val VtepConfig = "config"
     final val VtepConnState = "connection_state"
     final val VtepVxgwManager = "vxgw_manager"
@@ -228,7 +230,9 @@ object MidonetBackend {
         store.declareBinding(classOf[Port], "trace_request_ids", CASCADE,
                              classOf[TraceRequest], "port_id", CLEAR)
 
+        stateStore.registerKey(classOf[ServiceContainer], StatusKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Host], AliveKey, SingleLastWriteWins)
+        stateStore.registerKey(classOf[Host], ContainerKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Host], HostKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Port], ActiveKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Port], BgpKey, SingleLastWriteWins)
