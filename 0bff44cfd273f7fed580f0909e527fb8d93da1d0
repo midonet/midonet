@@ -110,6 +110,23 @@
       "revId": "0bff44cfd273f7fed580f0909e527fb8d93da1d0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a5097397",
+        "filename": "tests/mdts/tests/topologies/mmm_virtual_test_router_service.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-27T13:40:24Z",
+      "side": 1,
+      "message": "i don\u0027t think the bridge is needed, is it?",
+      "revId": "0bff44cfd273f7fed580f0909e527fb8d93da1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
