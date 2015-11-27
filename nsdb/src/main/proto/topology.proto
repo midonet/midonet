@@ -502,7 +502,6 @@ message ServiceContainerGroup {
 
     // Backreferences
     repeated UUID service_container_ids = 101;
-
 }
 
 message TraceRequest {
