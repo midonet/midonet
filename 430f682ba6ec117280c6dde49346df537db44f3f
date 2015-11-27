@@ -34,6 +34,40 @@
       "revId": "430f682ba6ec117280c6dde49346df537db44f3f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c083bdca",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-27T17:15:15Z",
+      "side": 1,
+      "message": "extra to",
+      "revId": "430f682ba6ec117280c6dde49346df537db44f3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2051d162",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-27T17:15:15Z",
+      "side": 1,
+      "message": "both are link-local, no? i assume you mean the /32 here.",
+      "revId": "430f682ba6ec117280c6dde49346df537db44f3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
