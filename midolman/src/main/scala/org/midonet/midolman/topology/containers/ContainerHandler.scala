@@ -22,6 +22,8 @@ import rx.Observable
 
 import org.midonet.cluster.models.State.ContainerStatus
 
+case class ContainerHealth(code: ContainerStatus.Code, message: String)
+
 /**
   * A container handler provides a specific implementation for each container
   * type at the agent side. A container handler should, among other things,
@@ -62,6 +64,6 @@ trait ContainerHandler {
       * includes both the container namespace/interface as well as the
       * service application executing within the container.
       */
-    def health: Observable[ContainerStatus.Code]
+    def health: Observable[ContainerHealth]
 
 }

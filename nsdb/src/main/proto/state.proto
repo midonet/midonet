@@ -22,8 +22,10 @@ option java_outer_classname = "State";
 
 message ContainerStatus {
     enum Code {
-        UP = 1;
-        DOWN = 2;
+        STARTING = 1;
+        RUNNING = 2;
+        STOPPING = 3;
+        ERROR = 4;
     }
     optional Code status_code = 1;
     optional string status_message = 2;
