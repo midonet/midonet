@@ -46,6 +46,30 @@
       "revId": "c866c47804351a84a690189c3459878bf03155c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4f76fe3f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-27T03:49:55Z",
+      "side": 1,
+      "message": "Oh, I see. It shows up in the v8 -\u003e v9 diff. That\u0027s just due to the rebase; this patch doesn\u0027t change this file at all.\n\nAlso, I found out that you can get the current zxid by opening a TCP connection to ZK and sending \"srvr\":\n\n  % echo srvr | nc localhost 2181\n  Zookeeper version: 3.4.5--1, built on 06/10/2013 17:26 GMT\n  Latency min/avg/max: 0/0/18\n  Received: 63247\n  Sent: 63247\n  Connections: 4\n  Outstanding: 0\n  Zxid: 0x10d6b3\n  Mode: standalone\n  Node count: 28348\n\nThat\u0027s lightweight enough that we could do that.",
+      "parentUuid": "5ac4a560_0ff966c8",
+      "range": {
+        "startLine": 43,
+        "startChar": 27,
+        "endLine": 43,
+        "endChar": 36
+      },
+      "revId": "c866c47804351a84a690189c3459878bf03155c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
