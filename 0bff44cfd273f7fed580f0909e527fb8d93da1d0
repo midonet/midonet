@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_c5202f9e",
+        "filename": "tests/mdts/tests/functional_tests/test_router_service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-27T11:28:07Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 1,
+        "startChar": 12,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "0bff44cfd273f7fed580f0909e527fb8d93da1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_85e9d71c",
+        "filename": "tests/mdts/tests/functional_tests/test_router_service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-27T11:28:07Z",
+      "side": 1,
+      "message": "why do we need the mac for 169.254.x.1? the packets we\u0027re sending are addressed to 172.16.1.254 and have src ip 172.16.1.254, right?",
+      "revId": "0bff44cfd273f7fed580f0909e527fb8d93da1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a5a093f5",
+        "filename": "tests/mdts/tests/functional_tests/test_router_service.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-27T11:28:07Z",
+      "side": 1,
+      "message": "does this traffic leave the namespace?",
+      "revId": "0bff44cfd273f7fed580f0909e527fb8d93da1d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
