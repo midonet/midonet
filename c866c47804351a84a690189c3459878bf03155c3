@@ -22,6 +22,30 @@
       "revId": "c866c47804351a84a690189c3459878bf03155c3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0ff966c8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RuleResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-27T01:55:08Z",
+      "side": 1,
+      "message": "That\u0027s a good point, although completely irrelevant to this patch. How were you able to leave a comment here? This file doesn\u0027t even show up on the list of changes.\n\nUnfortunately, Zookeeper doesn\u0027t provide a way to do multi reads. To do this, what you have to do is:\n\n1. Get the current zxid of the server before the first read.\n2. For each node you get, make sure that the zxid at which it was last modified is less than the zxid you got in step 1.\n\nWe actually do this with write transactions, but the only way I know of to get the current zxid is to do a create or update and then query the stats of the node you just created/update. Doing a write before every read seems like a dealbreaker. It seems like there should be a way to get the server\u0027s current zxid without doing an update, but I haven\u0027t found one.",
+      "parentUuid": "5ac4a560_3d2ca1ab",
+      "range": {
+        "startLine": 43,
+        "startChar": 27,
+        "endLine": 43,
+        "endChar": 36
+      },
+      "revId": "c866c47804351a84a690189c3459878bf03155c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
