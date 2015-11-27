@@ -16,6 +16,24 @@
       "revId": "430f682ba6ec117280c6dde49346df537db44f3f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_20ce315b",
+        "filename": "docs/ipsec-agent.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-27T17:00:51Z",
+      "side": 1,
+      "message": "yes, the ipsec tunnel is between the public ports of the router.",
+      "parentUuid": "5ac4a560_00ca154f",
+      "revId": "430f682ba6ec117280c6dde49346df537db44f3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
