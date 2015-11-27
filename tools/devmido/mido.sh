@@ -311,6 +311,7 @@ fi
 # --------
 
 configure_mn "agent.loggers.root" "DEBUG"
+configure_mn "cassandra.servers" "127.0.0.1"
 run_process midolman "./gradlew -a :midolman:runWithSudo"
 
 # MidoNet Client
