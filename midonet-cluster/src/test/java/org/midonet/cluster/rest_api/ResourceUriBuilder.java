@@ -20,8 +20,6 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
-
 /**
  * We're keeping this one around as many tests still depend on it and the
  * client DTOs can't provide the URIS.  Client DTOs should be replaced with
@@ -32,8 +30,6 @@ import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 public class ResourceUriBuilder {
 
     public static final String ROOT = "/";
-    public static final String VLANS = "/vlans";
-    public static final String MAC_TABLE = "/mac_table";
     public static final String PORTS = "/ports";           // exterior ports
     public static final String HOSTS = "/hosts";
     public static final String VTEP_BINDINGS = "/vtep_bindings";
@@ -52,13 +48,6 @@ public class ResourceUriBuilder {
     public static URI getPort(URI baseUri, UUID portId) {
         return UriBuilder.fromUri(getPorts(baseUri)).path(portId.toString())
                 .build();
-    }
-
-    public static URI getMacTable(URI bridgeUri, Short vlanId) {
-        UriBuilder builder = UriBuilder.fromUri(bridgeUri);
-        if (vlanId != null && vlanId != UNTAGGED_VLAN_ID)
-            builder = builder.path(VLANS).path(vlanId.toString());
-        return builder.path(MAC_TABLE).build();
     }
 
     public static URI getHosts(URI baseUri) {
