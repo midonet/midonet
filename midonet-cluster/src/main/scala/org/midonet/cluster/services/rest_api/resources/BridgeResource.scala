@@ -254,7 +254,13 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         }.getOrElse(List.empty)
 
         // Merge with those in no vlan
-        macPortsNoVlan(id, isV1 = false) ++ entriesWithVlan
+        val all = macPortsNoVlan(id) ++ entriesWithVlan
+
+        // Set base URIs correctly
+        val b = new Bridge(resContext.uriInfo.getBaseUri, id)
+        b.getMacTable
+        all foreach { mp => mp.setBaseUri(b.getMacTable(mp.vlanId)) }
+        all
     }
 
     protected override def deleteFilter(id: String,
@@ -269,8 +275,8 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
 
     protected override def listFilter(bridges: Seq[Bridge]): Seq[Bridge] = {
-        val tenantId = resContext.uriInfo
-            .getQueryParameters.getFirst("tenant_id")
+        val tenantId = resContext.uriInfo.getQueryParameters
+                                         .getFirst("tenant_id")
         if (tenantId eq null) bridges
         else bridges filter { _.tenantId == tenantId }
     }
@@ -306,12 +312,12 @@ class BridgeResource @Inject()(resContext: ResourceContext,
     private def macPortsInVlan(bridgeId: UUID,
                                vlan: java.lang.Short): List[MacPort] = {
         if (vlan == UNTAGGED_VLAN_ID || vlan == null) {
-            macPortsNoVlan(bridgeId, isV1 = false)
+            macPortsNoVlan(bridgeId)
         } else {
             try {
                 val path = pathBuilder.getBridgeMacPortsPath(bridgeId, vlan)
                 val children = curator.getChildren.forPath(path)
-                toMacPortEntries(children, bridgeId, vlan, isV1 = false)
+                toMacPortEntries(children, bridgeId, vlan)
             } catch {
                 case e: NoNodeException =>
                     throw new NotFoundHttpException(
@@ -320,22 +326,20 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         }
     }
 
-    private def macPortsNoVlan(bridgeId: UUID, isV1: Boolean): List[MacPort] = {
+    private def macPortsNoVlan(bridgeId: UUID): List[MacPort] = {
         val path = pathBuilder.getBridgeMacPortsPath(bridgeId)
         val paths = curator.getChildren.forPath(path)
-        toMacPortEntries(paths, bridgeId, null, isV1)
+        toMacPortEntries(paths, bridgeId, null)
     }
 
     private def toMacPortEntries(nodes: util.List[String], bridgeId: UUID,
-                                 vlan: java.lang.Short, isV1: Boolean)
+                                 vlan: java.lang.Short)
     : List[MacPort] = nodes.toList.map { n =>
         val pieces = n.split(",")
         val mac = pieces(0)
         val port = UUID.fromString(pieces(1))
-        val mp = new MacPort(resContext.uriInfo.getBaseUri, bridgeId, mac, port)
-        mp.vlanId = if (isV1 || vlan == null) UNTAGGED_VLAN_ID
-        else vlan
-        mp
+        val b = new Bridge(resContext.uriInfo.getBaseUri, bridgeId)
+        new MacPort(b.getMacTable(vlan), bridgeId, mac, port, vlan)
     }
 
     private def putMacTableEntry(macPort: MacPort): Response = tryTx { tx =>
@@ -361,7 +365,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                     s"Port ${macPort.portId} doesn't exist")
         }
 
-        macPort.setBaseUri(resContext.uriInfo.getBaseUri)
+        macPort.setBaseUri(resContext.uriInfo.getRequestUri)
         val mac = MAC.fromString(macPort.macAddr)
         val path = pathBuilder.getBridgeMacPortEntryPath(macPort.bridgeId,
                      macPort.vlanId, encodePersistentPath(mac, macPort.portId))
@@ -426,8 +430,8 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             throw new NotFoundHttpException(getMessage(BRIDGE_HAS_MAC_PORT))
         }
 
-        val macPort = new MacPort(resContext.uriInfo.getBaseUri, bridgeId,
-                                  mac.toString, portId)
+        val b = new Bridge(resContext.uriInfo.getBaseUri, bridgeId)
+        val macPort = new MacPort(b.getMacTable(vlanId), bridgeId, mac, portId)
         macPort.vlanId = vlanId
         macPort
     }

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.Size;
+import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
@@ -30,6 +31,7 @@ import org.midonet.cluster.models.Topology;
 
 import static org.midonet.cluster.rest_api.ResourceUris.ARP_TABLE;
 import static org.midonet.cluster.rest_api.ResourceUris.BRIDGES;
+import static org.midonet.cluster.rest_api.ResourceUris.VLANS;
 import static org.midonet.cluster.rest_api.ResourceUris.CHAINS;
 import static org.midonet.cluster.rest_api.ResourceUris.DHCP;
 import static org.midonet.cluster.rest_api.ResourceUris.DHCPV6;
@@ -92,6 +94,12 @@ public class Bridge extends UriResource {
         adminStateUp = true;
     }
 
+    public Bridge(URI baseUri, UUID id) {
+        this();
+        this.setBaseUri(baseUri);
+        this.id = id;
+    }
+
     @Override
     public URI getUri() {
         return absoluteUri(BRIDGES, id);
@@ -119,6 +127,15 @@ public class Bridge extends UriResource {
 
     public URI getMacTable() {
         return relativeUri(MAC_TABLE);
+    }
+
+    @JsonIgnore
+    public URI getMacTable(Short vlanId) {
+        if (vlanId == null || vlanId == 0)
+            return getMacTable();
+        UriBuilder uriBuilder = UriBuilder.fromUri(getUri());
+        return uriBuilder.path(VLANS).path(vlanId.toString())
+                         .path(MAC_TABLE).build();
     }
 
     public URI getArpTable() {
