@@ -20,9 +20,15 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
+import com.sun.jersey.server.impl.model.ResourceUriRules;
+
+import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.rest_api.ResourceUris;
 
 @XmlRootElement
 public class DtoBridge {
@@ -179,6 +185,17 @@ public class DtoBridge {
 
     public URI getMacTable() {
         return macTable;
+    }
+
+    @JsonIgnore
+    public URI getMacTable(Short vlanId) {
+        if (vlanId == null)
+            return macTable;
+        return UriBuilder.fromUri(getUri())
+                         .path(ResourceUris.VLANS)
+                         .path(vlanId.toString())
+                         .path(ResourceUris.MAC_TABLE)
+                         .build();
     }
 
     public void setMacTable(URI macTable) {
