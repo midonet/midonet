@@ -57,7 +57,11 @@ public class MacPort extends UriResource {
     public MacPort(URI baseUri, UUID bridgeId, String macAddr, UUID portId,
                    Short vlanId) {
         this(baseUri, bridgeId, macAddr, portId);
-        this.vlanId = vlanId;
+        this.vlanId = (vlanId == null) ? UNTAGGED_VLAN_ID : vlanId;
+    }
+
+    public MacPort(URI baseUri, UUID bridgeId, MAC macAddr, UUID portId) {
+        this(baseUri, bridgeId, macAddr.toString(), portId);
     }
 
     public MacPort(URI baseUri, UUID bridgeId, String macAddr, UUID portId) {
@@ -69,14 +73,9 @@ public class MacPort extends UriResource {
 
     @Override
     public URI getUri() {
-        UriBuilder builder = UriBuilder.fromUri(getBaseUri());
-        builder.path(BRIDGES).path(bridgeId.toString());
-        if (vlanId != null && vlanId != UNTAGGED_VLAN_ID) {
-            builder.path(VLANS).path(vlanId.toString());
-        }
-        return builder.path(MAC_TABLE)
-                      .path(macToUri(macAddr) + "_" + portId.toString())
-                      .build();
+        return UriBuilder.fromUri(getBaseUri())
+                         .path(macToUri(macAddr) + "_" + portId.toString())
+                         .build();
     }
 
     @Override
