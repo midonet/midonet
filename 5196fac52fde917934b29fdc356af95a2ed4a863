@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_9c73ed4c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/ClusterConfig.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-30T09:31:39Z",
+      "side": 1,
+      "message": "Change to: cluster.containers; and use $Prefix below.",
+      "range": {
+        "startLine": 126,
+        "startChar": 24,
+        "endLine": 126,
+        "endChar": 49
+      },
+      "revId": "5196fac52fde917934b29fdc356af95a2ed4a863",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
