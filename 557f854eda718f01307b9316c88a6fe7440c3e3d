@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_9973ff4c",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-30T05:48:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_1276f43e",
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_8c602437",
         "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
         "patchSetId": 2
@@ -30,6 +48,30 @@
       "writtenOn": "2015-11-26T20:44:11Z",
       "side": 1,
       "message": "Ditto, this should be IPSec as you\u0027re actually materializing ServiceContainer models of IPSEC type, not VPNService models.\n\nSame comment about file name.",
+      "range": {
+        "startLine": 9,
+        "startChar": 11,
+        "endLine": 9,
+        "endChar": 24
+      },
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b98fdb22",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-30T05:48:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_8c602437",
       "range": {
         "startLine": 9,
         "startChar": 11,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_d9949739",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-30T05:48:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_cc5a1c83",
+      "range": {
+        "startLine": 12,
+        "startChar": 11,
+        "endLine": 12,
+        "endChar": 27
+      },
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_bd7351b0",
         "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
         "patchSetId": 2
@@ -76,6 +142,24 @@
       "writtenOn": "2015-11-26T13:24:42Z",
       "side": 1,
       "message": "looks like these are coming in as prematerialized strings. It would be better to get a List[IPv4Subnet] and build the strings when writing the files.",
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_f999536f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-30T05:48:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_bd7351b0",
       "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -99,6 +183,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_199fef53",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-30T05:48:45Z",
+      "side": 1,
+      "message": "They do. I didn\u0027t know that. fixed.",
+      "parentUuid": "5ac4a560_7d79b992",
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_528f8c23",
         "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
         "patchSetId": 2
@@ -116,6 +218,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_39a3cb9f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-30T05:48:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_528f8c23",
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_6c4bc8b0",
         "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
         "patchSetId": 2
@@ -127,6 +247,30 @@
       "writtenOn": "2015-11-26T20:46:45Z",
       "side": 1,
       "message": "why defs? they can be constants as they come from vpnService which doens\u0027t change?",
+      "range": {
+        "startLine": 87,
+        "startChar": 4,
+        "endLine": 87,
+        "endChar": 7
+      },
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_59a08790",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-30T05:48:45Z",
+      "side": 1,
+      "message": "You are right. These should have been vals. Fixed.",
+      "parentUuid": "5ac4a560_6c4bc8b0",
       "range": {
         "startLine": 87,
         "startChar": 4,
