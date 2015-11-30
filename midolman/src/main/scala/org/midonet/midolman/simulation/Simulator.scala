@@ -208,7 +208,6 @@ trait InAndOutFilters extends SimDevice {
             }
         } else if (infilters.size > 0) {
             (context, continue) => {
-                context.log.debug(s"Applying inbound chain $infilters")
                 doFilters(context, infilters, preIn, postIn, continue, dropIn)
             }
         } else {
@@ -273,7 +272,6 @@ trait InAndOutFilters extends SimDevice {
         var i = 0
         while (i < filters.size()) {
             val filter = filters.get(i)
-            context.log.debug(s"Applying filter $filter")
             val ruleResult = tryGet[Chain](filter).process(context)
             if (ruleResult.action ne Action.ACCEPT)
                 return ruleResult
