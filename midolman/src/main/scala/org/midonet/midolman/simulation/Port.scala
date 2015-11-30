@@ -196,6 +196,7 @@ trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with 
                 s"(${context.devicesTraversed}}), possible topology loop.")
             ErrorDrop
         } else {
+            context.devicesTraversed += 1
             context.addFlowTag(deviceTag)
             context.addFlowTag(rxTag)
             context.inPortId = id
