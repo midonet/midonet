@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_d9657746",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/VPNService.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-30T07:56:53Z",
+      "side": 1,
+      "message": "Why did you change all the filed names to \"id?\"",
+      "range": {
+        "startLine": 18,
+        "startChar": 23,
+        "endLine": 18,
+        "endChar": 25
+      },
+      "revId": "cfd94db71fe71e6527e0ea33067fb592ba5e069b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_59516761",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-30T07:56:53Z",
+      "side": 1,
+      "message": "I think the JSON will have these as nested objects rather than UUID references. It\u0027s okay to move the message definitions out, but these fields should be instances of those messages, rather than UUIDs.",
+      "range": {
+        "startLine": 381,
+        "startChar": 18,
+        "endLine": 381,
+        "endChar": 31
+      },
+      "revId": "cfd94db71fe71e6527e0ea33067fb592ba5e069b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
