@@ -16,6 +16,7 @@
 package org.midonet.midolman.config
 
 import java.util.concurrent.TimeUnit
+
 import scala.util.Try
 
 import com.typesafe.config.{ConfigException, ConfigFactory, Config}
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.storage.{CassandraConfig,MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
+import org.midonet.packets.{MAC, IPv4Addr, IPv4Subnet}
 
 object MidolmanConfig {
     val DEFAULT_MTU: Short = 1500
@@ -37,7 +39,7 @@ object MidolmanConfig {
     def apply() = {
         val configurator = MidoNodeConfigurator()
         new MidolmanConfig(configurator.runtimeConfig(HostIdGenerator.getHostId),
-                           configurator.mergedSchemas)
+                           configurator.mergedSchemas())
     }
 }
 
@@ -119,6 +121,16 @@ class DatapathConfig(val conf: Config, val schema: Config) extends TypeFailureFa
 
     def vxlanVtepUdpPort = getInt(s"$PREFIX.vxlan_vtep_udp_port")
     def vxlanOverlayUdpPort = getInt(s"$PREFIX.vxlan_overlay_udp_port")
+    def vxlanRecirculateUdpPort = getInt(s"$PREFIX.vxlan_recirculate_udp_port")
+
+    val recircHostName = "midorecirc-host"
+    val recircMnName = "midorecirc-dp"
+    val recircHostMac = MAC.fromString("02:00:11:00:11:01")
+    val recircMnMac = MAC.fromString("02:00:11:00:11:02")
+    def recircHostCidr = IPv4Subnet.fromString(Try(getString(s"$PREFIX.addr"))
+                                                   .getOrElse("169.254.123.129/30"), "/")
+    def recircMnAddr = IPv4Addr(Try(getString(s"$PREFIX.peerAddr"))
+                                    .getOrElse("169.254.123.130"))
 
     def globalIncomingBurstCapacity = getInt(s"$PREFIX.global_incoming_burst_capacity")
     def vmIncomingBurstCapacity = getInt(s"$PREFIX.vm_incoming_burst_capacity")

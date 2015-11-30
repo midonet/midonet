@@ -18,10 +18,9 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 import java.util.{List => JList}
 
-import akka.actor.ActorSystem
-
 import org.midonet.midolman.PacketWorkflow.{NoOp, SimulationResult}
 import org.midonet.midolman.rules.Condition
+import org.midonet.midolman.simulation.SimulationStashes.Fork
 import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.sdn.flows.FlowTagger
@@ -41,7 +40,7 @@ trait MirroringDevice extends SimDevice {
             mirror process context match {
                 case toPort: ToPortAction =>
                     context.log.debug(s"Mirroring packet out to port ${mirror.toPort}")
-                    result = Simulator.Fork(toPort, result)
+                    result = Fork(toPort, result)
                 case _ => // mirror did not match
             }
         }

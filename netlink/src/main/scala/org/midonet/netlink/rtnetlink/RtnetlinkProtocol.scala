@@ -125,4 +125,12 @@ final class RtnetlinkProtocol(pid: Int) {
         Neigh.describeListRequest(buf)
         message.finalize(pid)
     }
+
+    def prepareNeighAdd(buf: ByteBuffer, neigh: Neigh): Unit = {
+        val message = messageFor(buf, Rtnetlink.Type.NEWNEIGH)
+            .withFlags((NLFlag.REQUEST | NLFlag.New.CREATE |
+                        NLFlag.New.REPLACE).toShort)
+        neigh.describeNewRequest(buf)
+        message.finalize(pid)
+    }
 }

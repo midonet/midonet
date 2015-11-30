@@ -46,7 +46,8 @@ class PacketContextTest extends MidolmanSpec {
                 override def call(): Unit = { }
             })
             context.addVirtualAction(FlowActions.output(1))
-            context.addFlowAndPacketAction(FlowActions.output(1))
+            context.flowActions.add(FlowActions.output(1))
+            context.packetActions.add(FlowActions.output(1))
             context.stateActions.add(FlowActions.output(1))
             context.addFlowTag(FlowTagger.tagForDpPort(1))
             val connTrackKey = ConnTrackKey(context.origMatch, UUID.randomUUID())
