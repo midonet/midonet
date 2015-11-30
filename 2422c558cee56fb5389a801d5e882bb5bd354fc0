@@ -70,6 +70,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8ddbb51a",
+        "filename": "tests/mdts/services/midonet_agent_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-30T18:35:05Z",
+      "side": 1,
+      "message": "I was planning on adding agent specific metrics here, but I can remove it because I dont need any specific metrics now.",
+      "parentUuid": "5ac4a560_e05fd970",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_404ecdc2",
         "filename": "tests/mdts/services/midonet_cluster_jmx_monitor.py",
         "patchSetId": 1
@@ -81,6 +99,30 @@
       "writtenOn": "2015-11-27T17:16:10Z",
       "side": 1,
       "message": "Why is commented? or What\u0027s the purpose.",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 114,
+        "endChar": 45
+      },
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0db165e1",
+        "filename": "tests/mdts/services/midonet_cluster_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-30T18:35:05Z",
+      "side": 1,
+      "message": "Forgot to remove this. These are the metrics available in the agent.",
+      "parentUuid": "5ac4a560_404ecdc2",
       "range": {
         "startLine": 27,
         "startChar": 0,
@@ -121,6 +163,24 @@
       "writtenOn": "2015-11-27T17:16:10Z",
       "side": 1,
       "message": "is this class needed?",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cd04cd80",
+        "filename": "tests/mdts/services/zookeeper_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-11-30T18:35:05Z",
+      "side": 1,
+      "message": "Same reason as for the AgentJMXMonitor",
+      "parentUuid": "5ac4a560_604bc9b0",
       "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
