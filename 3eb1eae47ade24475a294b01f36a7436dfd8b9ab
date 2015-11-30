@@ -153,6 +153,30 @@
       "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d9c1f7e5",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-11-30T08:19:50Z",
+      "side": 1,
+      "message": "I have a different opinion: It is not garbage, it is an environment in a failure state that needs to be investigated. Anyways, the actual cleanup would be managed by the agent calling this script, not in the script itself. This patch: https://review.gerrithub.io/#/c/253159/ is where this conversation should happen.",
+      "parentUuid": "5ac4a560_d9cc9738",
+      "range": {
+        "startLine": 194,
+        "startChar": 8,
+        "endLine": 194,
+        "endChar": 14
+      },
+      "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
