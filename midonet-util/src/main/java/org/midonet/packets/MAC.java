@@ -34,6 +34,7 @@ import org.midonet.util.collection.WeakObjectPool;
  */
 public class MAC {
     private static WeakObjectPool<MAC> INSTANCE_POOL = new WeakObjectPool<>();
+    public static MAC ALL_ZEROS = MAC.fromAddress(new byte[6]);
 
     private static final Random rand = new Random();
 

@@ -604,5 +604,7 @@ class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
         override def vtepTunnellingOutputAction: FlowActionOutput = null
         override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
         override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+        override def recircTunnelOutputAction: FlowActionOutput = null
+        override def hostRecircOutputAction: FlowActionOutput = null
     }
 }

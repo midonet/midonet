@@ -29,12 +29,9 @@ import scala.reflect._
 
 import akka.actor._
 import akka.pattern.{after, pipe}
-
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-
 import org.slf4j.LoggerFactory
-
 import rx.{Observer, Subscription}
 
 import org.midonet.midolman.config.MidolmanConfig
@@ -79,6 +76,10 @@ trait UnderlayResolver {
 
     def vtepTunnellingOutputAction: FlowActionOutput
 
+    def recircTunnelOutputAction: FlowActionOutput
+
+    def hostRecircOutputAction: FlowActionOutput
+
     def isVtepTunnellingPort(portNumber: Integer): Boolean
 
     def isOverlayTunnellingPort(portNumber: Integer): Boolean
@@ -92,6 +93,8 @@ trait VirtualPortsResolver {
 
 trait DatapathState extends VirtualPortsResolver with UnderlayResolver {
     def datapath: Datapath
+    def tunnelRecircVxLan: VxLanTunnelPort
+    def hostRecircPort: NetDevPort
 }
 
 object DatapathController extends Referenceable {
@@ -204,33 +207,44 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                 log.info(s"Not handling $m (still initializing)")
         }
 
-        makeTunnelPort(OverlayTunnel) { () =>
+        makePort(OverlayTunnel) { () =>
             GreTunnelPort make "tngre-overlay"
         } flatMap { gre =>
             driver.tunnelOverlayGre = gre
-            makeTunnelPort(OverlayTunnel) { () =>
+            makePort(OverlayTunnel) { () =>
                 val overlayUdpPort = config.datapath.vxlanOverlayUdpPort
                 VxLanTunnelPort make("tnvxlan-overlay", overlayUdpPort)
             }
         } flatMap { vxlan =>
             driver.tunnelOverlayVxLan = vxlan
-            makeTunnelPort(VtepTunnel) { () =>
+            makePort(VtepTunnel) { () =>
                 val vtepUdpPort = config.datapath.vxlanVtepUdpPort
                 VxLanTunnelPort make("tnvxlan-vtep", vtepUdpPort)
            }
-        } map { vtep =>
+        } flatMap { vtep =>
             driver.tunnelVtepVxLan = vtep
+            makePort(OverlayTunnel) { () =>
+                val vlxanRecircPort = config.datapath.vxlanRecirculateUdpPort
+                VxLanTunnelPort make("tnvxlan-recirc", vlxanRecircPort)
+            }
+        } flatMap { recircTunPort =>
+            driver.tunnelRecircVxLan = recircTunPort
+            makePort(VirtualMachine) { () =>
+                new NetDevPort(config.datapath.recircMnName)
+            }
+        } map { recircPort =>
+            driver.hostRecircPort = recircPort
             TunnelPortsCreated_
         } pipeTo self
     }
 
-    private def makeTunnelPort[P <: DpPort](t: ChannelType)(portFact: () => P)
+    private def makePort[P <: DpPort](t: ChannelType)(portFact: () => P)
                                            (implicit tag: ClassTag[P]): Future[P] =
         upcallConnManager.createAndHookDpPort(driver.datapath, portFact(), t) map {
             case (p, _) => p.asInstanceOf[P]
         } recoverWith { case ex: Throwable =>
             log.warn(tag + " creation failed: => retrying", ex)
-            after(1 second, system.scheduler)(makeTunnelPort(t)(portFact))
+            after(1 second, system.scheduler)(makePort(t)(portFact))
         }
 
     private def doDatapathZonesUpdate(
@@ -388,6 +402,8 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     var tunnelOverlayGre: GreTunnelPort = _
     var tunnelOverlayVxLan: VxLanTunnelPort = _
     var tunnelVtepVxLan: VxLanTunnelPort = _
+    var tunnelRecircVxLan: VxLanTunnelPort = _
+    var hostRecircPort: NetDevPort = _
 
     val interfaceToTriad = new ConcurrentHashMap[String, DpTriad]()
     val vportToTriad = new ConcurrentHashMap[UUID, DpTriad]()
@@ -395,6 +411,8 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     val dpPortNumToTriad = new ConcurrentHashMap[Int, DpTriad]
 
     override def vtepTunnellingOutputAction = tunnelVtepVxLan.toOutputAction
+    override def recircTunnelOutputAction = tunnelRecircVxLan.toOutputAction
+    override def hostRecircOutputAction = hostRecircPort.toOutputAction
 
     def isVtepTunnellingPort(portNumber: Integer) =
         tunnelVtepVxLan.getPortNo == portNumber

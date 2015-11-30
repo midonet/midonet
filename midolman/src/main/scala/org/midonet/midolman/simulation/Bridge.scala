@@ -17,8 +17,7 @@ package org.midonet.midolman.simulation
 
 import java.lang.{Short => JShort}
 import java.util
-import java.util.{List => JList}
-import java.util.UUID
+import java.util.{List => JList, UUID}
 
 import scala.collection.{Map => ROMap}
 
@@ -27,6 +26,7 @@ import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimStep,
                                             SimulationResult => Result}
 import org.midonet.midolman.simulation.Bridge.{RemoveFlowCallbackGenerator, MacFlowCount, UntaggedVlanId}
+import org.midonet.midolman.simulation.SimulationStashes._
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort,

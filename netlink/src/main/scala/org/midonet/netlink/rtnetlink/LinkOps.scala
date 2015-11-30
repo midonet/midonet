@@ -97,7 +97,7 @@ object LinkOps {
         }
     }
 
-    def setAddress(link: Link, ipsubnet: IPSubnet[_]): Unit = {
+    def setAddress(link: Link, ipsubnet: IPSubnet[_ <: IPAddr], mac: MAC = null): Unit = {
         val (channel, protocol) = prepare()
         try {
             val buf = BytesUtil.instance.allocateDirect(2048)
@@ -117,6 +117,10 @@ object LinkOps {
             buf.clear()
             writer.write(buf)
             reader.read(buf) // in case there are errors
+
+            if (mac ne null) {
+
+            }
         } finally {
             channel.close()
         }
