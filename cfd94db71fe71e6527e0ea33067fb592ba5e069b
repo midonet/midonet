@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_5c923558",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/VPNService.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-30T12:10:53Z",
+      "side": 1,
+      "message": "by mistake",
+      "parentUuid": "5ac4a560_d9657746",
+      "range": {
+        "startLine": 18,
+        "startChar": 23,
+        "endLine": 18,
+        "endChar": 25
+      },
+      "revId": "cfd94db71fe71e6527e0ea33067fb592ba5e069b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_5cd875ef",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 9
@@ -36,6 +60,24 @@
       "writtenOn": "2015-11-30T11:19:48Z",
       "side": 1,
       "message": "Do these need backreferences to each other?",
+      "revId": "cfd94db71fe71e6527e0ea33067fb592ba5e069b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3ff9ebc8",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-30T12:10:53Z",
+      "side": 1,
+      "message": "the models specced don\u0027t contain refs so I didn\u0027t add them, we can add them later of course (the bindings are expressed in the midonet backend so they can be added in the next patch)",
+      "parentUuid": "5ac4a560_5cd875ef",
       "revId": "cfd94db71fe71e6527e0ea33067fb592ba5e069b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_dce2c5d4",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-30T12:10:53Z",
+      "side": 1,
+      "message": "Neutron won\u0027t send them like that, at least that\u0027s what I know now.  We can change later if needed.",
+      "parentUuid": "5ac4a560_59516761",
+      "range": {
+        "startLine": 381,
+        "startChar": 18,
+        "endLine": 381,
+        "endChar": 31
+      },
+      "revId": "cfd94db71fe71e6527e0ea33067fb592ba5e069b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_79aaa31a",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 9
@@ -76,6 +142,24 @@
       "writtenOn": "2015-11-30T08:32:49Z",
       "side": 1,
       "message": "are these neutron status any useful to us backend?",
+      "revId": "cfd94db71fe71e6527e0ea33067fb592ba5e069b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9cd84d1f",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-30T12:10:53Z",
+      "side": 1,
+      "message": "My understanding is that we need to report them back.",
+      "parentUuid": "5ac4a560_79aaa31a",
       "revId": "cfd94db71fe71e6527e0ea33067fb592ba5e069b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
