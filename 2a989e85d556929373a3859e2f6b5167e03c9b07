@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5ac4a560_7fe7e340",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/ServiceContainerGroup.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-30T11:38:43Z",
+      "side": 1,
+      "message": "Question unrelated to this patch: does it make sense to make this a string? The name of the containers we can load are loadable from the class path, hence we won\u0027t need to update the api for every new container type.",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 54,
+        "endChar": 31
+      },
+      "revId": "2a989e85d556929373a3859e2f6b5167e03c9b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_406c0d9d",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 8
@@ -13,6 +36,30 @@
       "writtenOn": "2015-11-27T16:09:55Z",
       "side": 1,
       "message": "I think we could remove these, they can be reached from the port.",
+      "range": {
+        "startLine": 488,
+        "startChar": 4,
+        "endLine": 489,
+        "endChar": 33
+      },
+      "revId": "2a989e85d556929373a3859e2f6b5167e03c9b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_dfd55744",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-30T11:38:43Z",
+      "side": 1,
+      "message": "I think so too: they can be reached from both the port and the configuration.",
+      "parentUuid": "5ac4a560_406c0d9d",
       "range": {
         "startLine": 488,
         "startChar": 4,
