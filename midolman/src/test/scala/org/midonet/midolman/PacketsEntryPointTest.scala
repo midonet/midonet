@@ -54,7 +54,7 @@ class PacketsEntryPointTestCase extends MidolmanSpec
         { ip4 addr "192.168.0.1" --> "192.168.0.2" } <<
         { udp ports 10101 ---> variation }
 
-    implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
+    implicit def ethBuilder2Packet(ethBuilder: EthBuilder): Packet = {
         val frame: Ethernet = ethBuilder
         new Packet(frame, FlowMatches.fromEthernetPacket(frame))
               .setReason(Packet.Reason.FlowTableMiss)

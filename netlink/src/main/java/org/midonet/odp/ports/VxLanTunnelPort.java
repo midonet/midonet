@@ -50,6 +50,10 @@ public class VxLanTunnelPort extends DpPort {
         setDestinationPort(dstPort);
     }
 
+    public int getDestinationPort() {
+        return dstPort;
+    }
+
     private void setDestinationPort(int dstPort) {
         TCP.ensurePortInRange(dstPort);
         this.dstPort = (short) dstPort;

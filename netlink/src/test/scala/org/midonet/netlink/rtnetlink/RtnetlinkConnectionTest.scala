@@ -390,7 +390,7 @@ class RtnetlinkConnectionTest extends FeatureSpec
             checkIfSent(neighListRequest, observer)
 
             val pseudoAddrRequest = makeReplyNetlinkHeader(neighListRequest)
-            Neigh.describeNewRequest(pseudoAddrRequest, neigh)
+            neigh.describeNewRequest(pseudoAddrRequest)
             pseudoAddrRequest.flip()
             val readBuf = rtnetlinkConnection.readBuf
             readBuf.put(pseudoAddrRequest)

@@ -39,16 +39,18 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
     var absoluteExpirationNanos = 0L
     var sequence = 0L
     var removed = false
+    var linkedFlow: ManagedFlow = null
 
     def reset(flowMatch: FlowMatch, flowTags: ArrayList[FlowTag],
               flowRemovedCallbacks: ArrayList[Callback0], sequence: Long,
-              expiration: Expiration, now: Long): Unit = {
+              expiration: Expiration, now: Long, linkedFlow: ManagedFlow = null): Unit = {
         this.flowMatch.resetWithoutIcmpData(flowMatch)
         expirationType = expiration.typeId
         absoluteExpirationNanos = now + expiration.value
         ArrayListUtil.addAll(flowTags, tags)
         ArrayListUtil.addAll(flowRemovedCallbacks, callbacks)
         this.sequence = sequence
+        this.linkedFlow = linkedFlow
         removed = false
     }
 

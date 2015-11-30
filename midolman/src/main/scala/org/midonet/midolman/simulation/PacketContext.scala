@@ -18,7 +18,6 @@ package org.midonet.midolman.simulation
 
 import java.lang.{Integer => JInteger}
 import java.util.{Arrays, ArrayList, UUID}
-import org.midonet.midolman.layer3.Route
 
 import scala.collection.JavaConversions._
 
@@ -27,6 +26,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman._
 import org.midonet.midolman.flows.ManagedFlow
+import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.PacketWorkflow.{GeneratedPhysicalPacket, GeneratedLogicalPacket}
 import org.midonet.midolman.state.{ArpRequestBroker, FlowStatePackets}
 import org.midonet.midolman.rules.RuleResult
@@ -35,8 +35,10 @@ import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
+import org.midonet.sdn.flows.VirtualActions.{Decap, Encap}
 import org.midonet.util.Clearable
 import org.midonet.util.collection.ArrayListUtil
+import org.midonet.util.concurrent.InstanceStash
 import org.midonet.util.functors.Callback0
 
 object PacketContext {
@@ -54,18 +56,36 @@ object PacketContext {
  * in memory.
  */
 trait FlowContext extends Clearable { this: PacketContext =>
+    // The virtual flow actions populated by the simulation
     val virtualFlowActions = new ArrayList[FlowAction]()
-    val flowActions = new ArrayList[FlowAction]()
+
+    // The translated list of flow actions to apply to the simulated packet.
+    // If the packet is encap'ed, these apply to the inner packet.
     val packetActions = new ArrayList[FlowAction]()
+    // The translated list of flow actions to apply to subsequent packets
+    // (before (de)encapsulation if the packet is (de)encap'ed)
+    val recircFlowActions = new ArrayList[FlowAction]()
+    // The translated list of flow actions to apply to subsequent packets
+    // (after (de)encapsulation if the packet is (de)encap'ed).
+    val flowActions = new ArrayList[FlowAction]()
+
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = new ArrayList[FlowTag]()
 
+    // The original packet's flow match, which is either the inner packet if
+    // encap'ing or the outer if decap'ing. Taken from a Stash.
+    var recircMatch: FlowMatch = _
+
     var flow: ManagedFlow = _
+
+    def isRecirc: Boolean = recircMatch ne null
 
     def isDrop: Boolean = flowActions.isEmpty
 
     override def clear(): Unit = {
+        recircMatch = null
+        flow = null
         virtualFlowActions.clear()
         flowActions.clear()
         packetActions.clear()
@@ -89,9 +109,46 @@ trait FlowContext extends Clearable { this: PacketContext =>
     def addVirtualAction(action: FlowAction): Unit =
         virtualFlowActions.add(action)
 
-    def addFlowAndPacketAction(action: FlowAction): Unit = {
-        flowActions.add(action)
-        packetActions.add(action)
+    def encap(vni: Int, srcMac: MAC, dstMac: MAC,
+              srcIp: IPv4Addr, dstIp: IPv4Addr,
+              tos: Byte, ttl: Byte,
+              srcPort: Int, dstPort: Int): Unit = {
+        calculateActionsFromMatchDiff()
+        virtualFlowActions.add(Encap(vni))
+        recircMatch = SimulationStashes.PooledMatches.get()
+        recircMatch.reset(origMatch)
+        recircMatch.propagateSeenFieldsFrom(wcmatch)
+        // Forget original flow keys, and reset the original match to
+        // the encapsulation headers
+        origMatch.clear()
+        origMatch.setEthSrc(srcMac)
+        origMatch.setEthDst(dstMac)
+        origMatch.setEtherType(IPv4.ETHERTYPE)
+        origMatch.setNetworkSrc(srcIp)
+        origMatch.setNetworkDst(dstIp)
+        origMatch.setNetworkProto(UDP.PROTOCOL_NUMBER)
+        origMatch.setNetworkTOS(tos)
+        origMatch.setNetworkTTL(ttl)
+        origMatch.setIpFragmentType(IPFragmentType.None)
+        origMatch.setSrcPort(srcPort)
+        origMatch.setDstPort(dstPort)
+        wcmatch.reset(origMatch)
+        diffBaseMatch.reset(origMatch)
+    }
+
+    def decap(inner: Ethernet, vni: Int): Unit = {
+        // There's no point in calculating actions: outer packet will be discarded
+        virtualFlowActions.clear()
+        virtualFlowActions.add(Decap(vni))
+        recircMatch = SimulationStashes.PooledMatches.get()
+        recircMatch.reset(origMatch)
+        recircMatch.propagateSeenFieldsFrom(wcmatch)
+        // Reset the original match to the encapsulation headers
+        origMatch.clear()
+        val keys = FlowKeys.fromEthernetPacket(inner)
+        origMatch.addKeys(keys)
+        wcmatch.reset(origMatch)
+        diffBaseMatch.reset(origMatch)
     }
 
     def calculateActionsFromMatchDiff(): Unit = {

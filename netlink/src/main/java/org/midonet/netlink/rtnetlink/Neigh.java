@@ -25,6 +25,7 @@ import com.google.common.base.Objects;
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Reader;
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.MAC;
@@ -37,8 +38,8 @@ public class Neigh implements AttributeHandler {
     public class NDMsg {
         public byte family;
         public int ifindex;  /* Interface index */
-        public short state;    /* State */
-        public byte flags;    /* Flags */
+        public short state;  /* State */
+        public byte flags;   /* Flags */
         public byte type;
 
         @Override
@@ -124,7 +125,7 @@ public class Neigh implements AttributeHandler {
         sb.append("Neigh[ndm=");
         sb.append(this.ndm);
         sb.append(", dst=");
-        sb.append(null == ipv4 ? (null == ipv6 ? "null" : ipv6.toString()) : ipv4.toString());
+        sb.append(null == ip ? "null" : ip.toString());
         sb.append(", lladdr=");
         sb.append(null == mac ? "null" : mac.toString());
         sb.append("]");
@@ -132,8 +133,7 @@ public class Neigh implements AttributeHandler {
     }
 
     public NDMsg ndm = new NDMsg();
-    public IPv4Addr ipv4;
-    public IPv6Addr ipv6;
+    public IPAddr ip;
     public MAC mac;
 
     public static final Reader<Neigh> deserializer = new Reader<Neigh>() {
@@ -177,28 +177,23 @@ public class Neigh implements AttributeHandler {
                     switch (this.ndm.family) {
                         case Addr.Family.AF_INET:
                             if (buf.remaining() != 4) {
-                                this.ipv4 = null;
-                                this.ipv6 = null;
+                                this.ip = null;
                             } else {
                                 buf.order(ByteOrder.BIG_ENDIAN);
-                                this.ipv4 = IPv4Addr.fromInt(buf.getInt());
-                                this.ipv6 = null;
+                                this.ip = IPv4Addr.fromInt(buf.getInt());
                             }
                             break;
                         case Addr.Family.AF_INET6:
                             if (buf.remaining() != 16) {
-                                this.ipv4 = null;
-                                this.ipv6 = null;
+                                this.ip = null;
                             } else {
-                                this.ipv4 = null;
                                 byte[] ipv6 = new byte[16];
                                 buf.get(ipv6);
-                                this.ipv6 = IPv6Addr.fromBytes(ipv6);
+                                this.ip = IPv6Addr.fromBytes(ipv6);
                             }
                             break;
                         default:
-                            this.ipv4 = null;
-                            this.ipv6 = null;
+                            this.ip = null;
                     }
                     break;
 
@@ -239,14 +234,23 @@ public class Neigh implements AttributeHandler {
         return buf;
     }
 
-    static public ByteBuffer describeNewRequest(ByteBuffer buf, Neigh neigh) {
-        buf.put(neigh.ndm.family);
-        buf.put((byte) 0);
-        buf.putShort((short) 0);
-        buf.putInt(neigh.ndm.ifindex);
-        buf.putShort(neigh.ndm.state);
-        buf.put(neigh.ndm.flags);
-        buf.put(neigh.ndm.type);
+    public ByteBuffer describeNewRequest(ByteBuffer buf) {
+        buf.put(ndm.family);
+        buf.put((byte) 0); /* pad0 */
+        buf.putShort((short) 0); /* pad1 */
+        buf.putInt(ndm.ifindex);
+        buf.putShort(ndm.state);
+        buf.put(ndm.flags);
+        buf.put(ndm.type);
+
+        if (mac != null) {
+            NetlinkMessage.writeRawAttribute(
+                buf, Attr.NDA_LLADDR, mac.getAddress());
+        }
+
+        if (ip != null) {
+            NetlinkMessage.writeRawAttribute(buf, Attr.NDA_DST, ip.toBytes());
+        }
 
         return buf;
     }
@@ -260,13 +264,12 @@ public class Neigh implements AttributeHandler {
         Neigh that = (Neigh) object;
 
         return Objects.equal(this.ndm, that.ndm) &&
-                Objects.equal(this.ipv4, that.ipv4) &&
-                Objects.equal(this.ipv6, that.ipv6) &&
+                Objects.equal(this.ip, that.ip) &&
                 Objects.equal(this.mac, that.mac);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(ndm, ipv4, ipv6, mac);
+        return Objects.hashCode(ndm, ip, mac);
     }
 }
