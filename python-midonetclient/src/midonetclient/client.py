@@ -34,6 +34,7 @@ from midonetclient.neutron import routing_table as rt
 from midonetclient.neutron import securitygroup as sg
 from midonetclient.neutron import system
 from midonetclient.neutron import tunnel_zone as tz
+from midonetclient.neutron import vpn
 from midonetclient.neutron import vtep
 
 LOG = logging.getLogger(__name__)
@@ -56,7 +57,8 @@ class MidonetClient(net.NetworkClientMixin,
                     rt.RoutingTableClientMixin,
                     system.SystemClientMixin,
                     tz.TunnelZoneClientMixin,
-                    vtep.VtepClientMixin):
+                    vtep.VtepClientMixin,
+                    vpn.VPNClientMixin):
     """Main MidoNet client class
 
     The main class for MidoNet client.  Instantiate this class to make API

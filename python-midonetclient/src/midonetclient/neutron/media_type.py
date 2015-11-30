@@ -55,3 +55,7 @@ POOL_HEALTH_MONITOR = ("application/vnd.org.midonet"
 
 # Firewall extension
 FIREWALLS = "application/vnd.org.midonet.neutron.Firewall-v1+json"
+
+# VPNaaS extension
+VPN_SERVICES = "application/vnd.org.midonet.neutron.VpnService-v1+json"
+IPSEC_SITE_CONNS = "application/vnd.org.midonet.neutron.IpsecSiteConn-v1+json"
