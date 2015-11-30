@@ -53,7 +53,7 @@ case class Chain(id: UUID,
     @VisibleForTesting def isJumpTargetsEmpty: Boolean = jumpTargets.isEmpty
 
     def process(context: PacketContext): RuleResult = {
-        context.log.debug(s"Testing against Chain: ${asList(4, false)}")
+        context.log.debug(s"Testing against ${asList(0, recursive = false)}")
 
         val traversedChains = Chain.traversedChainsTL.get()
         traversedChains.clear()
@@ -116,19 +116,20 @@ case class Chain(id: UUID,
      *
      * @param indent Number of spaces to indent.
      */
-    def asTree(indent: Int): String = asList(indent, true)
+    def asTree(indent: Int): String = asList(indent, recursive = true)
 
     def asList(indent: Int, recursive: Boolean): String = {
-        val indentBuf: Array[Char] = new Array[Char](indent)
+        val indentBuf = new Array[Char](indent)
         Arrays.fill(indentBuf, ' ')
-        val bld: StringBuilder = new StringBuilder
-        bld.append(indentBuf)
+        val indentStr = new String(indentBuf)
+        val bld = new StringBuilder
+        bld.append(indentStr)
         bld.append(this.toString)
         var i = 0
         while (i < rules.size()) {
             val rule = rules.get(i)
             i += 1
-            bld.append(indentBuf).append("    ")
+            bld.append(indentStr).append("    ")
             bld.append(rule).append('\n')
             if (recursive && rule.isInstanceOf[JumpRule]) {
                 val jr: JumpRule = rule.asInstanceOf[JumpRule]
