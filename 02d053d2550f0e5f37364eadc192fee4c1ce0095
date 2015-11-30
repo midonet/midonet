@@ -16,6 +16,24 @@
       "revId": "02d053d2550f0e5f37364eadc192fee4c1ce0095",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9c484d5d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-30T08:57:49Z",
+      "side": 1,
+      "message": "this is more for when we are parsing nested attributes, to be able to call scanNestedAttribute without having to wrap it an if (like we were doing in Link.java).\n\nfor example, when serializing a link, i always write the IFLA_LINKINFO header, although it may have no contents (length zero). if the kernel does something similar - or we ourselves in our tests - then i want our parsing code to be resilient against it.",
+      "parentUuid": "5ac4a560_f93b13e9",
+      "revId": "02d053d2550f0e5f37364eadc192fee4c1ce0095",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
