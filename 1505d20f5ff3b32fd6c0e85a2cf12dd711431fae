@@ -34,6 +34,24 @@
       "revId": "1505d20f5ff3b32fd6c0e85a2cf12dd711431fae",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7c6291d9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-11-30T09:00:06Z",
+      "side": 1,
+      "message": "thank you for explanation.  it makes sense.",
+      "parentUuid": "5ac4a560_1c0fdd31",
+      "revId": "1505d20f5ff3b32fd6c0e85a2cf12dd711431fae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
