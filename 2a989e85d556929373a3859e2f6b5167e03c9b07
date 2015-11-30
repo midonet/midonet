@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_bf125bb2",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/ServiceContainerGroup.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-30T13:07:51Z",
+      "side": 1,
+      "message": "the container type needs to be part of the api no? (what service container types are available to create)",
+      "parentUuid": "5ac4a560_7fe7e340",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 54,
+        "endChar": 31
+      },
+      "revId": "2a989e85d556929373a3859e2f6b5167e03c9b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_406c0d9d",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 8
@@ -60,6 +84,30 @@
       "side": 1,
       "message": "I think so too: they can be reached from both the port and the configuration.",
       "parentUuid": "5ac4a560_406c0d9d",
+      "range": {
+        "startLine": 488,
+        "startChar": 4,
+        "endLine": 489,
+        "endChar": 33
+      },
+      "revId": "2a989e85d556929373a3859e2f6b5167e03c9b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bf797bfe",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-30T13:07:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_dfd55744",
       "range": {
         "startLine": 488,
         "startChar": 4,
