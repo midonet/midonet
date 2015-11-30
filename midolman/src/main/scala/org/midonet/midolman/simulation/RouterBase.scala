@@ -335,8 +335,10 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         val rt = context.routeTo
         context.routeTo = null
 
-        getNextHopMac(tryGet[RouterPort](context.outPortId), rt,
-            context.wcmatch.getNetworkDstIP.asInstanceOf[IP], context) match {
+        val mac = getNextHopMac(tryGet[RouterPort](context.outPortId), rt,
+                                context.wcmatch.getNetworkDstIP.asInstanceOf[IP],
+                                context)
+        mac match {
             case null if rt.nextHopGateway == 0 || rt.nextHopGateway == -1 =>
                 context.log.debug("icmp host unreachable, host mac unknown")
                 sendAnswer(context.inPortId,
