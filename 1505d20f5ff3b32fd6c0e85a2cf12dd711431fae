@@ -16,6 +16,24 @@
       "revId": "1505d20f5ff3b32fd6c0e85a2cf12dd711431fae",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1c0fdd31",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-30T08:53:05Z",
+      "side": 1,
+      "message": "if an ip migrates from one vm to another, for example, convergence time should be faster than 30minutes. tempest tests were recently failing because of this.",
+      "parentUuid": "5ac4a560_b918bb85",
+      "revId": "1505d20f5ff3b32fd6c0e85a2cf12dd711431fae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
