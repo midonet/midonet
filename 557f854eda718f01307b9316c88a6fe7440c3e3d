@@ -84,6 +84,29 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e0bb5970",
+        "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-11-30T09:10:26Z",
+      "side": 1,
+      "message": "there\u0027s already going to be protobuf models pulled in from zookeeper. I don\u0027t see the point of having this separate definition.",
+      "range": {
+        "startLine": 9,
+        "startChar": 11,
+        "endLine": 9,
+        "endChar": 24
+      },
+      "revId": "557f854eda718f01307b9316c88a6fe7440c3e3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_cc5a1c83",
         "filename": "midolman/src/main/scala/org/midonet/containers/ServiceContainer.scala",
         "patchSetId": 2
