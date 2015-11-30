@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_593c0730",
+        "filename": "python-midonetclient/src/midonetclient/neutron/vpn.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-11-30T07:19:57Z",
+      "side": 1,
+      "message": "./src/midonetclient/neutron/vpn.py:33:43: E127 continuation line over-indented for visual indent\n                                          vpn_service_id)",
+      "revId": "c10ac434b2a87c8fcc5fccf9dab688bf6ebd9352",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
