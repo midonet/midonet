@@ -129,6 +129,30 @@
       "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d9cc9738",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-11-30T07:58:20Z",
+      "side": 1,
+      "message": "Sure, but IMO the fact that operators may need to log in to manipulate the host doesn\u0027t justify that we leave garbage for them to clean it.",
+      "parentUuid": "5ac4a560_42e7b540",
+      "range": {
+        "startLine": 194,
+        "startChar": 8,
+        "endLine": 194,
+        "endChar": 14
+      },
+      "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
