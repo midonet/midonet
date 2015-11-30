@@ -42,6 +42,7 @@ object PacketBuilder {
     def ip6 = IPv6Builder()
     def tcp = TcpBuilder()
     def udp = UdpBuilder()
+    def vxlan = VxlanBuilder()
     def icmp = IcmpBuilder()
     def payload = DataBuilder()
     def elasticPayload = ElasticDataBuilder()
@@ -106,7 +107,7 @@ sealed trait PacketBuilder[PacketClass <: IPacket] {
     }
 
     protected def setPayload(b: PacketBuilder[_ <: IPacket]): this.type = {
-        packet.setPayload(b)
+        packet.setPayload(b.packet)
         this
     }
 }
@@ -229,8 +230,8 @@ case class TcpBuilder(packet: TCP = new TCP()) extends PacketBuilder[TCP] {
     override val ipProto = TCP.PROTOCOL_NUMBER
 
     def ports(ports: PortPair): TcpBuilder = { src(ports.src) ; dst(ports.dst) }
-    def src(port: Short): TcpBuilder = { packet.setSourcePort(port) ; this }
-    def dst(port: Short): TcpBuilder = { packet.setDestinationPort(port) ; this }
+    def src(port: Short): TcpBuilder = { packet.setSourcePort(port & 0xffff) ; this }
+    def dst(port: Short): TcpBuilder = { packet.setDestinationPort(port & 0xffff) ; this }
     def flags(flags: Short): TcpBuilder = { packet.setFlags(flags) ; this }
 }
 
@@ -239,8 +240,8 @@ case class UdpBuilder(packet: UDP = new UDP()) extends PacketBuilder[UDP] {
     override val ipProto = UDP.PROTOCOL_NUMBER
 
     def ports(ports: PortPair): UdpBuilder = { src(ports.src) ; dst(ports.dst) }
-    def src(port: Short): UdpBuilder = { packet.setSourcePort(port) ; this }
-    def dst(port: Short): UdpBuilder = { packet.setDestinationPort(port) ; this }
+    def src(port: Short): UdpBuilder = { packet.setSourcePort(port & 0xffff) ; this }
+    def dst(port: Short): UdpBuilder = { packet.setDestinationPort(port & 0xffff) ; this }
 }
 
 case class VxlanBuilder(packet: VXLAN = new VXLAN()) extends PacketBuilder[VXLAN] {
@@ -316,8 +317,8 @@ case class ArpBuilder() extends PacketBuilder[ARP] with NonAppendable[ARP] {
     def reply: ArpBuilder = { packet.setOpCode(ARP.OP_REPLY) ; this }
 }
 
-case class EthBuilder[T <: Ethernet](packet: T = new Ethernet())
-        extends PacketBuilder[T] {
+case class EthBuilder(packet: Ethernet = new Ethernet())
+        extends PacketBuilder[Ethernet] {
     import org.midonet.packets.util.PacketBuilder._
 
     override protected def setPayload(b: PacketBuilder[_ <: IPacket]): this.type = {
@@ -326,15 +327,15 @@ case class EthBuilder[T <: Ethernet](packet: T = new Ethernet())
         this
     }
 
-    def addr(pair: MacPair): EthBuilder[T] = mac(pair)
-    def mac(pair: MacPair): EthBuilder[T] = { src(pair.src) ; dst(pair.dst) }
-    def src(addr: String): EthBuilder[T] = src(stringToMac(addr))
-    def src(addr: MAC): EthBuilder[T] = { packet.setSourceMACAddress(addr) ; this }
-    def dst(addr: String): EthBuilder[T] = dst(stringToMac(addr))
-    def dst(addr: MAC): EthBuilder[T] = { packet.setDestinationMACAddress(addr) ; this }
-    def with_pad: EthBuilder[T] = { packet.setPad(true) ; this }
-    def vlan(vid: Short): EthBuilder[T] = { packet.setVlanID(vid); this }
-    def vlans(vids: List[java.lang.Short]): EthBuilder[T] = { packet.setVlanIDs(vids.asJava); this }
-    def priority(prio: Byte): EthBuilder[T] = { packet.setPriorityCode(prio) ; this }
-    def ether_type(t: Short): EthBuilder[T] = { packet.setEtherType(t) ; this }
+    def addr(pair: MacPair): EthBuilder = mac(pair)
+    def mac(pair: MacPair): EthBuilder = { src(pair.src) ; dst(pair.dst) }
+    def src(addr: String): EthBuilder = src(stringToMac(addr))
+    def src(addr: MAC): EthBuilder = { packet.setSourceMACAddress(addr) ; this }
+    def dst(addr: String): EthBuilder = dst(stringToMac(addr))
+    def dst(addr: MAC): EthBuilder = { packet.setDestinationMACAddress(addr) ; this }
+    def with_pad: EthBuilder = { packet.setPad(true) ; this }
+    def vlan(vid: Short): EthBuilder = { packet.setVlanID(vid); this }
+    def vlans(vids: List[java.lang.Short]): EthBuilder = { packet.setVlanIDs(vids.asJava); this }
+    def priority(prio: Byte): EthBuilder = { packet.setPriorityCode(prio) ; this }
+    def ether_type(t: Short): EthBuilder = { packet.setEtherType(t) ; this }
 }

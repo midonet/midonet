@@ -16,15 +16,14 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{ArrayList, List => JList, UUID}
+import java.util.{List => JList, UUID}
 
 import org.midonet.midolman.PacketWorkflow.{SimStep, SimulationResult => Result, _}
+import org.midonet.midolman.simulation.SimulationStashes._
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.topology.VirtualTopology.tryGet
-import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
-import org.midonet.util.concurrent.{InstanceStash0, InstanceStash1, InstanceStash2}
 
 import scala.annotation.tailrec
 
@@ -50,54 +49,24 @@ object Simulator {
 
     def simulate(context: PacketContext): Result = {
         context.log.debug("Simulating a packet")
-        reUpStashes()
+        SimulationStashes.reUpStashes()
         if (context.ingressed)
             tryGet[Port](context.inputPort).ingress(context)
         else
             tryGet[Port](context.egressPort).egress(context)
     }
 
-    private def reUpStashes(): Unit = {
-        Stack.reUp()
-        Fork.reUp()
-        PooledMatches.reUp()
-        Continuations.reUp()
-    }
 
-    val Stack = new InstanceStash0[ArrayList[Result]](
-            () => new ArrayList[Result])
-
-    val Fork = new InstanceStash2[ForkAction, Result, Result](
-            () => ForkAction(null, null),
-            (fork, a, b) => {
-                fork.first = a
-                fork.second = b
-            })
-
-    val Continuations = new InstanceStash1[ContinueWith, SimStep](
-            () => ContinueWith(null),
-            (cont, step) => {
-                cont.step = step
-            })
-
-    val PooledMatches = new InstanceStash1[FlowMatch, FlowMatch](
-            () => new FlowMatch(),
-            (fm, template) => fm.reset(template))
 }
 
 trait ForwardingDevice extends SimDevice {
     /**
-     * Process a packet described by the given match object. Note that the
-     * Ethernet packet is the one originally ingressed the virtual network
-     * - it does not reflect the changes made by other devices' handling of
-     * the packet (whereas the match object does).
-     *
      * @param pktContext The context for the simulation of this packet's
      * traversal of the virtual network. Use the context to subscribe
      * for notifications on the removal of any resulting flows, or to tag
      * any resulting flows for indexing.
-     * @return An instance of Action that reflects what the device would do
-     * after handling this packet (e.g. drop it, consume it, forward it).
+     * @return An instance of SimulationResult that reflects what the device
+     * would do after handling this packet (e.g. drop it, consume it, forward it).
      */
     def process(pktContext: PacketContext): Result
 }

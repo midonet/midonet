@@ -95,7 +95,7 @@ class PacketWorkflowTest extends MidolmanSpec {
     def makeUniqueFrame(variation: Short) =
         makeFrame(variation) << payload(UUID.randomUUID().toString)
 
-    implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
+    implicit def ethBuilder2Packet(ethBuilder: EthBuilder): Packet = {
         val frame: Ethernet = ethBuilder
         new Packet(frame, FlowMatches.fromEthernetPacket(frame))
               .setReason(Packet.Reason.FlowTableMiss)
@@ -432,7 +432,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                       dpChannel: DatapathChannel,
                       packetOut: Int => Unit,
                       override val simulationExpireMillis: Long)
-            extends PacketWorkflow(injector.getInstance(classOf[MidolmanConfig]),
+            extends PacketWorkflow(1, 0, injector.getInstance(classOf[MidolmanConfig]),
                                    hostId, new DatapathStateDriver(new Datapath(0, "midonet")),
                                    cookieGen, clock, dpChannel,
                                    mockDhcpConfig,
@@ -482,7 +482,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             })
             pktCtx.wcmatch.setSrcPort(pktCtx.wcmatch.getSrcPort + 1)
             if (nextActions ne null) {
-                nextActions foreach pktCtx.addFlowAndPacketAction
+                nextActions foreach pktCtx.flowActions.add
             }
             if (pktCtx.runs == 1) {
                 packetsSeen = packetsSeen :+ pktCtx

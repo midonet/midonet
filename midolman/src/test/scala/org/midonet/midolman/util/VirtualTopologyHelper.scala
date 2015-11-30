@@ -45,7 +45,7 @@ import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
-import org.midonet.odp.ports.InternalPort
+import org.midonet.odp.ports.{VxLanTunnelPort, NetDevPort, InternalPort}
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr, MAC, TCP, UDP}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
@@ -287,13 +287,20 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                 DpPort.fakeFrom(new InternalPort("dpPort-" + tunnelKey),
                                 tunnelKey.toInt)
             override def getDpPortNumberForVport(vportId: UUID): Integer =
-                (dpPortToVport map (_.swap) toMap) get vportId map Integer.valueOf orNull
+                (dpPortToVport map (_.swap)) get vportId map Integer.valueOf orNull
+
+            override def tunnelRecircVxLan: VxLanTunnelPort = null
+            override def hostRecircPort: NetDevPort = null
+            override def recircTunnelOutputAction: FlowActionOutput = null
+            override def hostRecircOutputAction: FlowActionOutput = null
         }
 
         val dhcpConfig = new DhcpConfigFromNsdb(
             injector.getInstance(classOf[VirtualTopology]))
 
         TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
+            1,
+            0,
             config,
             hostId,
             dpState,

@@ -34,6 +34,7 @@ import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6;
 import org.midonet.packets.IPv6Addr;
+import org.midonet.packets.MAC;
 import org.midonet.packets.TCP;
 import org.midonet.packets.UDP;
 import org.midonet.util.collection.WeakObjectPool;
@@ -64,6 +65,10 @@ public class FlowKeys {
 
     public static FlowKeyEthernet ethernet(byte[] src, byte[] dst) {
         return intern(new FlowKeyEthernet(src, dst));
+    }
+
+    public static FlowKeyEthernet ethernet(MAC src, MAC dst) {
+        return ethernet(src.getAddress(), dst.getAddress());
     }
 
     public static FlowKeyEtherType etherType(short value) {
@@ -170,6 +175,10 @@ public class FlowKeys {
 
     public static FlowKeyTunnel tunnel(long id, int srcIpv4, int dstIpv4, byte tos) {
         return intern(new FlowKeyTunnel(id, srcIpv4, dstIpv4, tos));
+    }
+
+    public static FlowKeyTunnel tunnel(long id, int srcIpv4, int dstIpv4, byte tos, byte ttl) {
+        return intern(new FlowKeyTunnel(id, srcIpv4, dstIpv4, tos, ttl));
     }
 
     public static FlowKey newBlankInstance(short type) {
