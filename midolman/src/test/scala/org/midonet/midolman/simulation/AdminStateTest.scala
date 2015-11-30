@@ -17,6 +17,9 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
+import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.odp.ports.{VxLanTunnelPort, NetDevPort}
+
 import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -375,6 +378,11 @@ class AdminStateTest extends MidolmanSpec {
 
         override protected val vt = injector.getInstance(classOf[VirtualTopology])
 
+        override protected val config: MidolmanConfig = AdminStateTest.this.config
+
+        override protected val numWorkers: Int = 1
+        override protected val workerId: Int = 0
+
         protected val dpState: DatapathState = new DatapathState {
             val host = rcu.ResolvedHost(hostId, true, Map.empty, Map.empty)
             def peerTunnelInfo(peer: UUID) = null
@@ -392,6 +400,10 @@ class AdminStateTest extends MidolmanSpec {
             def isVtepTunnellingPort(portNumber: Integer): Boolean = false
             def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
             def datapath: Datapath = new Datapath(0, "midonet")
+            def tunnelRecircVxLan: VxLanTunnelPort = null
+            def hostRecircPort: NetDevPort = null
+            def recircTunnelOutputAction: FlowActionOutput = null
+            def hostRecircOutputAction: FlowActionOutput = null
         }
 
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {
@@ -403,7 +415,6 @@ class AdminStateTest extends MidolmanSpec {
         }
 
         def receive = emptyBehavior
-
     }
 
     private[this] def assertExpectedIcmpProhibitPacket(routerPort: UUID,

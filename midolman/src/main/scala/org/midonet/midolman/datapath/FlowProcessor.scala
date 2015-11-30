@@ -24,13 +24,13 @@ import java.util.ArrayList
 import scala.util.control.NonFatal
 
 import com.lmax.disruptor.{Sequencer, LifecycleAware, EventPoller}
-import org.midonet.midolman.DatapathState
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 import rx.Observer
 
-import org.slf4j.LoggerFactory
-import com.typesafe.scalalogging.Logger
-
+import org.midonet.midolman.DatapathState
 import org.midonet.midolman.datapath.DisruptorDatapathChannel._
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
@@ -50,6 +50,7 @@ object FlowProcessor {
         classOf[FlowProcessor].getDeclaredField("lastSequence"))
 
     private val MAX_BUF_CAPACITY = 4 * 1024 * 1024
+
 }
 
 class FlowProcessor(dpState: DatapathState,
@@ -102,28 +103,35 @@ class FlowProcessor(dpState: DatapathState,
     override def onEvent(event: PacketContextHolder, sequence: Long,
                          endOfBatch: Boolean): Boolean = {
         val context = event.flowCreateRef
-        val flowMatch = context.origMatch
         event.flowCreateRef = null
         if (context.flow ne null) {
             try {
-                val mask = if (supportsMegaflow) {
-                    flowMask.calculateFor(flowMatch)
-                    context.log.debug(s"Applying mask $flowMask")
-                    flowMask
-                } else null
-                writeFlow(
-                    datapathId, flowMatch.getKeys, context.flowActions, mask)
-                context.log.debug("Created datapath flow")
+                createFlow(context.origMatch, context.flowActions, context)
+                if (context.isRecirc) {
+                    // Note we created the after-recirc flow first, so new
+                    // packets will still go to midolman before recirculation.
+                    createFlow(
+                        context.recircMatch, context.recircFlowActions, context)
+                }
             } catch { case t: Throwable =>
                 context.log.error("Failed to create datapath flow", t)
-            } finally {
-                flowMask.clear()
-                writeBuf.clear()
             }
 
             lastSequence = sequence
         }
         true
+    }
+
+    private def createFlow(flowMatch: FlowMatch, actions: ArrayList[FlowAction],
+                           context: PacketContext): Unit = {
+        val mask = if (supportsMegaflow) {
+            flowMask.clear()
+            flowMask.calculateFor(flowMatch)
+            context.log.debug(s"Applying mask $flowMask")
+            flowMask
+        } else null
+        writeFlow(datapathId, flowMatch.getKeys, actions, mask)
+        context.log.debug("Created datapath flow")
     }
 
     private def writeFlow(datapathId: Int, keys: ArrayList[FlowKey],
@@ -140,6 +148,8 @@ class FlowProcessor(dpState: DatapathState,
             writeBuf = BytesUtil.instance.allocateDirect(newCapacity)
             log.debug(s"Increasing buffer size to $newCapacity")
             writeFlow(datapathId, keys, actions, mask)
+        } finally {
+            writeBuf.clear()
         }
 
     def capacity = broker.capacity

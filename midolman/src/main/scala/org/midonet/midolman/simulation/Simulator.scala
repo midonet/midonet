@@ -87,17 +87,12 @@ object Simulator {
 
 trait ForwardingDevice extends SimDevice {
     /**
-     * Process a packet described by the given match object. Note that the
-     * Ethernet packet is the one originally ingressed the virtual network
-     * - it does not reflect the changes made by other devices' handling of
-     * the packet (whereas the match object does).
-     *
      * @param pktContext The context for the simulation of this packet's
      * traversal of the virtual network. Use the context to subscribe
      * for notifications on the removal of any resulting flows, or to tag
      * any resulting flows for indexing.
-     * @return An instance of Action that reflects what the device would do
-     * after handling this packet (e.g. drop it, consume it, forward it).
+     * @return An instance of SimulationResult that reflects what the device
+     * would do after handling this packet (e.g. drop it, consume it, forward it).
      */
     def process(pktContext: PacketContext): Result
 }

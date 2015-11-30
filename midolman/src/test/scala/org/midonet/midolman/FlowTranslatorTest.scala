@@ -17,6 +17,9 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.odp.ports.{VxLanTunnelPort, NetDevPort}
+
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.immutable.List
@@ -269,6 +272,9 @@ class FlowTranslatorTest extends MidolmanSpec {
     sealed class TestFlowTranslator(val dpState: DatapathState) extends FlowTranslator {
         override protected val vt = injector.getInstance(classOf[VirtualTopology])
         override protected val hostId: UUID = FlowTranslatorTest.this.hostId
+        override protected val config: MidolmanConfig = FlowTranslatorTest.this.config
+        override protected val numWorkers: Int = 1
+        override protected val workerId: Int = 0
 
         override def translateActions(pktCtx: PacketContext): Unit =
             super.translateActions(pktCtx)
@@ -298,6 +304,11 @@ class FlowTranslatorTest extends MidolmanSpec {
         def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
 
         def datapath: Datapath = new Datapath(0, "midonet")
+
+        def tunnelRecircVxLan: VxLanTunnelPort = null
+        def hostRecircPort: NetDevPort = null
+        def recircTunnelOutputAction: FlowActionOutput = null
+        def hostRecircOutputAction: FlowActionOutput = null
     }
 
     def translationScenario(name: String)

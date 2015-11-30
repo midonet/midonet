@@ -18,6 +18,8 @@ package org.midonet.midolman.datapath
 
 import java.nio.ByteBuffer
 
+import org.midonet.netlink.rtnetlink.LinkOps
+
 import scala.concurrent.duration._
 
 import org.midonet.ErrorCode
@@ -35,6 +37,7 @@ object DatapathBootstrap {
             config: MidolmanConfig,
             channelFactory: NetlinkChannelFactory,
             families: OvsNetlinkFamilies): DatapathStateDriver = {
+        bootstrapRecircVeth(config)
         val channel = channelFactory.create(blocking = false)
         val writer = new NetlinkBlockingWriter(channel)
         val reader = new NetlinkTimeoutReader(channel, 1 minute)
@@ -83,5 +86,16 @@ object DatapathBootstrap {
         buf.clear()
         reader.read(buf)
         buf.flip()
+    }
+
+    private def bootstrapRecircVeth(config: MidolmanConfig): Unit = {
+        val LinkOps.Veth(hostSide, mnSide) = LinkOps.createVethPair(
+            config.datapath.recircHostName,
+            config.datapath.recircMnName,
+            up = true,
+            config.datapath.recircHostMac,
+            config.datapath.recircMnMac)
+        LinkOps.setAddress(hostSide, config.datapath.recircHostCidr)
+        LinkOps.setAddress(mnSide, config.datapath.recircMnAddr.subnet())
     }
 }

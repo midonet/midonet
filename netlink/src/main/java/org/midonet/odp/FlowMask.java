@@ -161,6 +161,14 @@ public class FlowMask implements NetlinkSerializable, AttributeHandler {
             tunnel.ipv4_dst = EXACT_32;
             exactMatchInKey(Tunnel);
         }
+        if (fmatch.isSeen(FlowMatch.Field.TunnelTOS)) {
+            tunnel.ipv4_tos = EXACT_8;
+            exactMatchInKey(Tunnel);
+        }
+        if (fmatch.isSeen(FlowMatch.Field.TunnelTTL )) {
+            tunnel.ipv4_ttl = EXACT_8;
+            exactMatchInKey(Tunnel);
+        }
         short highestLayer = fmatch.highestLayerSeen();
         if (highestLayer >= 2) {
             maskLayer2(fmatch, highestLayer);
