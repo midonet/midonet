@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_df947739",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-30T12:38:52Z",
+      "side": 1,
+      "message": "Just wondering: why make a string here?",
+      "range": {
+        "startLine": 124,
+        "startChar": 8,
+        "endLine": 124,
+        "endChar": 45
+      },
+      "revId": "021ea0c0fc453968520f92c878b61d8c1f5e21f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
