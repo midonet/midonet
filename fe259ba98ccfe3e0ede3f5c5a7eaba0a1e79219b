@@ -34,6 +34,24 @@
       "revId": "fe259ba98ccfe3e0ede3f5c5a7eaba0a1e79219b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1989afeb",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-11-30T07:56:53Z",
+      "side": 1,
+      "message": "I think a dictionary should be parsed as a nested message:\n\n    message DeadPeerDetection {\n        optional Action actions \u003d 1;\n        optional uint32 interval \u003d 2;\n        optional uint32 timeout \u003d 3;\n\n        enum Action {\n            CLEAR \u003d 1;\n            HOLD \u003d 2;\n            RESTART \u003d 3;\n            DISABLED \u003d 4;\n            RESTART_BY_PEER \u003d 5;\n        }\n    }\n\nBut let\u0027s just get something merged. I can make any necessary changes, but everything\u0027s harder when this patch keeps getting changed underneath me.",
+      "parentUuid": "5ac4a560_6caae871",
+      "revId": "fe259ba98ccfe3e0ede3f5c5a7eaba0a1e79219b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
