@@ -133,7 +133,10 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         context.addFlowTag(FlowTagger.tagForDpPort(forwardTo.getPortNo))
         context.addFlowTag(FlowTagger.tagForTunnelRoute(
                            origMatch.getTunnelSrc, origMatch.getTunnelDst))
-        context.addFlowAndPacketAction(forwardTo.toOutputAction)
+        origMatch.fieldSeen(Field.TunnelTOS)
+        origMatch.fieldSeen(Field.TunnelTTL)
+        context.flowActions.add(forwardTo.toOutputAction)
+        context.packetActions.add(forwardTo.toOutputAction)
     }
 
     private def handleFromUnderlay(context: PacketContext): SimulationResult = {
@@ -156,6 +159,8 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
 }
 
 class PacketWorkflow(
+            val numWorkers: Int,
+            val workerId: Int,
             val config: MidolmanConfig,
             val hostId: UUID,
             val dpState: DatapathState,
@@ -611,7 +616,7 @@ class PacketWorkflow(
         if (!isDhcp)
             return false
 
-        val port = VirtualTopology.tryGet[Port](context.inputPort)
+        val port = vt.tryGet[Port](context.inputPort)
         val dhcp = context.packet.getEthernet.getPayload.getPayload.getPayload.asInstanceOf[DHCP]
         dhcp.getOpCode == DHCP.OPCODE_REQUEST &&
             processDhcp(context, port, dhcp,
