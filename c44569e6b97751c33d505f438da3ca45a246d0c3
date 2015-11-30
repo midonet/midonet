@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_1f742f98",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/validation/MessageProperty.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-30T11:22:52Z",
+      "side": 1,
+      "message": "Was this message also added to ValidationMessages.properties?",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 26,
+        "endChar": 61
+      },
+      "revId": "c44569e6b97751c33d505f438da3ca45a246d0c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9f5f5f0e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-30T11:22:52Z",
+      "side": 1,
+      "message": "Nit: this can also be null",
+      "range": {
+        "startLine": 259,
+        "startChar": 99,
+        "endLine": 259,
+        "endChar": 101
+      },
+      "revId": "c44569e6b97751c33d505f438da3ca45a246d0c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bf9b3bc8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-11-30T11:22:52Z",
+      "side": 1,
+      "message": "The import is already present above",
+      "range": {
+        "startLine": 290,
+        "startChar": 8,
+        "endLine": 290,
+        "endChar": 49
+      },
+      "revId": "c44569e6b97751c33d505f438da3ca45a246d0c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
