@@ -18,8 +18,6 @@ package org.midonet.midolman.simulation
 
 import java.util.{ArrayList, List => JList, UUID}
 
-import akka.actor.ActorSystem
-
 import org.midonet.midolman.PacketWorkflow.{SimStep, SimulationResult => Result, _}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.rules.RuleResult.Action
@@ -287,7 +285,7 @@ trait InAndOutFilters extends SimDevice {
         val targetPort = tryGet[Port](ruleResult.redirectPort)
 
         this match {
-            case p: Port => {
+            case p: Port =>
                 var i = 0
                 while (i < p.servicePorts.size) {
                     context.servicePorts.add(p.servicePorts.get(i))
@@ -298,7 +296,6 @@ trait InAndOutFilters extends SimDevice {
                 // all service ports are down and failOpen, packets
                 // will have access to the flow state.
                 context.servicePorts.add(p.id)
-            }
             case _ =>
         }
 
