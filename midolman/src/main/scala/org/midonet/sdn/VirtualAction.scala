@@ -19,6 +19,7 @@ import java.nio.ByteBuffer
 import java.util.UUID
 
 import org.midonet.odp.flows.FlowAction
+import org.midonet.packets.{MAC, IPv4Addr}
 
 /** This objects holds various classes representing "virtual" flow actions
  *  returned as part of a Simulation. These objects are then translated by
@@ -32,4 +33,7 @@ object VirtualActions {
         def serializeInto(buf: ByteBuffer) = 0
         def deserializeFrom(buf: ByteBuffer) { }
     }
+
+    case class Encap(vni: Int) extends VirtualFlowAction
+    case class Decap(vni: Int) extends VirtualFlowAction
 }

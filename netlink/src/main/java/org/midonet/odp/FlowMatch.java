@@ -85,6 +85,30 @@ public class FlowMatch {
                 return wcmatch1.tunnelDst == wcmatch2.tunnelDst;
             }
         },
+        TunnelTOS {
+            public String toString(FlowMatch wcmatch) {
+                return toString() + "=" + wcmatch.tunnelTOS;
+            }
+            public int hashCode(FlowMatch wcmatch) {
+                return wcmatch.tunnelTOS;
+            }
+            public boolean equals(FlowMatch wcmatch1,
+                                  FlowMatch wcmatch2) {
+                return wcmatch1.tunnelTOS == wcmatch2.tunnelTOS;
+            }
+        },
+        TunnelTTL {
+            public String toString(FlowMatch  wcmatch) {
+                return toString() + "=" + wcmatch.tunnelTTL;
+            }
+            public int hashCode(FlowMatch  wcmatch) {
+                return wcmatch.tunnelTTL;
+            }
+            public boolean equals(FlowMatch  wcmatch1,
+                                  FlowMatch  wcmatch2) {
+                return wcmatch1.tunnelTTL == wcmatch2.tunnelTTL;
+            }
+        },
         EthSrc {
             public String toString(FlowMatch wcmatch) {
                 return toString() + "=" + wcmatch.ethSrc;
@@ -320,6 +344,8 @@ public class FlowMatch {
     private long tunnelKey = 0L;
     private int tunnelSrc = 0;
     private int tunnelDst = 0;
+    private byte tunnelTOS = 0;
+    private byte tunnelTTL = 0;
     private MAC ethSrc;
     private MAC ethDst;
     private short etherType = (short) FlowKeyEtherType.Type.ETH_P_NONE.value;
@@ -364,7 +390,7 @@ public class FlowMatch {
         return keys;
     }
 
-    private void addKeys(@Nonnull ArrayList<FlowKey> keys) {
+    public void addKeys(@Nonnull ArrayList<FlowKey> keys) {
         for (int i = 0; i < keys.size(); ++i) {
             addKey(keys.get(i));
         }
@@ -387,6 +413,10 @@ public class FlowMatch {
 
     public final void fieldUnseen(Field field) {
         seenFields &= ~(1L << field.ordinal());
+    }
+
+    public final void clearSeenFields() {
+        seenFields = 0;
     }
 
     /**
@@ -564,6 +594,30 @@ public class FlowMatch {
     public int getTunnelDst() {
         fieldSeen(Field.TunnelDst);
         return tunnelDst;
+    }
+
+     @Nonnull
+    public FlowMatch setTunnelTOS(byte tunnelTOS) {
+        fieldUsed(Field.TunnelTOS);
+        this.tunnelTOS = tunnelTOS;
+        return this;
+    }
+
+    public byte getTunnelTOS() {
+        fieldSeen(Field.TunnelTOS);
+        return tunnelTOS;
+    }
+
+    @Nonnull
+    public FlowMatch setTunnelTTL(byte tunnelTTL) {
+        fieldUsed(Field.TunnelTTL);
+        this.tunnelTTL = tunnelTTL;
+        return this;
+    }
+
+    public byte getTunnelTTL() {
+        fieldSeen(Field.TunnelTTL);
+        return tunnelTTL;
     }
 
     public boolean isFromTunnel() {
@@ -1026,6 +1080,8 @@ public class FlowMatch {
                 setTunnelKey(tunnel.tun_id);
                 setTunnelSrc(tunnel.ipv4_src);
                 setTunnelDst(tunnel.ipv4_dst);
+                setTunnelTOS(tunnel.ipv4_tos);
+                setTunnelTTL(tunnel.ipv4_ttl);
                 break;
         }
     }

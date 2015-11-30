@@ -59,9 +59,6 @@ public class FlowKeyTunnel implements CachedFlowKey,
 
     public FlowKeyTunnel(long tunnelId, int ipv4SrcAddr, int ipv4DstAddr,
                          byte tos, byte ttl) {
-        if (ttl == 0)
-            throw new IllegalArgumentException("The TTL of a FlowKeyTunnel must not be zero");
-
         tun_id = tunnelId;
         ipv4_src = ipv4SrcAddr;
         ipv4_dst = ipv4DstAddr;

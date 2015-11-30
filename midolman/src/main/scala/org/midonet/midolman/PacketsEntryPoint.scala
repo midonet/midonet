@@ -157,6 +157,8 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         val dhcpConfig = new DhcpConfigFromNsdb(vt)
 
         Props(new PacketWorkflow(
+            NUM_WORKERS,
+            index,
             config,
             hostIdProvider.hostId,
             dpState,

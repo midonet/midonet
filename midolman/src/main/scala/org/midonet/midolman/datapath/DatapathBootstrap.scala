@@ -25,7 +25,10 @@ import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.netlink.rtnetlink.{NeighOps, LinkOps}
 import org.midonet.odp.{Datapath, OvsNetlinkFamilies, OvsProtocol}
+
+import scala.util.control.NonFatal
 
 object DatapathBootstrap {
     class DatapathBootstrapError(msg: String, cause: Throwable = null)
@@ -35,6 +38,7 @@ object DatapathBootstrap {
             config: MidolmanConfig,
             channelFactory: NetlinkChannelFactory,
             families: OvsNetlinkFamilies): DatapathStateDriver = {
+        bootstrapRecircVeth(config)
         val channel = channelFactory.create(blocking = false)
         val writer = new NetlinkBlockingWriter(channel)
         val reader = new NetlinkTimeoutReader(channel, 1 minute)
@@ -83,5 +87,25 @@ object DatapathBootstrap {
         buf.clear()
         reader.read(buf)
         buf.flip()
+    }
+
+    private def bootstrapRecircVeth(config: MidolmanConfig): Unit = {
+        val recircConfig = config.datapath.recircConfig
+        try {
+            LinkOps.deleteLink(recircConfig.recircHostName)
+        } catch { case NonFatal(ignored) => }
+        val LinkOps.Veth(hostSide, _) = LinkOps.createVethPair(
+            recircConfig.recircHostName,
+            recircConfig.recircMnName,
+            up = true,
+            recircConfig.recircHostMac,
+            recircConfig.recircMnMac)
+        LinkOps.setAddress(
+            hostSide,
+            recircConfig.recircHostAddr.subnet(recircConfig.subnet.getPrefixLen))
+        NeighOps.addNeighEntry(
+            hostSide,
+            recircConfig.recircMnAddr,
+            recircConfig.recircMnMac)
     }
 }

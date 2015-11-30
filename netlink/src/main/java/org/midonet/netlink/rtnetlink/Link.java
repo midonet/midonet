@@ -514,6 +514,10 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
 
         NetlinkMessage.writeAttrNested(buf, Attr.IFLA_LINKINFO, link.info);
 
+        if (link.ifname != null) {
+            NetlinkMessage.writeStringAttr(buf, Attr.IFLA_IFNAME, link.ifname);
+        }
+
         return buf;
     }
 
