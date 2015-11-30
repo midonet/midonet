@@ -45,6 +45,23 @@
       "revId": "cfd94db71fe71e6527e0ea33067fb592ba5e069b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_79aaa31a",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-11-30T08:32:49Z",
+      "side": 1,
+      "message": "are these neutron status any useful to us backend?",
+      "revId": "cfd94db71fe71e6527e0ea33067fb592ba5e069b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
