@@ -22,6 +22,30 @@
       "revId": "021ea0c0fc453968520f92c878b61d8c1f5e21f8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5f094730",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-11-30T13:53:10Z",
+      "side": 1,
+      "message": "otherwise we\u0027re just logging the array\u0027s address, i.e., C@77b60493.",
+      "parentUuid": "5ac4a560_df947739",
+      "range": {
+        "startLine": 124,
+        "startChar": 8,
+        "endLine": 124,
+        "endChar": 45
+      },
+      "revId": "021ea0c0fc453968520f92c878b61d8c1f5e21f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
