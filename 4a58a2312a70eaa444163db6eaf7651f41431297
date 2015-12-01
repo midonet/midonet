@@ -22,6 +22,30 @@
       "revId": "4a58a2312a70eaa444163db6eaf7651f41431297",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_024a0f80",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-01T18:34:39Z",
+      "side": 1,
+      "message": "It\u0027s already tested afaik (existing code)",
+      "parentUuid": "5ac4a560_023bef3a",
+      "range": {
+        "startLine": 488,
+        "startChar": 8,
+        "endLine": 488,
+        "endChar": 65
+      },
+      "revId": "4a58a2312a70eaa444163db6eaf7651f41431297",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
