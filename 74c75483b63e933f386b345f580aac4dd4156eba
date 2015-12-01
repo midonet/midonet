@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_c2bbb7c2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 36
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-01T10:19:34Z",
+      "side": 1,
+      "message": "s/ops/doUpdate",
+      "revId": "74c75483b63e933f386b345f580aac4dd4156eba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a2dddb16",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 36
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-01T10:19:34Z",
+      "side": 1,
+      "message": "add () as function has side-effects (since it\u0027s passed by name, call will happen inside the lock",
+      "range": {
+        "startLine": 135,
+        "startChar": 50,
+        "endLine": 135,
+        "endChar": 53
+      },
+      "revId": "74c75483b63e933f386b345f580aac4dd4156eba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e2b0b3df",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 36
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-01T10:19:34Z",
+      "side": 1,
+      "message": "add () as function has side-effects",
+      "revId": "74c75483b63e933f386b345f580aac4dd4156eba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
