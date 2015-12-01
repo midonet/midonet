@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8569c98d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 36
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-01T11:08:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_c2bbb7c2",
+      "revId": "74c75483b63e933f386b345f580aac4dd4156eba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_a2dddb16",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 36
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_45f6d1d8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 36
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-01T11:08:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_a2dddb16",
+      "range": {
+        "startLine": 135,
+        "startChar": 50,
+        "endLine": 135,
+        "endChar": 53
+      },
+      "revId": "74c75483b63e933f386b345f580aac4dd4156eba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_e2b0b3df",
         "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
         "patchSetId": 36
@@ -53,6 +95,24 @@
       "writtenOn": "2015-12-01T10:19:34Z",
       "side": 1,
       "message": "add () as function has side-effects",
+      "revId": "74c75483b63e933f386b345f580aac4dd4156eba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6503cdb8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 36
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-01T11:08:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_e2b0b3df",
       "revId": "74c75483b63e933f386b345f580aac4dd4156eba",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
