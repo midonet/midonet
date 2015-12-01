@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_4e7c3321",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IPSecSiteConnection.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-01T05:54:14Z",
+      "side": 1,
+      "message": "This should be enum.",
+      "revId": "5fcdfffabd802e3479af972aa2ecc5469922b14a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
