@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_a54de574",
+        "filename": "midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-01T11:01:13Z",
+      "side": 1,
+      "message": "why upper case?",
+      "range": {
+        "startLine": 180,
+        "startChar": 8,
+        "endLine": 180,
+        "endChar": 15
+      },
+      "revId": "19e59aeaf73bbcfa48e5ef6c7cfc4b5d5e1c1243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_855f090e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-01T11:01:13Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 33,
+        "startChar": 38,
+        "endLine": 33,
+        "endChar": 41
+      },
+      "revId": "19e59aeaf73bbcfa48e5ef6c7cfc4b5d5e1c1243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_05f939e9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-01T11:01:13Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we start the service only if enabled? I see in Daemon.scala that we log the fact that the service was started properly only if isEnabled is true. That\u0027s confusing..",
+      "range": {
+        "startLine": 45,
+        "startChar": 17,
+        "endLine": 45,
+        "endChar": 24
+      },
+      "revId": "19e59aeaf73bbcfa48e5ef6c7cfc4b5d5e1c1243",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
