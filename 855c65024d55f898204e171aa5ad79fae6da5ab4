@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_0582194f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 8
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-12-01T11:02:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_2220eb48",
+      "range": {
+        "startLine": 7,
+        "startChar": 7,
+        "endLine": 7,
+        "endChar": 20
+      },
+      "revId": "855c65024d55f898204e171aa5ad79fae6da5ab4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_e23b53e9",
         "filename": "python-midonetclient/src/midonetclient/rule.py",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-01T10:45:30Z",
       "side": 1,
       "message": "I don\u0027t really understand this TODO. What about creating a JIRA issue for this or just removing it if it\u0027s outdated.",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 15
+      },
+      "revId": "855c65024d55f898204e171aa5ad79fae6da5ab4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_85b6293c",
+        "filename": "python-midonetclient/src/midonetclient/rule.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-12-01T11:02:17Z",
+      "side": 1,
+      "message": "done.\nhttps://midonet.atlassian.net/browse/MNA-1110",
+      "parentUuid": "5ac4a560_e23b53e9",
       "range": {
         "startLine": 51,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e57c3d75",
+        "filename": "python-midonetclient/src/midonetclient/vtep_port.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-12-01T11:02:17Z",
+      "side": 1,
+      "message": "a newline at end of file.\npep8 complains about it.",
+      "parentUuid": "5ac4a560_a2187b85",
+      "range": {
+        "startLine": 30,
+        "startChar": 8,
+        "endLine": 30,
+        "endChar": 38
+      },
+      "revId": "855c65024d55f898204e171aa5ad79fae6da5ab4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_a5ffa500",
         "filename": "python-midonetclient/tox.ini",
         "patchSetId": 8
@@ -82,6 +154,30 @@
       "writtenOn": "2015-12-01T10:45:30Z",
       "side": 1,
       "message": "Create a JIRA issue for when protobuf will be python ready?",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 47
+      },
+      "revId": "855c65024d55f898204e171aa5ad79fae6da5ab4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e5f35d08",
+        "filename": "python-midonetclient/tox.ini",
+        "patchSetId": 8
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-12-01T11:02:17Z",
+      "side": 1,
+      "message": "done.\n\nhttps://midonet.atlassian.net/browse/MNA-1111",
+      "parentUuid": "5ac4a560_a5ffa500",
       "range": {
         "startLine": 25,
         "startChar": 0,
