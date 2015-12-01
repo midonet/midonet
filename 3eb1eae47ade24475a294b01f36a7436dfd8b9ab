@@ -177,6 +177,30 @@
       "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_53206049",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-12-01T01:00:17Z",
+      "side": 1,
+      "message": "As agreed on chat, I\u0027ll make the change to:\n\n1) Clean up the namespace on failure\n2) collect and output debug info.\n\nIn a future patch.",
+      "parentUuid": "5ac4a560_d9c1f7e5",
+      "range": {
+        "startLine": 194,
+        "startChar": 8,
+        "endLine": 194,
+        "endChar": 14
+      },
+      "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
