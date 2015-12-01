@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e56d1d06",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T12:00:46Z",
+      "side": 1,
+      "message": "Yes, this is from the servlet injector. Shall I add the name to it?",
+      "parentUuid": "5ac4a560_a537a5af",
+      "range": {
+        "startLine": 162,
+        "startChar": 42,
+        "endLine": 162,
+        "endChar": 76
+      },
+      "revId": "02e83d6cd257bdda704320ceeaa643b3c6dff9aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_65b90d2e",
         "filename": "midonet-cluster/src/test/java/org/midonet/cluster/rest_api/rest_api/FuncTest.java",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-01T10:57:31Z",
       "side": 1,
       "message": "I think that this is no longer necessary, and you can just access companion object members like static class members.",
+      "range": {
+        "startLine": 151,
+        "startChar": 50,
+        "endLine": 151,
+        "endChar": 59
+      },
+      "revId": "02e83d6cd257bdda704320ceeaa643b3c6dff9aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_85a7094f",
+        "filename": "midonet-cluster/src/test/java/org/midonet/cluster/rest_api/rest_api/FuncTest.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T12:00:46Z",
+      "side": 1,
+      "message": "it complains :/ Do I miss something?",
+      "parentUuid": "5ac4a560_65b90d2e",
       "range": {
         "startLine": 151,
         "startChar": 50,
