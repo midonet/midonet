@@ -66,7 +66,7 @@ object ListUtilTest {
 
     @ZoomClass(clazz = classOf[FakeDevice])
     class Device extends ZoomObject {
-        @ZoomField(name = "id", converter = classOf[UUIDUtil.Converter])
+        @ZoomField(name = "id")
         val id: JUUID = null
         @ZoomField(name = "name")
         val name: String = null

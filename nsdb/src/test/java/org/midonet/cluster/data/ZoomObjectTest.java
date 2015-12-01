@@ -233,7 +233,7 @@ public class ZoomObjectTest {
     @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
     @ZoomClass(clazz = TestModels.FakeDevice.class)
     static class Device extends ZoomObject {
-        @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+        @ZoomField(name = "id")
         private UUID id;
         @ZoomField(name = "name")
         private String name;
@@ -247,7 +247,7 @@ public class ZoomObjectTest {
         public final List<String> portIds;
         @Zoom
         private DeviceWithConstructor(
-            @ZoomField(name = "id", converter = UUIDUtil.Converter.class) UUID id,
+            @ZoomField(name = "id") UUID id,
             @ZoomField(name = "name") String name,
             @ZoomField(name = "port_ids") List<String> portIds) {
             this.id = id;
@@ -336,11 +336,11 @@ public class ZoomObjectTest {
         @ZoomField(name = "bool_list")
         private List<Boolean> boolList;
 
-        @ZoomField(name = "uuid_field", converter = UUIDUtil.Converter.class)
+        @ZoomField(name = "uuid_field")
         private java.util.UUID uuidField;
-        @ZoomField(name = "uuid_array", converter = UUIDUtil.Converter.class)
+        @ZoomField(name = "uuid_array")
         private java.util.UUID[] uuidArray;
-        @ZoomField(name = "uuid_list", converter = UUIDUtil.Converter.class)
+        @ZoomField(name = "uuid_list")
         private List<java.util.UUID> uuidList;
 
         @ZoomField(name = "device_field")

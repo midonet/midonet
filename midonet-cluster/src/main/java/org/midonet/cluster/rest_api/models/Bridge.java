@@ -27,7 +27,6 @@ import com.google.common.base.MoreObjects;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 
 import static org.midonet.cluster.rest_api.ResourceUris.ARP_TABLE;
 import static org.midonet.cluster.rest_api.ResourceUris.BRIDGES;
@@ -45,7 +44,7 @@ public class Bridge extends UriResource {
     public static final int MIN_BRIDGE_NAME_LEN = 0;
     public static final int MAX_BRIDGE_NAME_LEN = 255;
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "tenant_id")
@@ -58,35 +57,35 @@ public class Bridge extends UriResource {
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
 
-    @ZoomField(name = "inbound_filter_id", converter = Converter.class)
+    @ZoomField(name = "inbound_filter_id")
     public UUID inboundFilterId;
 
-    @ZoomField(name = "outbound_filter_id", converter = Converter.class)
+    @ZoomField(name = "outbound_filter_id")
     public UUID outboundFilterId;
 
-    @ZoomField(name = "vxlan_port_ids", converter = Converter.class)
+    @ZoomField(name = "vxlan_port_ids")
     public List<UUID> vxLanPortIds;
 
     @JsonIgnore
-    @ZoomField(name = "port_ids", converter = Converter.class)
+    @ZoomField(name = "port_ids")
     public List<UUID> portIds;
 
     @JsonIgnore
-    @ZoomField(name = "dhcp_ids", converter = Converter.class)
+    @ZoomField(name = "dhcp_ids")
     public List<UUID> dhcpIds;
 
     @JsonIgnore
-    @ZoomField(name = "dhcpv6_ids", converter = Converter.class)
+    @ZoomField(name = "dhcpv6_ids")
     public List<UUID> dhcpv6Ids;
 
     @JsonIgnore
-    @ZoomField(name = "trace_request_ids", converter = Converter.class)
+    @ZoomField(name = "trace_request_ids")
     public List<UUID> traceRequestIds;
 
-    @ZoomField(name = "inbound_mirror_ids", converter = Converter.class)
+    @ZoomField(name = "inbound_mirror_ids")
     public List<UUID> inboundMirrorIds;
 
-    @ZoomField(name = "outbound_mirror_ids", converter = Converter.class)
+    @ZoomField(name = "outbound_mirror_ids")
     public List<UUID> outboundMirrorIds;
 
     public Bridge() {

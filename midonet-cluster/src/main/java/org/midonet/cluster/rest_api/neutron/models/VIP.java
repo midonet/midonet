@@ -26,7 +26,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 
 @ZoomClass(clazz = Neutron.NeutronVIP.class)
 public class VIP extends ZoomObject {
@@ -45,18 +44,18 @@ public class VIP extends ZoomObject {
     @ZoomField(name = "description")
     public String description;
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "name")
     public String name;
 
     @JsonProperty("pool_id")
-    @ZoomField(name = "pool_id", converter = Converter.class)
+    @ZoomField(name = "pool_id")
     public UUID poolId;
 
     @JsonProperty("port_id")
-    @ZoomField(name = "port_id", converter = Converter.class)
+    @ZoomField(name = "port_id")
     public UUID portId;
 
     @ZoomField(name = "protocol")
@@ -78,7 +77,7 @@ public class VIP extends ZoomObject {
     public String statusDescription;
 
     @JsonProperty("subnet_id")
-    @ZoomField(name = "subnet_id", converter = Converter.class)
+    @ZoomField(name = "subnet_id")
     public UUID subnetId;
 
     @JsonProperty("tenant_id")

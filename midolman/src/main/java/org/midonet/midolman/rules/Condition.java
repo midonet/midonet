@@ -26,7 +26,6 @@ import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.MACUtil;
 import org.midonet.cluster.util.RangeUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.nsdb.BaseConfig;
@@ -46,23 +45,23 @@ public class Condition extends BaseConfig {
     public boolean matchForwardFlow;
     @ZoomField(name = "match_return_flow")
     public boolean matchReturnFlow;
-    @ZoomField(name = "in_port_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "in_port_ids")
     public Set<UUID> inPortIds;
     @ZoomField(name = "in_port_inv")
     public boolean inPortInv;
-    @ZoomField(name = "out_port_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "out_port_ids")
     public Set<UUID> outPortIds;
     @ZoomField(name = "out_port_inv")
     public boolean outPortInv;
-    @ZoomField(name = "port_group_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_group_id")
     public UUID portGroup;
     @ZoomField(name = "inv_port_group")
     public boolean invPortGroup;
-    @ZoomField(name = "ip_addr_group_id_src", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "ip_addr_group_id_src")
     public UUID ipAddrGroupIdSrc;
     @ZoomField(name = "inv_ip_addr_group_id_src")
     public boolean invIpAddrGroupIdSrc;
-    @ZoomField(name = "ip_addr_group_id_dst", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "ip_addr_group_id_dst")
     public UUID ipAddrGroupIdDst;
     @ZoomField(name = "inv_ip_addr_group_id_dst")
     public boolean invIpAddrGroupIdDst;
@@ -106,7 +105,7 @@ public class Condition extends BaseConfig {
     public boolean tpSrcInv;
     @ZoomField(name = "tp_dst_inv")
     public boolean tpDstInv;
-    @ZoomField(name = "traversed_device", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "traversed_device")
     public UUID traversedDevice;
     @ZoomField(name = "traversed_device_inv")
     public boolean traversedDeviceInv;

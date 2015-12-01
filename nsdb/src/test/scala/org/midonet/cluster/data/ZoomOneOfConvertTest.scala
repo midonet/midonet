@@ -27,7 +27,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.ZoomConvert.Factory
 import org.midonet.cluster.data.ZoomOneOfConvertTest._
 import org.midonet.cluster.models.TestModels._
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
+import org.midonet.cluster.util.UUIDUtil._
 
 @RunWith(classOf[JUnitRunner])
 class ZoomOneOfConvertTest extends FeatureSpec with Matchers {
@@ -204,7 +204,7 @@ object ZoomOneOfConvertTest {
 
     @ZoomClass(clazz = classOf[FakeDevice])
     class Device extends ZoomObject with Matchers {
-        @ZoomField(name = "id", converter = classOf[UUIDConverter])
+        @ZoomField(name = "id")
         var id: UUID = _
         @ZoomField(name = "name")
         var name: String = _
@@ -222,7 +222,7 @@ object ZoomOneOfConvertTest {
 
     @ZoomClass(clazz = classOf[TestOneOfMessage], factory = classOf[BaseFactory])
     abstract class Base extends ZoomObject with Matchers {
-        @ZoomField(name = "id", converter = classOf[UUIDConverter])
+        @ZoomField(name = "id")
         var id: UUID = _
         @ZoomField(name = "name")
         var name: String = _
@@ -241,7 +241,7 @@ object ZoomOneOfConvertTest {
 
     @ZoomOneOf(name = "first")
     abstract class FirstAbstract extends Base {
-        @ZoomField(name = "first_id", converter = classOf[UUIDConverter])
+        @ZoomField(name = "first_id")
         var firstId: UUID = _
 
         override def shouldEqual(message: TestOneOfMessage): Unit = {
@@ -265,7 +265,7 @@ object ZoomOneOfConvertTest {
 
     @ZoomOneOf(name = "second")
     class Second extends Base {
-        @ZoomField(name = "second_id", converter = classOf[UUIDConverter])
+        @ZoomField(name = "second_id")
         var secondId: UUID = _
         @ZoomField(name = "second_name")
         var secondName: String = _
@@ -282,7 +282,7 @@ object ZoomOneOfConvertTest {
 
     @ZoomOneOf(name = "third")
     abstract class Third extends Base {
-        @ZoomField(name = "third_id", converter = classOf[UUIDConverter])
+        @ZoomField(name = "third_id")
         var thirdId: UUID = _
         @ZoomField(name = "third_name")
         var thirdName: String = _
@@ -299,7 +299,7 @@ object ZoomOneOfConvertTest {
 
     @ZoomOneOf(name = "alpha")
     class ThirdAlpha extends Third {
-        @ZoomField(name = "alpha_id", converter = classOf[UUIDConverter])
+        @ZoomField(name = "alpha_id")
         var alphaId: UUID = _
         @ZoomField(name = "alpha_name")
         var alphaName: String = _
@@ -316,7 +316,7 @@ object ZoomOneOfConvertTest {
 
     @ZoomOneOf(name = "beta")
     class ThirdBeta extends Third {
-        @ZoomField(name = "beta_id", converter = classOf[UUIDConverter])
+        @ZoomField(name = "beta_id")
         var betaId: UUID = _
         @ZoomField(name = "beta_name")
         var betaName: String = _

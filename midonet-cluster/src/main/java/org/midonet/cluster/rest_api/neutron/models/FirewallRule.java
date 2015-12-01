@@ -31,7 +31,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.IPSubnetUtil;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 
 
 @ZoomClass(clazz = Neutron.NeutronFirewallRule.class)
@@ -91,7 +90,7 @@ public class FirewallRule extends ZoomObject
         this.enabled = enabled;
     }
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @JsonProperty("tenant_id")
@@ -105,7 +104,7 @@ public class FirewallRule extends ZoomObject
     public String description;
 
     @JsonProperty("firewall_policy_id")
-    @ZoomField(name = "firewall_policy_id", converter = Converter.class)
+    @ZoomField(name = "firewall_policy_id")
     public UUID firewallPolicyId;
 
     @ZoomField(name = "shared")

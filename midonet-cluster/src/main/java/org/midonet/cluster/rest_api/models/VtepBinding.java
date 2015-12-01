@@ -23,14 +23,12 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.Vtep.Binding.class)
 public class VtepBinding extends UriResource {
@@ -47,7 +45,7 @@ public class VtepBinding extends UriResource {
     public short vlanId;
 
     @NotNull
-    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "network_id")
     public UUID networkId;
 
     @Override

@@ -30,12 +30,10 @@ import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.models.State;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4;
 
 @ZoomClass(clazz = Topology.Vtep.class)
@@ -46,7 +44,7 @@ public class Vtep extends UriResource {
         failed, error
     }
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @NotNull
@@ -59,7 +57,7 @@ public class Vtep extends UriResource {
     @ZoomField(name = "management_port")
     public int managementPort;
 
-    @ZoomField(name = "tunnel_zone_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "tunnel_zone_id")
     public UUID tunnelZoneId;
 
     @JsonIgnore

@@ -55,7 +55,7 @@ public abstract class Rule extends BaseConfig {
 
     @ZoomField(name = "action")
     public Action action;
-    @ZoomField(name = "chain_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "chain_id")
     public UUID chainId;
 
     @JsonIgnore
