@@ -34,6 +34,24 @@
       "revId": "cf836137505a72ba90e4bc0a5eb1f6851a2423aa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1820c048",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-01T13:30:52Z",
+      "side": 1,
+      "message": "actually, don\u0027t worry about it. I think we can pull from the vpn service object.",
+      "parentUuid": "5ac4a560_78bb740e",
+      "revId": "cf836137505a72ba90e4bc0a5eb1f6851a2423aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
