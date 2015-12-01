@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_22b0eb8a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-01T10:37:02Z",
+      "side": 1,
+      "message": "surely first is redundant here, since the old binding didn\u0027t have a container.",
+      "revId": "f9d17924c2f50ca0b01224c7b456099e8fdf2244",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2289cbca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-01T10:37:02Z",
+      "side": 1,
+      "message": "i don\u0027t see what the point of this final map is.",
+      "range": {
+        "startLine": 374,
+        "startChar": 17,
+        "endLine": 374,
+        "endChar": 27
+      },
+      "revId": "f9d17924c2f50ca0b01224c7b456099e8fdf2244",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_62fca33f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-01T10:37:02Z",
+      "side": 1,
+      "message": "this could race with assignment of hostSubscription in the other thread, so that subscription !\u003d hostSubscription.",
+      "revId": "f9d17924c2f50ca0b01224c7b456099e8fdf2244",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
