@@ -31,6 +31,9 @@ public class IPSecSiteConnection {
     @ZoomField(name = "peer_cidrs")
     public List<IPSubnet> peerCidrs;
 
+    @ZoomField(name = "local_cidrs")
+    public List<IPSubnet> localCidrs;
+
     @ZoomField(name = "route_mode")
     public RouteMode routeMode;
 

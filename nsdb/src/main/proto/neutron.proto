@@ -367,21 +367,21 @@ message IPSecSiteConnection {
     optional string name = 3;
     optional string peer_address = 4;
     optional string peer_id = 5;
-    repeated IPSubnet peer_cidrs = 6;
-    optional RouteMode route_mode = 7;
-    optional uint32 mtu = 8;
-    optional Initiator initiator = 9;
-    optional AuthMode auth_mode = 10;
-    optional string psk = 11;
-    optional bool admin_state_up = 12;
-    optional Status status = 13;
-
-    optional DpdAction dpd_action = 14;
-    optional uint32 dpd_interval = 15;
-    optional uint32 dpd_timeout = 16;
-    optional UUID vpn_service_id = 17;
-    optional UUID ike_policy_id = 18;
-    optional UUID ipsec_policy_id = 19;
+    repeated IPSubnet local_cidrs = 6;
+    repeated IPSubnet peer_cidrs = 7;
+    optional RouteMode route_mode = 8;
+    optional uint32 mtu = 9;
+    optional Initiator initiator = 10;
+    optional AuthMode auth_mode = 11;
+    optional string psk = 12;
+    optional bool admin_state_up = 13;
+    optional Status status = 14;
+    optional DpdAction dpd_action = 15;
+    optional uint32 dpd_interval = 16;
+    optional uint32 dpd_timeout = 17;
+    optional UUID vpn_service_id = 18;
+    optional UUID ike_policy_id = 19;
+    optional UUID ipsec_policy_id = 20;
 
     enum Status {
         ACTIVE = 1;
