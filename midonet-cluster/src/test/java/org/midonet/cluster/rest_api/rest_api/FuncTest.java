@@ -17,8 +17,12 @@ package org.midonet.cluster.rest_api.rest_api;
 
 import java.net.URI;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 
 import javax.servlet.ServletContextEvent;
+
+import scala.concurrent.ExecutionContext;
+import scala.concurrent.ExecutionContext$;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +53,7 @@ import org.midonet.cluster.services.rest_api.Vladimir;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.southbound.vtep.MockOvsdbVtepConnectionProvider;
 import org.midonet.southbound.vtep.OvsdbVtepConnectionProvider;
+import org.midonet.util.concurrent.NamedThreadFactory;
 
 import static org.apache.curator.framework.CuratorFrameworkFactory.newClient;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -143,9 +148,13 @@ public class FuncTest {
                                           null /* metricRegistry */);
             backend.startAsync().awaitRunning();
 
+            ExecutionContext ec = ExecutionContext$.MODULE$.fromExecutor(
+                Executors.newCachedThreadPool(
+                    new NamedThreadFactory("rest-api", true)));
+
             FuncTest._injector = Guice.createInjector(
                 Vladimir.servletModule(
-                    backend, curator, cfg, authService,
+                    backend, ec, curator, cfg, authService,
                     Logger.apply(getLogger(getClass()))),
                 new AbstractModule() {
                     @Override
