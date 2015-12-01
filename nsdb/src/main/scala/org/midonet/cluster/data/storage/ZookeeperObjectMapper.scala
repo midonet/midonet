@@ -34,7 +34,6 @@ import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.{Message, TextFormat}
-import com.lmax.disruptor.util.DaemonThreadFactory
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
@@ -53,6 +52,7 @@ import org.midonet.cluster.data.storage.CuratorUtil._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException}
+import org.midonet.util.concurrent.NamedThreadFactory
 import org.midonet.util.functors.makeFunc1
 
 /**
@@ -116,7 +116,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     private[storage] val locksPath = basePath + s"/zoomlocks/lock"
     private[storage] val modelPath = basePath + s"/models"
 
-    private val executor = newSingleThreadExecutor(DaemonThreadFactory.INSTANCE)
+    private val executor = newSingleThreadExecutor(
+        new NamedThreadFactory("zoom", isDaemon = true))
     private implicit val executionContext = fromExecutorService(executor)
 
     private val simpleNameToClass = new mutable.HashMap[String, Class[_]]()
