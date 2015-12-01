@@ -29,7 +29,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 
 @ZoomClass(clazz = Neutron.NeutronHealthMonitor.class)
 public class HealthMonitor extends ZoomObject {
@@ -56,7 +55,7 @@ public class HealthMonitor extends ZoomObject {
     @ZoomField(name = "delay")
     public int delay;
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @JsonProperty("max_retries")
@@ -158,7 +157,7 @@ public class HealthMonitor extends ZoomObject {
     public static class HealthMonitorPool extends ZoomObject {
 
         @JsonProperty("pool_id")
-        @ZoomField(name = "pool_id", converter = Converter.class)
+        @ZoomField(name = "pool_id")
         public UUID poolId;
 
         @ZoomField(name = "status")

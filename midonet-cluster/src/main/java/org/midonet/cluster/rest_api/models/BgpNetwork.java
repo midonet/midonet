@@ -33,14 +33,13 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPSubnetUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 
 @ZoomClass(clazz = Topology.BgpNetwork.class)
 public class BgpNetwork extends UriResource {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @JsonIgnore
@@ -48,7 +47,7 @@ public class BgpNetwork extends UriResource {
     public IPSubnet<?> subnet;
 
     @JsonIgnore
-    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_id")
     public UUID routerId;
 
     @NotNull

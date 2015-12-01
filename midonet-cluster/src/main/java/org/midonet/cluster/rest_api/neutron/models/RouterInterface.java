@@ -25,7 +25,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 
 @ZoomClass(clazz = Neutron.NeutronRouterInterface.class)
 public class RouterInterface extends ZoomObject {
@@ -40,7 +39,7 @@ public class RouterInterface extends ZoomObject {
         this.subnetId = subnetId;
     }
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @JsonProperty("tenant_id")
@@ -48,11 +47,11 @@ public class RouterInterface extends ZoomObject {
     public String tenantId;
 
     @JsonProperty("port_id")
-    @ZoomField(name = "port_id", converter = Converter.class)
+    @ZoomField(name = "port_id")
     public UUID portId;
 
     @JsonProperty("subnet_id")
-    @ZoomField(name = "subnet_id", converter = Converter.class)
+    @ZoomField(name = "subnet_id")
     public UUID subnetId;
 
     @Override

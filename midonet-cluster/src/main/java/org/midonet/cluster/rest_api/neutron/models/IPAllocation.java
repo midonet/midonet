@@ -27,7 +27,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Addr;
@@ -48,7 +47,7 @@ public class IPAllocation extends ZoomObject {
     public String ipAddress;
 
     @JsonProperty("subnet_id")
-    @ZoomField(name = "subnet_id", converter = Converter.class)
+    @ZoomField(name = "subnet_id")
     public UUID subnetId;
 
     @Override

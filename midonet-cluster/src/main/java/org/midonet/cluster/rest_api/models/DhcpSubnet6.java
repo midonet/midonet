@@ -35,7 +35,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPSubnetUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv6;
 import org.midonet.packets.IPv6Addr;
@@ -45,7 +44,7 @@ import org.midonet.packets.IPv6Subnet;
 public class DhcpSubnet6 extends UriResource {
 
     @JsonIgnore
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @NotNull
@@ -57,7 +56,7 @@ public class DhcpSubnet6 extends UriResource {
     public int prefixLength;
 
     @JsonIgnore
-    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "network_id")
     public UUID bridgeId;
 
     @JsonIgnore

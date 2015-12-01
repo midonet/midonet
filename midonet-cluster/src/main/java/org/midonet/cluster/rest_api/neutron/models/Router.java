@@ -30,7 +30,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.collection.ListUtil;
 
 @ZoomClass(clazz = Neutron.NeutronRouter.class)
@@ -50,7 +49,7 @@ public class Router extends ZoomObject {
         this.routes = routes;
     }
 
-    @ZoomField(name = "id",converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "name")
@@ -68,7 +67,7 @@ public class Router extends ZoomObject {
     public boolean adminStateUp;
 
     @JsonProperty("gw_port_id")
-    @ZoomField(name = "gw_port_id", converter = Converter.class)
+    @ZoomField(name = "gw_port_id")
     public UUID gwPortId;
 
     @JsonProperty("external_gateway_info")

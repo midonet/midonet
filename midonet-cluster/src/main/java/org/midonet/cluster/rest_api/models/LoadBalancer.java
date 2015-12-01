@@ -29,22 +29,21 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.LoadBalancer.class)
 public class LoadBalancer extends UriResource {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
-    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_id")
     public UUID routerId;
 
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp = true;
 
     @JsonIgnore
-    @ZoomField(name = "pool_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "pool_ids")
     public List<UUID> poolIds;
 
     public URI getUri() {

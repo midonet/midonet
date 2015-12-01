@@ -31,7 +31,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.collection.ListUtil;
 
 @ZoomClass(clazz = Neutron.NeutronLoadBalancerPool.class)
@@ -60,17 +59,17 @@ public class Pool extends ZoomObject {
     public String description;
 
     @JsonProperty("health_monitors")
-    @ZoomField(name = "health_monitors", converter = Converter.class)
+    @ZoomField(name = "health_monitors")
     public List<UUID> healthMonitors;
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @JsonProperty("lb_method")
     @ZoomField(name = "lb_method")
     public String lbMethod;
 
-    @ZoomField(name = "members", converter = Converter.class)
+    @ZoomField(name = "members")
     public List<UUID> members;
 
     @ZoomField(name = "name")
@@ -83,7 +82,7 @@ public class Pool extends ZoomObject {
     public String provider;
 
     @JsonProperty("router_id")
-    @ZoomField(name = "router_id", converter = Converter.class)
+    @ZoomField(name = "router_id")
     public UUID routerId;
 
     @ZoomField(name = "status")
@@ -94,7 +93,7 @@ public class Pool extends ZoomObject {
     public String statusDescription;
 
     @JsonProperty("subnet_id")
-    @ZoomField(name = "subnet_id", converter = Converter.class)
+    @ZoomField(name = "subnet_id")
     public UUID subnetId;
 
     @JsonProperty("tenant_id")
@@ -102,7 +101,7 @@ public class Pool extends ZoomObject {
     public String tenantId;
 
     @JsonProperty("vip_id")
-    @ZoomField(name = "vip_id", converter = Converter.class)
+    @ZoomField(name = "vip_id")
     public UUID vipId;
 
 

@@ -30,7 +30,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.collection.ListUtil;
 
 @ZoomClass(clazz = Neutron.SecurityGroup.class)
@@ -47,7 +46,7 @@ public class SecurityGroup extends ZoomObject {
         this.securityGroupRules = rules;
     }
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "name")

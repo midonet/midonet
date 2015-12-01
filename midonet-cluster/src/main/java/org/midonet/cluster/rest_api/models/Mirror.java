@@ -28,43 +28,42 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.Mirror.class)
 public class Mirror extends UriResource {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @NotNull
-    @ZoomField(name = "to_port_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "to_port_id")
     public UUID toPortId;
 
     @ZoomField(name = "conditions")
     public List<Condition> conditions;
 
     @JsonIgnore
-    @ZoomField(name = "network_inbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "network_inbound_ids")
     public List<UUID> networkInboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "network_outbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "network_outbound_ids")
     public List<UUID> networkOutboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "router_inbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_inbound_ids")
     public List<UUID> routerInboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "router_outbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_outbound_ids")
     public List<UUID> routerOutboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "port_inbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_inbound_ids")
     public List<UUID> portInboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "port_outbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_outbound_ids")
     public List<UUID> portOutboundIds;
 
     @Override

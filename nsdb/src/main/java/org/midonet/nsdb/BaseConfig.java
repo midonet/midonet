@@ -25,6 +25,6 @@ import org.midonet.cluster.util.UUIDUtil;
 
 public abstract class BaseConfig extends ZoomObject {
     @JsonIgnore
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public transient UUID id = null;
 }

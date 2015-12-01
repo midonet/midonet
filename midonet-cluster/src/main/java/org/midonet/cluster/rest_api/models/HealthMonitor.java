@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
@@ -29,14 +28,13 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.state.l4lb.HealthMonitorType;
 import org.midonet.midolman.state.l4lb.LBStatus;
 
 @ZoomClass(clazz = Topology.HealthMonitor.class)
 public class HealthMonitor extends UriResource {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "admin_state_up")
@@ -60,7 +58,7 @@ public class HealthMonitor extends UriResource {
     public int maxRetries;
 
     @JsonIgnore
-    @ZoomField(name = "pool_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "pool_ids")
     public List<Pool> poolIds;
 
     public URI getUri() {

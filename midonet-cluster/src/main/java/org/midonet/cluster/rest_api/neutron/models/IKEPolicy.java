@@ -8,7 +8,6 @@ import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = org.midonet.cluster.models.Neutron.IKEPolicy.class)
 public class IKEPolicy {
@@ -20,7 +19,7 @@ public class IKEPolicy {
         @ZoomEnumValue("MAIN") MAIN
     };
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "tenant_id")

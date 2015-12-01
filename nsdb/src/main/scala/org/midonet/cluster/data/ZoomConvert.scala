@@ -17,7 +17,7 @@ package org.midonet.cluster.data
 
 import java.lang.reflect.{Array => JArray, _}
 import java.lang.{Byte => JByte}
-import java.util.{ArrayList => JArrayList, HashSet => JHashSet, List => JList, Set => JSet}
+import java.util.{ArrayList => JArrayList, HashSet => JHashSet, List => JList, Set => JSet, UUID}
 
 import scala.annotation.meta.{field, param}
 import scala.collection.JavaConversions._
@@ -27,6 +27,9 @@ import com.google.common.base.Defaults
 import com.google.protobuf.Descriptors.{EnumDescriptor, EnumValueDescriptor}
 import com.google.protobuf.GeneratedMessage.Builder
 import com.google.protobuf.{ByteString, Descriptors, Message}
+
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.util.UUIDUtil
 
 /**
  * Converts Java objects to/from Protocol Buffers messages. The class converts
@@ -49,6 +52,7 @@ object ZoomConvert {
     private final val JByteClass = classOf[JByte]
     private final val ShortClass = classOf[Short]
     private final val ByteArrayClass = classOf[Array[Byte]]
+    private final val UuidClass = classOf[UUID]
 
     private type ProtoBuilder = Builder[_ <: Builder[_ <: AnyRef]]
 
@@ -595,6 +599,7 @@ object ZoomConvert {
      * The default converter between Java objects and Protocol Buffer messages.
      * The class provides conversion for the following types:
      * - primitive Java types: byte, short, int, long
+     * - UUID
      * - enumeration types that are annotated with ZoomEnum and ZoomEnumValue
      * - string
      * - list of primitive types and strings
@@ -606,6 +611,7 @@ object ZoomConvert {
             case ShortClass => pojoValue.asInstanceOf[Short].toInt
             case ByteArrayClass =>
                 ByteString.copyFrom(pojoValue.asInstanceOf[Array[Byte]])
+            case UuidClass => UUIDUtil.toProto(pojoValue.asInstanceOf[UUID])
             case enumClass: Class[_] if enumClass.isEnum =>
                 val protoEnum =
                     enumClass.getAnnotation(classOf[ZoomEnum]) match {
@@ -649,6 +655,7 @@ object ZoomConvert {
             case JByteClass => protoValue.asInstanceOf[Integer].toByte
             case ShortClass => protoValue.asInstanceOf[Int].toShort
             case ByteArrayClass => protoValue.asInstanceOf[ByteString].toByteArray
+            case UuidClass => UUIDUtil.fromProto(protoValue.asInstanceOf[Commons.UUID])
             case enumClass: Class[_] if enumClass.isEnum =>
                 val protoEnum =
                     enumClass.getAnnotation(classOf[ZoomEnum]) match {

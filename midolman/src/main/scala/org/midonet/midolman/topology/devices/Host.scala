@@ -20,7 +20,6 @@ import java.util.{Objects, UUID}
 
 import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.packets.IPAddr
 
@@ -47,11 +46,11 @@ class Host extends ZoomObject with Device {
         this.alive = alive
     }
 
-    @ZoomField(name = "id", converter = classOf[UUIDConverter])
+    @ZoomField(name = "id")
     var id: UUID = _
-    @ZoomField(name = "port_ids", converter = classOf[UUIDConverter])
+    @ZoomField(name = "port_ids")
     var portIds = Set.empty[UUID]
-    @ZoomField(name = "tunnel_zone_ids", converter = classOf[UUIDConverter])
+    @ZoomField(name = "tunnel_zone_ids")
     var tunnelZoneIds = Set.empty[UUID]
 
     // To be filled by the HostMapper.
@@ -82,6 +81,6 @@ class Host extends ZoomObject with Device {
     }
 
     override def hashCode: Int =
-        Objects.hashCode(alive, id, portIds, portBindings,
-                         tunnelZoneIds, tunnelZones)
+        Objects.hash(id, portIds, portBindings,
+                     tunnelZoneIds, tunnelZones)
 }

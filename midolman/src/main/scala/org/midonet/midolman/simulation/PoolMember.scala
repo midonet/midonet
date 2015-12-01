@@ -19,7 +19,6 @@ package org.midonet.midolman.simulation
 import java.util.{Objects, UUID}
 
 import org.midonet.cluster.data.{Zoom, ZoomField, ZoomObject}
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
 import org.midonet.midolman.rules._
 import org.midonet.midolman.state.l4lb.LBStatus
@@ -33,8 +32,7 @@ import org.midonet.util.collection.HasWeight
  *        all of its pool's members. A pool member with zero weight is
  *        considered down.
  */
-final class PoolMember @Zoom()(@ZoomField(name = "id",
-                                          converter = classOf[UUIDConverter])
+final class PoolMember @Zoom()(@ZoomField(name = "id")
                                val id: UUID,
                                @ZoomField(name = "admin_state_up")
                                val adminStateUp: Boolean,

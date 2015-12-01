@@ -21,7 +21,7 @@ import java.util.{Objects, UUID}
 import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, MapConverter}
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.TunnelZone.HostIpConverter
@@ -54,7 +54,7 @@ object TunnelZone {
 @ZoomClass(clazz = classOf[Topology.TunnelZone])
 class TunnelZone extends ZoomObject with Device {
 
-    @ZoomField(name = "id", converter = classOf[UUIDConverter])
+    @ZoomField(name = "id")
     var id: UUID = _
     @ZoomField(name = "name")
     var name: String = _
@@ -74,5 +74,5 @@ class TunnelZone extends ZoomObject with Device {
         case _ => false
     }
 
-    override def hashCode: Int = Objects.hashCode(id, name, zoneType, hosts)
+    override def hashCode: Int = Objects.hash(id, name, zoneType, hosts)
 }
