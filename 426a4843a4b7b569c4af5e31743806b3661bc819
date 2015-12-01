@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_ce04c380",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-01T06:34:30Z",
+      "side": 1,
+      "message": "Doesn\u0027t this still need to throw the exception?",
+      "revId": "426a4843a4b7b569c4af5e31743806b3661bc819",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
