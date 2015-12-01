@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_b6d35d37",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-01T18:18:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_4e77d3d4",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 9
+      },
+      "revId": "3d4e76c39f4b3fa40b89f79bd6b98660bda47e73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_8e81eb91",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/HttpRequestChecks.scala",
         "patchSetId": 9
@@ -82,6 +106,30 @@
       "writtenOn": "2015-12-01T07:55:49Z",
       "side": 1,
       "message": "Replace with:\n\n  postAndAssertStatus(dto, typeUri, mediaType, Status.CREATED)",
+      "range": {
+        "startLine": 47,
+        "startChar": 23,
+        "endLine": 50,
+        "endChar": 64
+      },
+      "revId": "3d4e76c39f4b3fa40b89f79bd6b98660bda47e73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d6d8d955",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/HttpRequestChecks.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-01T18:18:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_8e81eb91",
       "range": {
         "startLine": 47,
         "startChar": 23,
@@ -117,6 +165,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_f6ddd543",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/HttpRequestChecks.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-01T18:18:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_ae7ea7ac",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 60
+      },
+      "revId": "3d4e76c39f4b3fa40b89f79bd6b98660bda47e73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_ce4a0383",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 9
@@ -128,6 +200,30 @@
       "writtenOn": "2015-12-01T07:55:49Z",
       "side": 1,
       "message": "Maybe we should use oneof here.",
+      "range": {
+        "startLine": 486,
+        "startChar": 0,
+        "endLine": 488,
+        "endChar": 39
+      },
+      "revId": "3d4e76c39f4b3fa40b89f79bd6b98660bda47e73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_16e33108",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-01T18:18:15Z",
+      "side": 1,
+      "message": "I\u0027m not totally in love with having refs from midonet models to neutron ones.",
+      "parentUuid": "5ac4a560_ce4a0383",
       "range": {
         "startLine": 486,
         "startChar": 0,
