@@ -151,6 +151,15 @@ public abstract class Table<E extends VtepEntry> {
     /** Get the schema of the columns of this table */
     abstract public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas();
 
+    /**
+     * Get the schema of the columns of this table that MUST be present in
+     * the schema in order for us to work with it.  This is so that we can
+     * exclude optional columns from the schema check
+     */
+    public List<ColumnSchema<GenericTableSchema, ?>> getMandatoryColumnSchemas() {
+        return this.getColumnSchemas();
+    }
+
     protected List<ColumnSchema<GenericTableSchema, ?>> partialColumnSchemas() {
         List<ColumnSchema<GenericTableSchema, ?>> cols = new ArrayList<>();
         cols.add(getUuidSchema());
