@@ -27,6 +27,7 @@ import scala.util.{Failure, Success}
 
 import akka.actor._
 import akka.util.Timeout
+import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
@@ -163,7 +164,7 @@ object VirtualToPhysicalMapper extends Referenceable {
         protected[topology]
         def removeTunnelZone(id: UUID) { tunnelZones -= id}
 
-        protected[topology]
+        @VisibleForTesting
         def clear() {
             hosts = Map.empty
             tunnelZones = Map.empty

@@ -162,6 +162,34 @@ class DatapathControllerActorTest extends MidolmanSpec {
         flowInvalidator should invalidate(tag1, tag2)
     }
 
+    scenario("Duplicate tunnelzone ips") {
+        initialize()
+
+        val tunnelZone = greTunnelZone("default")
+        val host2 = newHost("host2")
+        val host3 = newHost("host3")
+
+        val srcIp = IPv4Addr("192.168.100.1")
+        val dstIp1 = IPv4Addr("192.168.125.1")
+
+        addTunnelZoneMember(tunnelZone, hostId, srcIp)
+        addTunnelZoneMember(tunnelZone, host2, dstIp1)
+
+        // The actor is started when the test is, but we
+        // want to test behaviour that occurs when all tunnel zones
+        // are loaded at once. This can be simulated by clearing
+        // the DeviceCaches
+        VirtualToPhysicalMapper.DeviceCaches.clear()
+        addTunnelZoneMember(tunnelZone, host3, dstIp1)
+
+        val output = dpc.driver.asInstanceOf[DatapathStateDriver]
+            .tunnelOverlayGre.toOutputAction
+        val route1 = UnderlayResolver.Route(srcIp.toInt, dstIp1.toInt, output)
+        dpc.driver.peerTunnelInfo(host2) should be (Some(route1))
+        dpc.driver.peerTunnelInfo(host3) should be (Some(route1))
+    }
+
+
     private def initialize(): Unit = {
         DatapathController ! Initialize
         while (scheduler.pop exists { r => r.run(); true }) { }
