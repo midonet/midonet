@@ -52,6 +52,24 @@
       "revId": "426a4843a4b7b569c4af5e31743806b3661bc819",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e258b3fc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-01T09:41:22Z",
+      "side": 1,
+      "message": "Method not allowed (405) is thrown when the annotation doesn\u0027t exist (because that HTTP method isn\u0027t allowed on this resource type). All the methods call getAnnotation(), which throws a 405 if it doesn\u0027t exist.\n\nUnsupported media type (415) is thrown on create or update when the client sends a request with a media type the method cannot process (e.g., trying to post a router to /midonet/bridges).\n\nNot acceptable (406) is thrown by list (and should be thrown by get as well; Galo said he\u0027d fix that) when the caller requests a response with a media type that the method can\u0027t produce (e.g., requesting a router from /midonet/bridges/{ID}).",
+      "parentUuid": "5ac4a560_a24ddb74",
+      "revId": "426a4843a4b7b569c4af5e31743806b3661bc819",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
