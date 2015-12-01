@@ -16,6 +16,24 @@
       "revId": "426a4843a4b7b569c4af5e31743806b3661bc819",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6e5baf54",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-01T07:58:07Z",
+      "side": 1,
+      "message": "see inside getAnnotation",
+      "parentUuid": "5ac4a560_ce04c380",
+      "revId": "426a4843a4b7b569c4af5e31743806b3661bc819",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
