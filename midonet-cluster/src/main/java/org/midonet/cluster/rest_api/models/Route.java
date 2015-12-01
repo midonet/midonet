@@ -47,9 +47,6 @@ import org.midonet.packets.IPv4Addr;
 @ZoomClass(clazz = Topology.Route.class)
 public class Route extends UriResource {
 
-    private static final UUID NO_ID =
-        new UUID(0xffffffffffffffffL, 0xffffffffffffffffL);
-
     @ZoomEnum(clazz = Topology.Route.NextHop.class)
     public enum NextHop {
         @ZoomEnumValue(value = "PORT")Normal,
@@ -185,7 +182,7 @@ public class Route extends UriResource {
 
     public static Route fromLearned(org.midonet.midolman.layer3.Route from) {
         Route route = new Route();
-        route.id = NO_ID;
+        route.id = idOf(from);
         route.dstNetworkAddr = IPv4Addr.apply(from.dstNetworkAddr).toString();
         route.dstNetworkLength = from.dstNetworkLength;
         route.srcNetworkAddr = IPv4Addr.apply(from.srcNetworkAddr).toString();
@@ -196,7 +193,23 @@ public class Route extends UriResource {
         route.nextHopPort = from.nextHopPort;
         route.type = NextHop.Normal;
         route.learned = true;
+
         return route;
+    }
+
+    public static UUID idOf(org.midonet.midolman.layer3.Route route) {
+        long msb = (((long)route.dstNetworkAddr) << 32) | route.srcNetworkAddr;
+        long lsb = (((long)route.nextHopGateway) << 32) |
+                   ((route.dstNetworkLength & 0xFF) << 24) |
+                   ((route.srcNetworkLength & 0xFF) << 16) |
+                   route.weight;
+
+        msb = msb ^ route.nextHopPort.getMostSignificantBits() ^
+              route.routerId.getMostSignificantBits();
+        lsb = lsb ^ route.nextHopPort.getLeastSignificantBits() ^
+              route.routerId.getLeastSignificantBits();
+
+        return new UUID(msb, lsb);
     }
 
     @Override

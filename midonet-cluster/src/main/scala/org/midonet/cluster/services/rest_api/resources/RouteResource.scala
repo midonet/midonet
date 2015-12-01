@@ -19,7 +19,7 @@ package org.midonet.cluster.services.rest_api.resources
 import java.util.{List => JList, UUID}
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.{Path, GET, HeaderParam, Produces}
+import javax.ws.rs._
 
 import scala.collection.JavaConverters._
 
@@ -125,13 +125,13 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
         }
     }
 
-    private def getLearnedRoutes(port: Port): Seq[Route] = {
+    protected def getLearnedRoutes(port: Port): Seq[Route] = {
         resContext.backend.stateStore.getPortRoutes(port.id, port.hostId)
             .map[Seq[Route]](makeFunc1(_.map(route => {
-                val r = Route.fromLearned(route)
-                r.setBaseUri(resContext.uriInfo.getBaseUri)
-                r
-            }).toSeq)).asFuture.getOrThrow
+            val r = Route.fromLearned(route)
+            r.setBaseUri(resContext.uriInfo.getBaseUri)
+            r
+        }).toSeq)).asFuture.getOrThrow
     }
 
 }
