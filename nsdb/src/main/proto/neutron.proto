@@ -373,13 +373,15 @@ message IPSecSiteConnection {
     optional Initiator initiator = 9;
     optional AuthMode auth_mode = 10;
     optional string psk = 11;
-    repeated string actions = 12; // [(actions, interval, timeout)]*
-    optional bool admin_state_up = 13;
-    optional Status status = 14;
+    optional bool admin_state_up = 12;
+    optional Status status = 13;
 
-    optional UUID vpn_service_id = 15;
-    optional UUID ike_policy_id = 16;
-    optional UUID ipsec_policy_id = 17;
+    optional string dpd_action = 14;
+    optional uint32 dpd_interval = 15;
+    optional uint32 dpd_timeout = 16;
+    optional UUID vpn_service_id = 17;
+    optional UUID ike_policy_id = 18;
+    optional UUID ipsec_policy_id = 19;
 
     enum Status {
         ACTIVE = 1;

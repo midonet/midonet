@@ -56,6 +56,15 @@ public class IPSecSiteConnection {
     @ZoomField(name = "status")
     public Status status;
 
+    @ZoomField(name = "dpd_action")
+    public String dpdAction;
+
+    @ZoomField(name = "dpd_interval")
+    public Integer dpdInterval;
+
+    @ZoomField(name = "dpd_timeout")
+    public Integer dpdTimeout;
+
     @ZoomField(name = "vpn_service_id", converter = UUIDUtil.Converter.class)
     public UUID vpnServiceId;
 
