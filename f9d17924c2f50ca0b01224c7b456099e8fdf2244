@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_5610494e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-01T17:29:42Z",
+      "side": 1,
+      "message": "ah, i didn\u0027t see where first was defined. I assumed it was some state in the outer class. this makes sense now. ignore the comment.",
+      "parentUuid": "5ac4a560_252555c2",
+      "revId": "f9d17924c2f50ca0b01224c7b456099e8fdf2244",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_2289cbca",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
         "patchSetId": 2
@@ -113,6 +131,24 @@
       "side": 1,
       "message": "writes to hostSubscription are always done on the VT thread. did  I miss one?",
       "parentUuid": "5ac4a560_62fca33f",
+      "revId": "f9d17924c2f50ca0b01224c7b456099e8fdf2244",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b6ffdd00",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-01T17:29:42Z",
+      "side": 1,
+      "message": "so everywhere you have the pattern:\nval subscription \u003d hostSubscription\nif (subscription ne null) {\n    ...\n    hostSubscription \u003d null\n},\nthis occurs in the vt thread? If that\u0027s the case, whats the pattern for? can\u0027t  you just work directly on hostSubscription?",
+      "parentUuid": "5ac4a560_652f4da2",
       "revId": "f9d17924c2f50ca0b01224c7b456099e8fdf2244",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
