@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_6562edd9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerHandlerProvider.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-01T16:55:58Z",
+      "side": 1,
+      "message": "This would be better as org.midonet.midolman.containers\n\nThe container itself isn\u0027t topology.",
+      "revId": "d65610097949d3673e5039bb183752c2c724a1a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
