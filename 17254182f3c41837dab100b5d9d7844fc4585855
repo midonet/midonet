@@ -46,6 +46,29 @@
       "revId": "17254182f3c41837dab100b5d9d7844fc4585855",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_f626b567",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-01T18:23:46Z",
+      "side": 1,
+      "message": "discrimination!",
+      "range": {
+        "startLine": 605,
+        "startChar": 43,
+        "endLine": 605,
+        "endChar": 46
+      },
+      "revId": "17254182f3c41837dab100b5d9d7844fc4585855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
