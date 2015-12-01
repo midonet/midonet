@@ -18,11 +18,13 @@ package org.midonet.cluster.services.rest_api
 
 import java.io.File
 import java.util
+import java.util.concurrent.Executors
 
 import javax.servlet.DispatcherType
 import javax.validation.Validator
 
 import scala.collection.JavaConversions._
+import scala.concurrent.ExecutionContext
 
 import com.google.inject.Guice._
 import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
@@ -53,6 +55,7 @@ import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.midolman.state.PathBuilder
+import org.midonet.util.concurrent.NamedThreadFactory
 
 object Vladimir {
 
@@ -65,8 +68,9 @@ object Vladimir {
     final val POJOMappingFeatureClass =
         "com.sun.jersey.api.json.POJOMappingFeature"
 
-    def servletModule(backend: MidonetBackend, curator: CuratorFramework,
-                      config: ClusterConfig, authService: AuthService,
+    def servletModule(backend: MidonetBackend, ec: ExecutionContext,
+                      curator: CuratorFramework, config: ClusterConfig,
+                      authService: AuthService,
                       log: Logger) = new JerseyServletModule {
 
         val resProvider = new ResourceProvider(log)
@@ -86,6 +90,7 @@ object Vladimir {
             bind(classOf[PathBuilder]).toInstance(paths)
             bind(classOf[StateTableStorage])
                 .toInstance(new LegacyStateTableStorage(curator, paths))
+            bind(classOf[ExecutionContext]).toInstance(ec)
             bind(classOf[CuratorFramework]).toInstance(curator)
             bind(classOf[MidonetBackend]).toInstance(backend)
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
@@ -131,6 +136,9 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
 
     private var server: Server = _
     private val log = Logger(LoggerFactory.getLogger(restApiLog))
+    private val executor = Executors.newCachedThreadPool(
+        new NamedThreadFactory("rest-api", isDaemon = true))
+    private val executionContext = ExecutionContext.fromExecutor(executor)
 
     override def isEnabled = config.restApi.isEnabled
 
@@ -160,6 +168,7 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
 
     override def doStop(): Unit = {
         try {
+            executor.shutdown()
             if (server ne null) {
                 server.stop()
                 server.join()
@@ -181,8 +190,8 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
 
         context.addEventListener(new GuiceServletContextListener {
             override def getInjector: Injector = {
-                createInjector(servletModule(backend, curator, config,
-                                             authService, log))
+                createInjector(servletModule(backend, executionContext, curator,
+                                             config, authService, log))
             }
         })
         val allDispatchers = util.EnumSet.allOf(classOf[DispatcherType])

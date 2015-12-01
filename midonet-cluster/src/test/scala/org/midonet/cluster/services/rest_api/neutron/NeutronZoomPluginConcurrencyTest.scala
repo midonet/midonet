@@ -50,6 +50,7 @@ class NeutronZoomPluginConcurrencyTest extends FeatureSpec
 
     val backend: MidonetBackend = mock[MidonetBackend]
     val resContext: ResourceContext = new ResourceContext(backend,
+                                                          executionContext = null,
                                                           lockFactory = null,
                                                           uriInfo = null,
                                                           validator = null,

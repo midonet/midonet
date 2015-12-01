@@ -18,7 +18,6 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.lang.annotation.Annotation
 import java.net.URI
-import java.util.concurrent.Executors.newCachedThreadPool
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
 
@@ -35,7 +34,6 @@ import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.protobuf.Message
-import com.lmax.disruptor.util.DaemonThreadFactory
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory.getLogger
@@ -163,6 +161,7 @@ object MidonetResource {
     }
 
     case class ResourceContext @Inject() (backend: MidonetBackend,
+                                          executionContext: ExecutionContext,
                                           lockFactory: ZookeeperLockFactory,
                                           uriInfo: UriInfo,
                                           validator: Validator,
@@ -183,9 +182,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
                               (resContext: ResourceContext)
                               (implicit tag: ClassTag[T]) {
 
-    protected implicit val executionContext =
-        ExecutionContext.fromExecutor(
-            newCachedThreadPool(DaemonThreadFactory.INSTANCE))
+    protected implicit val executionContext = resContext.executionContext
     protected final implicit val log =
         Logger(getLogger(restApiResourceLog(getClass)))
 
