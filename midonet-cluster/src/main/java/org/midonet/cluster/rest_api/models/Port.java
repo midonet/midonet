@@ -30,7 +30,6 @@ import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
               property = "type")
@@ -55,67 +54,65 @@ public abstract class Port extends UriResource {
         }
     }
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
 
-    @ZoomField(name = "inbound_filter_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "inbound_filter_id")
     public UUID inboundFilterId;
 
-    @ZoomField(name = "outbound_filter_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "outbound_filter_id")
     public UUID outboundFilterId;
 
     // TODO: Should this be @JsonIgnore?
     @ZoomField(name = "tunnel_key")
     public long tunnelKey;
 
-    @ZoomField(name = "vif_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "vif_id")
     public UUID vifId;
 
-    @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "host_id")
     public UUID hostId;
 
     @ZoomField(name = "interface_name")
     public String interfaceName;
 
-    @ZoomField(name = "peer_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "peer_id")
     public UUID peerId;
 
     @JsonIgnore
-    @ZoomField(name = "port_group_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_group_ids")
     public List<UUID> portGroupIds;
 
     @JsonIgnore
-    @ZoomField(name = "trace_request_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "trace_request_ids")
     public List<UUID> traceRequestIds;
 
-    @ZoomField(name = "inbound_mirror_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "inbound_mirror_ids")
     public List<UUID> inboundMirrorIds;
 
-    @ZoomField(name = "outbound_mirror_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "outbound_mirror_ids")
     public List<UUID> outboundMirrorIds;
 
     @JsonIgnore
-    @ZoomField(name = "mirror_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "mirror_ids")
     public List<UUID> mirrorIds;
 
-    @ZoomField(name = "insertion_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "insertion_ids")
     public List<UUID> insertionIds;
 
     @JsonIgnore
-    @ZoomField(name = "l2insertion_infilter_id",
-               converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "l2insertion_infilter_id")
     public UUID l2insertionInfilterId;
 
     @JsonIgnore
-    @ZoomField(name = "l2insertion_outfilter_id",
-               converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "l2insertion_outfilter_id")
     public UUID l2insertionOutfilterId;
 
     @JsonIgnore
-    @ZoomField(name = "srv_insertion_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "srv_insertion_ids")
     public List<UUID> serviceInsertionIds;
 
     public boolean active;

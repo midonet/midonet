@@ -8,13 +8,12 @@ import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 
 @ZoomClass(clazz = Neutron.IPSecSiteConnection.class)
 public class IPSecSiteConnection {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "tenant_id")
@@ -56,13 +55,13 @@ public class IPSecSiteConnection {
     @ZoomField(name = "status")
     public Status status;
 
-    @ZoomField(name = "vpn_service_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "vpn_service_id")
     public UUID vpnServiceId;
 
-    @ZoomField(name = "ike_policy_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "ike_policy_id")
     public UUID ikePolicyId;
 
-    @ZoomField(name = "ipsec_policy_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "ipsec_policy_id")
     public UUID ipsecPolicyId;
 
     @ZoomEnum(clazz = Neutron.IPSecSiteConnection.Status.class)

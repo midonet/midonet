@@ -32,14 +32,13 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.midonet.packets.IPv4;
 
 @ZoomClass(clazz = Topology.Vip.class)
 public class Vip extends UriResource {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "admin_state_up")
@@ -48,7 +47,7 @@ public class Vip extends UriResource {
     public UUID loadBalancerId;
 
     @NotNull
-    @ZoomField(name = "pool_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "pool_id")
     public UUID poolId;
 
     @NotNull

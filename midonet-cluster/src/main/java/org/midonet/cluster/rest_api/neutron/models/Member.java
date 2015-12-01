@@ -26,7 +26,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 
 @ZoomClass(clazz = Neutron.NeutronLoadBalancerPoolMember.class)
 public class Member extends ZoomObject {
@@ -38,11 +37,11 @@ public class Member extends ZoomObject {
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @JsonProperty("pool_id")
-    @ZoomField(name = "pool_id", converter = Converter.class)
+    @ZoomField(name = "pool_id")
     public UUID poolId;
 
     @JsonProperty("protocol_port")

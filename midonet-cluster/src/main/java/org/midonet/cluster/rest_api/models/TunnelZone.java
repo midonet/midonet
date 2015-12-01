@@ -33,7 +33,6 @@ import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.TunnelZone.class)
 public class TunnelZone extends UriResource {
@@ -48,7 +47,7 @@ public class TunnelZone extends UriResource {
         @ZoomEnumValue(value = "VTEP") vtep
     }
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @NotNull
@@ -64,7 +63,7 @@ public class TunnelZone extends UriResource {
     @ZoomField(name = "hosts")
     public List<TunnelZoneHost> tzHosts;
     @JsonIgnore
-    @ZoomField(name = "host_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "host_ids")
     public List<UUID> hostIds;
 
     @Override

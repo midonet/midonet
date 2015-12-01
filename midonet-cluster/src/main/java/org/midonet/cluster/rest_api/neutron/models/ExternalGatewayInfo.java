@@ -25,7 +25,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Neutron.NeutronRouter.ExternalGatewayInfo.class)
 public class ExternalGatewayInfo extends ZoomObject {
@@ -38,7 +37,7 @@ public class ExternalGatewayInfo extends ZoomObject {
     }
 
     @JsonProperty("network_id")
-    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "network_id")
     public UUID networkId;
 
     @JsonProperty("enable_snat")

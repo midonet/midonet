@@ -31,13 +31,12 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4;
 
 @ZoomClass(clazz = Topology.BgpPeer.class)
 public class BgpPeer extends UriResource {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "as_number")
@@ -68,7 +67,7 @@ public class BgpPeer extends UriResource {
     public String password;
 
     @JsonIgnore
-    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_id")
     public UUID routerId;
 
     @Override

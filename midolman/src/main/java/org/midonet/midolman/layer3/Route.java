@@ -31,7 +31,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
@@ -72,7 +71,7 @@ public class Route extends ZoomObject implements Serializable {
     public int dstNetworkLength;
     @ZoomField(name = "next_hop")
     public NextHop nextHop;
-    @ZoomField(name = "next_hop_port_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "next_hop_port_id")
     public UUID nextHopPort;
     @ZoomField(name = "next_hop_gateway", converter = AddressConverter.class)
     public int nextHopGateway;
@@ -80,7 +79,7 @@ public class Route extends ZoomObject implements Serializable {
     public int weight;
     @ZoomField(name = "attributes")
     public String attributes;
-    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_id")
     public UUID routerId;
     public boolean learned = false;
 

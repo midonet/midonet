@@ -30,7 +30,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 
 @ZoomClass(clazz = Topology.IPAddrGroup.class)
@@ -39,7 +38,7 @@ public class IpAddrGroup extends UriResource {
     public static final int MIN_IP_ADDR_GROUP_NAME_LEN = 1;
     public static final int MAX_IP_ADDR_GROUP_NAME_LEN = 255;
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @NotNull

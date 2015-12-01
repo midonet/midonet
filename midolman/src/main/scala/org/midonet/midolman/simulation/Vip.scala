@@ -21,17 +21,16 @@ import java.util.{Objects, UUID}
 import org.midonet.cluster.data.{Zoom, ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.packets.{IPAddr, TCP}
 
 @ZoomClass(clazz = classOf[Topology.Vip])
 final class Vip @Zoom() (
-    @ZoomField(name = "id", converter = classOf[UUIDConverter])
+    @ZoomField(name = "id")
     val id: UUID,
     @ZoomField(name = "admin_state_up")
     val adminStateUp: Boolean,
-    @ZoomField(name = "pool_id", converter = classOf[UUIDConverter])
+    @ZoomField(name = "pool_id")
     val poolId: UUID,
     @ZoomField(name = "address", converter = classOf[IPAddressConverter])
     val address: IPAddr,
@@ -50,8 +49,7 @@ final class Vip @Zoom() (
     }
 
     override def hashCode: Int =
-        Objects.hashCode(id, adminStateUp, poolId, address, protocolPort,
-                         sessionPersistence)
+        Objects.hash(id, poolId, address, sessionPersistence)
 
     override def toString =
         s"VIP [id=$id adminStateUp=$adminStateUp poolId=$poolId " +

@@ -27,7 +27,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 /**
  * Note that this resource doesn't have a counter part in the new storage
@@ -40,11 +39,11 @@ public class PortGroupPort extends UriResource {
     public UUID portGroupId;
 
     @NotNull
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID portId;
 
     @JsonIgnore
-    @ZoomField(name = "port_group_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_group_ids")
     public List<UUID> portGroupIds;
 
     @Override

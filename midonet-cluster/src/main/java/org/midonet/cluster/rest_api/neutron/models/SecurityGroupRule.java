@@ -27,7 +27,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.ICMP;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.Range;
@@ -47,15 +46,15 @@ public class SecurityGroupRule extends ZoomObject
         this.protocol = protocol;
     }
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @JsonProperty("security_group_id")
-    @ZoomField(name = "security_group_id", converter = Converter.class)
+    @ZoomField(name = "security_group_id")
     public UUID securityGroupId;
 
     @JsonProperty("remote_group_id")
-    @ZoomField(name = "remote_group_id", converter = Converter.class)
+    @ZoomField(name = "remote_group_id")
     public UUID remoteGroupId;
 
     @ZoomField(name = "direction")

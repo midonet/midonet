@@ -28,7 +28,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.PortGroup.class)
 public class PortGroup extends UriResource {
@@ -36,7 +35,7 @@ public class PortGroup extends UriResource {
     public static final int MIN_PORT_GROUP_NAME_LEN = 0;
     public static final int MAX_PORT_GROUP_NAME_LEN = 255;
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "tenant_id")
@@ -50,7 +49,7 @@ public class PortGroup extends UriResource {
     public boolean stateful;
 
     @JsonIgnore
-    @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_ids")
     public List<UUID> portIds;
 
     @Override

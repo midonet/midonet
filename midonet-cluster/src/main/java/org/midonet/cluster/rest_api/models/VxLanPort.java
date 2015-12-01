@@ -19,19 +19,17 @@ import java.net.URI;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 public class VxLanPort extends Port {
 
-    @ZoomField(name = "vtep_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "vtep_id")
     public UUID vtepId;
 
     @JsonIgnore
-    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "network_id")
     public UUID networkId;
 
     public String getType() {

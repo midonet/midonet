@@ -29,7 +29,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.PoolLBMethod;
@@ -38,17 +37,17 @@ import org.midonet.midolman.state.l4lb.PoolProtocol;
 @ZoomClass(clazz = Topology.Pool.class)
 public class Pool extends UriResource {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp = true;
 
-    @ZoomField(name = "health_monitor_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "health_monitor_id")
     public UUID healthMonitorId;
 
     @NotNull
-    @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "load_balancer_id")
     public UUID loadBalancerId;
 
     @ZoomField(name = "protocol")
@@ -62,11 +61,11 @@ public class Pool extends UriResource {
     public LBStatus status;
 
     @JsonIgnore
-    @ZoomField(name = "pool_member_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "pool_member_ids")
     public List<UUID> poolMemberIds;
 
     @JsonIgnore
-    @ZoomField(name = "vip_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "vip_ids")
     public List<UUID> vipIds;
 
     @JsonIgnore

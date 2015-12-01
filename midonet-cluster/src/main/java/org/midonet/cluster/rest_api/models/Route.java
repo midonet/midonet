@@ -40,7 +40,6 @@ import org.midonet.cluster.rest_api.annotation.JsonError;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
@@ -59,13 +58,13 @@ public class Route extends UriResource {
         @ZoomEnumValue(value = "LOCAL")Local
     }
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
-    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_id")
     public UUID routerId;
 
-    @ZoomField(name = "next_hop_port_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "next_hop_port_id")
     public UUID nextHopPort;
 
     @ZoomField(name = "attributes")
