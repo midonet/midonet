@@ -16,6 +16,24 @@
       "revId": "cf836137505a72ba90e4bc0a5eb1f6851a2423aa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_78bb740e",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-12-01T13:16:50Z",
+      "side": 1,
+      "message": "I am not sure where you are getting those fields from. I do not see either of those in the dict sent over from the plugin.\n\nAlso, I am only adding missing fields as I see them missing when trying to integrate these models with other patches. I am purposefully trying to make these patches as small as possible.",
+      "parentUuid": "5ac4a560_42c7a745",
+      "revId": "cf836137505a72ba90e4bc0a5eb1f6851a2423aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
