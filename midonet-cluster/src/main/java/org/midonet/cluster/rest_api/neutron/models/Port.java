@@ -28,7 +28,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
@@ -67,14 +66,14 @@ public class Port extends ZoomObject {
         this.extraDhcpOpts = extraDhcpOpts;
     }
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "name")
     public String name;
 
     @JsonProperty("network_id")
-    @ZoomField(name = "network_id", converter = Converter.class)
+    @ZoomField(name = "network_id")
     public UUID networkId;
 
     @JsonProperty("admin_state_up")
@@ -105,7 +104,7 @@ public class Port extends ZoomObject {
     public String status;
 
     @JsonProperty("security_groups")
-    @ZoomField(name = "security_groups", converter = Converter.class)
+    @ZoomField(name = "security_groups")
     public List<UUID> securityGroups = new ArrayList<>();
 
     @JsonProperty("binding:host_id")

@@ -19,11 +19,9 @@ import java.net.URI;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 public class BridgePort extends Port {
 
@@ -31,7 +29,7 @@ public class BridgePort extends Port {
     public short vlanId;
 
     @JsonIgnore
-    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "network_id")
     public UUID bridgeId;
 
     public String getType() {

@@ -28,7 +28,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.Router.class)
 public class Router extends UriResource {
@@ -36,7 +35,7 @@ public class Router extends UriResource {
     public static final int MIN_ROUTER_NAME_LEN = 0;
     public static final int MAX_ROUTER_NAME_LEN = 255;
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "tenant_id")
@@ -49,44 +48,44 @@ public class Router extends UriResource {
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
 
-    @ZoomField(name = "inbound_filter_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "inbound_filter_id")
     public UUID inboundFilterId;
-    @ZoomField(name = "outbound_filter_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "outbound_filter_id")
     public UUID outboundFilterId;
 
-    @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "load_balancer_id")
     public UUID loadBalancerId;
 
     @JsonIgnore
-    @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_ids")
     public List<UUID> portIds;
 
     @JsonIgnore
-    @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "route_ids")
     public List<UUID> routeIds;
 
     @ZoomField(name = "as_number")
     public int asNumber;
 
     @JsonIgnore
-    @ZoomField(name = "bgp_network_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "bgp_network_ids")
     public List<UUID> bgpNetworkIds;
 
     @JsonIgnore
-    @ZoomField(name = "bgp_peer_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "bgp_peer_ids")
     public List<UUID> bgpPeerIds;
 
     @JsonIgnore
-    @ZoomField(name = "trace_request_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "trace_request_ids")
     public List<UUID> traceRequestIds;
 
-    @ZoomField(name = "inbound_mirror_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "inbound_mirror_ids")
     public List<UUID> inboundMirrorIds;
 
-    @ZoomField(name = "outbound_mirror_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "outbound_mirror_ids")
     public List<UUID> outboundMirrorIds;
 
-    @ZoomField(name = "local_redirect_chain_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "local_redirect_chain_id")
     public UUID localRedirectChainId;
 
     public Router() {

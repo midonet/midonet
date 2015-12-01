@@ -22,14 +22,11 @@ import java.util.UUID;
 import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.data.ZoomOneOf;
-import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
 public class RedirectRule extends L2TransformRule {
     private static final long serialVersionUID = -7212783590950701194L;
-    @ZoomField(name = "target_port_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "target_port_id")
     public UUID targetPort;
     @ZoomField(name = "ingress")
     public boolean ingress;

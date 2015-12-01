@@ -26,17 +26,16 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.Port.class)
 public class HostInterfacePort extends UriResource {
 
     @NotNull
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID portId;
 
     @NotNull
-    @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "host_id")
     public UUID hostId;
 
     @NotNull

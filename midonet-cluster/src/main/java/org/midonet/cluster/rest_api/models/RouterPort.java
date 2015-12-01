@@ -25,7 +25,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Objects;
 import com.google.protobuf.Message;
 
 import org.apache.commons.lang.StringUtils;
@@ -34,7 +33,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.MAC;
@@ -62,11 +60,11 @@ public class RouterPort extends Port {
     public String portMac;
 
     @JsonIgnore
-    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_id")
     public UUID routerId;
 
     @JsonIgnore
-    @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "route_ids")
     public List<UUID> routeIds;
 
     public String bgpStatus;

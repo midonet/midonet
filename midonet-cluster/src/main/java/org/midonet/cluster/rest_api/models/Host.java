@@ -29,13 +29,12 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.util.version.Until;
 
 @ZoomClass(clazz = Topology.Host.class)
 public class Host extends UriResource {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "name")
@@ -61,11 +60,11 @@ public class Host extends UriResource {
     @ZoomField(name = "flooding_proxy_weight")
     public Integer floodingProxyWeight;
 
-    @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_ids")
     @JsonIgnore
     public List<UUID> portIds;
 
-    @ZoomField(name = "tunnel_zone_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "tunnel_zone_ids")
     @JsonIgnore
     public List<UUID> tunnelZoneIds;
 

@@ -27,7 +27,6 @@ import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomOneOf;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomOneOf(name = "transform_rule_data")
 public class L2TransformRule extends Rule {
@@ -44,7 +43,7 @@ public class L2TransformRule extends Rule {
     @Max(0xFFFF)
     public int pushVlan;
 
-    @ZoomField(name = "target_port_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "target_port_id")
     public UUID targetPortId;
 
     @ZoomField(name = "ingress")

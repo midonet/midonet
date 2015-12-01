@@ -18,16 +18,15 @@ package org.midonet.midolman.topology.devices
 
 import java.util.UUID
 
-import org.midonet.cluster.data.{ZoomField, ZoomObject, ZoomClass}
+import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.midolman.state.l4lb.{HealthMonitorType, LBStatus}
 import org.midonet.midolman.topology.VirtualTopology.Device
 
 @ZoomClass(clazz = classOf[Topology.HealthMonitor])
 class HealthMonitor extends ZoomObject with Device {
 
-    @ZoomField(name = "id", converter = classOf[UUIDConverter])
+    @ZoomField(name = "id")
     var id: UUID = _
 
     @ZoomField(name = "admin_state_up")

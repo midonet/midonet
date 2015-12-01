@@ -27,19 +27,18 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.L2Insertion.class)
 public class L2Insertion extends UriResource {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
-    @ZoomField(name = "port_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_id")
     @NotNull
     public UUID portId;
 
-    @ZoomField(name = "srv_port_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "srv_port_id")
     @NotNull
     public UUID srvPortId;
 

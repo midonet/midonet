@@ -115,12 +115,4 @@ object UUIDUtil {
     def toString(id: PUUID) = if (id == null) "null" else fromProto(id).toString
 
     def randomUuidProto: PUUID = JUUID.randomUUID()
-
-    sealed class Converter extends ZoomConvert.Converter[JUUID, PUUID] {
-        override def toProto(value: JUUID, clazz: Type): PUUID =
-            UUIDUtil.toProto(value)
-
-        override def fromProto(value: PUUID, clazz: Type): JUUID =
-            UUIDUtil.fromProto(value)
-    }
 }

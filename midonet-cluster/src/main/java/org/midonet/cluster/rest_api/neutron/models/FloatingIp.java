@@ -27,7 +27,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
@@ -48,7 +47,7 @@ public class FloatingIp extends ZoomObject {
         this.floatingNetworkId = floatingNetworkId;
     }
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @JsonProperty("floating_ip_address")
@@ -57,15 +56,15 @@ public class FloatingIp extends ZoomObject {
     public String floatingIpAddress;
 
     @JsonProperty("floating_network_id")
-    @ZoomField(name = "floating_network_id", converter = Converter.class)
+    @ZoomField(name = "floating_network_id")
     public UUID floatingNetworkId;
 
     @JsonProperty("router_id")
-    @ZoomField(name = "router_id", converter = Converter.class)
+    @ZoomField(name = "router_id")
     public UUID routerId;
 
     @JsonProperty("port_id")
-    @ZoomField(name = "port_id", converter = Converter.class)
+    @ZoomField(name = "port_id")
     public UUID portId;
 
     @JsonProperty("fixed_ip_address")

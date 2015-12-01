@@ -41,7 +41,6 @@ import org.midonet.cluster.rest_api.validation.ValidMac;
 import org.midonet.cluster.rest_api.validation.ValidMacMask;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.RangeUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Subnet;
@@ -91,28 +90,28 @@ public class Condition extends UriResource {
     @ZoomField(name = "match_return_flow")
     public boolean matchReturnFlow;
 
-    @ZoomField(name = "in_port_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "in_port_ids")
     public UUID[] inPorts;
     @ZoomField(name = "in_port_inv")
     public boolean invInPorts;
-    @ZoomField(name = "out_port_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "out_port_ids")
     public UUID[] outPorts;
     @ZoomField(name = "out_port_inv")
     public boolean invOutPorts;
-    @ZoomField(name = "port_group_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_group_id")
     public UUID portGroup;
     @ZoomField(name = "inv_port_group")
     public boolean invPortGroup;
-    @ZoomField(name = "ip_addr_group_id_src", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "ip_addr_group_id_src")
     public UUID ipAddrGroupSrc;
     @ZoomField(name = "inv_ip_addr_group_id_src")
     public boolean invIpAddrGroupSrc;
-    @ZoomField(name = "ip_addr_group_id_dst", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "ip_addr_group_id_dst")
     public UUID ipAddrGroupDst;
     @ZoomField(name = "inv_ip_addr_group_id_dst")
     public boolean invIpAddrGroupDst;
 
-    @ZoomField(name = "traversed_device", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "traversed_device")
     public UUID traversedDevice;
     @ZoomField(name = "traversed_device_inv")
     public boolean invTraversedDevice;

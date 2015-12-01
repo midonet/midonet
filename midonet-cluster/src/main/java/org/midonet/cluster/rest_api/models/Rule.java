@@ -37,7 +37,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
@@ -110,10 +109,10 @@ public abstract class Rule extends Condition {
         @ZoomEnumValue(value = "REDIRECT") REDIRECT
     }
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
-    @ZoomField(name = "chain_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "chain_id")
     public UUID chainId;
 
     @JsonIgnore

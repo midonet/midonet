@@ -23,12 +23,11 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.State;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = State.HostState.class)
 public class HostState extends ZoomObject {
 
-    @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "host_id")
     public UUID hostId;
     @ZoomField(name = "interfaces")
     public List<Interface> interfaces;

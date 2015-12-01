@@ -29,7 +29,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4;
 
 @ZoomClass(clazz = Topology.TunnelZone.HostToIp.class)
@@ -38,7 +37,7 @@ public class TunnelZoneHost extends UriResource {
     public UUID tunnelZoneId;
 
     @NotNull
-    @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "host_id")
     public UUID hostId;
 
     @NotNull

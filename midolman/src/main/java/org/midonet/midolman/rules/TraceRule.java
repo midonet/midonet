@@ -23,7 +23,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomOneOf;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.TraceRequiredException;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
@@ -32,7 +31,7 @@ import org.midonet.midolman.simulation.PacketContext;
 @ZoomOneOf(name = "trace_rule_data")
 public class TraceRule extends Rule {
 
-    @ZoomField(name = "trace_request_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "trace_request_id")
     private UUID requestId;
 
     @ZoomField(name = "limit")

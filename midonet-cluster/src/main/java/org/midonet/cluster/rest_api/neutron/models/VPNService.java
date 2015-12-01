@@ -12,12 +12,11 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.rest_api.models.UriResource;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPAddr;
 
 @ZoomClass(clazz = Neutron.VPNService.class)
 public class VPNService extends UriResource {
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "name")
@@ -32,10 +31,10 @@ public class VPNService extends UriResource {
     @ZoomField(name = "tenant_id")
     public String tenantId;
 
-    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_id")
     public UUID routerId;
 
-    @ZoomField(name = "subnet_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "subnet_id")
     public UUID subnetId;
 
     @ZoomField(name = "status")

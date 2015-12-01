@@ -31,7 +31,6 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.packets.IPv4;
 
@@ -40,7 +39,7 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_IN
 @ZoomClass(clazz = Topology.PoolMember.class)
 public class PoolMember extends UriResource {
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "admin_state_up")
@@ -50,7 +49,7 @@ public class PoolMember extends UriResource {
     public LBStatus status;
 
     @NotNull
-    @ZoomField(name = "pool_id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "pool_id")
     public UUID poolId;
 
     @NotNull

@@ -29,7 +29,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.Chain.class)
 public class Chain extends UriResource {
@@ -37,7 +36,7 @@ public class Chain extends UriResource {
     public static final int MIN_CHAIN_NAME_LEN = 0;
     public static final int MAX_CHAIN_NAME_LEN = 255;
 
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @ZoomField(name = "tenant_id")
@@ -48,35 +47,35 @@ public class Chain extends UriResource {
     public String name;
 
     @JsonIgnore
-    @ZoomField(name = "rule_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "rule_ids")
     public List<UUID> ruleIds;
 
     @JsonIgnore
-    @ZoomField(name = "network_inbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "network_inbound_ids")
     public List<UUID> networkInboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "network_outbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "network_outbound_ids")
     public List<UUID> networkOutboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "router_inbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_inbound_ids")
     public List<UUID> routerInboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "router_outbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_outbound_ids")
     public List<UUID> routerOutboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "port_inbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_inbound_ids")
     public List<UUID> portInboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "port_outbound_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "port_outbound_ids")
     public List<UUID> portOutboundIds;
 
     @JsonIgnore
-    @ZoomField(name = "jump_rule_ids", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "jump_rule_ids")
     public List<UUID> jumpRuleIds;
 
     @Override

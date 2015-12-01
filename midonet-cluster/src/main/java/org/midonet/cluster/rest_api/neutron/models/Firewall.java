@@ -29,7 +29,6 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.collection.ListUtil;
 
 
@@ -49,7 +48,7 @@ public class Firewall extends ZoomObject {
         this.delRouterIds = delRouterIds;
     }
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id")
     public UUID id;
 
     @JsonProperty("tenant_id")
@@ -73,7 +72,7 @@ public class Firewall extends ZoomObject {
     public String status;
 
     @JsonProperty("firewall_policy_id")
-    @ZoomField(name = "firewall_policy_id", converter = Converter.class)
+    @ZoomField(name = "firewall_policy_id")
     public UUID firewallPolicyId;
 
     @JsonProperty("firewall_rule_list")
@@ -81,11 +80,11 @@ public class Firewall extends ZoomObject {
     public List<FirewallRule> firewallRuleList;
 
     @JsonProperty("add-router-ids")
-    @ZoomField(name = "add_router_ids", converter = Converter.class)
+    @ZoomField(name = "add_router_ids")
     public List<UUID> addRouterIds;
 
     @JsonProperty("del-router-ids")
-    @ZoomField(name = "del_router_ids", converter = Converter.class)
+    @ZoomField(name = "del_router_ids")
     public List<UUID> delRouterIds;
 
     @Override
