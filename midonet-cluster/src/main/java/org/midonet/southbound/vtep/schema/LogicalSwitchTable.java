@@ -52,6 +52,7 @@ public final class LogicalSwitchTable extends Table<LogicalSwitch> {
             super.partialColumnSchemas();
         cols.add(getNameSchema());
         cols.add(getDescriptionSchema());
+        // This column is optional in the OVSDB schema, but we must have it.
         cols.add(getTunnelKeySchema());
         return cols;
     }
