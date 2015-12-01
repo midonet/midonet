@@ -58,6 +58,15 @@ public final class PhysicalLocatorTable extends Table<PhysicalLocator> {
         return cols;
     }
 
+    @Override
+    public List<ColumnSchema<GenericTableSchema, ?>> getMandatoryColumnSchemas() {
+        List<ColumnSchema<GenericTableSchema, ?>> cols =
+            super.partialColumnSchemas();
+        cols.add(getEncapsulationSchema());
+        cols.add(getDstIpSchema());
+        return cols;
+    }
+
     /** Get the schema for the encapsulation type */
     private ColumnSchema<GenericTableSchema, String> getEncapsulationSchema() {
         return tableSchema.column(COL_ENCAPSULATION, String.class);
@@ -70,12 +79,14 @@ public final class PhysicalLocatorTable extends Table<PhysicalLocator> {
 
     /** Get the schema for BFD */
     private ColumnSchema<GenericTableSchema, Map> getBfdSchema() {
-        return tableSchema.column(COL_BFD, Map.class);
+        // return tableSchema.column(COL_BFD, Map.class);
+        throw new UnsupportedOperationException("BDF is not supported");
     }
 
     /** Get the schema for BFD status */
     private ColumnSchema<GenericTableSchema, Map> getBfdStatusSchema() {
-        return tableSchema.column(COL_BFD_STATUS, Map.class);
+        // return tableSchema.column(COL_BFD_STATUS, Map.class);
+        throw new UnsupportedOperationException("BDF status is not supported");
     }
 
     /**
