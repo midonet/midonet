@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_456a511b",
+        "filename": "midonet-cluster/conf/logback.xml",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-01T11:33:59Z",
+      "side": 1,
+      "message": "this whole section of logger levels should go away from logback and appear only in mn-conf, to be consistent with midolman.\n\n....or we should bring it back to midolman/conf/logback.xml.",
+      "revId": "5bad5698aeecfa599f939fdd4af38f88e1f1d3e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
