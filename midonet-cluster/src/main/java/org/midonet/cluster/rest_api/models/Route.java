@@ -17,6 +17,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
@@ -47,9 +48,6 @@ import org.midonet.packets.IPv4Addr;
 
 @ZoomClass(clazz = Topology.Route.class)
 public class Route extends UriResource {
-
-    private static final UUID NO_ID =
-        new UUID(0xffffffffffffffffL, 0xffffffffffffffffL);
 
     @ZoomEnum(clazz = Topology.Route.NextHop.class)
     public enum NextHop {
@@ -186,7 +184,7 @@ public class Route extends UriResource {
 
     public static Route fromLearned(org.midonet.midolman.layer3.Route from) {
         Route route = new Route();
-        route.id = NO_ID;
+        route.id = idOf(from);
         route.dstNetworkAddr = IPv4Addr.apply(from.dstNetworkAddr).toString();
         route.dstNetworkLength = from.dstNetworkLength;
         route.srcNetworkAddr = IPv4Addr.apply(from.srcNetworkAddr).toString();
@@ -197,7 +195,23 @@ public class Route extends UriResource {
         route.nextHopPort = from.nextHopPort;
         route.type = NextHop.Normal;
         route.learned = true;
+
         return route;
+    }
+
+    public static UUID idOf(org.midonet.midolman.layer3.Route route) {
+        ByteBuffer buffer = ByteBuffer.allocate(50);
+        buffer.putInt(route.dstNetworkAddr);
+        buffer.putInt(route.srcNetworkAddr);
+        buffer.putInt(route.nextHopGateway);
+        buffer.putInt(route.weight);
+        buffer.put((byte)(route.dstNetworkLength & 0xFF));
+        buffer.put((byte)(route.srcNetworkLength & 0xFF));
+        buffer.putLong(route.nextHopPort.getMostSignificantBits());
+        buffer.putLong(route.nextHopPort.getLeastSignificantBits());
+        buffer.putLong(route.routerId.getMostSignificantBits());
+        buffer.putLong(route.routerId.getLeastSignificantBits());
+        return UUID.nameUUIDFromBytes(buffer.array());
     }
 
     @Override
