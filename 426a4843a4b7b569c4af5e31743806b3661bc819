@@ -34,6 +34,24 @@
       "revId": "426a4843a4b7b569c4af5e31743806b3661bc819",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a24ddb74",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T08:41:49Z",
+      "side": 1,
+      "message": "Why is there a difference between get and list? On the other hand, will POST, PUT throw a METHOD_NOT_ALLOWED rather than UNSUPPORTED_MEDIA_TYPE?",
+      "parentUuid": "5ac4a560_6e5baf54",
+      "revId": "426a4843a4b7b569c4af5e31743806b3661bc819",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
