@@ -164,4 +164,31 @@ class DatapathControllerActorTest extends MidolmanSpec {
         val tag2 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp2.toInt)
         flowInvalidator should invalidate(tag1, tag2)
     }
+
+    scenario("Duplicate tunnelzone ips") {
+        DatapathController ! Initialize
+        DatapathController.getAndClear()
+
+        val tunnelZone = greTunnelZone("default")
+        val host2 = newHost("host2")
+        val host3 = newHost("host3")
+
+        val srcIp = IPv4Addr("192.168.100.1")
+        val dstIp1 = IPv4Addr("192.168.125.1")
+
+        clusterDataClient.tunnelZonesAddMembership(
+            tunnelZone.getId, new TunnelZone.HostConfig(host2.getId).setIp(dstIp1))
+        clusterDataClient.tunnelZonesAddMembership(
+            tunnelZone.getId, new TunnelZone.HostConfig(host3.getId).setIp(dstIp1))
+        // The actor is started when the test is, but we
+        // want to test behaviour that occurs when all tunnel zones
+        // are loaded at once. This can be simulated by clearing
+        // the DeviceCaches
+        VirtualToPhysicalMapper.DeviceCaches.clear()
+        clusterDataClient.tunnelZonesAddMembership(
+            tunnelZone.getId, new TunnelZone.HostConfig(hostId).setIp(srcIp))
+
+        dpc.dpState.peerTunnelInfo(host2.getId) shouldBe
+            dpc.dpState.peerTunnelInfo(host3.getId)
+    }
 }
