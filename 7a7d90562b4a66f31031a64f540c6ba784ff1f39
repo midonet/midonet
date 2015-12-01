@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_9bddaa17",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerActorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-01T16:30:57Z",
+      "side": 1,
+      "message": "but is that behaviour really different than adding one at time?",
+      "revId": "7a7d90562b4a66f31031a64f540c6ba784ff1f39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5bc4f23f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/DatapathControllerActorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-01T16:30:57Z",
+      "side": 1,
+      "message": "dpc.driver.peerTunnelInfo(host2) should be dpc.driver.peerTunnelInfo(host3) reads better, and we won\u0027t need the cast to DatapathStateDriver.",
+      "revId": "7a7d90562b4a66f31031a64f540c6ba784ff1f39",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
