@@ -22,6 +22,75 @@
       "revId": "855c65024d55f898204e171aa5ad79fae6da5ab4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e23b53e9",
+        "filename": "python-midonetclient/src/midonetclient/rule.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-01T10:45:30Z",
+      "side": 1,
+      "message": "I don\u0027t really understand this TODO. What about creating a JIRA issue for this or just removing it if it\u0027s outdated.",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 15
+      },
+      "revId": "855c65024d55f898204e171aa5ad79fae6da5ab4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a2187b85",
+        "filename": "python-midonetclient/src/midonetclient/vtep_port.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-01T10:45:30Z",
+      "side": 1,
+      "message": "What\u0027s the change here?",
+      "range": {
+        "startLine": 30,
+        "startChar": 8,
+        "endLine": 30,
+        "endChar": 38
+      },
+      "revId": "855c65024d55f898204e171aa5ad79fae6da5ab4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a5ffa500",
+        "filename": "python-midonetclient/tox.ini",
+        "patchSetId": 8
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-01T10:45:30Z",
+      "side": 1,
+      "message": "Create a JIRA issue for when protobuf will be python ready?",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 47
+      },
+      "revId": "855c65024d55f898204e171aa5ad79fae6da5ab4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
