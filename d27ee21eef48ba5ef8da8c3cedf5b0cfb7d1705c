@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_d899e86f",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 9
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-01T14:02:05Z",
+      "side": 1,
+      "message": "couldn\u0027t this interfere with ipsec on the host? Example: operator wants ipsec down, and we start it on our own.",
+      "revId": "d27ee21eef48ba5ef8da8c3cedf5b0cfb7d1705c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
