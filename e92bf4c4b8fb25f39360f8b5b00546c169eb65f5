@@ -1,0 +1,1079 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_1ba35a9f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Import order: use the same import order as for the java-code-style. I can pass you the codestyle if needed.",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 29
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9b8f6a23",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Extra line.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 3
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3b8656ba",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Minor note: so this is exactly what an observable is supposed to manage.",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 51,
+        "endChar": 16
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3bff3636",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Why do you need a promise here? You could just store the observable. An observable is easy convertible to a future with the package:\n\n   import org.midonet.util.reactivex._\n\n   observable.asFuture\n\nBut it looks like you don\u0027t event need futures, since the only place where the future is needed is in the get method below, which you could do with:\n\n   observable.toBlocking.first",
+      "range": {
+        "startLine": 53,
+        "startChar": 13,
+        "endLine": 53,
+        "endChar": 30
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7b744efd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "I think Nicolas had a patch to introduce a config key for this. Otherwise, use an infinite timeout: the observable will emit an error when the zk connection fails.",
+      "range": {
+        "startLine": 55,
+        "startChar": 4,
+        "endLine": 55,
+        "endChar": 61
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5b9312fa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Calls to this method should be synchronized. Even you are using a concurrent hash map, two concurrent subscribers may enter the same block. Also the ref count to the subscriptions is not thread-safe.",
+      "range": {
+        "startLine": 67,
+        "startChar": 4,
+        "endLine": 67,
+        "endChar": 75
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_db5ac282",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "toProto is not needed: zoom methods understand both Java and Protocol Buffer UUIDs, and also plain String.",
+      "range": {
+        "startLine": 73,
+        "startChar": 24,
+        "endLine": 73,
+        "endChar": 31
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1b543a53",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Shouldn\u0027t also have a handler for error, and complete the promise with failure?",
+      "range": {
+        "startLine": 75,
+        "startChar": 31,
+        "endLine": 78,
+        "endChar": 21
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb5f7e70",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "You should put these above the subscribe to prevent a race condition with the update.",
+      "range": {
+        "startLine": 79,
+        "startChar": 12,
+        "endLine": 80,
+        "endChar": 81
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9bbcca6e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "This should be synchronized too.",
+      "range": {
+        "startLine": 101,
+        "startChar": 4,
+        "endLine": 114,
+        "endChar": 5
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3b5bb655",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "If this method throws an exception - as noted below - annotate with @throws[...Exception] to have it mind where you call it.\n\nNow, for instance, this method has no catch in the Scheduler class where you call it, potentially crashing the executor.",
+      "range": {
+        "startLine": 127,
+        "startChar": 8,
+        "endLine": 127,
+        "endChar": 11
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_dbb6428a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "No need to call containsKey first: get will return null of the key is not in the map.",
+      "range": {
+        "startLine": 128,
+        "startChar": 28,
+        "endLine": 128,
+        "endChar": 39
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb493e8c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Why not just throw an exception here?\n\n(Option.empty \u003d None).get does just that\n\nAlternatively, this method could return an Option",
+      "range": {
+        "startLine": 135,
+        "startChar": 8,
+        "endLine": 135,
+        "endChar": 34
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_f6a5d504",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Import order.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 6
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d6a0d9f6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "JavaConversions is not always recommended for all the implicit conversions betweem Java and Scala done below. Prefer using JavaConverters, or use this one with care.\n\nSee comments below.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 41
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_56acc9ed",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "What do you think if we name these containerId and groupId?",
+      "range": {
+        "startLine": 83,
+        "startChar": 22,
+        "endLine": 83,
+        "endChar": 40
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb3a1e35",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "If this has a start/stop method, then better make it a guava AbstractService. Then, you don\u0027t have to worry about the service lifecycle.",
+      "range": {
+        "startLine": 103,
+        "startChar": 6,
+        "endLine": 104,
+        "endChar": 51
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3b23b606",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Make it container-scheduler, scheduler is too generic.",
+      "range": {
+        "startLine": 111,
+        "startChar": 64,
+        "endLine": 111,
+        "endChar": 73
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_db0c8297",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Wrap this in a com.typesafe.scalalogging.Logger which uses macros. Otherwise all debug messages below will interpolate the string even if the debug level is disabled, creating unnecessary garbage.\n\nSee MidolmanLogging as reference.",
+      "range": {
+        "startLine": 111,
+        "startChar": 8,
+        "endLine": 111,
+        "endChar": 31
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb113ead",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Consider modifying watcher to pass the logger to it, otherwise we end-up with too many log sources for the same service.",
+      "range": {
+        "startLine": 125,
+        "startChar": 33,
+        "endLine": 125,
+        "endChar": 46
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bb7ee6e2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Consider that the handler methods: onServiceContainerGroupUpdate and onServiceContainerGroupDelete can be called on the same thread you call startScheduling (which you might now control) if the ZOOM observable has already cached some values.\n\nTherefore, you might need to synchronize those method, or have them scheduled on the same executor, where you update other internal variables.",
+      "range": {
+        "startLine": 144,
+        "startChar": 8,
+        "endLine": 144,
+        "endChar": 30
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_db356247",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "I don\u0027t have a strong opinion about it, but I thing that if the start stop are handler as part of the subscription, would fit better with the reactive pattern. You subscribe to the observable - the underlying observable connects to storage, you unsubscribe - it disconnects. For now I think it\u0027s fine though to leave this as future work.",
+      "range": {
+        "startLine": 143,
+        "startChar": 4,
+        "endLine": 146,
+        "endChar": 5
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3b6ad61a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Missing s for string interpolation",
+      "range": {
+        "startLine": 157,
+        "startChar": 18,
+        "endLine": 157,
+        "endChar": 59
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_36966d95",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Make these more user friendly, e.g.:\n\n  Service container group $groupId schedules using port group $portGroupId",
+      "range": {
+        "startLine": 164,
+        "startChar": 27,
+        "endLine": 164,
+        "endChar": 73
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_f67cf574",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Warn or message is a bit redundant with the one below?",
+      "range": {
+        "startLine": 176,
+        "startChar": 20,
+        "endLine": 176,
+        "endChar": 25
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d687f95f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "a",
+      "range": {
+        "startLine": 177,
+        "startChar": 43,
+        "endLine": 177,
+        "endChar": 46
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_96b6613c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "has both",
+      "range": {
+        "startLine": 177,
+        "startChar": 27,
+        "endLine": 177,
+        "endChar": 31
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b6d0bd54",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Use:\n\n  if (selector eq null)\n\nBtw, the match will fail if selector is not null. Best practice: always have a default case:\n\n  case _\n\nunless you are sure you included all options.",
+      "range": {
+        "startLine": 192,
+        "startChar": 12,
+        "endLine": 193,
+        "endChar": 28
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d63c5996",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Indent",
+      "range": {
+        "startLine": 207,
+        "startChar": 28,
+        "endLine": 207,
+        "endChar": 56
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9652e1db",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "This can be:\n\n  .map(_.map(h \u003d\u003e hostStateWatcher....))",
+      "range": {
+        "startLine": 217,
+        "startChar": 20,
+        "endLine": 217,
+        "endChar": 26
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_f641550c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Remove case here and below (not for onSuccess of course, since onSuccess takes a PartialFunction as argument).",
+      "range": {
+        "startLine": 218,
+        "startChar": 24,
+        "endLine": 218,
+        "endChar": 28
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_f6579500",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Any reason for the Election object? It only seems to encapsulate the argument objects.",
+      "range": {
+        "startLine": 227,
+        "startChar": 51,
+        "endLine": 227,
+        "endChar": 59
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3672ed7c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "for (mapping \u003c- mappings) {\n  ...\n  }",
+      "range": {
+        "startLine": 243,
+        "startChar": 8,
+        "endLine": 244,
+        "endChar": 24
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d66379af",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Put this above",
+      "range": {
+        "startLine": 246,
+        "startChar": 16,
+        "endLine": 246,
+        "endChar": 55
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d679b994",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Long lines: trim. Same below",
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_566f6992",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Shouldn\u0027t reevaluate the mappings in any case? What if previously there were no candidate hosts?",
+      "range": {
+        "startLine": 258,
+        "startChar": 8,
+        "endLine": 258,
+        "endChar": 26
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7662a5d9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Same here: the result is converted back to scala for a foreach.",
+      "range": {
+        "startLine": 271,
+        "startChar": 75,
+        "endLine": 271,
+        "endChar": 106
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_36682dba",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Make this a scala list: you only convert the argument from scala.",
+      "range": {
+        "startLine": 271,
+        "startChar": 41,
+        "endLine": 271,
+        "endChar": 72
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_965f410e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "If you use ArrayList for better performance, then don\u0027t use ++\u003d below which I think will just to an implicit conversion to scala.",
+      "range": {
+        "startLine": 273,
+        "startChar": 31,
+        "endLine": 273,
+        "endChar": 40
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9648215d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Ditto",
+      "range": {
+        "startLine": 292,
+        "startChar": 32,
+        "endLine": 295,
+        "endChar": 63
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b64d1d75",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "You can make this a Seq, since where you call the method you convert it to scala anyway.",
+      "range": {
+        "startLine": 311,
+        "startChar": 52,
+        "endLine": 311,
+        "endChar": 84
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3b09f631",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Hmm... are you sure this does what you want? The code looks like this:\n\n  def continually[A](elem: \u003d\u003e A): Iterator[A] \u003d new AbstractIterator[A] {\n    def hasNext \u003d true\n    def next \u003d elem\n  }\n\nPossible I\u0027m wrong, but just to check.",
+      "range": {
+        "startLine": 313,
+        "startChar": 26,
+        "endLine": 313,
+        "endChar": 71
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_563e89b9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "So if election.candidateHosts is empty, then calling candidateIt.next() would throw an exception isn\u0027t it? You must check candidateIt.hasNext",
+      "range": {
+        "startLine": 318,
+        "startChar": 52,
+        "endLine": 318,
+        "endChar": 71
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_563769e3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "You could simplify this as:\n\n  val results \u003d for (container \u003c- election.containers) yield {\n    new ContainerHostMapping(..., candidate)\n  }\n\nThe result is a Seq",
+      "range": {
+        "startLine": 314,
+        "startChar": 8,
+        "endLine": 319,
+        "endChar": 9
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d6045917",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "The could be at the beginning: if the candidateHosts is not empty, the results cannot be empty.",
+      "range": {
+        "startLine": 320,
+        "startChar": 8,
+        "endLine": 320,
+        "endChar": 30
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1b6d1a33",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "Missing s and {} for string interpolation",
+      "range": {
+        "startLine": 322,
+        "startChar": 20,
+        "endLine": 322,
+        "endChar": 42
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb405e58",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-01T18:03:27Z",
+      "side": 1,
+      "message": "This method throws an exception: provide an exception handler where you call it.",
+      "range": {
+        "startLine": 336,
+        "startChar": 16,
+        "endLine": 336,
+        "endChar": 27
+      },
+      "revId": "e92bf4c4b8fb25f39360f8b5b00546c169eb65f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
