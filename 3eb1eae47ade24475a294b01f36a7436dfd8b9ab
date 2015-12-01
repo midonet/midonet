@@ -201,6 +201,30 @@
       "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3879fc2f",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-01T14:02:05Z",
+      "side": 1,
+      "message": "@galo, in the case of the bgpd-helper it\u0027s midolman\u0027s responsibility to call down() if prepare() or up() fail. This makes the script\u0027s operations more composable. So I agree with Joe that this is not the patch to discuss this.\n\nI agree with Galo, however, in that this should be transparent to operators. They should not have to log into their systems to debug namespaces or ever find any left over namespaces.",
+      "parentUuid": "5ac4a560_53206049",
+      "range": {
+        "startLine": 194,
+        "startChar": 8,
+        "endLine": 194,
+        "endChar": 14
+      },
+      "revId": "3eb1eae47ade24475a294b01f36a7436dfd8b9ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
