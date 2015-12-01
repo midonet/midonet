@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_25dd5571",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-01T11:02:24Z",
+      "side": 1,
+      "message": "NOT_ACCEPTABLE was right. UNSUPPORTED_MEDIA_TYPE is when the method can\u0027t consume the media type provided by the caller (applicable to create and update). NOT_ACCEPTABLE is when the method can\u0027t produce the media type requested by the caller (applicable to get and list).",
+      "range": {
+        "startLine": 240,
+        "startChar": 46,
+        "endLine": 240,
+        "endChar": 68
+      },
+      "revId": "808334ff105f07297821f0a634d623d28c9eef28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_45c1717f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-01T11:02:24Z",
+      "side": 1,
+      "message": "NOT_ACCEPTABLE",
+      "range": {
+        "startLine": 250,
+        "startChar": 46,
+        "endLine": 250,
+        "endChar": 68
+      },
+      "revId": "808334ff105f07297821f0a634d623d28c9eef28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
