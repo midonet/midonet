@@ -55,6 +55,15 @@ public class IPSecSiteConnection {
     @ZoomField(name = "status")
     public Status status;
 
+    @ZoomField(name = "dpd_action")
+    public DpdAction dpdAction;
+
+    @ZoomField(name = "dpd_interval")
+    public Integer dpdInterval;
+
+    @ZoomField(name = "dpd_timeout")
+    public Integer dpdTimeout;
+
     @ZoomField(name = "vpn_service_id")
     public UUID vpnServiceId;
 
@@ -73,6 +82,15 @@ public class IPSecSiteConnection {
         @ZoomEnumValue("PENDING_CREATE") PENDING_CREATE,
         @ZoomEnumValue("PENDING_UPDATE") PENDING_UPDATE,
         @ZoomEnumValue("PENDING_DELETE") PENDING_DELETE
+    }
+
+    @ZoomEnum(clazz = Neutron.IPSecSiteConnection.DpdAction.class)
+    public enum DpdAction {
+        @ZoomEnumValue("CLEAR") CLEAR,
+        @ZoomEnumValue("HOLD") HOLD,
+        @ZoomEnumValue("RESTART") RESTART,
+        @ZoomEnumValue("DISABLED") DISABLED,
+        @ZoomEnumValue("RESTART_BY_PEER") RESTART_BY_PEER
     }
 
     // TODO: this field and the enum is pointless, leave out and add whenever
