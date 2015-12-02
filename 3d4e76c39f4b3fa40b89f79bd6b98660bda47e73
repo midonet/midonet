@@ -281,6 +281,30 @@
       "revId": "3d4e76c39f4b3fa40b89f79bd6b98660bda47e73",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_87c1c930",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T11:04:16Z",
+      "side": 1,
+      "message": "So during the initial discussion we thought of this as being generic - I agree though that it requires documentation so implementers for service containers can understand its meaning.\n\nCurrently, the implementation for service containers both for agent and cluster is loadable from the class path, the actual container handler only needs to be an annotated class with a version and container name.\n\nThe idea is to provide a generic framework for containers and we can later hook specific implementations as needed.\n\nExample: a simpler container implementation I though of for testing the containers using MDTS was simply to create a namespace with an IP, connect it to a router and do a ping. The IP could be provided as part of the configurationId - it doesn\u0027t have to represent a reference to a different object.",
+      "parentUuid": "5ac4a560_ecab4287",
+      "range": {
+        "startLine": 486,
+        "startChar": 0,
+        "endLine": 488,
+        "endChar": 39
+      },
+      "revId": "3d4e76c39f4b3fa40b89f79bd6b98660bda47e73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
