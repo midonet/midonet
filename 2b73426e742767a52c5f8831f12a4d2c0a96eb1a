@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_6c2f32a2",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-02T09:16:09Z",
+      "side": 1,
+      "message": "If we want to avoid time outs, we should check for some conditions that must be true. For LB, these conditions could be that a leader is elected (already checked on a method), that the router contains all the routes and filters set up (could be checked with the midonet api).",
+      "revId": "2b73426e742767a52c5f8831f12a4d2c0a96eb1a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cc368603",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-02T09:16:09Z",
+      "side": 1,
+      "message": "As said on the v5.0 patch, this sleep might not be necessary as we are already waiting for the first leader to be elected.",
+      "revId": "2b73426e742767a52c5f8831f12a4d2c0a96eb1a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
