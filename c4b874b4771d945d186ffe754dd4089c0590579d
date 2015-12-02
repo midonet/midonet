@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_aaf689d5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/VPNServiceResource.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T17:08:44Z",
+      "side": 1,
+      "message": "Maybe we should remove this, such that the resource doesn\u0027t get included as an API root resource. Since the default name is an empty string, I don\u0027t Jersey will allow it - however it will show up in the API log as a root resource I guess. Anyway, it\u0027s fine to do it later if needed.",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 25
+      },
+      "revId": "c4b874b4771d945d186ffe754dd4089c0590579d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ea69618c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/VPNServiceResource.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T17:08:44Z",
+      "side": 1,
+      "message": "Nit: not needed",
+      "range": {
+        "startLine": 40,
+        "startChar": 51,
+        "endLine": 41,
+        "endChar": 1
+      },
+      "revId": "c4b874b4771d945d186ffe754dd4089c0590579d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
