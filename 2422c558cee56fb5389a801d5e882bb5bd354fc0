@@ -53,6 +53,74 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e7735c4b",
+        "filename": "tests/mdts/services/jvm.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-12-02T14:35:44Z",
+      "side": 1,
+      "message": "remove blank pls",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_27955433",
+        "filename": "tests/mdts/services/jvm.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-12-02T14:35:44Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_479a5064",
+        "filename": "tests/mdts/services/jvm.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-12-02T14:35:44Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_679f4c53",
+        "filename": "tests/mdts/services/midonet_agent.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-12-02T14:35:44Z",
+      "side": 1,
+      "message": "remove blank if you don\u0027t mind",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_e05fd970",
         "filename": "tests/mdts/services/midonet_agent_jmx_monitor.py",
         "patchSetId": 1
@@ -82,6 +150,24 @@
       "side": 1,
       "message": "I was planning on adding agent specific metrics here, but I can remove it because I dont need any specific metrics now.",
       "parentUuid": "5ac4a560_e05fd970",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_67882c20",
+        "filename": "tests/mdts/services/midonet_agent_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-12-02T14:35:44Z",
+      "side": 1,
+      "message": "I would say remove it if you are not using it .",
+      "parentUuid": "5ac4a560_8ddbb51a",
       "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -152,6 +238,57 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a7796431",
+        "filename": "tests/mdts/services/zookeeper_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-12-02T14:35:44Z",
+      "side": 1,
+      "message": "remove blank space",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c776603e",
+        "filename": "tests/mdts/services/zookeeper_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-12-02T14:35:44Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_877c6822",
+        "filename": "tests/mdts/services/zookeeper_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-12-02T14:35:44Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_604bc9b0",
         "filename": "tests/mdts/services/zookeeper_jmx_monitor.py",
         "patchSetId": 1
@@ -181,6 +318,24 @@
       "side": 1,
       "message": "Same reason as for the AgentJMXMonitor",
       "parentUuid": "5ac4a560_604bc9b0",
+      "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_87d1c8fd",
+        "filename": "tests/mdts/services/zookeeper_jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-12-02T14:35:44Z",
+      "side": 1,
+      "message": "same here, remove if not being used.",
+      "parentUuid": "5ac4a560_cd04cd80",
       "revId": "2422c558cee56fb5389a801d5e882bb5bd354fc0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
