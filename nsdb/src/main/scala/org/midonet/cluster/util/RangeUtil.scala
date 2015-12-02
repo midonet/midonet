@@ -40,6 +40,9 @@ object RangeUtil {
         builder.build()
     }
 
+    def toProto(start: Int, end: Int): Int32Range =
+        Int32Range.newBuilder.setStart(start).setEnd(end).build()
+
     implicit def fromProto(value: Int32Range): Range[Integer] = {
         new Range[Integer](if (value.hasStart) value.getStart else null,
                            if (value.hasEnd) value.getEnd else null)

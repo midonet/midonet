@@ -125,6 +125,7 @@ public class IPSecSiteConnection extends UriResource {
         if (id == null) {
             return null;
         }
+
         return UriBuilder.fromUri(getBaseUri())
                          .path("neutron")
                          .path("ipsec_site_conns")
