@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_e7999d6f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerHandler.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-02T10:45:26Z",
+      "side": 1,
+      "message": "This needs to be able to read the configuration from zoom somehow, so it needs to be passed a Storage.",
+      "revId": "5eae70f6b5f443ead9e899f2ff210ad0597eceb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
