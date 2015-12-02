@@ -18,7 +18,6 @@ package org.midonet.cluster.rest_api.host;
 import java.net.URI;
 import java.util.UUID;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -37,14 +36,13 @@ import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoVtep;
 import org.midonet.client.dto.TunnelZoneType;
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.cluster.rest_api.host.rest_api.HostTopology;
 import org.midonet.cluster.rest_api.rest_api.DtoWebResource;
 import org.midonet.cluster.rest_api.rest_api.FuncTest;
 import org.midonet.cluster.rest_api.rest_api.RestApiTestBase;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
 
 import static javax.ws.rs.core.Response.Status.*;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.UNIQUE_TUNNEL_ZONE_NAME_TYPE;

@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import org.midonet.cluster.backend.zookeeper.StateAccessException;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.DtoLoadBalancer;
@@ -37,7 +38,6 @@ import org.midonet.client.dto.l4lb.LBStatus;
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
 
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
