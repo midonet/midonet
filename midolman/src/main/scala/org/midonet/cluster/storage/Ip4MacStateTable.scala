@@ -18,8 +18,6 @@ package org.midonet.cluster.storage
 
 import scala.collection.JavaConverters._
 
-import com.google.inject.Inject
-
 import rx.subscriptions.Subscriptions
 import rx.{Subscriber, Observable}
 import rx.Observable.OnSubscribe
@@ -79,8 +77,8 @@ object Ip4MacStateTable {
   * Therefore, to modify an existing persisting entry, first delete the entry
   * and then add a new one with the same IP address.
   */
-final class Ip4MacStateTable @Inject()(directory: Directory,
-                                       zkConnWatcher: ZkConnectionAwareWatcher)
+final class Ip4MacStateTable(directory: Directory,
+                             zkConnWatcher: ZkConnectionAwareWatcher)
     extends StateTable[IPv4Addr, MAC] {
 
     private val map = new Ip4ToMacReplicatedMap(directory)

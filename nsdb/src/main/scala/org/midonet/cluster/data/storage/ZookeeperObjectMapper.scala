@@ -107,11 +107,11 @@ import org.midonet.util.functors.makeFunc1
 class ZookeeperObjectMapper(protected override val rootPath: String,
                             protected override val namespace: String,
                             protected override val curator: CuratorFramework,
-                            reactor: Reactor,
-                            connection: ZkConnection,
-                            connectionWatcher: ZkConnectionAwareWatcher,
+                            protected override val reactor: Reactor,
+                            protected override val connection: ZkConnection,
+                            protected override val connectionWatcher: ZkConnectionAwareWatcher,
                             metricsRegistry: MetricRegistry = null)
-    extends ZookeeperObjectState with Storage {
+    extends ZookeeperObjectState with ZookeeperStateTable with Storage {
 
     import ZookeeperObjectMapper._
 
@@ -174,9 +174,12 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
      * be lost.
      */
     private class ZoomTransactionManager(val version: Long)
-            extends TransactionManager(classInfo.toMap, allBindings) {
+            extends TransactionManager(classInfo.toMap, allBindings)
+            with StateTableTransactionManager {
 
         import ZookeeperObjectMapper._
+
+        protected override def executorService = executor
 
         // Create an ephemeral node so that we can get Zookeeper's current
         // ZXID. This will allow us to determine if any of the nodes we read
@@ -253,7 +256,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         @throws[StorageNodeExistsException]
         @throws[StorageNodeNotFoundException]
         override def commit(): Unit = {
-            val ops = flattenOps
+            val ops = flattenOps ++ createStateTableOps
             var txn =
                 curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
 
@@ -302,6 +305,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             } finally {
                 metrics.addMultiLatency(System.nanoTime() - startTime)
             }
+
+            deleteStateTables()
         }
 
         override protected def nodeExists(path: String): Boolean =
@@ -322,8 +327,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             curator.delete().forPath(lockPath)
         } catch {
             // Not much we can do. Fortunately, it's ephemeral.
-            case ex: Exception => log.warn(
-                s"Could not delete TransactionManager lock node $lockPath.", ex)
+            case NonFatal(e) => log.warn(
+                s"Could not delete TransactionManager lock node $lockPath.", e)
         }
 
         /** Get a string as bytes, or null if the string is null. */
@@ -403,6 +408,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
         classInfo(clazz) = makeInfo(clazz)
         stateInfo(clazz) = new StateInfo
+        tableInfo(clazz) = new TableInfo
     }
 
     override def isRegistered(clazz: Class[_]) = {
@@ -432,6 +438,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         for (clazz <- classes) {
             txn = txn.check().forPath(classPath(clazz)).and()
             txn = txn.check().forPath(stateClassPath(namespace, clazz)).and()
+            txn = txn.check().forPath(tablesClassPath(clazz)).and()
         }
         try {
             txn.commit()
@@ -449,6 +456,8 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                                classPath(clazz))
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
                                stateClassPath(namespace, clazz))
+                ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
+                               tablesClassPath(clazz))
             }
         } catch {
             case ex: Exception => throw new InternalObjectMapperException(ex)
