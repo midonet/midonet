@@ -257,6 +257,30 @@
       "revId": "3d4e76c39f4b3fa40b89f79bd6b98660bda47e73",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8c4baeaf",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 9
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T08:43:27Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "5ac4a560_ecab4287",
+      "range": {
+        "startLine": 486,
+        "startChar": 0,
+        "endLine": 488,
+        "endChar": 39
+      },
+      "revId": "3d4e76c39f4b3fa40b89f79bd6b98660bda47e73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
