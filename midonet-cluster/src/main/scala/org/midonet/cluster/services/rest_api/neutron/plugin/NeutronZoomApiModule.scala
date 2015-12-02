@@ -33,10 +33,12 @@ class NeutronZoomApiModule extends PrivateModule {
         bind(classOf[ResourceContext])
 
         List (
-            classOf[NetworkApi],
+            classOf[FirewallApi],
             classOf[L3Api],
+            classOf[LoadBalancerApi],
+            classOf[NetworkApi],
             classOf[SecurityGroupApi],
-            classOf[LoadBalancerApi]
+            classOf[VpnServiceApi]
         ) foreach { c =>
             bind(c).to(classOf[NeutronZoomPlugin])
             expose(c)
