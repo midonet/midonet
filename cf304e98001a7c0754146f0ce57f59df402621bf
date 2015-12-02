@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_0788591e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerPort.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T10:40:21Z",
+      "side": 1,
+      "message": "So are we linking containers to a specific service? I thought containers were independent of the service they provide.",
+      "range": {
+        "startLine": 38,
+        "startChar": 18,
+        "endLine": 38,
+        "endChar": 30
+      },
+      "revId": "cf304e98001a7c0754146f0ce57f59df402621bf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
