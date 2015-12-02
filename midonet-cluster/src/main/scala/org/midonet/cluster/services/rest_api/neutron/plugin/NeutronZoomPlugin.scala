@@ -19,6 +19,7 @@ package org.midonet.cluster.services.rest_api.neutron.plugin
 import java.util
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
+
 import javax.ws.rs.WebApplicationException
 
 import scala.collection.JavaConversions._
@@ -30,6 +31,7 @@ import scala.util.control.NonFatal
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.inject.Inject
 import com.google.protobuf.Message
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.ZoomConvert.fromProto
@@ -52,8 +54,12 @@ import org.midonet.util.concurrent.toFutureOps
 class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
                                   c3po: C3POStorageManager,
                                   lockFactory: ZookeeperLockFactory)
-    extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi
-            with FirewallApi {
+    extends L3Api
+            with FirewallApi
+            with LoadBalancerApi
+            with NetworkApi
+            with SecurityGroupApi
+            with VpnServiceApi {
 
     private val log = LoggerFactory.getLogger(restApiNeutronLog)
 
@@ -429,4 +435,25 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     override def updateFirewall(dto: Firewall): Unit = update(dto)
 
     override def deleteFirewall(id: UUID): Unit = delete(id, classOf[Firewall])
+
+    override def getVpnService(id: UUID): VPNService = get(id)
+
+    override def createVpnService(vpn: VPNService): Unit = create(vpn)
+
+    override def deleteVpnService(id: UUID): Unit =
+        delete(id, classOf[VPNService])
+
+    override def getVpnServices: util.List[VPNService] =
+        listAll(classOf[VPNService])
+
+    override def getIpSecSiteConnection(id: UUID): IPSecSiteConnection = get(id)
+
+    override def getIpSecSiteConnections: util.List[IPSecSiteConnection] =
+        listAll(classOf[IPSecSiteConnection])
+
+    override def createIpSecSiteConnection(cnxn: IPSecSiteConnection): Unit =
+        create(cnxn)
+
+    override def deleteIpSecSiteConnection(id: UUID): Unit =
+        delete(id, classOf[IPSecSiteConnection])
 }

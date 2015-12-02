@@ -68,10 +68,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def firewallResource: FirewallResource = new FirewallResource(uriInfo, api)
 
     @Path("vpnservices")
-    def vpnServicesResource: VPNServiceResource = new VPNServiceResource(resContext)
+    def vpnServicesResource: VPNServiceResource = new VPNServiceResource(uriInfo, api)
 
     @Path("ipsec_site_conns")
-    def ipsecSiteConnResource: IpsecSiteConnResource = new IpsecSiteConnResource(resContext)
+    def ipsecSiteConnResource: IpsecSiteConnResource = new IpsecSiteConnResource(uriInfo, api)
 
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
