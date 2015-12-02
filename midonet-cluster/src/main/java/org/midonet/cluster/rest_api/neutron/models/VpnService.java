@@ -1,20 +1,19 @@
 package org.midonet.cluster.rest_api.neutron.models;
 
-import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
 
-import javax.ws.rs.core.UriBuilder;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.rest_api.models.UriResource;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.packets.IPAddr;
 
 @ZoomClass(clazz = Neutron.VpnService.class)
-public class VpnService extends UriResource {
+public class VpnService extends ZoomObject {
     @ZoomField(name = "id")
     public UUID id;
 
@@ -24,45 +23,32 @@ public class VpnService extends UriResource {
     @ZoomField(name = "description")
     public String description;
 
+    @JsonProperty("admin_state_up")
     @ZoomField(name = "admin_state_up")
     public Boolean adminStateUp;
 
+    @JsonProperty("tenant_id")
     @ZoomField(name = "tenant_id")
     public String tenantId;
 
+    @JsonProperty("router_id")
     @ZoomField(name = "router_id")
     public UUID routerId;
 
+    @JsonProperty("subnet_id")
     @ZoomField(name = "subnet_id")
     public UUID subnetId;
 
     @ZoomField(name = "status")
     public String status;
 
+    @JsonProperty("external_v4_ip")
     @ZoomField(name = "external_v4_ip", converter = IPAddressUtil.Converter.class)
-    public IPAddr externalV4Ip;
+    public String externalV4Ip;
 
+    @JsonProperty("external_v6_ip")
     @ZoomField(name = "external_v6_ip", converter = IPAddressUtil.Converter.class)
-    public IPAddr externalV6Ip;
-
-    @Override
-    public URI getUri() {
-        if (getBaseUri() == null) {
-            return null;
-        } else {
-            return UriBuilder.fromUri(getBaseUri())
-                .path("neutron")
-                .path("vpnservices")
-                .path(id.toString()).build();
-        }
-    }
-
-    @Override
-    public void create() {
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
-    }
+    public String externalV6Ip;
 
     @Override
     public boolean equals(Object o) {
@@ -92,5 +78,22 @@ public class VpnService extends UriResource {
         return Objects.hash(id, name, description, adminStateUp, tenantId,
                             routerId, subnetId, status, externalV4Ip,
                             externalV6Ip);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .omitNullValues()
+            .add("id", id)
+            .add("name", name)
+            .add("description", description)
+            .add("adminStateUp", adminStateUp)
+            .add("tenantId", tenantId)
+            .add("routerId", routerId)
+            .add("subnetId", subnetId)
+            .add("status", status)
+            .add("externalV4Ip", externalV4Ip)
+            .add("externalV6Ip", externalV6Ip)
+            .toString();
     }
 }

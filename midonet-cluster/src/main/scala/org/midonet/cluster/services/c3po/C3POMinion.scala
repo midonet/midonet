@@ -17,16 +17,19 @@
 package org.midonet.cluster.services.c3po
 
 import java.sql.Driver
+
 import javax.sql.DataSource
 
 import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.protobuf.Message
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.c3poLog
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron._
@@ -36,7 +39,7 @@ import org.midonet.cluster.services.c3po.translators._
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, ScheduledMinion}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.{SequenceDispenser, UUIDUtil}
-import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode, c3poLog}
+import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode}
 import org.midonet.midolman.state.PathBuilder
 
 /** The service that translates and imports neutron models into the MidoNet
@@ -191,26 +194,29 @@ object C3POMinion {
         val dataMgr = new C3POStorageManager(storage)
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
              classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
+             classOf[IPSecSiteConnection] ->
+                new IPSecSiteConnectionTranslator(storage),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronFirewall] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->
-             new HealthMonitorTranslator(storage),
+                new HealthMonitorTranslator(storage),
              classOf[NeutronLoadBalancerPool] ->
-             new LoadBalancerPoolTranslator(storage),
+                new LoadBalancerPoolTranslator(storage),
              classOf[NeutronLoadBalancerPoolMember] ->
-             new LoadBalancerPoolMemberTranslator(storage),
+                new LoadBalancerPoolMemberTranslator(storage),
              classOf[NeutronNetwork] ->
-             new NetworkTranslator(storage, pathBldr),
+                new NetworkTranslator(storage, pathBldr),
              classOf[NeutronRouter] -> new RouterTranslator(storage, pathBldr),
              classOf[NeutronRouterInterface] ->
-             new RouterInterfaceTranslator(storage, seqDispenser),
+                new RouterInterfaceTranslator(storage, seqDispenser),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),
              classOf[NeutronPort] -> new PortTranslator(storage, pathBldr,
                                                         seqDispenser),
              classOf[NeutronVIP] -> new VipTranslator(storage, pathBldr),
              classOf[PortBinding] -> new PortBindingTranslator(storage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
-             classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage)
+             classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage),
+             classOf[VpnService] -> new VpnServiceTranslator(storage)
         ).asInstanceOf[List[(Class[Message], Translator[Message])]]
          .foreach { pair =>
             dataMgr.registerTranslator(pair._1, pair._2)

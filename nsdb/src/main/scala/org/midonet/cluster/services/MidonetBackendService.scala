@@ -22,11 +22,12 @@ import scala.util.control.NonFatal
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.slf4j.LoggerFactory.getLogger
 
-import org.midonet.cluster.backend.zookeeper.{ZookeeperConnectionWatcher, ZkConnectionAwareWatcher, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZookeeperConnectionWatcher}
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.KeyType._
 import org.midonet.cluster.data.storage._
@@ -35,7 +36,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.{CuratorZkConnection, MidonetBackendConfig}
 import org.midonet.conf.HostIdGenerator
-import org.midonet.util.eventloop.{TryCatchReactor, Reactor}
+import org.midonet.util.eventloop.{Reactor, TryCatchReactor}
 
 object MidonetBackend {
 
@@ -228,6 +229,14 @@ object MidonetBackend {
                              classOf[TraceRequest], "router_id", CLEAR)
         store.declareBinding(classOf[Port], "trace_request_ids", CASCADE,
                              classOf[TraceRequest], "port_id", CLEAR)
+
+        store.declareBinding(classOf[VpnService], "ipsec_site_conn_ids", CASCADE,
+                             classOf[IPSecSiteConnection], "vpnservice_id", CLEAR)
+        store.declareBinding(classOf[VpnService], "router_id", CLEAR,
+                             classOf[Router], "vpn_service_ids", ERROR)
+
+        store.declareBinding(classOf[IPSecSiteConnection], "route_ids", CASCADE,
+                             classOf[Route], "ipsec_site_conn_id", CLEAR)
 
         stateStore.registerKey(classOf[Host], AliveKey, SingleLastWriteWins)
         stateStore.registerKey(classOf[Host], HostKey, SingleLastWriteWins)

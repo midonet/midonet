@@ -41,7 +41,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
-import org.midonet.cluster.backend.zookeeper.{ZookeeperConnectionWatcher, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZookeeperConnectionWatcher}
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
@@ -656,6 +656,145 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         pb.put("interface_name", interfaceName)
         pb.put("port_id", portId.toString)
         pb
+    }
+
+    protected def vpnServiceJson(id: UUID,
+                                 routerId: UUID,
+                                 subnetId: UUID,
+                                 adminStateUp: Boolean = true,
+                                 description: String = null,
+                                 externalV4Ip: String = null,
+                                 externalV6Ip: String = null,
+                                 name: String = null,
+                                 status: String = "PENDING_CREATE",
+                                 tenantId: String = null): JsonNode = {
+        val vpn = nodeFactory.objectNode
+        vpn.put("id", id.toString)
+        vpn.put("router_id", routerId.toString)
+        vpn.put("subnet_id", subnetId.toString)
+        vpn.put("admin_state_up", adminStateUp)
+        vpn.put("description",
+                if (description != null) description
+                else s"VPNService with ID $id")
+        if (externalV4Ip != null) vpn.put("external_v4_ip", externalV4Ip)
+        if (externalV6Ip != null) vpn.put("external_v6_ip", externalV6Ip)
+        vpn.put("name", if (name != null) name else s"vpn-$id")
+        vpn.put("status", status)
+        if (tenantId != null) vpn.put("tenant_id", tenantId)
+        vpn
+    }
+
+    protected def ipSecSiteConnectionJson(id: UUID,
+                                          vpnServiceId: UUID,
+                                          localCidrs: List[String],
+                                          peerCidrs: List[String],
+                                          ikePolicy: JsonNode,
+                                          ipSecPolicy: JsonNode,
+                                          adminStateUp: Boolean = true,
+                                          authMode: String = "psk",
+                                          description: String = null,
+                                          dpdAction: String = "hold",
+                                          dpdInterval: Int = 30,
+                                          dpdTimeout: Int = 120,
+                                          externalIp: String = null,
+                                          initiator: String = "bi-directional",
+                                          localEpGroupId: UUID = null,
+                                          localIpVers: Int = 4,
+                                          mtu: Int = 1500,
+                                          name: String = null,
+                                          peerAddress: String = "10.0.0.1",
+                                          peerEpGroupId: UUID = null,
+                                          peerId: String = "10.0.0.2",
+                                          psk: String = "t0p_secret",
+                                          routeMode: String = "static",
+                                          status: String = "PENDING_CREATE",
+                                          tenantId: String = null): JsonNode = {
+        val con = nodeFactory.objectNode
+        con.put("id", id.toString)
+        con.put("vpn_service_id", vpnServiceId.toString)
+        con.set("ikepolicy", ikePolicy)
+        con.set("ipsecpolicy", ipSecPolicy)
+        con.put("admin_state_up", adminStateUp)
+        con.put("auth_mode", authMode)
+        con.put("description",
+                if (description != null) description
+                else s"IPSecSiteConnection with ID $id")
+        con.put("dpd_action", dpdAction)
+        con.put("dpd_interval", dpdInterval)
+        con.put("dpd_timeout", dpdTimeout)
+        con.put("external_ip", externalIp)
+        con.put("initiator", initiator)
+        if (localEpGroupId != null)
+            con.put("local_ep_group_id", localEpGroupId.toString)
+        con.put("local_ip_vers", localIpVers)
+        con.put("mtu", mtu)
+        con.put("name", if (name != null) name else s"ipsec-con-$id")
+        con.put("peer_address", peerAddress)
+        if (peerEpGroupId != null)
+            con.put("peer_ep_group_id", peerEpGroupId.toString)
+        con.put("peer_id", peerId)
+        con.put("psk", psk)
+        con.put("route_mode", routeMode)
+        con.put("status", status)
+        if (tenantId != null) con.put("tenant_id", tenantId)
+        con
+    }
+
+    protected def IkePolicyJson(authAlgorithm: String = "sha1",
+                                description: String = null,
+                                encryptionAlgorithm: String = "aes-128",
+                                id: UUID = UUID.randomUUID(),
+                                ikeVersion: String = "v1",
+                                lifetimeUnits: String = "seconds",
+                                lifetimeValue: Int = 3600,
+                                name: String = null,
+                                pfs: String = "group5",
+                                phase1NegotiationMode: String = "main",
+                                tenantId: String = null): JsonNode = {
+        val p = nodeFactory.objectNode
+        p.put("auth_algorithm", authAlgorithm)
+        p.put("description",
+              if (description != null) description
+              else s"IkePolicy with ID $id")
+        p.put("encryption_algoritm", encryptionAlgorithm)
+        p.put("id", id.toString)
+        p.put("ike_version", ikeVersion)
+        p.put("lifetime_units", lifetimeUnits)
+        p.put("lifetime_value", lifetimeValue)
+        p.put("name", if (name != null) name else s"IkePolicy-$id")
+        p.put("pfs", pfs)
+        p.put("phase1_negotiation_mode", phase1NegotiationMode)
+        if (tenantId != null) p.put("tenant_id", tenantId)
+        p
+    }
+
+    protected def IpSecPolicyJson(authAlgorithm: String = "sha1",
+                                  description: String = null,
+                                  encapsulationMode: String = "tunnel",
+                                  encryptionAlgorithm: String = "aes-128",
+                                  id: UUID = UUID.randomUUID(),
+                                  lifetimeUnits: String = "seconds",
+                                  lifetimeValue: Int = 3600,
+                                  name: String = null,
+                                  pfs: String = "group5",
+                                  tenantId: String = null,
+                                  transformProtocol: String = "esp")
+    : JsonNode = {
+        val p = nodeFactory.objectNode
+        p.put("auth_algorithm", authAlgorithm)
+        p.put("description",
+              if (description != null) description
+              else s"IpSecPolicy with ID $id")
+        p.put("encapsulation_mode", encapsulationMode)
+        p.put("encryption_algoritm", encryptionAlgorithm)
+        p.put("id", id.toString)
+        p.put("lifetime_units", lifetimeUnits)
+        p.put("lifetime_value", lifetimeValue)
+        p.put("name", if (name != null) name else s"IkePolicy-$id")
+        p.put("pfs", pfs)
+        if (tenantId != null) p.put("tenant_id", tenantId)
+        p.put("transform_protocol", transformProtocol)
+        p
     }
 
     protected case class ChainPair(inChain: Chain, outChain: Chain)
