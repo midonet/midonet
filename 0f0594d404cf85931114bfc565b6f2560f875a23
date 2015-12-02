@@ -140,6 +140,30 @@
       "revId": "0f0594d404cf85931114bfc565b6f2560f875a23",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_67410c5a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-02T16:00:25Z",
+      "side": 1,
+      "message": "Usually there are two resource classes.\n\nSecurityContainerResource: Top-level SC operations. Can be used to list all SCs, or to get, delete, or update an SC.\n\nSecurityContainerGroupSecurityContainerResource: SC operations scoped to a particular SCG. Usually this is just creating a new SC as a member of a group and listing all SCs belonging to a group.\n\nTake a look at the pairs of resource classes I mentioned in my last comment and how they work.",
+      "parentUuid": "5ac4a560_67c82d75",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 48
+      },
+      "revId": "0f0594d404cf85931114bfc565b6f2560f875a23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
