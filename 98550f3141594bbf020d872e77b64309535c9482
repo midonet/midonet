@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_4cf6f6d8",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-02T03:47:43Z",
+      "side": 1,
+      "message": "Space after the colon.",
+      "range": {
+        "startLine": 87,
+        "startChar": 62,
+        "endLine": 87,
+        "endChar": 63
+      },
+      "revId": "98550f3141594bbf020d872e77b64309535c9482",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6c03b2b8",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-02T03:47:43Z",
+      "side": 1,
+      "message": "Semicolon before the space here.",
+      "range": {
+        "startLine": 88,
+        "startChar": 49,
+        "endLine": 88,
+        "endChar": 50
+      },
+      "revId": "98550f3141594bbf020d872e77b64309535c9482",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
