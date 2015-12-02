@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_07b139f8",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T10:36:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_c73101a4",
+      "range": {
+        "startLine": 76,
+        "startChar": 38,
+        "endLine": 76,
+        "endChar": 40
+      },
+      "revId": "b1aa381f81771b53686547993f81ade41446e1c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_c7d82156",
         "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-02T10:19:28Z",
       "side": 1,
       "message": "falling back to?",
+      "range": {
+        "startLine": 88,
+        "startChar": 51,
+        "endLine": 88,
+        "endChar": 56
+      },
+      "revId": "b1aa381f81771b53686547993f81ade41446e1c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_27955540",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T10:36:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_c7d82156",
       "range": {
         "startLine": 88,
         "startChar": 51,
