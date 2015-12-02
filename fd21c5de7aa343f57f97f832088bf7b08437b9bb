@@ -351,6 +351,30 @@
       "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0a385d9f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/containers/ContainerServiceTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 985,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-02T16:41:08Z",
+      "side": 1,
+      "message": "This test seems identical to the one just above.",
+      "parentUuid": "5ac4a560_c7f2e099",
+      "range": {
+        "startLine": 944,
+        "startChar": 0,
+        "endLine": 985,
+        "endChar": 9
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
