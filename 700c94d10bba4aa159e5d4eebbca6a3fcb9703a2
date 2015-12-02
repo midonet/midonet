@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_cdbe7fff",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/ResourceUris.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T20:45:38Z",
+      "side": 1,
+      "message": "This change makes the patch larger than it needs to be, I\u0027d rather have it in its own patch, but no need to resubmit since it\u0027s done.",
+      "revId": "700c94d10bba4aa159e5d4eebbca6a3fcb9703a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4db50fed",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/validation/MessageProperty.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T20:45:38Z",
+      "side": 1,
+      "message": "did you update ValidationMessages.properties with the corresponding msg in another patch? otherwise this is missing",
+      "range": {
+        "startLine": 20,
+        "startChar": 13,
+        "endLine": 20,
+        "endChar": 28
+      },
+      "revId": "700c94d10bba4aa159e5d4eebbca6a3fcb9703a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8d956742",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T20:45:38Z",
+      "side": 1,
+      "message": "nit: why not add a constructor that takes the types and toStrings?",
+      "range": {
+        "startLine": 299,
+        "startChar": 68,
+        "endLine": 299,
+        "endChar": 91
+      },
+      "revId": "700c94d10bba4aa159e5d4eebbca6a3fcb9703a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_edc5fb5b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T20:45:38Z",
+      "side": 1,
+      "message": "showing the wrong ip here would be nice for users",
+      "revId": "700c94d10bba4aa159e5d4eebbca6a3fcb9703a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0da237ae",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T20:45:38Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 314,
+        "startChar": 57,
+        "endLine": 314,
+        "endChar": 76
+      },
+      "revId": "700c94d10bba4aa159e5d4eebbca6a3fcb9703a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4dac2fa1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T20:45:38Z",
+      "side": 1,
+      "message": "nit: ditto as below, you can use MidonetResource.OkCreated(uri)",
+      "range": {
+        "startLine": 319,
+        "startChar": 12,
+        "endLine": 319,
+        "endChar": 50
+      },
+      "revId": "700c94d10bba4aa159e5d4eebbca6a3fcb9703a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2da7f3be",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T20:45:38Z",
+      "side": 1,
+      "message": "nit: MidonetResource has an OkNoContent for convenience",
+      "range": {
+        "startLine": 332,
+        "startChar": 12,
+        "endLine": 332,
+        "endChar": 40
+      },
+      "revId": "700c94d10bba4aa159e5d4eebbca6a3fcb9703a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
