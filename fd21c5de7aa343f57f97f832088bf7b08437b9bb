@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_0764d820",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T15:40:16Z",
+      "side": 1,
+      "message": "should have read: and the selection of the class is done\nwill change",
+      "parentUuid": "5ac4a560_47e4110d",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 4
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_27cab54f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerService.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-02T14:04:15Z",
       "side": 1,
       "message": "Why Inf?",
+      "range": {
+        "startLine": 49,
+        "startChar": 33,
+        "endLine": 49,
+        "endChar": 45
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a73c0431",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T15:40:16Z",
+      "side": 1,
+      "message": "I was hoping that you patch adding zk op timeout to the config to be merged up to this point. Otherwise, I preferred to set to a max, rather than hard-code an arbitrary value that might not work well in production.\n\nNote that all state store ops will complete with an error when the zk connection times out.",
+      "parentUuid": "5ac4a560_27cab54f",
       "range": {
         "startLine": 49,
         "startChar": 33,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_c7aae018",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T15:40:16Z",
+      "side": 1,
+      "message": "Well, it\u0027s a mix, I tried to use the fewer characters option. If you think it\u0027s not nice, I\u0027ll switch to one style only.",
+      "parentUuid": "5ac4a560_079f7953",
+      "range": {
+        "startLine": 136,
+        "startChar": 16,
+        "endLine": 136,
+        "endChar": 25
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_07b699d9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerService.scala",
         "patchSetId": 3
@@ -82,6 +154,24 @@
       "writtenOn": "2015-12-02T14:04:15Z",
       "side": 1,
       "message": "add StorageTimeout?",
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_07bdb868",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T15:40:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_07b699d9",
       "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e790bcee",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T15:40:16Z",
+      "side": 1,
+      "message": "Right, good catch.",
+      "parentUuid": "5ac4a560_27d1d5fb",
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_47517161",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/containers/ContainerServiceTest.scala",
         "patchSetId": 3
@@ -116,6 +224,30 @@
       "writtenOn": "2015-12-02T14:04:15Z",
       "side": 1,
       "message": "Despite the exception, the updated method is called. I\u0027m not sure what you\u0027re trying to test here.",
+      "range": {
+        "startLine": 301,
+        "startChar": 12,
+        "endLine": 301,
+        "endChar": 32
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_87f8e87d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/containers/ContainerServiceTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T15:40:16Z",
+      "side": 1,
+      "message": "I\u0027m testing that the container service doesn\u0027t crash and continues the work properly (e.g. stop the containers on shutdown), even if one container handler returns a failed future from the update method.\n\nHere I\u0027m verifying that the method that is supposed to throw the exception is called.",
+      "parentUuid": "5ac4a560_47517161",
       "range": {
         "startLine": 301,
         "startChar": 12,
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a7f5e484",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/containers/ContainerServiceTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T15:40:16Z",
+      "side": 1,
+      "message": "bad copy and paste - although the container type here doesn\u0027t affect the test. I will update",
+      "parentUuid": "5ac4a560_27db95ee",
+      "range": {
+        "startLine": 405,
+        "startChar": 66,
+        "endLine": 405,
+        "endChar": 91
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_27d9d457",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/containers/ContainerServiceTest.scala",
         "patchSetId": 3
@@ -162,6 +318,30 @@
       "writtenOn": "2015-12-02T14:04:15Z",
       "side": 1,
       "message": "This seems to be a duplicate of the previous test.",
+      "range": {
+        "startLine": 944,
+        "startChar": 0,
+        "endLine": 985,
+        "endChar": 9
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c7f2e099",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/containers/ContainerServiceTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 985,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T15:40:16Z",
+      "side": 1,
+      "message": "Which is the duplicate test?",
+      "parentUuid": "5ac4a560_27d9d457",
       "range": {
         "startLine": 944,
         "startChar": 0,
