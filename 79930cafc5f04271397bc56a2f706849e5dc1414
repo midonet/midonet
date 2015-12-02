@@ -46,6 +46,30 @@
       "revId": "79930cafc5f04271397bc56a2f706849e5dc1414",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_476ed002",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-02T15:06:45Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "5ac4a560_0c4a3e80",
+      "range": {
+        "startLine": 305,
+        "startChar": 4,
+        "endLine": 305,
+        "endChar": 17
+      },
+      "revId": "79930cafc5f04271397bc56a2f706849e5dc1414",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
