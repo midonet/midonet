@@ -53,11 +53,11 @@ public final class PhysicalLocatorTable extends Table<PhysicalLocator> {
             super.partialColumnSchemas();
         cols.add(getEncapsulationSchema());
         cols.add(getDstIpSchema());
-        ColumnSchema bfdSchema = getBfdSchema();
+        ColumnSchema<GenericTableSchema, ?> bfdSchema = getBfdSchema();
         if (bfdSchema != null) {
             cols.add(bfdSchema);
         }
-        ColumnSchema bfdStatusSchema = getBfdStatusSchema();
+        ColumnSchema<GenericTableSchema, ?> bfdStatusSchema = getBfdStatusSchema();
         if (bfdStatusSchema != null) {
             cols.add(bfdStatusSchema);
         }
