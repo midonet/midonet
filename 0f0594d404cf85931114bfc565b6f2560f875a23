@@ -68,6 +68,30 @@
       "revId": "0f0594d404cf85931114bfc565b6f2560f875a23",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4ce4360d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-02T04:13:00Z",
+      "side": 1,
+      "message": "See also PoolMemberResource vs. PoolPoolMemberResource, PoolResource vs. LoadBalancerPoolResource and HealthMonitorPoolResource, BgpPeerResource vs. RouterBgpPeerResource, etc.",
+      "parentUuid": "5ac4a560_8c172eed",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 48
+      },
+      "revId": "0f0594d404cf85931114bfc565b6f2560f875a23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
