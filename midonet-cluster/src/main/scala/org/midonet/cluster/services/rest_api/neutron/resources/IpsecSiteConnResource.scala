@@ -16,24 +16,53 @@
 
 package org.midonet.cluster.services.rest_api.neutron.resources
 
-import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import java.net.URI
+import java.util
+import java.util.UUID
+
+import javax.ws.rs._
+import javax.ws.rs.core.{Response, UriInfo}
 
 import com.google.inject.Inject
-import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation._
+import org.midonet.cluster.rest_api.NotFoundHttpException
+import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder
 import org.midonet.cluster.rest_api.neutron.models.IPSecSiteConnection
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource
-import org.midonet.cluster.services.rest_api.resources.MidonetResource._
+import org.midonet.cluster.rest_api.validation.MessageProperty.{RESOURCE_NOT_FOUND, getMessage}
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes
+import org.midonet.cluster.services.rest_api.neutron.plugin.VpnServiceApi
 
-@RequestScoped
-@AllowGet(Array(NEUTRON_IPSEC_SITE_CONN_JSON_V1,
-                APPLICATION_JSON))
-@AllowList(Array(NEUTRON_IPSEC_SITE_CONNS_JSON_V1,
-                 APPLICATION_JSON))
-@AllowCreate(Array(NEUTRON_IPSEC_SITE_CONN_JSON_V1,
-                   APPLICATION_JSON))
-@AllowDelete
-class IpsecSiteConnResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[IPSecSiteConnection](resContext)
+class IpsecSiteConnResource @Inject()(uriInfo: UriInfo,
+                                      private val api: VpnServiceApi) {
+
+    private val baseUri: URI = uriInfo.getBaseUri
+
+    @GET
+    @Path("{id}")
+    @Produces(Array(MidonetMediaTypes.NEUTRON_IPSEC_SITE_CONN_JSON_V1))
+    def get(@PathParam("id") id: UUID): IPSecSiteConnection = {
+        val cnxn = api.getIpSecSiteConnection(id)
+        if (cnxn == null)
+            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND, id))
+        cnxn
+    }
+
+    @GET
+    @Produces(Array(MidonetMediaTypes.NEUTRON_IPSEC_SITE_CONNS_JSON_V1))
+    def list: util.List[IPSecSiteConnection] = api.getIpSecSiteConnections
+
+    @POST
+    @Consumes(Array(MidonetMediaTypes.NEUTRON_IPSEC_SITE_CONN_JSON_V1))
+    @Produces(Array(MidonetMediaTypes.NEUTRON_IPSEC_SITE_CONN_JSON_V1))
+    def create(cnxn: IPSecSiteConnection): Response = {
+        api.createIpSecSiteConnection(cnxn)
+        Response.created(
+            NeutronUriBuilder.getIpSecSiteConn(baseUri, cnxn.id))
+            .entity(cnxn).build()
+    }
+
+    @DELETE
+    @Path("{id}")
+    def delete(@PathParam("id") id: UUID): Unit =
+        api.deleteIpSecSiteConnection(id)
+}
