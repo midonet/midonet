@@ -16,24 +16,55 @@
 
 package org.midonet.cluster.services.rest_api.neutron.resources
 
-import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import java.net.URI
+import java.util
+import java.util.UUID
+
+import javax.ws.rs._
+import javax.ws.rs.core.{Response, UriInfo}
 
 import com.google.inject.Inject
-import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList, _}
+import org.midonet.cluster.rest_api.NotFoundHttpException
+import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder
+import org.midonet.cluster.rest_api.validation.MessageProperty.{getMessage, RESOURCE_NOT_FOUND}
+
 import org.midonet.cluster.rest_api.neutron.models.VPNService
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource
-import org.midonet.cluster.services.rest_api.resources.MidonetResource._
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes
+import org.midonet.cluster.services.rest_api.neutron.plugin.VpnServiceApi
 
-@RequestScoped
-@AllowGet(Array(NEUTRON_VPN_SERVICE_JSON_V1,
-                APPLICATION_JSON))
-@AllowList(Array(NEUTRON_VPN_SERVICE_JSON_V1,
-                 APPLICATION_JSON))
-@AllowCreate(Array(NEUTRON_VPN_SERVICE_JSON_V1,
-                   APPLICATION_JSON))
-@AllowDelete
-class VPNServiceResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[VPNService](resContext)
+class VPNServiceResource @Inject()(uriInfo: UriInfo,
+                                   private val api: VpnServiceApi) {
+
+    private val baseUri: URI = uriInfo.getBaseUri
+
+    @GET
+    @Path("{id}")
+    @Produces(Array(MidonetMediaTypes.NEUTRON_VPN_SERVICE_JSON_V1))
+    def get(@PathParam("id") id: UUID): VPNService = {
+        val vpn = api.getVpnService(id)
+        if (vpn == null)
+            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND, id))
+        vpn
+    }
+
+    @GET
+    @Produces(Array(MidonetMediaTypes.NEUTRON_VPN_SERVICES_JSON_V1))
+    def list: util.List[VPNService] = api.getVpnServices
+
+    @POST
+    @Consumes(Array(MidonetMediaTypes.NEUTRON_VPN_SERVICE_JSON_V1))
+    @Produces(Array(MidonetMediaTypes.NEUTRON_VPN_SERVICE_JSON_V1))
+    def create(vpn: VPNService): Response = {
+        api.createVpnService(vpn)
+        Response.created(
+            NeutronUriBuilder.getVpnService(baseUri, vpn.id))
+            .entity(vpn).build()
+    }
+
+    @DELETE
+    @Path("{id}")
+    def delete(@PathParam("id") id: UUID): Unit = api.deleteVpnService(id)
+
+
+}
