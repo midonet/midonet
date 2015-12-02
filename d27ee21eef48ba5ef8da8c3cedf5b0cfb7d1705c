@@ -16,6 +16,24 @@
       "revId": "d27ee21eef48ba5ef8da8c3cedf5b0cfb7d1705c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ac04ea7e",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 9
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-12-02T06:01:00Z",
+      "side": 1,
+      "message": "changed this to just load the kernel modules from the ipsec command.",
+      "parentUuid": "5ac4a560_d899e86f",
+      "revId": "d27ee21eef48ba5ef8da8c3cedf5b0cfb7d1705c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
