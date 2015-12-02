@@ -1,0 +1,176 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_47e4110d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-02T14:04:15Z",
+      "side": 1,
+      "message": "?",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 4
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_27cab54f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-02T14:04:15Z",
+      "side": 1,
+      "message": "Why Inf?",
+      "range": {
+        "startLine": 49,
+        "startChar": 33,
+        "endLine": 49,
+        "endChar": 45
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_079f7953",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-02T14:04:15Z",
+      "side": 1,
+      "message": "log error (\"...\") as this is the style you\u0027re using throughout this file.",
+      "range": {
+        "startLine": 136,
+        "startChar": 16,
+        "endLine": 136,
+        "endChar": 25
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_07b699d9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-02T14:04:15Z",
+      "side": 1,
+      "message": "add StorageTimeout?",
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_27d1d5fb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-02T14:04:15Z",
+      "side": 1,
+      "message": "clearStatus(cp)?",
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_47517161",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/containers/ContainerServiceTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-02T14:04:15Z",
+      "side": 1,
+      "message": "Despite the exception, the updated method is called. I\u0027m not sure what you\u0027re trying to test here.",
+      "range": {
+        "startLine": 301,
+        "startChar": 12,
+        "endLine": 301,
+        "endChar": 32
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_27db95ee",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/containers/ContainerServiceTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-02T14:04:15Z",
+      "side": 1,
+      "message": "Why do you set the service type to this if you\u0027re testing that a delete results in the container being stopped?",
+      "range": {
+        "startLine": 405,
+        "startChar": 66,
+        "endLine": 405,
+        "endChar": 91
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_27d9d457",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/containers/ContainerServiceTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 985,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-02T14:04:15Z",
+      "side": 1,
+      "message": "This seems to be a duplicate of the previous test.",
+      "range": {
+        "startLine": 944,
+        "startChar": 0,
+        "endLine": 985,
+        "endChar": 9
+      },
+      "revId": "fd21c5de7aa343f57f97f832088bf7b08437b9bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
