@@ -72,8 +72,7 @@ class NeutronZoomPluginTest extends FeatureSpec
                                              lockFactory = null,
                                              uriInfo = null,
                                              validator = null,
-                                             seqDispenser = null,
-                                             stateTables = null)
+                                             seqDispenser = null)
         val lockFactory = new ZookeeperLockFactory(curator, paths)
         val sequenceDispenser = new SequenceDispenser(curator, cfg)
         val c3po = C3POMinion.initDataManager(backend.store,
