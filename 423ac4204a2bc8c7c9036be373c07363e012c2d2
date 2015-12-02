@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_6a9f1153",
+        "filename": "tests/mdts/services/midonet_agent.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-02T17:37:33Z",
+      "side": 1,
+      "message": "Nit space.",
+      "revId": "423ac4204a2bc8c7c9036be373c07363e012c2d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8aa38d9d",
+        "filename": "tests/mdts/services/midonet_cluster.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-02T17:37:33Z",
+      "side": 1,
+      "message": "remove trailing spaces.",
+      "revId": "423ac4204a2bc8c7c9036be373c07363e012c2d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_aaa04991",
+        "filename": "tests/mdts/services/zookeeper.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-02T17:37:33Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "423ac4204a2bc8c7c9036be373c07363e012c2d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2a951933",
+        "filename": "tests/sandbox/override_v2/cluster/override.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-02T17:37:33Z",
+      "side": 1,
+      "message": "Those additions in the override are fine for testing now, BUT in the long run they should be moved to midonet-sandbox docker images (i.e. inside the run-midonetcluster.sh script in midonet-sandbox)",
+      "revId": "423ac4204a2bc8c7c9036be373c07363e012c2d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_eaaa416f",
+        "filename": "tests/sandbox/override_v2/midolman/override.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-02T17:37:33Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "423ac4204a2bc8c7c9036be373c07363e012c2d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
