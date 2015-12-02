@@ -28,6 +28,8 @@ import com.google.protobuf.Descriptors.{EnumDescriptor, EnumValueDescriptor}
 import com.google.protobuf.GeneratedMessage.Builder
 import com.google.protobuf.{ByteString, Descriptors, Message}
 
+import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.util.UUIDUtil
 
@@ -44,6 +46,8 @@ import org.midonet.cluster.util.UUIDUtil
 object ZoomConvert {
 
     type ScalaZoomField = ZoomField @param @field
+    
+    private final val log = LoggerFactory.getLogger(this.getClass)
 
     private final val BuilderMethod = "newBuilder"
     private final val DescriptorMethod = "getDescriptor"
@@ -187,11 +191,12 @@ object ZoomConvert {
                           _ : IllegalAccessException |
                           _ : IllegalArgumentException |
                           _ : ClassCastException) =>
-                    throw new ConvertException(
-                        s"Class $clazz failed to convert field "
-                        + s"${zoomField.name} from Java type "
-                        + s"${pojoField.getType} to Protocol Buffers type "
-                        + s"${protoField.getType}", e);
+                    val msg = s"Class $clazz failed to convert field " +
+                              s"${zoomField.name} from Java type " +
+                              s"${pojoField.getType} to Protocol Buffers " +
+                              s"type ${protoField.getType}"
+                    log.error(msg, e)
+                    throw new ConvertException(msg, e)
             }
         }
 

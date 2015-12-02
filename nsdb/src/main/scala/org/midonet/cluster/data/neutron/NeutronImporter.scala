@@ -71,6 +71,8 @@ object NeutronResourceType extends Enumeration {
                                          classOf[Neutron.FloatingIp])
     val HealthMonitor = NeutronResourceType(
             "HEALTHMONITOR", classOf[Neutron.NeutronHealthMonitor])
+    val IPSecSiteConnection =
+        NeutronResourceType("IPSECSITECON", classOf[IPSecSiteConnection])
     val Network = NeutronResourceType("NETWORK", classOf[NeutronNetwork])
     val Pool = NeutronResourceType("POOL", classOf[NeutronLoadBalancerPool])
     val PoolMember = NeutronResourceType("MEMBER",
@@ -86,6 +88,7 @@ object NeutronResourceType extends Enumeration {
         "SECURITYGROUPRULE", classOf[Neutron.SecurityGroupRule])
     val Subnet = NeutronResourceType("SUBNET", classOf[NeutronSubnet])
     val VIP = NeutronResourceType("VIP", classOf[NeutronVIP])
+    val VpnService = NeutronResourceType("VPNSERVICE", classOf[VpnService])
 
     private val vals = Map[String, NeutronResourceType[_ <: Message]](
         NoData.id -> NoData,
@@ -94,6 +97,7 @@ object NeutronResourceType extends Enumeration {
         Firewall.id -> Firewall,
         FloatingIp.id -> FloatingIp,
         HealthMonitor.id -> HealthMonitor,
+        IPSecSiteConnection.id -> IPSecSiteConnection,
         Network.id -> Network,
         Pool.id -> Pool,
         PoolMember.id -> PoolMember,
@@ -104,7 +108,8 @@ object NeutronResourceType extends Enumeration {
         SecurityGroup.id -> SecurityGroup,
         SecurityGroupRule.id -> SecurityGroupRule,
         Subnet.id -> Subnet,
-        VIP.id -> VIP)
+        VIP.id -> VIP,
+        VpnService.id -> VpnService)
 
     def valueOf(i: String): NeutronResourceType[_ <: Message] = vals(i)
 }
