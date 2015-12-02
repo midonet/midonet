@@ -1,7 +1,6 @@
 package org.midonet.cluster.rest_api.neutron.models;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
