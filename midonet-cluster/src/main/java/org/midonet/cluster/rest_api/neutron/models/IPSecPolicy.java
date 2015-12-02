@@ -3,6 +3,8 @@ package org.midonet.cluster.rest_api.neutron.models;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
@@ -16,6 +18,7 @@ public class IPSecPolicy extends ZoomObject {
     @ZoomField(name = "id")
     public UUID id;
 
+    @JsonProperty("tenant_id")
     @ZoomField(name = "tenant_id")
     public String tenantId;
 
@@ -25,24 +28,30 @@ public class IPSecPolicy extends ZoomObject {
     @ZoomField(name = "description")
     public String description;
 
+    @JsonProperty("transform_protocol")
     @ZoomField(name = "transform_protocol")
     public TransformProtocol transformProtocol;
 
+    @JsonProperty("auth_algorithm")
     @ZoomField(name = "auth_algorithm")
     public IPSecAuthAlgorithm authAlgorithm;
 
+    @JsonProperty("encryption_algorithm")
     @ZoomField(name = "encryption_algorithm")
     public IPSecEncryptionAlgorithm encryptionAlgorithm;
 
+    @JsonProperty("encapsulation_mode")
     @ZoomField(name = "encapsulation_mode")
     public EncapsulationMode encapsulationMode;
 
     @ZoomField(name = "pfs")
     public IPSecPFS pfs;
 
+    @JsonProperty("lifetime_units")
     @ZoomField(name = "lifetime_units")
     public String lifetimeUnits;
 
+    @JsonProperty("lifetime_value")
     @ZoomField(name = "lifetime_value")
     public Integer lifetimeValue;
 

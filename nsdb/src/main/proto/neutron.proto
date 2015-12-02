@@ -399,7 +399,6 @@ message IPSecSiteConnection {
     optional UUID ipsecpolicy_id = 23;
     optional IPSecPolicy ipsecpolicy = 24;
 
-
     enum Status {
         ACTIVE = 1;
         DOWN = 2;
