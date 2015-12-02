@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_473c1130",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T11:15:00Z",
+      "side": 1,
+      "message": "Well - I didn\u0027t try to have the fields not overlapping when building the UUID. We can\u0027t extract the information from the ID anyway, since below we XOR the full id with the router and port IDs.\n\nHowever, the id should be distinct for different routes. If we cut the 16 msbs from the weight, then weights 0xabcd and 0x1abcd (and otherwise identical route fields) would yield the same ids, isn\u0027t it? I\u0027m not saying that\u0027s likely to happen.\n\nAny maybe I should XOR the weight rather than OR.\n\nWhat do you think?",
+      "parentUuid": "5ac4a560_8c900eee",
+      "range": {
+        "startLine": 205,
+        "startChar": 19,
+        "endLine": 205,
+        "endChar": 31
+      },
+      "revId": "743d0d17d215cf30959fef50816e9dbc36aada21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_cc94c639",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
         "patchSetId": 2
@@ -60,6 +84,30 @@
       "writtenOn": "2015-12-02T04:46:50Z",
       "side": 1,
       "message": "UUID has some metadata bits, but I don\u0027t know how much this actually matters.\n\nhttps://en.wikipedia.org/wiki/Universally_unique_identifier#Variants_and_versions\n\nI guess this would be version 4, since it\u0027s based on the randomly-generated router and next hop port IDs.",
+      "range": {
+        "startLine": 212,
+        "startChar": 8,
+        "endLine": 212,
+        "endChar": 34
+      },
+      "revId": "743d0d17d215cf30959fef50816e9dbc36aada21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_874629be",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T11:15:00Z",
+      "side": 1,
+      "message": "If needed - I can set the version bits while modifying others to maintain the same \"checksum\".",
+      "parentUuid": "5ac4a560_cc94c639",
       "range": {
         "startLine": 212,
         "startChar": 8,
