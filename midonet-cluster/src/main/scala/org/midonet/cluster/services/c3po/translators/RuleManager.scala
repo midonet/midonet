@@ -99,6 +99,18 @@ trait RuleManager {
         NatRuleData.newBuilder.setDnat(dnat).setReverse(true).build()
     }
 
+    protected def redirectRuleBuilder(chainId: UUID,
+                                      targetPortId: UUID,
+                                      id: UUID = null): Rule.Builder = {
+        val bldr = Rule.newBuilder
+            .setId(if (id != null) id else UUIDUtil.randomUuidProto)
+            .setChainId(chainId)
+            .setType(Rule.Type.L2TRANSFORM_RULE)
+            .setAction(Rule.Action.REDIRECT)
+        bldr.getTransformRuleDataBuilder.setTargetPortId(targetPortId)
+        bldr
+    }
+
     protected def toRuleIdList(ops: Seq[MidoOp[Rule]]) = ops.map {
         case Create(r: Rule) => r.getId
         case Update(r: Rule, _) => r.getId
