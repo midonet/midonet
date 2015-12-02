@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_47cb3172",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T11:06:54Z",
+      "side": 1,
+      "message": "I don\u0027t think so for the SCG, the code path for\n\n/service-container-groups/\u003cid\u003e/service-cotntainers/\u003cid\u003e doesn\u0027t fetch the SCG unless you do it explicitly.",
+      "parentUuid": "5ac4a560_4c1d160f",
+      "range": {
+        "startLine": 63,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 55
+      },
+      "revId": "0f0594d404cf85931114bfc565b6f2560f875a23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_8c172eed",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
         "patchSetId": 14
@@ -82,6 +106,30 @@
       "writtenOn": "2015-12-02T04:13:00Z",
       "side": 1,
       "message": "See also PoolMemberResource vs. PoolPoolMemberResource, PoolResource vs. LoadBalancerPoolResource and HealthMonitorPoolResource, BgpPeerResource vs. RouterBgpPeerResource, etc.",
+      "parentUuid": "5ac4a560_8c172eed",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 48
+      },
+      "revId": "0f0594d404cf85931114bfc565b6f2560f875a23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_67c82d75",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T11:06:54Z",
+      "side": 1,
+      "message": "Yes, but that also implies that they are not accessible independently (you must go via the SCG relative path or it doesn\u0027t work). \n\nDo you think SGs should just not be exposed as root resources?",
       "parentUuid": "5ac4a560_8c172eed",
       "range": {
         "startLine": 65,
