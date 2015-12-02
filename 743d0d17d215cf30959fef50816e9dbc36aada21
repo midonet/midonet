@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8c900eee",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-02T10:27:42Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "5ac4a560_8c73ae4c",
+      "range": {
+        "startLine": 205,
+        "startChar": 19,
+        "endLine": 205,
+        "endChar": 31
+      },
+      "revId": "743d0d17d215cf30959fef50816e9dbc36aada21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_cc94c639",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
         "patchSetId": 2
