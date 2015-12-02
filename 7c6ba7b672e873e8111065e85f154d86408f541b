@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_a7a08491",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-02T14:22:36Z",
+      "side": 1,
+      "message": "As this is a utility class which could be shared by different services, pass the log on the constructor to avoid having too many log sources?",
+      "revId": "7c6ba7b672e873e8111065e85f154d86408f541b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
