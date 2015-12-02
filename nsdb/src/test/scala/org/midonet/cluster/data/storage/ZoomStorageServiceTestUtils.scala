@@ -25,7 +25,7 @@ import rx.Observable
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.models.Topology.{Chain, Network, Port, Router, Rule}
-import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.cluster.util.MidonetBackendTest
 
 /**
  * DTO for ZOOM binding.
@@ -42,7 +42,7 @@ class ZoomBinding(val leftClass: Class[_],
  * A trait implementing the common API for testing ZOOM-based Storage Service.
  */
 trait ZoomStorageTester extends StorageTester
-                                with CuratorTestFramework { this: Suite =>
+                                with MidonetBackendTest { this: Suite =>
     var zoom: ZookeeperObjectMapper = null
     val deviceClasses: Array[Class[_]] =
         Array(classOf[Network], classOf[Chain], classOf[Port], classOf[Router],
@@ -147,7 +147,8 @@ trait ZoomStorageTester extends StorageTester
     override def registerClass(c: Class[_]): Unit = zoom.registerClass(c)
 
     override protected def setup(): Unit = {
-        zoom = new ZookeeperObjectMapper(zkRoot, "host", curator)
+        zoom = new ZookeeperObjectMapper(zkRoot, "host", curator, reactor,
+                                         connection, connectionWatcher)
         registerClasses(deviceClasses, bindings)
         zoom.build()
     }

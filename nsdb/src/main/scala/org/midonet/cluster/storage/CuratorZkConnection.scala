@@ -19,7 +19,7 @@ package org.midonet.cluster.storage
 import org.apache.curator.framework.CuratorFramework
 import org.apache.zookeeper.WatchedEvent
 
-import org.midonet.cluster.backend.zookeeper.{ZkDirectory, ZkConnection}
+import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkDirectory}
 import org.midonet.util.eventloop.Reactor
 
 /**
