@@ -584,7 +584,10 @@ public class HostZkManager
             */
             if (port.getHostId() != null &&
                     port.getHostId().equals(hostIdentifier)) {
-                ops.add(getMapUpdatePortOp(port, portId, null, null));
+                Op op = getMapUpdatePortOp(port, portId, null, null);
+                if (op != null) {
+                    ops.add(op);
+                }
             }
             zk.multi(ops);
         }
@@ -600,7 +603,11 @@ public class HostZkManager
         port.setInterfaceName(localDeviceName);
 
         String portPath = paths.getPortPath(portId);
-        return zk.getSetDataOp(portPath, serializer.serialize(port));
+        if (zk.exists(portPath)) {
+            // Guard against data inconsistencies, MN-3937
+            return zk.getSetDataOp(portPath, serializer.serialize(port));
+        }
+        return null;
     }
 
     public List<UUID> getTunnelZoneIds(UUID hostId,

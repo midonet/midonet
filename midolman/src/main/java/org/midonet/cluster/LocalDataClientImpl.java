@@ -1325,7 +1325,9 @@ public class LocalDataClientImpl implements DataClient {
         List<VirtualPortMapping> maps = new ArrayList<>(zkMaps.size());
 
         for(HostDirectory.VirtualPortMapping zkMap : zkMaps) {
-            maps.add(Converter.fromHostVirtPortMappingConfig(zkMap));
+            if (portZkManager.exists(zkMap.getVirtualPortId())) {
+                maps.add(Converter.fromHostVirtPortMappingConfig(zkMap));
+            }
         }
 
         return maps;
