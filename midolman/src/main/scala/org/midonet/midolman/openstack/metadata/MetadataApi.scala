@@ -20,7 +20,7 @@ package org.midonet.midolman.openstack.metadata
  * Metadata service API definition
  *
  * http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
- * http://docs.openstack.org/admin-guide-cloud/content/section_metadata-service.html
+ * http://docs.openstack.org/admin-guide-cloud/compute-networking-nova.html#metadata-service
  */
 object MetadataApi {
     val address = "169.254.169.254"
