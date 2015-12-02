@@ -4,6 +4,12 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import javax.ws.rs.core.UriBuilder;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
@@ -12,13 +18,6 @@ import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.rest_api.models.UriResource;
 import org.midonet.packets.IPSubnet;
 
-import javax.ws.rs.core.UriBuilder;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import org.slf4j.LoggerFactory;
-
 @ZoomClass(clazz = Neutron.IPSecSiteConnection.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IPSecSiteConnection extends UriResource {
@@ -26,24 +25,30 @@ public class IPSecSiteConnection extends UriResource {
     @ZoomField(name = "id")
     public UUID id;
 
+    @JsonProperty("tenant_id")
     @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @ZoomField(name = "name")
     public String name;
 
+    @JsonProperty("peer_address")
     @ZoomField(name = "peer_address")
     public String peerAddress;
 
+    @JsonProperty("peer_id")
     @ZoomField(name = "peer_id")
     public String peerId;
 
+    @JsonProperty("peer_cidrs")
     @ZoomField(name = "peer_cidrs")
     public List<IPSubnet> peerCidrs;
 
+    @JsonProperty("local_cidrs")
     @ZoomField(name = "local_cidrs")
     public List<IPSubnet> localCidrs;
 
+    @JsonProperty("route_mode")
     @ZoomField(name = "route_mode")
     public RouteMode routeMode;
 
@@ -53,39 +58,48 @@ public class IPSecSiteConnection extends UriResource {
     @ZoomField(name = "initiator")
     public Initiator initiator;
 
+    @JsonProperty("auth_mode")
     @ZoomField(name = "auth_mode")
     public AuthMode authMode;
 
     @ZoomField(name = "psk")
     public String psk;
 
+    @JsonProperty("admin_state_up")
     @ZoomField(name = "admin_state_up")
     public Boolean admin_state_up;
 
     @ZoomField(name = "status")
     public Status status;
 
+    @JsonProperty("dpd_action")
     @ZoomField(name = "dpd_action")
     public DpdAction dpdAction;
 
+    @JsonProperty("dpd_interval")
     @ZoomField(name = "dpd_interval")
     public Integer dpdInterval;
 
+    @JsonProperty("dpd_timeout")
     @ZoomField(name = "dpd_timeout")
     public Integer dpdTimeout;
 
+    @JsonProperty("vpnservice_id")
     @ZoomField(name = "vpnservice_id")
     public UUID vpnServiceId;
 
+    @JsonProperty("ikepolicy_id")
     @ZoomField(name = "ikepolicy_id")
     public UUID ikePolicyId;
 
     @ZoomField(name = "ikepolicy")
     public IKEPolicy ikePolicy;
 
+    @JsonProperty("ipsecpolicy_id")
     @ZoomField(name = "ipsecpolicy_id")
     public UUID ipsecPolicyId;
 
+    @JsonProperty("ipsecpolicy")
     @ZoomField(name = "ipsecpolicy")
     public IPSecPolicy ipsecPolicy;
 
@@ -125,7 +139,13 @@ public class IPSecSiteConnection extends UriResource {
     // needed?
     @ZoomEnum(clazz = Neutron.IPSecSiteConnection.AuthMode.class)
     enum AuthMode {
-        @ZoomEnumValue("PSK") PSK
+        @ZoomEnumValue("PSK") PSK;
+
+        @JsonCreator
+        @SuppressWarnings("unused")
+        public static AuthMode forValue(String v) {
+            return valueOf(convertFromIpsecString(v));
+        }
     }
 
     @ZoomEnum(clazz = Neutron.IPSecSiteConnection.Initiator.class)
@@ -144,7 +164,13 @@ public class IPSecSiteConnection extends UriResource {
     // needed?
     @ZoomEnum(clazz = Neutron.IPSecSiteConnection.RouteMode.class)
     public enum RouteMode {
-        @ZoomEnumValue("STATIC") STATIC
+        @ZoomEnumValue("STATIC") STATIC;
+
+        @JsonCreator
+        @SuppressWarnings("unused")
+        public static RouteMode forValue(String v) {
+            return valueOf(convertFromIpsecString(v));
+        }
     }
 
     @Override
@@ -152,6 +178,7 @@ public class IPSecSiteConnection extends UriResource {
         if (id == null) {
             return null;
         }
+
         return UriBuilder.fromUri(getBaseUri())
                          .path("neutron")
                          .path("ipsec_site_conns")
