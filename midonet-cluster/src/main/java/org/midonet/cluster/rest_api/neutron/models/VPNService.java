@@ -40,8 +40,11 @@ public class VPNService extends UriResource {
     @ZoomField(name = "status")
     public String status;
 
-    @ZoomField(name = "external_ips", converter = IPAddressUtil.Converter.class)
-    public List<IPAddr> externalIps;
+    @ZoomField(name = "external_v4_ip", converter = IPAddressUtil.Converter.class)
+    public IPAddr externalV4Ip;
+
+    @ZoomField(name = "external_v6_ip", converter = IPAddressUtil.Converter.class)
+    public IPAddr externalV6Ip;
 
     @Override
     public URI getUri() {
@@ -73,16 +76,6 @@ public class VPNService extends UriResource {
 
         VPNService that = (VPNService) o;
 
-        // Treat empty list as equivalent to null
-        if (externalIps == null && that.externalIps != null
-            && !that.externalIps.isEmpty()) {
-            return false;
-        }
-        if (externalIps != null && !externalIps.isEmpty()
-            && that.externalIps == null) {
-            return false;
-        }
-
         return Objects.equals(id, that.id) &&
                Objects.equals(name, that.name) &&
                Objects.equals(description, that.description) &&
@@ -90,12 +83,15 @@ public class VPNService extends UriResource {
                Objects.equals(tenantId, that.tenantId) &&
                Objects.equals(routerId, that.routerId) &&
                Objects.equals(subnetId, that.subnetId) &&
+               Objects.equals(externalV4Ip, that.externalV4Ip) &&
+               Objects.equals(externalV6Ip, that.externalV6Ip) &&
                Objects.equals(status, that.status);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, name, description, adminStateUp, tenantId,
-                            routerId, subnetId, status, externalIps);
+                            routerId, subnetId, status, externalV4Ip,
+                            externalV6Ip);
     }
 }
