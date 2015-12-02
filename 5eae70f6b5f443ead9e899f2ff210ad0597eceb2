@@ -16,6 +16,24 @@
       "revId": "5eae70f6b5f443ead9e899f2ff210ad0597eceb2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a7b6c5da",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerHandler.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-02T10:50:31Z",
+      "side": 1,
+      "message": "the class implementing this trait will receive storage via Guice injection, actually it will receive VT currently, which provides both the midolman config, access to the topology cache, and storage",
+      "parentUuid": "5ac4a560_e7999d6f",
+      "revId": "5eae70f6b5f443ead9e899f2ff210ad0597eceb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
