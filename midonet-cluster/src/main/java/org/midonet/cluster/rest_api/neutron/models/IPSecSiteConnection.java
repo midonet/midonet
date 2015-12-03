@@ -1,5 +1,6 @@
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,10 +9,16 @@ import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.rest_api.models.UriResource;
 import org.midonet.packets.IPSubnet;
 
+import javax.ws.rs.core.UriBuilder;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @ZoomClass(clazz = Neutron.IPSecSiteConnection.class)
-public class IPSecSiteConnection {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class IPSecSiteConnection extends UriResource {
 
     @ZoomField(name = "id")
     public UUID id;
@@ -48,9 +55,6 @@ public class IPSecSiteConnection {
 
     @ZoomField(name = "psk")
     public String psk;
-
-    @ZoomField(name = "actions")
-    public List<String> actions;
 
     @ZoomField(name = "admin_state_up")
     public Boolean admin_state_up;
@@ -114,5 +118,16 @@ public class IPSecSiteConnection {
     @ZoomEnum(clazz = Neutron.IPSecSiteConnection.RouteMode.class)
     public enum RouteMode {
         @ZoomEnumValue("STATIC") STATIC
+    }
+
+    @Override
+    public URI getUri() {
+        if (id == null) {
+            return null;
+        }
+        return UriBuilder.fromUri(getBaseUri())
+                         .path("neutron")
+                         .path("ipsec_site_conns")
+                         .path(id.toString()).build();
     }
 }

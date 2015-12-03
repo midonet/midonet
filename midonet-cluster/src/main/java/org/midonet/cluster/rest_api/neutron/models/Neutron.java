@@ -20,7 +20,9 @@ import java.net.URI;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.sun.jersey.api.uri.UriBuilderImpl;
 
+import org.midonet.cluster.rest_api.models.UriResource;
 import org.midonet.util.version.Since;
 
 public class Neutron {
@@ -74,21 +76,23 @@ public class Neutron {
     @JsonProperty("load_balancer")
     public LoadBalancer loadBalancer;
 
-    @Since("3")
     @JsonProperty("firewalls")
     public URI firewalls;
 
-    @Since("3")
     @JsonProperty("firewall_template")
     public String firewallTemplate;
 
-    @Since("4")
     @JsonProperty("vpn_services")
     public URI vpnServices;
 
-    @Since("4")
     @JsonProperty("vpn_services_template")
     public String vpnServicesTemplate;
+
+    @JsonProperty("ipsec_site_conns")
+    public URI ipsecSiteConns;
+
+    @JsonProperty("ipsec_site_conn_template")
+    public String ipsecSiteConnsTemplate;
 
     @Override
     public boolean equals(Object obj) {
@@ -127,7 +131,9 @@ public class Neutron {
                && Objects.equal(firewalls, other.firewalls)
                && Objects.equal(firewallTemplate, other.firewallTemplate)
                && Objects.equal(vpnServices, other.vpnServices)
-               && Objects.equal(vpnServicesTemplate, other.vpnServicesTemplate);
+               && Objects.equal(vpnServicesTemplate, other.vpnServicesTemplate)
+               && Objects.equal(ipsecSiteConns, other.ipsecSiteConns)
+               && Objects.equal(ipsecSiteConnsTemplate, other.ipsecSiteConnsTemplate);
     }
 
     @Override
@@ -140,7 +146,8 @@ public class Neutron {
                                 securityGroupTemplate,
                                 securityGroupRules, securityGroupRuleTemplate,
                                 loadBalancer, firewalls, firewallTemplate,
-                                vpnServices, vpnServicesTemplate);
+                                vpnServices, vpnServicesTemplate,
+                                ipsecSiteConns, ipsecSiteConnsTemplate);
     }
 
     @Override
@@ -167,7 +174,9 @@ public class Neutron {
             .add("loadBalancer", loadBalancer)
             .add("firewalls", firewalls)
             .add("firewallTemplate", firewallTemplate)
-            .add("vpnservices", vpnServices)
-            .add("vpnservicesTemplate", vpnServicesTemplate).toString();
+            .add("vpnServices", vpnServices)
+            .add("vpnServiceTemplate", vpnServicesTemplate)
+            .add("ipsecSiteConns", ipsecSiteConns)
+            .add("ipsecSiteConnTemplate", ipsecSiteConnsTemplate).toString();
     }
 }

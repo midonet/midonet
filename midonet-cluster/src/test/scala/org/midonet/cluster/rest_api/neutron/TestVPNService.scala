@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.rest_api.neutron.models.{Neutron, VPNService}
 import org.midonet.cluster.rest_api.rest_api.{DtoWebResource, FuncTest, Topology}
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes.NEUTRON_JSON_V4
+import org.midonet.cluster.services.rest_api.MidonetMediaTypes.NEUTRON_JSON_V3
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes.NEUTRON_VPN_SERVICE_JSON_V1
 
 class TestVPNService extends JerseyTest(FuncTest.getBuilder.build()) with
@@ -46,7 +46,7 @@ class TestVPNService extends JerseyTest(FuncTest.getBuilder.build()) with
     @Test
     def testNeutronHasVPN(): Unit = {
         val neutron = resource().path("/neutron")
-            .accept(NEUTRON_JSON_V4)
+            .accept(NEUTRON_JSON_V3)
             .get(classOf[Neutron])
         neutron.vpnServices shouldNot be(null)
         neutron.vpnServicesTemplate shouldNot be(null)
