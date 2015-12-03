@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_f6378cae",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MidonetBackendModule.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T10:48:19Z",
+      "side": 1,
+      "message": "to?",
+      "range": {
+        "startLine": 102,
+        "startChar": 64,
+        "endLine": 102,
+        "endChar": 66
+      },
+      "revId": "5d66637ba3539bf6ef8609b706a6691796706ad0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
