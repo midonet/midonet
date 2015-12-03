@@ -16,6 +16,24 @@
       "revId": "5981bf93dcd020d207066ffffe717caaa6e8cf57",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb9bf5c6",
+        "filename": "tests/test.list",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-12-03T06:59:46Z",
+      "side": 1,
+      "message": "I dunno, I\u0027m not strong on this, but I was thinking that by labeling it \"non-voting\" we know the purpose of this list.  A voting MDTS may require a different set of tests, if it existed, for instance.  It explains the reasoning behind why these tests are included in particular versus other MDTS tests (like an MDTS_ALL set) or something.  Do you have a suggested alternative name?  Like MDTS_FOR_GATE or something?",
+      "parentUuid": "5ac4a560_7b68c5ba",
+      "revId": "5981bf93dcd020d207066ffffe717caaa6e8cf57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
