@@ -16,8 +16,6 @@
 
 package org.midonet.midolman.monitoring
 
-import scala.collection.JavaConverters._
-
 import java.nio.ByteBuffer
 import java.util.{ArrayList, List, UUID}
 
@@ -33,7 +31,6 @@ import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.config.FlowHistoryConfig
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv6Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger._
@@ -133,11 +130,13 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
 
     private def encodeIcmpData(pktContext: PacketContext): Unit = {
         var i = 0
-        val data = pktContext.origMatch.getIcmpData()
-        val iter = FLOW_SUMMARY.flowMatchIcmpDataCount(data.length)
-        while (i < data.length) {
-            iter.next().data(data(i))
-            i += 1
+        val data = pktContext.origMatch.getIcmpData
+        if (data != null) {
+            val iter = FLOW_SUMMARY.flowMatchIcmpDataCount(data.length)
+            while (i < data.length) {
+                iter.next().data(data(i))
+                i += 1
+            }
         }
     }
 
@@ -157,15 +156,13 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                          setter: (Int, Long) => Unit): Unit = {
         if (address != null) {
             address match {
-                case ip4: IPv4Addr => {
+                case ip4: IPv4Addr =>
                     typeSetter(InetAddrType.IPv4)
                     setter(0, ip4.addr)
-                }
-                case ip6: IPv6Addr => {
+                case ip6: IPv6Addr =>
                     typeSetter(InetAddrType.IPv6)
                     setter(0, ip6.upperWord)
                     setter(1, ip6.lowerWord)
-                }
             }
         }
     }
@@ -289,8 +286,8 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                 case a: FlowActionPopVLAN =>
                     actionEnc.popVlan()
                 case a: FlowActionPushVLAN =>
-                    actionEnc.pushVlan(a.getTagProtocolIdentifier(),
-                                       a.getTagControlIdentifier())
+                    actionEnc.pushVlan(a.getTagProtocolIdentifier,
+                                       a.getTagControlIdentifier)
                 case a: FlowActionUserspace =>
                     actionEnc.userspace(a.uplinkPid,
                                         if (a.userData == null) 0
