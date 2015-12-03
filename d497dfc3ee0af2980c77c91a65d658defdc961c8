@@ -130,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_3683c405",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T11:18:04Z",
+      "side": 1,
+      "message": "The ones that managed to catch the regressions are:\n\ntest_haproxy_failback\ntest_health_monitoring_backend_failback",
+      "parentUuid": "5ac4a560_9b092134",
+      "range": {
+        "startLine": 28,
+        "startChar": 11,
+        "endLine": 28,
+        "endChar": 43
+      },
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_7b02853f",
         "filename": "/COMMIT_MSG",
         "patchSetId": 4
