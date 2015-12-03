@@ -152,6 +152,24 @@
       "revId": "f9d17924c2f50ca0b01224c7b456099e8fdf2244",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e12c24ae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-03T14:17:18Z",
+      "side": 1,
+      "message": "Oh, you\u0027re right: there is one write from a different thread in unsubscribe. I will remove this then, since it\u0027s not really needed with a new subscriber.",
+      "parentUuid": "5ac4a560_b6ffdd00",
+      "revId": "f9d17924c2f50ca0b01224c7b456099e8fdf2244",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
