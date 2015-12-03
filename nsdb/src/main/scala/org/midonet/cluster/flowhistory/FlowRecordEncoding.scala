@@ -33,7 +33,7 @@ object SimulationResult extends Enumeration {
 
 object DeviceType extends Enumeration {
     type DeviceType = Value
-    val LOAD_BALANCER, POOL, PORT_GROUP, BRIDGE, ROUTER, PORT, CHAIN, UNKNOWN = Value
+    val LOAD_BALANCER, POOL, PORT_GROUP, BRIDGE, ROUTER, PORT, CHAIN, MIRROR, UNKNOWN = Value
 }
 
 object Actions {

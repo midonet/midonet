@@ -218,6 +218,8 @@ object FlowRecordBuilder {
                     TraversedDevice(t.device, DeviceType.PORT)
                 case t: ChainDeviceTag =>
                     TraversedDevice(t.device, DeviceType.CHAIN)
+                case t: MirrorDeviceTag =>
+                    TraversedDevice(t.device, DeviceType.MIRROR)
             }).asJava
     }
 

@@ -75,6 +75,7 @@
       <validValue name="ROUTER">5</validValue>
       <validValue name="PORT">6</validValue>
       <validValue name="CHAIN">7</validValue>
+      <validValue name="MIRROR">8</validValue>
     </enum>
     <enum name="IPFragType" encodingType="uint8">
       <validValue name="Unset">0</validValue>
