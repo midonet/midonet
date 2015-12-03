@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_7b68c5ba",
+        "filename": "tests/test.list",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-03T06:55:46Z",
+      "side": 1,
+      "message": "Do we need to differentiate voting vs non-voting at this point?  Whether we make it voting or non-voting is orthogonal, and if we ever decide to change our minds, we don\u0027t really want to come back here to change this name.",
+      "revId": "5981bf93dcd020d207066ffffe717caaa6e8cf57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
