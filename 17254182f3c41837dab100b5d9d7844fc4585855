@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a1094c33",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-03T14:17:18Z",
+      "side": 1,
+      "message": "You\u0027re right: I wasn\u0027t sure whether updates were needed at all. I though of including them just in case, but may be unnecessary. If you think it\u0027s better, I will remove them.",
+      "parentUuid": "5ac4a560_b62c3d4c",
+      "range": {
+        "startLine": 99,
+        "startChar": 20,
+        "endLine": 99,
+        "endChar": 77
+      },
+      "revId": "17254182f3c41837dab100b5d9d7844fc4585855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_f626b567",
         "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
         "patchSetId": 3
@@ -60,6 +84,30 @@
       "writtenOn": "2015-12-01T18:23:46Z",
       "side": 1,
       "message": "discrimination!",
+      "range": {
+        "startLine": 605,
+        "startChar": 43,
+        "endLine": 605,
+        "endChar": 46
+      },
+      "revId": "17254182f3c41837dab100b5d9d7844fc4585855",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1c050711",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/topology/TopologyBuilder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 605,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-03T14:17:18Z",
+      "side": 1,
+      "message": "I though so too, but Scala doesn\u0027t like it maybe because pushVLan is a short.",
+      "parentUuid": "5ac4a560_f626b567",
       "range": {
         "startLine": 605,
         "startChar": 43,
