@@ -269,6 +269,281 @@
       "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1c88a770",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "this feels a bit dodgy, it\u0027s a singleton that more or less captures capturing an instance..\n\nthe only one using this selector is a minion, you can simply build an instance there and use the same one, which spares you the ugliness of trying to make it a real singleton (which is hard to do).",
+      "range": {
+        "startLine": 42,
+        "startChar": 3,
+        "endLine": 49,
+        "endChar": 66
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fc9bebc6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "this will show in the logs as \n\nanwyhere INFO bla bla\n\nbecause we take the last segment. Use containers-selector-anywhere so the whole thing shows",
+      "range": {
+        "startLine": 69,
+        "startChar": 59,
+        "endLine": 69,
+        "endChar": 86
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1ca187f8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "Depends on the threading model, but if this set is mutated by different threads you need a @volatile\n\ngiven that you don\u0027t controll who does, it\u0027s probably a good idea to add it",
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3ca64311",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "ditto re. @volatile\n\nhostsDeletedDuringInit (or somethign similar) might be more informative.",
+      "range": {
+        "startLine": 73,
+        "startChar": 16,
+        "endLine": 73,
+        "endChar": 40
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7cafdbe3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "wrap?",
+      "range": {
+        "startLine": 76,
+        "startChar": 7,
+        "endLine": 78,
+        "endChar": 21
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9cacb7ef",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "public api so worth a brief scaladoc",
+      "range": {
+        "startLine": 82,
+        "startChar": 17,
+        "endLine": 82,
+        "endChar": 31
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1cd6e74f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "factoring this out to\n\n@inline\ndef isInitialized \u003d (deletedWhileInitializing \u003d\u003d null)\n\nwould make it more readable",
+      "range": {
+        "startLine": 85,
+        "startChar": 12,
+        "endLine": 85,
+        "endChar": 44
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5cd05f50",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "space",
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_dcbb8f0c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "align? this might be more readable as:\n\n.map { hosts \u003d\u003e\n    hosts.map { h \u003d\u003e fromProto(h.getId))\n         .filterNot(...).toSet\n}",
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1c3d0790",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "keep the subscription, is there any moment where we want to stop watching for new hosts?",
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5c821f50",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "hostId?",
+      "range": {
+        "startLine": 109,
+        "startChar": 16,
+        "endLine": 109,
+        "endChar": 19
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1cc0a74f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "worth factoring out:\n\nval meaningfulName \u003d makeFunc1 { ... }\n\nAnd then this is pretty:\n\n.map(meaningfulName)",
+      "range": {
+        "startLine": 214,
+        "startChar": 53,
+        "endLine": 216,
+        "endChar": 77
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5c5e9fe7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:15:33Z",
+      "side": 1,
+      "message": "readability:\n\nval election \u003d new Election(..)\nresults ++\u003d createMappings(election)",
+      "range": {
+        "startLine": 292,
+        "startChar": 36,
+        "endLine": 295,
+        "endChar": 65
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
