@@ -1,0 +1,274 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_dc48ef5d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "this one does make the case for exposing an Observable[Update[StateKey]], I think.",
+      "range": {
+        "startLine": 46,
+        "startChar": 6,
+        "endLine": 46,
+        "endChar": 24
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_61181482",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "given that this is passed around all the time, it might deserve a case class\n\nanother note (but I haven\u0027t read so I might not have enough context yet: even if we have several subscribers to the same key, the promise is the same one (either complete or not complete, they share it), so shouldn\u0027t we just index by obj id and state key?",
+      "range": {
+        "startLine": 52,
+        "startChar": 56,
+        "endLine": 52,
+        "endChar": 78
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_810c5044",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "5 seconds if you import scala.concurrent.duration._",
+      "range": {
+        "startLine": 55,
+        "startChar": 26,
+        "endLine": 55,
+        "endChar": 61
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bc1df368",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "nit: Style prefers if (cond) else .. rather than if (!cond) else ..",
+      "range": {
+        "startLine": 68,
+        "startChar": 12,
+        "endLine": 68,
+        "endChar": 14
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fc74cb9d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "I don\u0027t think you need this one, zoom takes UUID too.",
+      "range": {
+        "startLine": 73,
+        "startChar": 24,
+        "endLine": 73,
+        "endChar": 41
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7c419b38",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 79,
+        "startChar": 27,
+        "endLine": 79,
+        "endChar": 33
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_211e1c71",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "wrap",
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bc4b3358",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "not sure why you need to do refcounts of subscriptions, the state observable should be doing that for you already",
+      "range": {
+        "startLine": 86,
+        "startChar": 47,
+        "endLine": 86,
+        "endChar": 54
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e103440d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "nit: if ! return, just to spare nesting",
+      "range": {
+        "startLine": 102,
+        "startChar": 8,
+        "endLine": 102,
+        "endChar": 70
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fc4dab73",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "doesn\u0027t this fail? it\u0027s an empty option..",
+      "range": {
+        "startLine": 107,
+        "startChar": 58,
+        "endLine": 107,
+        "endChar": 62
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fcff6bff",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "trySuccess, probably safer",
+      "range": {
+        "startLine": 107,
+        "startChar": 28,
+        "endLine": 107,
+        "endChar": 35
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_dc31cfed",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T14:26:26Z",
+      "side": 1,
+      "message": "why not return a Future[StateKey] and let the caller chose whether it wants to block or not?",
+      "range": {
+        "startLine": 127,
+        "startChar": 61,
+        "endLine": 127,
+        "endChar": 69
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
