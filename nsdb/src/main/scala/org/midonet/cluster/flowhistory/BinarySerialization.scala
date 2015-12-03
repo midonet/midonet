@@ -15,8 +15,6 @@
  */
 package org.midonet.cluster.flowhistory
 
-import scala.collection.JavaConverters._
-
 import java.nio.ByteBuffer
 import java.util.{ArrayList, List => JList, UUID}
 
@@ -57,12 +55,12 @@ class BinarySerialization {
         val templateId = MESSAGE_HEADER.templateId()
         if (templateId != FlowSummary.TEMPLATE_ID) {
             throw new IllegalArgumentException(
-                s"TemplateId ${templateId} should be ${FlowSummary.TEMPLATE_ID}")
+                s"TemplateId $templateId should be ${FlowSummary.TEMPLATE_ID}")
         }
 
         val actingBlockLength = MESSAGE_HEADER.blockLength()
         val schemaId = MESSAGE_HEADER.schemaId()
-        val actingVersion = MESSAGE_HEADER.version();
+        val actingVersion = MESSAGE_HEADER.version()
         FLOW_SUMMARY.wrapForDecode(directBuffer, MESSAGE_HEADER.size,
                                    actingBlockLength, actingVersion)
 
@@ -159,6 +157,7 @@ class BinarySerialization {
                 case SbeDeviceType.ROUTER => DeviceType.ROUTER
                 case SbeDeviceType.PORT => DeviceType.PORT
                 case SbeDeviceType.CHAIN => DeviceType.CHAIN
+                case SbeDeviceType.MIRROR => DeviceType.MIRROR
                 case _ => DeviceType.UNKNOWN
             }
             devices.add(TraversedDevice(uuid, deviceType))
@@ -409,8 +408,7 @@ class ActionEncoder {
             case VLAN => VLan(buffer.getShort())
             case UNKNOWN => Unknown()
             case unhandled : Byte => throw new IllegalArgumentException(
-                s"Unhandled action type ${unhandled},"
-                    + " server and client compatible?")
+                s"Unhandled action type $unhandled, server and client compatible?")
         }
     }
 

@@ -242,7 +242,7 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                 case t: RouterDeviceTag => deviceStaging.add(t)
                 case t: PortDeviceTag => deviceStaging.add(t)
                 case t: ChainDeviceTag => deviceStaging.add(t)
-                case _ =>
+                case t: MirrorDeviceTag => deviceStaging.add(t)
             }
             i += 1
         }
@@ -270,6 +270,8 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                     dev.`type`(SbeDeviceType.PORT)
                 case t: ChainDeviceTag =>
                     dev.`type`(SbeDeviceType.CHAIN)
+                case t: MirrorDeviceTag =>
+                    dev.`type`(SbeDeviceType.MIRROR)
                 case _ =>
             }
             i += 1
