@@ -1,0 +1,31 @@
+# Copyright 2015 Midokura SARL
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+#
+# This script is executed in the MidoNet CI job that runs MDTS tests.
+#
+
+export MDTS_FOR_GATE="\
+  -t test_load_balancer.py:test_multi_member_loadbalancing \
+  -t test_bgp.py:test_multisession_icmp_remove_session \
+  -t test_l2gw.py:test_icmp_from_mn \
+  -t test_ipfrag.py:test_udp_router \
+  -t test_midolman_and_interfaces.py \
+  -t test_mirroring.py:test_mirroring_router_in \
+  -t test_nat_router.py:test_floating_ip \
+  -t test_l2insertion.py:test_basic_l2insertion \
+  -t test_tracing.py:test_tracing_egress_matching \
+  -t test_vxlangw.py:test_to_multi_vtep_multi_tz \
+"
+
