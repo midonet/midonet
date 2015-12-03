@@ -256,7 +256,6 @@ message Network {
     repeated UUID dhcp_ids = 103;
     repeated UUID dhcpv6_ids = 104;
     repeated UUID trace_request_ids = 105;
-    repeated UUID service_container_ids = 106;
 }
 
 message Pool {
@@ -412,7 +411,6 @@ message Router {
     // Backreferences
     repeated UUID port_ids = 101;
     repeated UUID trace_request_ids = 102;
-    repeated UUID service_container_ids = 103;
 }
 
 message Rule {
@@ -485,28 +483,26 @@ message Rule {
 message ServiceContainer {
     optional UUID id = 1;
     optional UUID service_group_id = 2;
-    optional UUID router_id = 3;
-    optional UUID network_id = 4;
+    // Each ServiceContainer has a virtual port where it's bound to the
+    // virtual topology
+    optional UUID port_id = 3;
+    optional string service_type = 4;
+    // This field contains the ID of the configuration that originates this
+    // service container.  E.g.: a VPNService.
     optional UUID configuration_id = 5;
 }
 
 message ServiceContainerGroup {
     optional UUID id = 1;
-    optional Service service_type = 2;
 
     // Allocation policy.
     // both unset == ANYWHERE
-    optional UUID host_group_id = 4;
-    optional UUID port_group_id = 5;
+    optional UUID host_group_id = 3;
+    optional UUID port_group_id = 4;
 
     // Backreferences
     repeated UUID service_container_ids = 101;
 
-    enum Service {
-        IPSEC = 0;
-        QUAGGA = 1;
-        HAPROXY = 2;
-    }
 }
 
 message TraceRequest {
