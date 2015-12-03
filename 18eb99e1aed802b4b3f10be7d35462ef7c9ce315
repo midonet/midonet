@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_7ca35b9e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:57:32Z",
+      "side": 1,
+      "message": "something more descriptive for operastors? what does this mean?",
+      "range": {
+        "startLine": 91,
+        "startChar": 12,
+        "endLine": 91,
+        "endChar": 61
+      },
+      "revId": "18eb99e1aed802b4b3f10be7d35462ef7c9ce315",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9ca03792",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:57:32Z",
+      "side": 1,
+      "message": "what\u0027s the error?",
+      "revId": "18eb99e1aed802b4b3f10be7d35462ef7c9ce315",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7c26fb17",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T15:57:32Z",
+      "side": 1,
+      "message": "how do recover from this if we can? is it an error, or just a warn?",
+      "range": {
+        "startLine": 334,
+        "startChar": 12,
+        "endLine": 336,
+        "endChar": 50
+      },
+      "revId": "18eb99e1aed802b4b3f10be7d35462ef7c9ce315",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
