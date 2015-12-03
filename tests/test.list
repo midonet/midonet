@@ -1,0 +1,13 @@
+MDTS_NONVOTING_TESTS="\
+  -t test_load_balancer.py:test_multi_member_loadbalancing \
+  -t test_bgp.py:test_multisession_icmp_remove_session \
+  -t test_l2gw.py:test_icmp_from_mn \
+  -t test_ipfrag.py:test_udp_router \
+  -t test_midolman_and_interfaces.py \
+  -t test_mirroring.py:test_mirroring_router_in \
+  -t test_nat_router.py:test_floating_ip \
+  -t test_l2insertion.py:test_basic_l2insertion \
+  -t test_tracing.py:test_tracing_egress_matching \
+  -t test_vxlangw.py:test_to_multi_vtep_multi_tz \
+"
+
