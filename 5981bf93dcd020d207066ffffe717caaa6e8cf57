@@ -34,6 +34,24 @@
       "revId": "5981bf93dcd020d207066ffffe717caaa6e8cf57",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7b960596",
+        "filename": "tests/test.list",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-03T07:18:35Z",
+      "side": 1,
+      "message": "I\u0027m just not too convinced that the purpose of this list is non-voting tests.  Also, having this name tied to a Jenkins config worries me.  I can see us making this voting later since it\u0027s already faster than before.\n\nI think MDTS_FOR_GATE or MDTS_GATE_TESTS is better.",
+      "parentUuid": "5ac4a560_fb9bf5c6",
+      "revId": "5981bf93dcd020d207066ffffe717caaa6e8cf57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
