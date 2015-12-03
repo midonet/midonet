@@ -26,6 +26,7 @@ object MidonetMediaTypes {
     final val NEUTRON_JSON_V3 = "application/vnd.org.midonet.neutron.Neutron-v3+json"
     final val NEUTRON_JSON_V4 = "application/vnd.org.midonet.neutron.Neutron-v4+json"
     final val NEUTRON_VPN_SERVICE_JSON_V1 = "application/vnd.org.midonet.neutron.VPNService-v1+json"
+    final val NEUTRON_IPSEC_SITE_CONN_JSON_V1 = "application/vnd.org.midonet.neutron.IpsecSiteConn-v1+json"
 
     // MIDONET MODELS
     final val APPLICATION_JSON_V5 = "application/vnd.org.midonet.Application-v5+json"

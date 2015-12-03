@@ -90,6 +90,14 @@ public class Neutron {
     @JsonProperty("vpn_services_template")
     public String vpnServicesTemplate;
 
+    @Since("4")
+    @JsonProperty("ipsec_site_conns")
+    public URI ipsecSiteConns;
+
+    @Since("4")
+    @JsonProperty("ipsec_site_conn_template")
+    public String ipsecSiteConnsTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -127,7 +135,9 @@ public class Neutron {
                && Objects.equal(firewalls, other.firewalls)
                && Objects.equal(firewallTemplate, other.firewallTemplate)
                && Objects.equal(vpnServices, other.vpnServices)
-               && Objects.equal(vpnServicesTemplate, other.vpnServicesTemplate);
+               && Objects.equal(vpnServicesTemplate, other.vpnServicesTemplate)
+               && Objects.equal(ipsecSiteConns, other.ipsecSiteConns)
+               && Objects.equal(ipsecSiteConnsTemplate, other.ipsecSiteConnsTemplate);
     }
 
     @Override
@@ -140,7 +150,8 @@ public class Neutron {
                                 securityGroupTemplate,
                                 securityGroupRules, securityGroupRuleTemplate,
                                 loadBalancer, firewalls, firewallTemplate,
-                                vpnServices, vpnServicesTemplate);
+                                vpnServices, vpnServicesTemplate,
+                                ipsecSiteConns, ipsecSiteConnsTemplate);
     }
 
     @Override
@@ -167,7 +178,9 @@ public class Neutron {
             .add("loadBalancer", loadBalancer)
             .add("firewalls", firewalls)
             .add("firewallTemplate", firewallTemplate)
-            .add("vpnservices", vpnServices)
-            .add("vpnservicesTemplate", vpnServicesTemplate).toString();
+            .add("vpnServices", vpnServices)
+            .add("vpnServiceTemplate", vpnServicesTemplate)
+            .add("ipsecSiteConns", ipsecSiteConns)
+            .add("ipsecSiteConnTemplate", ipsecSiteConnsTemplate).toString();
     }
 }
