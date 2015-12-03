@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_10909042",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/ServiceContainer.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T05:43:35Z",
+      "side": 1,
+      "message": "What does this mean?",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 14
+      },
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_70b624db",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T05:43:35Z",
+      "side": 1,
+      "message": "I think the preferred way to do this is to make the constructor with more arguments the primary constructor. That way parentResId can be a val, and it also saves a line of code. You could even make it an optional argument, and eliminate the secondary constructor altogether, I think.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 5
+      },
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_70ed44c3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T05:43:35Z",
+      "side": 1,
+      "message": "It looks like this allows creating a container that doesn\u0027t belong to a group. And we don\u0027t support update, so it will never belong to a group.\n\nI believe that this also will let a ServiceContainer through without an ID. It should still fail in Zoom, but normally we assign a random ID to a topology object if none is specified.\n\nWe already have an established pattern for nested resources that\u0027s been tested extensively. Why don\u0027t we use that?",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 34
+      },
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_300aec8a",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/HttpRequestChecks.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T05:43:35Z",
+      "side": 1,
+      "message": "There\u0027s an overload of getEntity that takes a Type instead of a Class. I wonder if that can be used to get a list directly.",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 46
+      },
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_500da88f",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/HttpRequestChecks.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T05:43:35Z",
+      "side": 1,
+      "message": "In any case, this should be ct.runtimeClass.",
+      "range": {
+        "startLine": 103,
+        "startChar": 47,
+        "endLine": 103,
+        "endChar": 63
+      },
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_50ff6867",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/resources/TestServiceContainersApi.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T05:43:35Z",
+      "side": 1,
+      "message": "Why are these commented out?",
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
