@@ -59,6 +59,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_36cbc4a6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-12-03T10:48:00Z",
+      "side": 1,
+      "message": "The premise I am working from is to maximize the cross section of failures over the last 130 builds with the minimum set of tests.  As we get more and more data (from nightly runs, etc), that list can be revised and this list improved.\n\nBut this patch in particular is just to get the list of tests into the source tree.",
+      "parentUuid": "5ac4a560_5bd789c1",
+      "range": {
+        "startLine": 27,
+        "startChar": 22,
+        "endLine": 27,
+        "endChar": 54
+      },
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_9bd841f1",
         "filename": "/COMMIT_MSG",
         "patchSetId": 4
@@ -70,6 +94,30 @@
       "writtenOn": "2015-12-03T09:38:56Z",
       "side": 1,
       "message": "some of the new l4lb tests should be in the list based on this, and the recent production bugs?",
+      "range": {
+        "startLine": 28,
+        "startChar": 11,
+        "endLine": 28,
+        "endChar": 43
+      },
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9b092134",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-12-03T10:48:00Z",
+      "side": 1,
+      "message": "The load_balancer test is in there.  And the tests all fail with roughly the same cause (I picked the one that failed the most and the most recently).",
+      "parentUuid": "5ac4a560_9bd841f1",
       "range": {
         "startLine": 28,
         "startChar": 11,
