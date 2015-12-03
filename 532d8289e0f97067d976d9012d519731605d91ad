@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_5bab09d8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T07:04:33Z",
+      "side": 1,
+      "message": "Or is creating a service container with no group allowed?",
+      "parentUuid": "5ac4a560_70ed44c3",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 34
+      },
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_300aec8a",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/HttpRequestChecks.scala",
         "patchSetId": 16
