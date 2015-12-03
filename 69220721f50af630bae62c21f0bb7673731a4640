@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_f6e94c1b",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 38
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T10:36:45Z",
+      "side": 1,
+      "message": "I\u0027ll re-introduce the tests in this patch:\nhttps://review.gerrithub.io/#/c/253848/\n\nSame comment for the tests below.",
+      "range": {
+        "startLine": 415,
+        "startChar": 0,
+        "endLine": 415,
+        "endChar": 8
+      },
+      "revId": "69220721f50af630bae62c21f0bb7673731a4640",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
