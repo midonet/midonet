@@ -106,7 +106,8 @@ object MidonetBackend {
              classOf[TunnelZone],
              classOf[Vip],
              classOf[Vtep],
-             classOf[VPNService]
+             classOf[VPNService],
+             classOf[IPSecSiteConnection]
         ).foreach(store.registerClass)
 
         store.declareBinding(classOf[Port], "insertion_ids", CASCADE,
