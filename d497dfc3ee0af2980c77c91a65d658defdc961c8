@@ -113,6 +113,23 @@
       "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1b1ef170",
+        "filename": "tests/mdtsgaterc",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-03T09:57:52Z",
+      "side": 1,
+      "message": "floating_ip doesn\u0027t cover dynamic snat. Which IMHO should be covered.",
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
