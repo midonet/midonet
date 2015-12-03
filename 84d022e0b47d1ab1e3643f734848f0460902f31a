@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5ac4a560_d67450ff",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IPSecSiteConnection.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T13:01:39Z",
+      "side": 1,
+      "message": "this is not in the proto, and the tests fail accordingly, I\u0027ll remove it since I can\u0027t see it in the spec",
+      "range": {
+        "startLine": 53,
+        "startChar": 23,
+        "endLine": 53,
+        "endChar": 30
+      },
+      "revId": "84d022e0b47d1ab1e3643f734848f0460902f31a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_76ca9c50",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/neutron/TestIpsecSiteConn.scala",
         "patchSetId": 1
@@ -18,6 +41,29 @@
         "startChar": 22,
         "endLine": 50,
         "endChar": 34
+      },
+      "revId": "84d022e0b47d1ab1e3643f734848f0460902f31a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c16c889f",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/neutron/TestIpsecSiteConn.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T13:01:39Z",
+      "side": 1,
+      "message": "You can use HttpRequestChecks for these",
+      "range": {
+        "startLine": 62,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 64
       },
       "revId": "84d022e0b47d1ab1e3643f734848f0460902f31a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
