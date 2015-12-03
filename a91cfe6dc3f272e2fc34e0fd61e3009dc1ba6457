@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_bbc41d41",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 731,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-03T09:01:17Z",
+      "side": 1,
+      "message": "does ncat provide any guarantees  the same port won\u0027t be chosen? in my patch, i had explicitly made sure we always pass a different port by keeping a counter",
+      "revId": "a91cfe6dc3f272e2fc34e0fd61e3009dc1ba6457",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
