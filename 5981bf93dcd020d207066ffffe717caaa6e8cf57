@@ -52,6 +52,24 @@
       "revId": "5981bf93dcd020d207066ffffe717caaa6e8cf57",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1befd11f",
+        "filename": "tests/test.list",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-12-03T07:20:51Z",
+      "side": 1,
+      "message": "fixed",
+      "parentUuid": "5ac4a560_7b960596",
+      "revId": "5981bf93dcd020d207066ffffe717caaa6e8cf57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
