@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_16d96857",
+        "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T11:01:59Z",
+      "side": 1,
+      "message": "If the condition we should check is available already let\u0027s use it, if we need to add more mdts support I\u0027d say let\u0027s give it a go like this and iterate if we hit timeouts.",
+      "parentUuid": "5ac4a560_562680b8",
+      "revId": "2b73426e742767a52c5f8831f12a4d2c0a96eb1a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_cc368603",
         "filename": "tests/mdts/tests/functional_tests/test_load_balancer.py",
         "patchSetId": 1
