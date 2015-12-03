@@ -57,7 +57,7 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                             BinarySerialization.MessageTemplateVersion)
             .blockLength(FLOW_SUMMARY.sbeBlockLength)
             .templateId(FLOW_SUMMARY.sbeTemplateId)
-            .schemaId(FLOW_SUMMARY.sbeSchemaVersion)
+            .schemaId(FLOW_SUMMARY.sbeSchemaId)
             .version(FLOW_SUMMARY.sbeSchemaVersion)
         bufferOffset += MESSAGE_HEADER.size
 
@@ -137,13 +137,15 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                 iter.next().data(data(i))
                 i += 1
             }
+        } else {
+            FLOW_SUMMARY.flowMatchIcmpDataCount(0)
         }
     }
 
     private def encodeMAC(address: MAC, setter: (Int, Short) => Unit): Unit = {
         if (address != null) {
             var i = 0
-            var bytes = address.getAddress
+            val bytes = address.getAddress
             while (i < bytes.length) {
                 setter(i, bytes(i))
                 i += 1
@@ -242,6 +244,7 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                 case t: RouterDeviceTag => deviceStaging.add(t)
                 case t: PortDeviceTag => deviceStaging.add(t)
                 case t: ChainDeviceTag => deviceStaging.add(t)
+                case t: MirrorDeviceTag => deviceStaging.add(t)
                 case _ =>
             }
             i += 1
@@ -270,6 +273,8 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                     dev.`type`(SbeDeviceType.PORT)
                 case t: ChainDeviceTag =>
                     dev.`type`(SbeDeviceType.CHAIN)
+                case t: MirrorDeviceTag =>
+                    dev.`type`(SbeDeviceType.MIRROR)
                 case _ =>
             }
             i += 1
