@@ -1,0 +1,521 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_9bce8159",
+        "filename": "nsdb/src/main/resources/jgroups-tcp.xml",
+        "patchSetId": 13
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "Use FD. FD_ALL uses multicast, a feature we don\u0027t want to use. FD_SOCK uses the closing of the tcp connection as a signal that the other crashed. This can take a long time (the default value is OS specific but in general in the order of hours).",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 9
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3b0d6d91",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBroker.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "timestamp",
+      "range": {
+        "startLine": 92,
+        "startChar": 30,
+        "endLine": 92,
+        "endChar": 35
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb1215b3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBroker.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "It\u0027s better to use StringBuffer (or a scala equivalent) to minimize the number of short-lived strings created.",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 29
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9b23e104",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBroker.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "timestamp",
+      "range": {
+        "startLine": 106,
+        "startChar": 24,
+        "endLine": 106,
+        "endChar": 29
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1b66f151",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBroker.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "TimestampedMessage type?",
+      "range": {
+        "startLine": 107,
+        "startChar": 50,
+        "endLine": 107,
+        "endChar": 69
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb605537",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBroker.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "Create an OwnerKey type?",
+      "range": {
+        "startLine": 107,
+        "startChar": 32,
+        "endLine": 107,
+        "endChar": 48
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bb4eddbf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBroker.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "timestamp",
+      "range": {
+        "startLine": 234,
+        "startChar": 51,
+        "endLine": 234,
+        "endChar": 56
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fbc77510",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBroker.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "timestamp",
+      "range": {
+        "startLine": 245,
+        "startChar": 47,
+        "endLine": 245,
+        "endChar": 52
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1bcd1132",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBroker.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "indent",
+      "range": {
+        "startLine": 332,
+        "startChar": 20,
+        "endLine": 332,
+        "endChar": 29
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7b2525c1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "make this a method that creates a client if none has been created yet. For instance:\n\nprivate val clientCreated \u003d new AtomicBoolean(false)\nprivate val client: JGroupsClient \u003d null\n\ndef getClient(): JGroupsClient \u003d {\n    if (clientCreated.compareAndSet(false, true) {\n        client \u003d new JGroupsClient(...)\n    }\n}",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 5
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bb589d57",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "Create this in the class itself and rely on the companion object to have a singleton client.",
+      "range": {
+        "startLine": 48,
+        "startChar": 23,
+        "endLine": 48,
+        "endChar": 44
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bbe5fda9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "This could probably be re-used in the broker. You could put all these types in the JGroupBroker companion object.",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 46,
+        "endChar": 54
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3bb72d88",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "This can be removed if it just returns the passed argument.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 5
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5bbce969",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "Use a log.",
+      "range": {
+        "startLine": 67,
+        "startChar": 16,
+        "endLine": 67,
+        "endChar": 62
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7bb0c58b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "Use a log.",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 58
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9bada134",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "Same comment.",
+      "range": {
+        "startLine": 75,
+        "startChar": 16,
+        "endLine": 76,
+        "endChar": 50
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_dba7194e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "This is not used at the moment but if you want to use it later on I would move it to the JGroupBroker companion object or to some object that the JGroup classes share.",
+      "range": {
+        "startLine": 88,
+        "startChar": 4,
+        "endLine": 90,
+        "endChar": 5
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1b6991f9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "Re-use the topic, key, and owner types defined above.",
+      "range": {
+        "startLine": 118,
+        "startChar": 29,
+        "endLine": 118,
+        "endChar": 53
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_db7e39ae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": ". This method returns true if this message was an acknowledgment and false otherwise.",
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bb817d91",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "handlePotentialAcknowledgment.",
+      "range": {
+        "startLine": 152,
+        "startChar": 16,
+        "endLine": 152,
+        "endChar": 45
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb4a1582",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "Received acknowledgment for message: {}",
+      "range": {
+        "startLine": 157,
+        "startChar": 31,
+        "endLine": 157,
+        "endChar": 66
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1b50b131",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "message:",
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7b5e0547",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-03T09:56:07Z",
+      "side": 1,
+      "message": "remove and just use the method below. You can name arguments to make the call clearer:\npublish(topic, key \u003d kpo._1, owner \u003d kpo._2....",
+      "range": {
+        "startLine": 232,
+        "startChar": 4,
+        "endLine": 235,
+        "endChar": 69
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
