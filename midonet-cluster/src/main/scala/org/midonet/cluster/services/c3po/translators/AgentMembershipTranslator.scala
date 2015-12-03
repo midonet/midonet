@@ -31,8 +31,8 @@ import org.midonet.util.concurrent.toFutureOps
  * Translator for Neutron's Tunnel Zone Host.
  */
 class AgentMembershipTranslator(storage: ReadOnlyStorage)
-    extends NeutronTranslator[AgentMembership]
-    with TunnelZoneManager {
+    extends Translator[AgentMembership]
+            with TunnelZoneManager {
     /**
      * Translates a Create operation on Neutron's AgentMembership. Agent
      * Membership is translated into a mapping, HostToIp, under the default

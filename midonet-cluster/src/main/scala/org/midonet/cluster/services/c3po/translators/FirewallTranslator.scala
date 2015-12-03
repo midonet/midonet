@@ -31,7 +31,7 @@ import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.util.concurrent.toFutureOps
 
 class FirewallTranslator(protected val storage: ReadOnlyStorage)
-    extends NeutronTranslator[NeutronFirewall]
+    extends Translator[NeutronFirewall]
             with ChainManager with RuleManager {
     import FirewallTranslator._
 

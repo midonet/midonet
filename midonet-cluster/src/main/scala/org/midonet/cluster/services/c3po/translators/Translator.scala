@@ -32,7 +32,7 @@ import org.midonet.cluster.services.c3po.{midonet, neutron}
 
 /** Defines a class that is able to translate from an operation on the Neutron
   * model to a set of operations on the MidoNet model. */
-trait NeutronTranslator[NeutronModel <: Message] {
+trait Translator[NeutronModel <: Message] {
 
     protected type MidoOpList = List[MidoOp[_ <: Message]]
     protected type MidoOpListBuffer = ListBuffer[MidoOp[_ <: Message]]

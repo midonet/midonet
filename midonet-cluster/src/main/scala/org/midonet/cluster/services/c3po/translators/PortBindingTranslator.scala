@@ -28,7 +28,7 @@ import org.midonet.util.concurrent.toFutureOps
  * Translate port binding.
  */
 class PortBindingTranslator(protected val storage: ReadOnlyStorage)
-        extends NeutronTranslator[PortBinding] with PortManager {
+        extends Translator[PortBinding] with PortManager {
     /**
      * Creates a new port binding of a port to a host / interface, producing
      * an UPDATE operation on the port. Updates to the host are handled by

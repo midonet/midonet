@@ -25,8 +25,8 @@ import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPool. */
 class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
-        extends NeutronTranslator[NeutronLoadBalancerPool]
-        with LoadBalancerManager {
+        extends Translator[NeutronLoadBalancerPool]
+                with LoadBalancerManager {
 
     override protected def translateCreate(nPool: NeutronLoadBalancerPool)
     : MidoOpList = {
