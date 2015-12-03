@@ -1,0 +1,118 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_bbaa5d17",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T09:38:56Z",
+      "side": 1,
+      "message": "not open publicly",
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_db90f9ee",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T09:38:56Z",
+      "side": 1,
+      "message": "not open publicly",
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5bd789c1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T09:38:56Z",
+      "side": 1,
+      "message": "I\u0027m not sure this is a good criteria to chose a \"safety net\" against breaking upstream.. I\u0027d rather chose a test that gives more coverage, for example.",
+      "range": {
+        "startLine": 27,
+        "startChar": 22,
+        "endLine": 27,
+        "endChar": 54
+      },
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9bd841f1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T09:38:56Z",
+      "side": 1,
+      "message": "some of the new l4lb tests should be in the list based on this, and the recent production bugs?",
+      "range": {
+        "startLine": 28,
+        "startChar": 11,
+        "endLine": 28,
+        "endChar": 43
+      },
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7b02853f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T09:38:56Z",
+      "side": 1,
+      "message": "sign-off misisng",
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7b3fe525",
+        "filename": "tests/mdtsgaterc",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T09:38:56Z",
+      "side": 1,
+      "message": "There is another script for this same purpose in /what_ci_targets.sh, we should either use it, or delete the mdts parts (for clarity and hygiene)",
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
