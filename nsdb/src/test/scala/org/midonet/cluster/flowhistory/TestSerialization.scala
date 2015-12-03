@@ -16,7 +16,6 @@
 
 package org.midonet.cluster.flowhistory
 
-import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.{FeatureSpec, Matchers}
 import org.scalatest.junit.JUnitRunner
