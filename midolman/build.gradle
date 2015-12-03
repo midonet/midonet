@@ -291,6 +291,12 @@ task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine += mainClassName
 }
 
+task testShell(type: Exec) {
+    commandLine 'src/test/shell/service_containers/vpn/vpn_basic_test'
+}
+
+integration.dependsOn testShell
+
 // run cassandra tests in series. Otherwise they interfere with each other
 task testCassandra(type:Test, dependsOn: testClasses) {
     include 'org/midonet/midolman/logging/FlowTracingAppenderTest.class',
