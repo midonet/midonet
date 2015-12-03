@@ -49,6 +49,29 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_1b6431b8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T08:02:50Z",
+      "side": 1,
+      "message": "For the other resource types, we use lower camel case for the name (but still underscores for the @Path)",
+      "range": {
+        "startLine": 34,
+        "startChar": 13,
+        "endLine": 34,
+        "endChar": 41
+      },
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_70b624db",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
         "patchSetId": 16
@@ -84,6 +107,30 @@
       "side": 1,
       "message": "It\u0027s an @Inject, so it\u0027ll be troublesome.",
       "parentUuid": "5ac4a560_70b624db",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 5
+      },
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5b5ea9e7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T08:02:50Z",
+      "side": 1,
+      "message": "Ah, that makes sense.",
+      "parentUuid": "5ac4a560_bbb97d30",
       "range": {
         "startLine": 48,
         "startChar": 0,
@@ -160,6 +207,53 @@
         "startChar": 8,
         "endLine": 60,
         "endChar": 34
+      },
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7b72857d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T08:02:50Z",
+      "side": 1,
+      "message": "I have an implementation that uses the pattern we use for the other nested resources, if you want it. It does break all the tests, though, since they try to create ServiceContainers at the top level rather than under groups. It could be modified easily to allow top-level creates, but I\u0027m still not sure that that\u0027s what we want.",
+      "parentUuid": "5ac4a560_dbb6393d",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 34
+      },
+      "revId": "532d8289e0f97067d976d9012d519731605d91ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3b59edfe",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-03T08:02:50Z",
+      "side": 1,
+      "message": "Camel case. Also, these properties should be added to ApplicationDto.",
+      "range": {
+        "startLine": 66,
+        "startChar": 13,
+        "endLine": 66,
+        "endChar": 47
       },
       "revId": "532d8289e0f97067d976d9012d519731605d91ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
