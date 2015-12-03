@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_7bf9a5c7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/containers/ContainerPort.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-03T08:18:04Z",
+      "side": 1,
+      "message": "I\u0027d keep the generic configurationId as other container may also need some config (not only vpn).",
+      "revId": "336c2c8b44948117369ff9f2c35437b75a7b6fe9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fb2cd54c",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/ServiceContainerGroup.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-03T08:18:04Z",
+      "side": 1,
+      "message": "This changed to a string in ServiceContainerGroup in another patch, does it have an impact on this?",
+      "revId": "336c2c8b44948117369ff9f2c35437b75a7b6fe9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9b1da112",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-03T08:18:04Z",
+      "side": 1,
+      "message": "@AllowUpdate? for example to change the service container group it belongs to (the spec does not say anything about it though).",
+      "revId": "336c2c8b44948117369ff9f2c35437b75a7b6fe9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bb1a5d15",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ServiceContainerResource.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-03T08:18:04Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "336c2c8b44948117369ff9f2c35437b75a7b6fe9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
