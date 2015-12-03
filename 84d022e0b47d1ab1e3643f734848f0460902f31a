@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_76ca9c50",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/neutron/TestIpsecSiteConn.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T11:44:35Z",
+      "side": 1,
+      "message": "You can use HttpRequestChecks for these",
+      "range": {
+        "startLine": 48,
+        "startChar": 22,
+        "endLine": 50,
+        "endChar": 34
+      },
+      "revId": "84d022e0b47d1ab1e3643f734848f0460902f31a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_96c73845",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/neutron/TestIpsecSiteConn.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-03T11:44:35Z",
+      "side": 1,
+      "message": "leftovers",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 63
+      },
+      "revId": "84d022e0b47d1ab1e3643f734848f0460902f31a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
