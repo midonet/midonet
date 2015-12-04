@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_64ce5d85",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:21:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_490fba30",
+      "range": {
+        "startLine": 50,
+        "startChar": 24,
+        "endLine": 50,
+        "endChar": 57
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_a91dae68",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ObjectReferenceTracker.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-04T11:11:39Z",
       "side": 1,
       "message": ":",
+      "range": {
+        "startLine": 124,
+        "startChar": 29,
+        "endLine": 124,
+        "endChar": 30
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_440fa130",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ObjectReferenceTracker.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:21:54Z",
+      "side": 1,
+      "message": "I didn\u0027t use \":\" such that the log message show:\n\n  References Chain ready: true",
+      "parentUuid": "5ac4a560_a91dae68",
       "range": {
         "startLine": 124,
         "startChar": 29,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_6413bd5c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:21:54Z",
+      "side": 1,
+      "message": "The idea here is to make the router mapper robust: it shouldn\u0027t fail if an error is emitted by a port, only the routes should be removed from the routing table.",
+      "parentUuid": "5ac4a560_29a6fe10",
+      "range": {
+        "startLine": 119,
+        "startChar": 31,
+        "endLine": 120,
+        "endChar": 77
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_c95f4a0d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 5
@@ -82,6 +154,30 @@
       "writtenOn": "2015-12-04T11:11:39Z",
       "side": 1,
       "message": "to:",
+      "range": {
+        "startLine": 647,
+        "startChar": 43,
+        "endLine": 647,
+        "endChar": 44
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_04c0494f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:21:54Z",
+      "side": 1,
+      "message": "I added only \":\" to be consistent with the other log messages.",
+      "parentUuid": "5ac4a560_c95f4a0d",
       "range": {
         "startLine": 647,
         "startChar": 43,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e4ba6de0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 652,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:21:54Z",
+      "side": 1,
+      "message": "Same here.",
+      "parentUuid": "5ac4a560_e99b26c7",
+      "range": {
+        "startLine": 652,
+        "startChar": 38,
+        "endLine": 652,
+        "endChar": 39
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_49ab3ad8",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
         "patchSetId": 5
@@ -128,6 +248,30 @@
       "writtenOn": "2015-12-04T11:11:39Z",
       "side": 1,
       "message": "Adding a non-existing port to the router should not result in the mapper emitting an error?",
+      "range": {
+        "startLine": 1230,
+        "startChar": 18,
+        "endLine": 1230,
+        "endChar": 50
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_64201d4a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1230,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:21:54Z",
+      "side": 1,
+      "message": "So as I commented earlier, if a port emits an error only its routes are removed from the router.",
+      "parentUuid": "5ac4a560_49ab3ad8",
       "range": {
         "startLine": 1230,
         "startChar": 18,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_841d3912",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1251,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:21:54Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "5ac4a560_69af16e4",
+      "range": {
+        "startLine": 1251,
+        "startChar": 18,
+        "endLine": 1251,
+        "endChar": 58
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_a9b92e30",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
         "patchSetId": 5
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a41a3515",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1272,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:21:54Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "5ac4a560_a9b92e30",
+      "range": {
+        "startLine": 1272,
+        "startChar": 18,
+        "endLine": 1272,
+        "endChar": 56
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_c9b66a3d",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
         "patchSetId": 5
@@ -197,6 +389,30 @@
       "writtenOn": "2015-12-04T11:11:39Z",
       "side": 1,
       "message": "similar comment",
+      "range": {
+        "startLine": 1298,
+        "startChar": 18,
+        "endLine": 1298,
+        "endChar": 59
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c41731ec",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1298,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:21:54Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "5ac4a560_c9b66a3d",
       "range": {
         "startLine": 1298,
         "startChar": 18,
