@@ -154,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_06a131f8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-12-04T04:04:00Z",
+      "side": 1,
+      "message": "So, I made sure to realign the test list with the current jenkins list, so we can check the list into source in step 1, and then have a longer, data-filled discussion about the actual test list in the next patch (to come after I gather a lot of input from both data and individuals).",
+      "parentUuid": "5ac4a560_3683c405",
+      "range": {
+        "startLine": 28,
+        "startChar": 11,
+        "endLine": 28,
+        "endChar": 43
+      },
+      "revId": "d497dfc3ee0af2980c77c91a65d658defdc961c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_7b02853f",
         "filename": "/COMMIT_MSG",
         "patchSetId": 4
