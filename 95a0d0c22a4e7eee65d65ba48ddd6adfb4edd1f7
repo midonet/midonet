@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_8437f9e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-04T15:59:50Z",
+      "side": 1,
+      "message": "we?",
+      "range": {
+        "startLine": 117,
+        "startChar": 30,
+        "endLine": 117,
+        "endChar": 39
+      },
+      "revId": "95a0d0c22a4e7eee65d65ba48ddd6adfb4edd1f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2458e531",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-04T15:59:50Z",
+      "side": 1,
+      "message": "Whenever?",
+      "range": {
+        "startLine": 147,
+        "startChar": 60,
+        "endLine": 147,
+        "endChar": 73
+      },
+      "revId": "95a0d0c22a4e7eee65d65ba48ddd6adfb4edd1f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_84cb7971",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-04T15:59:50Z",
+      "side": 1,
+      "message": "add assertions to check that these methods are executed on the proper thread?",
+      "range": {
+        "startLine": 167,
+        "startChar": 35,
+        "endLine": 169,
+        "endChar": 57
+      },
+      "revId": "95a0d0c22a4e7eee65d65ba48ddd6adfb4edd1f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_64c49d92",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-04T15:59:50Z",
+      "side": 1,
+      "message": "be published?",
+      "range": {
+        "startLine": 173,
+        "startChar": 72,
+        "endLine": 173,
+        "endChar": 79
+      },
+      "revId": "95a0d0c22a4e7eee65d65ba48ddd6adfb4edd1f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a46235d6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-04T15:59:50Z",
+      "side": 1,
+      "message": "load (\"it will\" is implicit here).",
+      "range": {
+        "startLine": 209,
+        "startChar": 34,
+        "endLine": 209,
+        "endChar": 39
+      },
+      "revId": "95a0d0c22a4e7eee65d65ba48ddd6adfb4edd1f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
