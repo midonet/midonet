@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_c603b90d",
+        "filename": "python-midonetclient/src/midonetclient/rule.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-04T10:35:49Z",
+      "side": 1,
+      "message": "What about adding a reference to the ticket here?",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 15
+      },
+      "revId": "345849906c43f1ec8db1a9357a69c2dad55b24b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e9ffa6ff",
+        "filename": "python-midonetclient/tox.ini",
+        "patchSetId": 9
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-04T10:35:49Z",
+      "side": 1,
+      "message": "I feel it provides more information when the jira issue number is directly included in the TODO.",
+      "range": {
+        "startLine": 25,
+        "startChar": 18,
+        "endLine": 25,
+        "endChar": 47
+      },
+      "revId": "345849906c43f1ec8db1a9357a69c2dad55b24b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
