@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_e9ba46e0",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/ServiceContainer.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:36:15Z",
+      "side": 1,
+      "message": "I think absoluteUri already does this check.",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 9
+      },
+      "revId": "f61c88e4d817565370729292ec15b09ade2b0c0e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
