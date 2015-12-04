@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Neutron;
@@ -42,6 +44,9 @@ public class VPNService extends UriResource {
 
     @ZoomField(name = "external_ips", converter = IPAddressUtil.Converter.class)
     public List<IPAddr> externalIps;
+
+    @ZoomField(name = "ipsec_site_conns", converter = IPAddressUtil.Converter.class)
+    public List<UUID> ipsecSiteConns;
 
     @Override
     public URI getUri() {
@@ -90,12 +95,14 @@ public class VPNService extends UriResource {
                Objects.equals(tenantId, that.tenantId) &&
                Objects.equals(routerId, that.routerId) &&
                Objects.equals(subnetId, that.subnetId) &&
+               Objects.equals(ipsecSiteConns, that.ipsecSiteConns) &&
                Objects.equals(status, that.status);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, name, description, adminStateUp, tenantId,
-                            routerId, subnetId, status, externalIps);
+                            routerId, subnetId, status, externalIps,
+                            ipsecSiteConns);
     }
 }
