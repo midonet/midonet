@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a6907d96",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-04T04:27:18Z",
+      "side": 1,
+      "message": "Hm...I guess it doesn\u0027t really matter. There aren\u0027t likely to be two routes that differ only by weight anyway, are there?",
+      "parentUuid": "5ac4a560_473c1130",
+      "range": {
+        "startLine": 205,
+        "startChar": 19,
+        "endLine": 205,
+        "endChar": 31
+      },
+      "revId": "743d0d17d215cf30959fef50816e9dbc36aada21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_cc94c639",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
         "patchSetId": 2
@@ -108,6 +132,30 @@
       "side": 1,
       "message": "If needed - I can set the version bits while modifying others to maintain the same \"checksum\".",
       "parentUuid": "5ac4a560_cc94c639",
+      "range": {
+        "startLine": 212,
+        "startChar": 8,
+        "endLine": 212,
+        "endChar": 34
+      },
+      "revId": "743d0d17d215cf30959fef50816e9dbc36aada21",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c68d797d",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-04T04:27:18Z",
+      "side": 1,
+      "message": "Like I said, I don\u0027t know whether it actually matters. But what do you mean by \"maintain the same checksum?\" Why would you care?",
+      "parentUuid": "5ac4a560_874629be",
       "range": {
         "startLine": 212,
         "startChar": 8,
