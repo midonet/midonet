@@ -285,7 +285,6 @@ class MirrorRef(ObjectRef):
     def __init__(self, unused = None):
         super(MirrorRef, self).__init__('mirror')
 
-
 class VtepRef(ObjectRef):
     def __init__(self, unused = None):
         super(VtepRef, self).__init__('vtep')
@@ -1725,17 +1724,17 @@ class Router(ObjectType):
                                  getter='get_bgp_peer',
                                  factory_method='add_bgp_peer'))
         self.put_attr(ListAttr(name = 'in-mirrors',
-                                 element_type = MirrorRef(),
-                                 getter = 'get_inbound_mirrors',
-                                 setter = 'inbound_mirrors',
-                                 unsetter = 'inbound_mirrors',
-                                 optional = True))
+                               element_type = MirrorRef(),
+                               getter = 'get_inbound_mirrors',
+                               setter = 'inbound_mirrors',
+                               unsetter = 'inbound_mirrors',
+                               optional = True))
         self.put_attr(ListAttr(name = 'out-mirrors',
-                                 element_type = MirrorRef(),
-                                 getter = 'get_outbound_mirrors',
-                                 setter = 'outbound_mirrors',
-                                 unsetter = 'outbound_mirrors',
-                                 optional = True))
+                               element_type = MirrorRef(),
+                               getter = 'get_outbound_mirrors',
+                               setter = 'outbound_mirrors',
+                               unsetter = 'outbound_mirrors',
+                               optional = True))
         self.put_attr(SingleAttr(name = 'local-redirect-chain',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_local_redirect_chain_id',
@@ -1785,6 +1784,49 @@ class SystemState(ObjectType):
 
     def type_name(self):
         return "system_state"
+
+class ServiceContainer(ObjectType):
+    def __init__(self, obj):
+        super(ServiceContainer, self).__init__(obj)
+        self.put_attr(SingleAttr(name = 'container-group',
+                                 value_type = ObjectRef('container-group'),
+                                 getter = 'get_service_group_id',
+                                 setter = 'service_group_id',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'configuration',
+                                 value_type = UUID(),
+                                 getter = 'get_configuration_id',
+                                 setter = 'configuration_id',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'port',
+                                 value_type = ObjectRef('port'),
+                                 getter = 'get_port_id',
+                                 setter = 'port_id',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'type',
+                                 value_type = StringType(),
+                                 getter = 'get_service_type',
+                                 setter = 'service_type'))
+
+    def type_name(self):
+        return "container"
+
+class ServiceContainerGroup(ObjectType):
+    def __init__(self, obj):
+        super(ServiceContainerGroup, self).__init__(obj)
+        self.put_attr(SingleAttr(name = 'port-group',
+                                 value_type = ObjectRef('port-group'),
+                                 getter = 'get_port_group_id',
+                                 setter = 'port_group_id',
+                                 optional = True))
+        self.put_attr(Collection(name = 'containers',
+                                 element_type = ServiceContainer,
+                                 list_method = 'get_service_containers',
+                                 factory_method = 'add_service_container'))
+
+    def type_name(self):
+        return "cgroup"
+
 
 class Bridge(ObjectType):
     def __init__(self, obj):
@@ -2650,7 +2692,7 @@ def _port_resolver(port):
     return resolved_element_type(port)
 
 class Midonet(ObjectType):
-    """ This is the root context for the CLI. At the beggining of matching on a
+    """ This is the root context for the CLI. At the beginning of matching on a
         command pattern the `MatchingContext` is initialized with an instance of
         this object. Thus, its mission is to give access to top-level objects in
         the REST API"""
@@ -2752,7 +2794,16 @@ class Midonet(ObjectType):
                                  list_with_tenant = True,
                                  getter = 'get_tracerequest',
                                  factory_method = 'add_tracerequest'))
-
+        self.put_attr(Collection(name = 'container',
+                                 element_type = ServiceContainer,
+                                 list_method = 'get_service_containers',
+                                 getter = 'get_service_container',
+                                 factory_method = 'add_service_container'))
+        self.put_attr(Collection(name = 'container-group',
+                                 element_type = ServiceContainerGroup,
+                                 list_method = 'get_service_container_groups',
+                                 getter = 'get_service_container_group',
+                                 factory_method = 'add_service_container_group'))
 
 ################################################################################
 # Grammar tokens

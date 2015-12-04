@@ -85,6 +85,13 @@ class Port(resource_base.ResourceBase,
     def get_bgp_status(self):
         return self.dto['bgpStatus']
 
+    def get_service_container_id(self):
+        return self.dto['serviceContainerId']
+
+    def service_container_id(self, id_):
+        self.dto['serviceContainerId'] = id_
+        return self
+
     def id(self, id):
         self.dto['id'] = id
         return self

@@ -48,6 +48,9 @@ APPLICATION_PORTGROUP_PORT_JSON = \
     "application/vnd.org.midonet.PortGroupPort-v1+json"
 APPLICATION_PORTGROUP_PORT_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.PortGroupPort-v1+json"
+APPLICATION_HOSTGROUP_JSON = "application/vnd.org.midonet.HostGroup-v1+json"
+APPLICATION_HOSTGROUP_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.HostGroup-v1+json"
 APPLICATION_CHAIN_JSON = "application/vnd.org.midonet.Chain-v1+json"
 APPLICATION_CHAIN_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Chain-v1+json"
@@ -118,6 +121,14 @@ APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON = \
 APPLICATION_CONDITION_JSON = "application/vnd.org.midonet.Condition-v1+json"
 APPLICATION_CONDITION_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Condition-v1+json"
+APPLICATION_SERVICE_CONTAINER_JSON = \
+    "application/vnd.org.midonet.ServiceContainer-v1+json"
+APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.ServiceContainer-v1+json"
+APPLICATION_SERVICE_CONTAINER_GROUP_JSON = \
+    "application/vnd.org.midonet.ServiceContainerGroup-v1+json"
+APPLICATION_SERVICE_CONTAINER_GROUP_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.ServiceContainerGroup-v1+json"
 APPLICATION_TRACE_JSON = "application/vnd.org.midonet.Trace-v1+json"
 APPLICATION_TRACE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Trace-v1+json"
