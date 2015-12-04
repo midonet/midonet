@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_5f4bec2a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RouteResource.scala",
+        "patchSetId": 41
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T17:06:32Z",
+      "side": 1,
+      "message": "Is this needed?",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 32
+      },
+      "revId": "3dfc5be125f2410ef8fe3a24427240f7b065d7c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
