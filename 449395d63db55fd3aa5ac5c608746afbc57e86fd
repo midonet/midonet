@@ -16,6 +16,24 @@
       "revId": "449395d63db55fd3aa5ac5c608746afbc57e86fd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_06669151",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T08:58:32Z",
+      "side": 1,
+      "message": "I replied to this comment earlier, by asking whether this is not needed - I wasn\u0027t sure whether we want to make it possible to update the configuration of a container (that depends on how the configurationId is used) - if not, then we can cut this observable after the first notification. Shall I do that?",
+      "parentUuid": "5ac4a560_41d238d3",
+      "revId": "449395d63db55fd3aa5ac5c608746afbc57e86fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
