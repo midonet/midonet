@@ -21,15 +21,16 @@ import org.midonet.cluster.models.Neutron.IPSecPolicy.{TransformProtocol, Encaps
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.{DpdAction, Initiator}
 import org.midonet.cluster.models.Neutron.{IKEPolicy, IPSecPolicy, IPSecSiteConnection}
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{MAC, IPv4Addr}
 
 import scala.sys.process._
 
 import java.io.{UnsupportedEncodingException, FileNotFoundException, PrintWriter, File}
 
 
-case class IpsecServiceDef(name: String, filepath: String, leftIp: IPv4Addr,
-                           gatewayIp: IPv4Addr, mac: String)
+case class IpsecServiceDef(name: String, confFilePath: String,
+                           localEndpointIp: IPv4Addr, gatewayIp: IPv4Addr,
+                           mac: MAC)
 
 case class IpsecConnection(ipsecPolicy: IPSecPolicy,
                            ikePolicy: IKEPolicy,
@@ -47,9 +48,9 @@ case class IpsecServiceConfig(script: String,
                               conns: List[IpsecConnection]) {
 
     def getSecretsFileContents = {
-        var contents = new StringBuilder
+        val contents = new StringBuilder
         conns foreach (c => contents append
-            s"""${ipsecService.leftIp} ${c.ipsecSiteConnection.getPeerAddress} : PSK \"${c.ipsecSiteConnection.getPsk}\"
+            s"""${ipsecService.localEndpointIp} ${c.ipsecSiteConnection.getPeerAddress} : PSK \"${c.ipsecSiteConnection.getPsk}\"
                |""".stripMargin)
         contents.toString()
     }
@@ -103,7 +104,7 @@ case class IpsecServiceConfig(script: String,
     }
 
     def getConfigFileContents = {
-        var contents = new StringBuilder
+        val contents = new StringBuilder
         contents append
             s"""config setup
                |    nat_traversal=yes
@@ -116,8 +117,8 @@ case class IpsecServiceConfig(script: String,
             s"""conn ${c.ipsecSiteConnection.getName}
                |    leftnexthop=%defaultroute
                |    rightnexthop=%defaultroute
-               |    left=${ipsecService.leftIp}
-               |    leftid=${ipsecService.leftIp}
+               |    left=${ipsecService.localEndpointIp}
+               |    leftid=${ipsecService.localEndpointIp}
                |    auto=${initiatorToAuto(c.ipsecSiteConnection.getInitiator)}
                |    leftsubnets={ ${subnetsString(c.ipsecSiteConnection.getLocalCidrsList)} }
                |    leftupdown="ipsec _updown --route yes"
@@ -140,25 +141,25 @@ case class IpsecServiceConfig(script: String,
         contents.toString()
     }
 
-    val makeNsCmd = s"""$script makens -n ${ipsecService.name} -g ${ipsecService.gatewayIp} -l ${ipsecService.leftIp} -i ${ipsecService.leftIp} -m ${ipsecService.mac}"""
+    val makeNsCmd = s"""$script makens -n ${ipsecService.name} -g ${ipsecService.gatewayIp} -l ${ipsecService.localEndpointIp} -i ${ipsecService.localEndpointIp} -m ${ipsecService.mac}"""
 
-    val startServiceCmd = s"""$script start_service -n ${ipsecService.name} -p ${ipsecService.filepath}"""
+    val startServiceCmd = s"""$script start_service -n ${ipsecService.name} -p ${ipsecService.confFilePath}"""
 
     def initConnsCmd = {
-        val cmd = new StringBuilder(s"""$script init_conns -n ${ipsecService.name} -p ${ipsecService.filepath}""")
+        val cmd = new StringBuilder(s"""$script init_conns -n ${ipsecService.name} -p ${ipsecService.confFilePath}""")
         conns foreach (c => cmd append s""" -c ${c.ipsecSiteConnection.getName}""")
         cmd.toString
     }
 
-    val stopServiceCmd = s"""$script stop_service -n ${ipsecService.name} -p ${ipsecService.filepath}"""
+    val stopServiceCmd = s"""$script stop_service -n ${ipsecService.name} -p ${ipsecService.confFilePath}"""
 
     val cleanNsCmd = s"""$script cleanns -n ${ipsecService.name}"""
 
-    val confDir = s"""${ipsecService.filepath}/${ipsecService.name}/etc/"""
+    val confDir = s"""${ipsecService.confFilePath}/${ipsecService.name}/etc/"""
 
-    val confLoc = s"""${ipsecService.filepath}/${ipsecService.name}/etc/ipsec.conf"""
+    val confLoc = s"""${ipsecService.confFilePath}/${ipsecService.name}/etc/ipsec.conf"""
 
-    val secretsLoc = s"""${ipsecService.filepath}/${ipsecService.name}/etc/ipsec.secrets"""
+    val secretsLoc = s"""${ipsecService.confFilePath}/${ipsecService.name}/etc/ipsec.secrets"""
 }
 
 /*
@@ -177,12 +178,11 @@ trait ServiceContainerFunctions extends MidolmanLogging {
             success = true
         } catch {
             case fnfe: FileNotFoundException =>
-                log.error("FileNotFoundException while trying to write " +
-                    location)
+                log.warn(s"File not found when writing to: $location")
                 throw fnfe
             case uee: UnsupportedEncodingException =>
-                log.error("UnsupportedEncodingException while trying to " +
-                    "write " + location)
+                log.warn("UnsupportedEncodingException while trying to " +
+                         s"write to $location")
                 throw uee
         } finally {
             writer.close()
@@ -190,11 +190,11 @@ trait ServiceContainerFunctions extends MidolmanLogging {
         success
     }
 
-    /*
-     * executes a command and logs the output.
+    /**
+     * Executes a command and logs the output.
      */
     def execCmd(cmd: String): Unit = {
-        log.info(s"""CMD: $cmd""")
+        log.debug(s"""CMD: $cmd""")
         val cmdLogger = ProcessLogger(line => log.info(line),
                                       line => log.error(line))
         cmd ! cmdLogger
@@ -208,14 +208,14 @@ trait ServiceContainerFunctions extends MidolmanLogging {
  */
 trait IpsecServiceContainerFunctions extends ServiceContainerFunctions {
 
-    /*
+    /**
      * starts a VPN service container.
      */
     def start(conf: IpsecServiceConfig): Boolean = {
         var result = false
 
         try {
-            log.info(s"""starting VPN service ${conf.ipsecService.name}""")
+            log.info(s"""Starting VPN service ${conf.ipsecService.name}""")
 
             new File(conf.confDir).mkdirs()
             log.info(s"""Writing to ${conf.confLoc}""")
@@ -229,13 +229,13 @@ trait IpsecServiceContainerFunctions extends ServiceContainerFunctions {
             result = true
         } catch {
             case fnfe: FileNotFoundException =>
-                log.error("command failed", fnfe)
+                log.warn("Container creation failed", fnfe)
                 result = false
             case uee: UnsupportedEncodingException =>
-                log.error("command failed", uee)
+                log.warn("Container creation failed", uee)
                 result = false
             case re: RuntimeException =>
-                log.error("command failed", re)
+                log.warn("Container creation failed", re)
                 result = false
         }
         result
