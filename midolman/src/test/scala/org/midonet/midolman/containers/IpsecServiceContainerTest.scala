@@ -18,7 +18,7 @@ package org.midonet.midolman.containers
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron._
 import org.midonet.containers._
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{MAC, IPv4Addr}
 
 import org.junit.runner.RunWith
 import org.junit.Assert._
@@ -38,7 +38,7 @@ class IpsecServiceContainerTest extends FeatureSpecLike
     val vpnService = new IpsecServiceDef("name", "/opt/stack/stuff",
                                          IPv4Addr.fromString("100.100.100.2"),
                                          IPv4Addr.fromString("1.1.1.1"),
-                                         "09:08:07:06:05:04")
+                                         MAC.fromString("09:08:07:06:05:04"))
 
     val ikePolicy = IKEPolicy.newBuilder()
         .setIkeVersion(1)
