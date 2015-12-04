@@ -75,6 +75,7 @@ object MidonetBackend {
              classOf[Host],
              classOf[HostGroup],
              classOf[IPAddrGroup],
+             classOf[IPSecSiteConnection],
              classOf[LoadBalancer],
              classOf[L2Insertion],
              classOf[Mirror],
