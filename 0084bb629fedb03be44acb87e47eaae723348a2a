@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_7aad1631",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IpsecServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-12-04T23:20:05Z",
+      "side": 1,
+      "message": "I think this might be better as info. I don\u0027t expect this to be called often, so it won\u0027t fill up the screen. It could be valuable information, at least until the feature stabilizes.",
+      "range": {
+        "startLine": 197,
+        "startChar": 12,
+        "endLine": 197,
+        "endChar": 17
+      },
+      "revId": "0084bb629fedb03be44acb87e47eaae723348a2a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
