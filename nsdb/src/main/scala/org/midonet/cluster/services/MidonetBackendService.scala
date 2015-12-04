@@ -219,6 +219,9 @@ object MidonetBackend {
                              classOf[Port], "fip_nat_rule_ids", CASCADE)
 
         // Field bindings between Neutron objects
+        store.declareBinding(classOf[VPNService], "ipsec_site_conns", CASCADE,
+                             classOf[IPSecSiteConnection], "vpn_service_id", CLEAR)
+
         store.declareBinding(classOf[NeutronPort], "floating_ip_ids", CLEAR,
                              classOf[FloatingIp], "port_id", CLEAR)
 
