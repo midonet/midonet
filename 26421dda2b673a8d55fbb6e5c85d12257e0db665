@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_df37fcae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-04T17:06:53Z",
+      "side": 1,
+      "message": "OK, I misunderstood the commit message then. I thought the handling of errors for the port observable was the same as for the load balancer.",
+      "parentUuid": "5ac4a560_6413bd5c",
+      "range": {
+        "startLine": 119,
+        "startChar": 31,
+        "endLine": 120,
+        "endChar": 77
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_c95f4a0d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
         "patchSetId": 5
@@ -272,6 +296,30 @@
       "side": 1,
       "message": "So as I commented earlier, if a port emits an error only its routes are removed from the router.",
       "parentUuid": "5ac4a560_49ab3ad8",
+      "range": {
+        "startLine": 1230,
+        "startChar": 18,
+        "endLine": 1230,
+        "endChar": 50
+      },
+      "revId": "26421dda2b673a8d55fbb6e5c85d12257e0db665",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3f471021",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 1230,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-04T17:06:53Z",
+      "side": 1,
+      "message": "I suggested this rename just because you never actually delete the port to understand the test better. Same answer for the comments below.",
+      "parentUuid": "5ac4a560_64201d4a",
       "range": {
         "startLine": 1230,
         "startChar": 18,
