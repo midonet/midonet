@@ -49,6 +49,7 @@ object MidonetBackend {
     final val ActiveKey = "active"
     final val AliveKey = "alive"
     final val BgpKey = "bgp"
+    final val ContainerHealth = "container_health"
     final val FloodingProxyKey = "flooding_proxy"
     final val HostKey = "host"
     final val RoutesKey = "routes"
@@ -241,6 +242,8 @@ object MidonetBackend {
         stateStore.registerKey(classOf[Vtep], VtepConfig, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepConnState, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepVxgwManager, SingleFirstWriteWins)
+        stateStore.registerKey(classOf[ServiceContainer],
+                               ContainerHealth, SingleFirstWriteWins)
 
         setup()
 
