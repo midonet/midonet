@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_64dd7d70",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-04T14:53:26Z",
+      "side": 1,
+      "message": "shouldn\u0027t we add a case _ to prevent breakage for unknown types?",
+      "revId": "c865c67ecb80653833433363e395a533d6d98c8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
