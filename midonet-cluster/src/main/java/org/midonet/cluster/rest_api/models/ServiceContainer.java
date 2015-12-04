@@ -42,7 +42,6 @@ public class ServiceContainer extends UriResource {
     @ZoomField(name = "id")
     public UUID id;
 
-    @NotNull
     @ZoomField(name = "service_group_id")
     public UUID serviceGroupId;
 
@@ -84,6 +83,9 @@ public class ServiceContainer extends UriResource {
     }
 
     public URI getServiceContainerGroup() {
+        if (serviceGroupId == null) {
+            return null;
+        }
         return absoluteUri(SERVICE_CONTAINER_GROUPS,
                            serviceGroupId);
     }
