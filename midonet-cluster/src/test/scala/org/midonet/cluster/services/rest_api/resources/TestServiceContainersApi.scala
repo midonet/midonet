@@ -111,12 +111,7 @@ class TestServiceContainersApi extends JerseyTest(FuncTest.getBuilder.build())
         sc.portId = port.id
         sc.serviceType = "MOH"
         sc.setBaseUri(app.getUri)
-        val err = postAndAssertStatus(sc, scBase.getURI,
-                                      APPLICATION_SERVICE_CONTAINER_JSON,
-                                      BAD_REQUEST).getEntity(classOf[DtoError])
-        err.getViolations should have size 1
-        err.getViolations.head.get("property") shouldBe "serviceGroupId"
-
+        postAndAssertOk(sc, scBase.getURI, APPLICATION_SERVICE_CONTAINER_JSON)
     }
 
     @Test
