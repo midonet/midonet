@@ -318,6 +318,7 @@ message VPNService {
     optional UUID router_id = 7;
     optional string status = 8;
     repeated IPAddress external_ips = 9;
+    repeated IPSecSiteConnection ipsec_site_conns = 10;
 }
 
 message IKEPolicy {
