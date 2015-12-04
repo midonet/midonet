@@ -16,6 +16,24 @@
       "revId": "c865c67ecb80653833433363e395a533d6d98c8a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4447a11f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-04T15:03:21Z",
+      "side": 1,
+      "message": "This one should be fine I think because it\u0027s not a match. Collect should filter out the elements for which the partial function does not apply.",
+      "parentUuid": "5ac4a560_64dd7d70",
+      "revId": "c865c67ecb80653833433363e395a533d6d98c8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
