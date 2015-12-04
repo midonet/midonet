@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e4798dfd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "I\u0027ve removed this class as it was meant to manage shared subscriptions. But it seems that ZOOM already handles this internally and managing this outside just saves some duplicate subscriptions at the cost of adding more code.",
+      "parentUuid": "5ac4a560_dc48ef5d",
+      "range": {
+        "startLine": 46,
+        "startChar": 6,
+        "endLine": 46,
+        "endChar": 24
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_61181482",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceStateWatcher.scala",
         "patchSetId": 7
@@ -295,6 +319,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_0464c9b7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "Agreed. I\u0027ve removed it and created a single instance in the scheduler.",
+      "parentUuid": "5ac4a560_1c88a770",
+      "range": {
+        "startLine": 42,
+        "startChar": 3,
+        "endLine": 49,
+        "endChar": 66
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_fc9bebc6",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
         "patchSetId": 7
@@ -306,6 +354,30 @@
       "writtenOn": "2015-12-03T15:15:33Z",
       "side": 1,
       "message": "this will show in the logs as \n\nanwyhere INFO bla bla\n\nbecause we take the last segment. Use containers-selector-anywhere so the whole thing shows",
+      "range": {
+        "startLine": 69,
+        "startChar": 59,
+        "endLine": 69,
+        "endChar": 86
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_846ff991",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_fc9bebc6",
       "range": {
         "startLine": 69,
         "startChar": 59,
@@ -335,6 +407,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_2410e500",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "This knownHostIds is only modified on the ZOOM events. I understand it is safe to assume it\u0027s single threaded?",
+      "parentUuid": "5ac4a560_1ca187f8",
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_3ca64311",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
         "patchSetId": 7
@@ -346,6 +436,30 @@
       "writtenOn": "2015-12-03T15:15:33Z",
       "side": 1,
       "message": "ditto re. @volatile\n\nhostsDeletedDuringInit (or somethign similar) might be more informative.",
+      "range": {
+        "startLine": 73,
+        "startChar": 16,
+        "endLine": 73,
+        "endChar": 40
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c4c5715c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_3ca64311",
       "range": {
         "startLine": 73,
         "startChar": 16,
@@ -381,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e4a18daa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_7cafdbe3",
+      "range": {
+        "startLine": 76,
+        "startChar": 7,
+        "endLine": 78,
+        "endChar": 21
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_9cacb7ef",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
         "patchSetId": 7
@@ -392,6 +530,30 @@
       "writtenOn": "2015-12-03T15:15:33Z",
       "side": 1,
       "message": "public api so worth a brief scaladoc",
+      "range": {
+        "startLine": 82,
+        "startChar": 17,
+        "endLine": 82,
+        "endChar": 31
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_041849d2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_9cacb7ef",
       "range": {
         "startLine": 82,
         "startChar": 17,
@@ -427,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_c49c916c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_1cd6e74f",
+      "range": {
+        "startLine": 85,
+        "startChar": 12,
+        "endLine": 85,
+        "endChar": 44
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_5cd05f50",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
         "patchSetId": 7
@@ -438,6 +624,24 @@
       "writtenOn": "2015-12-03T15:15:33Z",
       "side": 1,
       "message": "space",
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_24838505",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_5cd05f50",
       "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -461,6 +665,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_647c9d21",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_dcbb8f0c",
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_1c3d0790",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
         "patchSetId": 7
@@ -478,6 +700,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e4042d80",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "Only when there is no group with anywhere allocation. But the DeviceWatcher does not return the subscription so cannot do that. We could subscribe once on the scheduler and clear the device watcher subscription once there are no groups with anywhere allocations but this complicates code on the scheduler.",
+      "parentUuid": "5ac4a560_1c3d0790",
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_5c821f50",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
         "patchSetId": 7
@@ -489,6 +729,30 @@
       "writtenOn": "2015-12-03T15:15:33Z",
       "side": 1,
       "message": "hostId?",
+      "range": {
+        "startLine": 109,
+        "startChar": 16,
+        "endLine": 109,
+        "endChar": 19
+      },
+      "revId": "70ec5e68e34926b364b98b140c3515682348cd8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c473b14b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-04T18:08:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_5c821f50",
       "range": {
         "startLine": 109,
         "startChar": 16,
