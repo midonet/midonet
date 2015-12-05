@@ -20,15 +20,22 @@ import java.io._
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
+import scala.collection.JavaConversions._
+import scala.util.control.NonFatal
+
 import akka.actor.{Actor, ActorRef, Props}
+
 import com.google.inject.Inject
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
+import org.slf4j.{Logger, LoggerFactory}
+
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Topology.Pool
-import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
+import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.Referenceable
@@ -37,10 +44,6 @@ import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.util.concurrent.toFutureOps
-import org.slf4j.{Logger, LoggerFactory}
-
-import scala.collection.JavaConversions._
-import scala.util.control.NonFatal
 
 object HealthMonitor extends Referenceable {
     override val Name = "HealthMonitor"

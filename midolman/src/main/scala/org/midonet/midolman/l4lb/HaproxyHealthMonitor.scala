@@ -21,10 +21,15 @@ import java.nio.channels.IllegalSelectorException
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+import scala.collection.mutable
+import scala.concurrent.duration._
+import scala.util.control.NonFatal
+
 import akka.actor._
+
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
@@ -38,13 +43,6 @@ import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.AfUnix
 import org.midonet.util.concurrent.toFutureOps
 import org.midonet.util.process.ProcessHelper
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable
-import scala.collection.mutable.{HashSet, Set}
-import scala.concurrent.duration._
-import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
 
 /**
  * Actor that represents the interaction with Haproxy for health monitoring.
@@ -112,8 +110,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
     implicit def system: ActorSystem = context.system
     implicit def executor = system.dispatcher
 
-    private var currentUpNodes = Set[UUID]()
-    private var currentDownNodes = Set[UUID]()
+    private var currentUpNodes = Set.empty[UUID]
+    private var currentDownNodes = Set.empty[UUID]
     private val healthMonitorName = config.id.toString.substring(0,8) +
                                     config.nsPostFix
     private var routerPortId: UUID = null
@@ -284,8 +282,8 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             return (currentUpNodes, currentDownNodes)
         }
 
-        val upNodes = new HashSet[UUID]()
-        val downNodes = new HashSet[UUID]()
+        val upNodes = new mutable.HashSet[UUID]()
+        val downNodes = new mutable.HashSet[UUID]()
 
         def isMemberEntry(entry: Array[String]): Boolean =
             entry.length > StatusPos &&
@@ -315,7 +313,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 downNodes add UUID.fromString(entry(NamePos))
             case _ => // Nothing we care about
         }
-        (upNodes, downNodes)
+        (upNodes.toSet, downNodes.toSet)
     }
 
     /* ======================================================================
@@ -474,7 +472,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             .setDstSubnet(IPSubnetUtil.fromAddr(destIp))
             .setWeight(100)
             .setNextHopGateway(IPAddressUtil.toProto(NameSpaceIp))
-            .setRouterId(toProto(routerId))
             .setNextHop(Route.NextHop.PORT)
             .setNextHopPortId(toProto(routerPortId))
             .build
@@ -490,7 +487,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             val ops = new mutable.MutableList[PersistenceOp]
 
             ops ++= ports.filter(_.getInterfaceName == namespaceName).map { p =>
-                log.info("deleting unused health monitor port " +
+                log.info("Deleting unused health monitor port " +
                          s"${fromProto(p.getId)} for pool ${config.id}")
                 DeleteOp(classOf[Port], p.getId)
             }
