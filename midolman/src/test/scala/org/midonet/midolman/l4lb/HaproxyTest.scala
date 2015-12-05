@@ -29,10 +29,10 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.time.SpanSugar
 
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.models.Topology.{HealthMonitor => topHM, Pool => topPool, Router, Host}
+import org.midonet.cluster.models.Topology.{HealthMonitor => topHM, Pool => topPool, Port, Router, Host}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.cluster.topology.TopologyBuilder
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.{HealthMonitor => HMSystem}
 import org.midonet.midolman.util.MidolmanSpec
@@ -105,6 +105,10 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
         backend.store.get(classOf[Router], routerId).value.get.get
     }
 
+    def getPort(portId: UUID): Port = {
+        backend.store.get(classOf[Port], portId).value.get.get
+    }
+
     class TestableHealthMonitor extends HMSystem(conf, backend, lockFactory,
                                                  curator = null) {
         override def getHostId = hostId
@@ -159,7 +163,10 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             val poolName = poolId.toString.substring(0, 8) + "_hm"
 
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 1 }
-            eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 1 }
+            eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 0 }
+
+            val portId = getRouter(routerId).getPortIdsList.get(0)
+            eventually(to) { getPort(portId.asJava).getRouteIdsCount shouldBe 1 }
 
             /* TODO: find out why the mapper sends 3 notifications.
              * This is not expected: a single pool-health monitor config
@@ -195,7 +202,11 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             val poolId1 = makePool(hmId1, lbId1, vipId1)
 
             eventually(to) { getRouter(routerId1).getPortIdsCount shouldBe 1 }
-            eventually(to) { getRouter(routerId1).getRouteIdsCount shouldBe 1 }
+            eventually(to) { getRouter(routerId1).getRouteIdsCount shouldBe 0 }
+
+            val portId1 = getRouter(routerId1).getPortIdsList.get(0)
+            eventually(to) { getPort(portId1.asJava).getRouteIdsCount shouldBe 1 }
+
             eventually(to) { getRouter(routerId2).getPortIdsCount shouldBe 0 }
             eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 0 }
 
@@ -211,9 +222,14 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             val poolName2 = poolId2.toString.substring(0, 8) + "_hm"
 
             eventually(to) { getRouter(routerId1).getPortIdsCount shouldBe 1 }
-            eventually(to) { getRouter(routerId1).getRouteIdsCount shouldBe 1 }
+            eventually(to) { getRouter(routerId1).getRouteIdsCount shouldBe 0 }
+            eventually(to) { getPort(portId1.asJava).getRouteIdsCount shouldBe 1 }
+
             eventually(to) { getRouter(routerId2).getPortIdsCount shouldBe 1 }
-            eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 1 }
+            eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 0 }
+
+            val portId2 = getRouter(routerId2).getPortIdsList.get(0)
+            eventually(to) { getPort(portId2.asJava).getRouteIdsCount shouldBe 1 }
 
             verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
             verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName2)
@@ -223,8 +239,10 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
 
             eventually(to) { getRouter(routerId1).getPortIdsCount shouldBe 0 }
             eventually(to) { getRouter(routerId1).getRouteIdsCount shouldBe 0 }
+
             eventually(to) { getRouter(routerId2).getPortIdsCount shouldBe 1 }
-            eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 1 }
+            eventually(to) { getRouter(routerId2).getRouteIdsCount shouldBe 0 }
+            eventually(to) { getPort(portId2.asJava).getRouteIdsCount shouldBe 1 }
 
             verify(HMSystem.ipCommand, times(3)).namespaceExist(poolName1)
             verify(HMSystem.ipCommand, times(2)).namespaceExist(poolName2)
@@ -257,7 +275,11 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             val poolId1 = makePool(hmId1, lbId, vipId1)
 
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 1 }
-            eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 1 }
+            eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 1 }
+            eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 0 }
+
+            var portId1 = getRouter(routerId).getPortIdsList.get(0)
+            eventually(to) { getPort(portId1.asJava).getRouteIdsCount shouldBe 1 }
 
             val poolName1 = poolId1.toString.substring(0, 8) + "_hm"
             verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
@@ -267,7 +289,11 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             val poolId2 = makePool(hmId2, lbId, vipId2)
 
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 2 }
-            eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 2 }
+            eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 0 }
+            portId1 = getRouter(routerId).getPortIdsList.get(0)
+            var portId2 = getRouter(routerId).getPortIdsList.get(1)
+            eventually(to) { getPort(portId1.asJava).getRouteIdsCount shouldBe 1 }
+            eventually(to) { getPort(portId2.asJava).getRouteIdsCount shouldBe 1 }
 
             val poolName2 = poolId2.toString.substring(0, 8) + "_hm"
             verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
@@ -277,7 +303,10 @@ class HaproxyTest extends TestKit(ActorSystem("HealthMonitorConfigWatcherTest"))
             backend.store.delete(classOf[topHM], hmId1)
 
             eventually(to) { getRouter(routerId).getPortIdsCount shouldBe 1 }
-            eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 1 }
+            eventually(to) { getRouter(routerId).getRouteIdsCount shouldBe 0 }
+
+            portId2 = getRouter(routerId).getPortIdsList.get(0)
+            eventually(to) { getPort(portId2.asJava).getRouteIdsCount shouldBe 1 }
 
             verify(HMSystem.ipCommand, times(3)).ensureNamespace(poolName1)
             verify(HMSystem.ipCommand, times(1)).ensureNamespace(poolName2)
