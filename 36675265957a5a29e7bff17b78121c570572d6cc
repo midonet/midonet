@@ -22,6 +22,30 @@
       "revId": "36675265957a5a29e7bff17b78121c570572d6cc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fdabdf1b",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-06T23:27:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_7fad0831",
+      "range": {
+        "startLine": 493,
+        "startChar": 18,
+        "endLine": 493,
+        "endChar": 25
+      },
+      "revId": "36675265957a5a29e7bff17b78121c570572d6cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
