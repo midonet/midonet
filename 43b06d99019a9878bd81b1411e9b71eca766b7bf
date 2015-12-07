@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_111c0413",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-07T16:32:11Z",
+      "side": 1,
+      "message": "You mean this explanation is unnecessary?",
+      "parentUuid": "5ac4a560_7138d8a0",
+      "range": {
+        "startLine": 215,
+        "startChar": 15,
+        "endLine": 217,
+        "endChar": 61
+      },
+      "revId": "43b06d99019a9878bd81b1411e9b71eca766b7bf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_315660d3",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-07T15:45:49Z",
       "side": 1,
       "message": "I\u0027m not sure whether this is really needed, since at this point all other updates to childStream should have finished, and iterations over childStreams in call should be prevented by `failure` which is set.",
+      "range": {
+        "startLine": 261,
+        "startChar": 8,
+        "endLine": 261,
+        "endChar": 38
+      },
+      "revId": "43b06d99019a9878bd81b1411e9b71eca766b7bf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d1afec92",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-07T16:32:11Z",
+      "side": 1,
+      "message": "I\u0027m not convinced. What if the clear is called after the subscriber evaluates the while condition but before it calls it.next?",
+      "parentUuid": "5ac4a560_315660d3",
       "range": {
         "startLine": 261,
         "startChar": 8,
