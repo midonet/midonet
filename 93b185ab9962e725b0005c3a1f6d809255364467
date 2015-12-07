@@ -1,0 +1,308 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_63272eb7",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "why both? (also nit, the space between class name and ( is not needed.",
+      "range": {
+        "startLine": 40,
+        "startChar": 27,
+        "endLine": 41,
+        "endChar": 63
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_033d9abb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "are these @volatile? If not, I\u0027d document the assumption about what threads will be updating these.",
+      "range": {
+        "startLine": 46,
+        "startChar": 3,
+        "endLine": 48,
+        "endChar": 16
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a32146a1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "just executor? (the named param adds no info)",
+      "range": {
+        "startLine": 52,
+        "startChar": 54,
+        "endLine": 52,
+        "endChar": 73
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_8351aa10",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "In scala you can pull the first line next to the /**",
+      "range": {
+        "startLine": 66,
+        "startChar": 7,
+        "endLine": 67,
+        "endChar": 8
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e3417e3a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "nit: return Pro.. and you can spare the else nesting",
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a3586633",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "do we want some info logs here?",
+      "range": {
+        "startLine": 77,
+        "startChar": 24,
+        "endLine": 77,
+        "endChar": 60
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_234c5670",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "this is implementation details rather than scaladocs (remove 1 *)",
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e3689ebc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/HostGroupHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "I\u0027d probably slice this one and the PortGroup selector to a separate review so that we can get the base code in early.",
+      "range": {
+        "startLine": 38,
+        "startChar": 6,
+        "endLine": 38,
+        "endChar": 27
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_236376dd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/HostGroupHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "ditto re. volatiles as in the previous selector",
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_435eb213",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/HostGroupHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "\"a host previously returned through candidateHosts\"",
+      "range": {
+        "startLine": 58,
+        "startChar": 45,
+        "endLine": 58,
+        "endChar": 54
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_639c8ec1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/HostGroupHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "wrong, no?",
+      "range": {
+        "startLine": 59,
+        "startChar": 20,
+        "endLine": 59,
+        "endChar": 44
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_839feab3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/HostGroupHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "remove, or add to the if",
+      "range": {
+        "startLine": 74,
+        "startChar": 13,
+        "endLine": 74,
+        "endChar": 14
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c3a9e2e0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/HostGroupHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "unrelated to this patch: should we even allow deleting a host group that is referenced by a SC?",
+      "range": {
+        "startLine": 114,
+        "startChar": 16,
+        "endLine": 114,
+        "endChar": 73
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_83860a64",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/HostGroupHostSelector.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:49:26Z",
+      "side": 1,
+      "message": "lastWatchedHostGroup.getHostIdsList.filterNot(hg.getHostIdsList.contains) foreach { discardedSubject.onNext }",
+      "range": {
+        "startLine": 121,
+        "startChar": 12,
+        "endLine": 124,
+        "endChar": 13
+      },
+      "revId": "93b185ab9962e725b0005c3a1f6d809255364467",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
