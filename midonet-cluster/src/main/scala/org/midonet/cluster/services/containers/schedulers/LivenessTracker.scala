@@ -2,7 +2,6 @@ package org.midonet.cluster.services.containers.schedulers
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.reflect.ClassTag
@@ -90,7 +89,7 @@ class LivenessTracker[D](stateStore: StateStorage, key: String)
             p.trySuccess(id)
             if (isAlive)
                 declareAlive(id)
-                              else
+            else
                 declareDead(id)
         }
     }

@@ -20,6 +20,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FunSuite, ShouldMatchers}
 import org.slf4j.LoggerFactory
+import rx.schedulers.Schedulers
 
 import org.midonet.cluster.data.storage.InMemoryStorage
 import org.midonet.cluster.models.Topology.Router
@@ -42,8 +43,8 @@ class DeviceWatcherTest extends FunSuite with BeforeAndAfter with
         var deleted: Object = null
         val updateCounter = (t: Router) => { counter = counter + 1 }
         val deleteCounter = (id: Object) => { deleted = id }
-        val watcher = new DeviceWatcher[Router](store, updateCounter,
-                                                deleteCounter)
+        val watcher = new DeviceWatcher[Router](store, Schedulers.immediate(),
+                                                updateCounter, deleteCounter)
 
         val r1 = createRouter()
         store.create(r1)

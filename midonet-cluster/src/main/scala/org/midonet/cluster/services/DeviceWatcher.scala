@@ -19,12 +19,12 @@ package org.midonet.cluster.services
 import scala.reflect.ClassTag
 
 import com.google.protobuf.Message
-import org.slf4j.{LoggerFactory, Logger}
+import org.slf4j.LoggerFactory
 import rx.subscriptions.CompositeSubscription
-import rx.{Observable, Observer}
-import org.midonet.util.functors._
+import rx.{Observable, Observer, Scheduler}
 
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.util.functors._
 
 /** This trait adds functionality to watch a given type in ZOOM, and set up
  *  individual watchers on each of the entities emitted.  The actions to take
@@ -33,15 +33,15 @@ import org.midonet.cluster.data.storage.Storage
  *  Call `startWatching` to start watching, `stopWatching` to cancel the
  *  subscriptions.
  */
-class DeviceWatcher[T <: Message](store: Storage,
-                                  updateHandler: T => Unit,
-                                  deleteHandler: Object => Unit,
-                                  filterHandler: T => java.lang.Boolean = {t:T => java.lang.Boolean.TRUE})
-                                 (implicit private val ct: ClassTag[T]) {
+class DeviceWatcher[T <: Message](
+    store: Storage, scheduler: Scheduler,
+    updateHandler: T => Unit, deleteHandler: Object => Unit,
+    filterHandler: T => java.lang.Boolean = {t:T => java.lang.Boolean.TRUE})
+    (implicit private val ct: ClassTag[T]) {
 
     private val log = LoggerFactory.getLogger("org.midonet.cluster")
     private val deviceSubscriptions = new CompositeSubscription()
-    private val deviceType = ct.runtimeClass.getSimpleName
+    private val deviceTypeName = ct.runtimeClass.getSimpleName
 
     private class DeviceObserver() extends Observer[T] {
 
@@ -51,7 +51,7 @@ class DeviceWatcher[T <: Message](store: Storage,
             deleteHandler(id)
         }
         override def onError(t: Throwable): Unit = {
-            log.warn(s"Error in $deviceType $id update stream: ", t)
+            log.warn(s"Error in $deviceTypeName $id update stream: ", t)
         }
         override def onNext(t: T): Unit = {
             if (id == null) {
@@ -65,10 +65,10 @@ class DeviceWatcher[T <: Message](store: Storage,
 
     private val deviceTypeObserver = new Observer[Observable[T]] {
         override def onCompleted(): Unit = {
-            log.debug(s"Completed stream of $deviceType updates")
+            log.debug(s"Completed stream of $deviceTypeName updates")
         }
         override def onError(t: Throwable): Unit = {
-            log.warn(s"$deviceType stream emits an error: ", t)
+            log.warn(s"$deviceTypeName stream emits an error: ", t)
         }
         override def onNext(o: Observable[T]): Unit = {
             deviceSubscriptions.add(o
@@ -82,6 +82,7 @@ class DeviceWatcher[T <: Message](store: Storage,
     final def subscribe(): Unit = {
         deviceSubscriptions.add (
             org.midonet.cluster.util.selfHealingTypeObservable[T](store)
+                                    .observeOn(scheduler)
                                     .subscribe(deviceTypeObserver)
         )
     }
