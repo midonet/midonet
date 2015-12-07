@@ -61,7 +61,7 @@ class DeviceWatcher[T <: Message](
             if (device != null)  {
                 val idField = device.getDescriptorForType.findFieldByName("id")
                 val id = device.getField(idField)
-                log.warn(s"Error in $deviceTypeName ${fromProto(
+                log.warn(s"Error in $deviceType ${fromProto(
                     id.asInstanceOf[Commons.UUID])} update stream: ", t)
             }
             else {
