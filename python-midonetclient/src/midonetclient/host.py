@@ -58,3 +58,10 @@ class Host(resource_base.ResourceBase):
     def add_host_interface_port(self):
         return host_interface_port.HostInterfacePort(self.dto['ports'], {},
                                                      self.auth)
+
+    def get_flooding_proxy_weight(self):
+        return self.dto['floodingProxyWeight']
+
+    def flooding_proxy_weight(self, weight):
+        self.dto['floodingProxyWeight'] = weight
+        return self
