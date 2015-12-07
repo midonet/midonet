@@ -317,7 +317,8 @@ message VPNService {
     optional UUID subnet_id = 6;
     optional UUID router_id = 7;
     optional string status = 8;
-    repeated IPAddress external_ips = 9;
+    optional IPAddress external_v4_ip = 9;
+    optional IPAddress external_v6_ip = 10;
 }
 
 message IKEPolicy {
@@ -327,13 +328,19 @@ message IKEPolicy {
     optional string description = 4;
     optional IPSecAuthAlgorithm auth_algorithm = 5;
     optional IPSecEncryptionAlgorithm encryption_algorithm = 6;
-    optional Phase1NegotiationMode phase1NegMode = 7;
-    optional uint32 ike_version = 8;
-    repeated string lifetime = 9; // [(units:value)]*
-    optional IPSecPFS pfs = 10;
+    optional Phase1NegotiationMode phase1_negotiation_mode = 7;
+    optional IkeVersion ike_version = 8;
+    optional string lifetime_units = 9;
+    optional uint32 lifetime_value = 10;
+    optional IPSecPFS pfs = 11;
 
     enum Phase1NegotiationMode {
         MAIN = 1;
+    }
+
+    enum IkeVersion {
+        V1 = 1;
+        V2 = 2;
     }
 }
 
@@ -347,7 +354,8 @@ message IPSecPolicy {
     optional IPSecEncryptionAlgorithm encryption_algorithm = 7;
     optional EncapsulationMode encapsulation_mode = 8;
     optional IPSecPFS pfs = 9;
-    repeated string lifetime = 10; // [(units:value)]*
+    optional string lifetime_units = 10;
+    optional uint32 lifetime_value = 11;
 
     enum TransformProtocol {
         ESP = 1;
@@ -364,24 +372,33 @@ message IPSecPolicy {
 message IPSecSiteConnection {
     optional UUID id = 1;
     optional string tenant_id = 2;
-    optional string name = 3;
-    optional string peer_address = 4;
-    optional string peer_id = 5;
-    repeated IPSubnet local_cidrs = 6;
-    repeated IPSubnet peer_cidrs = 7;
-    optional RouteMode route_mode = 8;
-    optional uint32 mtu = 9;
-    optional Initiator initiator = 10;
-    optional AuthMode auth_mode = 11;
-    optional string psk = 12;
-    optional bool admin_state_up = 13;
-    optional Status status = 14;
-    optional DpdAction dpd_action = 15;
-    optional uint32 dpd_interval = 16;
-    optional uint32 dpd_timeout = 17;
-    optional UUID vpn_service_id = 18;
-    optional UUID ike_policy_id = 19;
-    optional UUID ipsec_policy_id = 20;
+    optional string description = 3;
+    optional string name = 4;
+    optional bool admin_state_up = 5;
+    optional string peer_address = 6;
+    optional string peer_id = 7;
+    optional IPAddress external_ip = 8;
+    repeated IPSubnet local_cidrs = 9;
+    repeated IPSubnet peer_cidrs = 10;
+    optional RouteMode route_mode = 11;
+    optional uint32 mtu = 12;
+    optional Initiator initiator = 13;
+    optional AuthMode auth_mode = 14;
+    optional string psk = 15;
+    optional Status status = 16;
+
+    optional DpdAction dpd_action = 17;
+    optional uint32 dpd_interval = 18; // milliseconds
+    optional uint32 dpd_timeout = 19; // milliseconds
+
+    optional UUID vpnservice_id = 20;
+
+    optional UUID ikepolicy_id = 21;
+    optional IKEPolicy ikepolicy = 22;
+
+    optional UUID ipsecpolicy_id = 23;
+    optional IPSecPolicy ipsecpolicy = 24;
+
 
     enum Status {
         ACTIVE = 1;
