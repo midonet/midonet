@@ -16,10 +16,13 @@
 
 package org.midonet.cluster.services
 
+import java.util.concurrent.{Executors, ExecutorService, Executor}
+
 import scala.reflect.ClassTag
 
 import com.google.protobuf.Message
 import org.slf4j.{LoggerFactory, Logger}
+import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer}
 import org.midonet.util.functors._
@@ -36,12 +39,14 @@ import org.midonet.cluster.data.storage.Storage
 class DeviceWatcher[T <: Message](store: Storage,
                                   updateHandler: T => Unit,
                                   deleteHandler: Object => Unit,
-                                  filterHandler: T => java.lang.Boolean = {t:T => java.lang.Boolean.TRUE})
+                                  filterHandler: T => java.lang.Boolean = {t:T => java.lang.Boolean.TRUE},
+                                  executor: ExecutorService = Executors.newSingleThreadExecutor())
                                  (implicit private val ct: ClassTag[T]) {
 
     private val log = LoggerFactory.getLogger("org.midonet.cluster")
     private val deviceSubscriptions = new CompositeSubscription()
     private val deviceType = ct.runtimeClass.getSimpleName
+    private val scheduler = Schedulers.from(executor)
 
     private class DeviceObserver() extends Observer[T] {
 

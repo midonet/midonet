@@ -1,0 +1,115 @@
+/*
+ * Copyright 2015 Midokura SARL
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.midonet.cluster.services.containers.schedulers
+
+import java.util.UUID
+import java.util.concurrent.ExecutorService
+
+import org.midonet.cluster.data.storage.{StateStorage, Storage}
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Topology.{ServiceContainerGroup, Host}
+import org.midonet.cluster.services.DeviceWatcher
+import org.midonet.cluster.util.UUIDUtil._
+import org.slf4j.LoggerFactory
+import rx.Observable
+import rx.subjects.PublishSubject
+
+import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.control.NonFatal
+
+/**
+  * This class implements the [[HostSelector]] trait with a simple policy
+  * that reports every host that's registered into the NSDB.
+  */
+class AnywhereHostSelector (store: Storage, stateStore: StateStorage,
+                            executor: ExecutorService)
+                           (implicit context: ExecutionContext)
+        extends HostSelector {
+
+    private val log = LoggerFactory.getLogger("org.midonet.containers-selector-anywhere")
+
+    /* The hosts learned on the last invocation of candidateHosts */
+    private var knownHostIds = Set.empty[UUID]
+
+    /* The hosts that are deleted between the initial load of hosts, and the
+     * moment when the request completes.
+     */
+    private var hostsDeletedDuringInit = Set.empty[UUID]
+
+    private val hostWatcher = new DeviceWatcher[Host](store, onHostUpdate,
+                                                      onHostDelete,
+                                                      executor = executor)
+
+    private val discardedSubject = PublishSubject.create[UUID]
+
+    @inline
+    private def isInitialized = hostsDeletedDuringInit == null
+
+    /**
+      * Observable that emits events as soon as a host is no longer eligible. In
+      * the case of this `anywhere` selector, it will emit events when any host
+      * is removed from ZOOM.
+      */
+    override val discardedHosts: Observable[UUID] = discardedSubject.asObservable()
+
+    /** Current set of candidate hosts. In the case of this `anywhere`
+      * scheduler, this is the whole list of hosts registered on ZOOM (either
+      * dead or alive).
+      *
+      * @return a future that will complete with a set of ids of hosts
+      *         present in storage.
+      */
+    override def candidateHosts: Future[Set[UUID]] = {
+        if (isInitialized)
+            return Promise.successful(knownHostIds).future
+        val allHosts = store.getAll(classOf[Host])
+            .recover {
+                case NonFatal(t) =>
+                    log.info("Failed to retrieve host list", e)
+                    List.empty[Host]
+            }.map { hosts =>
+                hosts.map { h => fromProto(h.getId) }
+                     .filterNot(hostsDeletedDuringInit.contains)
+                     .toSet
+            }
+        hostsDeletedDuringInit = null
+        allHosts
+    }
+
+    /** As this host selector monitor all hosts, we only need to subscribe once
+      * to the hostWatcher and keep the list of known hosts upong any update.
+      *
+      * @param scg [[ServiceContainerGroup]] that was updated
+      */
+    override def onServiceContainerGroupUpdate(scg: ServiceContainerGroup)
+    : Unit = hostWatcher.subscribe()
+
+    private def onHostUpdate(host: Host): Unit = {
+        knownHostIds += fromProto(host.getId)
+    }
+
+    private def onHostDelete(id: Object): Unit = id match {
+        case id: Commons.UUID =>
+            val hostId = fromProto(id)
+            knownHostIds -= hostId
+            if (hostsDeletedDuringInit != null) {
+                hostsDeletedDuringInit += hostId
+            }
+            discardedSubject.onNext(hostId)
+        case _ =>
+    }
+}
