@@ -19,12 +19,12 @@ package org.midonet.cluster.services
 import scala.reflect.ClassTag
 
 import com.google.protobuf.Message
-import org.slf4j.{LoggerFactory, Logger}
+import org.slf4j.LoggerFactory
 import rx.subscriptions.CompositeSubscription
-import rx.{Observable, Observer}
-import org.midonet.util.functors._
+import rx.{Observable, Observer, Scheduler}
 
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.util.functors._
 
 /** This trait adds functionality to watch a given type in ZOOM, and set up
  *  individual watchers on each of the entities emitted.  The actions to take
@@ -42,7 +42,7 @@ class DeviceWatcher[T <: Message](
 
     private val log = LoggerFactory.getLogger("org.midonet.cluster")
     private val deviceSubscriptions = new CompositeSubscription()
-    private val deviceType = ct.runtimeClass.getSimpleName
+    private val deviceTypeName = ct.runtimeClass.getSimpleName
 
     private class DeviceObserver() extends Observer[T] {
 
@@ -53,7 +53,7 @@ class DeviceWatcher[T <: Message](
             deleteHandler(device)
         }
         override def onError(t: Throwable): Unit = {
-            log.warn(s"Error in $deviceType $id update stream: ", t)
+            log.warn(s"Error in $deviceTypeName $id update stream: ", t)
         }
         override def onNext(t: T): Unit = {
             if (id == null) {
@@ -67,10 +67,10 @@ class DeviceWatcher[T <: Message](
 
     private val deviceTypeObserver = new Observer[Observable[T]] {
         override def onCompleted(): Unit = {
-            log.debug(s"Completed stream of $deviceType updates")
+            log.debug(s"Completed stream of $deviceTypeName updates")
         }
         override def onError(t: Throwable): Unit = {
-            log.warn(s"$deviceType stream emits an error: ", t)
+            log.warn(s"$deviceTypeName stream emits an error: ", t)
         }
         override def onNext(o: Observable[T]): Unit = {
             deviceSubscriptions.add(o
@@ -84,6 +84,7 @@ class DeviceWatcher[T <: Message](
     final def subscribe(): Unit = {
         deviceSubscriptions.add (
             org.midonet.cluster.util.selfHealingTypeObservable[T](store)
+                                    .observeOn(scheduler)
                                     .subscribe(deviceTypeObserver)
         )
     }
