@@ -48,7 +48,7 @@ class DeviceWatcher[T <: Message](
     (implicit private val ct: ClassTag[T]) {
 
     private val deviceSubscriptions = new CompositeSubscription()
-    private val deviceType = ct.runtimeClass.getSimpleName
+    private val deviceTypeName = ct.runtimeClass.getSimpleName
 
     private class DeviceObserver extends Observer[T] {
 
@@ -76,10 +76,10 @@ class DeviceWatcher[T <: Message](
 
     private val deviceTypeObserver = new Observer[Observable[T]] {
         override def onCompleted(): Unit = {
-            log.debug(s"Completed stream of $deviceType updates")
+            log.debug(s"Completed stream of $deviceTypeName updates")
         }
         override def onError(t: Throwable): Unit = {
-            log.warn(s"$deviceType stream emits an error: ", t)
+            log.warn(s"$deviceTypeName stream emits an error: ", t)
         }
         override def onNext(o: Observable[T]): Unit = {
             deviceSubscriptions.add(o
