@@ -241,6 +241,14 @@ class InMemoryStorage extends Storage with StateStorage {
             }
         }
 
+        def keyObservableError(namespace: String, id: ObjId, key: String,
+                               e: Throwable): Unit = {
+            instances.get(getIdString(clazz, id)) match {
+                case Some(node) => node.keyObservableError(namespace, key, e)
+                case None =>
+            }
+        }
+
         private def emptyValueKey(key: String, keyType: KeyType)
         : Observable[StateKey] = {
             if (keyType.isSingle)
@@ -333,6 +341,14 @@ class InMemoryStorage extends Storage with StateStorage {
             getOrCreateStateNode(namespace).keyObservable(key, keyType)
         }
 
+        def keyObservableError(namespace: String, key: String, e: Throwable)
+        : Unit = {
+            state.get(namespace) match {
+                case Some(node) => node.keyObservableError(key, e)
+                case None =>
+            }
+        }
+
         private def getOrCreateStateNode(namespace: String): StateNode = {
             state.getOrElse(namespace, {
                 val node = new StateNode(namespace, clazz.getSimpleName,
@@ -364,6 +380,13 @@ class InMemoryStorage extends Storage with StateStorage {
         def keyObservable(key: String, keyType: KeyType)
         : Observable[StateKey] = {
             getOrCreateKeyNode(key, keyType).observable
+        }
+
+        def keyObservableError(key: String, e: Throwable): Unit = {
+            keys.get(key) match {
+                case Some(node) => node error e
+                case None =>
+            }
         }
 
         def complete(): Unit = {
@@ -434,6 +457,10 @@ class InMemoryStorage extends Storage with StateStorage {
                     MultiValueKey(key, map.keySet)
                 }))
             }
+        }
+
+        def error(e: Throwable): Unit = {
+            subject onError e
         }
 
         def complete(): Unit = {
@@ -717,6 +744,12 @@ class InMemoryStorage extends Storage with StateStorage {
             if (namespace ne null) keyObservable(namespace, clazz, id, key)
             else noneObservable
         })
+    }
+
+    def keyObservableError(namespace: String, clazz: Class[_], id: ObjId,
+                        key: String, e: Throwable): Unit = {
+        assertBuilt()
+        classes.get(clazz).keyObservableError(namespace, id, key, e)
     }
 
     override def ownerId = DefaultOwnerId
