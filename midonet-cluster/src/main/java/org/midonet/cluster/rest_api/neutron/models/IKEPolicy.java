@@ -19,6 +19,12 @@ public class IKEPolicy {
         @ZoomEnumValue("MAIN") MAIN
     };
 
+    @ZoomEnum(clazz = Neutron.IKEPolicy.IkeVersion.class)
+    public enum IkeVersion {
+        @ZoomEnumValue("V1") V1,
+        @ZoomEnumValue("V2") V2
+    };
+
     @ZoomField(name = "id")
     public UUID id;
 
@@ -40,11 +46,14 @@ public class IKEPolicy {
     @ZoomField(name = "encryption_algorithm")
     public Phase1NegotiationMode phase1NegMode;
 
-    @ZoomField(name = "ikeVersion")
-    public Integer ikeVersion;
+    @ZoomField(name = "ike_version")
+    public IkeVersion ikeVersion;
 
-    @ZoomField(name = "lifetime")
-    public List<String> lifetime; // [(units:value)]*
+    @ZoomField(name = "lifetime_units")
+    public String lifetimeUnits;
+
+    @ZoomField(name = "lifetime_value")
+    public Integer lifetimeValue;
 
     @ZoomField(name = "pfs")
     public IPSecPFS pfs;
