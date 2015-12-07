@@ -14,6 +14,7 @@ import org.midonet.packets.IPSubnet;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @ZoomClass(clazz = Neutron.IPSecSiteConnection.class)
@@ -80,6 +81,12 @@ public class IPSecSiteConnection extends UriResource {
     @ZoomField(name = "ipsec_policy_id")
     public UUID ipsecPolicyId;
 
+    @ZoomField(name = "ikepolicy")
+    public IKEPolicy ikePolicy;
+
+    @ZoomField(name = "ipsecpolicy")
+    public IPSecPolicy ipsecPolicy;
+
     @ZoomEnum(clazz = Neutron.IPSecSiteConnection.Status.class)
     public enum Status {
         @ZoomEnumValue("ACTIVE") ACTIVE,
@@ -88,7 +95,13 @@ public class IPSecSiteConnection extends UriResource {
         @ZoomEnumValue("ERROR") ERROR,
         @ZoomEnumValue("PENDING_CREATE") PENDING_CREATE,
         @ZoomEnumValue("PENDING_UPDATE") PENDING_UPDATE,
-        @ZoomEnumValue("PENDING_DELETE") PENDING_DELETE
+        @ZoomEnumValue("PENDING_DELETE") PENDING_DELETE;
+
+        @JsonCreator
+        @SuppressWarnings("unused")
+        public static Status forValue(String v) {
+            return valueOf(convertFromIpsecString(v));
+        }
     }
 
     @ZoomEnum(clazz = Neutron.IPSecSiteConnection.DpdAction.class)
@@ -97,7 +110,13 @@ public class IPSecSiteConnection extends UriResource {
         @ZoomEnumValue("HOLD") HOLD,
         @ZoomEnumValue("RESTART") RESTART,
         @ZoomEnumValue("DISABLED") DISABLED,
-        @ZoomEnumValue("RESTART_BY_PEER") RESTART_BY_PEER
+        @ZoomEnumValue("RESTART_BY_PEER") RESTART_BY_PEER;
+
+        @JsonCreator
+        @SuppressWarnings("unused")
+        public static DpdAction forValue(String v) {
+            return valueOf(convertFromIpsecString(v));
+        }
     }
 
     // TODO: this field and the enum is pointless, leave out and add whenever
@@ -110,7 +129,13 @@ public class IPSecSiteConnection extends UriResource {
     @ZoomEnum(clazz = Neutron.IPSecSiteConnection.Initiator.class)
     enum Initiator {
         @ZoomEnumValue("BI_DIRECTIONAL") BI_DIRECTIONAL,
-        @ZoomEnumValue("RESPONSE_ONLY") RESPONSE_ONLY
+        @ZoomEnumValue("RESPONSE_ONLY") RESPONSE_ONLY;
+
+        @JsonCreator
+        @SuppressWarnings("unused")
+        public static Initiator forValue(String v) {
+            return valueOf(convertFromIpsecString(v));
+        }
     }
 
     // TODO: this field and the enum is pointless, leave out and add whenever
@@ -129,5 +154,20 @@ public class IPSecSiteConnection extends UriResource {
                          .path("neutron")
                          .path("ipsec_site_conns")
                          .path(id.toString()).build();
+    }
+
+    /*
+     * Takes any string and converts to uppercase, and
+     * replaces all hyphens with underscores. This is a protobuf compatible
+     * version of whatever is sent from neutron.
+     */
+    public static String convertFromIpsecString(String str) {
+        if (str == null) return null;
+        try {
+            str = str.replace('-', '_');
+            return str.toUpperCase();
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 }

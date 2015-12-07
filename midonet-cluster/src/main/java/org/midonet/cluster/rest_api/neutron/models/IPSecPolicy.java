@@ -40,8 +40,11 @@ public class IPSecPolicy extends ZoomObject {
     @ZoomField(name = "pfs")
     public IPSecPFS pfs;
 
-    @ZoomField(name = "lifetime")
-    public List<String> lifetime; // [(units:value)]*
+    @ZoomField(name = "lifetime_units")
+    public String lifetimeUnits;
+
+    @ZoomField(name = "lifetime_value")
+    public Integer lifetimeValue;
 
     @ZoomEnum(clazz = Neutron.IPSecPolicy.TransformProtocol.class)
     public enum TransformProtocol {

@@ -327,13 +327,19 @@ message IKEPolicy {
     optional string description = 4;
     optional IPSecAuthAlgorithm auth_algorithm = 5;
     optional IPSecEncryptionAlgorithm encryption_algorithm = 6;
-    optional Phase1NegotiationMode phase1NegMode = 7;
-    optional uint32 ike_version = 8;
-    repeated string lifetime = 9; // [(units:value)]*
-    optional IPSecPFS pfs = 10;
+    optional Phase1NegotiationMode phase1_negotiation_mode = 7;
+    optional IkeVersion ike_version = 8;
+    optional string lifetime_units = 9;
+    optional uint32 lifetime_value = 10;
+    optional IPSecPFS pfs = 11;
 
     enum Phase1NegotiationMode {
         MAIN = 1;
+    }
+
+    enum IkeVersion {
+        V1 = 1;
+        V2 = 2;
     }
 }
 
@@ -347,7 +353,8 @@ message IPSecPolicy {
     optional IPSecEncryptionAlgorithm encryption_algorithm = 7;
     optional EncapsulationMode encapsulation_mode = 8;
     optional IPSecPFS pfs = 9;
-    repeated string lifetime = 10; // [(units:value)]*
+    optional string lifetime_units = 10;
+    optional uint32 lifetime_value = 11;
 
     enum TransformProtocol {
         ESP = 1;
@@ -382,6 +389,8 @@ message IPSecSiteConnection {
     optional UUID vpn_service_id = 18;
     optional UUID ike_policy_id = 19;
     optional UUID ipsec_policy_id = 20;
+    optional IKEPolicy ikepolicy = 21;
+    optional IPSecPolicy ipsecpolicy = 22;
 
     enum Status {
         ACTIVE = 1;
