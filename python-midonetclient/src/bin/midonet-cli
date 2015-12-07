@@ -316,6 +316,14 @@ class L4PortNumber(ValueType):
         except:
             return False
 
+class FloodingProxyWeight(ValueType):
+    def is_valid(self, value):
+        try:
+            weight = int(value)
+            return weight >= 0 and weight <= 65535
+        except:
+            return false
+
 class IPv4Subnet(ValueType):
     def is_valid(self, value):
         values = value.split('/')
@@ -2257,6 +2265,10 @@ class Host(ObjectType):
                                  element_type = PortBinding,
                                  list_method = 'get_ports',
                                  factory_method = 'add_host_interface_port'))
+        self.put_attr(SingleAttr(name = 'flooding-proxy-weight',
+                                 value_type = FloodingProxyWeight(),
+                                 getter = 'get_flooding_proxy_weight',
+                                 setter = 'flooding_proxy_weight'))
 
 class Interface(ObjectType):
     def type_name(self):
