@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_e0e7b410",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/LoggerLevelWatcher.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-07T03:08:28Z",
+      "side": 1,
+      "message": "The endsWith check is already built into stripSuffix, so this can just be val key \u003d entry.getKey.stripSuffix(\".root\")\n\n  /** Returns this string with the given `suffix` stripped. If this string does not\n    * end with `suffix`, it is returned unchanged. */\n  def stripSuffix(suffix: String) \u003d\n    if (toString.endsWith(suffix)) toString.substring(0, toString.length() - suffix.length)\n    else toString\n\nExample:\n\n  scala\u003e \"test\".stripSuffix(\".root\")\n  res0: String \u003d test",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 37
+      },
+      "revId": "bb9ffd3b32bef34d1007f7348da92732de978504",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
