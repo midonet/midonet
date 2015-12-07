@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_a3106602",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HaproxyTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-07T09:15:42Z",
+      "side": 1,
+      "message": "Delete one empty line?",
+      "revId": "fe7ff071982fdc47bc951f017c16cabb04bfe5b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_63d48e20",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HaproxyTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-07T09:15:42Z",
+      "side": 1,
+      "message": "This does\u0027t need an eventually, and the same comment goes for this type of check, below.",
+      "range": {
+        "startLine": 166,
+        "startChar": 12,
+        "endLine": 166,
+        "endChar": 78
+      },
+      "revId": "fe7ff071982fdc47bc951f017c16cabb04bfe5b5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
