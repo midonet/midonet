@@ -15,14 +15,12 @@
  */
 package org.midonet.midolman;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
+import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.cli.*;
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
 
@@ -128,33 +126,10 @@ public class Midolman {
         });
     }
 
-    private void run(String[] args) throws Exception {
+    public void run(MidoNodeConfigurator configurator) throws Exception {
         Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
         setUncaughtExceptionHandler();
         watchedProcess.start(initializationPromise);
-
-        // log git commit info
-        Properties properties = new Properties();
-        properties.load(
-            getClass().getClassLoader().getResourceAsStream("git.properties"));
-        log.info("main start -------------------------");
-        log.info("branch: {}", properties.get("git.branch"));
-        log.info("commit.time: {}", properties.get("git.commit.time"));
-        log.info("commit.id: {}", properties.get("git.commit.id"));
-        log.info("commit.user: {}", properties.get("git.commit.user.name"));
-        log.info("build.time: {}", properties.get("git.build.time"));
-        log.info("build.user: {}", properties.get("git.build.user.name"));
-        log.info("-------------------------------------");
-
-        // log cmdline and JVM info
-        log.info("cmdline args: {}", Arrays.toString(args));
-        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-        List<String> arguments = runtimeMxBean.getInputArguments();
-        log.info("JVM options: ");
-        for(String a: arguments){
-            log.info("  {}", a);
-        }
-        log.info("-------------------------------------");
 
         log.info("Adding shutdownHook");
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -164,20 +139,6 @@ public class Midolman {
             }
         });
 
-        Options options = new Options();
-        options.addOption("c", "configFile", true, "config file path");
-
-        CommandLineParser parser = new GnuParser();
-        CommandLine cl = parser.parse(options, args);
-
-        String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
-        if (!java.nio.file.Files.isReadable(Paths.get(configFilePath))) {
-            // The config file is missing. Exits Midolman.
-            Midolman.exitsMissingConfigFile(configFilePath);
-        }
-
-        MidoNodeConfigurator configurator =
-            MidoNodeConfigurator.apply(configFilePath);
         if (configurator.deployBundledConfig())
             log.info("Deployed new configuration schema into NSDB");
 
@@ -224,8 +185,6 @@ public class Midolman {
 
         initializationPromise.success(true);
         log.info("main finish");
-
-        injector.getInstance(MidolmanService.class).awaitTerminated();
     }
 
     private void doServicesCleanup() {
@@ -282,6 +241,42 @@ public class Midolman {
         }
     }
 
+    private void printGitInfo() throws IOException {
+        // log git commit info
+        Properties properties = new Properties();
+        properties.load(
+                getClass().getClassLoader().getResourceAsStream("git.properties"));
+        log.info("main start -------------------------");
+        log.info("branch: {}", properties.get("git.branch"));
+        log.info("commit.time: {}", properties.get("git.commit.time"));
+        log.info("commit.id: {}", properties.get("git.commit.id"));
+        log.info("commit.user: {}", properties.get("git.commit.user.name"));
+        log.info("build.time: {}", properties.get("git.build.time"));
+        log.info("build.user: {}", properties.get("git.build.user.name"));
+        log.info("-------------------------------------");
+    }
+
+    private static MidoNodeConfigurator getConfiguratorFromArgs(String[] args)
+        throws ParseException {
+        Options options = new Options();
+        options.addOption("c", "configFile", true, "config file path");
+
+        CommandLineParser parser = new GnuParser();
+        CommandLine cl = parser.parse(options, args);
+
+        String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
+        if (!java.nio.file.Files.isReadable(Paths.get(configFilePath))) {
+            // The config file is missing. Exits Midolman.
+            Midolman.exitsMissingConfigFile(configFilePath);
+        }
+
+        return MidoNodeConfigurator.apply(configFilePath);
+    }
+
+    private void awaitTermination() {
+        injector.getInstance(MidolmanService.class).awaitTerminated();
+    }
+
     /**
      * Expose Midolman instance and Guice injector
      * Using the following methods makes it easier for host management
@@ -303,7 +298,10 @@ public class Midolman {
     public static void main(String[] args) {
         try {
             Midolman midolman = getInstance();
-            midolman.run(args);
+            midolman.printGitInfo();
+            MidoNodeConfigurator configurator = getConfiguratorFromArgs(args);
+            midolman.run(configurator);
+            midolman.awaitTermination();
         } catch (Throwable e) {
             log.error("main caught", e);
             dumpStacks();

@@ -58,6 +58,9 @@ object MidonetBackend {
 
     final val Ip4MacTable = "ip4_mac_table"
 
+    // Useful for testing.
+    def pretendToBeCluster() = { isCluster = true}
+
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
     final def setupBindings(store: Storage, stateStore: StateStorage,

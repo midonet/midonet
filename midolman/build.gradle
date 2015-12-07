@@ -297,6 +297,13 @@ task testShell(type: Exec) {
 
 integration.dependsOn testShell
 
+task runSubsystemTest(type:Exec, dependsOn: installApp) {
+    commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
+    commandLine += '-cp'
+    commandLine += sourceSets.main.runtimeClasspath.collect{ it.toString() }.join(':')
+    commandLine += 'org.midonet.TestMidolman'
+}
+
 // run cassandra tests in series. Otherwise they interfere with each other
 task testCassandra(type:Test, dependsOn: testClasses) {
     include 'org/midonet/midolman/logging/FlowTracingAppenderTest.class',
