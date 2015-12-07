@@ -337,7 +337,7 @@ class ObservablePathChildrenCacheTest extends Suite
 
         // This thread will add elements until reaching nTotal children
         val step = 5
-        val latch = new CountDownLatch(10)
+        val latch = new CountDownLatch(nSubs/2)
 
         // This thread will create additional paths up to nTotal
         new Thread(makeRunnable {
