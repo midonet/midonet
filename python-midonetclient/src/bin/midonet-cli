@@ -2257,6 +2257,10 @@ class Host(ObjectType):
                                  element_type = PortBinding,
                                  list_method = 'get_ports',
                                  factory_method = 'add_host_interface_port'))
+        self.put_attr(SingleAttr(name = 'flooding-proxy-weight',
+                                 value_type = StringType(),
+                                 getter = 'get_flooding_proxy_weight',
+                                 setter = 'flooding_proxy_weight'))
 
 class Interface(ObjectType):
     def type_name(self):
