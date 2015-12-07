@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_60648422",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IPSecSiteConnection.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:04:15Z",
+      "side": 1,
+      "message": "nit: style wants newline",
+      "revId": "b5f8b51daeba907a04df0756c5be3c76debb44c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_00acb034",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IPSecSiteConnection.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:04:15Z",
+      "side": 1,
+      "message": "do we want to log something here for traceability?",
+      "range": {
+        "startLine": 169,
+        "startChar": 17,
+        "endLine": 169,
+        "endChar": 41
+      },
+      "revId": "b5f8b51daeba907a04df0756c5be3c76debb44c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
