@@ -16,10 +16,13 @@
 
 package org.midonet.cluster.services
 
+import java.util.concurrent.{Executors, ExecutorService, Executor}
+
 import scala.reflect.ClassTag
 
 import com.google.protobuf.Message
 import org.slf4j.{LoggerFactory, Logger}
+import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer}
 import org.midonet.util.functors._
@@ -36,12 +39,13 @@ import org.midonet.cluster.data.storage.Storage
 class DeviceWatcher[T <: Message](store: Storage,
                                   updateHandler: T => Unit,
                                   deleteHandler: Object => Unit,
-                                  filterHandler: T => java.lang.Boolean = {t:T => java.lang.Boolean.TRUE})
+                                  filterHandler: T => java.lang.Boolean = {t:T => java.lang.Boolean.TRUE},
+                                  executor: ExecutorService = Executors.newSingleThreadExecutor())
                                  (implicit private val ct: ClassTag[T]) {
 
     private val log = LoggerFactory.getLogger("org.midonet.cluster")
     private val deviceSubscriptions = new CompositeSubscription()
-    private val deviceType = ct.runtimeClass.getSimpleName
+    private val deviceTypeName = ct.runtimeClass.getSimpleName
 
     private class DeviceObserver() extends Observer[T] {
 
@@ -51,7 +55,7 @@ class DeviceWatcher[T <: Message](store: Storage,
             deleteHandler(id)
         }
         override def onError(t: Throwable): Unit = {
-            log.warn(s"Error in $deviceType $id update stream: ", t)
+            log.warn(s"Error in $deviceTypeName $id update stream: ", t)
         }
         override def onNext(t: T): Unit = {
             if (id == null) {
@@ -65,10 +69,10 @@ class DeviceWatcher[T <: Message](store: Storage,
 
     private val deviceTypeObserver = new Observer[Observable[T]] {
         override def onCompleted(): Unit = {
-            log.debug(s"Completed stream of $deviceType updates")
+            log.debug(s"Completed stream of $deviceTypeName updates")
         }
         override def onError(t: Throwable): Unit = {
-            log.warn(s"$deviceType stream emits an error: ", t)
+            log.warn(s"$deviceTypeName stream emits an error: ", t)
         }
         override def onNext(o: Observable[T]): Unit = {
             deviceSubscriptions.add(o

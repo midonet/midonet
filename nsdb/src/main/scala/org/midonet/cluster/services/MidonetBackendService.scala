@@ -118,8 +118,8 @@ object MidonetBackend {
         store.declareBinding(classOf[ServiceContainer], "service_group_id", CLEAR,
                              classOf[ServiceContainerGroup], "service_container_ids", CASCADE)
 
-        store.declareBinding(classOf[Port], "service_container_id", CASCADE,
-                             classOf[ServiceContainer], "port_id", CLEAR)
+        store.declareBinding(classOf[ServiceContainer], "service_group_id", CLEAR,
+                             classOf[ServiceContainerGroup], "service_container_ids", CASCADE)
 
         store.declareBinding(classOf[ServiceContainerGroup], "host_group_id", CLEAR,
                              classOf[HostGroup], "service_group_ids", CLEAR)
