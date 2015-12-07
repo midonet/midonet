@@ -807,6 +807,36 @@ trait TopologyBuilder {
         builder.build()
     }
 
+    def createServiceContainer(id: UUID = UUID.randomUUID(),
+                               serviceType: Option[String] = None,
+                               groupId: Option[UUID] = None,
+                               portId: Option[UUID] = None,
+                               configurationId: Option[UUID] = None)
+    : ServiceContainer = {
+        val builder = ServiceContainer.newBuilder().setId(id.asProto)
+        if (serviceType.isDefined)
+            builder.setServiceType(serviceType.get)
+        if (groupId.isDefined)
+            builder.setServiceGroupId(groupId.get.asProto)
+        if (portId.isDefined)
+            builder.setPortId(portId.get.asProto)
+        if (configurationId.isDefined)
+            builder.setConfigurationId(configurationId.get.asProto)
+        builder.build()
+    }
+
+    def createServiceContainerGroup(id: UUID = UUID.randomUUID(),
+                                    hostGroupId: Option[UUID] = None,
+                                    portGroupId: Option[UUID] = None)
+    : ServiceContainerGroup = {
+        val builder = ServiceContainerGroup.newBuilder().setId(id.asProto)
+        if (hostGroupId.isDefined)
+            builder.setHostGroupId(hostGroupId.get.asProto)
+        if (portGroupId.isDefined)
+            builder.setPortGroupId(portGroupId.get.asProto)
+        builder.build()
+    }
+
     def createVtep(id: UUID = UUID.randomUUID(),
                    mgmtIp: IPv4Addr = IPv4Addr.random,
                    mgmtPort: Int = random.nextInt(),

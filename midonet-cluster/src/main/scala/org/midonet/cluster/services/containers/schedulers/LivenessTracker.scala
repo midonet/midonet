@@ -9,7 +9,7 @@ import scala.reflect.ClassTag
 import com.typesafe.scalalogging.Logger
 
 import rx.subjects.PublishSubject
-import rx.{Observable, Observer, Scheduler}
+import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.storage.{StateKey, StateStorage}
 
@@ -28,7 +28,7 @@ case class Dead(id: UUID) extends Liveness
   *   tracker.watch(ids)
   */
 class LivenessTracker[D](stateStore: StateStorage, key: String,
-                         scheduler: Scheduler, log: Logger)
+                         scheduler: rx.Scheduler, log: Logger)
                         (implicit ct: ClassTag[D], ec: ExecutionContext) {
 
     private val objectClass = ct.runtimeClass
