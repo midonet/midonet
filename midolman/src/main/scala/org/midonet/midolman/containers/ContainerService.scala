@@ -31,9 +31,9 @@ import com.google.common.util.concurrent.AbstractService
 import rx.schedulers.Schedulers
 import rx.{Observable, Subscriber, Subscription}
 
-import org.midonet.cluster.models.State.ContainerStatus
+import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus}
 import org.midonet.cluster.models.State.ContainerStatus.Code
-import org.midonet.cluster.models.Topology.{Host, ServiceContainer, ServiceContainerGroup}
+import org.midonet.cluster.models.Topology.{Host, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend.{ContainerKey, StatusKey}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
@@ -160,8 +160,11 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                 .subscribe(containerSubscriber)
 
             // Report the status of the containers service at this host.
+            val serviceStatus = ContainerServiceStatus.newBuilder()
+                                                      .setWeight(1)
+                                                      .build()
             vt.stateStore.addValue(classOf[Host], hostId, ContainerKey,
-                                   hostId.toString)
+                                   serviceStatus.toString)
                          .await(StorageTimeout)
 
             notifyStarted()
