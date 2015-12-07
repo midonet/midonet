@@ -22,6 +22,30 @@
       "revId": "3ff241a15da2020759ff30c607234dacb8d05e5a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c0163855",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/VPNService.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-07T08:27:47Z",
+      "side": 1,
+      "message": "Done, we probably want to ignore the list of ids if we implement the IPSecConnection API (replace the ids with the URI getter) but for now not needed.",
+      "parentUuid": "5ac4a560_c048f889",
+      "range": {
+        "startLine": 10,
+        "startChar": 37,
+        "endLine": 10,
+        "endChar": 47
+      },
+      "revId": "3ff241a15da2020759ff30c607234dacb8d05e5a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
