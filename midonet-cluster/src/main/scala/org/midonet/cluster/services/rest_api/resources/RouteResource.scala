@@ -20,7 +20,6 @@ import java.util.{List => JList, UUID}
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs._
-import javax.ws.rs.core.Response
 
 import scala.collection.JavaConverters._
 
