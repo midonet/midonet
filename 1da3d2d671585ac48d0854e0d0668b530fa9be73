@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_03083a2c",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/VPNService.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-07T11:17:45Z",
+      "side": 1,
+      "message": "Is this really needed? This will be a list of protos.",
+      "range": {
+        "startLine": 46,
+        "startChar": 40,
+        "endLine": 46,
+        "endChar": 83
+      },
+      "revId": "1da3d2d671585ac48d0854e0d0668b530fa9be73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
