@@ -20,6 +20,10 @@ package org.midonet.cluster.models;
 option java_package = "org.midonet.cluster.models";
 option java_outer_classname = "State";
 
+message ContainerServiceStatus {
+    optional int32 weight = 1;
+}
+
 message ContainerStatus {
     enum Code {
         STARTING = 1;
