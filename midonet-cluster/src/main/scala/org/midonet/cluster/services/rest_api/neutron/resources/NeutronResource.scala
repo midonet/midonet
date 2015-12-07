@@ -77,10 +77,6 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
         val neutron: Neutron = new Neutron
         val baseUri: URI = uriInfo.getBaseUri
-        val vpnUri: URI =
-            UriBuilder.fromUri(baseUri).path("vpnservices").build()
-        val ipsecSiteConnUri: URI =
-            UriBuilder.fromUri(baseUri).path("ipsec_site_conns").build()
         neutron.uri = getNeutron(baseUri)
         neutron.networks = getNetworks(baseUri)
         neutron.networkTemplate = getNetworkTemplate(baseUri)
@@ -104,9 +100,13 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.loadBalancer = LBResource.buildLoadBalancer(baseUri)
         neutron.firewalls = getFirewalls(baseUri)
         neutron.firewallTemplate = getFirewallTemplate(baseUri)
-        neutron.vpnServices = vpnUri
+        neutron.vpnServices = UriBuilder.fromUri(getNeutron(baseUri))
+                                        .path("vpnservices")
+                                        .build()
         neutron.vpnServicesTemplate = neutron.vpnServices.toString + "/{id}"
-        neutron.ipsecSiteConns = ipsecSiteConnUri
+        neutron.ipsecSiteConns = UriBuilder.fromUri(getNeutron(baseUri))
+                                           .path("ipsec_site_conns")
+                                           .build()
         neutron.ipsecSiteConnsTemplate = neutron.ipsecSiteConns.toString + "/{id}"
         neutron
     }
