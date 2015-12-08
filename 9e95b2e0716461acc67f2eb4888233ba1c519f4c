@@ -256,6 +256,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_d248ca89",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-08T09:52:03Z",
+      "side": 1,
+      "message": "OK, I didn\u0027t know that lazy vals are thread-safe. You can probably remove the curly braces though.",
+      "parentUuid": "5ac4a560_26ff0d69",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 5
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_bb589d57",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
         "patchSetId": 13
@@ -291,6 +315,30 @@
       "side": 1,
       "message": "The JGroupsClients is optional now, the constructor without the JGroupsClient (line 51) uses the default JGroupsClient",
       "parentUuid": "5ac4a560_bb589d57",
+      "range": {
+        "startLine": 48,
+        "startChar": 23,
+        "endLine": 48,
+        "endChar": 44
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_125a4250",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBus.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-08T09:52:03Z",
+      "side": 1,
+      "message": "Got it.",
+      "parentUuid": "5ac4a560_4604097b",
       "range": {
         "startLine": 48,
         "startChar": 23,
@@ -361,6 +409,30 @@
       "side": 1,
       "message": "This is the serializer strategy for a String-\u003eString map only in that case it just returns the triple unmodified, without a serializer you cannot make a bus.",
       "parentUuid": "5ac4a560_3bb72d88",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 5
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5254ba20",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsClient.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-08T09:52:03Z",
+      "side": 1,
+      "message": "In our case, topics, keys, and payloads are strings in the client interface. Why use serializers/deserializers then? Maybe I\u0027m overlooking something but nothing forces us to have this in the MergedMapBus interface.",
+      "parentUuid": "5ac4a560_26362d53",
       "range": {
         "startLine": 48,
         "startChar": 0,
