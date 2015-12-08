@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_972ac47c",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IPSecSiteConnection.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-08T01:36:33Z",
+      "side": 1,
+      "message": "This shouldn\u0027t get thrown.",
+      "revId": "7c63e689d0c03f91be196bf40860a454e2fdd0dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
