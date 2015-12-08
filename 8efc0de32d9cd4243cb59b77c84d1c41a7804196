@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_92781291",
+        "filename": "python-midonetclient/src/midonetclient/neutron/vpn.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-12-08T06:18:29Z",
+      "side": 1,
+      "message": "why not to provide GET?\njust because it isn\u0027t used by neutron plugin?",
+      "revId": "8efc0de32d9cd4243cb59b77c84d1c41a7804196",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
