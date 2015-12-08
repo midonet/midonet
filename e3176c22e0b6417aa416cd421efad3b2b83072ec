@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_033bda38",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-08T09:37:30Z",
+      "side": 1,
+      "message": "There is a mix of logging that says: creating/stopping/...ing and create/stop/... For writes to storage, creation of namespaces, starting/stopping the ha proxy, what about logging a line after the operation has been carried out? This way, if we see the line in the log we know no exceptions were raised.",
+      "range": {
+        "startLine": 101,
+        "startChar": 6,
+        "endLine": 101,
+        "endChar": 26
+      },
+      "revId": "e3176c22e0b6417aa416cd421efad3b2b83072ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_832feaf5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-08T09:37:30Z",
+      "side": 1,
+      "message": "start?",
+      "range": {
+        "startLine": 163,
+        "startChar": 37,
+        "endLine": 163,
+        "endChar": 43
+      },
+      "revId": "e3176c22e0b6417aa416cd421efad3b2b83072ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a336a650",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-08T09:37:30Z",
+      "side": 1,
+      "message": "What about logging this after the store.multi?",
+      "range": {
+        "startLine": 524,
+        "startChar": 12,
+        "endLine": 524,
+        "endChar": 68
+      },
+      "revId": "e3176c22e0b6417aa416cd421efad3b2b83072ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c339e242",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HaproxyHealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-08T09:37:30Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 534,
+        "startChar": 8,
+        "endLine": 534,
+        "endChar": 70
+      },
+      "revId": "e3176c22e0b6417aa416cd421efad3b2b83072ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_234a96c5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-08T09:37:30Z",
+      "side": 1,
+      "message": "to status $status?",
+      "range": {
+        "startLine": 255,
+        "startChar": 77,
+        "endLine": 255,
+        "endChar": 78
+      },
+      "revId": "e3176c22e0b6417aa416cd421efad3b2b83072ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
