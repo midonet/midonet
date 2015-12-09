@@ -34,6 +34,24 @@
       "revId": "449395d63db55fd3aa5ac5c608746afbc57e86fd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ab3aefca",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-09T16:50:15Z",
+      "side": 1,
+      "message": "As discussed f2f, if containers cannot be updated and you think processing container notifications is harmless, we can leave it it since it will have no effect, and the code is already tested. This is also helpful if later we decide we can update the containers.",
+      "parentUuid": "5ac4a560_06669151",
+      "revId": "449395d63db55fd3aa5ac5c608746afbc57e86fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
