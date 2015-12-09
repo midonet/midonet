@@ -159,9 +159,11 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
                             ContainerKey, value = null).await()
     }
 
-    protected def createPort(hostId: Option[UUID] = None): Port = {
+    protected def createPort(hostId: Option[UUID] = None,
+                             interfaceName: Option[String] = None): Port = {
         val builder = Port.newBuilder().setId(randomUuidProto)
         if (hostId.nonEmpty) builder.setHostId(hostId.get.asProto)
+        if (interfaceName.nonEmpty) builder.setInterfaceName(interfaceName.get)
         val port = builder.build()
         store create port
         port
@@ -203,4 +205,13 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
                             containerId, StatusKey, null).await()
     }
 
+    protected def activatePort(port: Port): Unit = {
+        store.addValueAs(port.getHostId.asJava.toString, classOf[Port],
+                         port.getId, ActiveKey, ActiveKey).await()
+    }
+
+    protected def deactivatePort(port: Port): Unit = {
+        store.removeValueAs(port.getHostId.asJava.toString, classOf[Port],
+                            port.getId, ActiveKey, null).await()
+    }
 }
