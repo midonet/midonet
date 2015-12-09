@@ -16,12 +16,11 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.services.c3po.midonet.Update
-import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.services.c3po.C3POStorageManager.Update
 import org.midonet.util.concurrent.toFutureOps
 
 /**
@@ -36,7 +35,7 @@ class PortBindingTranslator(protected val storage: ReadOnlyStorage)
      *
      * Throws an exception if the port is already bound.
      */
-    override protected def translateCreate(binding: PortBinding): MidoOpList = {
+    override protected def translateCreate(binding: PortBinding): OperationList = {
         val port = storage.get(classOf[Port], binding.getPortId).await()
         bindPortOps(port, binding.getHostId, binding.getInterfaceName)
     }
@@ -44,7 +43,7 @@ class PortBindingTranslator(protected val storage: ReadOnlyStorage)
     /**
      * Update is not allowed for port binding.
      */
-    override protected def translateUpdate(binding: PortBinding): MidoOpList =
+    override protected def translateUpdate(binding: PortBinding): OperationList =
         throw new UnsupportedOperationException(
             "Port binding UPDATE is not allowed")
 
@@ -53,7 +52,7 @@ class PortBindingTranslator(protected val storage: ReadOnlyStorage)
      * UPDATE operation on the binding's port. The updates to the host is
      * handled by the Zoom bindings.
      */
-    override protected def translateDelete(id: UUID): MidoOpList = {
+    override protected def translateDelete(id: UUID): OperationList = {
         val binding = storage.get(classOf[PortBinding], id).await()
         val port = storage.get(classOf[Port], binding.getPortId).await()
         val updatedPort = port.toBuilder.clearHostId().clearInterfaceName()

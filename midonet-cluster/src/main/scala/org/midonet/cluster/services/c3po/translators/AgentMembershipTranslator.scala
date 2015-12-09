@@ -18,12 +18,10 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.services.c3po.midonet.Update
-import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.AgentMembership
-import org.midonet.cluster.models.Topology.TunnelZone
+import org.midonet.cluster.services.c3po.C3POStorageManager.Update
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.util.concurrent.toFutureOps
 
@@ -39,9 +37,9 @@ class AgentMembershipTranslator(storage: ReadOnlyStorage)
      * TunnelZone in MidoNet.
      */
     override protected def translateCreate(membership: AgentMembership)
-    : MidoOpList = {
+    : OperationList = {
         val tz = getNeutronDefaultTunnelZone(storage)
-        val tzWithHost = tz.toBuilder()
+        val tzWithHost = tz.toBuilder
         tzWithHost.addHostsBuilder()
                   .setHostId(membership.getId)   // Membership ID == Host ID.
                   .setIp(membership.getIpAddress)
@@ -65,8 +63,8 @@ class AgentMembershipTranslator(storage: ReadOnlyStorage)
      * corresponding HostToIp mapping with the Host ID and deletes it,
      */
     override protected def translateDelete(id: UUID)
-    : MidoOpList = {
-        val midoOps = new MidoOpListBuffer()
+    : OperationList = {
+        val midoOps = new OperationListBuffer()
         val tz = getNeutronDefaultTunnelZone(storage)
         val membership = storage.get(classOf[AgentMembership], id).await()
         val hostId = membership.getId  // Membership ID is equal to Host ID.
@@ -78,8 +76,8 @@ class AgentMembershipTranslator(storage: ReadOnlyStorage)
                     s"No host mapping found for host ${fromProto(hostId)}")
 
         val hostIdToDel = tz.getHostIdsList.indexOf(hostId)
-        midoOps += Update(tz.toBuilder().removeHosts(hostToDelete)
-                                        .removeHostIds(hostIdToDel).build())
+        midoOps += Update(tz.toBuilder.removeHosts(hostToDelete)
+                                      .removeHostIds(hostIdToDel).build())
 
         midoOps.toList
     }

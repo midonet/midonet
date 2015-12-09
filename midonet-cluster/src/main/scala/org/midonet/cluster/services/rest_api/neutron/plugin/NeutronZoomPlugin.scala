@@ -37,13 +37,14 @@ import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsExceptio
 import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.data.{ZoomClass, ZoomConvert, ZoomObject}
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.{ZookeeperLockFactory, restApiNeutronLog}
 import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.neutron.models._
+import org.midonet.cluster.services.c3po.C3POStorageManager
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.services.c3po.translators.TranslationException
-import org.midonet.cluster.services.c3po.{C3POStorageManager, neutron}
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.{ZookeeperLockFactory, restApiNeutronLog}
 import org.midonet.util.concurrent.toFutureOps
 
 // All the dependants should be reimplemented as TranslatedResource
@@ -86,7 +87,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         }
     }
 
-    private def toPersistenceOps(nop: neutron.NeutronOp[_ <: Message])
+    private def toPersistenceOps(nop: Operation[_ <: Message])
     : Seq[PersistenceOp] = {
         try c3po.toPersistenceOps(nop) catch {
             case te: TranslationException =>
@@ -120,7 +121,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     def create[T >: Null <: ZoomObject](dto: T)(implicit ct: ClassTag[T]): T = {
         log.debug(s"Create: $dto")
         val protoClass = protoClassOf(dto)
-        val neutronOp = neutron.Create(toProto(dto, protoClass))
+        val neutronOp = Create(toProto(dto, protoClass))
         val id = idOf(neutronOp.model)
         tryWrite {
             store.multi(toPersistenceOps(neutronOp))
@@ -139,7 +140,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
         val dtoClass = dtos.head.getClass
         val protoClass = protoClassOf(dtoClass)
-        val creates = dtos.map { d => neutron.Create(toProto(d, protoClass)) }
+        val creates = dtos.map { d => Create(toProto(d, protoClass)) }
         tryWrite {
             val ops: Seq[PersistenceOp] = creates.flatMap(toPersistenceOps)
             store.multi(ops)
@@ -163,7 +164,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     def update[T >: Null <: ZoomObject](dto: T)(implicit ct: ClassTag[T]): T = {
         log.debug("Update: " + dto)
         val protoClass = protoClassOf(dto)
-        val neutronOp = neutron.Update(toProto(dto, protoClass))
+        val neutronOp = Update(toProto(dto, protoClass))
         val id = idOf(neutronOp.model)
         tryWrite{
             store.multi(toPersistenceOps(neutronOp))
@@ -175,7 +176,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     def delete[T >: Null <: ZoomObject](id: UUID, dtoClass: Class[T]): Unit = {
         log.debug(s"Delete ${dtoClass.getSimpleName}: $id")
         val protoClass = protoClassOf(dtoClass)
-        val neutronOp = neutron.Delete(protoClass, UUIDUtil.toProto(id))
+        val neutronOp = Delete(protoClass, UUIDUtil.toProto(id))
         tryWrite{
             store.multi(toPersistenceOps(neutronOp))
         }

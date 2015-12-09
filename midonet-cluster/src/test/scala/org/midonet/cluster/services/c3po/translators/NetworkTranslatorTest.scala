@@ -20,7 +20,9 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.services.c3po.{midonet, neutron}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.midonet
+import org.midonet.cluster.services.c3po.midonet.CreateNode
 import org.midonet.cluster.util.UUIDUtil
 
 /**
@@ -52,17 +54,17 @@ class NetworkTranslatorTest extends TranslatorTestBase {
 
     "Network CREATE" should "produce Mido Network CREATE" in {
         val id = UUIDUtil.fromProto(sampleNetwork.getId)
-        val midoOps = translator.translate(neutron.Create(sampleNeutronNetwork))
+        val midoOps = translator.translate(Create(sampleNeutronNetwork))
         val midoNetwork = Network.newBuilder().setId(sampleNetwork.getId)
                                               .setTenantId(tenantId)
                                               .setName(networkName)
                                               .setAdminStateUp(adminStateUp)
                                               .build()
         midoOps should contain only(
-            midonet.Create(midoNetwork),
-            midonet.CreateNode(pathBldr.getBridgeIP4MacMapPath(id), null),
-            midonet.CreateNode(pathBldr.getBridgeMacPortsPath(id), null),
-            midonet.CreateNode(pathBldr.getBridgeVlansPath(id), null))
+            Create(midoNetwork),
+            CreateNode(pathBldr.getBridgeIP4MacMapPath(id), null),
+            CreateNode(pathBldr.getBridgeMacPortsPath(id), null),
+            CreateNode(pathBldr.getBridgeVlansPath(id), null))
     }
 
     // TODO Test that NetworkTranslator ensures the provider router if
@@ -80,14 +82,14 @@ class NetworkTranslatorTest extends TranslatorTestBase {
         val newAdminStateUp = !adminStateUp
         bind(sampleNetwork.getId, sampleNetwork)
         val midoOps = translator.translate(
-            neutron.Update(sampleNeutronNetwork.toBuilder
+            Update(sampleNeutronNetwork.toBuilder
                                .setName(newName)
                                .setAdminStateUp(newAdminStateUp)
                                .setTenantId(newTenantId).build)
         )
 
         // Test that name is updated but not tenant ID
-        midoOps should contain only midonet.Update(Network.newBuilder()
+        midoOps should contain only Update(Network.newBuilder()
                                                 .setId(sampleNetwork.getId)
                                                 .setTenantId(tenantId)
                                                 .setName(newName)
@@ -101,11 +103,11 @@ class NetworkTranslatorTest extends TranslatorTestBase {
         val id = genId()
         bind(id, NeutronNetwork.getDefaultInstance)
         val midoOps =
-            translator.translate(neutron.Delete(classOf[NeutronNetwork], id))
+            translator.translate(Delete(classOf[NeutronNetwork], id))
 
         val juuid = UUIDUtil.fromProto(id)
         midoOps should contain only(
-            midonet.Delete(classOf[Network], id),
+            Delete(classOf[Network], id),
             midonet.DeleteNode(pathBldr.getBridgeIP4MacMapPath(juuid)),
             midonet.DeleteNode(pathBldr.getBridgeMacPortsPath(juuid)),
             midonet.DeleteNode(pathBldr.getBridgeVlansPath(juuid)))

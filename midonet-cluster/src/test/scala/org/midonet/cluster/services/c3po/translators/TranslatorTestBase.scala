@@ -23,8 +23,8 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
-import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
-import org.midonet.cluster.services.c3po.{OpType, midonet}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
+import org.midonet.cluster.services.c3po.OpType
 import org.midonet.midolman.state.PathBuilder
 
 /**
@@ -87,13 +87,13 @@ abstract class TranslatorTestBase  extends FlatSpec
     /* Finds an operation on Chain with the specified chain ID, and returns a
      * first one found.
      */
-    protected def findChainOp(ops: List[Operation],
+    protected def findChainOp(ops: OperationList,
                               op: OpType.OpType,
                               chainId: UUID) = {
         ops.collectFirst {
-            case midonet.Create(c: Chain)
+            case Create(c: Chain)
                 if c.getId == chainId && op == OpType.Create => c
-            case midonet.Update(c: Chain, _)
+            case Update(c: Chain, _)
                 if c.getId == chainId && op == OpType.Update => c
         }.orNull
     }

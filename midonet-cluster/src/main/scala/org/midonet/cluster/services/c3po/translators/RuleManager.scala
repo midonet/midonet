@@ -21,7 +21,7 @@ import org.midonet.cluster.models.Commons.{Condition, IPAddress, UUID}
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action._
 import org.midonet.cluster.models.Topology.Rule.{JumpRuleData, NatRuleData, NatTarget}
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, MidoOp, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation, Create, Delete, Update}
 import org.midonet.cluster.util.UUIDUtil
 
 /**
@@ -99,7 +99,7 @@ trait RuleManager {
         NatRuleData.newBuilder.setDnat(dnat).setReverse(true).build()
     }
 
-    protected def toRuleIdList(ops: Seq[MidoOp[Rule]]) = ops.map {
+    protected def toRuleIdList(ops: Seq[Operation[Rule]]) = ops.map {
         case Create(r: Rule) => r.getId
         case Update(r: Rule, _) => r.getId
         case Delete(_, id) => id

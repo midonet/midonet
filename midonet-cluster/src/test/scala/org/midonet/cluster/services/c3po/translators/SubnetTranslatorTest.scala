@@ -19,10 +19,10 @@ package org.midonet.cluster.services.c3po.translators
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronSubnet
 import org.midonet.cluster.models.Topology.Dhcp
-import org.midonet.cluster.services.c3po.{midonet, neutron}
-import org.midonet.cluster.models.ModelsUtil._
+import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.util.IPSubnetUtil.richProtoIPSubnet
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
@@ -61,8 +61,8 @@ class SubnetTranslatorTest extends TranslatorTestBase {
 
     "Basic subnet CREATE" should "produce an equivalent Dhcp Object" in {
         bind(networkId, nTenantNetwork)
-        val midoOps = translator.translate(neutron.Create(nSubnet))
-        midoOps should contain only midonet.Create(mDhcp)
+        val midoOps = translator.translate(Create(nSubnet))
+        midoOps should contain only Create(mDhcp)
     }
 
     private val gatewayIp = IPAddressUtil.toProto("10.0.0.1")
@@ -83,8 +83,8 @@ class SubnetTranslatorTest extends TranslatorTestBase {
     "CREATE subnet with a gateway IP" should "set the default gateway and " +
     "server address accordingly" in {
         bind(networkId, nTenantNetwork)
-        val midoOps = translator.translate(neutron.Create(nSubnetWithGatewayIp))
-        midoOps should contain only midonet.Create(mDhcpWithDefaultGateway)
+        val midoOps = translator.translate(Create(nSubnetWithGatewayIp))
+        midoOps should contain only Create(mDhcpWithDefaultGateway)
     }
 
     private val dnsServerIp1 = IPAddressUtil.toProto("10.0.0.2")
@@ -105,8 +105,8 @@ class SubnetTranslatorTest extends TranslatorTestBase {
     "CREATE subnet with DNS name server IPs" should "set the DNS server " +
     "addresses accordingly" in {
         bind(networkId, nTenantNetwork)
-        val midoOps = translator.translate(neutron.Create(nSubnetWithDNS))
-        midoOps should contain only midonet.Create(mDhcpWithDNS)
+        val midoOps = translator.translate(Create(nSubnetWithDNS))
+        midoOps should contain only Create(mDhcpWithDNS)
     }
 
     private val dest1Subnet = IPSubnetUtil.toProto("10.0.0.0/24")
@@ -136,25 +136,25 @@ class SubnetTranslatorTest extends TranslatorTestBase {
 
     "CREATE subnet with host routes" should "set Opt121 routes" in {
         bind(networkId, nTenantNetwork)
-        val midoOps = translator.translate(neutron.Create(nSubnetWithRoutes))
-        midoOps should contain only midonet.Create(mDhcpWithOpt121Routs)
+        val midoOps = translator.translate(Create(nSubnetWithRoutes))
+        midoOps should contain only Create(mDhcpWithOpt121Routs)
     }
 
     "CREATE subnet on uplink network" should "do nothing" in {
         bind(networkId, nUplinkNetwork)
-        val midoOps = translator.translate(neutron.Create(nSubnetWithRoutes))
+        val midoOps = translator.translate(Create(nSubnetWithRoutes))
         midoOps shouldBe empty
     }
 
     "UPDATE subnet on uplink network" should "do nothing" in {
         bind(networkId, nUplinkNetwork)
-        val midoOps = translator.translate(neutron.Update(nSubnetWithRoutes))
+        val midoOps = translator.translate(Update(nSubnetWithRoutes))
         midoOps shouldBe empty
     }
 
     "DELETE subnet" should "delete the DHCP" in {
         val midoOps = translator.translate(
-            neutron.Delete(classOf[NeutronSubnet], subnetId))
-        midoOps should contain only midonet.Delete(classOf[Dhcp], subnetId)
+            Delete(classOf[NeutronSubnet], subnetId))
+        midoOps should contain only Delete(classOf[Dhcp], subnetId)
     }
 }

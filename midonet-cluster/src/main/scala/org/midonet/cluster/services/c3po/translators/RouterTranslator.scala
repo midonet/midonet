@@ -24,7 +24,8 @@ import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPVersion, UUID
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Update, Create, Delete}
+import org.midonet.cluster.services.c3po.midonet.CreateNode
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.midolman.state.PathBuilder
@@ -39,7 +40,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     import RouterTranslator._
     import org.midonet.cluster.services.c3po.translators.RouteManager._
 
-    override protected def translateCreate(nr: NeutronRouter): MidoOpList = {
+    override protected def translateCreate(nr: NeutronRouter): OperationList = {
         val r = translate(nr)
         val inChain = newChain(r.getInboundFilterId,
                                preRouteChainName(nr.getId))
@@ -60,7 +61,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
 
         val gwPortOps = gatewayPortCreateOps(nr, r)
 
-        val ops = new MidoOpListBuffer
+        val ops = new OperationListBuffer
         ops += Create(inChain)
         ops += Create(outChain)
         ops += Create(r)
@@ -69,14 +70,14 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
-    override protected def translateDelete(id: UUID): MidoOpList = {
+    override protected def translateDelete(id: UUID): OperationList = {
         List(Delete(classOf[Chain], inChainId(id)),
              Delete(classOf[Chain], outChainId(id)),
              Delete(classOf[PortGroup], PortManager.portGroupId(id)),
              Delete(classOf[Router], id))
     }
 
-    override protected def translateUpdate(nr: NeutronRouter): MidoOpList = {
+    override protected def translateUpdate(nr: NeutronRouter): OperationList = {
         val r = storage.get(classOf[Router], nr.getId).await().toBuilder
         r.setAdminStateUp(nr.getAdminStateUp)
         r.setName(nr.getName)
@@ -99,7 +100,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     }
 
     private def gatewayPortCreateOps(nr: NeutronRouter,
-                                     r: RouterOrBuilder): MidoOpList = {
+                                     r: RouterOrBuilder): OperationList = {
         if (!nr.hasGwPortId) return List()
 
         /* There's a bit of a quirk in the translation here. We actually create
@@ -148,7 +149,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
 
         val snatOps = snatRuleCreateOps(nr, r, gwIpAddr, trPortId)
 
-        val ops = new MidoOpListBuffer
+        val ops = new OperationListBuffer
         ops += Create(trPort)
         ops ++= linkOps
         ops += Create(defaultRoute)
@@ -164,9 +165,9 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
-    private def extraRoutesUpdateOps(nr: NeutronRouter): MidoOpList = {
+    private def extraRoutesUpdateOps(nr: NeutronRouter): OperationList = {
 
-        val ops = new MidoOpListBuffer
+        val ops = new OperationListBuffer
 
         val oldRouterFtr = storage.get(classOf[Router], nr.getId)
         val oldNRouter = storage.get(classOf[NeutronRouter], nr.getId).await()
@@ -210,7 +211,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     }
 
     private def gatewayPortUpdateOps(nr: NeutronRouter,
-                                     r: RouterOrBuilder): MidoOpList = {
+                                     r: RouterOrBuilder): OperationList = {
         // It is assumed that the gateway port may not be removed while there
         // still is a VIP associated with it. Therefore we don't need to worry
         // about cleaning up the ARP entry for the VIP associated with this
@@ -240,7 +241,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
 
     private def snatRuleCreateOps(nr: NeutronRouter, r: RouterOrBuilder,
                                   gwIpAddr: IPAddress, tenantGwPortId: UUID)
-    : MidoOpList = {
+    : OperationList = {
         // If one of the rules exists, they should all exist already.
         if (!snatEnabled(nr) ||
             storage.exists(classOf[Rule], outSnatRuleId(nr.getId)).await())
@@ -287,7 +288,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         ).map(bldr => Create(bldr.build()))
     }
 
-    private def snatDeleteRuleOps(routerId: UUID): MidoOpList = {
+    private def snatDeleteRuleOps(routerId: UUID): OperationList = {
         // They should all exist, or none.
         if (!storage.exists(classOf[Rule], outSnatRuleId(routerId)).await())
             return List()

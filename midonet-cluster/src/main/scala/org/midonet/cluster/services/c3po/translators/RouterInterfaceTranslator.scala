@@ -24,14 +24,11 @@ import org.midonet.cluster.models.Commons.{Condition, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, MidoOp, Update}
-import org.midonet.cluster.services.c3po.neutron.NeutronOp
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.SequenceDispenser
-import org.midonet.cluster.util.SequenceDispenser.OverlayTunnelKey
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.util.concurrent.toFutureOps
 
 object RouterInterfaceTranslator {
@@ -56,11 +53,11 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
 
     /* NeutronRouterInterface is a binding information and has no unique ID.
      * We don't persist it in Storage. */
-    override protected def retainNeutronModel(
-            op: NeutronOp[NeutronRouterInterface]) = List()
+    override protected def retainHighLevelModel(
+            op: Operation[NeutronRouterInterface]) = List()
 
     override protected def translateCreate(ri : NeutronRouterInterface)
-    : MidoOpList = {
+    : OperationList = {
         // At this point, we will already have translated the task to create
         // the NeutronPort with id nm.getPortId.
         val nPort = storage.get(classOf[NeutronPort], ri.getPortId).await()
@@ -85,7 +82,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
                                            dstSubnet = ns.getCidr)
         val localRoute = newLocalRoute(rtrPort.getId, rtrPort.getPortAddress)
 
-        val midoOps = new MidoOpListBuffer
+        val midoOps = new OperationListBuffer
 
         // Convert Neutron/network port to router interface port if it isn't
         // already one.
@@ -157,10 +154,10 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
     // Returns operations needed to convert non RIF port to RIF port.
     private def convertPortOps(nPort: NeutronPort,
                                isUplink: Boolean,
-                               routerId: UUID): MidoOpList = {
+                               routerId: UUID): OperationList = {
         assert(nPort.getDeviceOwner != DeviceOwner.ROUTER_INTERFACE)
 
-        val midoOps = new MidoOpListBuffer
+        val midoOps = new OperationListBuffer
         midoOps += Update(nPort.toBuilder
                               .setDeviceOwner(DeviceOwner.ROUTER_INTERFACE)
                               .setDeviceId(fromProto(routerId).toString)
@@ -229,7 +226,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
     private def createMetadataServiceRoute(routerPortId: UUID,
                                            networkId: UUID,
                                            subnetAddr: IPSubnet)
-    : Option[MidoOp[Route]] = {
+    : Option[Operation[Route]] = {
         // If a DHCP port exists, add a Meta Data Service Route. This requires
         // fetching all ports from ZK. We await the futures in parallel to
         // reduce latency, but this may still become a problem when a Network
@@ -244,7 +241,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
             subnetAddr, routerPortId, p.getFixedIps(0).getIpAddress)))
     }
 
-    override protected def translateDelete(id: UUID): MidoOpList = {
+    override protected def translateDelete(id: UUID): OperationList = {
         // The id field of a router interface is the router ID. Since a router
         // can have multiple interfaces, this doesn't uniquely identify it.
         // We need to handle router interface deletion when we delete the peer
@@ -253,7 +250,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
     }
 
     override protected def translateUpdate(nm: NeutronRouterInterface)
-    : MidoOpList = {
+    : OperationList = {
         throw new IllegalArgumentException(
             "NeutronRouterInterface update not supported.")
     }
