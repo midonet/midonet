@@ -36,6 +36,23 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_eb394842",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-09T15:25:27Z",
+      "side": 1,
+      "message": "We actually care about updates, what about adding a container to a container group? this should trigger a reevaluation.",
+      "revId": "74be430ecb6a22ab4aa24ccacf954889938935a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_15cf8780",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
         "patchSetId": 13
