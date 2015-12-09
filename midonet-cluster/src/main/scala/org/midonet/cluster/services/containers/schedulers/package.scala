@@ -48,4 +48,6 @@ package object schedulers {
                             ContainerServiceStatus.getDefaultInstance)
 
     case class PortEvent(hostId: UUID, interfaceName: String, active: Boolean)
+
+    case class HostGroupEvent(hostGroupId: UUID, hosts: HostsEvent)
 }
