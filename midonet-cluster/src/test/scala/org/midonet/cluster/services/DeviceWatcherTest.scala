@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services
 
+import java.util.UUID
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FunSuite, ShouldMatchers}
@@ -23,8 +25,10 @@ import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.data.storage.InMemoryStorage
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.Router
 import org.midonet.cluster.topology.TopologyBuilder
+import org.midonet.cluster.util.UUIDUtil._
 
 @RunWith(classOf[JUnitRunner])
 class DeviceWatcherTest extends FunSuite with BeforeAndAfter with
@@ -40,9 +44,9 @@ class DeviceWatcherTest extends FunSuite with BeforeAndAfter with
 
     test("It receives and ignores issues according to subscriptions status") {
         var counter = 0
-        var deleted: Object = null
+        var deleted: Commons.UUID = null
         val updateCounter = (t: Router) => { counter = counter + 1 }
-        val deleteCounter = (id: Object) => { deleted = id }
+        val deleteCounter = (t: Router) => { deleted = t.getId }
         val watcher = new DeviceWatcher[Router](store, Schedulers.immediate(),
                                                 updateCounter, deleteCounter)
 

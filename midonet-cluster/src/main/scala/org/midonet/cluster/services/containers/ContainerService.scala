@@ -16,15 +16,21 @@
 
 package org.midonet.cluster.services.containers
 
+import java.util.concurrent.Executors
+
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
 
+import rx.Observer
+import rx.schedulers.Schedulers
+
 import org.midonet.cluster.ClusterNode.Context
-import org.midonet.cluster.{ClusterConfig, containersLog}
-import org.midonet.cluster.services.{ClusterService, Minion}
+import org.midonet.cluster.services.containers.schedulers._
+import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
+import org.midonet.cluster.{ClusterConfig, ClusterNode, containersLog}
 
 /**
   * This is the cluster service for container management across the MidoNet
@@ -42,12 +48,44 @@ class ContainerService @Inject()(nodeContext: Context,
 
     override def isEnabled = config.containers.isEnabled
 
+    private val executor = Executors.newSingleThreadExecutor()
+
+    private val scheduler = Schedulers.from(executor)
+
+    private val backend = ClusterNode.injector.getInstance(classOf[MidonetBackend])
+
+    private val delegateFactory = new ContainerDelegateFactory(backend)
+
     override def doStart(): Unit = {
         log info "Starting Container Management service"
         notifyStarted()
+        val containerScheduler = new Scheduler(
+            backend.store,
+            backend.stateStore,
+            executor)
+        containerScheduler.eventObservable
+            .observeOn(scheduler)
+            .subscribe(new Observer[ContainerEvent] {
+                override def onCompleted(): Unit = {
+                    log.info("Container updates no longer tracked (stream completed)")
+                }
+                override def onError(t: Throwable): Unit = {
+                    log.warn("Container updates no longer tracked (stream error)", t)
+                }
+                override def onNext(t: ContainerEvent): Unit = t match {
+                    case Allocation(container, group, hostId) =>
+                        delegateFactory.getContainerDelegate(container)
+                            .onCreate(container, group, hostId)
+                    case Deallocation(container, hostId) =>
+                        delegateFactory.getContainerDelegate(container)
+                            .onDelete(container, null, hostId)
+                }
+            })
+        containerScheduler.startScheduling()
     }
 
     override def doStop(): Unit = {
         notifyStopped()
     }
 }
+

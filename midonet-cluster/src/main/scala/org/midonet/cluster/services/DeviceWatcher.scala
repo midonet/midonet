@@ -35,7 +35,7 @@ import org.midonet.util.functors._
  */
 class DeviceWatcher[T <: Message](
     store: Storage, scheduler: Scheduler,
-    updateHandler: T => Unit, deleteHandler: Object => Unit,
+    updateHandler: T => Unit, deleteHandler: T => Unit,
     filterHandler: T => java.lang.Boolean = {t:T => java.lang.Boolean.TRUE})
     (implicit private val ct: ClassTag[T]) {
 
@@ -46,9 +46,10 @@ class DeviceWatcher[T <: Message](
     private class DeviceObserver() extends Observer[T] {
 
         @volatile private var id: Object = null
+        @volatile private var device: T = _
 
         override def onCompleted(): Unit = {
-            deleteHandler(id)
+            deleteHandler(device)
         }
         override def onError(t: Throwable): Unit = {
             log.warn(s"Error in $deviceTypeName $id update stream: ", t)
@@ -57,7 +58,7 @@ class DeviceWatcher[T <: Message](
             if (id == null) {
                 val idField = t.getDescriptorForType.findFieldByName("id")
                 id = t.getField(idField)
-            } else {
+                device = t
             }
             updateHandler(t)
         }

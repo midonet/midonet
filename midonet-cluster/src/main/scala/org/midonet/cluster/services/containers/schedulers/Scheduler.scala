@@ -34,7 +34,7 @@ import rx.{Observable, Observer}
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Topology.{Host, ServiceContainerGroup}
+import org.midonet.cluster.models.Topology.{ServiceContainer, Host, ServiceContainerGroup}
 import org.midonet.cluster.services.DeviceWatcher
 import org.midonet.cluster.services.MidonetBackend.AliveKey
 import org.midonet.cluster.util.UUIDUtil._
@@ -48,12 +48,12 @@ import org.midonet.cluster.util.logging.ProtoTextPrettifier._
   * cache them)
   */
 trait ContainerEvent
-case class Allocation(containerId: UUID, group: ServiceContainerGroup,
+case class Allocation(container: ServiceContainer, group: ServiceContainerGroup,
                       hostId: UUID) extends ContainerEvent {
-    def revoked = Deallocation(containerId, group, hostId)
+    def revoked = Deallocation(container, hostId)
 }
-case class Deallocation(containerId: UUID, group: ServiceContainerGroup,
-                        hostId: UUID) extends ContainerEvent
+case class Deallocation(container: ServiceContainer, hostId: UUID)
+    extends ContainerEvent
 
 /** This service is responsiblef for scheduling each
   * [[org.midonet.cluster.models.Topology.ServiceContainer]] instance found in
@@ -81,8 +81,9 @@ class Scheduler @Inject()(store: Storage, stateStore: StateStorage,
     private val scheduler = Schedulers.from(executor)
 
     /* State indices */
-    private val hostToContainers = ArrayListMultimap.create[UUID, Allocation]()
+    private val hostToAllocations = ArrayListMultimap.create[UUID, Allocation]()
     private val containerToHost = new ConcurrentHashMap[UUID, UUID]
+    private val containers = new util.HashMap[UUID, ServiceContainer]()
 
     /* Host selectors indexed by Service Container Group */
     private val scgToSelector = new util.HashMap[UUID, HostSelector]()
@@ -101,8 +102,12 @@ class Scheduler @Inject()(store: Storage, stateStore: StateStorage,
     private val containerLocationSubject = PublishSubject.create[ContainerEvent]
 
     /* Watches all Service Container Groups in the system. */
-    private val scgWatcher = new DeviceWatcher[ServiceContainerGroup](
+    private val groupWatcher = new DeviceWatcher[ServiceContainerGroup](
         store, scheduler, onContainerGroupUpdate, onContainerGroupDelete)
+
+    /* Watches all Service Containers in the system */
+    private val containerWatcher = new DeviceWatcher[ServiceContainer](
+        store, scheduler, onContainerUpdate, onContainerDelete)
 
     livenessTracker.observable
         .observeOn(scheduler)
@@ -120,15 +125,15 @@ class Scheduler @Inject()(store: Storage, stateStore: StateStorage,
         })
 
     private def onHostDeath(hostId: UUID): Unit = {
-        val allocations = hostToContainers.get(hostId)
+        val allocations = hostToAllocations.get(hostId)
         val groupsToReallocate = mutable.HashSet.empty[ServiceContainerGroup]
         val it = allocations.iterator()
         while (it.hasNext) {
             val alloc= it.next()
             groupsToReallocate += alloc.group
-            containerToHost.remove(alloc.containerId)
+            containerToHost.remove(alloc.container.getId)
             containerLocationSubject onNext alloc.revoked
-            log.debug(s"Container ${alloc.containerId} needs " +
+            log.debug(s"Container ${alloc.container.getId} needs " +
                       s"reallocation out of $hostId")
         }
         groupsToReallocate foreach allocateGroup
@@ -160,7 +165,8 @@ class Scheduler @Inject()(store: Storage, stateStore: StateStorage,
       *         the scheduler emits the mappings of containers to host.
       */
     def startScheduling(): Unit = {
-        scgWatcher.subscribe()
+        containerWatcher.subscribe()
+        groupWatcher.subscribe()
     }
 
     def eventObservable: Observable[ContainerEvent] = {
@@ -171,7 +177,8 @@ class Scheduler @Inject()(store: Storage, stateStore: StateStorage,
       * container groups being monitored.
       */
     def stopScheduling(): Unit = {
-        scgWatcher.unsubscribe()
+        groupWatcher.unsubscribe()
+        containerWatcher.unsubscribe()
         val it = scgToSelector.values().iterator()
         while (it.hasNext) {
             it.next().dispose()
@@ -200,16 +207,25 @@ class Scheduler @Inject()(store: Storage, stateStore: StateStorage,
       */
     private def onContainerGroupUpdate(group: ServiceContainerGroup): Unit = {
         val scgId = group.getId.asJava
-        if (scgToSelector.containsKey(scgId)) {
-            return // already known, we don't care about updates
+        if (!scgToSelector.containsKey(scgId)) {
+            log.debug(s"New container group $scgId")
+            val selector = selectorFactory.getHostSelector(group)
+            scgToSelector.put(scgId, selector)
         }
-
-        log.debug(s"New container group $scgId")
-        val selector = selectorFactory.getHostSelector(group)
-        scgToSelector.put(scgId, selector)
+        // We need to reevaluation allocations in case a container was
+        // added later to the group (as with the midonet-cli)
         allocateGroup(group)
     }
 
+    def onContainerUpdate(container: ServiceContainer): Unit = {
+        containers.put(container.getId.asJava, container)
+    }
+
+    def onContainerDelete(container: ServiceContainer): Unit = {
+        containers.remove(container.getId.asJava)
+        val hostId = containerToHost.remove(container.getId.asJava)
+        containerLocationSubject onNext Deallocation(container, hostId)
+    }
 
     /** Takes a group, and gets as many containers as possible allocated. */
     def allocateGroup(group: ServiceContainerGroup): Unit = {
@@ -283,8 +299,10 @@ class Scheduler @Inject()(store: Storage, stateStore: StateStorage,
             val idx = i % eligible.size
             i = i + 1
             val hostId = eligible(idx)
-            val allocation = Allocation(containerId, group, hostId)
-            hostToContainers.put(hostId, allocation)
+            val allocation = Allocation(containers.get(containerId), group,
+                                        hostId)
+            hostToAllocations.put(hostId, allocation)
+            containerToHost.put(containerId, hostId)
             allocation
         }
 
