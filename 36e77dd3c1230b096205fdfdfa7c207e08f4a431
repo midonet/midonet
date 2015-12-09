@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_ebb9472f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-09T16:55:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_70c45f92",
+      "range": {
+        "startLine": 31,
+        "startChar": 26,
+        "endLine": 31,
+        "endChar": 34
+      },
+      "revId": "36e77dd3c1230b096205fdfdfa7c207e08f4a431",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_b0e7d73f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
         "patchSetId": 7
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_2b833f57",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-09T16:55:37Z",
+      "side": 1,
+      "message": "This is already in the agent modules. But here I wanted to create a private injector only to create instances of the container handlers. I think it can also be done using a child injector, and reusing the agent injector, but that seemed too much trouble.",
+      "parentUuid": "5ac4a560_b0e7d73f",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 6
+      },
+      "revId": "36e77dd3c1230b096205fdfdfa7c207e08f4a431",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_b0bef7fd",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
         "patchSetId": 7
@@ -59,6 +107,24 @@
       "writtenOn": "2015-12-03T17:36:37Z",
       "side": 1,
       "message": "some scaladoc could be helpful to explain what all and current provide as they are public apis",
+      "revId": "36e77dd3c1230b096205fdfdfa7c207e08f4a431",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4b86bb66",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-09T16:55:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_b0bef7fd",
       "revId": "36e77dd3c1230b096205fdfdfa7c207e08f4a431",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
