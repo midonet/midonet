@@ -278,7 +278,7 @@ class HealthMonitor @Inject() (config: MidolmanConfig,
             context.child(poolId.toString) match {
                 case Some(child) if !poolConf.isConfigurable =>
                     log.info("received unconfigurable update for pool {}",
-                        poolId.toString)
+                         poolId.toString)
                     context.stop(child)
 
                 case Some(child) =>

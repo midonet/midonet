@@ -23,7 +23,6 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect._
 
 import akka.actor.{ActorSystem, Props}
-import akka.pattern.ask
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
@@ -42,7 +41,7 @@ import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state._
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.Host
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopology}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.InternalPort
