@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_6b9b7872",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/HeartBeatEnabled.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-09T14:53:14Z",
+      "side": 1,
+      "message": "Note to self: consider any message a heartbeat!",
+      "range": {
+        "startLine": 51,
+        "startChar": 8,
+        "endLine": 51,
+        "endChar": 18
+      },
+      "revId": "9e95b2e0716461acc67f2eb4888233ba1c519f4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_3b0d6d91",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/jgroups/JGroupsBroker.scala",
         "patchSetId": 13
