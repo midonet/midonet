@@ -23,7 +23,7 @@ import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
 
 import javax.validation.{ConstraintViolation, Validator}
 import javax.ws.rs._
-import javax.ws.rs.core.Response.Status
+import javax.ws.rs.core.Response.Status._
 import javax.ws.rs.core._
 
 import scala.collection.JavaConverters._
@@ -86,7 +86,7 @@ object MidonetResource {
             case e: NotFoundException =>
                 throw new NotFoundHttpException(e.getMessage)
             case e: ObjectReferencedException =>
-                throw new WebApplicationException(e, Status.NOT_ACCEPTABLE)
+                throw new WebApplicationException(e, NOT_ACCEPTABLE)
             case e: ReferenceConflictException =>
                 throw new ConflictHttpException(e.getMessage)
             case e: ObjectExistsException =>
@@ -106,27 +106,27 @@ object MidonetResource {
             } catch {
                 case e: NotFoundException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.NOT_FOUND, e.getMessage)
+                    return buildErrorResponse(NOT_FOUND, e.getMessage)
                 case e: ObjectReferencedException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                    return buildErrorResponse(CONFLICT, e.getMessage)
                 case e: ReferenceConflictException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                    return buildErrorResponse(CONFLICT, e.getMessage)
                 case e: ObjectExistsException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                    return buildErrorResponse(CONFLICT, e.getMessage)
                 case e: ConcurrentModificationException =>
                     log.error(s"Write $attempt of $StorageAttempts failed " +
                               "due to a concurrent modification: retrying", e)
                     attempt += 1
                 case NonFatal(e) =>
                     log.error("Unhandled exception", e)
-                    return buildErrorResponse(Status.INTERNAL_SERVER_ERROR,
+                    return buildErrorResponse(INTERNAL_SERVER_ERROR,
                                               e.getMessage)
             }
         }
-        Response.status(Status.CONFLICT).build()
+        Response.status(CONFLICT).build()
     }
 
     protected[resources] def tryLegacyRead[T](f: => T): T = {
@@ -144,13 +144,13 @@ object MidonetResource {
             f
         } catch {
             case e: NoStatePathException =>
-                buildErrorResponse(Status.NOT_FOUND, "Resource not found")
+                buildErrorResponse(NOT_FOUND, "Resource not found")
             case e: NodeNotEmptyStateException =>
-                buildErrorResponse(Status.CONFLICT, "Conflicting write")
+                buildErrorResponse(CONFLICT, "Conflicting write")
             case e: StatePathExistsException =>
-                buildErrorResponse(Status.CONFLICT, "Conflicting write")
+                buildErrorResponse(CONFLICT, "Conflicting write")
             case e: StateVersionException =>
-                buildErrorResponse(Status.CONFLICT, "Conflicting write")
+                buildErrorResponse(CONFLICT, "Conflicting write")
         }
     }
 
@@ -240,21 +240,13 @@ abstract class MidonetResource[T >: Null <: UriResource]
     @Path("{id}")
     def get(@PathParam("id") id: String,
             @HeaderParam("Accept") accept: String): T = {
-        val produces = getAnnotation(classOf[AllowGet])
-        if ((produces eq null) || !produces.value().contains(accept)) {
-            log.info("Media type {} not acceptable", accept)
-            throw new WebApplicationException(Status.NOT_ACCEPTABLE)
-        }
+        validateMediaType(accept, getAnnotation(classOf[AllowGet]).value())
         getFilter(getResource(tag.runtimeClass.asInstanceOf[Class[T]], id))
     }
 
     @GET
     def list(@HeaderParam("Accept") accept: String): JList[T] = {
-        val produces = getAnnotation(classOf[AllowList])
-        if ((produces eq null) || !produces.value().contains(accept)) {
-            log.info("Media type {} not acceptable", accept)
-            throw new WebApplicationException(Status.NOT_ACCEPTABLE)
-        }
+        validateMediaType(accept, getAnnotation(classOf[AllowList]).value())
         val ids = listIds
         val list = if (ids eq null) {
             listFilter(listResources(tag.runtimeClass.asInstanceOf[Class[T]]))
@@ -264,61 +256,10 @@ abstract class MidonetResource[T >: Null <: UriResource]
         list.asJava
     }
 
-    /**
-      * This method acquires a ZooKeeper lock to perform updates to storage.
-      * This is to prevent races with other components modifying the topology
-      * concurrently that may result in a [[ConcurrentModificationException]].
-      */
-    private def zkLock[R](f: => Response): Response = {
-        val lock = new ZkOpLock(resContext.lockFactory, lockOpNumber.getAndIncrement,
-                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
-
-        if (!zkLockNeeded) return f
-
-        try lock.acquire() catch {
-            case NonFatal(t) =>
-                log.info("Could not acquire storage lock.", t)
-                throw new ServiceUnavailableHttpException(
-                    "Could not acquire lock for storage operation.")
-        }
-        try {
-            f
-        } catch {
-            case e: NotFoundException =>
-                log.info(e.getMessage)
-                buildErrorResponse(Status.NOT_FOUND, e.getMessage)
-            case e: ObjectReferencedException =>
-                log.info(e.getMessage)
-                buildErrorResponse(Status.CONFLICT, e.getMessage)
-            case e: ReferenceConflictException =>
-                log.info(e.getMessage)
-                buildErrorResponse(Status.CONFLICT, e.getMessage)
-            case e: ObjectExistsException =>
-                log.info(e.getMessage)
-                buildErrorResponse(Status.CONFLICT, e.getMessage)
-            /* In case the object was modified elsewhere without acquiring
-               a lock. */
-            case e: ConcurrentModificationException =>
-                log.info("Write to storage failed due to contention", e)
-                Response.status(Status.CONFLICT).build()
-            case e: WebApplicationException =>
-                e.getResponse
-            case NonFatal(e) =>
-                log.info("Unhandled exception", e)
-                buildErrorResponse(Status.INTERNAL_SERVER_ERROR, e.getMessage)
-        } finally {
-            lock.release()
-        }
-    }
-
     @POST
     def create(t: T, @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        val consumes = getAnnotation(classOf[AllowCreate])
-        if ((consumes eq null) || !consumes.value().contains(contentType)) {
-            log.info("Media type {} not supported", contentType)
-            throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
-        }
+        validateMediaType(contentType, getAnnotation(classOf[AllowCreate]).value())
 
         t.setBaseUri(uriInfo.getBaseUri)
 
@@ -337,11 +278,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     def update(@PathParam("id") id: String, t: T,
                @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        val consumes = getAnnotation(classOf[AllowUpdate])
-        if ((consumes eq null) || !consumes.value().contains(contentType)) {
-            log.info("Media type {} not supported", contentType)
-            throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
-        }
+        validateMediaType(contentType, getAnnotation(classOf[AllowUpdate]).value())
 
         val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
         tryResponse(handleUpdate, catchUpdate) {
@@ -463,7 +400,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
             case e: ConvertException =>
                 log.error("Failed to convert message {} to class {}", message,
                           clazz, e)
-                throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+                throw new WebApplicationException(INTERNAL_SERVER_ERROR)
         }
         resource.setBaseUri(uriInfo.getBaseUri)
         resource
@@ -507,16 +444,16 @@ abstract class MidonetResource[T >: Null <: UriResource]
                 case e: WebApplicationException => throw e
                 case e: NotFoundException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.NOT_FOUND, e.getMessage)
+                    return buildErrorResponse(NOT_FOUND, e.getMessage)
                 case e: ObjectReferencedException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                    return buildErrorResponse(CONFLICT, e.getMessage)
                 case e: ReferenceConflictException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                    return buildErrorResponse(CONFLICT, e.getMessage)
                 case e: ObjectExistsException =>
                     log.warn(e.getMessage)
-                    return buildErrorResponse(Status.CONFLICT, e.getMessage)
+                    return buildErrorResponse(CONFLICT, e.getMessage)
                 case e: ConcurrentModificationException =>
                     log.warn(s"Write $attempt of $StorageAttempts failed " +
                              "due to a concurrent modification ({}): retrying",
@@ -525,11 +462,75 @@ abstract class MidonetResource[T >: Null <: UriResource]
                     attempt += 1
                 case NonFatal(e) =>
                     log.error("Unhandled exception", e)
-                    return buildErrorResponse(Status.INTERNAL_SERVER_ERROR,
+                    return buildErrorResponse(INTERNAL_SERVER_ERROR,
                                               e.getMessage)
             }
         }
         log.error(s"Failed to write to store after $StorageAttempts attempts")
-        Response.status(Status.CONFLICT).build()
+        Response.status(CONFLICT).build()
+    }
+
+    @throws[WebApplicationException]
+    private def validateMediaType(value: String, allowed: Array[String])
+    : Unit = {
+        try {
+            val mediaType = MediaType.valueOf(value)
+            for (in <- allowed if MediaType.valueOf(in).isCompatible(mediaType)) {
+                return
+            }
+            log.info("Media type {} not acceptable", value)
+            throw new WebApplicationException(NOT_ACCEPTABLE)
+
+        } catch {
+            case e: IllegalArgumentException =>
+                throw new WebApplicationException(NOT_ACCEPTABLE)
+        }
+    }
+
+    /**
+      * This method acquires a ZooKeeper lock to perform updates to storage.
+      * This is to prevent races with other components modifying the topology
+      * concurrently that may result in a [[ConcurrentModificationException]].
+      */
+    private def zkLock[R](f: => Response): Response = {
+        val lock = new ZkOpLock(resContext.lockFactory, lockOpNumber.getAndIncrement,
+                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
+
+        if (!zkLockNeeded) return f
+
+        try lock.acquire() catch {
+            case NonFatal(t) =>
+                log.info("Could not acquire storage lock.", t)
+                throw new ServiceUnavailableHttpException(
+                    "Could not acquire lock for storage operation.")
+        }
+        try {
+            f
+        } catch {
+            case e: NotFoundException =>
+                log.info(e.getMessage)
+                buildErrorResponse(NOT_FOUND, e.getMessage)
+            case e: ObjectReferencedException =>
+                log.info(e.getMessage)
+                buildErrorResponse(CONFLICT, e.getMessage)
+            case e: ReferenceConflictException =>
+                log.info(e.getMessage)
+                buildErrorResponse(CONFLICT, e.getMessage)
+            case e: ObjectExistsException =>
+                log.info(e.getMessage)
+                buildErrorResponse(CONFLICT, e.getMessage)
+            /* In case the object was modified elsewhere without acquiring
+               a lock. */
+            case e: ConcurrentModificationException =>
+                log.info("Write to storage failed due to contention", e)
+                Response.status(CONFLICT).build()
+            case e: WebApplicationException =>
+                e.getResponse
+            case NonFatal(e) =>
+                log.info("Unhandled exception", e)
+                buildErrorResponse(INTERNAL_SERVER_ERROR, e.getMessage)
+        } finally {
+            lock.release()
+        }
     }
 }
