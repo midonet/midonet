@@ -89,4 +89,10 @@ package object schedulers {
             .toString
     }
 
+    case class PortGroupEvent(portGroupId: UUID, hosts: HostsEvent) {
+        override val toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("portGroupId", portGroupId)
+            .add("hosts", hosts)
+            .toString
+    }
 }

@@ -169,6 +169,15 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
         port
     }
 
+    protected def createPortGroup(portIds: UUID*): PortGroup = {
+        val portGroup = PortGroup.newBuilder()
+            .setId(randomUuidProto)
+            .addAllPortIds(portIds.map(_.asProto).asJava)
+            .build()
+        store create portGroup
+        portGroup
+    }
+
     protected def createGroup(): ServiceContainerGroup = {
         val group = ServiceContainerGroup.newBuilder()
             .setId(randomUuidProto)
