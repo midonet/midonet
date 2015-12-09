@@ -241,21 +241,13 @@ abstract class MidonetResource[T >: Null <: UriResource]
     @Path("{id}")
     def get(@PathParam("id") id: String,
             @HeaderParam("Accept") accept: String): T = {
-        val produces = getAnnotation(classOf[AllowGet])
-        if (!produces.value().contains(accept)) {
-            log.info("Media type {} not acceptable", accept)
-            throw new WebApplicationException(NOT_ACCEPTABLE)
-        }
+        validateMediaType(accept, getAnnotation(classOf[AllowGet]).value())
         getFilter(getResource(tag.runtimeClass.asInstanceOf[Class[T]], id))
     }
 
     @GET
     def list(@HeaderParam("Accept") accept: String): JList[T] = {
-        val produces = getAnnotation(classOf[AllowList])
-        if (!produces.value().contains(accept)) {
-            log.info("Media type {} not acceptable", accept)
-            throw new WebApplicationException(NOT_ACCEPTABLE)
-        }
+        validateMediaType(accept, getAnnotation(classOf[AllowList]).value())
         val ids = listIds
         val list = if (ids eq null) {
             listFilter(listResources(tag.runtimeClass.asInstanceOf[Class[T]]))
@@ -265,61 +257,10 @@ abstract class MidonetResource[T >: Null <: UriResource]
         list.asJava
     }
 
-    /**
-      * This method acquires a ZooKeeper lock to perform updates to storage.
-      * This is to prevent races with other components modifying the topology
-      * concurrently that may result in a [[ConcurrentModificationException]].
-      */
-    private def zkLock[R](f: => Response): Response = {
-        val lock = new ZkOpLock(resContext.lockFactory, lockOpNumber.getAndIncrement,
-                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
-
-        if (!zkLockNeeded) return f
-
-        try lock.acquire() catch {
-            case NonFatal(t) =>
-                log.info("Could not acquire storage lock.", t)
-                throw new ServiceUnavailableHttpException(
-                    "Could not acquire lock for storage operation.")
-        }
-        try {
-            f
-        } catch {
-            case e: NotFoundException =>
-                log.info(e.getMessage)
-                buildErrorResponse(NOT_FOUND, e.getMessage)
-            case e: ObjectReferencedException =>
-                log.info(e.getMessage)
-                buildErrorResponse(CONFLICT, e.getMessage)
-            case e: ReferenceConflictException =>
-                log.info(e.getMessage)
-                buildErrorResponse(CONFLICT, e.getMessage)
-            case e: ObjectExistsException =>
-                log.info(e.getMessage)
-                buildErrorResponse(CONFLICT, e.getMessage)
-            /* In case the object was modified elsewhere without acquiring
-               a lock. */
-            case e: ConcurrentModificationException =>
-                log.info("Write to storage failed due to contention", e)
-                Response.status(CONFLICT).build()
-            case e: WebApplicationException =>
-                e.getResponse
-            case NonFatal(e) =>
-                log.info("Unhandled exception", e)
-                buildErrorResponse(INTERNAL_SERVER_ERROR, e.getMessage)
-        } finally {
-            lock.release()
-        }
-    }
-
     @POST
     def create(t: T, @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        val consumes = getAnnotation(classOf[AllowCreate])
-        if (!consumes.value().contains(contentType)) {
-            log.info("Media type {} not supported", contentType)
-            throw new WebApplicationException(UNSUPPORTED_MEDIA_TYPE)
-        }
+        validateMediaType(contentType, getAnnotation(classOf[AllowCreate]).value())
 
         t.setBaseUri(uriInfo.getBaseUri)
 
@@ -338,11 +279,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     def update(@PathParam("id") id: String, t: T,
                @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        val consumes = getAnnotation(classOf[AllowUpdate])
-        if (!consumes.value().contains(contentType)) {
-            log.info("Media type {} not supported", contentType)
-            throw new WebApplicationException(UNSUPPORTED_MEDIA_TYPE)
-        }
+        validateMediaType(contentType, getAnnotation(classOf[AllowUpdate]).value())
 
         val clazz = tag.runtimeClass.asInstanceOf[Class[T]]
         tryResponse(handleUpdate, catchUpdate) {
@@ -534,5 +471,69 @@ abstract class MidonetResource[T >: Null <: UriResource]
         }
         log.error(s"Failed to write to store after $StorageAttempts attempts")
         Response.status(CONFLICT).build()
+    }
+
+    @throws[WebApplicationException]
+    private def validateMediaType(value: String, allowed: Array[String])
+    : Unit = {
+        try {
+            val mediaType = MediaType.valueOf(value)
+            for (in <- allowed if MediaType.valueOf(in).isCompatible(mediaType)) {
+                return
+            }
+            log.info("Media type {} not acceptable", value)
+            throw new WebApplicationException(NOT_ACCEPTABLE)
+
+        } catch {
+            case e: IllegalArgumentException =>
+                throw new WebApplicationException(NOT_ACCEPTABLE)
+        }
+    }
+
+    /**
+      * This method acquires a ZooKeeper lock to perform updates to storage.
+      * This is to prevent races with other components modifying the topology
+      * concurrently that may result in a [[ConcurrentModificationException]].
+      */
+    private def zkLock[R](f: => Response): Response = {
+        val lock = new ZkOpLock(resContext.lockFactory, lockOpNumber.getAndIncrement,
+                                ZookeeperLockFactory.ZOOM_TOPOLOGY)
+
+        if (!zkLockNeeded) return f
+
+        try lock.acquire() catch {
+            case NonFatal(t) =>
+                log.info("Could not acquire storage lock.", t)
+                throw new ServiceUnavailableHttpException(
+                    "Could not acquire lock for storage operation.")
+        }
+        try {
+            f
+        } catch {
+            case e: NotFoundException =>
+                log.info(e.getMessage)
+                buildErrorResponse(NOT_FOUND, e.getMessage)
+            case e: ObjectReferencedException =>
+                log.info(e.getMessage)
+                buildErrorResponse(CONFLICT, e.getMessage)
+            case e: ReferenceConflictException =>
+                log.info(e.getMessage)
+                buildErrorResponse(CONFLICT, e.getMessage)
+            case e: ObjectExistsException =>
+                log.info(e.getMessage)
+                buildErrorResponse(CONFLICT, e.getMessage)
+            /* In case the object was modified elsewhere without acquiring
+               a lock. */
+            case e: ConcurrentModificationException =>
+                log.info("Write to storage failed due to contention", e)
+                Response.status(CONFLICT).build()
+            case e: WebApplicationException =>
+                e.getResponse
+            case NonFatal(e) =>
+                log.info("Unhandled exception", e)
+                buildErrorResponse(INTERNAL_SERVER_ERROR, e.getMessage)
+        } finally {
+            lock.release()
+        }
     }
 }
