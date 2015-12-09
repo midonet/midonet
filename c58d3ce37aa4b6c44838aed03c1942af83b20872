@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_0bde846d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-09T14:29:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_20a0cc9e",
+      "range": {
+        "startLine": 52,
+        "startChar": 14,
+        "endLine": 52,
+        "endChar": 28
+      },
+      "revId": "c58d3ce37aa4b6c44838aed03c1942af83b20872",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_2077ec3b",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-07T03:57:34Z",
       "side": 1,
       "message": "What is As?",
+      "range": {
+        "startLine": 559,
+        "startChar": 14,
+        "endLine": 559,
+        "endChar": 16
+      },
+      "revId": "c58d3ce37aa4b6c44838aed03c1942af83b20872",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6be37833",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-09T14:29:32Z",
+      "side": 1,
+      "message": "I wasn\u0027t really inspired for a better name. I renamed as createRaw, meaning the backend doesn\u0027t apply referential integrity. Is that fine?",
+      "parentUuid": "5ac4a560_2077ec3b",
       "range": {
         "startLine": 559,
         "startChar": 14,
