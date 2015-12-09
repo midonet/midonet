@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_d5deef3e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/LivenessTracker.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-09T09:11:09Z",
+      "side": 1,
+      "message": "Is this meant only for hosts? This is the case now as the state key is stored on the same namespace, and thus, the generic type may not be necessary. If we want to monitor the liveness of e.g. ports, we need to add also the namespace of the host responsible to update its state.",
+      "revId": "74be430ecb6a22ab4aa24ccacf954889938935a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d5b50fef",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/LivenessTracker.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-09T09:11:09Z",
+      "side": 1,
+      "message": "To do it fully generic, we could get here the complete set of objects of type T (or receive them by param instead of UUID) and handle the differences (host vs port) inside this. There\u0027s a trick to do it with observables for ports in the port group selector implementation (port state class).",
+      "revId": "74be430ecb6a22ab4aa24ccacf954889938935a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_15cf8780",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/Scheduler.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-09T09:11:09Z",
+      "side": 1,
+      "message": "log.warn? having no selectors will break the container placement.",
+      "revId": "74be430ecb6a22ab4aa24ccacf954889938935a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
