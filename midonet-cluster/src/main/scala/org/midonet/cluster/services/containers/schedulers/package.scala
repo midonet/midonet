@@ -50,4 +50,6 @@ package object schedulers {
     case class PortEvent(hostId: UUID, interfaceName: String, active: Boolean)
 
     case class HostGroupEvent(hostGroupId: UUID, hosts: HostsEvent)
+
+    case class PortGroupEvent(portGroupId: UUID, hosts: HostsEvent)
 }

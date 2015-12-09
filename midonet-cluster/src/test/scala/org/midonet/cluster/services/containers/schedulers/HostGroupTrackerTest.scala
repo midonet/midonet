@@ -18,8 +18,6 @@ package org.midonet.cluster.services.containers.schedulers
 
 import java.util.UUID
 
-import scala.collection.JavaConverters._
-
 import org.junit.runner.RunWith
 import org.scalatest.{Matchers, GivenWhenThen, BeforeAndAfter, FlatSpec}
 import org.scalatest.junit.JUnitRunner
@@ -27,41 +25,13 @@ import org.scalatest.junit.JUnitRunner
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.NotFoundException
-import org.midonet.cluster.models.State.ContainerServiceStatus
 import org.midonet.cluster.models.Topology.{Host, HostGroup}
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class HostGroupTrackerTest extends FlatSpec with SchedulersTest with BeforeAndAfter
                            with Matchers with GivenWhenThen {
-
-    private def createHost(): Host = {
-        val host = Host.newBuilder()
-                       .setId(randomUuidProto)
-                       .build()
-        store create host
-        host
-    }
-
-    private def createHostGroup(hostIds: UUID*): HostGroup = {
-        val hostGroup = HostGroup.newBuilder()
-                                 .setId(randomUuidProto)
-                                 .addAllHostIds(hostIds.map(_.asProto).asJava)
-                                 .build()
-        store create hostGroup
-        hostGroup
-    }
-
-    private def createHostStatus(hostId: UUID): ContainerServiceStatus = {
-        val status = ContainerServiceStatus.newBuilder()
-                                           .setWeight(random.nextInt())
-                                           .build()
-        store.addValueAs(hostId.toString, classOf[Host], hostId,
-                         ContainerKey, status.toString).await()
-        status
-    }
 
     "Host group tracker" should "receive an error for non-existent group" in {
         Given("A random host group identifier")

@@ -34,35 +34,6 @@ import org.midonet.util.reactivex._
 class PortTrackerTest extends FlatSpec with SchedulersTest with BeforeAndAfter
                       with Matchers with GivenWhenThen {
 
-    private def createHost(): Host = {
-        val host = Host.newBuilder()
-            .setId(randomUuidProto)
-            .build()
-        store.create(host)
-        host
-    }
-
-    private def createPort(host: Host = null): Port = {
-        val builder = Port.newBuilder()
-                       .setId(randomUuidProto)
-                       .setInterfaceName(random.nextString(4))
-        if (host ne null)
-            builder.setHostId(host.getId)
-        val port = builder.build()
-        store.create(port)
-        port
-    }
-
-    private def activatePort(port: Port): Unit = {
-        store.addValueAs(port.getHostId.asJava.toString, classOf[Port],
-                         port.getId, ActiveKey, ActiveKey).await()
-    }
-
-    private def deactivatePort(port: Port): Unit = {
-        store.removeValueAs(port.getHostId.asJava.toString, classOf[Port],
-                            port.getId, ActiveKey, null).await()
-    }
-
     "Port tracker" should "receive an error for non-existent port" in {
         Given("A random port identifier")
         val portId = UUID.randomUUID()
