@@ -74,7 +74,7 @@ object HaproxyHealthMonitor {
     // Tells this actor that the config for the health monitor has changed.
     case class ConfigUpdate(conf: PoolConfig) extends HHMMessage
     // Tells this actor to poll haproxy once for health info.
-    private[HaproxyHealthMonitor] case object CheckHealth extends HHMMessage
+    case object CheckHealth extends HHMMessage
     // Tells this actor that its router has been removed
     case object RouterRemoved
     // Tells this actor that it now has a router
