@@ -53,8 +53,10 @@ object LinkOps {
 
             protocol.prepareLinkCreate(buf, dev)
             writer.write(buf)
-            // The peer is created first.
-            peer = readLink(reader, buf)
+
+            buf.clear()
+            protocol.prepareLinkGet(buf, devName)
+            writer.write(buf)
             dev = readLink(reader, buf)
 
             if (up) {
@@ -63,14 +65,16 @@ object LinkOps {
                     buf.clear()
                     protocol.prepareLinkSet(buf, peer)
                     writer.write(buf)
-                    // The device is notified first.
-                    dev = readLink(reader, buf)
-                    peer = readLink(reader, buf)
                 } catch { case NonFatal(e) =>
                     deleteLink(dev)
                     throw e
                 }
             }
+
+            buf.clear()
+            protocol.prepareLinkGet(buf, peerName)
+            writer.write(buf)
+            peer = readLink(reader, buf)
 
             Veth(dev, peer)
         } finally {
@@ -81,20 +85,19 @@ object LinkOps {
     def deleteLink(link: Link): Unit = {
         val (channel, protocol) = prepare()
         try {
-
             val buf = BytesUtil.instance.allocateDirect(2048)
             val writer = new NetlinkBlockingWriter(channel)
             val reader = new NetlinkReader(channel)
 
             protocol.prepareLinkDel(buf, link)
             writer.write(buf)
-            readLink(reader, buf)
+            reader.read(buf) // in case there are errors
         } finally {
             channel.close()
         }
     }
 
-    def setAddress(link: Link, ipsubnet: IPSubnet[_]): Addr = {
+    def setAddress(link: Link, ipsubnet: IPSubnet[_]): Unit = {
         val (channel, protocol) = prepare()
         try {
             val buf = BytesUtil.instance.allocateDirect(2048)
@@ -111,7 +114,9 @@ object LinkOps {
             }
             protocol.prepareAddrNew(buf, addr)
             writer.write(buf)
-            readAddr(reader, buf)
+            buf.clear()
+            writer.write(buf)
+            reader.read(buf) // in case there are errors
         } finally {
             channel.close()
         }
@@ -119,9 +124,8 @@ object LinkOps {
 
     private def prepare(): (NetlinkChannel, RtnetlinkProtocol) = {
         val channel = new NetlinkChannelFactory().create(
-                blocking = true,
-                NetlinkProtocol.NETLINK_ROUTE,
-                notificationGroups = NetlinkUtil.DEFAULT_RTNETLINK_GROUPS)
+                blocking = false,
+                NetlinkProtocol.NETLINK_ROUTE)
         val protocol = new RtnetlinkProtocol(channel.getLocalAddress.getPid)
         (channel, protocol)
     }
@@ -149,13 +153,5 @@ object LinkOps {
         buf.flip()
         buf.position(NetlinkMessage.HEADER_SIZE)
         Link.buildFrom(buf)
-    }
-
-    private def readAddr(reader: NetlinkReader, buf: ByteBuffer): Addr = {
-        buf.clear()
-        reader.read(buf)
-        buf.flip()
-        buf.position(NetlinkMessage.HEADER_SIZE)
-        Addr.buildFrom(buf)
     }
 }

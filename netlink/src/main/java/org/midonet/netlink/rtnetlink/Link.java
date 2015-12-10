@@ -437,6 +437,19 @@ public class Link implements AttributeHandler, Cloneable, NetlinkSerializable {
         return buf;
     }
 
+    static public ByteBuffer describeGetRequest(ByteBuffer buf, String ifname) {
+        buf.put((byte) 0);
+        buf.put((byte) 0);
+        buf.putShort((short) 0);
+        buf.putInt(0);
+        buf.putInt(0);
+        buf.putInt(0xffffffff);
+
+        NetlinkMessage.writeStringAttr(buf, Attr.IFLA_IFNAME, ifname);
+
+        return buf;
+    }
+
     @Override
     public int serializeInto(ByteBuffer buf) {
         int start = buf.position();

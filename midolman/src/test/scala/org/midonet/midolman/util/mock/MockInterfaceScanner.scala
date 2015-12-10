@@ -76,8 +76,6 @@ class MockInterfaceScanner extends InterfaceScanner {
     def linksList(observer: Observer[Set[Link]]): Unit =
         noop(observer, Set.empty[Link])
 
-    /*    def routesDel(route: Route, observer: Observer[Boolean]): Unit */
-
     override
     def neighsList(observer: Observer[Set[Neigh]]): Unit =
         noop(observer, Set.empty[Neigh])
@@ -90,29 +88,14 @@ class MockInterfaceScanner extends InterfaceScanner {
     def routesGet(dst: IPv4Addr, observer: Observer[Route]): Unit =
         noop(observer, new Route)
 
-    // def addrsGet(ifIndex: Int, observer: Observer[Addr]): Unit =
-
-    override
-    def addrsGet(ifIndex: Int, observer: Observer[Set[Addr]]): Unit =
-        noop(observer, Set.empty[Addr])
-
-    override
-    def addrsGet(ifIndex: Int, family: Byte,
-                          observer: Observer[Set[Addr]]): Unit =
-        noop(observer, Set.empty[Addr])
-
     override
     def linksSetAddr(link: Link, mac: MAC,
                      observer: Observer[Boolean]): Unit =
         noop(observer, true)
 
-    /*    def addrsCreate(addr: Addr, observer: Observer[Boolean]): Unit */
-
     override
     def routesList(observer: Observer[Set[Route]]): Unit =
         noop(observer, Set.empty[Route])
-
-    /*    def linksDel(link: Link, observer: Observer[Boolean]): Unit */
 
     override
     def addrsList(observer: Observer[Set[Addr]]): Unit =
