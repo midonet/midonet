@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "5ac4a560_114a36ac",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/HostTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T11:13:49Z",
+      "side": 1,
+      "message": "HostStateTracker?",
+      "range": {
+        "startLine": 38,
+        "startChar": 6,
+        "endLine": 38,
+        "endChar": 17
+      },
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_f14e9ac0",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ObjectTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T11:13:49Z",
+      "side": 1,
+      "message": "ObjectStateTracker?",
+      "range": {
+        "startLine": 24,
+        "startChar": 15,
+        "endLine": 24,
+        "endChar": 28
+      },
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_f1f13ace",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ObjectTracker.scala",
         "patchSetId": 1
@@ -25,6 +71,29 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_51f2ee6f",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/HostTrackerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T11:13:49Z",
+      "side": 1,
+      "message": "obs.getOnCompletedEvents should have size 1",
+      "range": {
+        "startLine": 355,
+        "startChar": 8,
+        "endLine": 355,
+        "endChar": 52
+      },
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_313812a0",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 1
@@ -36,6 +105,24 @@
       "writtenOn": "2015-12-10T09:05:48Z",
       "side": 1,
       "message": "What\u0027s the role of it and how it is different from the container status? I understand the ContainerStatus is set by the agent. Who sets this ContainerServiceStatus?",
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b102623c",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T11:13:49Z",
+      "side": 1,
+      "message": "Is it the container handler that sets this?",
+      "parentUuid": "5ac4a560_313812a0",
       "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
