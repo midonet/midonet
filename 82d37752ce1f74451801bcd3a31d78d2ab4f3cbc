@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_7159aafd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/CollectionTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-10T09:13:45Z",
+      "side": 1,
+      "message": "No new notification is emited with the new membership if there\u0027s an error?",
+      "revId": "82d37752ce1f74451801bcd3a31d78d2ab4f3cbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
