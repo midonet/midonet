@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_94163454",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IpsecServiceContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-10T15:13:06Z",
+      "side": 1,
+      "message": "put that a line above (so namespace and localEndpoint are grouped).",
+      "revId": "2ab9d4d003f5c14f1faa7d5426df1d829de5a81e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
