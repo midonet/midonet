@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_313812a0",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-10T09:05:48Z",
+      "side": 1,
+      "message": "What\u0027s the role of it and how it is different from the container status? I understand the ContainerStatus is set by the agent. Who sets this ContainerServiceStatus?",
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
