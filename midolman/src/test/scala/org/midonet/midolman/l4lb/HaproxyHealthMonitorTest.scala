@@ -18,50 +18,45 @@ package org.midonet.midolman.l4lb
 import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import akka.testkit._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
+import akka.actor.{Actor, ActorRef, Props}
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{reset, times, verify}
+import org.midonet.cluster.topology.TopologyBuilder
+import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 
+import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.models.Topology.Pool
+import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
+import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolStatus}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.SetupFailure
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
+import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.netlink.UnixDomainChannel
-import org.midonet.util.MidonetEventually
-import org.midonet.util.AfUnix
 import org.midonet.util.AfUnix.Address
+import org.midonet.util.{AfUnix, MidonetEventually}
 
 @RunWith(classOf[JUnitRunner])
-class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
-                               with ImplicitSender
-                               with FeatureSpecLike
-                               with Matchers
-                               with GivenWhenThen
-                               with BeforeAndAfter
-                               with OneInstancePerTest
-                               with MockitoSugar
-                               with MidonetEventually {
+class HaproxyHealthMonitorTest extends MidolmanSpec
+                                       with OneInstancePerTest
+                                       with MockitoSugar
+                                       with MidonetEventually
+                                       with TopologyBuilder {
 
-    /*
+    import org.midonet.midolman.l4lb.HaproxyHealthMonitor.SockReadFailure
 
-    import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, SockReadFailure}
-
-    case object MonitorActorUp
-
-    val testKit = self
-
-    // we just need a no-op actor to act as the manager for the
-    // HaproxyHealthMonitor
+    // A mock actor playing the role of the health monitor
     class Manager extends Actor {
         def receive = {
             case SockReadFailure =>
                 sockReadFailures += 1
             case SetupFailure =>
                 setupFailures += 1
-            case MonitorActorUp =>
-                testKit forward MonitorActorUp
             case x =>
         }
     }
@@ -70,8 +65,10 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
     var healthMonitorUT: ActorRef = _
     // command handler for a "non-working" socket.
     var managerActor: ActorRef = _
+    var store: Storage = _
+
+    val lockFactory = mock[ZookeeperLockFactory]
     val poolId = UUID.randomUUID()
-    var mockClient = mock[LocalDataClientImpl]
 
     // Accounting variables to keep track of events that happen
     var confWrites = 0
@@ -99,89 +96,107 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
                                             10, "10.11.12.15", 81)
 
         new PoolConfig(poolId, UUID.randomUUID(), Set(vip),
-                       Set(member1, member2, member3), healthMonitor, true,
-                       path, "_MN")
+                       Set(member1, member2, member3), healthMonitor,
+                       adminStateUp = true, path, "_MN")
     }
 
-    before {
-        managerActor = TestActorRef(new Manager)
-        healthMonitorUT = TestActorRef(new HaproxyHealthMonitorUT(
-                createFakePoolConfig("10.10.10.10", goodSocketPath),
-                managerActor, UUID.randomUUID(),
-                mockClient, UUID.randomUUID()))
-        expectMsg(MonitorActorUp)
+    override def beforeTest(): Unit = {
+        store = injector.getInstance(classOf[MidonetBackend]).store
+        managerActor = actorSystem.actorOf(Props(new Manager))
+        healthMonitorUT = actorSystem.actorOf(Props(new HaproxyHealthMonitorUT(
+            createFakePoolConfig("10.10.10.10", goodSocketPath),
+            managerActor, routerId = UUID.randomUUID(),
+            store, hostId = UUID.randomUUID(), lockFactory)))
     }
 
-    after {
-        reset(mockClient)
+    override def afterTest(): Unit = {
+        reset(lockFactory)
+    }
+
+    private def storePool(poolId: UUID): Pool = {
+        val pool = createPool(id = poolId)
+        store.create(pool)
+        pool
+    }
+
+    private def getPoolStatus(poolId: UUID): PoolStatus = {
+        val pool = Await.result(store.get(classOf[Pool], poolId),
+                                Duration.Inf)
+        pool.getMappingStatus
     }
 
     feature("HaproxyHealthMonitor writes its config file") {
         scenario ("Actor Start Up") {
+            storePool(poolId)
+
             When("The HaproxyHealthMonitor starts up")
-            Then ("A config write should happen once")
-            confWrites should be (1)
-            haproxyRestarts should be (1)
-            verify(mockClient, times(1)).poolSetMapStatus(
-                poolId, PoolHealthMonitorMappingStatus.ACTIVE)
-        }
-        scenario ("Config change") {
-            When ("We change the config of haproxy")
-            healthMonitorUT ! ConfigUpdate(createFakePoolConfig("10.10.10.10",
-                goodSocketPath))
-            Then ("The config write should happen again")
-            confWrites should be (2)
-            And ("Haproxy should have been restarted")
-            haproxyRestarts should be (1)
-            verify(mockClient, times(2)).poolSetMapStatus(
-                poolId, PoolHealthMonitorMappingStatus.ACTIVE)
-        }
-        scenario ("Config write is delayed") {
-            When ("The config takes a long time to be written")
-            healthMonitorUT ! ConfigUpdate(createFakePoolConfig(DelayedIp,
-                goodSocketPath))
-            And ("Another config is immediately written")
-            healthMonitorUT ! ConfigUpdate(createFakePoolConfig(NormalIp,
-                goodSocketPath))
-            Then ("The last IP written should be the last config sent")
-            lastIpWritten should equal (NormalIp)
-            verify(mockClient, times(3)).poolSetMapStatus(
-                poolId, PoolHealthMonitorMappingStatus.ACTIVE)
+            Then ("Eventually a config write should happen")
+            eventually {
+               confWrites shouldBe 1
+               haproxyRestarts shouldBe 1
+               getPoolStatus(poolId) shouldBe ACTIVE
 
-            And ("The there is a problem with the update")
-            failUpdate = true
-            healthMonitorUT ! ConfigUpdate(createFakePoolConfig(NormalIp,
-                goodSocketPath))
-            Then ("The status should have been set to ERROR")
-            confWrites should be (4)
-            setupFailures should be (1)
-            verify(mockClient, times(3)).poolSetMapStatus(
-                poolId, PoolHealthMonitorMappingStatus.ACTIVE)
-            verify(mockClient, times(1)).poolSetMapStatus(
-                poolId, PoolHealthMonitorMappingStatus.ERROR)
-
-            failUpdate = false
+                // TODO: remove mock of ha proxy to verify more things.
+            }
         }
+
+//        scenario ("Config change") {
+//            When ("We change the config of haproxy")
+//            healthMonitorUT ! ConfigUpdate(createFakePoolConfig("10.10.10.10",
+//                goodSocketPath))
+//            Then ("The config write should happen again")
+//            confWrites should be (2)
+//            And ("Haproxy should have been restarted")
+//            haproxyRestarts should be (1)
+//            verify(mockClient, times(2)).poolSetMapStatus(
+//                poolId, PoolHealthMonitorMappingStatus.ACTIVE)
+//        }
+//        scenario ("Config write is delayed") {
+//            When ("The config takes a long time to be written")
+//            healthMonitorUT ! ConfigUpdate(createFakePoolConfig(DelayedIp,
+//                goodSocketPath))
+//            And ("Another config is immediately written")
+//            healthMonitorUT ! ConfigUpdate(createFakePoolConfig(NormalIp,
+//                goodSocketPath))
+//            Then ("The last IP written should be the last config sent")
+//            lastIpWritten should equal (NormalIp)
+//            verify(mockClient, times(3)).poolSetMapStatus(
+//                poolId, PoolHealthMonitorMappingStatus.ACTIVE)
+//
+//            And ("The there is a problem with the update")
+//            failUpdate = true
+//            healthMonitorUT ! ConfigUpdate(createFakePoolConfig(NormalIp,
+//                goodSocketPath))
+//            Then ("The status should have been set to ERROR")
+//            confWrites should be (4)
+//            setupFailures should be (1)
+//            verify(mockClient, times(3)).poolSetMapStatus(
+//                poolId, PoolHealthMonitorMappingStatus.ACTIVE)
+//            verify(mockClient, times(1)).poolSetMapStatus(
+//                poolId, PoolHealthMonitorMappingStatus.ERROR)
+//
+//            failUpdate = false
+//        }
     }
 
-    feature("HaproxyHealthMonitor handles socket reads") {
-        scenario ("HaproxyHealthMonitor reads the haproxy socket") {
-            When ("HaproxyHealthMonitor is started")
-            Then ("then socket should read.")
-            eventually { socketReads should be > 0 }
-            verify(mockClient, times(1)).poolSetMapStatus(
-                poolId, PoolHealthMonitorMappingStatus.ACTIVE)
-        }
-        scenario ("HaproxyHealthMonitor fails to read a socket") {
-            When (" A bad socket path is sent to HaproxyHealthMonitor")
-            healthMonitorUT ! ConfigUpdate(createFakePoolConfig("10.10.10.10",
-                                                                badSocketPath))
-            Then ("The manager should receive a failure notification")
-            eventually { sockReadFailures should be > 0 }
-            verify(mockClient, times(1)).poolSetMapStatus(
-                poolId, PoolHealthMonitorMappingStatus.ERROR)
-        }
-    }
+//    feature("HaproxyHealthMonitor handles socket reads") {
+//        scenario ("HaproxyHealthMonitor reads the haproxy socket") {
+//            When ("HaproxyHealthMonitor is started")
+//            Then ("then socket should read.")
+//            eventually { socketReads should be > 0 }
+//            verify(mockClient, times(1)).poolSetMapStatus(
+//                poolId, PoolHealthMonitorMappingStatus.ACTIVE)
+//        }
+//        scenario ("HaproxyHealthMonitor fails to read a socket") {
+//            When (" A bad socket path is sent to HaproxyHealthMonitor")
+//            healthMonitorUT ! ConfigUpdate(createFakePoolConfig("10.10.10.10",
+//                                                                badSocketPath))
+//            Then ("The manager should receive a failure notification")
+//            eventually { sockReadFailures should be > 0 }
+//            verify(mockClient, times(1)).poolSetMapStatus(
+//                poolId, PoolHealthMonitorMappingStatus.ERROR)
+//        }
+//    }
 
     /*
      * A fake unix channel that will do nothing.
@@ -202,13 +217,15 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
     class HaproxyHealthMonitorUT(config: PoolConfig,
                                  manager: ActorRef,
                                  routerId: UUID,
-                                 client: DataClient,
-                                 hostId: UUID)
+                                 store: Storage,
+                                 hostId: UUID,
+                                 lockFactory: ZookeeperLockFactory)
         extends HaproxyHealthMonitor(config: PoolConfig,
                                      manager: ActorRef,
                                      routerId: UUID,
-                                     client: DataClient,
-                                     hostId: UUID) {
+                                     store: Storage,
+                                     hostId: UUID,
+                                     lockFactory: ZookeeperLockFactory) {
 
         override def makeChannel() = new MockUnixChannel(null)
         override def writeConf(config: PoolConfig): Unit = {
@@ -221,7 +238,6 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
         override def restartHaproxy(name: String, confFileLoc: String,
                                     pidFileLoc: String) = {
             haproxyRestarts += 1
-            manager ! MonitorActorUp
         }
         override def createNamespace(name: String, ip: String): String = {""}
         override def getHaproxyStatus(path: String) : String = {
@@ -242,6 +258,4 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
         override def killHaproxyIfRunning(name: String, confFileLoc: String,
                                           pidFileLoc: String) = {}
     }
-
-    */
 }
