@@ -121,7 +121,7 @@ class FutureOps[T](val f: Future[T]) extends AnyVal {
         })
     }
 
-    def await(timeout: Duration = 3 seconds): T = {
+    def await(timeout: Duration = 30 seconds): T = {
         Await.result(f, timeout)
     }
 }
