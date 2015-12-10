@@ -87,4 +87,43 @@ class FlowInvalidationTest extends MidolmanSpec {
             removedFlows should be (empty)
         }
     }
+
+    feature ("Flows can be removed") {
+        scenario ("A flow is removed from the tag lists") {
+            val flow1 = new ManagedFlow(null)
+            flow1.tags.add(tag1)
+            flow1.tags.add(tag2)
+            flowInvalidation.registerFlow(flow1)
+            val flow2 = new ManagedFlow(null)
+            flow2.tags.add(tag1)
+            flow2.tags.add(tag2)
+
+            flowInvalidation.flowsFor(tag1) should contain
+                theSameElementsAs (List(flow1, flow2))
+            flowInvalidation.flowsFor(tag2) should contain
+                theSameElementsAs (List(flow1, flow2))
+
+            flowInvalidation.removeFlow(flow1)
+            removedFlows should contain theSameElementsAs List(flow1)
+
+            flowInvalidation.flowsFor(tag1) should contain
+                theSameElementsAs (List(flow2))
+            flowInvalidation.flowsFor(tag2) should contain
+                theSameElementsAs (List(flow2))
+        }
+
+        scenario ("A tag is removed when it contains no more flows") {
+            val flow = new ManagedFlow(null)
+            flow.tags.add(tag1)
+            flowInvalidation.registerFlow(flow)
+
+            flowInvalidation.flowsFor(tag1) should contain
+                theSameElementsAs (List(flow))
+
+            flowInvalidation.removeFlow(flow)
+            removedFlows should contain theSameElementsAs List(flow)
+
+            flowInvalidation.flowsFor(tag1) should be (null)
+        }
+    }
 }

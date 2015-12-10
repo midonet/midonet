@@ -41,9 +41,13 @@ trait FlowInvalidation extends FlowLifecycle {
         val numTags = flow.tags.size()
         var i = 0
         while (i < numTags) {
-            val flows = tagToFlows.get(flow.tags.get(i))
-            if (flows ne null)
+            val tag = flow.tags.get(i)
+            val flows = tagToFlows.get(tag)
+            if (flows ne null) {
                 flows.remove(flow)
+                if (flows.size() == 0)
+                    tagToFlows.remove(tag)
+            }
             i += 1
         }
     }
@@ -58,6 +62,9 @@ trait FlowInvalidation extends FlowLifecycle {
             }
         }
     }
+
+    def flowsFor(tag: FlowTag): Set[ManagedFlow] =
+        tagToFlows.get(tag)
 
     private def getOrAdd(tag: FlowTag): Set[ManagedFlow] = {
         var set = tagToFlows.get(tag)
