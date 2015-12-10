@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5ac4a560_f1f13ace",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ObjectTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-10T09:25:59Z",
+      "side": 1,
+      "message": "state of the object being tracked.",
+      "range": {
+        "startLine": 44,
+        "startChar": 40,
+        "endLine": 44,
+        "endChar": 57
+      },
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_313812a0",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 1
