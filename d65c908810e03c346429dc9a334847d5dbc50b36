@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_3183b257",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T10:00:14Z",
+      "side": 1,
+      "message": "Do you mean that the class exposes these observables?",
+      "range": {
+        "startLine": 30,
+        "startChar": 10,
+        "endLine": 30,
+        "endChar": 57
+      },
+      "revId": "d65c908810e03c346429dc9a334847d5dbc50b36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_11b5d630",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T10:00:14Z",
+      "side": 1,
+      "message": ",",
+      "revId": "d65c908810e03c346429dc9a334847d5dbc50b36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b196e292",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/PortTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T10:00:14Z",
+      "side": 1,
+      "message": "What if you get notified of the port state before the port itself and then neither the port nor the state get updated? Wouldn\u0027t that mean that the PortTracker is never ready? Or perhaps this scenario cannot happen.",
+      "range": {
+        "startLine": 78,
+        "startChar": 12,
+        "endLine": 78,
+        "endChar": 34
+      },
+      "revId": "d65c908810e03c346429dc9a334847d5dbc50b36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b1950242",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T10:00:14Z",
+      "side": 1,
+      "message": "TestAwaitableObserver to call awaitCompletion?",
+      "range": {
+        "startLine": 172,
+        "startChar": 22,
+        "endLine": 172,
+        "endChar": 34
+      },
+      "revId": "d65c908810e03c346429dc9a334847d5dbc50b36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_d190be50",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T10:00:14Z",
+      "side": 1,
+      "message": "obs.awaitCompletion?",
+      "range": {
+        "startLine": 187,
+        "startChar": 8,
+        "endLine": 187,
+        "endChar": 46
+      },
+      "revId": "d65c908810e03c346429dc9a334847d5dbc50b36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_119b1673",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T10:00:14Z",
+      "side": 1,
+      "message": "same comment as above",
+      "range": {
+        "startLine": 197,
+        "startChar": 18,
+        "endLine": 197,
+        "endChar": 45
+      },
+      "revId": "d65c908810e03c346429dc9a334847d5dbc50b36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3189f226",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T10:00:14Z",
+      "side": 1,
+      "message": "Is this really needed since it is true whenever we receive a notification?",
+      "range": {
+        "startLine": 242,
+        "startChar": 8,
+        "endLine": 242,
+        "endChar": 37
+      },
+      "revId": "d65c908810e03c346429dc9a334847d5dbc50b36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_71836a04",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T10:00:14Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 275,
+        "startChar": 8,
+        "endLine": 275,
+        "endChar": 37
+      },
+      "revId": "d65c908810e03c346429dc9a334847d5dbc50b36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b17c2222",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/PortTrackerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T10:00:14Z",
+      "side": 1,
+      "message": "TestAwaitableObserver to be able to call awaitCompletion below?",
+      "range": {
+        "startLine": 488,
+        "startChar": 22,
+        "endLine": 488,
+        "endChar": 34
+      },
+      "revId": "d65c908810e03c346429dc9a334847d5dbc50b36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
