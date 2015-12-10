@@ -22,6 +22,10 @@ import scala.util.Random
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, LBStatus}
+import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
+import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.{IkeVersion, Phase1NegotiationMode}
+import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
+import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
@@ -889,6 +893,166 @@ trait TopologyBuilder {
         builder.build()
     }
 
+    def createIkePolicy(id: UUID = UUID.randomUUID(),
+                        tenantId: Option[String] = None,
+                        name: Option[String] = None,
+                        description: Option[String] = None,
+                        auth: Option[IPSecAuthAlgorithm] = None,
+                        encryption: Option[IPSecEncryptionAlgorithm] = None,
+                        negotiation: Option[Phase1NegotiationMode] = None,
+                        version: Option[IkeVersion] = None,
+                        pfs: Option[IPSecPfs] = None,
+                        lifetimeValue: Option[Int] = None,
+                        lifetimeUnits: Option[String] = None): IkePolicy = {
+        val builder = IkePolicy.newBuilder().setId(id.asProto)
+        if (tenantId.isDefined)
+            builder.setTenantId(tenantId.get)
+        if (name.isDefined)
+            builder.setName(name.get)
+        if (description.isDefined)
+            builder.setDescription(description.get)
+        if (auth.isDefined)
+            builder.setAuthAlgorithm(auth.get)
+        if (encryption.isDefined)
+            builder.setEncryptionAlgorithm(encryption.get)
+        if (negotiation.isDefined)
+            builder.setPhase1NegotiationMode(negotiation.get)
+        if (version.isDefined)
+            builder.setIkeVersion(version.get)
+        if (pfs.isDefined)
+            builder.setPfs(pfs.get)
+        if (lifetimeValue.isDefined)
+            builder.setLifetimeValue(lifetimeValue.get)
+        if (lifetimeUnits.isDefined)
+            builder.setLifetimeUnits(lifetimeUnits.get)
+        builder.build()
+    }
+
+    def createIpsecPolicy(id: UUID = UUID.randomUUID(),
+                          tenantId: Option[String] = None,
+                          name: Option[String] = None,
+                          description: Option[String] = None,
+                          transform: Option[TransformProtocol] = None,
+                          auth: Option[IPSecAuthAlgorithm] = None,
+                          encryption: Option[IPSecEncryptionAlgorithm] = None,
+                          encapsulation: Option[EncapsulationMode] = None,
+                          pfs: Option[IPSecPfs] = None,
+                          lifetimeValue: Option[Int] = None,
+                          lifetimeUnits: Option[String] = None): IPSecPolicy = {
+        val builder = IPSecPolicy.newBuilder().setId(id.asProto)
+        if (tenantId.isDefined)
+            builder.setTenantId(tenantId.get)
+        if (name.isDefined)
+            builder.setName(name.get)
+        if (description.isDefined)
+            builder.setDescription(description.get)
+        if (transform.isDefined)
+            builder.setTransformProtocol(transform.get)
+        if (auth.isDefined)
+            builder.setAuthAlgorithm(auth.get)
+        if (encryption.isDefined)
+            builder.setEncryptionAlgorithm(encryption.get)
+        if (encapsulation.isDefined)
+            builder.setEncapsulationMode(encapsulation.get)
+        if (pfs.isDefined)
+            builder.setPfs(pfs.get)
+        if (lifetimeValue.isDefined)
+            builder.setLifetimeValue(lifetimeValue.get)
+        if (lifetimeUnits.isDefined)
+            builder.setLifetimeUnits(lifetimeUnits.get)
+        builder.build()
+    }
+
+    def createVpnService(id: UUID = UUID.randomUUID(),
+                         tenantId: Option[String] = None,
+                         name: Option[String] = None,
+                         description: Option[String] = None,
+                         adminStateUp: Option[Boolean] = None,
+                         subnetId: Option[UUID] = None,
+                         routerId: Option[UUID] = None,
+                         externalIp: Option[IPv4Addr] = None): VpnService = {
+        val builder = VpnService.newBuilder().setId(id.asProto)
+        if (tenantId.isDefined)
+            builder.setTenantId(tenantId.get)
+        if (name.isDefined)
+            builder.setName(name.get)
+        if (description.isDefined)
+            builder.setDescription(description.get)
+        if (adminStateUp.isDefined)
+            builder.setAdminStateUp(adminStateUp.get)
+        if (subnetId.isDefined)
+            builder.setSubnetId(subnetId.get.asProto)
+        if (routerId.isDefined)
+            builder.setRouterId(routerId.get.asProto)
+        if (externalIp.isDefined)
+            builder.setExternalV4Ip(externalIp.get.asProto)
+        builder.build()
+    }
+
+
+    def createIpsecSiteConnection(id: UUID = UUID.randomUUID(),
+                                  tenantId: Option[String] = None,
+                                  name: Option[String] = None,
+                                  description: Option[String] = None,
+                                  adminStateUp: Option[Boolean] = None,
+                                  peerAddress: Option[String] = None,
+                                  peerId: Option[String] = None,
+                                  externalIp: Option[IPv4Addr] = None,
+                                  localCidrs: Seq[IPv4Subnet] = Seq.empty,
+                                  peerCidrs: Seq[IPv4Subnet] = Seq.empty,
+                                  routeMode: Option[RouteMode] = None,
+                                  mtu: Option[Int] = None,
+                                  initiator: Option[Initiator] = None,
+                                  auth: Option[AuthMode] = None,
+                                  psk: Option[String] = None,
+                                  dpdAction: Option[DpdAction] = None,
+                                  dpdInterval: Option[Int] = None,
+                                  dpdTimeout: Option[Int] = None,
+                                  vpnServiceId: Option[UUID] = None,
+                                  ikePolicy: Option[IkePolicy] = None,
+                                  ipsecPolicy: Option[IPSecPolicy] = None)
+    : IPSecSiteConnection = {
+        val builder = IPSecSiteConnection.newBuilder().setId(id.asProto)
+        if (tenantId.isDefined)
+            builder.setTenantId(tenantId.get)
+        if (name.isDefined)
+            builder.setName(name.get)
+        if (description.isDefined)
+            builder.setDescription(description.get)
+        if (adminStateUp.isDefined)
+            builder.setAdminStateUp(adminStateUp.get)
+        if (peerAddress.isDefined)
+            builder.setPeerAddress(peerAddress.get)
+        if (peerId.isDefined)
+            builder.setPeerId(peerId.get)
+        if (externalIp.isDefined)
+            builder.setExternalIp(externalIp.get.asProto)
+        if (routeMode.isDefined)
+            builder.setRouteMode(routeMode.get)
+        if (mtu.isDefined)
+            builder.setMtu(mtu.get)
+        if (initiator.isDefined)
+            builder.setInitiator(initiator.get)
+        if (auth.isDefined)
+            builder.setAuthMode(auth.get)
+        if (psk.isDefined)
+            builder.setPsk(psk.get)
+        if (dpdAction.isDefined)
+            builder.setDpdAction(dpdAction.get)
+        if (dpdInterval.isDefined)
+            builder.setDpdInterval(dpdInterval.get)
+        if (dpdTimeout.isDefined)
+            builder.setDpdTimeout(dpdTimeout.get)
+        if (ikePolicy.isDefined)
+            builder.setIkePolicy(ikePolicy.get)
+        if (ipsecPolicy.isDefined)
+            builder.setIpsecPolicy(ipsecPolicy.get)
+        if (vpnServiceId.isDefined)
+            builder.setVpnServiceId(vpnServiceId.get.asProto)
+        builder.addAllLocalCidrs(localCidrs.map(_.asProto).asJava)
+        builder.addAllPeerCidrs(peerCidrs.map(_.asProto).asJava)
+        builder.build()
+    }
 }
 
 object TopologyBuilder {

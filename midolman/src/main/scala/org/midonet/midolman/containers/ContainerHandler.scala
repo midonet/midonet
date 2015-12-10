@@ -50,7 +50,7 @@ trait ContainerHandler {
       * objects change. It is the responsibility of the classes implementing
       * this interface to monitor their configuration.
       */
-    def updated(port: ContainerPort): Future[Unit]
+    def updated(port: ContainerPort): Future[String]
 
     /**
       * Deletes the container for the specified exterior port and namespace

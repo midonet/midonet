@@ -107,7 +107,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     private val observable = Observable.create(mapper)
 
     private val provider =
-        new ContainerHandlerProvider(containersPrefix, vt, log)
+        new ContainerHandlerProvider(containersPrefix, vt, executor, log)
 
     // The handlers map is concurrent because reads may be performed from
     // the handler notification thread.
