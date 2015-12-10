@@ -212,15 +212,18 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
         if (isFailed) {
             s onError failure.get()
         } else {
-            withReadLock(childrenLock) { // Probably not necessary, removals
-                                         // happen in the same thrad
+            /* This lock ensures that subscriptions are performed
+               atomically w.r.t. to the addition of children to not miss
+               notifications or be notified twice of the same child. */
+            withReadLock(childrenLock) {
                 val it = childStreams.values.iterator // NPE-safe
                 while(it.hasNext && failure.get() == null) {
                     s onNext it.next()
                 }
-            }
-            if (!isFailed) {
-                stream subscribe s
+
+                if (!isFailed) {
+                    stream subscribe s
+                }
             }
         }
     }
@@ -249,7 +252,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
         }
 
         childStreams.values.foreach { _ onError t }
-        childStreams.clear()
+        withWriteLock(childrenLock) { childStreams.clear() }
 
         // Aid GC, in case someone keeps a ref to this object
         stream = null
@@ -265,6 +268,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
      */
     private def lostChild(e: PathChildrenCacheEvent): Unit = {
         var cs: Option[Subject[ChildData, ChildData]] = Option.empty
+
         withWriteLock(childrenLock) {
             cs = childStreams.remove(e.getData.getPath)
         }
@@ -292,16 +296,20 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
             return
         }
         var newStream: Subject[ChildData, ChildData] = null
+        /* This lock ensures that subscriptions are performed
+           atomically w.r.t. to the addition of children so that
+           subscribers do not miss notifications nor are notified
+           twice of the same child. */
         withWriteLock(childrenLock) {
             if (!childStreams.contains(childData.getPath)) {
                 newStream = BehaviorSubject.create(childData)
                 childStreams.put(childData.getPath, newStream)
             }
-        }
-        if (isFailed) {
-            childStreams.remove(childData.getPath)
-        } else if (newStream != null) {
-            stream onNext newStream
+            if (isFailed) {
+                childStreams.remove(childData.getPath)
+            } else if (newStream != null) {
+                stream onNext newStream
+            }
         }
     }
 
