@@ -478,9 +478,11 @@ public class L3ZkManager extends BaseZkManager {
         // Update the Neutron router to have gwPortId set to null.
         // This should also delete routes for these ports.
         Router r = getRouter(port.deviceIdUuid());
-        r.gwPortId = null;
-        ops.add(zk.getSetDataOp(paths.getNeutronRouterPath(r.id),
-                serializer.serialize(r)));
+        if (r != null) {
+            r.gwPortId = null;
+            ops.add(zk.getSetDataOp(paths.getNeutronRouterPath(r.id),
+                                    serializer.serialize(r)));
+        }
 
         // Note: Deleting ports does not delete rules referencing them.
         // Remove all the NAT rules referencing this port from the tenant
