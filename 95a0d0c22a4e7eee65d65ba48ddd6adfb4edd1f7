@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_b4db30ec",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-10T14:14:46Z",
+      "side": 1,
+      "message": "Oh ok, I just misunderstood the sentence.",
+      "parentUuid": "5ac4a560_cb356bdc",
+      "range": {
+        "startLine": 117,
+        "startChar": 30,
+        "endLine": 117,
+        "endChar": 39
+      },
+      "revId": "95a0d0c22a4e7eee65d65ba48ddd6adfb4edd1f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_2458e531",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ContainerMapper.scala",
         "patchSetId": 7
