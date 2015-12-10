@@ -16,6 +16,24 @@
       "revId": "829aea5580d2515afd27ab1d31217b91a9eddf6a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9102c66d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/HostGroupTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-10T10:26:12Z",
+      "side": 1,
+      "message": "Not needed because the method takes arguments, it would be either (_) or without parentheses.",
+      "parentUuid": "5ac4a560_d19efe53",
+      "revId": "829aea5580d2515afd27ab1d31217b91a9eddf6a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
