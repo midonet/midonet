@@ -128,13 +128,13 @@ class SchedulerTest extends FeatureSpec with BeforeAndAfter with Matchers
             obs.awaitOnNext(3, timeout)
             scheduler.stopScheduling()
 
-            obs.getOnNextEvents.get(0) shouldEqual Allocation(containerId, group, primaryHostId)
-            obs.getOnNextEvents.get(1) shouldBe Deallocation(containerId, group, primaryHostId)
-            obs.getOnNextEvents.get(2) shouldBe Allocation(containerId, group, failbackHostId)
+            obs.getOnNextEvents.get(0) shouldEqual Allocation(container, group, primaryHostId)
+            obs.getOnNextEvents.get(1) shouldBe Deallocation(container, primaryHostId)
+            obs.getOnNextEvents.get(2) shouldBe Allocation(container, group, failbackHostId)
             obs.getOnNextEvents should contain allOf (
-                Allocation(containerId, group, primaryHostId),
-                Deallocation(containerId, group, primaryHostId),
-                Allocation(containerId, group, failbackHostId)
+                Allocation(container, group, primaryHostId),
+                Deallocation(container, primaryHostId),
+                Allocation(container, group, failbackHostId)
             )
         }
 

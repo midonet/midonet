@@ -16,15 +16,21 @@
 
 package org.midonet.cluster.services.containers
 
+import java.util.concurrent.Executors
+
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
 
+import rx.Observer
+import rx.schedulers.Schedulers
+
 import org.midonet.cluster.ClusterNode.Context
-import org.midonet.cluster.{ClusterConfig, containersLog}
-import org.midonet.cluster.services.{ClusterService, Minion}
+import org.midonet.cluster.services.containers.schedulers._
+import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
+import org.midonet.cluster.{ClusterConfig, ClusterNode, containersLog}
 
 /**
   * This is the cluster service for container management across the MidoNet
@@ -42,8 +48,33 @@ class ContainerService @Inject()(nodeContext: Context,
 
     override def isEnabled = config.containers.isEnabled
 
+    private val executor = Executors.newSingleThreadExecutor()
+
+    private val scheduler = Schedulers.from(executor)
+
+    private val backend = ClusterNode.injector.getInstance(classOf[MidonetBackend])
+
+    protected var containerScheduler: Scheduler = new Scheduler(backend.store,
+                                                                backend.stateStore,
+                                                                executor)
+
     override def doStart(): Unit = {
         log info "Starting Container Management service"
+        containerScheduler.eventObservable
+            .onBackpressureBuffer
+            .observeOn(scheduler)
+            .subscribe(new Observer[ContainerEvent] {
+                override def onCompleted(): Unit = {
+                    log.info("Container updates no longer tracked (stream completed)")
+                }
+                override def onError(t: Throwable): Unit = {
+                    log.warn("Container updates no longer tracked (stream error)", t)
+                }
+                override def onNext(t: ContainerEvent): Unit = {
+                    log.info("Forward event to the corresponding container delegate.")
+                }
+            })
+        containerScheduler.startScheduling()
         notifyStarted()
     }
 
@@ -51,3 +82,4 @@ class ContainerService @Inject()(nodeContext: Context,
         notifyStopped()
     }
 }
+
