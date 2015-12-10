@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_949d545c",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IpsecServiceContainer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-10T13:23:05Z",
+      "side": 1,
+      "message": "I agree, we can do it when integrating with the container handler.",
+      "parentUuid": "5ac4a560_54a57cb3",
+      "range": {
+        "startLine": 170,
+        "startChar": 0,
+        "endLine": 174,
+        "endChar": 57
+      },
+      "revId": "94340a2201ba3790f9e38a00e272e0eb4c599f15",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_3489e026",
         "filename": "midolman/src/test/scala/org/midonet/midolman/containers/IpsecServiceContainerTest.scala",
         "patchSetId": 4
@@ -36,6 +60,24 @@
       "writtenOn": "2015-12-10T13:12:34Z",
       "side": 1,
       "message": "Integration tests with the ipsec daemon might be needed here besides UT (not now maybe). Actually test that the vpn helper script does what it should.",
+      "revId": "94340a2201ba3790f9e38a00e272e0eb4c599f15",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_b4a3309d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/IpsecServiceContainerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-10T13:23:05Z",
+      "side": 1,
+      "message": "Integration tests should go to /src/integration isn\u0027t it?",
+      "parentUuid": "5ac4a560_3489e026",
       "revId": "94340a2201ba3790f9e38a00e272e0eb4c599f15",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
