@@ -87,15 +87,15 @@ public class IPSecSiteConnection extends ZoomObject {
     public Integer dpdTimeout;
 
     @JsonProperty("vpnservice_id")
-    @ZoomField(name = "vpnservice_id")
+    @ZoomField(name = "vpn_service_id")
     public UUID vpnServiceId;
 
     @JsonProperty("ikepolicy")
-    @ZoomField(name = "ikepolicy")
+    @ZoomField(name = "ike_policy")
     public IkePolicy ikePolicy;
 
     @JsonProperty("ipsecpolicy")
-    @ZoomField(name = "ipsecpolicy")
+    @ZoomField(name = "ipsec_policy")
     public IPSecPolicy ipsecPolicy;
 
     @ZoomEnum(clazz = Neutron.IPSecSiteConnection.Status.class)
