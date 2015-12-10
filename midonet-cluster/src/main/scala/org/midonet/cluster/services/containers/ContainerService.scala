@@ -54,6 +54,8 @@ class ContainerService @Inject()(nodeContext: Context,
 
     private val backend = ClusterNode.injector.getInstance(classOf[MidonetBackend])
 
+    private val delegateFactory = new ContainerDelegateFactory(backend)
+    
     protected var containerScheduler: Scheduler = new Scheduler(backend.store,
                                                                 backend.stateStore,
                                                                 executor)
@@ -70,8 +72,13 @@ class ContainerService @Inject()(nodeContext: Context,
                 override def onError(t: Throwable): Unit = {
                     log.warn("Container updates no longer tracked (stream error)", t)
                 }
-                override def onNext(t: ContainerEvent): Unit = {
-                    log.info("Forward event to the corresponding container delegate.")
+                override def onNext(t: ContainerEvent): Unit = t match {
+                    case Allocation(container, group, hostId) =>
+                        delegateFactory.getContainerDelegate(container)
+                            .onCreate(container, group, hostId)
+                    case Deallocation(container, hostId) =>
+                        delegateFactory.getContainerDelegate(container)
+                            .onDelete(container, null, hostId)
                 }
             })
         containerScheduler.startScheduling()

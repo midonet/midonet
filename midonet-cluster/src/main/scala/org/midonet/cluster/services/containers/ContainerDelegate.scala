@@ -16,10 +16,14 @@
 
 package org.midonet.cluster.services.containers
 
+import java.util
 import java.util.UUID
 
 import org.midonet.cluster.models.State.ContainerStatus
 import org.midonet.cluster.models.Topology.{ServiceContainerGroup, ServiceContainer}
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.logging.ProtoTextPrettifier._
+
 
 /**
   * Allows the implementation of custom handlers for the service containers.
@@ -93,4 +97,27 @@ trait ContainerDelegate {
     def onDelete(container: ServiceContainer, group: ServiceContainerGroup,
                  hostId: UUID): Unit
 
+}
+
+class ContainerDelegateFactory(backend: MidonetBackend) {
+
+    private val delegates = new util.HashMap[String, ContainerDelegate]()
+
+    def getContainerDelegate(container: ServiceContainer): ContainerDelegate = {
+        if (delegates.containsKey(container.getServiceType)) {
+            delegates.get(container.getServiceType)
+        }
+        else {
+            var delegate: ContainerDelegate = null
+            container.getServiceType match {
+                case "IPSEC" =>
+                    delegate = new IpsecContainerDelegate(backend.store)
+                case _ =>
+                    throw new IllegalArgumentException(
+                        s"Unsupported service type for container ${makeReadable(container)}")
+            }
+            delegates.put(container.getServiceType, delegate)
+            delegate
+        }
+    }
 }
