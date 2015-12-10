@@ -77,7 +77,7 @@ object HaproxyHealthMonitor {
     // Tells this actor that the config for the health monitor has changed.
     case class ConfigUpdate(conf: PoolConfig) extends HHMMessage
     // Tells this actor to poll haproxy once for health info.
-    private[HaproxyHealthMonitor] case object CheckHealth extends HHMMessage
+    case object CheckHealth extends HHMMessage
     // Tells this actor that its router has been removed
     case object RouterRemoved
     // Tells this actor that it now has a router
@@ -281,7 +281,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
      * backend_id,name_of_server,0,0,0,0,,0,0,0,,0,,0,0,0,0,DOWN,1,1,0,0,1,
      * 2411,2411,,1,2,2,,0,,2,0,,0,L4CON,,1999,,,,,,,0,,,,0,0,
      */
-    private def parseResponse(resp: String): (Set[UUID], Set[UUID]) = {
+    protected def parseResponse(resp: String): (Set[UUID], Set[UUID]) = {
         if (resp == null) {
             return (currentUpNodes, currentDownNodes)
         }
@@ -557,8 +557,7 @@ class IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
     def deleteNS(ns: String) = netns("del " + ns)
 
     def namespaceExist(ns: String) =
-        ProcessHelper.executeCommandLine("ip netns list")
-            .consoleOutput.exists(_.contains(ns))
+        execGetOutput("ip netns list").exists(_.contains(ns))
 
     /** Create a network namespace with name "ns" if it does not already exist.
       *  Do not try to delete an old network namespace with same name, because
@@ -572,13 +571,13 @@ class IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
     def ensureNoInterface(itf: String) =
         if (ifaceExists(itf) == 0) deleteItf(itf) else 0
 
-    def deleteItf(itf: String) = link(" delete " + itf)
+    def deleteItf(itf: String) = link("delete " + itf)
 
     def interfaceExistsInNs(ns: String, interface: String): Boolean =
         if (!namespaceExist(ns)) false
         else netns("exec " + ns + " ip link show " + interface) == 0
 
-    /** creates an interface anad put a mirror in given network namespace */
+    /** creates an interface and put a mirror in given network namespace */
     def preparePair(itf: String, mirror: String, ns: String) =
         link("add name " + itf + " type veth peer name " + mirror) |
             link("set " + mirror + " netns " + ns)
@@ -593,10 +592,10 @@ class IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
 
     /** Configure the mac address of given interface */
     def configureMac(itf: String, mac: String, ns: String = "") =
-        execIn(ns, " ip link set dev " + itf + " up address " + mac)
+        execIn(ns, "ip link set dev " + itf + " up address " + mac)
 
     /** Configure the ip address of given interface */
     def configureIp(itf: String, ip: String, ns: String = "") =
-        execIn(ns, " ip addr add " + ip + " dev " + itf)
+        execIn(ns, "ip addr add " + ip + " dev " + itf)
 
 }
