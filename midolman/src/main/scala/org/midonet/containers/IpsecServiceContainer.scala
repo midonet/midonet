@@ -25,11 +25,16 @@ import org.midonet.cluster.models.Neutron.IPSecPolicy.{EncapsulationMode, Transf
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.{DpdAction, Initiator}
 import org.midonet.cluster.models.Neutron.{IPSecPolicy, IPSecSiteConnection, IkePolicy}
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{IPv4Subnet, IPv4Addr}
 
 
-case class IpsecServiceDef(name: String, filepath: String, leftIp: IPv4Addr,
-                           gatewayIp: IPv4Addr, mac: String)
+case class IpsecServiceDef(name: String,
+                           filepath: String,
+                           localEndpointIp: IPv4Addr,
+                           localEndpointMac: String,
+                           namespaceInterfaceIp: IPv4Subnet,
+                           namespaceGatewayIp: IPv4Addr,
+                           namespaceGatewayMac: String)
 
 case class IpsecConnection(ipsecPolicy: IPSecPolicy,
                            ikePolicy: IkePolicy,
@@ -49,7 +54,7 @@ case class IpsecServiceConfig(script: String,
     def getSecretsFileContents = {
         val contents = new StringBuilder
         conns foreach (c => contents append
-            s"""${ipsecService.leftIp} ${c.ipsecSiteConnection.getPeerAddress} : PSK \"${c.ipsecSiteConnection.getPsk}\"
+            s"""${ipsecService.localEndpointIp} ${c.ipsecSiteConnection.getPeerAddress} : PSK \"${c.ipsecSiteConnection.getPsk}\"
                |""".stripMargin)
         contents.toString()
     }
@@ -116,8 +121,8 @@ case class IpsecServiceConfig(script: String,
             s"""conn ${c.ipsecSiteConnection.getName}
                |    leftnexthop=%defaultroute
                |    rightnexthop=%defaultroute
-               |    left=${ipsecService.leftIp}
-               |    leftid=${ipsecService.leftIp}
+               |    left=${ipsecService.localEndpointIp}
+               |    leftid=${ipsecService.localEndpointIp}
                |    auto=${initiatorToAuto(c.ipsecSiteConnection.getInitiator)}
                |    leftsubnets={ ${subnetsString(c.ipsecSiteConnection.getLocalCidrsList)} }
                |    leftupdown="ipsec _updown --route yes"
@@ -141,16 +146,22 @@ case class IpsecServiceConfig(script: String,
     }
 
     val makeNsCmd =
-        s"$script makens -n ${ipsecService.name} -g ${ipsecService.gatewayIp} " +
-        s"-l ${ipsecService.leftIp} -i ${ipsecService.leftIp} " +
-        s"-m ${ipsecService.mac}"
+        s"$script makens " +
+        s"-n ${ipsecService.name} " +
+        s"-g ${ipsecService.namespaceGatewayIp} " +
+        s"-G ${ipsecService.namespaceGatewayMac} " +
+        s"-l ${ipsecService.localEndpointIp} " +
+        s"-i ${ipsecService.namespaceInterfaceIp} " +
+        s"-m ${ipsecService.localEndpointMac}"
 
     val startServiceCmd =
         s"$script start_service -n ${ipsecService.name} -p ${ipsecService.filepath}"
 
     def initConnsCmd = {
-        val cmd = new StringBuilder(s"$script init_conns -n ${ipsecService.name} " +
-                                    s"-p ${ipsecService.filepath}")
+        val cmd = new StringBuilder(s"$script init_conns " +
+                                    s"-n ${ipsecService.name} " +
+                                    s"-p ${ipsecService.filepath} " +
+                                    s"-g ${ipsecService.namespaceGatewayIp}")
         conns foreach (c => cmd append s" -c ${c.ipsecSiteConnection.getName}")
         cmd.toString
     }
@@ -200,7 +211,7 @@ trait ServiceContainerFunctions extends MidolmanLogging {
      * executes a command and logs the output.
      */
     def execCmd(cmd: String): Unit = {
-        log.info(s"""CMD: $cmd""")
+        log.info(s"CMD: $cmd")
         val cmdLogger = ProcessLogger(line => log.info(line),
                                       line => log.error(line))
         cmd ! cmdLogger
@@ -222,7 +233,6 @@ trait IpsecServiceContainerFunctions extends ServiceContainerFunctions {
 
         try {
             log.info(s"Starting VPN service ${conf.ipsecService.name}")
-
             new File(conf.confDir).mkdirs()
             log.info(s"Writing configuration to ${conf.confLoc}")
             writeFile(conf.getConfigFileContents, conf.confLoc)
