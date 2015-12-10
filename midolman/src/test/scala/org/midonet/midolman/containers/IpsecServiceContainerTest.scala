@@ -15,7 +15,6 @@
  */
 package org.midonet.midolman.containers
 
-import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.concurrent.Eventually
@@ -25,7 +24,7 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.IkePolicy.IkeVersion
 import org.midonet.cluster.models.Neutron._
 import org.midonet.containers._
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{IPv4Subnet, IPv4Addr}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -33,6 +32,8 @@ class IpsecServiceContainerTest extends FeatureSpec with Matchers with Eventuall
 
     val vpnService = new IpsecServiceDef("name", "/opt/stack/stuff",
                                          IPv4Addr.fromString("100.100.100.2"),
+                                         "00:01:02:03:04:05",
+                                         IPv4Subnet.fromCidr("1.0.0.0/24"),
                                          IPv4Addr.fromString("1.1.1.1"),
                                          "09:08:07:06:05:04")
 
@@ -110,8 +111,8 @@ class IpsecServiceContainerTest extends FeatureSpec with Matchers with Eventuall
             val actualConf = conf.getConfigFileContents
             val actualSecrets = conf.getSecretsFileContents
 
-            assertEquals(expectedConf, actualConf)
-            assertEquals(expectedSecrets, actualSecrets)
+            expectedConf shouldBe actualConf
+            expectedSecrets shouldBe actualSecrets
         }
         scenario("VpnServiceContainer creates config for multiple conns") {
             val expectedSecrets =
@@ -195,10 +196,10 @@ class IpsecServiceContainerTest extends FeatureSpec with Matchers with Eventuall
                     .build())
                 .build()
             val secondConn = new IpsecConnection(iPSecPolicy, ikePolicy, ipsecConn2)
-            var conf = new IpsecServiceConfig("vpn-helper", vpnService,
+            val conf = new IpsecServiceConfig("vpn-helper", vpnService,
                                             List(conn, secondConn))
-            var actualConf = conf.getConfigFileContents
-            assertEquals(expectedConf, actualConf)
+            val actualConf = conf.getConfigFileContents
+            expectedConf shouldBe actualConf
         }
     }
 
@@ -207,19 +208,21 @@ class IpsecServiceContainerTest extends FeatureSpec with Matchers with Eventuall
             val conn = new IpsecConnection(iPSecPolicy, ikePolicy, iPSecSiteConnection)
             val conf = new IpsecServiceConfig("vpn-helper", vpnService, List(conn))
             TestVpnServiceContainter.start(conf)
-            assertEquals(TestVpnServiceContainter.cmdList(0),
-                "vpn-helper makens -n name -g 1.1.1.1 -l 100.100.100.2 -i 100.100.100.2 -m 09:08:07:06:05:04")
-            assertEquals(TestVpnServiceContainter.cmdList(1),
-                "vpn-helper start_service -n name -p /opt/stack/stuff")
-            assertEquals(TestVpnServiceContainter.cmdList(2),
-                "vpn-helper init_conns -n name -p /opt/stack/stuff -c test_conn")
+            TestVpnServiceContainter.cmdList(0) shouldBe
+                "vpn-helper makens -n name -g 1.1.1.1 -G 09:08:07:06:05:04 " +
+                "-l 100.100.100.2 -i 1.0.0.0/24 -m 00:01:02:03:04:05"
+            TestVpnServiceContainter.cmdList(1) shouldBe
+                "vpn-helper start_service -n name -p /opt/stack/stuff"
+            TestVpnServiceContainter.cmdList(2) shouldBe
+                "vpn-helper init_conns -n name -p /opt/stack/stuff -g 1.1.1.1 " +
+                "-c test_conn"
 
             TestVpnServiceContainter.stop(conf)
 
-            assertEquals(TestVpnServiceContainter.cmdList(3),
-                "vpn-helper stop_service -n name -p /opt/stack/stuff")
-            assertEquals(TestVpnServiceContainter.cmdList(4),
-                "vpn-helper cleanns -n name")
+            TestVpnServiceContainter.cmdList(3) shouldBe
+                "vpn-helper stop_service -n name -p /opt/stack/stuff"
+            TestVpnServiceContainter.cmdList(4) shouldBe
+                "vpn-helper cleanns -n name"
         }
     }
 
