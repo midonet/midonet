@@ -107,6 +107,31 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
         isConnectionTracked = false
     }
 
+    /*
+     * NOTE: Flow tagging and conntrack.
+     *
+     * Conntrack key querying can happen in different circumstances:
+     *
+     *   1.- A genuine, regular, forward flow. We query the conntrack table
+     *       and find nothing. We generate a conntrack key based on the egress
+     *       device (see trackConnection(), below) and install it on the table.
+     *
+     *   2.- A bogus forward flow. The flow is actually a return flow, but the
+     *       conntrack key has, for some reason, not arrived to this host yet.
+     *       We want to invalidate the resulting flow upon later arrival of
+     *       the key.
+     *
+     *   3.- A return flow. We query the conntrack table and find the conntrack
+     *       key for this flow.
+     *
+     * Case #2 needs tag-based flow invalidation. Cases #1 and #3 do not need it,
+     * There is no event related to the conntrack key (including expiration, because
+     * a longer lifetime is actually desirable) that would render the flow invalid.
+     *
+     * Therefore, isForwardFlow must tag only if its result is true, based on
+     * the possibility that the result is bogus and the conntrack key is due
+     * to arrive at a later time.
+     */
     def isForwardFlow: Boolean =
         if (isConnectionTracked) {
             flowDirection ne RETURN_FLOW
@@ -116,8 +141,9 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
             } else {
                 isConnectionTracked = true
                 connKey = ConnTrackKey(origMatch, fetchIngressDevice())
-                addFlowTag(connKey)
                 flowDirection = conntrackTx.get(connKey)
+                if (flowDirection ne RETURN_FLOW)
+                    addFlowTag(connKey)
                 val res = flowDirection ne RETURN_FLOW
                 log.debug("Connection is forward flow = {}",
                           res.asInstanceOf[java.lang.Boolean])
@@ -131,7 +157,6 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
         if (isConnectionTracked && (flowDirection ne RETURN_FLOW)) {
             val returnKey = EgressConnTrackKey(wcmatch, egressDeviceId)
             conntrackTx.putAndRef(returnKey, RETURN_FLOW)
-            addFlowTag(returnKey)
         }
 
     protected def fetchIngressDevice(): UUID = {
