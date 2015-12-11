@@ -66,6 +66,9 @@ class FlowTagIndexerTest extends MidolmanSpec {
 
             flowInvalidation.invalidateFlowsFor(tag2)
             removedFlows should be (empty)
+
+            flowInvalidation.flowsFor(tag1) should be (null)
+            flowInvalidation.flowsFor(tag2) should be (null)
         }
 
         scenario ("Multiple flows can be invalidated") {
@@ -85,6 +88,49 @@ class FlowTagIndexerTest extends MidolmanSpec {
 
             flowInvalidation.invalidateFlowsFor(tag2)
             removedFlows should be (empty)
+
+            flowInvalidation.flowsFor(tag1) should be (null)
+            flowInvalidation.flowsFor(tag2) should be (null)
         }
+    }
+
+    feature ("Flows can be removed") {
+        scenario ("A flow is removed from the tag lists") {
+            val flow1 = new ManagedFlow(null)
+            flow1.tags.add(tag1)
+            flow1.tags.add(tag2)
+            flowInvalidation.registerFlow(flow1)
+            val flow2 = new ManagedFlow(null)
+            flow2.tags.add(tag1)
+            flow2.tags.add(tag2)
+
+            flowInvalidation.flowsFor(tag1) should contain
+                theSameElementsAs (List(flow1, flow2))
+            flowInvalidation.flowsFor(tag2) should contain
+                theSameElementsAs (List(flow1, flow2))
+
+            flowInvalidation.removeFlow(flow1)
+            removedFlows should contain theSameElementsAs List(flow1)
+
+            flowInvalidation.flowsFor(tag1) should contain
+                theSameElementsAs (List(flow2))
+            flowInvalidation.flowsFor(tag2) should contain
+                theSameElementsAs (List(flow2))
+        }
+
+        scenario ("A tag is removed when it contains no more flows") {
+            val flow = new ManagedFlow(null)
+            flow.tags.add(tag1)
+            flowInvalidation.registerFlow(flow)
+
+            flowInvalidation.flowsFor(tag1) should contain
+                theSameElementsAs (List(flow))
+
+            flowInvalidation.removeFlow(flow)
+            removedFlows should contain theSameElementsAs List(flow)
+
+            flowInvalidation.flowsFor(tag1) should be (null)
+        }
+
     }
 }
