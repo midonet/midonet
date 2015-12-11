@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "5ac4a560_141bff1b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-11T16:39:38Z",
+      "side": 1,
+      "message": "order imports",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 71
+      },
+      "revId": "14097ec03753524a584f6364f591b76d7fff3d19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_7430b39e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
         "patchSetId": 1
