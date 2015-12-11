@@ -19,7 +19,7 @@ package org.midonet.cluster.services.containers
 import java.util.UUID
 
 import org.midonet.cluster.models.State.ContainerStatus
-import org.midonet.cluster.models.Topology.{ServiceContainerGroup, ServiceContainer}
+import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.containers.Container
 
 /**
@@ -64,8 +64,7 @@ trait ContainerDelegate {
       * implementation of this method must create a port bound to an interface
       * name.
       */
-    def onCreate(container: ServiceContainer, group: ServiceContainerGroup,
-                 hostId: UUID): Unit
+    def onCreate(container: ServiceContainer, hostId: UUID): Unit
 
     /**
       * Method called when the container namespace and veth port pair are
@@ -74,8 +73,7 @@ trait ContainerDelegate {
       * [[ContainerStatus]] with the host identifier, namespace and interface
       * name where the container is connected and the container health status.
       */
-    def onUp(container: ServiceContainer, group: ServiceContainerGroup,
-             status: ContainerStatus): Unit
+    def onUp(container: ServiceContainer, status: ContainerStatus): Unit
 
     /**
       * Method called when the container is no longer available on the scheduled
@@ -84,14 +82,12 @@ trait ContainerDelegate {
       * maintaining the container and reported status DOWN, or (3) the container
       * has been deleted.
       */
-    def onDown(container: ServiceContainer, group: ServiceContainerGroup,
-               status: ContainerStatus): Unit
+    def onDown(container: ServiceContainer, status: ContainerStatus): Unit
 
     /**
       * Method called when the container has been deleted. The implementation
       * of this method must delete the port created for this container.
       */
-    def onDelete(container: ServiceContainer, group: ServiceContainerGroup,
-                 hostId: UUID): Unit
+    def onDelete(container: ServiceContainer, hostId: UUID): Unit
 
 }
