@@ -22,6 +22,30 @@
       "revId": "6429eaf16828915d3dfee7cf48792974254bb7ca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_540657cf",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T16:34:49Z",
+      "side": 1,
+      "message": "Maybe its the end of the week :p... Anyway, My reason for this was if you forget either the password or the user, which can happen because they both have a default value. You get an exception instead of it still connecting anonymously without a warning.",
+      "parentUuid": "5ac4a560_9459cf00",
+      "range": {
+        "startLine": 39,
+        "startChar": 8,
+        "endLine": 41,
+        "endChar": 93
+      },
+      "revId": "6429eaf16828915d3dfee7cf48792974254bb7ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
