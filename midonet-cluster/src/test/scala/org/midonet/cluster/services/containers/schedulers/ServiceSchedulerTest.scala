@@ -110,7 +110,7 @@ class ServiceSchedulerTest extends FeatureSpec with SchedulersTest
             Then("The observer should receive the schedule notification for all containers")
             obs.getOnNextEvents should have size 3
             obs.getOnNextEvents.asScala
-               .map(_.asInstanceOf[ScheduleEvent].container) should contain allOf(
+               .map(_.asInstanceOf[Schedule].container) should contain allOf(
                     container1, container2, container3)
 
             And("There should be three containers")

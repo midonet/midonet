@@ -28,9 +28,13 @@ import rx.Scheduler
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.State.{ContainerStatus, ContainerServiceStatus}
-import org.midonet.cluster.models.Topology.{ServiceContainer, ServiceContainerGroup}
+import org.midonet.cluster.models.Topology.ServiceContainer
+import org.midonet.cluster.util.UUIDUtil._
 
 package object schedulers {
+
+    private final val ContainerIdField = "containerId"
+    private final val ContainerTypeField = "containerType"
 
     /**
       * Wraps context variables such as the backend storage, executor and
@@ -42,15 +46,35 @@ package object schedulers {
                        scheduler: Scheduler,
                        log: Logger)
 
-    trait SchedulerEvent
-    case class ScheduleEvent(container: ServiceContainer,
-                             hostId: UUID) extends SchedulerEvent
-    case class UpEvent(container: ServiceContainer,
-                       status: ContainerStatus) extends SchedulerEvent
-    case class DownEvent(container: ServiceContainer,
-                         @Nullable status: ContainerStatus) extends SchedulerEvent
-    case class UnscheduleEvent(container: ServiceContainer,
-                               host: UUID) extends SchedulerEvent
+    trait SchedulerEvent { def container: ServiceContainer }
+    case class Schedule(container: ServiceContainer,
+                        hostId: UUID) extends SchedulerEvent {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add(ContainerIdField, container.getId.asJava)
+            .add(ContainerTypeField, container.getServiceType)
+            .toString
+    }
+    case class Up(container: ServiceContainer,
+                  status: ContainerStatus) extends SchedulerEvent {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add(ContainerIdField, container.getId.asJava)
+            .add(ContainerTypeField, container.getServiceType)
+            .toString
+    }
+    case class Down(container: ServiceContainer,
+                    @Nullable status: ContainerStatus) extends SchedulerEvent {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add(ContainerIdField, container.getId.asJava)
+            .add(ContainerTypeField, container.getServiceType)
+            .toString
+    }
+    case class Unschedule(container: ServiceContainer,
+                          host: UUID) extends SchedulerEvent {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add(ContainerIdField, container.getId.asJava)
+            .add(ContainerTypeField, container.getServiceType)
+            .toString
+    }
 
     type HostsEvent = Map[UUID, HostEvent]
 

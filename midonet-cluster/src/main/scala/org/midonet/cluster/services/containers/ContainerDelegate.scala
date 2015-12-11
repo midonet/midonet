@@ -37,14 +37,14 @@ import org.midonet.containers.Container
   *
   * The lifetime of a service container is the following:
   *
-  *                (1) onCreate
+  *                (1) onAllocate
   *                The container is created via the
   *                API and is being scheduled on
   *   +---------+  a specific agent.    +---------+
   *   | DELETED |---------------------->| CREATED |
   *   |         |                       |         |
   *   +---------+                       +---------+
-  *        | (4) onDelete                    | (2) onUp
+  *        | (4) onDeallocate                | (2) onUp
   *        | The container is deleted via    | The container has been connected
   *        | API.                            | on the scheduled agent, and the
   *        |                                 | agent reported the container up.
