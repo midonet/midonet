@@ -23,8 +23,8 @@ import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito
-import org.scalatest.{GivenWhenThen, Matchers, FlatSpec}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterConfig
