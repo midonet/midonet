@@ -99,7 +99,7 @@ class ConntrackStateTest extends MidolmanSpec {
             ctx should be (taggedWith (ingressKey))
 
             ctx.trackConnection(egressDevice)
-            ctx should be (taggedWith (ingressKey, egressKey))
+            ctx should be (taggedWith (ingressKey))
 
             connTrackTx.size() should be (1)
             val values = transactionValues(connTrackTx)
@@ -123,7 +123,7 @@ class ConntrackStateTest extends MidolmanSpec {
             ctx should be (taggedWith (ingressKey))
 
             ctx.trackConnection(egressDevice)
-            ctx should be (taggedWith (ingressKey, egressKey))
+            ctx should be (taggedWith (ingressKey))
 
             connTrackTx.size() should be (1)
             val values = transactionValues(connTrackTx)
@@ -143,9 +143,9 @@ class ConntrackStateTest extends MidolmanSpec {
             connTrackStateTable.putAndRef(ingressKey, false)
 
             ctx.isForwardFlow should be (false)
-            ctx should be (taggedWith (ingressKey))
+            ctx should be (taggedWith ())
             ctx.trackConnection(egressDevice)
-            ctx should be (taggedWith (ingressKey))
+            ctx should be (taggedWith ())
 
             connTrackTx.size() should be (0)
         }
