@@ -18,6 +18,12 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.{UUID, List => JList}
 
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NoOpNatLeaser
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
+import org.midonet.sdn.state.{NoOpFlowStateTable, FlowStateTransaction}
+
 import scala.concurrent.ExecutionContext
 
 import com.typesafe.scalalogging.Logger
@@ -374,6 +380,18 @@ class Router(override val id: UUID,
             eth.setPayload(packet)
         }
 
+        def initPackContext(pcktContext: PacketContext): Unit = {
+            val connTrackTx = new FlowStateTransaction(
+                new NoOpFlowStateTable[ConnTrackKey, ConnTrackValue]())
+            val natTx = new FlowStateTransaction(
+                new NoOpFlowStateTable[NatKey, NatBinding]())
+            val traceStateTx = new FlowStateTransaction(
+                new NoOpFlowStateTable[TraceKey, TraceContext]())
+
+            pcktContext.initialize(connTrackTx, natTx, new NoOpNatLeaser(),
+                                   traceStateTx)
+        }
+
         def _sendIPPacket(outPort: RouterPort, rt: Route): Boolean = {
             if (packet.getDestinationIPAddress == outPort.portAddress) {
                 /* should never happen: it means we are trying to send a packet
@@ -398,6 +416,7 @@ class Router(override val id: UUID,
                     val egrMatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
                     val egrPktContext = new PacketContext(0,
                         new Packet(eth, egrMatch, eth.length), egrMatch, outPort.id)
+                    initPackContext(egrPktContext)
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter
