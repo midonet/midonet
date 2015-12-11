@@ -1,0 +1,256 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_da2ff39f",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "Please sort these.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 14
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fa2aef8e",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this either just \"If user:\" or \"if user and passwd:\"? That is, can a password be specified without a user name?",
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1a196b88",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "Please insert white space after the comma.",
+      "range": {
+        "startLine": 41,
+        "startChar": 63,
+        "endLine": 41,
+        "endChar": 69
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3a1c6777",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "White space after the comma, and 80-cols limit.",
+      "range": {
+        "startLine": 43,
+        "startChar": 93,
+        "endLine": 43,
+        "endChar": 104
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5a13e365",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "Here, too.",
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9a0c9b44",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "Can we rename this to something more specific?",
+      "range": {
+        "startLine": 51,
+        "startChar": 12,
+        "endLine": 51,
+        "endChar": 18
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ba07971c",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 59,
+        "startChar": 12,
+        "endLine": 59,
+        "endChar": 18
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_25752898",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "It doesn\u0027t really \"transform\".  \"parse\", \"decode\" or something similar?",
+      "range": {
+        "startLine": 72,
+        "startChar": 9,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_da061320",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "Why are we down-casting here to int?",
+      "range": {
+        "startLine": 74,
+        "startChar": 20,
+        "endLine": 74,
+        "endChar": 23
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7a3fbfd6",
+        "filename": "tests/mdts/services/midonet_cluster.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "This should be moved just above \"from mdts.service import Service\", at least.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 48
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9a257bc4",
+        "filename": "tests/mdts/services/midonet_cluster.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "Please bring this closer to \"from mdts.services.service....\"?",
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ba2077b1",
+        "filename": "tests/mdts/services/zookeeper.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-11T07:24:31Z",
+      "side": 1,
+      "message": "Please bring this above the above import.",
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
