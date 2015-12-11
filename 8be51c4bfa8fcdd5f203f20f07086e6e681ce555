@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_00a9fa7a",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "Do you want them alphabetically sorted?",
+      "parentUuid": "5ac4a560_da2ff39f",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 14
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_fa2aef8e",
         "filename": "tests/mdts/services/jmx_monitor.py",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_20b7d6d9",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "I will add an exception for when they are not both specified. The or is neccesary though, because if someone only specifies one of the two he probably doesn\u0027t want an anonymous session, but a warning that he forgot the missing one.",
+      "parentUuid": "5ac4a560_fa2aef8e",
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_1a196b88",
         "filename": "tests/mdts/services/jmx_monitor.py",
         "patchSetId": 1
@@ -53,6 +95,30 @@
       "writtenOn": "2015-12-11T07:24:31Z",
       "side": 1,
       "message": "Please insert white space after the comma.",
+      "range": {
+        "startLine": 41,
+        "startChar": 63,
+        "endLine": 41,
+        "endChar": 69
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_80b42ad2",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_1a196b88",
       "range": {
         "startLine": 41,
         "startChar": 63,
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a0ca064d",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_3a1c6777",
+      "range": {
+        "startLine": 43,
+        "startChar": 93,
+        "endLine": 43,
+        "endChar": 104
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_5a13e365",
         "filename": "tests/mdts/services/jmx_monitor.py",
         "patchSetId": 1
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_c0c5423e",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_5a13e365",
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_9a0c9b44",
         "filename": "tests/mdts/services/jmx_monitor.py",
         "patchSetId": 1
@@ -116,6 +224,30 @@
       "writtenOn": "2015-12-11T07:24:31Z",
       "side": 1,
       "message": "Can we rename this to something more specific?",
+      "range": {
+        "startLine": 51,
+        "startChar": 12,
+        "endLine": 51,
+        "endChar": 18
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e0c4fe41",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_9a0c9b44",
       "range": {
         "startLine": 51,
         "startChar": 12,
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_00c01a29",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_ba07971c",
+      "range": {
+        "startLine": 59,
+        "startChar": 12,
+        "endLine": 59,
+        "endChar": 18
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_25752898",
         "filename": "tests/mdts/services/jmx_monitor.py",
         "patchSetId": 1
@@ -162,6 +318,30 @@
       "writtenOn": "2015-12-11T07:24:31Z",
       "side": 1,
       "message": "It doesn\u0027t really \"transform\".  \"parse\", \"decode\" or something similar?",
+      "range": {
+        "startLine": 72,
+        "startChar": 9,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_40ba12c1",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "It transforms Java\u0027s composite object into a python dictionary",
+      "parentUuid": "5ac4a560_25752898",
       "range": {
         "startLine": 72,
         "startChar": 9,
@@ -197,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_60b1cee0",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "To get rid of Java types. Nothing Java related should exit the JMXMonitor to not cause confusion.",
+      "parentUuid": "5ac4a560_da061320",
+      "range": {
+        "startLine": 74,
+        "startChar": 20,
+        "endLine": 74,
+        "endChar": 23
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_7a3fbfd6",
         "filename": "tests/mdts/services/midonet_cluster.py",
         "patchSetId": 1
@@ -208,6 +412,30 @@
       "writtenOn": "2015-12-11T07:24:31Z",
       "side": 1,
       "message": "This should be moved just above \"from mdts.service import Service\", at least.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 48
+      },
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a0d126fd",
+        "filename": "tests/mdts/services/midonet_cluster.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_7a3fbfd6",
       "range": {
         "startLine": 17,
         "startChar": 0,
@@ -248,6 +476,24 @@
       "writtenOn": "2015-12-11T07:24:31Z",
       "side": 1,
       "message": "Please bring this above the above import.",
+      "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_20def611",
+        "filename": "tests/mdts/services/zookeeper.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1006342
+      },
+      "writtenOn": "2015-12-11T13:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_ba2077b1",
       "revId": "8be51c4bfa8fcdd5f203f20f07086e6e681ce555",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
