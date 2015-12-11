@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_251368b9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-11T10:08:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_85eb5caf",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 47
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_e5db3019",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
         "patchSetId": 9
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8510bca9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-11T10:08:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_a5d138fd",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 68
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_2505287a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
         "patchSetId": 9
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a5269814",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-11T10:08:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_2505287a",
+      "range": {
+        "startLine": 47,
+        "startChar": 32,
+        "endLine": 47,
+        "endChar": 34
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_65364054",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
         "patchSetId": 9
@@ -105,6 +177,30 @@
       "writtenOn": "2015-12-11T09:45:15Z",
       "side": 1,
       "message": "Are these used for anything?",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 43
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_257a88f1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-11T10:08:07Z",
+      "side": 1,
+      "message": "The id is only for logging, the device is used to pass it to the delete callback when the stream is completed. I\u0027ll remove the id.",
+      "parentUuid": "5ac4a560_65364054",
       "range": {
         "startLine": 49,
         "startChar": 8,
