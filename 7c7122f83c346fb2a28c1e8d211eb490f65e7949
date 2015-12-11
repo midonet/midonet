@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_205fd6e6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/LivenessTracker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-11T12:32:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_eb4947d1",
+      "range": {
+        "startLine": 71,
+        "startChar": 19,
+        "endLine": 71,
+        "endChar": 51
+      },
+      "revId": "7c7122f83c346fb2a28c1e8d211eb490f65e7949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_8b39b343",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/LivenessTracker.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-09T18:30:55Z",
       "side": 1,
       "message": "Braces {}\nBtw, the logger already contains the class name.",
+      "range": {
+        "startLine": 85,
+        "startChar": 49,
+        "endLine": 85,
+        "endChar": 74
+      },
+      "revId": "7c7122f83c346fb2a28c1e8d211eb490f65e7949",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_406212ae",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/LivenessTracker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-11T12:32:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_8b39b343",
       "range": {
         "startLine": 85,
         "startChar": 49,
