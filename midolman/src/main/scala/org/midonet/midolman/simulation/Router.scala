@@ -16,27 +16,29 @@
 package org.midonet.midolman.simulation
 
 import java.util
-import java.util.{UUID, List => JList}
-
-import org.midonet.sdn.flows.FlowTagger
+import java.util.{List => JList, UUID}
 
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
-
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.PacketWorkflow.{ErrorDrop, Drop, NoOp, SimulationResult}
+import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimulationResult}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
-import org.midonet.midolman.state.ArpCache
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.{ArpCache, NoOpNatLeaser}
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
+import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.state.{FlowStateTransaction, NoOpFlowStateTable}
 import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
 
@@ -374,6 +376,18 @@ class Router(override val id: UUID,
             eth.setPayload(packet)
         }
 
+        def initPackContext(pcktContext: PacketContext): Unit = {
+            val connTrackTx = new FlowStateTransaction(
+                new NoOpFlowStateTable[ConnTrackKey, ConnTrackValue]())
+            val natTx = new FlowStateTransaction(
+                new NoOpFlowStateTable[NatKey, NatBinding]())
+            val traceStateTx = new FlowStateTransaction(
+                new NoOpFlowStateTable[TraceKey, TraceContext]())
+
+            pcktContext.initialize(connTrackTx, natTx, new NoOpNatLeaser(),
+                                   traceStateTx)
+        }
+
         def _sendIPPacket(outPort: RouterPort, rt: Route): Boolean = {
             if (packet.getDestinationIPAddress == outPort.portAddress) {
                 /* should never happen: it means we are trying to send a packet
@@ -398,6 +412,7 @@ class Router(override val id: UUID,
                     val egrMatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
                     val egrPktContext = new PacketContext(0,
                         new Packet(eth, egrMatch, eth.length), egrMatch, outPort.id)
+                    initPackContext(egrPktContext)
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter
