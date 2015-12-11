@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_85eb5caf",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-11T09:45:15Z",
+      "side": 1,
+      "message": "Nit: group imports",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 47
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e5db3019",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-11T09:45:15Z",
+      "side": 1,
+      "message": "Any reason for not using the primitive type?",
+      "range": {
+        "startLine": 40,
+        "startChar": 24,
+        "endLine": 40,
+        "endChar": 34
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a5d138fd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-11T09:45:15Z",
+      "side": 1,
+      "message": "Nit: maybe we should pass the log as argument too?",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 68
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2505287a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-11T09:45:15Z",
+      "side": 1,
+      "message": "Not needed.",
+      "range": {
+        "startLine": 47,
+        "startChar": 32,
+        "endLine": 47,
+        "endChar": 34
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_65364054",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-11T09:45:15Z",
+      "side": 1,
+      "message": "Are these used for anything?",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 43
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_65ff2068",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-11T09:45:15Z",
+      "side": 1,
+      "message": "This could go to import.",
+      "range": {
+        "startLine": 86,
+        "startChar": 12,
+        "endLine": 86,
+        "endChar": 62
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_85399c43",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/DeviceWatcherTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-11T09:45:15Z",
+      "side": 1,
+      "message": "I would run a test coverage.",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 78
+      },
+      "revId": "2a09b09097a3ddfc4b1a10b08ab93fb43246ee0b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
