@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_e5fc1041",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/DeviceWatcher.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-11T10:26:31Z",
+      "side": 1,
+      "message": "Note: this will be a protocol buffers message, it may have to be prettyfied.",
+      "range": {
+        "startLine": 63,
+        "startChar": 44,
+        "endLine": 63,
+        "endChar": 47
+      },
+      "revId": "01fc71fbbda2237b4e468d0c6820dcae53b5b2f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
