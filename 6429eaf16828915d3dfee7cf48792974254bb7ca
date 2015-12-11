@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_9459cf00",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002920
+      },
+      "writtenOn": "2015-12-11T16:26:41Z",
+      "side": 1,
+      "message": "This blowed my mind xD isn\u0027t an easier way of doing that? if we require user and pass why don\u0027t just check for that?",
+      "range": {
+        "startLine": 39,
+        "startChar": 8,
+        "endLine": 41,
+        "endChar": 93
+      },
+      "revId": "6429eaf16828915d3dfee7cf48792974254bb7ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
