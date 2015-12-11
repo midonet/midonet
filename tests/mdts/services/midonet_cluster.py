@@ -15,7 +15,6 @@
 #
 import time
 from mdts.services.jmx_monitor import JMXMonitor
-
 from mdts.services.service import Service
 
 from midonetclient.api import MidonetApi
