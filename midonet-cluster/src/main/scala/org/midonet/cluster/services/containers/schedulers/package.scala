@@ -28,7 +28,8 @@ import rx.Scheduler
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
 import org.midonet.cluster.models.State.{ContainerStatus, ContainerServiceStatus}
-import org.midonet.cluster.models.Topology.{ServiceContainer, ServiceContainerGroup}
+import org.midonet.cluster.models.Topology.ServiceContainer
+import org.midonet.cluster.util.UUIDUtil._
 
 package object schedulers {
 
@@ -44,13 +45,33 @@ package object schedulers {
 
     trait SchedulerEvent
     case class ScheduleEvent(container: ServiceContainer,
-                             hostId: UUID) extends SchedulerEvent
+                             hostId: UUID) extends SchedulerEvent {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("containerId", container.getId.asJava)
+            .add("containerType", container.getServiceType)
+            .toString
+    }
     case class UpEvent(container: ServiceContainer,
-                       status: ContainerStatus) extends SchedulerEvent
+                       status: ContainerStatus) extends SchedulerEvent {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("containerId", container.getId.asJava)
+            .add("containerType", container.getServiceType)
+            .toString
+    }
     case class DownEvent(container: ServiceContainer,
-                         @Nullable status: ContainerStatus) extends SchedulerEvent
+                         @Nullable status: ContainerStatus) extends SchedulerEvent {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("containerId", container.getId.asJava)
+            .add("containerType", container.getServiceType)
+            .toString
+    }
     case class UnscheduleEvent(container: ServiceContainer,
-                               host: UUID) extends SchedulerEvent
+                               host: UUID) extends SchedulerEvent {
+        override def toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("containerId", container.getId.asJava)
+            .add("containerType", container.getServiceType)
+            .toString
+    }
 
     type HostsEvent = Map[UUID, HostEvent]
 
