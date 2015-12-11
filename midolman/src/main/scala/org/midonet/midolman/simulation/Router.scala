@@ -16,7 +16,7 @@
 package org.midonet.midolman.simulation
 
 import java.util
-import java.util.{UUID, List => JList}
+import java.util.{List => JList, UUID}
 
 import scala.concurrent.ExecutionContext
 
@@ -27,14 +27,18 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
-import org.midonet.midolman.state.ArpCache
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.{ArpCache, NoOpNatLeaser}
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.topology.VirtualTopology.tryGet
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
+import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.state.{FlowStateTransaction, NoOpFlowStateTable}
 import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
-import org.midonet.sdn.flows.FlowTagger
 
 object Router {
 
@@ -64,6 +68,13 @@ object Router {
         def lookup(flowMatch: FlowMatch): java.util.List[Route]
         def lookup(flowMatch: FlowMatch, log: Logger): java.util.List[Route]
     }
+
+    private[simulation] lazy val connTrackTxNoOp = new FlowStateTransaction(
+        new NoOpFlowStateTable[ConnTrackKey, ConnTrackValue]())
+    private[simulation] lazy val natTxNoOp = new FlowStateTransaction(
+        new NoOpFlowStateTable[NatKey, NatBinding]())
+    private[simulation] lazy val traceStateTxNoOp = new FlowStateTransaction(
+        new NoOpFlowStateTable[TraceKey, TraceContext]())
 }
 
 /** The IPv4 specific implementation of a [[Router]]. */
@@ -73,6 +84,8 @@ class Router(override val id: UUID,
              override val routerMgrTagger: TagManager,
              val arpCache: ArpCache)
         extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) with MirroringDevice {
+
+    import Router._
 
     override def inboundMirrors = cfg.inboundMirrors
     override def outboundMirrors = cfg.outboundMirrors
@@ -398,6 +411,8 @@ class Router(override val id: UUID,
                     val egrMatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
                     val egrPktContext = new PacketContext(0,
                         new Packet(eth, egrMatch, eth.length), egrMatch, outPort.id)
+                    egrPktContext.initialize(connTrackTxNoOp, natTxNoOp,
+                                             NoOpNatLeaser, traceStateTxNoOp)
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter
