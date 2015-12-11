@@ -37,34 +37,38 @@ class JMXMonitor(object):
         LOG.debug("Connecting to remote JMX with url: " + jmxurl.toString())
 
         if user or passwd:
+            if not user and passwd:
+                raise Exception("Both username and password are needed for a jmx connection")
+
             environment = java.util.HashMap()
-            credentials = jpype.JArray(java.lang.String)([user,passwd])
+            credentials = jpype.JArray(java.lang.String)([user, passwd])
             environment.put (javax.management.remote.JMXConnector.CREDENTIALS, credentials)
-            self._jmx_connector = javax.management.remote.JMXConnectorFactory.connect(jmxurl,environment)
+            self._jmx_connector = javax.management.remote.JMXConnectorFactory.\
+                connect(jmxurl, environment)
         else:
             self._jmx_connector = javax.management.remote.JMXConnectorFactory.connect(jmxurl)
 
         self._connection = self._jmx_connector.getMBeanServerConnection()
 
-    def _get(self,domain,type,attribute,name=None):
+    def _get(self, domain, type, attribute, name=None):
         if name:
-            object = "%s:type=%s,name=%s" % (domain,type,name)
+            object_name = "%s:type=%s,name=%s" % (domain, type, name)
         else:
-            object = "%s:type=%s" % (domain,type)
+            object_name = "%s:type=%s" % (domain,type)
 
-        return self._connection.getAttribute(javax.management.ObjectName(object), attribute)
+        return self._connection.getAttribute(javax.management.ObjectName(object_name), attribute)
 
-    def _query(self,domain,type=None,name=None):
+    def _query(self, domain, type=None, name=None):
         if name and type:
-            object = "%s:type=%s,name=%s" % (domain,type,name)
+            object_name = "%s:type=%s,name=%s" % (domain, type, name)
         elif name:
-            object = "%s:name=%s" % (domain,type,name)
+            object_name = "%s:name=%s" % (domain, type, name)
         elif type:
-            object = "%s:type=%s" % (domain,type,name)
+            object_name = "%s:type=%s" % (domain, type, name)
         else:
-            object = "%s:*" % (domain)
+            object_name = "%s:*" % (domain)
 
-        return self._connection.queryNames(javax.management.ObjectName(object), None)
+        return self._connection.queryNames(javax.management.ObjectName(object_name), None)
 
     def _list_all(self):
         return self._connection.queryNames(None, None)
