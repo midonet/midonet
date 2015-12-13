@@ -16,6 +16,24 @@
       "revId": "82d37752ce1f74451801bcd3a31d78d2ab4f3cbc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_4db7a6d8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/CollectionTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-13T15:17:06Z",
+      "side": 1,
+      "message": "If the member is remove, implicitly that\u0027s a new notification.",
+      "parentUuid": "5ac4a560_7159aafd",
+      "revId": "82d37752ce1f74451801bcd3a31d78d2ab4f3cbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
