@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_ed779239",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/HostTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-13T15:16:06Z",
+      "side": 1,
+      "message": "I thought this could be either HostState or HostTracker (to use the same name Galo has been using).",
+      "parentUuid": "5ac4a560_114a36ac",
+      "range": {
+        "startLine": 38,
+        "startChar": 6,
+        "endLine": 38,
+        "endChar": 17
+      },
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_f14e9ac0",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ObjectTracker.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-10T11:13:49Z",
       "side": 1,
       "message": "ObjectStateTracker?",
+      "range": {
+        "startLine": 24,
+        "startChar": 15,
+        "endLine": 24,
+        "endChar": 28
+      },
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6d93824f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ObjectTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-13T15:16:06Z",
+      "side": 1,
+      "message": "See my reply for the host tracker.",
+      "parentUuid": "5ac4a560_f14e9ac0",
       "range": {
         "startLine": 24,
         "startChar": 15,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_8d9a9e61",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ObjectTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-13T15:16:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_f1f13ace",
+      "range": {
+        "startLine": 44,
+        "startChar": 40,
+        "endLine": 44,
+        "endChar": 57
+      },
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_51f2ee6f",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/HostTrackerTest.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-12-10T11:13:49Z",
       "side": 1,
       "message": "obs.getOnCompletedEvents should have size 1",
+      "range": {
+        "startLine": 355,
+        "startChar": 8,
+        "endLine": 355,
+        "endChar": 52
+      },
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0dae8e85",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/HostTrackerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-13T15:16:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_51f2ee6f",
       "range": {
         "startLine": 355,
         "startChar": 8,
@@ -123,6 +219,42 @@
       "side": 1,
       "message": "Is it the container handler that sets this?",
       "parentUuid": "5ac4a560_313812a0",
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_cda3b69c",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-13T15:16:06Z",
+      "side": 1,
+      "message": "I intended this to replace the host alive state key. This is set when the container service starts at an agent (as opposed by the alive key being set when the host service starts).\n\nThe reasons for this at the moment:\n- to allow disabling the container service at specific agents (not sure if we need this)\n- to report the weight for selecting an agent (again, not very clear whether this is a configurable in the agent configuration, topology or both)",
+      "parentUuid": "5ac4a560_313812a0",
+      "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_ed9eb253",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-13T15:16:06Z",
+      "side": 1,
+      "message": "No, it represents the status of the container service at an agent.",
+      "parentUuid": "5ac4a560_b102623c",
       "revId": "875f5b992bb7542221ef465fafcb411012f1e0a3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
