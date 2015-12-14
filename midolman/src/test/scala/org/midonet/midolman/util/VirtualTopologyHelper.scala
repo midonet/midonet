@@ -98,6 +98,11 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         ArpCacheHelper.feedArpCache(router.arpCache, ip, mac)
     }
 
+    def feedPeeringTable(port: UUID, mac: MAC, ip: IPv4Addr): Unit = {
+        val map = virtualTopology.backend.stateTableStore.routerPortPeeringTable(port)
+        map.addPersistent(mac, ip)
+    }
+
     def clearMacTable(bridge: SimBridge, vlan: Short, mac: MAC, port: UUID): Unit = {
         bridge.vlanMacTableMap.get(vlan) foreach { _.remove(mac, port) }
     }

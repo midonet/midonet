@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.util
 
-import java.util.{HashSet => JSet, UUID}
+import java.util.UUID
 
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.RuleResult.Action
@@ -124,11 +124,18 @@ trait VirtualConfigurationBuilders {
     def deleteRouter(router: UUID): Unit
 
     def newRouterPort(router: UUID, mac: MAC, portAddr: String,
-                      nwAddr: String, nwLen: Int): UUID
-    final def newRouterPort(routerId: UUID, mac: MAC, portAddr: IPv4Subnet): UUID = {
+                      nwAddr: String, nwLen: Int,
+                      vni: Int = 0, tunnelIp: Option[IPv4Addr] = None): UUID
+
+    final def newRouterPort(routerId: UUID, mac: MAC, portAddr: IPv4Subnet): UUID =
         newRouterPort(routerId, mac, portAddr.toUnicastString,
             portAddr.toNetworkAddress.toString, portAddr.getPrefixLen)
-    }
+
+    final def newL2RouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet,
+                              vni: Int, tunnelIp: IPv4Addr) =
+        newRouterPort(router, mac, portAddr.toUnicastString,
+            portAddr.toNetworkAddress.toString, portAddr.getPrefixLen,
+            vni, Some(tunnelIp))
 
     def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
                      vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID
@@ -342,8 +349,10 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.deleteRouter(router)
 
     override def newRouterPort(router: UUID, mac: MAC, portAddr: String,
-                               nwAddr: String, nwLen: Int): UUID =
-        virtConfBuilderImpl.newRouterPort(router, mac, portAddr, nwAddr, nwLen)
+                               nwAddr: String, nwLen: Int,
+                               vni: Int, tunnelIp: Option[IPv4Addr]): UUID =
+        virtConfBuilderImpl.newRouterPort(router, mac, portAddr, nwAddr, nwLen,
+                                          vni, tunnelIp)
 
     def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
                      vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID =

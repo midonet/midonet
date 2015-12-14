@@ -38,7 +38,6 @@ import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
 import org.midonet.sdn.flows.VirtualActions.{Decap, Encap}
 import org.midonet.util.Clearable
 import org.midonet.util.collection.ArrayListUtil
-import org.midonet.util.concurrent.InstanceStash
 import org.midonet.util.functors.Callback0
 
 object PacketContext {
@@ -115,6 +114,9 @@ trait FlowContext extends Clearable { this: PacketContext =>
               srcIp: IPv4Addr, dstIp: IPv4Addr,
               tos: Byte, ttl: Byte,
               srcPort: Int, dstPort: Int): Unit = {
+        if (isRecirc)
+            throw new UnsupportedOperationException("Cannot add 2 layers of encapsulation")
+
         calculateActionsFromMatchDiff()
         virtualFlowActions.add(Encap(vni))
         recircMatch = SimulationStashes.PooledMatches.get()
@@ -139,6 +141,9 @@ trait FlowContext extends Clearable { this: PacketContext =>
     }
 
     def decap(inner: Ethernet, vni: Int): Unit = {
+        if (isRecirc)
+            throw new UnsupportedOperationException("Cannot decap another layer of encapsulation")
+
         // There's no point in calculating actions: outer packet will be discarded
         virtualFlowActions.clear()
         virtualFlowActions.add(Decap(vni))
