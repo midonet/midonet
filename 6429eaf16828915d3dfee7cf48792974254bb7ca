@@ -46,6 +46,53 @@
       "revId": "6429eaf16828915d3dfee7cf48792974254bb7ca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c8956441",
+        "filename": "tests/mdts/services/jmx_monitor.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-14T07:16:44Z",
+      "side": 1,
+      "message": "Why don\u0027t we write like the following?\n\n  if not user and not passwd:\n      # Connect anonymously.\n      self._jmx_connector \u003d javax.management.remote.JMXConnectorFactory.connect(jmxurl)\n  elif user and passwd:\n      environment \u003d ...\n  else:\n      raise Exception(\"Both username and password are needed for a jmx connection\")",
+      "parentUuid": "5ac4a560_540657cf",
+      "range": {
+        "startLine": 39,
+        "startChar": 8,
+        "endLine": 41,
+        "endChar": 93
+      },
+      "revId": "6429eaf16828915d3dfee7cf48792974254bb7ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e8906050",
+        "filename": "tests/mdts/services/midonet_cluster.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-12-14T07:16:44Z",
+      "side": 1,
+      "message": "Would you please sort lexicographically?",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 52
+      },
+      "revId": "6429eaf16828915d3dfee7cf48792974254bb7ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
