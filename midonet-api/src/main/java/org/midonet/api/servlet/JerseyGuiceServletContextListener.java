@@ -22,15 +22,17 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceServletContextListener;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.RestApiService;
 import org.midonet.cluster.ClusterConfig;
-import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.ClusterNode;
-import org.midonet.cluster.services.vxgw.VxlanGatewayService;
+import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.services.flowtracing.FlowTracingMinion;
+import org.midonet.cluster.services.vxgw.VxlanGatewayService;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 
 public class JerseyGuiceServletContextListener extends
@@ -137,6 +139,16 @@ public class JerseyGuiceServletContextListener extends
                 .awaitTerminated();
         injector.getInstance(VtepDataClientFactory.class)
                 .dispose();
+
+        CuratorFramework curator = injector.getInstance(CuratorFramework.class);
+        if (curator != null &&
+            curator.getState() == CuratorFrameworkState.STARTED) {
+            try {
+                curator.close();
+            } catch (Exception e) {
+                log.error("Could not close curator", e);
+            }
+        }
 
         log.debug("destroyApplication: exiting");
     }

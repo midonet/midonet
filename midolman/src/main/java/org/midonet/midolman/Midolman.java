@@ -23,11 +23,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Service;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.name.Names;
 import com.sun.jna.LastErrorException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigRenderOptions;
@@ -35,10 +38,19 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+
+import org.midonet.cluster.storage.CuratorFrameworkProvider;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.LoggerLevelWatcher;
 import org.midonet.conf.MidoNodeConfigurator;
+import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.config.MidolmanConfig;
+
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.retry.RetryOneTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +76,8 @@ import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.util.cLibrary;
+
+import scala.Option;
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
 
@@ -96,6 +110,27 @@ public class Midolman {
             log.warn("You may disable these warnings by setting the "+
                     "'agent.midolman.lock_memory' configuration key to 'false' "+
                     "in mn-conf(1).");
+        }
+    }
+
+    /**
+     * Used to expose a Curator instance in Midolman for general purpose
+     * usage. This will be shared with the midoconf module.  It will *not*
+     * pay attention to the nsdb.curator_enabled property in conf.
+     */
+    class GeneralPurposeCuratorModule extends AbstractModule {
+        private final CuratorFramework curator;
+
+        public GeneralPurposeCuratorModule(CuratorFramework c) {
+            this.curator = c;
+        }
+
+        @Override
+        protected void configure() {
+            bind(CuratorFramework.class)
+                // Can't be made a constant to works accross scala-java
+                .annotatedWith(Names.named("GPA_CURATOR"))
+                .toInstance(curator);
         }
     }
 
@@ -187,14 +222,38 @@ public class Midolman {
             Midolman.exitsMissingConfigFile(configFilePath);
         }
 
+        log.info("Starting Curator client");
+        Config cfg = MidoNodeConfigurator
+            .bootstrapConfig(Option.apply(configFilePath));
+
+
+        Long timeoutMillis = cfg.getDuration("zookeeper.bootstrap_timeout",
+                                             TimeUnit.MILLISECONDS);
+        String serverString = cfg.getString("zookeeper.zookeeper_hosts");
+        String namespace = cfg.getString("zookeeper.root_key");
+        if (namespace.startsWith("/")) {
+            namespace = namespace.substring(1);
+        }
+
+        CuratorFramework curator = CuratorFrameworkFactory.builder()
+            .connectString(serverString)
+            .connectionTimeoutMs(timeoutMillis.intValue())
+            .retryPolicy(new ExponentialBackoffRetry(100, 10))
+            .build();
+        curator.start();
+
+        CuratorFramework confCurator = curator.usingNamespace(namespace);
         MidoNodeConfigurator configurator =
-            MidoNodeConfigurator.apply(configFilePath);
+            MidoNodeConfigurator.apply(confCurator,
+                                       Option.apply(configFilePath));
+
         if (configurator.deployBundledConfig())
             log.info("Deployed new configuration schema into NSDB");
 
         MidolmanConfig config = MidolmanConfigModule.createConfig(configurator);
 
         injector = Guice.createInjector(
+            new GeneralPurposeCuratorModule(curator),
             new MidolmanConfigModule(config),
             new MidonetBackendModule(config.zookeeper()),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
@@ -260,6 +319,16 @@ public class Midolman {
 
         MidolmanService instance =
             injector.getInstance(MidolmanService.class);
+
+        CuratorFramework curator = injector.getInstance(CuratorFramework.class);
+        if (curator != null &&
+            curator.getState() != CuratorFrameworkState.STOPPED) {
+            try {
+                curator.close();
+            } catch (Exception e) {
+                log.warn("Failed to stop Curator");
+            }
+        }
 
         if (instance.state() == Service.State.TERMINATED)
             return;

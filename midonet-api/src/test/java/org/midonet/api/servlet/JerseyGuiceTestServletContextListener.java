@@ -19,6 +19,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,7 @@ public class JerseyGuiceTestServletContextListener extends
             testZk.start();
         } catch (Exception e) {
             log.error("Cannot start zookeeper server");
+            throw new RuntimeException(e);
         }
 
         // This allows a backdoor from tests into the API's injection framwework
@@ -126,6 +128,7 @@ public class JerseyGuiceTestServletContextListener extends
             testZk.close();
         } catch (Exception e) {
             log.error("Could not close testing zookeeper server", e);
+            throw new RuntimeException(e);
         }
 
         log.debug("destroyApplication: exiting");

@@ -19,6 +19,7 @@ package org.midonet.midolman.state
 import java.util.{ArrayList, UUID}
 import java.util.concurrent.{ThreadLocalRandom, TimeUnit, Executors}
 
+import com.google.inject.name.Named
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 
 import scala.concurrent.{ExecutionContext, Promise, Future}
@@ -31,6 +32,7 @@ import org.apache.zookeeper.KeeperException.Code
 import org.apache.zookeeper.{CreateMode, KeeperException}
 import org.slf4j.LoggerFactory
 
+import org.midonet.midolman.Midolman
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.UnixClock
 import org.midonet.util.concurrent.{ExecutionContextOps, NamedThreadFactory}
@@ -77,7 +79,7 @@ object ZkNatBlockAllocator {
  * Refer to the documentation for details on the algorithm.
  */
 class ZkNatBlockAllocator @Inject()(
-        zk: CuratorFramework,
+        @Named("GPA_CURATOR") zk: CuratorFramework,
         clock: UnixClock) extends NatBlockAllocator {
     import ZkNatBlockAllocator._
 
