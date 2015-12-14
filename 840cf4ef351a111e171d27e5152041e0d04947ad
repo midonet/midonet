@@ -65,6 +65,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_c1f29ed1",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IkePolicy.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-14T17:41:15Z",
+      "side": 1,
+      "message": "They\u0027re only used by Jackson via reflection, so in static code analysis they appear unused.",
+      "parentUuid": "5ac4a560_1e16b6f1",
+      "range": {
+        "startLine": 37,
+        "startChar": 9,
+        "endLine": 37,
+        "endChar": 25
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_bee78211",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IkePolicy.java",
         "patchSetId": 17
@@ -76,6 +100,30 @@
       "writtenOn": "2015-12-14T15:06:19Z",
       "side": 1,
       "message": "What are these for? I see we only used them for neutron models. They seem redundant with what\u0027s in the ZoomField annotation.\n\nIn any case, the JsonProperty change should be in a different commit.",
+      "range": {
+        "startLine": 56,
+        "startChar": 5,
+        "endLine": 56,
+        "endChar": 17
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_41b68efb",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IkePolicy.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-14T17:41:15Z",
+      "side": 1,
+      "message": "@JsonProperty allows Jackson to deserialize the JSON coming into the API, whereas @ZoomField allows ZoomConvert to convert the Neutron model into a ProtoBuf message.\n\nIn principle we could modify ZoomConvert to fall back to the @JsonProperty annotation if no @ZoomField annotation is present (the @ZoomField annotation has an optional converter argument which is sometimes needed, so we can\u0027t eliminate it altogether), but as things are now, both annotations are necessary.\n\nThese annotations are only needed when the Java field name doesn\u0027t match the JSON or ProtoBuf field name. I don\u0027t have the code in front of me right now, but if we never use it in the low-level Midonet DTOs, it\u0027s probably because we control the JSON format and have chosen to use JSON field names that match the Java field names.",
+      "parentUuid": "5ac4a560_bee78211",
       "range": {
         "startLine": 56,
         "startChar": 5,
@@ -105,6 +153,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a1ca026c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POMinion.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-14T17:41:15Z",
+      "side": 1,
+      "message": "I\u0027m not sure, but I think I did an import optimize, which removed this because of some kind of parsing issue in IDEA, then I added it back in to get the code to compile. I didn\u0027t realize it had been down there before. I\u0027ll add it back.",
+      "parentUuid": "5ac4a560_dee27e00",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_3eeff288",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
         "patchSetId": 17
@@ -116,6 +182,24 @@
       "writtenOn": "2015-12-14T15:06:19Z",
       "side": 1,
       "message": "Only the route should be here. Redirect rules below to VPNService.",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c1c9be79",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-14T17:41:15Z",
+      "side": 1,
+      "message": "Yeah, I figured that out while working on the second patch.",
+      "parentUuid": "5ac4a560_3eeff288",
       "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -139,6 +223,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_41adae9b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-14T17:41:15Z",
+      "side": 1,
+      "message": "IPSecSite is bound to the Routes via its route_ids field, which causes its deletion to cascade to the routes. I can add a comment pointing that out.",
+      "parentUuid": "5ac4a560_5ef2ee6f",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_9ed566bb",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
         "patchSetId": 17
@@ -150,6 +252,24 @@
       "writtenOn": "2015-12-14T15:06:19Z",
       "side": 1,
       "message": "These should be created in the VPNService translator, as the only piece of information needed is the endpoint id and that\u0027s part of VPNService.",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_61b0eaf4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-14T17:41:15Z",
+      "side": 1,
+      "message": "Right.",
+      "parentUuid": "5ac4a560_9ed566bb",
       "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -219,6 +339,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_817d061f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-14T17:41:15Z",
+      "side": 1,
+      "message": "I\u0027m not sure how I feel about this pattern. It makes things nice inside this funciton, but it puts the onus on the caller to wrap the argument in an Option:\n\n  redirectRuleBuilder(chainId, portId, id \u003d Some(ruleId))\n\ninstead of just:\n\n  redirectRuleBuilder(chainId, portId, id \u003d ruleId)",
+      "parentUuid": "5ac4a560_7e27aa64",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_7effaa67",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
         "patchSetId": 17
@@ -230,6 +368,30 @@
       "writtenOn": "2015-12-14T15:06:19Z",
       "side": 1,
       "message": "It should at least check that the tenant, subnet, router_id, and external_v4_ip parameters match, and throw an error if they don\u0027t.",
+      "range": {
+        "startLine": 40,
+        "startChar": 10,
+        "endLine": 40,
+        "endChar": 64
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_21943236",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-14T17:41:15Z",
+      "side": 1,
+      "message": "I can do that. In general, though, the policy has been to treat Neutron as authoritative and trust it to give us valid input. If that\u0027s not what we should be doing, there\u0027s a lot more work to be done in other translators.",
+      "parentUuid": "5ac4a560_7effaa67",
       "range": {
         "startLine": 40,
         "startChar": 10,
@@ -311,6 +473,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_0191f646",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-14T17:41:15Z",
+      "side": 1,
+      "message": "I don\u0027t think so, but I can add one. What exactly needs to happen here? Just pick an unused /30 subnet from the link-local subnet?",
+      "parentUuid": "5ac4a560_7e36ca53",
+      "range": {
+        "startLine": 125,
+        "startChar": 50,
+        "endLine": 125,
+        "endChar": 54
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_dec99e7a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/VpnServiceApi.scala",
         "patchSetId": 17
@@ -345,6 +531,30 @@
       "writtenOn": "2015-12-14T15:06:19Z",
       "side": 1,
       "message": "Should probably return an Option[VpnService] for the not found case.",
+      "range": {
+        "startLine": 27,
+        "startChar": 33,
+        "endLine": 27,
+        "endChar": 43
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_619e2a58",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/VpnServiceApi.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-14T17:41:15Z",
+      "side": 1,
+      "message": "I\u0027ll look into this, but I think the get() APIs usually just throw exceptions.",
+      "parentUuid": "5ac4a560_1e9b1673",
       "range": {
         "startLine": 27,
         "startChar": 33,
