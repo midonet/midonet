@@ -199,7 +199,7 @@ case class IPSecException(message: String, cause: Throwable)
 /**
   * Implements a [[ContainerHandler]] for a IPSec-based VPN service.
   */
-@Container(name = "IPSEC", version = 1)
+@Container(name = Containers.IPSEC_CONTAINER, version = 1)
 class IPSecContainer @Inject()(vt: VirtualTopology,
                                @Named("container") executor: ExecutorService)
     extends ContainerHandler with ContainerCommons {
