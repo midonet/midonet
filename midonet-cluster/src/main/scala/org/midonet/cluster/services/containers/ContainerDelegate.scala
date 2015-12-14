@@ -59,13 +59,10 @@ import org.midonet.containers.Container
 trait ContainerDelegate {
 
     /**
-      * Method called when the container is created in the backend. At this
-      * point the container has been scheduled on the specified agent. The
-      * implementation of this method must create a port bound to an interface
-      * name.
+      * Method called when the container is scheduled on the specified agent.
       */
-    def onCreate(container: ServiceContainer, group: ServiceContainerGroup,
-                 hostId: UUID): Unit
+    def onScheduled(container: ServiceContainer, group: ServiceContainerGroup,
+                    hostId: UUID): Unit
 
     /**
       * Method called when the container namespace and veth port pair are
@@ -88,10 +85,9 @@ trait ContainerDelegate {
                status: ContainerStatus): Unit
 
     /**
-      * Method called when the container has been deleted. The implementation
-      * of this method must delete the port created for this container.
+      * Method called when the container has been unscheduled from a host.
       */
-    def onDelete(container: ServiceContainer, group: ServiceContainerGroup,
-                 hostId: UUID): Unit
+    def onUnscheduled(container: ServiceContainer, group: ServiceContainerGroup,
+                      hostId: UUID): Unit
 
 }

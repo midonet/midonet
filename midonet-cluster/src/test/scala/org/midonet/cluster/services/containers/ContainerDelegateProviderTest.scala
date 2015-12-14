@@ -39,14 +39,14 @@ object ContainerDelegateProviderTest {
     @Container(name = "test-delegate", version = 1)
     class TestContainer @Inject()(backend: MidonetBackend,
                                   config: ClusterConfig) extends ContainerDelegate {
-        def onCreate(container: ServiceContainer, group: ServiceContainerGroup,
-                     hostId: UUID): Unit = { }
+        def onScheduled(container: ServiceContainer, group: ServiceContainerGroup,
+                        hostId: UUID): Unit = { }
         def onUp(container: ServiceContainer, group: ServiceContainerGroup,
                  status: ContainerStatus): Unit = { }
         def onDown(container: ServiceContainer, group: ServiceContainerGroup,
                    status: ContainerStatus): Unit = { }
-        def onDelete(container: ServiceContainer, group: ServiceContainerGroup,
-                     hostId: UUID): Unit = { }
+        def onUnscheduled(container: ServiceContainer, group: ServiceContainerGroup,
+                          hostId: UUID): Unit = { }
     }
 
 }

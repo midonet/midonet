@@ -32,7 +32,7 @@ import com.typesafe.scalalogging.Logger
 import rx.Observable.OnSubscribe
 import rx.subjects.PublishSubject
 import rx.subscriptions.Subscriptions
-import rx.{Observable, Subscriber, Subscription}
+import rx.{Observable, Subscriber}
 
 import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.{Zoom, ZoomField, ZoomObject}
