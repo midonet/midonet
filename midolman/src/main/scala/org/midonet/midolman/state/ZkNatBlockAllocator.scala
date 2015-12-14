@@ -19,6 +19,8 @@ package org.midonet.midolman.state
 import java.util.{ArrayList, UUID}
 import java.util.concurrent.{ThreadLocalRandom, TimeUnit, Executors}
 
+import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
+
 import scala.concurrent.{ExecutionContext, Promise, Future}
 
 import com.google.inject.Inject
@@ -103,9 +105,8 @@ class ZkNatBlockAllocator @Inject()(
         val startBlock = natRange.tpPortStart / NatBlock.BLOCK_SIZE
         val endBlock = natRange.tpPortEnd / NatBlock.BLOCK_SIZE
         val blocks = (startBlock to endBlock).toIndexedSeq
-        Future.traverse(blocks map {
-            blockPath(natRange.deviceId, natRange.ip, _)
-        })(fetchOrCreateBlock) flatMap { results =>
+        val blockPaths = blocks map (blockPath(natRange.deviceId, natRange.ip, _))
+        Future.traverse(blockPaths)(fetchBlock) flatMap { results =>
             val block = chooseBlock(results, blocks)
             if (block >= 0) {
                 claimBlock(block, natRange)
@@ -115,6 +116,9 @@ class ZkNatBlockAllocator @Inject()(
         } recoverWith {
             case ex: KeeperException.NodeExistsException =>
                 // We raced with another node and lost. Retry.
+                allocateBlockInRange(natRange)
+            case ex: KeeperException.NoNodeException =>
+                createBlocksStructure(blockPaths)
                 allocateBlockInRange(natRange)
         }
     }
@@ -133,17 +137,16 @@ class ZkNatBlockAllocator @Inject()(
         var lruBlockZxid = Long.MaxValue
         var i = 0
         while (i < results.size) {
-            val block = blocks(i)
             val stat = results(i).getStat
             if (stat.getNumChildren == 0) {
                 // Pzxid is the (undocumented) zxid of the last modified child
                 // and Czxid is the zxid at node creation time
                 val pzxid = stat.getPzxid
                 if (pzxid == stat.getCzxid) {
-                    virginBlocks.add(block)
+                    virginBlocks.add(blocks(i))
                 } else if (pzxid < lruBlockZxid) {
                     lruBlockZxid = pzxid
-                    lruBlock = block
+                    lruBlock = blocks(i)
                 }
             }
             i += 1
@@ -156,21 +159,24 @@ class ZkNatBlockAllocator @Inject()(
         }
     }
 
-    private def fetchOrCreateBlock(path: String): Future[CuratorEvent] = {
+    private def fetchBlock(path: String): Future[CuratorEvent] = {
         val getPromise = Promise[CuratorEvent]()
         zk.getData
           .inBackground(backgroundCallbackToFuture, getPromise, executor)
           .forPath(path)
-        getPromise.future recoverWith {
-            case ex: KeeperException.NoNodeException =>
-                val createPromise = Promise[CuratorEvent]()
-                zk.create()
-                  .creatingParentsIfNeeded()
-                  .inBackground(backgroundCallbackToFuture, createPromise, executor)
-                  .forPath(path)
-                createPromise.future flatMap { _ => fetchOrCreateBlock(path) }
-        }
+        getPromise.future
     }
+
+    private def createBlocksStructure(paths: Seq[String]): Unit = try {
+        // Create any missing parents
+        zk.create().creatingParentsIfNeeded().forPath(paths.head)
+        // Create other blocks
+        if (paths.tail.nonEmpty) {
+            paths.tail.foldLeft(zk.inTransaction)((acc, p) => acc.create().forPath(p).and())
+                .asInstanceOf[CuratorTransactionFinal]
+                .commit()
+        }
+    } catch { case ignored: KeeperException.NodeExistsException => }
 
     private def claimBlock(block: Int, natRange: NatRange): Future[NatBlock] = {
         log.debug(s"Trying to claim block $block for $natRange")

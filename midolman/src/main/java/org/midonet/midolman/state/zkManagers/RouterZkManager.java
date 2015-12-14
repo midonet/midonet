@@ -23,9 +23,12 @@ import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -316,6 +319,35 @@ public class RouterZkManager
         for (String ipStr : zk.getChildren(arpTablePath, null)) {
             ops.add(Op.delete(arpTablePath + "/" + ipStr, -1));
         }
+
+        // And clean the NAT block reservations for this router, if any
+        String natPath = paths.getNatDevicePath(id);
+        Set<String> natIps = null;
+        try {
+            natIps = zk.getChildren(natPath);
+        } catch (NoStatePathException e) {
+            log.debug("No ips to delete for NAT device {}", id);
+        }
+
+        if (natIps != null) {
+            for (String ipStr : natIps) {
+                Set<String> blockStrs = null;
+                try {
+                    blockStrs = zk.getChildren(natPath + "/" + ipStr);
+                } catch (NoStatePathException e) {
+                    log.debug("Deleting NAT device/ip path: " + ipStr);
+                }
+                if (blockStrs != null) {
+                    for (String blockStr : blockStrs) {
+                        String path = natPath + "/" + ipStr + "/" + blockStr;
+                        ops.add(Op.delete(path, -1));
+                    }
+                    ops.add(Op.delete(natPath + "/" + ipStr, -1));
+                }
+            }
+            ops.add(Op.delete(natPath, -1));
+        }
+
         log.debug("Preparing to delete: " + arpTablePath);
         ops.add(Op.delete(arpTablePath, -1));
 
