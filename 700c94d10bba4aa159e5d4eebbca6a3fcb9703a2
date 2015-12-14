@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "5ac4a560_5ed4ae46",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-14T13:35:52Z",
+      "side": 1,
+      "message": "i think this should be MAC -\u003e IPv4Addr",
+      "revId": "700c94d10bba4aa159e5d4eebbca6a3fcb9703a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_cdbe7fff",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/ResourceUris.scala",
         "patchSetId": 8
