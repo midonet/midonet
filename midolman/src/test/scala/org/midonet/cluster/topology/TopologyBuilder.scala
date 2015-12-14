@@ -87,6 +87,8 @@ trait TopologyBuilder {
                          portSubnet: IPSubnet[_] = randomIPv4Subnet,
                          portAddress: IPAddr = IPv4Addr.random,
                          portMac: MAC = MAC.random,
+                         vni: Int = 0,
+                         tunnelIp: Option[IPv4Addr] = None,
                          bgpId: Option[UUID] = None,
                          routeIds: Set[UUID] = Set.empty,
                          containerId: Option[UUID] = None): Port = {
@@ -97,6 +99,9 @@ trait TopologyBuilder {
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
             .addAllRouteIds(routeIds.map(_.asProto).asJava)
+        tunnelIp map (_.asProto) foreach builder.setTunnelIp
+        if (vni != 0)
+            builder.setVni(vni)
         if (routerId.isDefined)
             builder.setRouterId(routerId.get.asProto)
         if (containerId.isDefined)

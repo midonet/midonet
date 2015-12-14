@@ -381,7 +381,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
 
     override def newRouterPort(router: UUID, mac: MAC, portAddr: String,
-                               nwAddr: String, nwLen: Int): UUID = {
+                               nwAddr: String, nwLen: Int,
+                               vni: Int, tunnelIp: Option[IPv4Addr]): UUID = {
         val id = UUID.randomUUID
         val addr = IPv4Addr.fromString(portAddr)
         store.create(createRouterPort(id, routerId=Some(router),
@@ -389,7 +390,9 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                       portMac=mac,
                                       portAddress=addr,
                                       portSubnet=toSubnet(nwAddr, nwLen),
-                                      adminStateUp=true))
+                                      adminStateUp=true,
+                                      vni = vni,
+                                      tunnelIp = tunnelIp))
 
         store.create(createRoute(srcNetwork=new IPv4Subnet(0,0),
                                  dstNetwork=new IPv4Subnet(addr, 32),

@@ -82,8 +82,9 @@ class Router(override val id: UUID,
              override val cfg: Config,
              override val rTable: RoutingTable,
              override val routerMgrTagger: TagManager,
+             override val vniToPort: util.Map[Int, UUID],
              val arpCache: ArpCache)
-        extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) with MirroringDevice {
+        extends RouterBase[IPv4Addr] with MirroringDevice {
 
     import Router._
 
@@ -279,9 +280,9 @@ class Router(override val id: UUID,
 
     private def getPeerMac(peer: Port, ipDest: IPv4Addr): MAC =
         peer match {
-           case rtPort: RouterPort => rtPort.portMac
-           case bridgePort: BridgePort => peekBridge(bridgePort, ipDest)
-           case _ => null
+            case rtPort: RouterPort => rtPort.portMac
+            case bridgePort: BridgePort => peekBridge(bridgePort, ipDest)
+            case _ => null
         }
 
     private def peekBridge(port: BridgePort, ipDest: IPv4Addr): MAC = {
