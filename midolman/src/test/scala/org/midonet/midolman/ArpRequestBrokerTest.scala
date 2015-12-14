@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman
 
-import java.util.{ArrayDeque, UUID}
+import java.util.{ArrayDeque, HashMap, UUID}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
@@ -192,7 +192,8 @@ class ArpRequestBrokerTest extends Suite
         invalidations.clear()
 
         arpBroker = new ArpRequestBroker(config, backChannel, () => { }, clock)
-        router = new Router(routerId, Router.Config(), null, null, arpCache)
+        router = new Router(routerId, Router.Config(), null, null,
+                            new HashMap[Int, UUID], arpCache)
     }
 
     after {

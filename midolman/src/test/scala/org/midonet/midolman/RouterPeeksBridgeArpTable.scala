@@ -90,7 +90,6 @@ class RouterPeeksBridgeArpTable extends MidolmanSpec {
             tenantRouterExteriorPortIp.toNetworkAddress.toString,
             tenantRouterExteriorPortIp.getPrefixLen)
 
-
         linkPorts(tenantBridgePort, interiorTenantRouterPort)
         materializePort(exteriorTenantRouterPort, hostId, "tenant-port")
 

@@ -16,7 +16,7 @@
 package org.midonet.cluster.storage
 
 import com.typesafe.config.Config
-import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
+import org.apache.curator.framework.CuratorFramework
 
 import org.midonet.cluster.backend.zookeeper.{ZkConnectionAwareWatcher, ZkConnection}
 import org.midonet.cluster.data.storage.{StateTableStorage, InMemoryStorage, StateStorage, Storage}
@@ -40,9 +40,9 @@ class MidonetTestBackend extends MidonetBackend {
         inMemoryZoom.registerTable(classOf[Topology.Network], classOf[IPv4Addr],
             classOf[MAC], MidonetBackend.Ip4MacTable,
             classOf[Ip4MacStateTable])
-        inMemoryZoom.registerTable(classOf[Topology.Port], classOf[IPv4Addr],
-            classOf[MAC], MidonetBackend.PeeringTable,
-            classOf[Ip4MacStateTable])
+        inMemoryZoom.registerTable(classOf[Topology.Port], classOf[MAC],
+            classOf[IPv4Addr], MidonetBackend.PeeringTable,
+            classOf[MacIp4StateTable])
     }
 
 
