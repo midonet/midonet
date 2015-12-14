@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_be54e254",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-14T14:55:51Z",
+      "side": 1,
+      "message": "This should be changed to the actual scheduler implementation once merged.",
+      "revId": "71e4123ec826ae9b85b58aba11d0d63e21eddb93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
