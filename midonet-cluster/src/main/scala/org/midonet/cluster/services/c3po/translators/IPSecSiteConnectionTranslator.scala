@@ -21,35 +21,50 @@ import scala.collection.JavaConversions._
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
-import org.midonet.cluster.models.Topology.Rule
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, UUIDUtil}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.concurrent.toFutureOps
 
 class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[IPSecSiteConnection]
-            with RouteManager
-            with RuleManager {
-    import IPSecSiteConnectionTranslator._
+            with RouteManager {
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(cnxn: IPSecSiteConnection)
     : OperationList = {
         val vpn = storage.get(classOf[VpnService], cnxn.getVpnserviceId).await()
-        createRemoteRouteOps(cnxn, vpn) ++ createRedirectRules(cnxn, vpn)
+        createRemoteRouteOps(cnxn, vpn)
     }
 
     override protected def translateDelete(id: UUID): OperationList = {
-        List(Delete(classOf[Rule], vpnEspRedirectRuleId(id)),
-             Delete(classOf[Rule], vpnUdpRedirectRuleId(id)),
-             Delete(classOf[IPSecSiteConnection], id))
+        // retainHighLevelModel() should delete the IPSecSiteConnection, and
+        // this should cascade to the routes due to Zoom bindings.
+        List()
     }
 
     override protected def translateUpdate(cnxn: IPSecSiteConnection)
     : OperationList = {
-        throw new NotImplementedError(
-            "Update not supported for IPSecSiteConnection")
+        // No Midonet-specific changes, but changes to the IPSecSiteConnection
+        // are handled in retainHighLevelModel()
+        List()
+    }
+
+    /* Keep the original model as is by default. Override if the model does not
+     * need to be maintained, or need some special handling. */
+    override protected def retainHighLevelModel(
+        op: Operation[IPSecSiteConnection])
+    : List[Operation[IPSecSiteConnection]] = op match {
+        case Update(cnxn, _) =>
+            // Override update to make sure only certain fields are update,
+            // to avoid overwriting route_ids, which Neutron doesn't know about.
+            val oldCnxn = storage.get(classOf[IPSecSiteConnection],
+                                      cnxn.getId).await()
+            val newCnxn = oldCnxn.toBuilder
+                .setAdminStateUp(cnxn.getAdminStateUp)
+                .setDescription(cnxn.getDescription)
+                .setName(cnxn.getName)
+            List(Update(newCnxn.build()))
+        case _ => super.retainHighLevelModel(op)
     }
 
     /** Generate options to create routes for Cartesian product of cnxn's
@@ -63,74 +78,12 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
             Create(
                 newNextHopPortRoute(
                     id = UUIDUtil.randomUuidProto,
+                    ipSecSiteCnxnId = cnxn.getId,
                     nextHopPortId = rtrPortId,
                     nextHopGwIpAddr = VpnServiceTranslator.VpnContainerPortAddr,
                     srcSubnet = localCidr,
                     dstSubnet = peerCidr))
         }
     }
-
-    private def createRedirectRules(cnxn: IPSecSiteConnection,
-                                    vpn: VpnService): OperationList = {
-        val rtrId = vpn.getRouterId
-        val redirectChainId = VpnServiceTranslator.vpnRedirectChainId(rtrId)
-        val rtrPortId = VpnServiceTranslator.vpnRouterPortId(rtrId)
-
-        // TODO: Will it always have one or the other?
-        val localEndpointIp = IPSubnetUtil.fromAddr(
-            if (vpn.hasExternalV4Ip) vpn.getExternalV4Ip
-            else vpn.getExternalV6Ip)
-
-        // Redirect ESP traffic addressed to local endpoint to VPN port.
-        val espRuleBldr = redirectRuleBuilder(
-            id = vpnEspRedirectRuleId(cnxn.getId),
-            chainId = redirectChainId,
-            targetPortId = rtrPortId)
-        espRuleBldr.getConditionBuilder
-            .setNwDstIp(localEndpointIp)
-            .setNwProto(50) // ESP
-
-        // Redirect UDP traffic addressed to local endpoint on port 500 to VPN
-        // port.
-        val udpRuleBldr = redirectRuleBuilder(
-            id = vpnUdpRedirectRuleId(cnxn.getId),
-            chainId = redirectChainId,
-            targetPortId = rtrPortId)
-        udpRuleBldr.getConditionBuilder
-            .setNwDstIp(localEndpointIp)
-            .setNwProto(17) // UDP
-            .setTpSrc(RangeUtil.toProto(500, 500)) // TODO: Why 500?
-
-        List(Create(espRuleBldr.build()),
-             Create(udpRuleBldr.build()))
-    }
-
-    // TODO: Probably won't use this. Instead just give the routes random
-    // UUIDs and use Zoom bindings for referential integrity.
-//    private def makeRouteId(rtrPortId: UUID,
-//                            localCidr: IPSubnet,
-//                            peerCidr: IPSubnet): UUID = {
-//        def getBytes(ipAddr: String) = IPAddr.fromString(ipAddr).toBytes
-//        val bytes = ByteBuffer.allocate(50)
-//            .putLong(rtrPortId.getMsb)
-//            .putLong(rtrPortId.getLsb)
-//            .put(getBytes(VPNServiceTranslator.VpnContainerPortAddr.getAddress))
-//            .put(getBytes(localCidr.getAddress))
-//            .putInt(localCidr.getPrefixLength)
-//            .put(getBytes(peerCidr.getAddress))
-//            .putInt(peerCidr.getPrefixLength)
-//            .array()
-//        UUIDUtil.toProto(util.UUID.nameUUIDFromBytes(bytes))
-//    }
-}
-
-protected[translators] object IPSecSiteConnectionTranslator {
-    /** Generate ID for rule to redirect ESP traffic to VPN port. */
-    def vpnEspRedirectRuleId(cnxnId: UUID): UUID =
-        cnxnId.xorWith(0xebcf3f9c57b0445bL, 0x911173b93be7220cL)
-
-    /** Generate ID for rule to redirect UDP traffic on port 500 to VPN port. */
-    def vpnUdpRedirectRuleId(cnxnId: UUID): UUID =
-        cnxnId.xorWith(0x8f32d38b951946d8L, 0xac6fa76e094db10eL)
 }
 

@@ -686,8 +686,8 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected def ipSecSiteConnectionJson(id: UUID,
                                           vpnServiceId: UUID,
-                                          localCidrs: List[String],
-                                          peerCidrs: List[String],
+                                          localCidrs: Seq[String],
+                                          peerCidrs: Seq[String],
                                           ikePolicy: JsonNode,
                                           ipSecPolicy: JsonNode,
                                           adminStateUp: Boolean = true,
@@ -711,7 +711,11 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                           tenantId: String = null): JsonNode = {
         val con = nodeFactory.objectNode
         con.put("id", id.toString)
-        con.put("vpn_service_id", vpnServiceId.toString)
+        con.put("vpnservice_id", vpnServiceId.toString)
+        val localCidrsArray = con.putArray("local_cidrs")
+        for (cidr <- localCidrs) localCidrsArray.add(cidr)
+        val peerCidrsArray = con.putArray("peer_cidrs")
+        for (cidr <- peerCidrs) peerCidrsArray.add(cidr)
         con.set("ikepolicy", ikePolicy)
         con.set("ipsecpolicy", ipSecPolicy)
         con.put("admin_state_up", adminStateUp)
@@ -740,7 +744,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         con
     }
 
-    protected def IkePolicyJson(authAlgorithm: String = "sha1",
+    protected def ikePolicyJson(authAlgorithm: String = "sha1",
                                 description: String = null,
                                 encryptionAlgorithm: String = "aes-128",
                                 id: UUID = UUID.randomUUID(),
@@ -768,7 +772,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         p
     }
 
-    protected def IpSecPolicyJson(authAlgorithm: String = "sha1",
+    protected def ipSecPolicyJson(authAlgorithm: String = "sha1",
                                   description: String = null,
                                   encapsulationMode: String = "tunnel",
                                   encryptionAlgorithm: String = "aes-128",

@@ -22,7 +22,8 @@ import scala.collection.JavaConversions._
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{IPSecSiteConnection => IpSecSiteConType, VpnService => VpnServiceType}
-import org.midonet.cluster.models.Neutron.VpnService
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, VpnService}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.RouteManager.localRouteId
@@ -46,7 +47,7 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
     private val vpn1Id = UUID.randomUUID()
     private val vpn2Id = UUID.randomUUID()
 
-    "VPNService translator" should "handle VPN CRUD" in {
+    "VpnServiceTranslator" should "handle VPN CRUD" in {
         createTenantNetwork(10, extNwId, external = true)
         setupRouter1(20)
 
@@ -85,6 +86,132 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         eventually(verifyNoContainer(rtr1Id))
     }
 
+    "IPSecSiteConnectionTranslator" should "handle IPSecSiteConnection CRUD" in {
+        createTenantNetwork(10, extNwId, external = true)
+        setupRouter1(20)
+
+        val vpn1Json = vpnServiceJson(vpn1Id, rtr1Id, rtr1SnId,
+                                      externalV4Ip = rtr1GwIp)
+        insertCreateTask(30, VpnServiceType, vpn1Json, vpn1Id)
+
+        // Create and verify a connection.
+        val cnxn1Id = UUID.randomUUID()
+        val cnxn1LocalCidrs = Seq("10.0.1.0/24", "10.0.2.0/24")
+        val cnxn1PeerCidrs = Seq("20.0.1.0/24", "20.0.2.0/24")
+        val cnxn1IkeJson = ikePolicyJson()
+        val cnxn1IpSecJson = ipSecPolicyJson()
+        val cnxn1Json = ipSecSiteConnectionJson(
+            cnxn1Id, vpn1Id, cnxn1LocalCidrs, cnxn1PeerCidrs,
+            cnxn1IkeJson, cnxn1IpSecJson)
+        insertCreateTask(40, IpSecSiteConType, cnxn1Json, cnxn1Id)
+        val cnxn1 = eventually {
+            // We create two routes when we create the VpnService, hence
+            // numOtherRoutes = 2
+            verifyCnxn(cnxn1Id, rtr1Id, cnxn1LocalCidrs, cnxn1PeerCidrs,
+                       numOtherRoutes = 2)
+        }
+
+        // Create a second connection on the same VPN and verify that they
+        // coexist.
+        val cnxn2Id = UUID.randomUUID()
+        val cnxn2LocalCidrs = Seq("30.0.1.0/24", "30.0.2.0/24", "30.0.3.0/24")
+        val cnxn2PeerCidrs = Seq("40.0.1.0/24", "40.0.2.0/24", "40.0.2.0/24")
+        val cnxn2IkeJson = ikePolicyJson()
+        val cnxn2IpSecJson = ipSecPolicyJson()
+        val cnxn2Json = ipSecSiteConnectionJson(
+            cnxn2Id, vpn1Id, cnxn2LocalCidrs, cnxn2PeerCidrs,
+            cnxn2IkeJson, cnxn2IpSecJson)
+        insertCreateTask(50, IpSecSiteConType, cnxn2Json, cnxn2Id)
+        val cnxn2 = eventually {
+            verifyCnxn(cnxn2Id, rtr1Id, cnxn2LocalCidrs, cnxn2PeerCidrs,
+                       numOtherRoutes = 2 + cnxn1.getRouteIdsCount)
+        }
+        verifyCnxn(cnxn1Id, rtr1Id, cnxn1LocalCidrs, cnxn1PeerCidrs,
+                   numOtherRoutes = 2 + cnxn2.getRouteIdsCount)
+
+        val cnxn1V2Json = ipSecSiteConnectionJson(
+            cnxn1Id, vpn1Id, cnxn1LocalCidrs, cnxn1PeerCidrs,
+            cnxn1IkeJson, cnxn1IpSecJson, adminStateUp = false,
+            name = "renamed-cnxn1", description = "Description for cnxn1",
+            peerId = "ignored", psk = "ignored", status = "error")
+        insertUpdateTask(60, IpSecSiteConType, cnxn1V2Json, cnxn1Id)
+        eventually {
+            val cnxn1V2 = verifyCnxn(
+                cnxn1Id, rtr1Id, cnxn1LocalCidrs, cnxn1PeerCidrs,
+                numOtherRoutes = 2 + cnxn2.getRouteIdsCount)
+            cnxn1V2.getAdminStateUp shouldBe false
+            cnxn1V2.getName shouldBe "renamed-cnxn1"
+            cnxn1V2.getDescription shouldBe "Description for cnxn1"
+
+            // Only the above fields should be changed.
+            cnxn1V2.getPeerId shouldBe cnxn1.getPeerId
+            cnxn1V2.getPsk shouldBe cnxn1.getPsk
+            cnxn1V2.getStatus shouldBe cnxn1.getStatus
+        }
+
+        // Delete the first connection and verify that it was cleaned up and
+        // the second connection remains.
+        insertDeleteTask(70, IpSecSiteConType, cnxn1Id)
+        eventually {
+            verifyCnxnGone(cnxn1Id, rtr1Id, cnxn1.getRouteIdsList,
+                           numOtherRoutes = 2 + cnxn2.getRouteIdsCount)
+        }
+        verifyCnxn(cnxn2Id, rtr1Id, cnxn2LocalCidrs, cnxn2PeerCidrs,
+                   numOtherRoutes = 2)
+
+        // Delete the second connection.
+        insertDeleteTask(80, IpSecSiteConType, cnxn2Id)
+        eventually {
+            verifyCnxnGone(cnxn2Id, rtr1Id, cnxn2.getRouteIdsList,
+                           numOtherRoutes = 2)
+        }
+    }
+
+    private def verifyCnxn(cnxnId: UUID, rtrId: UUID,
+                           localCidrs: Seq[String],
+                           peerCidrs: Seq[String],
+                           numOtherRoutes: Int): IPSecSiteConnection = {
+        val cnxn = storage.get(classOf[IPSecSiteConnection], cnxnId).await()
+
+        val vpnRoutesFtr = storage.getAll(classOf[Route], cnxn.getRouteIdsList)
+        val vpnRtrPortFtr = storage.get(classOf[Port], vpnRouterPortId(rtrId))
+        val vpnRoutes = vpnRoutesFtr.await()
+        val vpnRtrPort = vpnRtrPortFtr.await()
+
+        vpnRoutes.size shouldBe localCidrs.size * peerCidrs.size
+        vpnRtrPort.getRouteIdsCount shouldBe numOtherRoutes + vpnRoutes.size
+
+        for (localCidr <- localCidrs; peerCidr <- peerCidrs) {
+            val route = vpnRoutes.find { r =>
+                IPSubnetUtil.fromProto(r.getSrcSubnet).toString == localCidr &&
+                IPSubnetUtil.fromProto(r.getDstSubnet).toString == peerCidr
+            }.get
+            route.getIpsecSiteConnId.asJava shouldBe cnxnId
+            route.getNextHop shouldBe NextHop.PORT
+            route.getNextHopGateway shouldBe VpnContainerPortAddr
+            route.getNextHopPortId shouldBe vpnRtrPort.getId
+            route.hasRouterId shouldBe false
+        }
+        
+        cnxn
+    }
+
+    private def verifyCnxnGone(cnxnId: UUID, rtrId: UUID,
+                               routeIds: Seq[Commons.UUID],
+                               numOtherRoutes: Int): Unit = {
+        val rtrPortFtr = storage.get(classOf[Port], vpnRouterPortId(rtrId))
+        val cnxnExistsFtr = storage.exists(classOf[IPSecSiteConnection], cnxnId)
+        routeIds.map(storage.exists(classOf[Rule], _))
+            .exists(_.await() == true) shouldBe false
+
+        cnxnExistsFtr.await() shouldBe false
+
+        val rtrPort = rtrPortFtr.await()
+        rtrPort.getRouteIdsCount shouldBe numOtherRoutes
+        for (rtId <- routeIds)
+            rtrPort.getRouteIdsList should not contain rtId
+    }
+
     private def setupRouter1(firstTaskId: Int, verify: Boolean = true): Unit = {
         createSubnet(firstTaskId, rtr1SnId, extNwId, rtr1SnCidr, rtr1GwIp)
         createRouterGatewayPort(firstTaskId + 1, rtr1GwPortId, extNwId,
@@ -104,11 +231,13 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
                            vpnServiceContainerId(rtrId)),
             storage.exists(classOf[Port], vpnRouterPortId(rtrId)),
             storage.exists(classOf[Chain], vpnRedirectChainId(rtrId)),
+            storage.exists(classOf[Rule], vpnEspRedirectRuleId(rtrId)),
+            storage.exists(classOf[Rule], vpnUdpRedirectRuleId(rtrId)),
             storage.exists(classOf[Route], vpnVpnRouteId(rtrId)),
             storage.exists(classOf[Route],
                            localRouteId(vpnRouterPortId(rtrId))))
-            .map(_.await()) shouldBe Seq(false, false, false,
-                                         false, false, false)
+            .map(_.await()) shouldBe Seq(false, false, false, false,
+                                         false, false, false, false)
         val rtr = rtrFtr.await()
         rtr.hasLocalRedirectChainId shouldBe false
         rtr.getPortIdsList should not contain vpnRouterPortId(toProto(rtrId))
@@ -118,6 +247,12 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
     private def verifyContainer(rtrId: UUID, vpnIds: Seq[UUID],
                                 rtrGwIp: String): Unit = {
         val rtrFtr = storage.get(classOf[Router], rtrId)
+        val redirectChainFtr = storage.get(classOf[Chain],
+                                           vpnRedirectChainId(rtrId))
+        val espRedirectRuleFtr = storage.get(classOf[Rule],
+                                             vpnEspRedirectRuleId(rtrId))
+        val udpRedirectRuleFtr = storage.get(classOf[Rule],
+                                             vpnUdpRedirectRuleId(rtrId))
         val rtrPortFtr = storage.get(classOf[Port], vpnRouterPortId(rtrId))
         val localRtFtr = storage.get(classOf[Route],
                                      localRouteId(vpnRouterPortId(rtrId)))
@@ -127,11 +262,14 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         val sc = storage.get(classOf[ServiceContainer],
                              vpnServiceContainerId(toProto(rtrId))).await()
         val rtr = rtrFtr.await()
+        val redirectChain = redirectChainFtr.await()
+        val espRedirectRule = espRedirectRuleFtr.await()
+        val udpRedirectRule = udpRedirectRuleFtr.await()
         val rtrPort = rtrPortFtr.await()
         val localRt = localRtFtr.await()
         val vpnRt = vpnRtFtr.await()
-
         val scg = scgFtr.await()
+
         scg.hasHostGroupId shouldBe false
         scg.hasPortGroupId shouldBe false // TODO: Should be true, once implemented.
         scg.getServiceContainerIdsList should contain only sc.getId
@@ -144,9 +282,27 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
         rtr.getVpnServiceIdsList.map(_.asJava) should
             contain theSameElementsAs vpnIds
         rtr.getPortIdsList should contain(rtrPort.getId)
-        rtr.hasLocalRedirectChainId shouldBe true
-        storage.exists(classOf[Chain],
-                       rtr.getLocalRedirectChainId).await() shouldBe true
+        rtr.getLocalRedirectChainId shouldBe redirectChain.getId
+
+        // TODO: Add chain backref to router.
+        redirectChain.getRuleIdsList should contain only(
+            espRedirectRule.getId, udpRedirectRule.getId)
+
+        espRedirectRule.getAction shouldBe Rule.Action.REDIRECT
+        espRedirectRule.getChainId shouldBe redirectChain.getId
+        espRedirectRule.getCondition.getNwDstIp.getAddress shouldBe rtrGwIp
+        espRedirectRule.getCondition.getNwProto shouldBe 50
+        espRedirectRule.getTransformRuleData.getTargetPortId shouldBe rtrPort.getId
+        espRedirectRule.getType shouldBe Rule.Type.L2TRANSFORM_RULE
+
+        udpRedirectRule.getAction shouldBe Rule.Action.REDIRECT
+        udpRedirectRule.getChainId shouldBe redirectChain.getId
+        udpRedirectRule.getCondition.getNwDstIp.getAddress shouldBe rtrGwIp
+        udpRedirectRule.getCondition.getNwProto shouldBe 17
+        udpRedirectRule.getCondition.getTpSrc.getStart shouldBe 500
+        udpRedirectRule.getCondition.getTpSrc.getEnd shouldBe 500
+        udpRedirectRule.getTransformRuleData.getTargetPortId shouldBe rtrPort.getId
+        udpRedirectRule.getType shouldBe Rule.Type.L2TRANSFORM_RULE
 
         rtrPort.getRouterId shouldBe rtr.getId
         rtrPort.getPortAddress shouldBe VpnRouterPortAddr

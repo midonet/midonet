@@ -22,13 +22,13 @@ import org.midonet.cluster.models.Neutron.VpnService
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil}
 import org.midonet.packets.MAC
 import org.midonet.util.concurrent.toFutureOps
 
 class VpnServiceTranslator(protected val storage: ReadOnlyStorage)
     extends Translator[VpnService]
-            with ChainManager with RouteManager {
+            with ChainManager with RouteManager with RuleManager {
     import VpnServiceTranslator._
 
     override protected def translateCreate(vpn: VpnService): OperationList = {
@@ -48,7 +48,9 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage)
         val localRoute = newLocalRoute(rtrPort.getId, rtrPort.getPortAddress)
 
         val redirectChain = newChain(id = vpnRedirectChainId(rtrId),
-                                     name = redirectChainName(rtrId))
+                                     name = vpnRedirectChainName(rtrId))
+        val redirectRules = makeRedirectRules(vpn)
+
         val rtrWithChain = router.toBuilder
             .setLocalRedirectChainId(redirectChain.getId)
             .addVpnServiceIds(vpn.getId)
@@ -67,6 +69,8 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage)
             .build()
 
         List(Create(redirectChain),
+             Create(redirectRules.espRedirectRule),
+             Create(redirectRules.udpRedirectRule),
              Update(rtrWithChain),
              Create(rtrPort),
              Create(vpnRoute),
@@ -76,7 +80,6 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage)
     }
 
     override protected def translateDelete(vpnId: UUID): OperationList = {
-        // TODO: Don't do this if the router still has another VPNService.
         val vpn = storage.get(classOf[VpnService], vpnId).await()
         val router = storage.get(classOf[Router], vpn.getRouterId).await()
         if (router.getVpnServiceIdsCount > 1) List() else {
@@ -109,8 +112,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage)
                 .setAdminStateUp(vpn.getAdminStateUp)
                 .setDescription(vpn.getDescription)
                 .setName(vpn.getName)
-                .build()
-            List(Update(newVpn))
+            List(Update(newVpn.build()))
         case _ => super.retainHighLevelModel(op)
     }
 
@@ -128,6 +130,41 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage)
             .build()
     }
 
+
+    private case class RedirectRules(espRedirectRule: Rule,
+                                     udpRedirectRule: Rule)
+    private def makeRedirectRules(vpn: VpnService): RedirectRules = {
+        val rtrId = vpn.getRouterId
+        val redirectChainId = VpnServiceTranslator.vpnRedirectChainId(rtrId)
+        val rtrPortId = VpnServiceTranslator.vpnRouterPortId(rtrId)
+
+        // TODO: Will it always have one or the other?
+        val localEndpointIp = IPSubnetUtil.fromAddr(
+            if (vpn.hasExternalV4Ip) vpn.getExternalV4Ip
+            else vpn.getExternalV6Ip)
+
+        // Redirect ESP traffic addressed to local endpoint to VPN port.
+        val espRuleBldr = redirectRuleBuilder(
+            id = vpnEspRedirectRuleId(rtrId),
+            chainId = redirectChainId,
+            targetPortId = rtrPortId)
+        espRuleBldr.getConditionBuilder
+            .setNwDstIp(localEndpointIp)
+            .setNwProto(50) // ESP
+
+        // Redirect UDP traffic addressed to local endpoint on port 500 to VPN
+        // port.
+        val udpRuleBldr = redirectRuleBuilder(
+            id = vpnUdpRedirectRuleId(rtrId),
+            chainId = redirectChainId,
+            targetPortId = rtrPortId)
+        udpRuleBldr.getConditionBuilder
+            .setNwDstIp(localEndpointIp)
+            .setNwProto(17) // UDP
+            .setTpSrc(RangeUtil.toProto(500, 500)) // TODO: Why 500?
+
+        RedirectRules(espRuleBldr.build(), udpRuleBldr.build())
+    }
 }
 
 protected[translators] object VpnServiceTranslator {
@@ -151,9 +188,19 @@ protected[translators] object VpnServiceTranslator {
     def vpnVpnRouteId(routerId: UUID): UUID =
         routerId.xorWith(0x645a41fb3e1641a3L, 0x90d28456127bee31L)
 
+    /** Generate ID for router's VPN redirect chain. */
     def vpnRedirectChainId(routerId: UUID): UUID =
         routerId.xorWith(0xdbbb7a218d014f17L, 0x8cfa272da798414eL)
 
-    def redirectChainName(routerId: UUID): String =
+    /** Generate name for router's VPN redirect chain. */
+    def vpnRedirectChainName(routerId: UUID): String =
         "VPN_REDIRECT_" + routerId.asJava
+
+    /** Generate ID for rule to redirect ESP traffic to VPN port. */
+    def vpnEspRedirectRuleId(rtrId: UUID): UUID =
+        rtrId.xorWith(0xebcf3f9c57b0445bL, 0x911173b93be7220cL)
+
+    /** Generate ID for rule to redirect UDP traffic on port 500 to VPN port. */
+    def vpnUdpRedirectRuleId(rtrId: UUID): UUID =
+        rtrId.xorWith(0x8f32d38b951946d8L, 0xac6fa76e094db10eL)
 }

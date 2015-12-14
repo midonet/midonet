@@ -86,7 +86,8 @@ trait RouteManager {
                                       srcSubnet: IPSubnet = univSubnet4,
                                       dstSubnet: IPSubnet = univSubnet4,
                                       gatewayDhcpId: UUID = null,
-                                      weight: Int = DEFAULT_WEIGHT): Route = {
+                                      weight: Int = DEFAULT_WEIGHT,
+                                      ipSecSiteCnxnId: UUID = null): Route = {
         val bldr = Route.newBuilder
         bldr.setId(if (id != null) id else UUIDUtil.randomUuidProto)
         bldr.setNextHop(NextHop.PORT)
@@ -96,6 +97,7 @@ trait RouteManager {
         bldr.setWeight(weight)
         if (gatewayDhcpId != null) bldr.setGatewayDhcpId(gatewayDhcpId)
         if (nextHopGwIpAddr != null) bldr.setNextHopGateway(nextHopGwIpAddr)
+        if (ipSecSiteCnxnId != null) bldr.setIpsecSiteConnId(ipSecSiteCnxnId)
         bldr.build()
     }
 
