@@ -18,8 +18,10 @@ package org.midonet.cluster.services.containers
 
 import java.util.UUID
 
+import javax.annotation.Nullable
+
 import org.midonet.cluster.models.State.ContainerStatus
-import org.midonet.cluster.models.Topology.{ServiceContainerGroup, ServiceContainer}
+import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.containers.Container
 
 /**
@@ -59,13 +61,9 @@ import org.midonet.containers.Container
 trait ContainerDelegate {
 
     /**
-      * Method called when the container is created in the backend. At this
-      * point the container has been scheduled on the specified agent. The
-      * implementation of this method must create a port bound to an interface
-      * name.
+      * Method called when the container is scheduled on the specified agent.
       */
-    def onCreate(container: ServiceContainer, group: ServiceContainerGroup,
-                 hostId: UUID): Unit
+    def onScheduled(container: ServiceContainer, hostId: UUID): Unit
 
     /**
       * Method called when the container namespace and veth port pair are
@@ -74,8 +72,7 @@ trait ContainerDelegate {
       * [[ContainerStatus]] with the host identifier, namespace and interface
       * name where the container is connected and the container health status.
       */
-    def onUp(container: ServiceContainer, group: ServiceContainerGroup,
-             status: ContainerStatus): Unit
+    def onUp(container: ServiceContainer,  status: ContainerStatus): Unit
 
     /**
       * Method called when the container is no longer available on the scheduled
@@ -84,14 +81,12 @@ trait ContainerDelegate {
       * maintaining the container and reported status DOWN, or (3) the container
       * has been deleted.
       */
-    def onDown(container: ServiceContainer, group: ServiceContainerGroup,
-               status: ContainerStatus): Unit
+    def onDown(container: ServiceContainer,
+               @Nullable status: ContainerStatus): Unit
 
     /**
-      * Method called when the container has been deleted. The implementation
-      * of this method must delete the port created for this container.
+      * Method called when the container has been unscheduled from a host.
       */
-    def onDelete(container: ServiceContainer, group: ServiceContainerGroup,
-                 hostId: UUID): Unit
+    def onUnscheduled(container: ServiceContainer, hostId: UUID): Unit
 
 }
