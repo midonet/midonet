@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_28eed8b4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-14T08:50:31Z",
+      "side": 1,
+      "message": "why lazy? this will require synchronized access. \nwhy private[simulation] and not just private?",
+      "revId": "f45a623b278d3d13c2c8284fb9d614b4a493953e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
