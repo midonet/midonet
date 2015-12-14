@@ -18,7 +18,7 @@ package org.midonet.netlink.rtnetlink
 
 import java.nio.ByteBuffer
 
-import org.midonet.netlink.{NetlinkProtocol, NetlinkMessageWrapper, NLFlag}
+import org.midonet.netlink.{NetlinkMessageWrapper, NLFlag}
 import org.midonet.packets.{MAC, IPv4Addr}
 
 final class RtnetlinkProtocol(pid: Int) {
@@ -43,6 +43,13 @@ final class RtnetlinkProtocol(pid: Int) {
         val message = messageFor(buf, Rtnetlink.Type.GETLINK)
             .withFlags(NLFlag.REQUEST)
         Link.describeGetRequest(buf, ifIndex)
+        message.finalize(pid)
+    }
+
+    def prepareLinkGet(buf: ByteBuffer, name: String): Unit = {
+        val message = messageFor(buf, Rtnetlink.Type.GETLINK)
+            .withFlags(NLFlag.REQUEST)
+        Link.describeGetRequest(buf, name)
         message.finalize(pid)
     }
 
@@ -78,14 +85,7 @@ final class RtnetlinkProtocol(pid: Int) {
     def prepareAddrList(buf: ByteBuffer): Unit = {
         val message = messageFor(buf, Rtnetlink.Type.GETADDR)
             .withFlags((NLFlag.REQUEST | NLFlag.Get.DUMP).toShort)
-        Addr.describeListRequest(buf)
-        message.finalize(pid)
-    }
-
-    def prepareAddrGet(buf: ByteBuffer, linkIndex: Int, family: Byte): Unit = {
-        val message = messageFor(buf, Rtnetlink.Type.GETADDR)
-            .withFlags(NLFlag.REQUEST)
-        Addr.describeGetRequest(buf, linkIndex, family)
+        Addr.describeGetRequest(buf)
         message.finalize(pid)
     }
 

@@ -45,15 +45,14 @@ class LinkOpsTest extends FeatureSpec with BeforeAndAfterAll with ShouldMatchers
             dev.getName should be ("fluffy")
             peer.getName should be ("sparkles")
             (dev.ifi.flags & Link.Flag.IFF_UP) should be (Link.Flag.IFF_UP)
+            (peer.ifi.flags & Link.Flag.IFF_UP) should be (Link.Flag.IFF_UP)
             dev.mtu should be (9000)
             peer.mtu should be (9000)
             dev.mac should be (devMac)
             peer.mac should be (peerMac)
 
             LinkOps.setAddress(dev, IPv4Subnet.fromString("10.0.0.1/24", "/"))
-            val addr = LinkOps.setAddress(peer, IPv4Subnet.fromString("10.0.0.2/24", "/"))
-            addr.ipv4.get(0) should be (IPv4Addr.fromString("10.0.0.2"))
-            addr.ifa.prefixLen should be (24)
+            LinkOps.setAddress(peer, IPv4Subnet.fromString("10.0.0.2/24", "/"))
 
             LinkOps.deleteLink(dev)
         }

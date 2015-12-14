@@ -214,24 +214,12 @@ public class Addr implements AttributeHandler {
         }
     }
 
-    static public ByteBuffer describeListRequest(ByteBuffer buf) {
-        return describeGetRequest(buf, 0, Family.AF_UNSPEC);
-    }
-
-    static public ByteBuffer describeGetRequest(ByteBuffer buf,
-                                                int linkIndex) {
-        return describeGetRequest(buf, linkIndex, Family.AF_UNSPEC);
-    }
-
-    static public ByteBuffer describeGetRequest(ByteBuffer buf,
-                                                int linkIndex,
-                                                byte addressFamily) {
-        buf.put(addressFamily);
+    static public ByteBuffer describeGetRequest(ByteBuffer buf) {
+        buf.put(Family.AF_UNSPEC);
         buf.put((byte) 0);
         buf.put((byte) 0);
         buf.put((byte) (Scope.RT_SCOPE_LINK | Scope.RT_SCOPE_HOST));
-        buf.putInt(linkIndex);
-
+        buf.putInt(0);
         return buf;
     }
 

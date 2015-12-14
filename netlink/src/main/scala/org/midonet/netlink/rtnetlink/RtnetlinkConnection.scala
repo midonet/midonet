@@ -40,9 +40,6 @@ trait AbstractRtnetlinkConnection {
     def linksSet(link: Link, observer: Observer[Boolean]): Unit
 
     def addrsList(observer: Observer[Set[Addr]]): Unit
-    def addrsGet(ifIndex: Int, observer: Observer[Set[Addr]]): Unit
-    def addrsGet(ifIndex: Int, family: Byte,
-                 observer: Observer[Set[Addr]]): Unit
 
     def routesList(observer: Observer[Set[Route]]): Unit
     def routesGet(dst: IPv4Addr, observer: Observer[Route]): Unit
@@ -223,16 +220,7 @@ class RtnetlinkConnection(val channel: NetlinkChannel,
         sendRequest(observer)(buf => protocol.prepareLinkSet(buf, link))
 
     override def addrsList(observer: Observer[Set[Addr]]): Unit =
-        sendRequest(observer)(protocol.prepareAddrList)
-
-    override def addrsGet(ifIndex: Int, observer: Observer[Set[Addr]]): Unit =
-        sendRequest(observer)(buf =>
-            protocol.prepareAddrGet(buf, ifIndex, Addr.Family.AF_INET))
-
-    override def addrsGet(ifIndex: Int, family: Byte,
-                          observer: Observer[Set[Addr]]): Unit =
-        sendRequest(observer)(buf =>
-            protocol.prepareAddrGet(buf, ifIndex, family))
+        sendRequest(observer)(protocol.prepareAddrList(_))
 
     override def routesList(observer: Observer[Set[Route]]): Unit =
         sendRequest(observer)(protocol.prepareRouteList)
