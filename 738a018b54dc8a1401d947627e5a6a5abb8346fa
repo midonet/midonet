@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_c389c7cb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T12:02:52Z",
+      "side": 1,
+      "message": "are all these operations idempotent? If not, then a failure because of a timeout or something will stop the containers ever being cleaned up.",
+      "range": {
+        "startLine": 179,
+        "startChar": 0,
+        "endLine": 179,
+        "endChar": 12
+      },
+      "revId": "738a018b54dc8a1401d947627e5a6a5abb8346fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
