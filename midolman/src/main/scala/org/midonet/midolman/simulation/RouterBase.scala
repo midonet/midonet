@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.simulation
 
+import java.nio.ByteBuffer
 import java.util.UUID
 
 import org.midonet.midolman.NotYetException
@@ -30,15 +31,16 @@ import org.midonet.odp.FlowMatch.Field
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
 
+object RouterBase {
+    private val encapMac = MAC.fromString("02:00:00:00:00:00")
+}
+
 /**
  * Defines the base Router device that is meant to be extended with specific
  * implementations for IPv4 and IPv6 that deal with version specific details
  * such as ARP vs. NDP.
  */
-abstract class RouterBase[IP <: IPAddr](val id: UUID,
-                                        val cfg: Config,
-                                        val rTable: RoutingTable,
-                                        val routerMgrTagger: TagManager)
+abstract class RouterBase[IP <: IPAddr]()
                                        (implicit icmpErrors: IcmpErrorSender[IP])
     extends SimDevice with ForwardingDevice with InAndOutFilters
         with MirroringDevice with RoutingWorkflow with VirtualDevice {
@@ -46,6 +48,12 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     import org.midonet.midolman.simulation.Simulator._
 
     def isValidEthertype(ether: Short): Boolean
+
+    val id: UUID
+    val cfg: Config
+    val rTable: RoutingTable
+    val routerMgrTagger: TagManager
+    val vniToPort: java.util.Map[Int, UUID]
 
     val routeBalancer = new RouteBalancer(rTable)
     override val deviceTag = FlowTagger.tagForRouter(id)
@@ -120,20 +128,30 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     @throws[NotYetException]
     private def preRouting()(implicit context: PacketContext): SimulationResult = {
         val inPort = tryGet[RouterPort](context.inPortId)
+        val fmatch = context.wcmatch
 
-        val hwDst = context.wcmatch.getEthDst
+        val hwDst = fmatch.getEthDst
         if (Ethernet.isBroadcast(hwDst)) {
             context.log.debug("Received an L2 broadcast packet.")
             return handleL2Broadcast(inPort)
         }
 
-        if (hwDst != inPort.portMac) { // Not addressed to us, log.warn and drop
+        context.addFlowTag(deviceTag)
+
+        if (inPort.isL2) {
+            if (!encapPacket(inPort, context))
+                return Drop
+        } else if (isOverlayVtepPacket(inPort, fmatch)) {
+            val outport = decapPacket(inPort, context)
+            return if (outport ne null) {
+                continue(context, outport.action)
+            } else Drop
+        } else if (hwDst != inPort.portMac) { // Not addressed to us, log.warn and drop
             context.log.warn("{} neither broadcast nor inPort's MAC ({})",
-                hwDst, inPort.portMac)
+                             hwDst, inPort.portMac)
             return Drop
         }
 
-        context.addFlowTag(deviceTag)
         handleNeighbouring(inPort) match {
             case None =>
             case Some(simRes) => return simRes
@@ -151,6 +169,63 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             case _ =>
                 continueIn(context)
         }
+    }
+
+    private def encapPacket(inPort: RouterPort, context: PacketContext): Boolean = {
+        val mac = context.wcmatch.getEthDst
+        val remoteVtep = inPort.peeringTable.getRemote(mac)
+
+        if (remoteVtep eq null) {
+            context.log.debug(s"Could not find a remote VTEP for $mac")
+            return false
+        }
+
+        context.encap(
+            vni = inPort.vni,
+            srcMac = RouterBase.encapMac,
+            dstMac = RouterBase.encapMac,
+            srcIp = inPort.tunnelIp,
+            dstIp = remoteVtep,
+            tos = context.wcmatch.getNetworkTOS,
+            ttl = -1,
+            srcPort = context.wcmatch.connectionHash() >>> 16,
+            dstPort = UDP.VXLAN)
+
+        context.log.debug(s"Encapsulated packet ${context.wcmatch}")
+        true
+    }
+
+    private def isOverlayVtepPacket(inPort: RouterPort, fmatch: FlowMatch) =
+        fmatch.getNetworkProto == UDP.PROTOCOL_NUMBER &&
+        fmatch.getDstPort == UDP.VXLAN &&
+        fmatch.getNetworkDstIP == inPort.portAddress
+
+    private def decapPacket(inPort: RouterPort, context: PacketContext): RouterPort = {
+        val udpPayload = context.ethernet.getPayload.getPayload.getPayload
+        val vxlan = udpPayload match {
+            case vxlan: VXLAN =>
+                vxlan
+            case data: Data => // In case the dst port is not the VXLAN default
+                val vxlan = new VXLAN()
+                vxlan.deserialize(ByteBuffer.wrap(data.getData))
+                vxlan
+            case _ =>
+                context.log.warn("UDP packet to VXLAN port has " +
+                                 "unparseable payload.")
+                return null
+            }
+
+        val vni = vxlan.getVni
+        val udpSrc = context.wcmatch.getSrcPort
+        context.log.debug(s"Processing vxlan packet with vni=$vni " +
+                          s"and udpSrc=$udpSrc")
+
+        context.decap(
+            inner = vxlan.getPayload.asInstanceOf[Ethernet],
+            vni = vni)
+        // The dst ethernet of the inner packet is that of the peer router's
+        context.log.debug(s"Decapsulated packet ${context.wcmatch}")
+        tryGet[RouterPort](vniToPort.get(vni))
     }
 
     /**
@@ -301,7 +376,9 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         val rt = context.routeTo
         context.routeTo = null
 
-        val mac = getNextHopMac(tryGet[RouterPort](context.outPortId), rt,
+        val outPort = tryGet[RouterPort](context.outPortId)
+
+        val mac = getNextHopMac(outPort, rt,
                                 context.wcmatch.getNetworkDstIP.asInstanceOf[IP],
                                 context)
         mac match {
@@ -318,7 +395,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                         tryGet[RouterPort](context.inPortId), context))
                 ErrorDrop
             case nextHopMac =>
-                val outPort = tryGet[RouterPort](rt.nextHopPort)
                 context.log.debug("routing packet to {}", nextHopMac)
                 context.wcmatch.setEthSrc(outPort.portMac)
                 context.wcmatch.setEthDst(nextHopMac)

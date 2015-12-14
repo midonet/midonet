@@ -341,6 +341,7 @@ message Port {
     // Overlay VTEP on Routers
     optional uint32 vni = 40;
     optional bool off_ramp_vxlan = 41;
+    optional IPAddress tunnel_ip = 42;
 
     // Backreferences
 
