@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_e8c5c03d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NoOpNatLeaser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-14T08:42:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_d4a3479c",
+      "range": {
+        "startLine": 37,
+        "startChar": 27,
+        "endLine": 39,
+        "endChar": 72
+      },
+      "revId": "b9fbc37a32cc7609ed50dd7c3f2fe8b570e97271",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_f49e8353",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/NoOpNatLeaser.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-11T17:15:24Z",
       "side": 1,
       "message": "indent",
+      "range": {
+        "startLine": 44,
+        "startChar": 31,
+        "endLine": 46,
+        "endChar": 62
+      },
+      "revId": "b9fbc37a32cc7609ed50dd7c3f2fe8b570e97271",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_08c59c3b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/NoOpNatLeaser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-14T08:42:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_f49e8353",
       "range": {
         "startLine": 44,
         "startChar": 31,
