@@ -151,6 +151,24 @@
       "revId": "14097ec03753524a584f6364f591b76d7fff3d19",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e8f3009d",
+        "filename": "midolman/src/main/scala/org/midonet/sdn/state/NoOpFlowStateTable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-14T08:48:09Z",
+      "side": 1,
+      "message": "true, you\u0027d have to cast",
+      "parentUuid": "5ac4a560_f4c9237a",
+      "revId": "14097ec03753524a584f6364f591b76d7fff3d19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
