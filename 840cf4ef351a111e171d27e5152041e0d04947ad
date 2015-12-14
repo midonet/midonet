@@ -1,0 +1,399 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_9e2ac62a",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronUriBuilder.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "use full word.",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fe1ada15",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IPSecEncryptionAlgorithm.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "this method name is strange. Implies that some sort of cast is taking place. It\u0027d be better as normalizeIpsecString",
+      "range": {
+        "startLine": 19,
+        "startChar": 43,
+        "endLine": 19,
+        "endChar": 65
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1e16b6f1",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IkePolicy.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "what\u0027s unused in these methods?",
+      "range": {
+        "startLine": 37,
+        "startChar": 9,
+        "endLine": 37,
+        "endChar": 25
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bee78211",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IkePolicy.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "What are these for? I see we only used them for neutron models. They seem redundant with what\u0027s in the ZoomField annotation.\n\nIn any case, the JsonProperty change should be in a different commit.",
+      "range": {
+        "startLine": 56,
+        "startChar": 5,
+        "endLine": 56,
+        "endChar": 17
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_dee27e00",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POMinion.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "why move this?",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3eeff288",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "Only the route should be here. Redirect rules below to VPNService.",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5ef2ee6f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "The local_cidr-remote_cidr route should be deleted.",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9ed566bb",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "These should be created in the VPNService translator, as the only piece of information needed is the endpoint id and that\u0027s part of VPNService.",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5ecbce1d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "remove TODO.",
+      "range": {
+        "startLine": 79,
+        "startChar": 11,
+        "endLine": 79,
+        "endChar": 15
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7ed24ad3",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "Remove TODO. IKE runs on udp 500.",
+      "range": {
+        "startLine": 102,
+        "startChar": 51,
+        "endLine": 102,
+        "endChar": 68
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7e27aa64",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "Use Option[UUID] \u003d None and id.getOrElse",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7effaa67",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "It should at least check that the tenant, subnet, router_id, and external_v4_ip parameters match, and throw an error if they don\u0027t.",
+      "range": {
+        "startLine": 40,
+        "startChar": 10,
+        "endLine": 40,
+        "endChar": 64
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fe201af9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "TODO looks like it\u0027s already implemented.",
+      "range": {
+        "startLine": 79,
+        "startChar": 11,
+        "endLine": 79,
+        "endChar": 15
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3e2c5202",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "Remove comment, it shouldn\u0027t be bound here, but by the scheduler.",
+      "range": {
+        "startLine": 122,
+        "startChar": 15,
+        "endLine": 122,
+        "endChar": 19
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_7e36ca53",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "do we have a jira for this?",
+      "range": {
+        "startLine": 125,
+        "startChar": 50,
+        "endLine": 125,
+        "endChar": 54
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_dec99e7a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/VpnServiceApi.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "shouldn\u0027t commit todos unless there\u0027s a jira or something to track it.",
+      "range": {
+        "startLine": 24,
+        "startChar": 3,
+        "endLine": 24,
+        "endChar": 7
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_1e9b1673",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/VpnServiceApi.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "Should probably return an Option[VpnService] for the not found case.",
+      "range": {
+        "startLine": 27,
+        "startChar": 33,
+        "endLine": 27,
+        "endChar": 43
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_9eaf2694",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/NeutronResource.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "Use the full word. It\u0027s for computer consumption. Noone\u0027s going to have to type is regularly.",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fe765a3d",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 665,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-14T15:06:19Z",
+      "side": 1,
+      "message": "Option.",
+      "range": {
+        "startLine": 665,
+        "startChar": 46,
+        "endLine": 665,
+        "endChar": 52
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
