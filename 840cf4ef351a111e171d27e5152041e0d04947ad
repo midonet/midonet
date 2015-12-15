@@ -301,6 +301,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_5bb83776",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-15T17:41:17Z",
+      "side": 1,
+      "message": "actually is that binding needed? the deletion of the port should take this down:\n\nfrom backend:\n        store.declareBinding(classOf[Port], \"route_ids\", CASCADE,\n                             classOf[Route], \"next_hop_port_id\", CLEAR)",
+      "parentUuid": "5ac4a560_41adae9b",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_9ed566bb",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
         "patchSetId": 17
@@ -417,6 +435,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_9bb1ef91",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-15T17:41:17Z",
+      "side": 1,
+      "message": "We use the Some pattern plenty.",
+      "parentUuid": "5ac4a560_817d061f",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_7effaa67",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
         "patchSetId": 17
@@ -452,6 +488,30 @@
       "side": 1,
       "message": "I can do that. In general, though, the policy has been to treat Neutron as authoritative and trust it to give us valid input. If that\u0027s not what we should be doing, there\u0027s a lot more work to be done in other translators.",
       "parentUuid": "5ac4a560_7effaa67",
+      "range": {
+        "startLine": 40,
+        "startChar": 10,
+        "endLine": 40,
+        "endChar": 64
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fba66352",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-15T17:41:17Z",
+      "side": 1,
+      "message": "I need to think about this more. I think there\u0027s some nasty corner cases (such as multiple subnets with same ranges, etc).",
+      "parentUuid": "5ac4a560_21943236",
       "range": {
         "startLine": 40,
         "startChar": 10,
@@ -557,6 +617,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_3b68dbf4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-15T17:41:17Z",
+      "side": 1,
+      "message": "We should add a jira for this. It doesn\u0027t need to happen for MVP, but we should select a more random subnet than 169.254.1.0. Keep it in the 169.254 range though.",
+      "parentUuid": "5ac4a560_0191f646",
+      "range": {
+        "startLine": 125,
+        "startChar": 50,
+        "endLine": 125,
+        "endChar": 54
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_dec99e7a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/VpnServiceApi.scala",
         "patchSetId": 17
@@ -639,6 +723,30 @@
       "side": 1,
       "message": "I\u0027ll look into this, but I think the get() APIs usually just throw exceptions.",
       "parentUuid": "5ac4a560_1e9b1673",
+      "range": {
+        "startLine": 27,
+        "startChar": 33,
+        "endLine": 27,
+        "endChar": 43
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5b6f57fd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/VpnServiceApi.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-15T17:41:17Z",
+      "side": 1,
+      "message": "There\u0027s code using this which does a null check",
+      "parentUuid": "5ac4a560_619e2a58",
       "range": {
         "startLine": 27,
         "startChar": 33,
