@@ -241,7 +241,8 @@ object FlowRecordBuilder {
         while (i < pktContext.traversedRules.size) {
             rules.add(TraversedRule(
                           pktContext.traversedRules.get(i),
-                          convertResult(pktContext.traversedRuleResults.get(i))))
+                          convertResult(pktContext.traversedRuleResults.get(i)),
+                          pktContext.traversedRulesMatched.get(i)))
             i += 1
         }
         rules

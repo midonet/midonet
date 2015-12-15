@@ -15,12 +15,14 @@
  */
 package org.midonet.midolman.simulation
 
+import java.lang.{Boolean => JBoolean}
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.UUID
 import java.util.{Map => JMap, List => JList}
 
 import com.google.common.annotations.VisibleForTesting
+import org.apache.commons.lang3.tuple.Pair
 
 import org.midonet.midolman.rules.JumpRule
 import org.midonet.midolman.rules.Rule
@@ -75,11 +77,15 @@ case class Chain(id: UUID,
         traversedChains.add(id)
         var i = 0
         var res = CONTINUE
-        while ((i < rules.size()) && (res.action eq Action.CONTINUE)) {
+        var matched = JBoolean.FALSE
+        var pair = Pair.of(CONTINUE, JBoolean.FALSE)
+        while ((i < rules.size()) && (pair.getLeft.action eq Action.CONTINUE)) {
             val rule = rules.get(i)
             i += 1
-            res = rule.process(context)
-            context.recordTraversedRule(rule.id, res)
+            pair = rule.process(context)
+            res = pair.getLeft
+            matched = pair.getRight
+            context.recordTraversedRule(rule.id, res, matched)
             if (res.action eq Action.JUMP)
                 res = jump(context, res.jumpToChain, traversedChains)
         }

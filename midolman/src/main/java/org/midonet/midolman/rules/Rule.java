@@ -26,6 +26,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.protobuf.Message;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
@@ -163,7 +165,7 @@ public abstract class Rule extends BaseConfig {
         this.condition = cond;
     }
 
-    public RuleResult process(PacketContext pktCtx) {
+    public Pair<RuleResult, Boolean> process(PacketContext pktCtx) {
         if (condition.matches(pktCtx)) {
             pktCtx.jlog().debug(
                     "Condition matched on device {} chain {} with action {} and condition {}",
@@ -171,19 +173,13 @@ public abstract class Rule extends BaseConfig {
             if (meter != null)
                 pktCtx.addFlowTag(meter);
             if (apply(pktCtx))
-                return onSuccess();
+                return Pair.of(result, true);
         }
-        return Chain.CONTINUE();
+        return Pair.of(Chain.CONTINUE(), false);
     }
 
     public Condition getCondition() {
         return condition;
-    }
-
-    protected RuleResult onSuccess() {
-        if (result == null) //TODO: Remove this after v2
-            result = new RuleResult(action);
-        return result;
     }
 
     protected abstract boolean apply(PacketContext pktCtx);

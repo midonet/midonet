@@ -83,6 +83,10 @@
       <validValue name="First">2</validValue>
       <validValue name="Last">3</validValue>
     </enum>
+    <enum name="BooleanType" encodingType="uint8">
+      <validValue name="F">0</validValue>
+      <validValue name="T">1</validValue>
+    </enum>
   </types>
   <sbe:message name="FlowSummary" id="1" description="Summary of a flow">
     <field name="simResult" id="1" type="SimulationResult" />
@@ -123,6 +127,7 @@
     <group name="traversedRules" id="106">
       <field name="rule" id="107" type="UUID" />
       <field name="result" id="108" type="RuleResult" />
+      <field name="matched" id="109" type="BooleanType" />
     </group>
 
     <group name="traversedDevices" id="109">

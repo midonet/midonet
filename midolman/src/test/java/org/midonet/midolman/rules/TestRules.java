@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import com.typesafe.scalalogging.Logger$;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -134,15 +135,21 @@ public class TestRules {
         pktCtx.currentDevice_$eq(ownerId);
     }
 
+    private Pair<Action, Boolean> actionAndMatched(Pair<RuleResult, Boolean> pair) {
+        return Pair.of(pair.getLeft().action, pair.getRight());
+    }
+
     @Test
     public void testLiteralRuleAccept() {
         Rule rule = new LiteralRule(cond, Action.ACCEPT);
         // If the condition doesn't match the result is not modified.
-        RuleResult res = rule.process(pktCtx);
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        Pair<RuleResult, Boolean> pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertFalse(pair.getRight());
         pktCtx.inPortId_$eq(inPort);
-        res = rule.process(pktCtx);
-        Assert.assertEquals(Action.ACCEPT, res.action);
+        pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.ACCEPT, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -154,11 +161,13 @@ public class TestRules {
     public void testLiteralRuleDrop() {
         Rule rule = new LiteralRule(cond, Action.DROP);
         // If the condition doesn't match the result is not modified.
-        RuleResult res = rule.process(pktCtx);
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        Pair<RuleResult, Boolean> pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertFalse(pair.getRight());
         pktCtx.inPortId_$eq(inPort);
-        res = rule.process(pktCtx);
-        Assert.assertEquals(Action.DROP, res.action);
+        pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.DROP, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -170,22 +179,27 @@ public class TestRules {
     public void testLiteralRuleReject() {
         Rule rule = new LiteralRule(cond, Action.REJECT);
         // If the condition doesn't match the result is not modified.
-        RuleResult res = rule.process(pktCtx);
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        Pair<RuleResult, Boolean> pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertFalse(pair.getRight());
         pktCtx.inPortId_$eq(inPort);
-        res = rule.process(pktCtx);
-        Assert.assertEquals(Action.REJECT, res.action);
+        pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.REJECT, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
     }
 
     @Test
     public void testLiteralRuleReturn() {
         Rule rule = new LiteralRule(cond, Action.RETURN);
         // If the condition doesn't match the result is not modified.
-        RuleResult res = rule.process(pktCtx);
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        Pair<RuleResult, Boolean> pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertFalse(pair.getRight());
+
         pktCtx.inPortId_$eq(inPort);
-        res = rule.process(pktCtx);
-        Assert.assertEquals(Action.RETURN, res.action);
+        pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.RETURN, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
     }
 
     private Ethernet createTracePacket() {
@@ -224,8 +238,9 @@ public class TestRules {
                           traceTx);
 
         // If the condition doesn't match the result is not modified.
-        RuleResult res = rule.process(pktCtx);
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        Pair<RuleResult, Boolean> pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertFalse(pair.getRight());
         pktCtx.inPortId_$eq(inPort);
         try {
             rule.process(pktCtx);
@@ -240,8 +255,9 @@ public class TestRules {
                     pktCtx.tracingEnabled(requestId2));
         }
 
-        res = rule.process(pktCtx);
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
 
         try {
             rule2.process(pktCtx);
@@ -299,12 +315,14 @@ public class TestRules {
     public void testJumpRule() {
         Rule rule = new JumpRule(cond, jumpChainId, jumpChainName);
         // If the condition doesn't match the result is not modified.
-        RuleResult res = rule.process(pktCtx);
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        Pair<RuleResult, Boolean> pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertFalse(pair.getRight());
         pktCtx.inPortId_$eq(inPort);
-        res = rule.process(pktCtx);
-        Assert.assertEquals(Action.JUMP, res.action);
-        Assert.assertEquals(jumpChainId, res.jumpToChain);
+        pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.JUMP, pair.getLeft().action);
+        Assert.assertEquals(jumpChainId, pair.getLeft().jumpToChain);
+        Assert.assertTrue(pair.getRight());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -328,17 +346,20 @@ public class TestRules {
         nats.add(new NatTarget(0x0b000102, 0x0b00010a, 3366, 3399));
         Rule rule = new ForwardNatRule(cond, Action.ACCEPT, null, false, nats);
         // If the condition doesn't match the result is not modified.
-        RuleResult res = rule.process(pktCtx);
+        Pair<RuleResult, Boolean> pair = rule.process(pktCtx);
         natTx.commit();
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertFalse(pair.getRight());
         // We let the reverse snat rule try reversing everything.
         Rule revRule = new ReverseNatRule(new Condition(), Action.RETURN, false);
-        res = revRule.process(pktCtx);
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        pair = revRule.process(pktCtx);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertFalse(pair.getRight());
         // Now get the Snat rule to match.
         pktCtx.inPortId_$eq(inPort);
-        res = rule.process(pktCtx);
-        Assert.assertEquals(Action.ACCEPT, res.action);
+        pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.ACCEPT, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
         IPv4Addr newNwSrc = (IPv4Addr)(pktCtx.wcmatch().getNetworkSrcIP());
         Assert.assertTrue(0x0b000102 <= newNwSrc.toInt());
         Assert.assertTrue(newNwSrc.toInt() <= 0x0b00010a);
@@ -352,7 +373,7 @@ public class TestRules {
         Assert.assertEquals(expected, pktCtx.wcmatch());
         // Verify we get the same mapping if we re-process the original match.
         pktCtx.wcmatch().reset(pktCtx.origMatch());
-        res = rule.process(pktCtx);
+        rule.process(pktCtx);
         Assert.assertEquals(expected, pktCtx.wcmatch());
         // Now use the new ip/port in the return packet.
         pktCtx.wcmatch().reset(pktResponseMatch);
@@ -361,8 +382,9 @@ public class TestRules {
         pktCtx.wcmatch().setNetworkDst(newNwSrc);
         Assert.assertNotSame(pktResponseMatch.getDstPort(), newTpSrc);
         pktCtx.wcmatch().setDstPort(newTpSrc);
-        res = revRule.process(pktCtx);
-        Assert.assertEquals(Action.RETURN, res.action);
+        pair = revRule.process(pktCtx);
+        Assert.assertEquals(Action.RETURN, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
         // The generated response should be the mirror of the original.
         Assert.assertEquals(pktResponseMatch, pktCtx.wcmatch());
     }
@@ -373,18 +395,22 @@ public class TestRules {
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, 1030, 1050));
         Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, true, nats);
         // If the condition doesn't match the result is not modified.
-        RuleResult res = rule.process(pktCtx);
-        Assert.assertEquals(res.action, Action.CONTINUE);
+        Pair<RuleResult, Boolean> pair = rule.process(pktCtx);
+        Assert.assertEquals(pair.getLeft().action, Action.CONTINUE);
+        Assert.assertFalse(pair.getRight());
         Assert.assertEquals(pktCtx.origMatch(), pktCtx.wcmatch());
         // We let the reverse dnat rule try reversing everything.
         Rule revRule = new ReverseNatRule(new Condition(), Action.ACCEPT, true);
+        pair = revRule.process(pktCtx);
         // If the condition doesn't match the result is not modified.
-        Assert.assertEquals(res.action, Action.CONTINUE);
+        Assert.assertEquals(pair.getLeft().action, Action.CONTINUE);
+        Assert.assertFalse(pair.getRight());
         Assert.assertEquals(pktCtx.origMatch(), pktCtx.wcmatch());
         // Now get the Dnat rule to match.
         pktCtx.inPortId_$eq(inPort);
-        res = rule.process(pktCtx);
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
         int newNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         Assert.assertTrue(0x0c000102 <= newNwDst);
         Assert.assertTrue(newNwDst <= 0x0c00010a);
@@ -411,9 +437,9 @@ public class TestRules {
         Assert.assertNotSame(pktResponseMatch.getSrcPort(), newTpDst);
         pktCtx.wcmatch().setSrcPort(newTpDst);
         pktCtx.inPortId_$eq(null);
-        res = revRule.process(pktCtx);
-        Assert.assertEquals(Action.ACCEPT, res.action);
-
+        pair = revRule.process(pktCtx);
+        Assert.assertEquals(Action.ACCEPT, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
         // The generated response should be the mirror of the original.
         Assert.assertEquals(pktResponseMatch, pktCtx.wcmatch());
     }
@@ -427,8 +453,9 @@ public class TestRules {
 
         // Now get the Dnat rule to match.
         pktCtx.inPortId_$eq(inPort);
-        RuleResult res = rule.process(pktCtx);
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        Pair<RuleResult, Boolean> pair = rule.process(pktCtx);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
         int firstNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         Assert.assertTrue(0x0c000102 <= firstNwDst);
         Assert.assertTrue(firstNwDst <= 0x0c00010a);
@@ -444,11 +471,12 @@ public class TestRules {
 
         // Verify we get the same mapping if we re-process the original match.
         pktCtx.wcmatch().reset(pktCtx.origMatch());
-        res = rule.process(pktCtx);
+        pair = rule.process(pktCtx);
         int secondNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         int secondTpDst = pktCtx.wcmatch().getDstPort();
         Assert.assertEquals(expected, pktCtx.wcmatch());
-        Assert.assertEquals(Action.CONTINUE, res.action);
+        Assert.assertEquals(Action.CONTINUE, pair.getLeft().action);
+        Assert.assertTrue(pair.getRight());
         Assert.assertEquals(firstNwDst, secondNwDst);
         Assert.assertEquals(firstTpDst, secondTpDst);
 
@@ -461,7 +489,7 @@ public class TestRules {
 
         // Verify we get a NEW mapping if we re-process the original match.
         pktCtx.wcmatch().reset(pktCtx.origMatch());
-         rule.process(pktCtx);
+        rule.process(pktCtx);
         int thirdNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         int thirdTpDst = pktCtx.wcmatch().getDstPort();
         Assert.assertNotEquals(expected, pktCtx.wcmatch());
