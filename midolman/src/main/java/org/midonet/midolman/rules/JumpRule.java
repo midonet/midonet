@@ -36,13 +36,12 @@ public class JumpRule extends Rule {
     @ZoomField(name = "jump_chain_name")
     public String jumpToChainName;
 
-    private RuleResult result;
-
     public JumpRule(Condition condition, UUID jumpToChainID,
                     String jumpToChainName) {
         super(condition, Action.JUMP);
         this.jumpToChainID = jumpToChainID;
         this.jumpToChainName = jumpToChainName;
+        result = RuleResult.jumpResult(jumpToChainID);
     }
 
     // Default constructor for the Jackson deserialization.
@@ -64,19 +63,13 @@ public class JumpRule extends Rule {
                     String jumpChainName) {
         this(new Condition(), jumpChainId, jumpChainName);
         this.chainId = chainId;
+        result = RuleResult.jumpResult(jumpToChainID);
     }
 
     @Override
     public void afterFromProto(Message proto) {
         super.afterFromProto(proto);
         result = RuleResult.jumpResult(jumpToChainID);
-    }
-
-    @Override
-    protected RuleResult onSuccess() {
-        if (result == null) //TODO: Remove this after v2
-            result = RuleResult.jumpResult(jumpToChainID);
-        return result;
     }
 
     @Override
