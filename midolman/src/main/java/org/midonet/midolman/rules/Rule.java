@@ -170,20 +170,17 @@ public abstract class Rule extends BaseConfig {
                     pktCtx.currentDevice(), chainId, action, condition);
             if (meter != null)
                 pktCtx.addFlowTag(meter);
-            if (apply(pktCtx))
-                return onSuccess();
+            if (apply(pktCtx)) {
+                pktCtx.recordTraversedRule(id, result, true /* matched */);
+                return result;
+            }
         }
+        pktCtx.recordTraversedRule(id, result, false /* matched */);
         return Chain.CONTINUE();
     }
 
     public Condition getCondition() {
         return condition;
-    }
-
-    protected RuleResult onSuccess() {
-        if (result == null) //TODO: Remove this after v2
-            result = new RuleResult(action);
-        return result;
     }
 
     protected abstract boolean apply(PacketContext pktCtx);

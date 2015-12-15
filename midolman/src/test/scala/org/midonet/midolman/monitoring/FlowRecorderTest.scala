@@ -193,8 +193,9 @@ class FlowRecorderTest extends MidolmanSpec {
             ctx.addFlowTag(FlowTagger.tagForPort(UUID.randomUUID))
         }
         for (i <- 1.until(10)) {
-            ctx.recordTraversedRule(UUID.randomUUID,
-                                    new RuleResult(RuleResult.Action.DROP))
+            val ruleResult = new RuleResult(RuleResult.Action.DROP)
+            ctx.recordTraversedRule(UUID.randomUUID, ruleResult,
+                                    matched = true)
         }
         for (i <- 1.until(3)) {
             ctx.outPorts.add(UUID.randomUUID)
