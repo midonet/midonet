@@ -17,7 +17,7 @@ package org.midonet.midolman.topology
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{Executors, ConcurrentHashMap}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,6 +34,7 @@ import rx.subjects.PublishSubject
 import org.midonet.cluster.data.storage.{TransactionManager, NotFoundException, StateResult}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.PortStateStorage._
+import org.midonet.midolman.containers.ContainerService
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{TunnelZoneType, Host, TunnelZone}
@@ -175,7 +176,16 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
 
     override def logSource = "org.midonet.devices.underlay"
 
-    private val vxlanPortMapping = new VxLanPortMappingService(vt)
+    private val vxlanPortMappingService = new VxLanPortMappingService(vt)
+
+    // Use a private executor to manage the container handlers. Since the
+    // container handler perform I/O operations (e.g. create namespaces, etc.)
+    // we cannot use the virtual topology thread since it will block the
+    // notifications for all topology devices, and it may overflow the internal
+    // buffers of the ObserveOn RX operator.
+    private val containerService =
+        new ContainerService(vt, hostId, Executors.newSingleThreadExecutor(
+            new NamedThreadFactory("containers", isDaemon = true)))
 
     private val activePorts = new ConcurrentHashMap[UUID, Boolean]
     private val portsActiveSubject = PublishSubject.create[LocalPortActive]
@@ -186,7 +196,7 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
 
     override def doStart(): Unit = {
         try {
-            vxlanPortMapping.startAsync().awaitRunning()
+            vxlanPortMappingService.startAsync().awaitRunning()
         } catch {
             case NonFatal(e) =>
                 log.error("Failed to start the VXLAN port mapping service", e)
@@ -194,6 +204,16 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
                 doStop()
                 return
         }
+        try {
+            containerService.startAsync().awaitRunning()
+        } catch {
+            case NonFatal(e) =>
+                log.error("Failed to start the Containers service", e)
+                notifyFailed(e)
+                doStop()
+                return
+        }
+
         notifyStarted()
     }
 
@@ -201,11 +221,14 @@ class VirtualToPhysicalMapper(backend: MidonetBackend,
         clearPortsActive().await()
 
         try {
-            vxlanPortMapping.stopAsync().awaitTerminated()
+            containerService.stopAsync().awaitTerminated()
         } catch {
             case NonFatal(e) =>
-                log.error("Failed to stop the VXLAN port mapping service", e)
-                notifyFailed(e)
+        }
+        try {
+            vxlanPortMappingService.stopAsync().awaitTerminated()
+        } catch {
+            case NonFatal(e) =>
         }
 
         if (state() != State.FAILED) {
