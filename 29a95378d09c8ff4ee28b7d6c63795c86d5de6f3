@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_83218fa1",
+        "filename": "midolman/src/integration/scala/org/midonet/RecircTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-15T11:18:43Z",
+      "side": 1,
+      "message": "does this test verify uniquification?",
+      "revId": "29a95378d09c8ff4ee28b7d6c63795c86d5de6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_28e1789a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-15T11:18:43Z",
+      "side": 1,
+      "message": "can we rename these?",
+      "revId": "29a95378d09c8ff4ee28b7d6c63795c86d5de6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_48ef9487",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-15T11:18:43Z",
+      "side": 1,
+      "message": "can we rename this?",
+      "revId": "29a95378d09c8ff4ee28b7d6c63795c86d5de6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c889e4cb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-15T11:18:43Z",
+      "side": 1,
+      "message": "shouldn\u0027t this be in MAC itself?",
+      "revId": "29a95378d09c8ff4ee28b7d6c63795c86d5de6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_c8b0048e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-15T11:18:43Z",
+      "side": 1,
+      "message": "be consistent.",
+      "revId": "29a95378d09c8ff4ee28b7d6c63795c86d5de6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_e33c03c2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/config/MidolmanConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-15T11:18:43Z",
+      "side": 1,
+      "message": "my opinion:\n\nremove these two from config. Call them:\n\nmidorecirchost\nmidorecircdp",
+      "revId": "29a95378d09c8ff4ee28b7d6c63795c86d5de6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_a8eca890",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-15T11:18:43Z",
+      "side": 1,
+      "message": "check that it\u0027s cleared.",
+      "revId": "29a95378d09c8ff4ee28b7d6c63795c86d5de6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_6899b01e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-12-15T11:18:43Z",
+      "side": 1,
+      "message": "shouldn\u0027t stash just be globally accesible?",
+      "revId": "29a95378d09c8ff4ee28b7d6c63795c86d5de6f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
