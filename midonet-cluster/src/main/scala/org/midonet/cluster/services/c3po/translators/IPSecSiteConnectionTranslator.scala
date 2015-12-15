@@ -16,21 +16,29 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.{IPSecSiteConnection}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation, Update}
+import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
+import org.midonet.cluster.models.Neutron.{IPSecSiteConnection, NeutronSubnet, VpnService}
+import org.midonet.cluster.models.Topology.ServiceContainer
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.concurrent.toFutureOps
 
 class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
-    extends Translator[IPSecSiteConnection] {
+        extends Translator[IPSecSiteConnection]
+        with RouteManager {
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
     override protected def translateCreate(cnxn: IPSecSiteConnection)
     : OperationList = {
-        List()
+        val vpn = storage.get(classOf[VpnService], cnxn.getVpnserviceId).await()
+        val subnet = storage.get(classOf[NeutronSubnet], vpn.getSubnetId).await()
+        val localCidr = subnet.getCidr
+
+        List(Update(cnxn.toBuilder.setLocalCidr(localCidr).build)) ++
+            createRemoteRouteOps(cnxn, vpn, localCidr)
     }
 
     override protected def translateDelete(id: UUID): OperationList = {
@@ -57,9 +65,33 @@ class IPSecSiteConnectionTranslator(protected val storage: ReadOnlyStorage)
             val oldCnxn = storage.get(classOf[IPSecSiteConnection],
                                       cnxn.getId).await()
             val newCnxn = cnxn.toBuilder()
+                .setLocalCidr(oldCnxn.getLocalCidr)
                 .addAllRouteIds(oldCnxn.getRouteIdsList()).build()
             List(Update(newCnxn))
         case _ => super.retainHighLevelModel(op)
+    }
+
+    /** Generate options to create routes for Cartesian product of cnxn's
+      * local CIDRs and peer CIDRs.
+      */
+    private def createRemoteRouteOps(cnxn: IPSecSiteConnection,
+                                     vpn: VpnService,
+                                     localCidr: IPSubnet): OperationList = {
+        val container = storage.get(classOf[ServiceContainer],
+                                    vpn.getContainerId).await()
+        val routerPortId = container.getPortId
+
+        cnxn.getPeerCidrsList.asScala.map(
+            (peerCidr: IPSubnet) => {
+                Create(
+                    newNextHopPortRoute(
+                        id = UUIDUtil.randomUuidProto,
+                        ipSecSiteCnxnId = cnxn.getId,
+                        nextHopPortId = routerPortId,
+                        nextHopGwIpAddr = VpnServiceTranslator.VpnContainerPortAddr,
+                        srcSubnet = localCidr,
+                        dstSubnet = peerCidr))
+            }).toList
     }
 }
 

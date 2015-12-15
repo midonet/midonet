@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.rest_api.neutron
 
-import java.util.UUID
+import java.util.{ArrayList, UUID}
 
 import com.sun.jersey.api.client.{ClientResponse, WebResource}
 import com.sun.jersey.api.client.ClientResponse.Status
@@ -40,6 +40,10 @@ class TestIpsecSiteConnection extends FeatureSpec
 
     private var vpnServiceResource: WebResource = _
     private var ipsecSiteConnectionResource: WebResource = _
+    private var networkResource: WebResource = _
+    private var subnetResource: WebResource = _
+    private var routerResource: WebResource = _
+    private var portResource: WebResource = _
 
     var jerseyTest: FuncJerseyTest = _
 
@@ -49,6 +53,10 @@ class TestIpsecSiteConnection extends FeatureSpec
         vpnServiceResource = jerseyTest.resource().path("/neutron/vpnservices")
         ipsecSiteConnectionResource =
             jerseyTest.resource().path("/neutron/ipsec_site_connections")
+        networkResource = jerseyTest.resource().path("/neutron/networks")
+        subnetResource = jerseyTest.resource().path("/neutron/subnets")
+        routerResource = jerseyTest.resource().path("/neutron/routers")
+        portResource = jerseyTest.resource().path("/neutron/ports")
     }
 
     after {
@@ -65,10 +73,70 @@ class TestIpsecSiteConnection extends FeatureSpec
     }
 
     scenario("Create, Read, Update, Delete") {
+        val network = new Network()
+        network.id = UUID.randomUUID
+        network.name = "test-network"
+        network.adminStateUp = true
+
+        val subnet = new Subnet()
+        subnet.id = UUID.randomUUID
+        subnet.networkId = network.id
+        subnet.cidr = "10.0.0.0/24"
+        subnet.gatewayIp = "10.0.0.1"
+        subnet.ipVersion = 4
+
+        val extNetwork = new Network()
+        extNetwork.id = UUID.randomUUID
+        extNetwork.name = "ext-network"
+        extNetwork.adminStateUp = true
+
+        val extSubnet = new Subnet()
+        extSubnet.id = UUID.randomUUID
+        extSubnet.networkId = extNetwork.id
+        extSubnet.cidr = "1.0.0.0/24"
+        extSubnet.ipVersion = 4
+
+        val extPort = new Port()
+        extPort.id = UUID.randomUUID
+        extPort.networkId = extNetwork.id
+        extPort.macAddress = "ac:ca:ba:33:cb:a2"
+        extPort.fixedIps = new ArrayList[IPAllocation]() {
+            add(new IPAllocation("1.0.0.1", extSubnet.id));
+        }
+        extPort.deviceOwner = DeviceOwner.ROUTER_GW
+
+        val router = new Router()
+        router.id = UUID.randomUUID
+        router.adminStateUp = true
+        router.gwPortId = extPort.id
+        router.externalGatewayInfo = new ExternalGatewayInfo()
+        router.externalGatewayInfo.networkId = extNetwork.id
+
+        networkResource.`type`(NeutronMediaType.NETWORK_JSON_V1)
+            .post(classOf[ClientResponse],
+                  network).getStatus shouldBe Status.CREATED.getStatusCode
+        networkResource.`type`(NeutronMediaType.NETWORK_JSON_V1)
+            .post(classOf[ClientResponse],
+                  extNetwork).getStatus shouldBe Status.CREATED.getStatusCode
+        subnetResource.`type`(NeutronMediaType.SUBNET_JSON_V1)
+            .post(classOf[ClientResponse],
+                  subnet).getStatus shouldBe Status.CREATED.getStatusCode
+        subnetResource.`type`(NeutronMediaType.SUBNET_JSON_V1)
+            .post(classOf[ClientResponse],
+                  extSubnet).getStatus shouldBe Status.CREATED.getStatusCode
+        portResource.`type`(NeutronMediaType.PORT_JSON_V1)
+            .post(classOf[ClientResponse],
+                  extPort).getStatus shouldBe Status.CREATED.getStatusCode
+        routerResource.`type`(NeutronMediaType.ROUTER_JSON_V1)
+            .post(classOf[ClientResponse],
+                  router).getStatus shouldBe Status.CREATED.getStatusCode
+
         val vpnService = new VpnService()
         vpnService.id = UUID.randomUUID
         vpnService.name = vpnService.id + "-name"
         vpnService.description = vpnService.id + "-desc"
+        vpnService.routerId = router.id
+        vpnService.subnetId = subnet.id
 
         val response = vpnServiceResource.`type`(NEUTRON_VPN_SERVICE_JSON_V1)
             .post(classOf[ClientResponse], vpnService)
