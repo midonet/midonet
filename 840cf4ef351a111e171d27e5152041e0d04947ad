@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_27d52243",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/NeutronUriBuilder.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-15T06:50:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_9e2ac62a",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_fe1ada15",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/IPSecEncryptionAlgorithm.java",
         "patchSetId": 17
@@ -165,6 +183,24 @@
       "side": 1,
       "message": "I\u0027m not sure, but I think I did an import optimize, which removed this because of some kind of parsing issue in IDEA, then I added it back in to get the code to compile. I didn\u0027t realize it had been down there before. I\u0027ll add it back.",
       "parentUuid": "5ac4a560_dee27e00",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_273c4293",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POMinion.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-15T06:50:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_a1ca026c",
       "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -520,6 +556,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_67cf1ab1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/VpnServiceApi.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-15T06:50:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_dec99e7a",
+      "range": {
+        "startLine": 24,
+        "startChar": 3,
+        "endLine": 24,
+        "endChar": 7
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_1e9b1673",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/VpnServiceApi.scala",
         "patchSetId": 17
@@ -578,6 +638,24 @@
       "writtenOn": "2015-12-14T15:06:19Z",
       "side": 1,
       "message": "Use the full word. It\u0027s for computer consumption. Noone\u0027s going to have to type is regularly.",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_47ccdebc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/NeutronResource.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-15T06:50:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_9eaf2694",
       "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
