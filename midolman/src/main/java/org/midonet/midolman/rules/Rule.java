@@ -165,25 +165,21 @@ public abstract class Rule extends BaseConfig {
 
     public RuleResult process(PacketContext pktCtx) {
         if (condition.matches(pktCtx)) {
+            result.matched = true;
+
             pktCtx.jlog().debug(
                     "Condition matched on device {} chain {} with action {} and condition {}",
                     pktCtx.currentDevice(), chainId, action, condition);
             if (meter != null)
                 pktCtx.addFlowTag(meter);
             if (apply(pktCtx))
-                return onSuccess();
+                return result;
         }
         return Chain.CONTINUE();
     }
 
     public Condition getCondition() {
         return condition;
-    }
-
-    protected RuleResult onSuccess() {
-        if (result == null) //TODO: Remove this after v2
-            result = new RuleResult(action);
-        return result;
     }
 
     protected abstract boolean apply(PacketContext pktCtx);

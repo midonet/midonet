@@ -72,13 +72,6 @@ public class JumpRule extends Rule {
     }
 
     @Override
-    protected RuleResult onSuccess() {
-        if (result == null) //TODO: Remove this after v2
-            result = RuleResult.jumpResult(jumpToChainID);
-        return result;
-    }
-
-    @Override
     protected boolean apply(PacketContext pktCtx) {
         pktCtx.jlog().debug("Rule evaluation jumping to chain {} with ID {}.",
                 jumpToChainName, jumpToChainID);
