@@ -61,9 +61,7 @@ class ProtoTextPrettifierTest extends FunSuite with ShouldMatchers {
     }
 
     test("Null") {
-        intercept[NullPointerException] {
-            makeReadable(null)
-        }
+        makeReadable(null) shouldBe "null"
     }
 
     test("Repeated fields that are messages") {
