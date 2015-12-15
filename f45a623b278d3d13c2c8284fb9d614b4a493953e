@@ -16,6 +16,24 @@
       "revId": "f45a623b278d3d13c2c8284fb9d614b4a493953e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_5543a813",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-15T12:24:46Z",
+      "side": 1,
+      "message": "I wanted to avoid initializing the vals if they\u0027re not used. I\u0027ll make them eager to avoid the cost of sync. I made them just private as well.",
+      "parentUuid": "5ac4a560_28eed8b4",
+      "revId": "f45a623b278d3d13c2c8284fb9d614b4a493953e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
