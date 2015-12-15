@@ -42,6 +42,8 @@ public class NeutronUriBuilder {
     public static final String POOL_HEALTH_MONITOR = "/pool_health_monitor";
 
     public static final String FIREWALLS = "/firewalls";
+    public static final String VPNSERVICES = "/vpnservices";
+    public static final String IPSEC_SITE_CONNS = "/ipsec_site_connections";
 
 
     public static URI getRoot(URI baseUri) {
@@ -251,5 +253,33 @@ public class NeutronUriBuilder {
 
     public static String getFirewallTemplate(URI baseUri) {
         return buildIdTemplateUri(getFirewalls(baseUri));
+    }
+
+    public static URI getVpnServices(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+            .path(VPNSERVICES).build();
+    }
+
+    public static URI getVpnService(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getVpnServices(baseUri))
+            .path(id.toString()).build();
+    }
+
+    public static String getVpnServiceTemplate(URI baseUri) {
+        return buildIdTemplateUri(getVpnServices(baseUri));
+    }
+
+    public static URI getIpSecSiteConns(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+            .path(IPSEC_SITE_CONNS).build();
+    }
+
+    public static URI getIpSecSiteConn(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getIpSecSiteConns(baseUri))
+            .path(id.toString()).build();
+    }
+
+    public static String getIpSecSiteConnTemplate(URI baseUri) {
+        return buildIdTemplateUri(getIpSecSiteConns(baseUri));
     }
 }

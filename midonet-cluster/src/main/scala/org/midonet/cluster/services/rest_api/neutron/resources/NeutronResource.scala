@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.rest_api.neutron.resources
 
 import java.net.URI
+
 import javax.ws.rs.core.{UriBuilder, UriInfo}
 import javax.ws.rs.{GET, Path, Produces}
 
@@ -68,10 +69,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def firewallResource: FirewallResource = new FirewallResource(uriInfo, api)
 
     @Path("vpnservices")
-    def vpnServicesResource: VpnServiceResource = new VpnServiceResource(resContext)
+    def vpnServicesResource: VpnServiceResource = new VpnServiceResource(uriInfo, api)
 
-    @Path("ipsec_site_conns")
-    def ipsecSiteConnResource: IpsecSiteConnResource = new IpsecSiteConnResource(resContext)
+    @Path("ipsec_site_connections")
+    def ipsecSiteConnResource: IpsecSiteConnResource = new IpsecSiteConnResource(uriInfo, api)
 
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
@@ -100,14 +101,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.loadBalancer = LBResource.buildLoadBalancer(baseUri)
         neutron.firewalls = getFirewalls(baseUri)
         neutron.firewallTemplate = getFirewallTemplate(baseUri)
-        neutron.vpnServices = UriBuilder.fromUri(getNeutron(baseUri))
-                                        .path("vpnservices")
-                                        .build()
-        neutron.vpnServicesTemplate = neutron.vpnServices.toString + "/{id}"
-        neutron.ipsecSiteConns = UriBuilder.fromUri(getNeutron(baseUri))
-                                           .path("ipsec_site_conns")
-                                           .build()
-        neutron.ipsecSiteConnsTemplate = neutron.ipsecSiteConns.toString + "/{id}"
+        neutron.vpnServices = getVpnServices(baseUri)
+        neutron.vpnServiceTemplate = getVpnServiceTemplate(baseUri)
+        neutron.ipsecSiteConns = getIpSecSiteConns(baseUri)
+        neutron.ipsecSiteConnTemplate = getIpSecSiteConnTemplate(baseUri)
         neutron
     }
 }

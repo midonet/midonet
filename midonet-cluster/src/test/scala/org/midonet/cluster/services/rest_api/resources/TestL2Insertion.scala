@@ -27,11 +27,11 @@ import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
 import com.sun.jersey.api.client.{ClientResponse, WebResource}
 import com.sun.jersey.api.client.ClientResponse.Status
-import com.sun.jersey.test.framework.JerseyTest
 
 import org.midonet.client.dto.{DtoBridge, DtoBridgePort}
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
-import org.midonet.cluster.rest_api.rest_api.{DtoWebResource, FuncTest, Topology}
+import org.midonet.cluster.rest_api.rest_api.{DtoWebResource, FuncJerseyTest}
+import org.midonet.cluster.rest_api.rest_api.{FuncTest, Topology}
 import org.midonet.cluster.models.{Topology => PbTopo, Commons => PbCommons}
 import org.midonet.cluster.rest_api.ResourceUris
 import org.midonet.cluster.rest_api.models.{L2Insertion, Port}
@@ -361,8 +361,4 @@ class TestL2Insertion extends FeatureSpec
         }
     }
 
-}
-
-class FuncJerseyTest extends JerseyTest(FuncTest.getBuilder.build()) {
-    override def getBaseURI = super.getBaseURI
 }
