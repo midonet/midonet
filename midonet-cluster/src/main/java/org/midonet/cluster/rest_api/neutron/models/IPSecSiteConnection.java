@@ -1,11 +1,8 @@
 package org.midonet.cluster.rest_api.neutron.models;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
-import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -16,13 +13,13 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.rest_api.models.UriResource;
 import org.midonet.cluster.util.IPSubnetUtil;
 
 @ZoomClass(clazz = Neutron.IPSecSiteConnection.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class IPSecSiteConnection extends UriResource {
+public class IPSecSiteConnection extends ZoomObject {
 
     @ZoomField(name = "id")
     public UUID id;
@@ -169,17 +166,6 @@ public class IPSecSiteConnection extends UriResource {
         public static RouteMode forValue(String v) {
             return valueOf(normalizeIpSecEnumString(v));
         }
-    }
-
-    @Override
-    public URI getUri() {
-        if (id == null) {
-            return null;
-        }
-        return UriBuilder.fromUri(getBaseUri())
-            .path("neutron")
-            .path("ipsec_site_conns")
-            .path(id.toString()).build();
     }
 
     @Override
