@@ -27,7 +27,7 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.backend.zookeeper.ZkConnectionAwareWatcher
-import org.midonet.cluster.data.storage.{ZookeeperObjectMapper, SingleValueKey}
+import org.midonet.cluster.data.storage.{CreateOp, SingleValueKey, ZookeeperObjectMapper}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend.{AliveKey, FloodingProxyKey}
@@ -37,7 +37,7 @@ import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.test.util.ZookeeperTestSuite
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.IPAddressUtil.toProto
-import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.MidonetEventually
@@ -135,6 +135,15 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         ensureCurrentFpIs(tzId, h2Id, ip2)
 
         toggleAlive(h1Id, isAlive = true)
+
+        // We now add a binding to a host, and will later verify that no events
+        // are emitted as we don't really need to recalculate the FP
+        // in this case
+        bindPortOn(h1Id)
+
+        intercept[TimeoutException] {
+            obs.awaitOnNext(4, timeout) shouldBe false
+        }
 
         backend.store.delete(classOf[Host], h2Id)
 
@@ -313,6 +322,15 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         val tzId = fromProto(tz.getId)
         backend.store.create(tz)
         tzId
+    }
+
+    private def bindPortOn(hId: UUID): UUID = {
+        val b = createBridge()
+        val p = createBridgePort(bridgeId = Some(b.getId.asJava),
+                                 hostId = Some(hId))
+
+        backend.store.multi(Seq(CreateOp(b), CreateOp(p)))
+        p.getId
     }
 
     private def addHostToZone(tzId: UUID, tunIp: IPv4Addr,
