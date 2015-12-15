@@ -22,6 +22,30 @@
       "revId": "b16a6c3dc708f52e5dca88e2429432958dc75590",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bb85cbae",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-15T17:31:34Z",
+      "side": 1,
+      "message": "I agree with Alex on this. Ike/ipsec policy are their own DTOs on both the neutron side and the midonet side. It seems to get flattened and expanded in the middle, which makes little sense. I can\u0027t see where the neutron code is even doing this flattening.\n\nHow does this cope with consistency? If an IKE policy is updated on the neutron side, does each ipsec site connection which uses that policy get it\u0027s model updated?\n\nWe should use references, and the neutron plugin should send the ike/ipsec policy stuff separately. The calls are there in the interface, they just need to be implemented.",
+      "parentUuid": "5ac4a560_ea020f0a",
+      "range": {
+        "startLine": 397,
+        "startChar": 4,
+        "endLine": 397,
+        "endChar": 38
+      },
+      "revId": "b16a6c3dc708f52e5dca88e2429432958dc75590",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
