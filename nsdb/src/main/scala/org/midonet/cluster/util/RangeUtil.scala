@@ -18,6 +18,7 @@ package org.midonet.cluster.util
 import java.lang.reflect.Type
 
 import com.google.common.base.Preconditions
+
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons.Int32Range
 import org.midonet.util.Range
@@ -39,6 +40,9 @@ object RangeUtil {
         if (range.end() ne null) builder.setEnd(range.end())
         builder.build()
     }
+
+    def toProto(start: Int, end: Int): Int32Range =
+        Int32Range.newBuilder.setStart(start).setEnd(end).build()
 
     implicit def fromProto(value: Int32Range): Range[Integer] = {
         new Range[Integer](if (value.hasStart) value.getStart else null,

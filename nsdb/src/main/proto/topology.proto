@@ -85,6 +85,7 @@ message Chain {
     repeated UUID port_inbound_ids = 106;
     repeated UUID port_outbound_ids = 107;
     repeated UUID jump_rule_ids = 108;
+    repeated UUID router_redirect_ids = 109;
 }
 
 message Dhcp {
