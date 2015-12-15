@@ -495,6 +495,8 @@ class JsonSerialization {
                 jgen.writeStartObject()
                 jgen.writeStringField("id", String.valueOf(rules.get(i).rule))
                 jgen.writeStringField("result", String.valueOf(rules.get(i).result))
+                jgen.writeBooleanField("matched", rules.get(i).matched)
+                jgen.writeBooleanField("applied", rules.get(i).applied)
                 jgen.writeEndObject()
 
                 i += 1
@@ -515,8 +517,9 @@ class JsonSerialization {
             while (i < ruleList.size) {
                 rules.add(TraversedRule(
                                 UUID.fromString(ruleList.get(i).get("id")),
-                                RuleResult.withName(
-                                    ruleList.get(i).get("result"))))
+                                RuleResult.withName(ruleList.get(i).get("result")),
+                                ruleList.get(i).get("matched").asInstanceOf[Boolean],
+                                ruleList.get(i).get("applied").asInstanceOf[Boolean]))
                 i += 1
             }
             rules
