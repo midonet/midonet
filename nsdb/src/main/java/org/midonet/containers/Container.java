@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services;
+package org.midonet.containers;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
