@@ -17,12 +17,14 @@
 package org.midonet.cluster.services.c3po
 
 import java.sql.Driver
+
 import javax.sql.DataSource
 
 import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.protobuf.Message
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
@@ -196,16 +198,16 @@ object C3POMinion {
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronFirewall] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->
-             new HealthMonitorTranslator(storage),
+                new HealthMonitorTranslator(storage),
              classOf[NeutronLoadBalancerPool] ->
-             new LoadBalancerPoolTranslator(storage),
+                new LoadBalancerPoolTranslator(storage),
              classOf[NeutronLoadBalancerPoolMember] ->
-             new LoadBalancerPoolMemberTranslator(storage),
+                new LoadBalancerPoolMemberTranslator(storage),
              classOf[NeutronNetwork] ->
-             new NetworkTranslator(storage, pathBldr),
+                new NetworkTranslator(storage, pathBldr),
              classOf[NeutronRouter] -> new RouterTranslator(storage, pathBldr),
              classOf[NeutronRouterInterface] ->
-             new RouterInterfaceTranslator(storage, seqDispenser),
+                new RouterInterfaceTranslator(storage, seqDispenser),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),
              classOf[NeutronPort] -> new PortTranslator(storage, pathBldr,
                                                         seqDispenser),
@@ -213,7 +215,7 @@ object C3POMinion {
              classOf[PortBinding] -> new PortBindingTranslator(storage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
              classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage),
-             classOf[VpnService] -> new VpnServiceTranslator(storage)
+             classOf[VpnService] -> new VpnServiceTranslator(storage, seqDispenser)
         ).asInstanceOf[List[(Class[Message], Translator[Message])]]
          .foreach { pair =>
             dataMgr.registerTranslator(pair._1, pair._2)
