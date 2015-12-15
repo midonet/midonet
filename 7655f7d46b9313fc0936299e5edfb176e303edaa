@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_dbdc4715",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-15T17:10:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_434e9770",
+      "range": {
+        "startLine": 75,
+        "startChar": 8,
+        "endLine": 75,
+        "endChar": 16
+      },
+      "revId": "7655f7d46b9313fc0936299e5edfb176e303edaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_fbd743eb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-15T17:10:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_a35beb2c",
+      "range": {
+        "startLine": 75,
+        "startChar": 32,
+        "endLine": 75,
+        "endChar": 41
+      },
+      "revId": "7655f7d46b9313fc0936299e5edfb176e303edaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_c341c73a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
         "patchSetId": 11
@@ -59,6 +107,30 @@
       "writtenOn": "2015-12-14T10:12:11Z",
       "side": 1,
       "message": "versions",
+      "range": {
+        "startLine": 81,
+        "startChar": 55,
+        "endLine": 81,
+        "endChar": 62
+      },
+      "revId": "7655f7d46b9313fc0936299e5edfb176e303edaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_bbcdcb5f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandlerProvider.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-15T17:10:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_c341c73a",
       "range": {
         "startLine": 81,
         "startChar": 55,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_bb506b5f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerHandlerProviderTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-15T17:10:24Z",
+      "side": 1,
+      "message": "I put greater than, because the provider cannot distinguish between the containers defined in this file and those defined anywhere else. Otherwise, we\u0027ll have to update the test whenever we add a new container to the package.",
+      "parentUuid": "5ac4a560_034c9f6f",
+      "range": {
+        "startLine": 74,
+        "startChar": 36,
+        "endLine": 74,
+        "endChar": 44
+      },
+      "revId": "7655f7d46b9313fc0936299e5edfb176e303edaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_2347db4c",
         "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerHandlerProviderTest.scala",
         "patchSetId": 11
@@ -111,6 +207,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_bbf4eb87",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/containers/ContainerHandlerProviderTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-15T17:10:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_2347db4c",
+      "revId": "7655f7d46b9313fc0936299e5edfb176e303edaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_08591c5a",
         "filename": "nsdb/src/main/java/org/midonet/containers/Container.java",
         "patchSetId": 11
@@ -122,6 +236,30 @@
       "writtenOn": "2015-12-14T10:12:11Z",
       "side": 1,
       "message": "largest or biggest",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 42,
+        "endChar": 24
+      },
+      "revId": "7655f7d46b9313fc0936299e5edfb176e303edaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_3bcc5b35",
+        "filename": "nsdb/src/main/java/org/midonet/containers/Container.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-15T17:10:24Z",
+      "side": 1,
+      "message": "Numbers usually compare with greater, isn\u0027t it? Maybe bigger.",
+      "parentUuid": "5ac4a560_08591c5a",
       "range": {
         "startLine": 42,
         "startChar": 16,
