@@ -17,9 +17,9 @@
 package org.midonet.cluster.services.vxgw
 
 import java.util
-import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors._
+import java.util.{Objects, UUID}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +32,6 @@ import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer, Subscription}
 
-import org.midonet.cluster.vxgwLog
 import org.midonet.cluster.data.storage.{NotFoundException, StateKey}
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
@@ -40,8 +39,9 @@ import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.services.vxgw.FloodingProxyManager.{HostFpState, MaxFpRetries}
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.util.{UUIDUtil, selfHealingEntityObservable, selfHealingTypeObservable}
-import org.midonet.cluster.util.IPAddressUtil
+import org.midonet.cluster.util.logging.ProtoTextPrettifier.makeReadable
+import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil, selfHealingEntityObservable, selfHealingTypeObservable}
+import org.midonet.cluster.vxgwLog
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
 
@@ -51,9 +51,44 @@ object FloodingProxyManager {
     val MaxFpRetries = 3
 
     case class HostFpState(host: Host, tzId: UUID, isAlive: Boolean,
-                           sub: Subscription)
+                           sub: Subscription) {
 
+        override def toString: String = {
+            s"HostFpState [ host: ${makeReadable(host)}, tzId: $tzId, " +
+            s"isAlive: $isAlive ]"
+        }
+
+        /** Tells whether the newer state changes any relevant detail
+          * that might require a recalculation of the FP.
+          */
+        def isSuperseededBy(newState: HostFpState): Boolean = {
+            newState == null ||
+            !Objects.equals(this.isAlive, newState.isAlive) ||
+            !Objects.equals(this.tzId, newState.tzId) ||
+            !sameHosts(newState.host)
+        }
+
+        /** Partial comparison of two hosts, we don't care about all fields.
+          * For example, if the list of bindings or host groups in the host
+          * changes we don't consider that a new FP calculation is required.
+          */
+        private def sameHosts(other: Host): Boolean = {
+            if (other == null) {
+                return false
+            }
+            if (this.host == null) {
+                return other != null
+            }
+            val weightsMatch = Objects.equals(this.host.getFloodingProxyWeight,
+                                              other.getFloodingProxyWeight)
+            val idsMatch = Objects.equals(this.host.getId, other.getId)
+            val tzsMatch = Objects.equals(this.host.getTunnelZoneIdsList,
+                                          other.getTunnelZoneIdsList)
+            weightsMatch && idsMatch && tzsMatch
+        }
+    }
 }
+
 
 /** This class is responsible for tracking all VTEP tunnel zones and ensure
   * Flooding Proxy is being calculated and published.
@@ -130,9 +165,12 @@ class FloodingProxyManager(backend: MidonetBackend) {
                         subscriptions.remove(subscription)
                     }
                     val oldState = trackedHosts.replace(id, newState)
-                    if (oldState != newState) {
+                    if ((oldState == null && newState != null) ||
+                        oldState.isSuperseededBy(newState))
                         cacheAndPublishFloodingProxy(tzId)
-                    }
+                    else
+                        log.debug("Host config or state changed, but not " +
+                                  "relevant for Flooding Proxy")
             }
         }
     }
