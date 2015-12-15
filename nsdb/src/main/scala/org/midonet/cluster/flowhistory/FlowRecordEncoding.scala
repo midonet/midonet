@@ -93,7 +93,8 @@ object Actions {
     case class Unknown() extends FlowAction
 }
 
-case class TraversedRule(rule: UUID, result: RuleResult.RuleResult)
+case class TraversedRule(rule: UUID, result: RuleResult.RuleResult,
+                         matched: Boolean, applied: Boolean)
 
 case class TraversedDevice(id: UUID, deviceType: DeviceType.DeviceType)
 
@@ -229,7 +230,9 @@ object FlowRecord {
         val rules = new ArrayList[TraversedRule]
         for (i <- 0 until count) {
             rules.add(TraversedRule(UUID.randomUUID,
-                                    results.get(r.nextInt(results.size))))
+                                    results.get(r.nextInt(results.size)),
+                                    r.nextBoolean(),
+                                    r.nextBoolean()))
         }
         rules
     }
