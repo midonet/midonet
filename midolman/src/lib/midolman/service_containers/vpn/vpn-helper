@@ -71,6 +71,9 @@ makens() {
     elif [ -z ${GATEWAY_IP} ]; then
         echo "no gateway ip specified (-g)"
         exit 1
+    elif [ -z ${GATEWAY_MAC} ]; then
+        echo "no gateway mac specified (-G)"
+        exit 1
     elif [ -z ${LOCAL_ENDPOINT_IP} ]; then
         echo "no ip specified for VPN endpoint (-l)"
         exit 1
@@ -90,6 +93,7 @@ makens() {
     ip netns exec $NAME ip address add $LOCAL_INTF_IP dev $NS
     ip netns exec $NAME ip link set up dev lo
     ip netns exec $NAME ip route add default via $GATEWAY_IP dev $NS
+    ip netns exec $NAME arp -s $GATEWAY_IP $GATEWAY_MAC
 }
 
 # Start the IKE daemon
@@ -180,7 +184,7 @@ declare -A CONNS
 
 ACTION=$1
 shift
-while getopts ":n:p:g:l:c:m:i:" opt; do
+while getopts ":n:p:g:l:c:m:i:G:" opt; do
     case $opt in
         n)
             NAME=$OPTARG
@@ -190,6 +194,9 @@ while getopts ":n:p:g:l:c:m:i:" opt; do
             ;;
         g)
             GATEWAY_IP=$OPTARG
+            ;;
+        G)
+            GATEWAY_MAC=$OPTARG
             ;;
         l)
             LOCAL_ENDPOINT_IP=$OPTARG
