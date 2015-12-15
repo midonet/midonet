@@ -79,7 +79,6 @@ case class Chain(id: UUID,
             val rule = rules.get(i)
             i += 1
             res = rule.process(context)
-            context.recordTraversedRule(rule.id, res)
             if (res.action eq Action.JUMP)
                 res = jump(context, res.jumpToChain, traversedChains)
         }

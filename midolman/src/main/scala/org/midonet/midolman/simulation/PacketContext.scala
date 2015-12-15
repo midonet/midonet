@@ -199,15 +199,19 @@ trait FlowContext extends Clearable { this: PacketContext =>
 trait RecordedContext extends Clearable {
     val traversedRules = new ArrayList[UUID]
     val traversedRuleResults = new ArrayList[RuleResult]
+    val traversedRulesMatched = new ArrayList[Boolean]
 
-    def recordTraversedRule(rule: UUID, result: RuleResult): Unit = {
+    def recordTraversedRule(rule: UUID, result: RuleResult, matched: Boolean)
+    : Unit = {
         traversedRules.add(rule)
         traversedRuleResults.add(result)
+        traversedRulesMatched.add(matched)
     }
 
     override def clear(): Unit = {
         traversedRules.clear()
         traversedRuleResults.clear()
+        traversedRulesMatched.clear()
         super.clear()
     }
 }
