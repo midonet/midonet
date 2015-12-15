@@ -21,7 +21,7 @@ import java.util.{ArrayList, List, UUID}
 
 import uk.co.real_logic.sbe.codec.java._
 
-import org.midonet.cluster.flowhistory.{ActionEncoder, BinarySerialization}
+import org.midonet.cluster.flowhistory.{proto, ActionEncoder, BinarySerialization}
 import org.midonet.cluster.flowhistory.proto.{SimulationResult => SbeSimResult,
                                               RuleResult => SbeRuleResult,
                                               DeviceType => SbeDeviceType,
@@ -200,10 +200,17 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
         }
     }
 
+    private def encodeBoolean(value: Boolean): BooleanType = value match {
+        case true => BooleanType.T
+        case false => BooleanType.F
+    }
+
     private def encodeRules(pktContext: PacketContext): Unit = {
         var i = 0
         val rules = pktContext.traversedRules
         val results = pktContext.traversedRuleResults
+        val rulesMatched = pktContext.traversedRulesMatched
+        val rulesApplied = pktContext.traversedRulesApplied
         val iter = FLOW_SUMMARY.traversedRulesCount(rules.size)
         while (i < rules.size) {
             val r = rules.get(i)
@@ -227,6 +234,8 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                     rule.result(SbeRuleResult.REDIRECT)
                 case _ =>
             }
+            rule.matched(encodeBoolean(rulesMatched.get(i)))
+            rule.applied(encodeBoolean(rulesApplied.get(i)))
             i += 1
         }
     }
