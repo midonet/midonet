@@ -140,7 +140,8 @@ class BinarySerialization {
                     case SbeRuleResult.REDIRECT => RuleResult.REDIRECT
                     case _ => RuleResult.UNKNOWN
                 }
-            rules.add(new TraversedRule(uuid, result))
+            val matched = decodeBoolean(r.matched)
+            rules.add(new TraversedRule(uuid, result, matched))
         }
 
         val devices = new ArrayList[TraversedDevice]
@@ -206,6 +207,13 @@ class BinarySerialization {
         } else {
             null
         }
+    }
+
+    private def decodeBoolean(bool: BooleanType): Boolean = bool match {
+        case BooleanType.T => true
+        case BooleanType.F => false
+        case x =>
+            throw new IllegalArgumentException(s"Unknown boolean value: $x")
     }
 
     private def decodeActions(): JList[Actions.FlowAction] = {

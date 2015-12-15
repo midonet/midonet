@@ -21,7 +21,7 @@ import java.util.{ArrayList, List, UUID}
 
 import uk.co.real_logic.sbe.codec.java._
 
-import org.midonet.cluster.flowhistory.{ActionEncoder, BinarySerialization}
+import org.midonet.cluster.flowhistory.{proto, ActionEncoder, BinarySerialization}
 import org.midonet.cluster.flowhistory.proto.{SimulationResult => SbeSimResult,
                                               RuleResult => SbeRuleResult,
                                               DeviceType => SbeDeviceType,
@@ -227,6 +227,9 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                     rule.result(SbeRuleResult.REDIRECT)
                 case _ =>
             }
+            val matched = if (results.get(i).matched) proto.BooleanType.T
+                          else proto.BooleanType.F
+            rule.matched(matched)
             i += 1
         }
     }

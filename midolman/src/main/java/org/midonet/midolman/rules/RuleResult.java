@@ -59,6 +59,8 @@ public class RuleResult {
     }
 
     public final Action action;
+
+    public boolean matched = false;
     public final UUID jumpToChain;
     public final UUID redirectPort;
     public final boolean redirectIngress;
@@ -72,6 +74,7 @@ public class RuleResult {
                        UUID redirectPort,
                        boolean redirectIngress) {
         this.action = action;
+        this.matched = false;
         this.jumpToChain = jumpToChain;
         this.redirectPort = redirectPort;
         this.redirectIngress = redirectIngress;
