@@ -123,16 +123,20 @@ object NeutronDeserializer {
         // name, from the Descriptor. We need a case for any message class used
         // as the type of a field in another message.
         desc.getFullName match {
-            case "org.midonet.cluster.models.UUID" =>
-                parseUuid(node.asText)
+            case "org.midonet.cluster.models.IkePolicy" =>
+                toMessage(node, classOf[IkePolicy])
             case "org.midonet.cluster.models.IPAddress" =>
                 parseIpAddr(node.asText)
+            case "org.midonet.cluster.models.IPSecPolicy" =>
+                toMessage(node, classOf[IPSecPolicy])
             case "org.midonet.cluster.models.IPSubnet" =>
                 parseIpSubnet(node.asText)
             case "org.midonet.cluster.models.NeutronFirewallRule" =>
                 toMessage(node, classOf[NeutronFirewallRule])
             case "org.midonet.cluster.models.NeutronHealthMonitor.Pool" =>
                 toMessage(node, classOf[NeutronHealthMonitor.Pool])
+            case "org.midonet.cluster.models.NeutronPort.AllowedAddressPair" =>
+                toMessage(node, classOf[NeutronPort.AllowedAddressPair])
             case "org.midonet.cluster.models.NeutronPort.BindingProfile" =>
                 toMessage(node, classOf[NeutronPort.BindingProfile])
             case "org.midonet.cluster.models.NeutronPort.ExtraDhcpOpts" =>
@@ -145,12 +149,12 @@ object NeutronDeserializer {
                 toMessage(node, classOf[NeutronRouter.ExternalGatewayInfo])
             case "org.midonet.cluster.models.NeutronSubnet.IPAllocationPool" =>
                 toMessage(node, classOf[NeutronSubnet.IPAllocationPool])
-            case "org.midonet.cluster.models.SecurityGroupRule" =>
-                toMessage(node, classOf[NeutronSecurityGroupRule])
             case "org.midonet.cluster.models.NeutronVIP.SessionPersistence" =>
                 toMessage(node, classOf[NeutronVIP.SessionPersistence])
-            case "org.midonet.cluster.models.NeutronPort.AllowedAddressPair" =>
-                toMessage(node, classOf[NeutronPort.AllowedAddressPair])
+            case "org.midonet.cluster.models.SecurityGroupRule" =>
+                toMessage(node, classOf[NeutronSecurityGroupRule])
+            case "org.midonet.cluster.models.UUID" =>
+                parseUuid(node.asText)
             case unknown => throw new NeutronDeserializationException(
                 s"Don't know how to deserialize message type $unknown.")
         }
