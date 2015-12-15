@@ -1,10 +1,7 @@
 package org.midonet.cluster.rest_api.neutron.models;
 
-import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
-
-import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
@@ -13,11 +10,10 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.rest_api.models.UriResource;
 import org.midonet.cluster.util.IPAddressUtil;
 
 @ZoomClass(clazz = Neutron.VpnService.class)
-public class VpnService extends UriResource {
+public class VpnService extends ZoomObject {
     @ZoomField(name = "id")
     public UUID id;
 
@@ -53,18 +49,6 @@ public class VpnService extends UriResource {
     @JsonProperty("external_v6_ip")
     @ZoomField(name = "external_v6_ip", converter = IPAddressUtil.Converter.class)
     public String externalV6Ip;
-
-    @Override
-    public URI getUri() {
-        if (getBaseUri() == null) {
-            return null;
-        } else {
-            return UriBuilder.fromUri(getBaseUri())
-                .path("neutron")
-                .path("vpnservices")
-                .path(id.toString()).build();
-        }
-    }
 
     @Override
     public boolean equals(Object o) {
