@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_ea020f0a",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-15T11:36:52Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we use references instead?\n\nI\u0027m asking since because both IkePolicy and IPSecPolicy have their own DTOs. So does it mean that we can create any of these by themselves? In which case, shouldn\u0027t they be referenced rather than embedded?",
+      "range": {
+        "startLine": 397,
+        "startChar": 4,
+        "endLine": 397,
+        "endChar": 38
+      },
+      "revId": "b16a6c3dc708f52e5dca88e2429432958dc75590",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
