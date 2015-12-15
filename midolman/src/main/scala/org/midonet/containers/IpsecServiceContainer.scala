@@ -21,9 +21,9 @@ import java.io.{File, FileNotFoundException, PrintWriter, UnsupportedEncodingExc
 import scala.sys.process._
 
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Neutron.IPSecPolicy.{EncapsulationMode, TransformProtocol}
-import org.midonet.cluster.models.Neutron.IPSecSiteConnection.{DpdAction, Initiator}
-import org.midonet.cluster.models.Neutron.{IPSecPolicy, IPSecSiteConnection, IkePolicy}
+
+import org.midonet.cluster.models.Neutron.IPSecSiteConnection
+import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.packets.{IPv4Subnet, IPv4Addr}
 
@@ -82,10 +82,10 @@ case class IpsecServiceConfig(script: String,
         }
     }
 
-    def encapModeToIpsec(encapsulationMode: EncapsulationMode): String = {
+    def encapModeToIpsec(encapsulationMode: IPSecPolicy.EncapsulationMode): String = {
         encapsulationMode match {
-            case EncapsulationMode.TRANSPORT => "transport"
-            case EncapsulationMode.TUNNEL => "tunnel"
+            case IPSecPolicy.EncapsulationMode.TRANSPORT => "transport"
+            case IPSecPolicy.EncapsulationMode.TUNNEL => "tunnel"
         }
     }
 
@@ -99,11 +99,11 @@ case class IpsecServiceConfig(script: String,
         }
     }
 
-    def transformProtocolToIpsec(transformProtocol: TransformProtocol): String = {
+    def transformProtocolToIpsec(transformProtocol: IPSecPolicy.TransformProtocol): String = {
         transformProtocol match {
-            case TransformProtocol.ESP => "esp"
-            case TransformProtocol.AH => "ah"
-            case TransformProtocol.AH_ESP => "ah-esp"
+            case IPSecPolicy.TransformProtocol.ESP => "esp"
+            case IPSecPolicy.TransformProtocol.AH => "ah"
+            case IPSecPolicy.TransformProtocol.AH_ESP => "ah-esp"
         }
     }
 

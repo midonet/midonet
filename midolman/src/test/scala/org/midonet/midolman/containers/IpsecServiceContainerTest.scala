@@ -21,8 +21,9 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Neutron.IkePolicy.IkeVersion
+
 import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
 import org.midonet.containers._
 import org.midonet.packets.{IPv4Subnet, IPv4Addr}
 
@@ -38,7 +39,7 @@ class IpsecServiceContainerTest extends FeatureSpec with Matchers with Eventuall
                                          "09:08:07:06:05:04")
 
     val ikePolicy = IkePolicy.newBuilder()
-        .setIkeVersion(IkeVersion.V1)
+        .setIkeVersion(IkePolicy.IkeVersion.V1)
         .setLifetimeValue(3600)
         .build()
 

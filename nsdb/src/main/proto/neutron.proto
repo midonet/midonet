@@ -319,54 +319,9 @@ message VpnService {
     optional string status = 8;
     optional IPAddress external_v4_ip = 9;
     optional IPAddress external_v6_ip = 10;
-}
 
-message IkePolicy {
-    optional UUID id = 1;
-    optional string tenant_id = 2;
-    optional string name = 3;
-    optional string description = 4;
-    optional IPSecAuthAlgorithm auth_algorithm = 5;
-    optional IPSecEncryptionAlgorithm encryption_algorithm = 6;
-    optional Phase1NegotiationMode phase1_negotiation_mode = 7;
-    optional IkeVersion ike_version = 8;
-    optional string lifetime_units = 9;
-    optional uint32 lifetime_value = 10;
-    optional IPSecPfs pfs = 11;
-
-    enum Phase1NegotiationMode {
-        MAIN = 1;
-    }
-
-    enum IkeVersion {
-        V1 = 1;
-        V2 = 2;
-    }
-}
-
-message IPSecPolicy {
-    optional UUID id = 1;
-    optional string tenant_id = 2;
-    optional string name = 3;
-    optional string description = 4;
-    optional TransformProtocol transform_protocol = 5;
-    optional IPSecAuthAlgorithm auth_algorithm = 6;
-    optional IPSecEncryptionAlgorithm encryption_algorithm = 7;
-    optional EncapsulationMode encapsulation_mode = 8;
-    optional IPSecPfs pfs = 9;
-    optional string lifetime_units = 10;
-    optional uint32 lifetime_value = 11;
-
-    enum TransformProtocol {
-        ESP = 1;
-        AH = 2;
-        AH_ESP = 3;
-    }
-
-    enum EncapsulationMode {
-        TUNNEL = 1;
-        TRANSPORT = 2;
-    }
+    // backreferences
+    repeated UUID ipsec_site_conn_ids = 11;
 }
 
 message IPSecSiteConnection {
@@ -391,14 +346,13 @@ message IPSecSiteConnection {
     optional uint32 dpd_interval = 18; // milliseconds
     optional uint32 dpd_timeout = 19; // milliseconds
 
-    optional UUID vpn_service_id = 20;
+    optional UUID vpnservice_id = 20;
 
-    optional UUID ike_policy_id = 21;
-    optional IkePolicy ike_policy = 22;
+    optional IkePolicy ikepolicy = 21;
+    optional IPSecPolicy ipsecpolicy = 22;
 
-    optional UUID ipsec_policy_id = 23;
-    optional IPSecPolicy ipsec_policy = 24;
-
+    // Backrefs
+    repeated UUID route_ids = 101;
 
     enum Status {
         ACTIVE = 1;
@@ -430,21 +384,70 @@ message IPSecSiteConnection {
     enum RouteMode {
         STATIC = 1;
     }
+
+    enum IPSecPfs {
+        GROUP2 = 1;
+        GROUP5 = 2;
+        GROUP14 = 3;
+    }
+
+    enum IPSecAuthAlgorithm {
+        SHA1 = 0;
+    }
+
+    enum IPSecEncryptionAlgorithm {
+        DES_3 = 0;
+        AES_128 = 1;
+        AES_192 = 2;
+        AES_256 = 3;
+   }
+
+    message IkePolicy {
+        optional UUID id = 1;
+        optional string tenant_id = 2;
+        optional string name = 3;
+        optional string description = 4;
+        optional IPSecAuthAlgorithm auth_algorithm = 5;
+        optional IPSecEncryptionAlgorithm encryption_algorithm = 6;
+        optional Phase1NegotiationMode phase1_negotiation_mode = 7;
+        optional IkeVersion ike_version = 8;
+        optional string lifetime_units = 9;
+        optional uint32 lifetime_value = 10;
+        optional IPSecPfs pfs = 11;
+
+        enum Phase1NegotiationMode {
+            MAIN = 1;
+        }
+
+        enum IkeVersion {
+            V1 = 1;
+            V2 = 2;
+        }
+    }
+
+    message IPSecPolicy {
+        optional UUID id = 1;
+        optional string tenant_id = 2;
+        optional string name = 3;
+        optional string description = 4;
+        optional TransformProtocol transform_protocol = 5;
+        optional IPSecAuthAlgorithm auth_algorithm = 6;
+        optional IPSecEncryptionAlgorithm encryption_algorithm = 7;
+        optional EncapsulationMode encapsulation_mode = 8;
+        optional IPSecPfs pfs = 9;
+        optional string lifetime_units = 10;
+        optional uint32 lifetime_value = 11;
+
+        enum TransformProtocol {
+            ESP = 1;
+            AH = 2;
+            AH_ESP = 3;
+        }
+
+        enum EncapsulationMode {
+           TUNNEL = 1;
+           TRANSPORT = 2;
+        }
+    }
 }
 
-enum IPSecPfs {
-    GROUP2 = 1;
-    GROUP5 = 2;
-    GROUP14 = 3;
-}
-
-enum IPSecAuthAlgorithm {
-    SHA1 = 0;
-}
-
-enum IPSecEncryptionAlgorithm {
-    DES_3 = 0;
-    AES_128 = 1;
-    AES_192 = 2;
-    AES_256 = 3;
-}
