@@ -45,6 +45,30 @@
       "revId": "60fa6f05419e5569d483a7e7b828468571baebdc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_00e2c7d4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-16T13:34:09Z",
+      "side": 1,
+      "message": "I was torn between both options, the equals option felt a bit obscure, but I realize now that the alternative is too verbose.. I\u0027ll refactor as you suggest.",
+      "parentUuid": "5ac4a560_40259fa9",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 9
+      },
+      "revId": "60fa6f05419e5569d483a7e7b828468571baebdc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
