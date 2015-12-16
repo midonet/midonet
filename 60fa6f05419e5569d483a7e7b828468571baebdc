@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_8036d7e5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-16T12:02:50Z",
+      "side": 1,
+      "message": "Compare primitive types with !\u003d",
+      "range": {
+        "startLine": 66,
+        "startChar": 12,
+        "endLine": 66,
+        "endChar": 59
+      },
+      "revId": "60fa6f05419e5569d483a7e7b828468571baebdc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_40259fa9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-16T12:02:50Z",
+      "side": 1,
+      "message": "I think it\u0027s fine like this, however one minor comment: why didn\u0027t you override here equals() to compare only the fields of interest for the flooding proxy?\n\nIn this case, notifications for equivalent hosts could have been ignored below with:\n\n            Observable.combineLatest[Host, StateKey, HostFpState](obs, stateObs, combiner)\n                      .distinctUntilChanged()\n                      .observeOn(rxScheduler)\n                      .subscribe(hostObserver)",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 9
+      },
+      "revId": "60fa6f05419e5569d483a7e7b828468571baebdc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
