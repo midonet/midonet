@@ -46,6 +46,30 @@
       "revId": "b16a6c3dc708f52e5dca88e2429432958dc75590",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_0a3106a2",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-16T04:28:54Z",
+      "side": 1,
+      "message": "According to Ryu, Neutron doesn\u0027t allow updates to IKEPolicy and IPSecPolicy while they\u0027re used by any IPSecSiteConnection, so there shouldn\u0027t be a problem.",
+      "parentUuid": "5ac4a560_bb85cbae",
+      "range": {
+        "startLine": 397,
+        "startChar": 4,
+        "endLine": 397,
+        "endChar": 38
+      },
+      "revId": "b16a6c3dc708f52e5dca88e2429432958dc75590",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
