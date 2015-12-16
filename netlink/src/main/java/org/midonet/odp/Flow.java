@@ -55,7 +55,7 @@ public class Flow extends FlowMetadata {
         super(stats);
         this.match = match;
         this.actions = actions;
-        mask.calculateFor(match);
+        mask.calculateFor(match, actions);
     }
 
     @Nullable
