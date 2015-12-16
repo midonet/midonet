@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_4decf8c7",
+        "filename": "netlink/src/main/java/org/midonet/odp/FlowMask.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-12-16T11:03:21Z",
+      "side": 1,
+      "message": "shouldn\u0027t this be FlowKeyIPv6 for IPv6?\n\nwhile ipv4 and ipv6 shares ip.proto in sw_flow_key,\nthey are separated for userland.",
+      "revId": "8449809ee75a54f422e6d0f4b9cd932322eec0a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
