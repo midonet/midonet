@@ -135,7 +135,7 @@ public class RouterPort extends Port {
             .add("portMac", portMac)
             .add("routerId", routerId)
             .add("routeIds", routeIds)
-            .add("serviceContainerIds", serviceContainerId)
+            .add("serviceContainerId", serviceContainerId)
             .toString();
     }
 }

@@ -385,6 +385,7 @@ message Route {
 
     optional IPAddress next_hop_gateway = 9;
     optional UUID gateway_dhcp_id = 10;
+    optional UUID ipsec_site_conn_id = 11;
 }
 
 message Router {
@@ -411,6 +412,7 @@ message Router {
     // Backreferences
     repeated UUID port_ids = 101;
     repeated UUID trace_request_ids = 102;
+    repeated UUID vpn_service_ids = 103;
 }
 
 message Rule {
