@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ac4a560_cdd728ec",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-16T10:56:09Z",
+      "side": 1,
+      "message": "result is a cached object and can\u0027t be mutated. I\u0027d like for a solution to avoid instantiating a RuleResult. I guess we can do object pooling, maybe using the Simulator\u0027s InstanceStashes. Still, this needs a bit of thought.",
+      "revId": "0e3b0aced8384799996e939c3be81b57e765ba29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
