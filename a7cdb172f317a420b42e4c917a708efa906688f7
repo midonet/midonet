@@ -16,6 +16,24 @@
       "revId": "a7cdb172f317a420b42e4c917a708efa906688f7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ac1b152_bad9a985",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-17T13:40:52Z",
+      "side": 1,
+      "message": "That\u0027s what I did. I was not sure whether we should record a match when apply returns true or whenever the packet context matches the condition (even though apply may return false).",
+      "parentUuid": "3ac1b152_b722a2ff",
+      "revId": "a7cdb172f317a420b42e4c917a708efa906688f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
