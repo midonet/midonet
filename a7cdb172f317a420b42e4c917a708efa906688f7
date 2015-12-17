@@ -34,6 +34,24 @@
       "revId": "a7cdb172f317a420b42e4c917a708efa906688f7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ac1b152_3a7e79e5",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-17T15:29:38Z",
+      "side": 1,
+      "message": "that\u0027s true. i don\u0027t know what they require: whether a rule matches, or a rule matches and is successfully applied. what i\u0027m against is adding the allocation of Pair instances.",
+      "parentUuid": "3ac1b152_bad9a985",
+      "revId": "a7cdb172f317a420b42e4c917a708efa906688f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
