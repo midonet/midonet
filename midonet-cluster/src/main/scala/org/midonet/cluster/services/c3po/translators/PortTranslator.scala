@@ -329,7 +329,6 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     /* Builds the list of rules that implement "anti-spoofing". The rules
      * allowed are:
      *     - DHCP
-     *     - ARP
      *     - All MAC/IPs associated with the port's fixed IPs.
      *     - All MAC/IPs listed in the port's Allowed Address pair list.
      */
@@ -344,11 +343,6 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         portCtx.inRules += Create(
             jumpRuleWithId(antiSpoofChainJumpRuleId(portId),
                            inChainId, spoofChainId))
-
-        // Don't filter ARP
-        portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
-            .setCondition(anyFragCondition().setDlType(ARP.ETHERTYPE))
-            .build())
 
         // Don't filter DHCP
         val dhcpFrom = RangeUtil.toProto(new Range[Integer](68, 68))
@@ -376,6 +370,10 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     private def addIpMacPair(antiSpoofRules: ListBuffer[Operation[Rule]],
                              spoofChainId: UUID,
                              ip: IPSubnet, mac: String) = {
+        antiSpoofRules += Create(returnRule(spoofChainId)
+            .setCondition(anyFragCondition().setDlType(ARP.ETHERTYPE)
+                                            .setNwSrcIp(ip))  // ARP.SPA
+            .build())
         antiSpoofRules += Create(returnRule(spoofChainId)
             .setCondition(anyFragCondition().setNwSrcIp(ip).setDlSrc(mac))
             .build())

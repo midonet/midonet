@@ -475,21 +475,56 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             }
             """)
 
-        val dropAll = mRuleFromTxt(s"""
-            type: LITERAL_RULE
-            chain_id { $spoofChainId }
-            action: DROP
-            condition {
-                fragment_policy: ANY
-            }
-            """)
-
-        val arpRule = mRuleFromTxt(s"""
+        val arpRuleForFixedIp = mRuleFromTxt(s"""
             type: LITERAL_RULE
             chain_id { $spoofChainId }
             action: RETURN
             condition {
                 dl_type: ${ARP.ETHERTYPE}
+                nw_src_ip {
+                    version: V4
+                    address: "6.6.6.6"
+                    prefix_length: 32
+                }
+                fragment_policy: ANY
+            }
+            """)
+
+        val arpRuleOne = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            chain_id { $spoofChainId }
+            action: RETURN
+            condition {
+                dl_type: ${ARP.ETHERTYPE}
+                nw_src_ip {
+                    version: V4
+                    address: "2.3.2.3"
+                    prefix_length: 32
+                }
+                fragment_policy: ANY
+            }
+            """)
+
+        val arpRuleTwo = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            chain_id { $spoofChainId }
+            action: RETURN
+            condition {
+                dl_type: ${ARP.ETHERTYPE}
+                nw_src_ip {
+                    version: V4
+                    address: '1.2.1.2'
+                    prefix_length: 32
+                }
+                fragment_policy: ANY
+            }
+            """)
+
+        val dropAll = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            chain_id { $spoofChainId }
+            action: DROP
+            condition {
                 fragment_policy: ANY
             }
             """)
@@ -517,10 +552,12 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         midoOps should containOp[Message] (CreateOp(jumpRule))
 
         // For the Anti Spoof Chain
-        midoOps should containOp[Message] (CreateOp(arpRule))
         midoOps should containOp[Message] (CreateOp(dhcpRule))
+        midoOps should containOp[Message] (CreateOp(arpRuleForFixedIp))
         midoOps should containOp[Message] (CreateOp(fixedIp))
+        midoOps should containOp[Message] (CreateOp(arpRuleOne))
         midoOps should containOp[Message] (CreateOp(addrPairOne))
+        midoOps should containOp[Message] (CreateOp(arpRuleTwo))
         midoOps should containOp[Message] (CreateOp(addrPairTwo))
         midoOps should containOp[Message] (CreateOp(dropAll))
     }
