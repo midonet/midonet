@@ -191,6 +191,8 @@ object C3POMinion {
         val dataMgr = new C3POStorageManager(storage)
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
              classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
+             classOf[IPSecSiteConnection] ->
+                 new IPSecSiteConnectionTranslator(storage),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronFirewall] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->
@@ -210,7 +212,8 @@ object C3POMinion {
              classOf[NeutronVIP] -> new VipTranslator(storage, pathBldr),
              classOf[PortBinding] -> new PortBindingTranslator(storage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
-             classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage)
+             classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage),
+             classOf[VpnService] -> new VpnServiceTranslator(storage)
         ).asInstanceOf[List[(Class[Message], Translator[Message])]]
          .foreach { pair =>
             dataMgr.registerTranslator(pair._1, pair._2)
