@@ -31,10 +31,11 @@ object ProtoTextPrettifier {
 
     /** Returns a string representation of the given protobuf, considering
       * [[Commons]] types such as UUID, IP address, etc.
-      *
-      * It does not tolerate nulls.
       */
     def makeReadable(m: Message): String = {
+        if (m == null) {
+            return "null"
+        }
         if (isCommons(m)) {
             return printValue(m)
         }
@@ -114,7 +115,10 @@ object ProtoTextPrettifier {
 
     @inline
     def nameOf(m: Message): String = {
-        m.getClass.getName
+        if (m != null)
+            m.getClass.getName
+        else
+            "null"
     }
 
 }
