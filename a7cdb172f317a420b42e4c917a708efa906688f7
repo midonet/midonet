@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ac1b152_b722a2ff",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-17T10:53:58Z",
+      "side": 1,
+      "message": "no allocations, please. i think we can just move the call to context.recordTraversedRule here:\n\nif (condition.matches(pktCtx)) {\n     context.recordMatchedRule(id)\n    ....\n} else {\n   context.recordUnmatchedRule(id)\n}",
+      "revId": "a7cdb172f317a420b42e4c917a708efa906688f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
