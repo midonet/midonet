@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_a07833f3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-17T10:51:00Z",
+      "side": 1,
+      "message": "Since the jira is private we are not referencing jira issues.",
+      "parentUuid": "5ac4a560_0de200d5",
+      "revId": "0e3b0aced8384799996e939c3be81b57e765ba29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_cdd728ec",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
         "patchSetId": 2
@@ -48,6 +66,24 @@
       "side": 1,
       "message": "perhaps move the call to \ncontext.recordTraversedRule(rule.id, res)\nfrom Chain.scala to here, and add a boolean for matched to it. Then the flow record can store a list of UUIDs of rules that matched. And this can be reconstructed in postprocessing, or during transmission.",
       "parentUuid": "5ac4a560_cdd728ec",
+      "revId": "0e3b0aced8384799996e939c3be81b57e765ba29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ac1b152_d748fece",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-17T10:51:00Z",
+      "side": 1,
+      "message": "The process method now returns a pair of RuleResult and Boolean. The context contains an array list of booleans, one for each rule. Let me know this solution is good too.",
+      "parentUuid": "3ac1b152_f7689a89",
       "revId": "0e3b0aced8384799996e939c3be81b57e765ba29",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
