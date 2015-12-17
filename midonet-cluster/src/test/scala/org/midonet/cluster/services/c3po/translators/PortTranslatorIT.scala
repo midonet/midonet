@@ -120,18 +120,24 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
         eventually {
             val asc = storage.get(classOf[Chain],
                                   antiSpoofChainId(nw1p1Id)).await()
-            asc.getRuleIdsCount shouldBe 5
+            asc.getRuleIdsCount shouldBe 6
 
-            // First two rules (don't drop ARP, don't drop DHCP) and the last
+            // The first rule (don't drop DHCP) and the last
             // one (drop everything) are fixed.
-            val ruleIds = asc.getRuleIdsList.asScala.slice(2, 4)
+            val ruleIds = asc.getRuleIdsList.asScala.slice(1, 5)
             val rules = storage.getAll(classOf[Rule], ruleIds).await()
             rules(0).getAction shouldBe Action.RETURN
             rules(0).getCondition.getNwSrcIp.getAddress shouldBe "10.0.1.0"
             rules(0).getCondition.getNwSrcIp.getPrefixLength shouldBe 24
             rules(1).getAction shouldBe Action.RETURN
-            rules(1).getCondition.getNwSrcIp.getAddress shouldBe "10.0.2.1"
-            rules(1).getCondition.getNwSrcIp.getPrefixLength shouldBe 32
+            rules(1).getCondition.getNwSrcIp.getAddress shouldBe "10.0.1.0"
+            rules(1).getCondition.getNwSrcIp.getPrefixLength shouldBe 24
+            rules(2).getAction shouldBe Action.RETURN
+            rules(2).getCondition.getNwSrcIp.getAddress shouldBe "10.0.2.1"
+            rules(2).getCondition.getNwSrcIp.getPrefixLength shouldBe 32
+            rules(3).getAction shouldBe Action.RETURN
+            rules(3).getCondition.getNwSrcIp.getAddress shouldBe "10.0.2.1"
+            rules(3).getCondition.getNwSrcIp.getPrefixLength shouldBe 32
         }
 
         // Unbind the first port.
