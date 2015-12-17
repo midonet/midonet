@@ -57,10 +57,10 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
             val inChain =
                 storage.get(classOf[Chain], inChainId(nw1p1Id)).await()
 
-            // Rule 0 is accept forward flow, and rule 2 is drop non-ARP
-            // traffic. We want rule 1, the jump to the anti-spoof chain.
+            // Rule 1 is accept return flow, and rule 2 is drop non-ARP
+            // traffic. We want rule 0, the jump to the anti-spoof chain.
             val antiSpoofJumpRule =
-                storage.get(classOf[Rule], inChain.getRuleIds(1)).await()
+                storage.get(classOf[Rule], inChain.getRuleIds(0)).await()
 
             antiSpoofJumpRule.hasJumpRuleData shouldBe true
 

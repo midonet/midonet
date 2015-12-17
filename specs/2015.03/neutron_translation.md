@@ -113,12 +113,14 @@ If the port is a VIF port (device_owner == 'compute:nova'):
  * Create the security group - port bindings as follows:
 
       * Create new outbound and inbound chains for the port
-      * Add a reverse flow matching rule on the outbound chain so that it
-        checks for the tracked connection for the return flow
-      * Add IP spoofing rules on the inbound chain for each IP address
-      * Add MAC spoofing rule on the inbound chain
-      * Add a reverse flow matching rule on the inbound chain so that it starts
-        tracking connection on the outgoing flows.
+      * Anti-spoofing rules
+          * Add IP spoofing rules on the inbound chain for each IP address
+          * Add MAC spoofing rule on the inbound chain
+      * Reverse flow rules
+          * Add a reverse flow matching rule on the outbound chain so that it
+            checks for the tracked connection for the return flow
+          * Add a reverse flow matching rule on the inbound chain so that it
+            starts tracking connection on the outgoing flows.
       * For each security group the port is bound to, create a jump rule to the
         corresponding chain.  There should be a distinct chain for each security
         group to jump to, one representing ingress and the other egress.

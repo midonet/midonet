@@ -471,13 +471,13 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         // Add new rules if appropriate.
         if (nPort.getPortSecurityEnabled) {
 
+            buildAntiSpoofRules(portCtx, nPort, portId, inChainId)
+
             // Create return flow rules.
             portCtx.outRules += Create(returnFlowRule(outChainId))
 
             // Create return flow rules matching for inbound chain.
             portCtx.inRules += Create(returnFlowRule(inChainId))
-
-            buildAntiSpoofRules(portCtx, nPort, portId, inChainId)
 
             buildSecurityGroupJumpRules(nPort, nPortOld, portCtx, portId,
                                         inChainId, outChainId)
