@@ -33,6 +33,24 @@
       "revId": "0e3b0aced8384799996e939c3be81b57e765ba29",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ac1b152_f7689a89",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-17T09:55:26Z",
+      "side": 1,
+      "message": "perhaps move the call to \ncontext.recordTraversedRule(rule.id, res)\nfrom Chain.scala to here, and add a boolean for matched to it. Then the flow record can store a list of UUIDs of rules that matched. And this can be reconstructed in postprocessing, or during transmission.",
+      "parentUuid": "5ac4a560_cdd728ec",
+      "revId": "0e3b0aced8384799996e939c3be81b57e765ba29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
