@@ -511,12 +511,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     /* If the first fixed IP address is configured with a gateway IP address,
      * create a route to Meta Data Service.*/
     private def configureMetaDataService(nPort: NeutronPort): OperationList =
-        findGateway(nPort).toList.flatMap { gateway =>
+        findGateway(nPort).toList.map { gateway =>
             val route = newMetaDataServiceRoute(
                 srcSubnet = gateway.nextHopDhcp.getSubnetAddress,
                 nextHopPortId = gateway.peerRouterPortId,
                 nextHopGw = gateway.nextHop)
-            List(Create(route))
+            Create(route)
         }
 
     /* Deletes the meta data service route for the deleted Neutron Port if the
