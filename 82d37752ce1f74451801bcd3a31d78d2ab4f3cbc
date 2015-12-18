@@ -60,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "3ac1b152_e81fdbb5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/CollectionTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-18T10:04:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_68645049",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 8
+      },
+      "revId": "82d37752ce1f74451801bcd3a31d78d2ab4f3cbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_a85e6874",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/CollectionTracker.scala",
         "patchSetId": 1
@@ -71,6 +95,30 @@
       "writtenOn": "2015-12-14T09:44:45Z",
       "side": 1,
       "message": "specified",
+      "range": {
+        "startLine": 97,
+        "startChar": 20,
+        "endLine": 97,
+        "endChar": 29
+      },
+      "revId": "82d37752ce1f74451801bcd3a31d78d2ab4f3cbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ac1b152_680cab95",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/CollectionTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-18T10:04:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_a85e6874",
       "range": {
         "startLine": 97,
         "startChar": 20,
@@ -106,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "3ac1b152_881107af",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/CollectionTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-18T10:04:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_c8548456",
+      "range": {
+        "startLine": 99,
+        "startChar": 77,
+        "endLine": 99,
+        "endChar": 78
+      },
+      "revId": "82d37752ce1f74451801bcd3a31d78d2ab4f3cbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_284a58ac",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/CollectionTracker.scala",
         "patchSetId": 1
@@ -129,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "3ac1b152_a825e30b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/CollectionTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-18T10:04:10Z",
+      "side": 1,
+      "message": "Yes",
+      "parentUuid": "5ac4a560_284a58ac",
+      "range": {
+        "startLine": 128,
+        "startChar": 12,
+        "endLine": 128,
+        "endChar": 55
+      },
+      "revId": "82d37752ce1f74451801bcd3a31d78d2ab4f3cbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_48c87422",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/CollectionTracker.scala",
         "patchSetId": 1
@@ -140,6 +236,30 @@
       "writtenOn": "2015-12-14T09:44:45Z",
       "side": 1,
       "message": "This ensures that the current member values are emitted when one of the streams emits an error, right?",
+      "range": {
+        "startLine": 153,
+        "startChar": 8,
+        "endLine": 153,
+        "endChar": 29
+      },
+      "revId": "82d37752ce1f74451801bcd3a31d78d2ab4f3cbc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ac1b152_c8221f01",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/CollectionTracker.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-18T10:04:10Z",
+      "side": 1,
+      "message": "Correct",
+      "parentUuid": "5ac4a560_48c87422",
       "range": {
         "startLine": 153,
         "startChar": 8,
