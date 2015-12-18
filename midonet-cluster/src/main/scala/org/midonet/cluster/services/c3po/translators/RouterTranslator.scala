@@ -256,6 +256,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
             .addOutPortIds(tenantGwPortId)
             .setNwSrcIp(portSubnet)
             .setNwSrcInv(true)
+            .setMatchForwardFlow(true)
         def inRuleBuilder(ruleId: UUID) = Rule.newBuilder
             .setId(ruleId)
             .setChainId(r.getInboundFilterId)
@@ -277,7 +278,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                  .setType(Rule.Type.NAT_RULE)
                  .setAction(Action.ACCEPT)
                  .setCondition(inRuleConditionBuilder
-                                   .addInPortIds(tenantGwPortId))
+                                   .addInPortIds(tenantGwPortId)
+                                   .setMatchReturnFlow(true))
                  .setNatRuleData(revNatRuleData(dnat = false)),
              inRuleBuilder(inDropWrongPortTrafficRuleId(nr.getId))
                  .setType(Rule.Type.LITERAL_RULE)
