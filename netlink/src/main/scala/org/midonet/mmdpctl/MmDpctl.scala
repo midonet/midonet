@@ -17,7 +17,7 @@
 package org.midonet.mmdpctl
 
 import java.nio.ByteBuffer
-import java.util.Arrays
+import java.util.{ArrayList, Arrays}
 import java.util.concurrent.{TimeUnit, TimeoutException}
 
 import scala.collection.JavaConversions._
@@ -312,7 +312,7 @@ object FlowsCtl extends Subcommand("flows") with DpCommand {
             val outPort = ctx.getOrCreateDpPort(dp, this.outPort.get.get)
             val mask = if (dp.supportsMegaflow()) {
             val mask = new FlowMask()
-                mask.calculateFor(fmatch)
+                mask.calculateFor(fmatch, new ArrayList[FlowAction])
                 mask
             } else null
             val actions = Arrays.asList[FlowAction](FlowActions.output(outPort.getPortNo))

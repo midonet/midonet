@@ -107,7 +107,7 @@ class FlowProcessor(dpState: DatapathState,
         if (context.flow ne null) {
             try {
                 val mask = if (supportsMegaflow) {
-                    flowMask.calculateFor(flowMatch)
+                    flowMask.calculateFor(flowMatch, context.flowActions)
                     context.log.debug(s"Applying mask $flowMask")
                     flowMask
                 } else null

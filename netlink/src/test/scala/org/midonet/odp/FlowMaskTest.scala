@@ -17,16 +17,17 @@
 package org.midonet.odp
 
 import java.nio.ByteBuffer
+import java.util.ArrayList
 import java.util.concurrent.ThreadLocalRandom
 
 import scala.collection.JavaConversions._
 
 import org.junit.runner.RunWith
-import org.midonet.packets.MAC
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.odp.flows._
+import org.midonet.packets.{IPv4, IPv4Addr, MAC}
 
 @RunWith(classOf[JUnitRunner])
 class FlowMaskTest  extends FlatSpec with ShouldMatchers {
@@ -147,7 +148,7 @@ class FlowMaskTest  extends FlatSpec with ShouldMatchers {
 
     private def maskedFlowKeys(fmatch: FlowMatch) = {
         val mask = new FlowMask
-        mask.calculateFor(fmatch)
+        mask.calculateFor(fmatch, new ArrayList[FlowAction])
         val bb = ByteBuffer.allocate(1024*8)
         mask.serializeInto(bb)
         bb.flip()
@@ -163,7 +164,7 @@ class FlowMaskTest  extends FlatSpec with ShouldMatchers {
         // Seen fields are a subset of used fields in the mask because some
         // fields are used although only one in the aggregating flow key was seen.
         val maskMatch = new FlowMatch()
-        val flowKeys = flowMask.getKeys()
+        val flowKeys = flowMask.getKeys
         var i = 0
         while (i < flowKeys.length) {
             if (flowKeys(i) ne null)
@@ -188,9 +189,47 @@ class FlowMaskTest  extends FlatSpec with ShouldMatchers {
         val normalKey = FlowKeys.ethernet(MAC.random().getAddress, MAC.random().getAddress)
         fmatch.addKey(FlowKeys.ethernet(MAC.random().getAddress, MAC.random().getAddress))
         val mask = new FlowMask()
-        mask.calculateFor(fmatch)
+        mask.calculateFor(fmatch, new ArrayList[FlowAction]())
         val maskedKey = mask.getMaskFor(normalKey.attrId()).asInstanceOf[FlowKeyEthernet]
         allOnes(maskedKey.eth_src)
         allOnes(maskedKey.eth_dst)
+    }
+
+    "Set IP key flow actions" should "influence mask result" in {
+        val fmatch = new FlowMatch()
+        fmatch.addKey(FlowKeys.inPort(9))
+        fmatch.addKey(FlowKeys.etherType(IPv4.ETHERTYPE))
+        fmatch.addKey(FlowKeys.ethernet(MAC.random().getAddress, MAC.random().getAddress))
+        fmatch.addKey(FlowKeys.ipv4(IPv4Addr.random, IPv4Addr.random, IpProtocol.TCP))
+        val actions = new ArrayList[FlowAction]
+        actions.add(FlowActions.setKey(
+            FlowKeys.ipv4(IPv4Addr.random, IPv4Addr.random, IpProtocol.TCP)))
+        val mask = new FlowMask()
+        mask.calculateFor(fmatch, actions)
+        val ethertypeMaskedKey = mask.getMaskFor(
+            OpenVSwitch.FlowKey.Attr.Ethertype).asInstanceOf[FlowKeyEtherType]
+        allOnes(ethertypeMaskedKey.etherType)
+        val ipv4MaskedKey = mask.getMaskFor(
+            OpenVSwitch.FlowKey.Attr.IPv4).asInstanceOf[FlowKeyIPv4]
+        allOnes(ipv4MaskedKey.ipv4_proto)
+    }
+
+    "Set protocol key flow actions" should "influence mask result" in {
+        val fmatch = new FlowMatch()
+        fmatch.addKey(FlowKeys.inPort(9))
+        fmatch.addKey(FlowKeys.etherType(IPv4.ETHERTYPE))
+        fmatch.addKey(FlowKeys.ethernet(MAC.random().getAddress, MAC.random().getAddress))
+        fmatch.addKey(FlowKeys.ipv4(IPv4Addr.random, IPv4Addr.random, IpProtocol.TCP))
+        fmatch.addKey(FlowKeys.tcp(80, 80))
+        val actions = new ArrayList[FlowAction]
+        actions.add(FlowActions.setKey(FlowKeys.tcp(8080, 8080)))
+        val mask = new FlowMask()
+        mask.calculateFor(fmatch, actions)
+        val ethertypeMaskedKey = mask.getMaskFor(
+            OpenVSwitch.FlowKey.Attr.Ethertype).asInstanceOf[FlowKeyEtherType]
+        allOnes(ethertypeMaskedKey.etherType)
+        val ipv4MaskedKey = mask.getMaskFor(
+            OpenVSwitch.FlowKey.Attr.IPv4).asInstanceOf[FlowKeyIPv4]
+        allOnes(ipv4MaskedKey.ipv4_proto)
     }
 }

@@ -17,6 +17,7 @@ package org.midonet.odp;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
@@ -147,7 +148,7 @@ public class FlowMask implements NetlinkSerializable, AttributeHandler {
      * Calculate the flow mask from the specified FlowMatch.
      * The input port is always an exact match.
      */
-    public void calculateFor(FlowMatch fmatch) {
+    public void calculateFor(FlowMatch fmatch, List<FlowAction> actions) {
         FlowKeyTunnel tunnel = key(Tunnel);
         if (fmatch.isSeen(FlowMatch.Field.TunnelKey)) {
             tunnel.tun_id = EXACT_64;
@@ -172,6 +173,32 @@ public class FlowMask implements NetlinkSerializable, AttributeHandler {
             exactMatchInKey(Ethernet);
             Arrays.fill(ethernet.eth_dst, EXACT_8);
             exactMatchInKey(Ethernet);
+        }
+        calculateForActions(fmatch, actions);
+    }
+
+    private void calculateForActions(FlowMatch fmatch, List<FlowAction> actions) {
+        for (int i = 0; i < actions.size(); ++i) {
+            FlowAction act = actions.get(i);
+            if (act instanceof FlowActionSetKey) {
+                FlowKey key = ((FlowActionSetKey)act).getFlowKey();
+                if (key instanceof FlowKeyIPv4 ||
+                        key instanceof FlowKeyIPv6 ||
+                        key instanceof FlowKeyTCP ||
+                        key instanceof FlowKeyUDP ||
+                        key instanceof FlowKeyICMP) {
+                    this.<FlowKeyEtherType>key(Ethertype).etherType = EXACT_16;
+                    exactMatchInKey(Ethertype);
+                    short etherType = fmatch.getEtherType();
+                    if (etherType == org.midonet.packets.IPv4.ETHERTYPE) {
+                        this.<FlowKeyIPv4>key(IPv4).ipv4_proto = EXACT_8;
+                        exactMatchInKey(IPv4);
+                    } else if (etherType == org.midonet.packets.IPv6.ETHERTYPE) {
+                        this.<FlowKeyIPv6>key(IPv6).ipv6_proto = EXACT_8;
+                        exactMatchInKey(IPv6);
+                    }
+                }
+            }
         }
     }
 
