@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ac1b152_ae95eb89",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-12-18T14:04:34Z",
+      "side": 1,
+      "message": "Why not just use \"set -e\"?",
+      "range": {
+        "startLine": 107,
+        "startChar": 4,
+        "endLine": 107,
+        "endChar": 16
+      },
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
