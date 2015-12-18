@@ -106,6 +106,24 @@
       "revId": "a7cdb172f317a420b42e4c917a708efa906688f7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ac1b152_282b93ec",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-18T11:43:24Z",
+      "side": 1,
+      "message": "or when a forward snat rule can\u0027t find any free ports",
+      "parentUuid": "3ac1b152_a8f7a38b",
+      "revId": "a7cdb172f317a420b42e4c917a708efa906688f7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
