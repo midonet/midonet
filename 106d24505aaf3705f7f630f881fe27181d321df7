@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ac1b152_c33be036",
+        "filename": "nsdb/src/main/resources/flowhistory.schema.xml",
+        "patchSetId": 6
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-18T11:10:21Z",
+      "side": 1,
+      "message": "This is not consecutive but I guess we can\u0027t shift the ids below for compatibility reasons...",
+      "range": {
+        "startLine": 131,
+        "startChar": 28,
+        "endLine": 131,
+        "endChar": 36
+      },
+      "revId": "106d24505aaf3705f7f630f881fe27181d321df7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
