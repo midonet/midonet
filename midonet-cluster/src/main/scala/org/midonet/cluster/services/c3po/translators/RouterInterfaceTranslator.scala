@@ -96,8 +96,13 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
                                     getHostIdByName(nPort.getHostId),
                                     nPort.getProfile.getInterfaceName)
         } else {
-            midoOps ++= createMetadataServiceRoute(
-                rtrPort.getId, nPort.getNetworkId, ns.getCidr)
+            // Only create the metadata service route if this router interface
+            // port has the DHCP's gateway IP.
+            if (rtrPort.getPortAddress == ns.getGatewayIp) {
+                midoOps ++= createMetadataServiceRoute(
+                    rtrPort.getId, nPort.getNetworkId, ns.getCidr)
+            }
+
             midoOps ++= updateGatewayRoutesOps(rtrPort.getPortAddress, ns.getId)
 
             // Add dynamic SNAT rules and the reverse SNAT on the router chains
@@ -193,22 +198,6 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
         val routerPortId = routerInterfacePortPeerId(nPort.getId)
         val routerPortBldr = newRouterPortBldr(routerPortId, routerId)
 
-        if (isUplink) {
-            // The port will be bound to a host rather than connected to a
-            // network port. Add it to the edge router's port group.
-            routerPortBldr.addPortGroupIds(PortManager.portGroupId(routerId))
-            assignTunnelKey(routerPortBldr, sequenceDispenser)
-        } else {
-            // Connect the router port to the network port, which has the same
-            // ID as nPort. Also add a reference to the DHCP. Zoom will add a
-            // backreference from the DHCP to the edge router port, allowing us
-            // to find it easily when creating a tenant router gateway.
-            routerPortBldr.setDhcpId(ri.getSubnetId)
-                .setPeerId(nPort.getId)
-        }
-
-        routerPortBldr.setPortSubnet(ns.getCidr)
-
         // Set the router port address. The port should have at most one IP
         // address. If it has none, use the subnet's default gateway.
         val gatewayIp = if (nPort.getFixedIpsCount > 0) {
@@ -219,6 +208,28 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage,
         } else ns.getGatewayIp
         routerPortBldr.setPortAddress(gatewayIp)
         routerPortBldr.setPortMac(nPort.getMacAddress)
+
+        if (isUplink) {
+            // The port will be bound to a host rather than connected to a
+            // network port. Add it to the edge router's port group.
+            routerPortBldr.addPortGroupIds(PortManager.portGroupId(routerId))
+            assignTunnelKey(routerPortBldr, sequenceDispenser)
+        } else {
+            // Connect the router port to the network port, which has the same
+            // ID as nPort.
+            routerPortBldr.setPeerId(nPort.getId)
+
+            // If this router port is the subnet's gateway, set the dhcp_id
+            // field. There's a field binding that will cause Zoom to set the
+            // Dhcp's router_if_port_id field to the router port's ID, which
+            // allows us to find the Dhcp's gateway port easily when creating
+            // a Dhcp port.
+            if (ns.getGatewayIp == routerPortBldr.getPortAddress)
+                routerPortBldr.setDhcpId(ri.getSubnetId)
+        }
+
+        routerPortBldr.setPortSubnet(ns.getCidr)
+
 
         routerPortBldr.build()
     }
