@@ -33,7 +33,7 @@ import org.midonet.cluster.services.c3po.translators.PortManager.routerInterface
 import org.midonet.cluster.services.c3po.translators.RouteManager.{gatewayRouteId, localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil.RichJavaUuid
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
@@ -51,14 +51,14 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
     "RouterInterfaceTranslator" should "handle translation for interfaces on " +
                                        "non-edge routers." in {
         createTenantNetwork(2, tenantNetworkId)
-        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24")
+        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24", "10.0.0.1")
         createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
         createRouter(5, routerId)
 
         // Creating a router interface Port should result in a port being
         // created on the network.
         createRouterInterfacePort(6, rifPortId, tenantNetworkId, routerId,
-                                  "10.0.0.3", "ab:cd:ef:01:02:03", subnetId)
+                                  "10.0.0.1", "ab:cd:ef:01:02:03", subnetId)
         eventually {
             val nwPort = storage.get(classOf[Port], rifPortId).await()
             nwPort.hasPeerId shouldBe false
@@ -67,7 +67,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         // Creating a RouterInterface should result on a port being created on
         // the router and linked to the network port.
         createRouterInterface(7, routerId, rifPortId, subnetId)
-        val rPort = checkRouterAndPeerPort(rifPortId, "10.0.0.3",
+        val rPort = checkRouterAndPeerPort(rifPortId, "10.0.0.1",
                                            "ab:cd:ef:01:02:03")
 
         rPort.getRouteIdsCount shouldBe 3
@@ -141,7 +141,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
 
     }
 
-    it should "update gateway routes using the specified subnet" in {
+    it should "update gateway routes that use the specified subnet" in {
 
         val extNwId = UUID.randomUUID()
         val tntRtr1Id = UUID.randomUUID()
@@ -152,27 +152,26 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
 
         // Create two tenant routers with gateways via external network.
         createTenantNetwork(2, extNwId, external = true)
-        createSubnet(3, subnetId, extNwId, "10.0.1.0/24")
-        createDhcpPort(4, dhcpPortId, extNwId, subnetId, "10.0.1.1")
+        createSubnet(3, subnetId, extNwId, "10.0.0.0/16")
+        createDhcpPort(4, dhcpPortId, extNwId, subnetId, "10.0.1.2")
         createRouterGatewayPort(5, extNwGwPort1Id, extNwId, tntRtr1Id,
-                                "10.0.1.2", "ab:cd:ef:00:00:02", subnetId)
+                                "10.0.2.1", "ab:cd:ef:00:00:02", subnetId)
         createRouter(6, tntRtr1Id, extNwGwPort1Id)
         createRouterGatewayPort(7, extNwGwPort2Id, extNwId, tntRtr2Id,
-                                "10.0.1.3", "ab:cd:ef:00:00:03", subnetId)
+                                "10.0.3.1", "ab:cd:ef:00:00:03", subnetId)
         createRouter(8, tntRtr2Id, extNwGwPort2Id)
 
-
         // Get the tenant routers' gateway ports' default route IDs.
-        val trGwPort1Id = tenantGwPortId(extNwGwPort1Id.asProto)
-        val trDefRt1Id = gatewayRouteId(trGwPort1Id)
-        val trGwPort2Id = tenantGwPortId(extNwGwPort2Id.asProto)
-        val trDefRt2Id = gatewayRouteId(trGwPort2Id)
+        val tr1GwPortId = tenantGwPortId(extNwGwPort1Id.asProto)
+        val tr1DefRtId = gatewayRouteId(tr1GwPortId)
+        val tr2GwPortId = tenantGwPortId(extNwGwPort2Id.asProto)
+        val tr2DefRtId = gatewayRouteId(tr2GwPortId)
 
         // Checks whether both ports' default routes have nextHopIp as their
         // next hop gateway (or that it's undefined if nextHopIp is null).
         def checkRtNextHopIps(nextHopIp: String): Unit = eventually {
             val Seq(rt1, rt2) = storage.getAll(
-                classOf[Route], Seq(trDefRt1Id, trDefRt2Id)).await()
+                classOf[Route], Seq(tr1DefRtId, tr2DefRtId)).await()
             if (nextHopIp != null) {
                 rt1.hasNextHopGateway shouldBe true
                 rt2.hasNextHopGateway shouldBe true
@@ -184,17 +183,18 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
             }
         }
 
-        // No edge router, so routes has no next hop gateway IP.
+        // No edge router, so the tenant router default routes have no next hop
+        // gateway IP.
         checkRtNextHopIps(null)
 
         // Create edge router and connect external network to it.
         createRouter(9, edgeRtrId, null)
-        createRouterInterfacePort(10, rifPortId, extNwId, edgeRtrId, "10.0.1.4",
+        createRouterInterfacePort(10, rifPortId, extNwId, edgeRtrId, "10.0.1.1",
                                   "12:12:12:12:12:12", subnetId)
         createRouterInterface(11, edgeRtrId, rifPortId, subnetId)
 
         // Tenant routers' default routes should now have next hop gateway IPs.
-        checkRtNextHopIps("10.0.1.4")
+        checkRtNextHopIps("10.0.1.1")
 
         // Disconnect edge router; should clear routes' next hop gateway IPs.
         insertDeleteTask(12, PortType, rifPortId)
@@ -370,6 +370,66 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
             val revSnatNat = revSnatRule.getNatRuleData
             revSnatNat.getDnat shouldBe false
         }
+    }
+
+    it should "set DHCP's routerIfPortId iff the router interface's IP is " +
+              "the subnet's gateway IP" in {
+        def checkDhcpAndMetadataRoute(rifPortId: UUID)
+        : Unit = eventually {
+            val peerPortId = routerInterfacePortPeerId(
+                UUIDUtil.toProto(rifPortId))
+            val metadataRouteId = metadataServiceRouteId(peerPortId)
+
+            val dhcpFtr = storage.get(classOf[Dhcp], subnetId)
+            val peerPort = storage.get(classOf[Port], peerPortId).await()
+            val dhcp = dhcpFtr.await()
+
+            if (dhcp.getDefaultGateway == peerPort.getPortAddress) {
+                dhcp.getRouterIfPortId shouldBe peerPortId
+                val route = storage.get(classOf[Route], metadataRouteId).await()
+                route.getNextHopPortId shouldBe peerPortId
+            } else {
+                dhcp.hasRouterIfPortId shouldBe false
+                storage.exists(classOf[Route], metadataRouteId)
+                    .await() shouldBe false
+            }
+        }
+
+        createTenantNetwork(10, tenantNetworkId)
+        createSubnet(20, subnetId, tenantNetworkId, "10.0.0.0/16",
+                     gatewayIp="10.0.1.1")
+
+        // Create a router interface with a different IP than the subnet's
+        // gateway.
+        createRouter(30, routerId)
+        createRouterInterfacePort(40, rifPortId, tenantNetworkId, routerId,
+                                  "10.0.2.1", "01:02:03:04:05:06", subnetId)
+        createRouterInterface(50, routerId, rifPortId, subnetId)
+
+        val dhcpPortId = UUID.randomUUID()
+        createDhcpPort(60, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        eventually(checkDhcpAndMetadataRoute(rifPortId))
+
+        // Now create a router interface with the DHCP's gateway IP.
+        val rtr2Id = UUID.randomUUID()
+        val rtr2IfPortId = UUID.randomUUID()
+        createRouter(70, rtr2Id)
+        createRouterInterfacePort(80, rtr2IfPortId, tenantNetworkId, rtr2Id,
+                                  "10.0.1.1", "ab:ab:ab:ab:ab:ab", subnetId)
+        createRouterInterface(90, rtr2Id, rtr2IfPortId, subnetId)
+        eventually(checkDhcpAndMetadataRoute(rtr2IfPortId))
+
+        // Delete and recreate the DHCP port to make sure the metadata route
+        // is deleted and then recreated with the right RIF port.
+        insertDeleteTask(100, PortType, dhcpPortId)
+        eventually {
+            val mdRouteId= metadataServiceRouteId(
+                routerInterfacePortPeerId(rtr2IfPortId.asProto))
+            storage.exists(classOf[Route], mdRouteId).await() shouldBe false
+        }
+
+        createDhcpPort(110, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        eventually(checkDhcpAndMetadataRoute(rtr2IfPortId))
     }
 
     private def checkRouterAndPeerPort(nwPortId: UUID, ipAddr: String,
