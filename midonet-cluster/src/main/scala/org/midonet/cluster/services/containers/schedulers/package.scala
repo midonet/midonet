@@ -24,7 +24,8 @@ import com.typesafe.scalalogging.Logger
 import rx.Scheduler
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
-import org.midonet.cluster.models.State.ContainerServiceStatus
+import org.midonet.cluster.models.State.{ContainerStatus, ContainerServiceStatus}
+import org.midonet.cluster.models.Topology.{ServiceContainer, ServiceContainerGroup}
 
 package object schedulers {
 
@@ -38,6 +39,19 @@ package object schedulers {
                        scheduler: Scheduler,
                        log: Logger)
 
+    trait SchedulerEvent
+    case class ScheduleEvent(container: ServiceContainer,
+                             group: ServiceContainerGroup,
+                             hostId: UUID) extends SchedulerEvent
+    case class UpEvent(container: ServiceContainer,
+                       group: ServiceContainerGroup,
+                       status: ContainerStatus) extends SchedulerEvent
+    case class DownEvent(container: ServiceContainer,
+                         group: ServiceContainerGroup,
+                         status: ContainerStatus) extends SchedulerEvent
+    case class UnscheduleEvent(container: ServiceContainer,
+                               group: ServiceContainerGroup,
+                               host: UUID) extends SchedulerEvent
 
     type HostsEvent = Map[UUID, HostEvent]
 
@@ -50,4 +64,5 @@ package object schedulers {
     case class PortEvent(hostId: UUID, interfaceName: String, active: Boolean)
 
     case class HostGroupEvent(hostGroupId: UUID, hosts: HostsEvent)
+
 }
