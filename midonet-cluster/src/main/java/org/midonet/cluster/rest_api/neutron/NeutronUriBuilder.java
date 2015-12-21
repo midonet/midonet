@@ -43,7 +43,8 @@ public class NeutronUriBuilder {
 
     public static final String FIREWALLS = "/firewalls";
     public static final String VPNSERVICES = "/vpnservices";
-    public static final String IPSEC_SITE_CONNS = "/ipsec_site_connections";
+    public static final String IPSEC_SITE_CONNECTIONS =
+        "/ipsec_site_connections";
 
 
     public static URI getRoot(URI baseUri) {
@@ -269,17 +270,17 @@ public class NeutronUriBuilder {
         return buildIdTemplateUri(getVpnServices(baseUri));
     }
 
-    public static URI getIpSecSiteConns(URI baseUri) {
+    public static URI getIpsecSiteConnections(URI baseUri) {
         return UriBuilder.fromUri(getNeutron(baseUri))
-            .path(IPSEC_SITE_CONNS).build();
+            .path(IPSEC_SITE_CONNECTIONS).build();
     }
 
-    public static URI getIpSecSiteConn(URI baseUri, UUID id) {
-        return UriBuilder.fromUri(getIpSecSiteConns(baseUri))
+    public static URI getIpsecSiteConnection(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getIpsecSiteConnections(baseUri))
             .path(id.toString()).build();
     }
 
-    public static String getIpSecSiteConnTemplate(URI baseUri) {
-        return buildIdTemplateUri(getIpSecSiteConns(baseUri));
+    public static String getIpsecSiteConnectionTemplate(URI baseUri) {
+        return buildIdTemplateUri(getIpsecSiteConnections(baseUri));
     }
 }

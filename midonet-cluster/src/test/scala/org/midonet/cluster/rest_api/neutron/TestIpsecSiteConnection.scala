@@ -34,7 +34,7 @@ import org.midonet.cluster.rest_api.rest_api.FuncJerseyTest
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
 @RunWith(classOf[JUnitRunner])
-class TestIpsecSiteConn extends FeatureSpec
+class TestIpsecSiteConnection extends FeatureSpec
         with Matchers
         with BeforeAndAfter {
 
@@ -60,8 +60,8 @@ class TestIpsecSiteConn extends FeatureSpec
         val neutron = jerseyTest.resource().path("/neutron")
             .accept(NEUTRON_JSON_V3)
             .get(classOf[Neutron])
-        neutron.ipsecSiteConns shouldNot be(null)
-        neutron.ipsecSiteConnTemplate shouldNot be(null)
+        neutron.ipsecSiteConnections shouldNot be(null)
+        neutron.ipsecSiteConnectionTemplate shouldNot be(null)
     }
 
     scenario("Create, Read, Update, Delete") {
@@ -79,7 +79,6 @@ class TestIpsecSiteConn extends FeatureSpec
         ipsecSiteConnection.peerAddress = "100.100.100.1"
         ipsecSiteConnection.peerId = "foobar"
         ipsecSiteConnection.peerCidrs = Lists.newArrayList("192.168.10.0/24")
-        ipsecSiteConnection.localCidrs = Lists.newArrayList("192.168.20.0/24")
         ipsecSiteConnection.routeMode = RouteMode.STATIC
         ipsecSiteConnection.mtu = 1234
         ipsecSiteConnection.initiator = Initiator.RESPONSE_ONLY

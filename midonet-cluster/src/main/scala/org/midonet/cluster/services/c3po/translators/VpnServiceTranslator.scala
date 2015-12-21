@@ -46,7 +46,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage)
             // doesn't know about.
             val oldVpn = storage.get(classOf[VpnService], vpn.getId).await()
             val newVpn = vpn.toBuilder()
-                .addAllIpsecSiteConnIds(oldVpn.getIpsecSiteConnIdsList).build()
+                .addAllIpsecSiteConnectionIds(oldVpn.getIpsecSiteConnectionIdsList).build()
             List(Update(newVpn))
         case _ => super.retainHighLevelModel(op)
     }
