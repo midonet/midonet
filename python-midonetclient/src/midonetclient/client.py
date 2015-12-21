@@ -20,10 +20,12 @@ from midonetclient import httpclient
 from midonetclient.neutron import bgp
 from midonetclient.neutron import bridge as br
 from midonetclient.neutron import chain_rule as cr
+from midonetclient.neutron import gateway_device as gd
 from midonetclient.neutron import dhcp
 from midonetclient.neutron import firewall as fw
 from midonetclient.neutron import host
 from midonetclient.neutron import ipaddr_group as ipg
+from midonetclient.neutron import l2gw
 from midonetclient.neutron import l3
 from midonetclient.neutron import loadbalancer as lb
 from midonetclient.neutron import network as net
@@ -41,6 +43,8 @@ LOG = logging.getLogger(__name__)
 
 
 class MidonetClient(net.NetworkClientMixin,
+                    gd.GatewayDeviceClientMixin,
+                    l2gw.L2GwClientMixin,
                     l3.L3ClientMixin,
                     sg.SecurityGroupClientMixin,
                     lb.LoadBalancerClientMixin,
