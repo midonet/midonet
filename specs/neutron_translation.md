@@ -87,6 +87,13 @@ for it, do not create a MidoNet network port.  For each edge router, there
 should be a corresponding port group.  Add this port to the port group, and
 exit.
 
+If the port is of a type 'neutron:remote_site', do not create any port on the
+MidoNet network. Add an ARP entry in the MidoNet network with the IP address
+(first fixed_ips element) and the MAC address.  Also add a MAC table entry for
+the provided MAC address and the network port connected to the VTEP router.
+There should be exactly one such port.  After the ARP and MAC tables are
+seeded, exit.
+
 Create a new MidoNet network port.  The following fields are copied over
 directly:
 
@@ -210,10 +217,13 @@ If the port is a Router Gateway port (device_owner == 'network:router_gateway'):
 
 For all port types:
 
+ * Remove the MidoNet network MAC table entry referencing the MAC
+ * address
  * Remove the MidoNet network MAC table entry referencing the port
  * Remove the MidoNet network ARP table entry referencing the IP addresses of
    the port
- * Remove the matching MidoNet port.
+ * Remove the matching MidoNet port unless it's a remote site port since there
+   is no matching MidoNet port.
 
 For any port type, if the port is bound, unbind.
 
@@ -879,6 +889,48 @@ ZOOM currently does not automatically delete the jump rules to the firewall
 chain even if the firewall chains are deleted.  To get around this limitation,
 get the list of associated routers from 'add-router-ids' field of
 NeutronFirewall.  For each, delete the corresponding jump rules.
+
+## GATEWAYDEVICE
+
+### CREATE
+
+If the 'type' field is anything other than 'vtep_router', do nothing.
+
+Find the router using 'resource_id' field.  For each object in
+'remote_mac_entries', do the following:
+
+ * Create a port on the router with its ID derived deterministically from
+   'segmentation_id' and 'id' of the gateway device object.  Set the vni field
+   to the 'segmentation_id', and add an entry of 'mac_address' and
+   'vtep_address' in the peering table of the port.  There should be one VTEP
+   router port per segmentation ID.
+
+### DELETE
+
+Get the original gateway device data, find the VTEP router ports using the
+'id' and the 'segmentation_id' of each 'remote_mac_entries', and delete them.
+
+
+## L2GWCONNECTION
+
+### CREATE
+
+In the 'l2_gateway' object, there is a list of 'devices' objects.  Go
+through them and do the following:
+
+ * Determine the segmentation ID to use.  It is either the 'segmentation_id'
+   set in the 'devices' item, or the 'segmentation_id' set in the 'l2_gateway'
+   object.  Only one of them should be set.
+ * Find the VTEP router port using the 'device_id' and the segmentation ID
+   determined above.
+ * Create a new port on the MidoNet network with ID matching 'network_id'
+   specified in the top level object, 'l2_gateway_connection'.  The ID of the
+   port is deterministically derived from the 'id' of the top level object.
+ * Link the MidoNet network port and the VTEP router port.
+
+### DELETE
+
+Using the 'id' field, locate the port and delete it.
 
 
 # References
