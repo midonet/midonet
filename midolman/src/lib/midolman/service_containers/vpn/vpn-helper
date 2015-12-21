@@ -53,10 +53,10 @@ define_paths() {
         echo "location of files not specified (-f)"
         exit 1
     fi
-    IPSEC_DIR=$FILES_PATH/$NAME/etc
+    IPSEC_DIR=$FILES_PATH/etc
     CONF_FILE=$IPSEC_DIR/ipsec.conf
     SECRETS_FILE=$IPSEC_DIR/ipsec.secrets
-    PLUTO_DIR=$FILES_PATH/$NAME/var/run/pluto
+    PLUTO_DIR=$FILES_PATH/var/run/pluto
     mkdir -p $PLUTO_DIR
 }
 
@@ -81,8 +81,9 @@ makens() {
         echo "no ip specified for interface (-l)"
         exit 1
     fi
-    DP=${NAME}_dp
-    NS=${NAME}_ns
+    DP=$NAME
+    NS=${NAME}-ns
+    set -e
     ip netns add $NAME
     ip link add name $DP type veth peer name $NS
     ip link set $DP up
@@ -94,16 +95,21 @@ makens() {
     ip netns exec $NAME ip link set up dev lo
     ip netns exec $NAME ip route add default via $GATEWAY_IP dev $NS
     ip netns exec $NAME arp -s $GATEWAY_IP $GATEWAY_MAC
+    set +e
 }
 
 # Start the IKE daemon
 start_service() {
+    set -e
     ip netns exec $NAME ipsec pluto --ctlbase $PLUTO_DIR \
                                     --use-netkey \
                                     --uniqueids \
                                     --secretsfile $SECRETS_FILE
+    set +e
     ip netns exec $NAME ipsec whack --ctlbase $PLUTO_DIR \
                                     --listen
+    check_return $? 0 3 # We allow return code 3 for weak PSK
+    exit 0
 }
 
 init_conns() {
@@ -111,6 +117,7 @@ init_conns() {
         echo "no gateway ip specified (-g)"
         exit 1
     fi
+    set -e
     for ((i=0;i<$MAX_CONNS;i++)) do
         ip netns exec $NAME ipsec addconn --ctlbase ${PLUTO_DIR}.ctl \
                                           --defaultroutenexthop $GATEWAY_IP \
@@ -121,6 +128,7 @@ init_conns() {
                                         --asynchronous \
                                         --initiate
     done
+    exit 0
 }
 
 # Kill all processes running inside the namespace before deleting the
@@ -130,12 +138,16 @@ cleanns() {
         echo "no name specified (-n)"
         exit 1
     fi
+    if [ -z $(ip netns list | grep $NAME) ]; then
+        exit 0
+    fi
     for pid in $(ip netns pids $NAME)
     do
         kill -9 $pid
     done
-    ip link del ${NAME}_dp
     ip netns del $NAME
+    ip link del $NAME
+    exit 0
 }
 
 
@@ -177,6 +189,19 @@ collect_debug_info() {
     echo "$SECRETS_FILE $NAME"
     echo "-.-.-.-.-.-.-.-.-.-.-.-.-.-.-"
     cat $SECRETS_FILE
+}
+
+check_return() {
+    set +x
+    local code=${1}
+    shift
+    for i in $@; do
+        if [ $code -eq $i ]; then
+            return 0
+        fi
+    done
+    echo "ERROR: Command exited with code ${1}"
+    exit ${1}
 }
 
 MAX_CONNS=0

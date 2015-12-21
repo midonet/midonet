@@ -20,7 +20,6 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.VpnService
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation,Update}
-import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.util.concurrent.toFutureOps
 
 class VpnServiceTranslator(protected val storage: ReadOnlyStorage)

@@ -310,10 +310,10 @@ message NeutronFirewallRule {
 
 message VpnService {
     optional UUID id = 1;
-    optional string name = 2;
-    optional string description = 3;
-    optional bool admin_state_up = 4;
-    optional string tenant_id = 5;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string description = 4;
+    optional bool admin_state_up = 5;
     optional UUID subnet_id = 6;
     optional UUID router_id = 7;
 
@@ -330,8 +330,8 @@ message VpnService {
 message IPSecSiteConnection {
     optional UUID id = 1;
     optional string tenant_id = 2;
-    optional string description = 3;
-    optional string name = 4;
+    optional string name = 3;
+    optional string description = 4;
     optional bool admin_state_up = 5;
     optional string peer_address = 6;
     optional string peer_id = 7;
@@ -343,16 +343,17 @@ message IPSecSiteConnection {
     optional Initiator initiator = 13;
     optional AuthMode auth_mode = 14;
     optional string psk = 15;
-    optional Status status = 16;
 
-    optional DpdAction dpd_action = 17;
-    optional uint32 dpd_interval = 18; // milliseconds
-    optional uint32 dpd_timeout = 19; // milliseconds
+    optional DpdAction dpd_action = 16;
+    optional uint32 dpd_interval = 17; // milliseconds
+    optional uint32 dpd_timeout = 18; // milliseconds
 
-    optional UUID vpnservice_id = 20;
+    optional UUID vpnservice_id = 19;
 
-    optional IkePolicy ikepolicy = 21;
-    optional IPSecPolicy ipsecpolicy = 22;
+    optional IkePolicy ikepolicy = 20;
+    optional IPSecPolicy ipsecpolicy = 21;
+
+    optional Status status = 22; // verify this is topology
 
     // Backrefs
     repeated UUID route_ids = 101;
@@ -414,9 +415,9 @@ message IPSecSiteConnection {
         optional IPSecEncryptionAlgorithm encryption_algorithm = 6;
         optional Phase1NegotiationMode phase1_negotiation_mode = 7;
         optional IkeVersion ike_version = 8;
-        optional string lifetime_units = 9;
+        optional IPSecPfs pfs = 9;
         optional uint32 lifetime_value = 10;
-        optional IPSecPfs pfs = 11;
+        optional string lifetime_units = 11;
 
         enum Phase1NegotiationMode {
             MAIN = 1;
@@ -438,8 +439,8 @@ message IPSecSiteConnection {
         optional IPSecEncryptionAlgorithm encryption_algorithm = 7;
         optional EncapsulationMode encapsulation_mode = 8;
         optional IPSecPfs pfs = 9;
-        optional string lifetime_units = 10;
-        optional uint32 lifetime_value = 11;
+        optional uint32 lifetime_value = 10;
+        optional string lifetime_units = 11;
 
         enum TransformProtocol {
             ESP = 1;

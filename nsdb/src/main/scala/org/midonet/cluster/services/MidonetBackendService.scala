@@ -243,6 +243,11 @@ object MidonetBackend {
         stateStore.registerKey(classOf[Vtep], VtepConnState, SingleLastWriteWins)
         stateStore.registerKey(classOf[Vtep], VtepVxgwManager, SingleFirstWriteWins)
 
+        store.declareBinding(classOf[VpnService], "router_id", CLEAR,
+                             classOf[Router], "vpn_service_ids", CASCADE)
+        store.declareBinding(classOf[VpnService], "ipsec_site_connection_ids", CASCADE,
+                             classOf[IPSecSiteConnection], "vpnservice_id", CLEAR)
+
         setup()
 
         store.build()
