@@ -90,6 +90,12 @@ public class Neutron {
     @JsonProperty("ipsec_site_connection_template")
     public String ipsecSiteConnectionTemplate;
 
+    @JsonProperty("l2_gateway_connections")
+    public URI l2GatewayConns;
+
+    @JsonProperty("l2_gateway_connection_template")
+    public String l2GatewayConnTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -131,7 +137,9 @@ public class Neutron {
                && Objects.equal(ipsecSiteConnections,
                                 other.ipsecSiteConnections)
                && Objects.equal(ipsecSiteConnectionTemplate,
-                                other.ipsecSiteConnectionTemplate);
+                                other.ipsecSiteConnectionTemplate)
+               && Objects.equal(l2GatewayConns, other.l2GatewayConns)
+               && Objects.equal(l2GatewayConnTemplate, other.l2GatewayConnTemplate);
     }
 
     @Override
@@ -146,7 +154,8 @@ public class Neutron {
                                 loadBalancer, firewalls, firewallTemplate,
                                 vpnServices, vpnServiceTemplate,
                                 ipsecSiteConnections,
-                                ipsecSiteConnectionTemplate);
+                                ipsecSiteConnectionTemplate,
+                                l2GatewayConns, l2GatewayConnTemplate);
     }
 
     @Override
@@ -177,6 +186,8 @@ public class Neutron {
             .add("vpnServiceTemplate", vpnServiceTemplate)
             .add("ipsecSiteConnections", ipsecSiteConnections)
             .add("ipsecSiteConnectionTemplate",
-                 ipsecSiteConnectionTemplate).toString();
+                 ipsecSiteConnectionTemplate)
+            .add("l2GatewayConns", l2GatewayConns)
+            .add("l2GatewayConnTemplate", l2GatewayConnTemplate).toString();
     }
 }
