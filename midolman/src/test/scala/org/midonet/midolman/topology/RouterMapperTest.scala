@@ -1216,8 +1216,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("The router should have both chain, in correct order")
             device.cfg.inboundFilters.size() shouldBe 2
-            device.cfg.inboundFilters.get(0) shouldBe chain.getId.asJava
-            device.cfg.inboundFilters.get(1) shouldBe redirectChain.getId.asJava
+            device.cfg.inboundFilters.get(0) shouldBe redirectChain.getId.asJava
+            device.cfg.inboundFilters.get(1) shouldBe chain.getId.asJava
 
             And("The virtual topology should have prefetched both chains")
             VirtualTopology.tryGet[Chain](chain.getId) shouldBeDeviceOf chain
