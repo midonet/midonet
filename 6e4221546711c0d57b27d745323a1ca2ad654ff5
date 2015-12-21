@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9df570_d1bd6404",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/L2GatewayConnectionResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-21T10:00:19Z",
+      "side": 1,
+      "message": "I think this can be the entire body of the function, since get() can\u0027t return null.",
+      "range": {
+        "startLine": 44,
+        "startChar": 19,
+        "endLine": 44,
+        "endChar": 49
+      },
+      "revId": "6e4221546711c0d57b27d745323a1ca2ad654ff5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
