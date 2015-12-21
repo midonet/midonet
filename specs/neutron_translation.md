@@ -87,6 +87,13 @@ for it, do not create a MidoNet network port.  For each edge router, there
 should be a corresponding port group.  Add this port to the port group, and
 exit.
 
+If the port is of a type 'neutron:remote_site', do not create any port on the
+MidoNet network. Add an ARP entry in the MidoNet network with the IP address
+(first fixed_ips element) and the MAC address.  Also add a MAC table entry for
+the provided MAC address and the network port connected to the VTEP router.
+There should be exactly one such port.  After the ARP and MAC tables are
+seeded, exit.
+
 Create a new MidoNet network port.  The following fields are copied over
 directly:
 
@@ -210,10 +217,16 @@ If the port is a Router Gateway port (device_owner == 'network:router_gateway'):
 
 For all port types:
 
+ * Remove the MidoNet network MAC table entry referencing the MAC
+ * address
  * Remove the MidoNet network MAC table entry referencing the port
  * Remove the MidoNet network ARP table entry referencing the IP addresses of
    the port
  * Remove the matching MidoNet port.
+
+Note that when attempting to remove a MidoNet port, it is possible that
+it does not exist (for example, 'neutron:remote_site' port), but the delete
+operation should still succeed.
 
 For any port type, if the port is bound, unbind.
 
@@ -879,6 +892,28 @@ ZOOM currently does not automatically delete the jump rules to the firewall
 chain even if the firewall chains are deleted.  To get around this limitation,
 get the list of associated routers from 'add-router-ids' field of
 NeutronFirewall.  For each, delete the corresponding jump rules.
+
+
+## L2GWCONNECTION
+
+### CREATE
+
+L2 gateway connection object comes with its parent L2 gateway object embedded,
+and the L2 gateway object includes a 'router_id' field indicating the router
+that the gateway is associated with.
+
+Currently L2 gateway only supports one L2 gateway connection.  Create a vtep
+router port on the router specified in the 'router_id' field, with the VNI set
+to the value specified in the 'segmentation_id' field, create a port on the
+midonet network with the ID specified in 'network_id' field, and link them.
+'segmentation_id' field exists in both L2 gateway connection and the embedded
+L2 gateway objects.  One of them must be set.  If both are set, use the one in
+L2 gateway connection.
+
+### DELETE
+
+Unlink the network specified in 'network_id' from the router specified in
+'router_id'.  Delete the interior ports.
 
 
 # References
