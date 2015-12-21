@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da9df570_34bbfec5",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T15:51:10Z",
+      "side": 1,
+      "message": "there\u0027s one case were either 0 or 3 is ok, but yes, we should use set -e in the general case.",
+      "parentUuid": "3ac1b152_ae95eb89",
+      "range": {
+        "startLine": 107,
+        "startChar": 4,
+        "endLine": 107,
+        "endChar": 16
+      },
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9df570_b1ab80d5",
         "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
         "patchSetId": 3
@@ -59,6 +83,24 @@
     },
     {
       "key": {
+        "uuid": "da9df570_d4c39236",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T15:51:10Z",
+      "side": 1,
+      "message": "It\u0027s because create is part of the ContainerHandler trait. It seems feasible that we may need async calls for Containers in the future, especially if we are taking it out of process.\n\nI\u0027ll add override to the overriden methods",
+      "parentUuid": "da9df570_b13b8037",
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9df570_913e7c28",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 3
@@ -70,6 +112,30 @@
       "writtenOn": "2015-12-21T12:28:16Z",
       "side": 1,
       "message": "throws an exception if the namespace was not setup successfully.",
+      "range": {
+        "startLine": 283,
+        "startChar": 44,
+        "endLine": 284,
+        "endChar": 40
+      },
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_94c90a5d",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T15:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da9df570_913e7c28",
       "range": {
         "startLine": 283,
         "startChar": 44,
@@ -99,6 +165,41 @@
     },
     {
       "key": {
+        "uuid": "da9df570_d41f12b6",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T15:51:10Z",
+      "side": 1,
+      "message": "I\u0027ll create a JIRA to deal with these.",
+      "parentUuid": "da9df570_91259c0c",
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_f1d7c8eb",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T15:51:10Z",
+      "side": 1,
+      "message": "the neutron translator expects this to be vpnservice_id. It\u0027s ugly, but I don\u0027t think it can be changed without changing a lot of things in the neutron translator.\n\nLikewise for ikepolicy and ipsecpolicy.",
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9df570_b122a0ff",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 3
@@ -110,6 +211,40 @@
       "writtenOn": "2015-12-21T12:28:16Z",
       "side": 1,
       "message": "ditto.",
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_51e7b4e4",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T15:51:10Z",
+      "side": 1,
+      "message": "there can be multiple vpn services per router in theory.",
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_71ecb8c8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T15:51:10Z",
+      "side": 1,
+      "message": "should be a backreference to vpn_service_ids. there may be multiple.",
       "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
