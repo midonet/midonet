@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9df570_f119887a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-21T09:04:34Z",
+      "side": 1,
+      "message": "is",
+      "range": {
+        "startLine": 117,
+        "startChar": 39,
+        "endLine": 117,
+        "endChar": 41
+      },
+      "revId": "b34c5b7a74c53a2887b6e6b1ba603fafe820a8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_d133a4f4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-21T09:04:34Z",
+      "side": 1,
+      "message": "Where do we remove the hostId from the tracker when hosts are deleted from the topology? In the hostTracker itself?",
+      "revId": "b34c5b7a74c53a2887b6e6b1ba603fafe820a8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
