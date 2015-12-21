@@ -38,6 +38,8 @@ package object cluster {
 
     final val containersLog =
         "org.midonet.cluster.services.containers"
+    def containerLog(containerId: UUID): String =
+        s"org.midonet.cluster.services.containers.container-$containerId"
 
     final val heartbeatLog =
         "org.midonet.cluster.services.heartbeat"

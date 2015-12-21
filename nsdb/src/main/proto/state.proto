@@ -21,7 +21,7 @@ option java_package = "org.midonet.cluster.models";
 option java_outer_classname = "State";
 
 message ContainerServiceStatus {
-    optional int32 weight = 1;
+    optional int32 weight = 1 [default = 1];
 }
 
 message ContainerStatus {

@@ -126,4 +126,6 @@ class ContainersConfig(val conf: Config) extends MinionConfig[ContainerService] 
     final val Prefix = "cluster.containers"
 
     override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+    def schedulerTimeoutMs = conf.getDuration(s"$Prefix.scheduler_timeout", TimeUnit.MILLISECONDS)
+    def schedulerBadHostLifetimeMs = conf.getDuration(s"$Prefix.scheduler_bad_host_lifetime", TimeUnit.MILLISECONDS)
 }
