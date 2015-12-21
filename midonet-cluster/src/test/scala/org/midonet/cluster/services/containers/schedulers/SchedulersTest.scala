@@ -23,16 +23,18 @@ import scala.util.Random
 
 import com.typesafe.scalalogging.Logger
 
-import org.scalatest.{BeforeAndAfter, Suite}
+import org.scalatest.{Matchers, BeforeAndAfter, Suite}
 import org.slf4j.LoggerFactory
 
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.data.storage.InMemoryStorage
-import org.midonet.cluster.models.State.ContainerServiceStatus
-import org.midonet.cluster.models.Topology.{Host, HostGroup}
+import org.midonet.cluster.models.State.ContainerStatus.Code
+import org.midonet.cluster.models.State.{ContainerStatus, ContainerServiceStatus}
+import org.midonet.cluster.models.Topology.{ServiceContainer, ServiceContainerGroup, Host, HostGroup}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.services.containers.schedulers.ContainerScheduler.{Up, Scheduled, State}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.reactivex._
@@ -43,13 +45,115 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
     protected var context: Context = _
     protected val random = new Random()
 
+    protected class SchedulerEventWrapper(event: SchedulerEvent)
+        extends Matchers {
+        def shouldBeScheduleFor(container: ServiceContainer,
+                                group: ServiceContainerGroup,
+                                hostId: UUID): Unit = {
+            event match {
+                case ScheduleEvent(c, g, h) =>
+                    c shouldBe container
+                    g.getId shouldBe group.getId
+                    g.getPortGroupId shouldBe group.getPortGroupId
+                    g.getHostGroupId shouldBe group.getHostGroupId
+                    h shouldBe hostId
+                case _ => fail()
+            }
+        }
+
+        def shouldBeUnscheduleFor(container: ServiceContainer,
+                                group: ServiceContainerGroup,
+                                hostId: UUID): Unit = {
+            event match {
+                case UnscheduleEvent(c, g, h) =>
+                    c shouldBe container
+                    g.getId shouldBe group.getId
+                    g.getPortGroupId shouldBe group.getPortGroupId
+                    g.getHostGroupId shouldBe group.getHostGroupId
+                    h shouldBe hostId
+                case _ => fail()
+            }
+        }
+
+        def shouldBeUpFor(container: ServiceContainer,
+                          group: ServiceContainerGroup,
+                          hostId: UUID): Unit = {
+            event match {
+                case UpEvent(c, g, s) =>
+                    c shouldBe container
+                    g.getId shouldBe group.getId
+                    g.getPortGroupId shouldBe group.getPortGroupId
+                    g.getHostGroupId shouldBe group.getHostGroupId
+                    s.getHostId.asJava shouldBe hostId
+                case _ => fail()
+            }
+        }
+
+        def shouldBeDownFor(container: ServiceContainer,
+                            group: ServiceContainerGroup,
+                            hostId: UUID): Unit = {
+            event match {
+                case DownEvent(c, g, s) =>
+                    c shouldBe container
+                    g.getId shouldBe group.getId
+                    g.getPortGroupId shouldBe group.getPortGroupId
+                    g.getHostGroupId shouldBe group.getHostGroupId
+                    if (s ne null) s.getHostId.asJava shouldBe hostId
+                case _ => fail()
+            }
+        }
+    }
+
+    protected class StateWrapper(state: State) extends Matchers {
+        def shouldBeScheduledFor(container: ServiceContainer,
+                                 group: ServiceContainerGroup,
+                                 hostId: UUID,
+                                 isUnsubcribed: Boolean = false): Unit = {
+            state match {
+                case Scheduled(h, c, g, s) =>
+                    c shouldBe container
+                    g.getId shouldBe group.getId
+                    g.getPortGroupId shouldBe group.getPortGroupId
+                    g.getHostGroupId shouldBe group.getHostGroupId
+                    h shouldBe hostId
+                    s.isUnsubscribed shouldBe isUnsubcribed
+                case _ => fail()
+            }
+        }
+
+        def shouldBeUpFor(container: ServiceContainer,
+                          group: ServiceContainerGroup,
+                          hostId: UUID): Unit = {
+            state match {
+                case Up(h, c, g) =>
+                    c shouldBe container
+                    g.getId shouldBe group.getId
+                    g.getPortGroupId shouldBe group.getPortGroupId
+                    g.getHostGroupId shouldBe group.getHostGroupId
+                    h shouldBe hostId
+                case _ => fail()
+            }
+        }
+    }
+
     before {
         val executor = new SameThreadButAfterExecutorService
         val log = Logger(LoggerFactory.getLogger("containers"))
         store = new InMemoryStorage
         MidonetBackend.setupBindings(store, store)
         context = Context(store, store, executor, Schedulers.from(executor), log)
+        beforeTest()
     }
+
+    protected implicit def asWrapper(event: SchedulerEvent): SchedulerEventWrapper = {
+        new SchedulerEventWrapper(event)
+    }
+
+    protected implicit def asWrapper(state: State): StateWrapper = {
+        new StateWrapper(state)
+    }
+
+    protected def beforeTest(): Unit = { }
 
     protected def createHost(): Host = {
         val host = Host.newBuilder()
@@ -68,9 +172,11 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
         hostGroup
     }
 
-    protected def createHostStatus(hostId: UUID): ContainerServiceStatus = {
+    protected def createHostStatus(hostId: UUID,
+                                   weight: Int = random.nextInt())
+    : ContainerServiceStatus = {
         val status = ContainerServiceStatus.newBuilder()
-            .setWeight(random.nextInt())
+            .setWeight(weight)
             .build()
         store.addValueAs(hostId.toString, classOf[Host], hostId,
                          ContainerKey, status.toString).await()
@@ -81,4 +187,39 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
         store.removeValueAs(hostId.toString, classOf[Host], hostId,
                             ContainerKey, null).await()
     }
+
+    protected def createGroup(): ServiceContainerGroup = {
+        val group = ServiceContainerGroup.newBuilder()
+            .setId(randomUuidProto)
+            .build()
+        store.create(group)
+        group
+    }
+
+    protected def createContainer(groupId: UUID): ServiceContainer = {
+        val container = ServiceContainer.newBuilder()
+            .setId(randomUuidProto)
+            .setServiceGroupId(groupId.asProto)
+            .build()
+        store.create(container)
+        container
+    }
+
+    protected def createContainerStatus(containerId: UUID,
+                                        code: Code,
+                                        hostId: UUID): ContainerStatus = {
+        val status = ContainerStatus.newBuilder()
+                                    .setStatusCode(code)
+                                    .setHostId(hostId)
+                                    .build()
+        store.addValueAs(hostId.toString, classOf[ServiceContainer], containerId,
+                         StatusKey, status.toString).await()
+        status
+    }
+
+    protected def deleteContainerStatus(containerId: UUID, hostId: UUID): Unit = {
+        store.removeValueAs(hostId.toString, classOf[ServiceContainer],
+                            containerId, StatusKey, null).await()
+    }
+
 }
