@@ -319,6 +319,24 @@
     },
     {
       "key": {
+        "uuid": "fa98f980_721118ac",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-21T05:05:31Z",
+      "side": 1,
+      "message": "Sorry--forgot to publish my answer to this. The routes should be deleted when the IPSecSiteConnection is deleted, which can happen without the port being deleted. There\u0027s one port per router, which means that a single port can be used by multiple VpnServices, each of which has multiple IpSecSiteConnections.",
+      "parentUuid": "5ac4a560_5bb83776",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_9ed566bb",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
         "patchSetId": 17
@@ -447,6 +465,24 @@
       "side": 1,
       "message": "We use the Some pattern plenty.",
       "parentUuid": "5ac4a560_817d061f",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5ac4a560_2aade29c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-21T05:05:31Z",
+      "side": 1,
+      "message": "Eh...sure. I don\u0027t really care one way or another.",
+      "parentUuid": "5ac4a560_9bb1ef91",
       "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -747,6 +783,30 @@
       "side": 1,
       "message": "There\u0027s code using this which does a null check",
       "parentUuid": "5ac4a560_619e2a58",
+      "range": {
+        "startLine": 27,
+        "startChar": 33,
+        "endLine": 27,
+        "endChar": 43
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa98f980_f21c28c4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/VpnServiceApi.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-21T05:05:31Z",
+      "side": 1,
+      "message": "Ah, so it does. That\u0027s actually wrong. It doesn\u0027t hurt, but it also doesn\u0027t help, because the implementation (NeutronZoomPlugin.getVpnService) does throw an exception if the specified node isn\u0027t found. I don\u0027t see any code path where it can possibly return null.",
+      "parentUuid": "5ac4a560_5b6f57fd",
       "range": {
         "startLine": 27,
         "startChar": 33,
