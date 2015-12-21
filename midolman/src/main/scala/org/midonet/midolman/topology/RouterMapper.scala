@@ -548,11 +548,11 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
 
         val infilters = new JArrayList[UUID](0)
         val outfilters = new JArrayList[UUID](0)
-        if (router.hasInboundFilterId) {
-            infilters.add(router.getInboundFilterId)
-        }
         if (router.hasLocalRedirectChainId) {
             infilters.add(router.getLocalRedirectChainId)
+        }
+        if (router.hasInboundFilterId) {
+            infilters.add(router.getInboundFilterId)
         }
         if (router.hasOutboundFilterId) {
             outfilters.add(router.getOutboundFilterId)
