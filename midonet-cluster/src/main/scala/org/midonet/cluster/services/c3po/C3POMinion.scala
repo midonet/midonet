@@ -193,6 +193,7 @@ object C3POMinion {
              classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
              classOf[IPSecSiteConnection] ->
                  new IPSecSiteConnectionTranslator(storage),
+             classOf[L2GatewayConnection] -> new L2GatewayConnectionTranslator(storage),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronFirewall] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->

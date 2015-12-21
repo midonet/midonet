@@ -45,6 +45,7 @@ public class NeutronUriBuilder {
     public static final String VPNSERVICES = "/vpnservices";
     public static final String IPSEC_SITE_CONNECTIONS =
         "/ipsec_site_connections";
+    public static final String L2_GATEWAY_CONNS= "/l2_gateway_connections";
 
 
     public static URI getRoot(URI baseUri) {
@@ -282,5 +283,19 @@ public class NeutronUriBuilder {
 
     public static String getIpsecSiteConnectionTemplate(URI baseUri) {
         return buildIdTemplateUri(getIpsecSiteConnections(baseUri));
+    }
+
+    public static URI getL2GatewayConns(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+            .path(L2_GATEWAY_CONNS).build();
+    }
+
+    public static URI getL2GatewayConn(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getL2GatewayConns(baseUri))
+            .path(id.toString()).build();
+    }
+
+    public static String getL2GatewayConnTemplate(URI baseUri) {
+        return buildIdTemplateUri(getL2GatewayConns(baseUri));
     }
 }
