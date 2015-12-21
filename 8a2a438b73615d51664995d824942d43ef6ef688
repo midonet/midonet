@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa98f980_92c91c5d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-12-21T03:19:05Z",
+      "side": 1,
+      "message": "I am having trouble wrapping my head around this change. Why does setMatchForwardFlow help? Shouldn\u0027t the rule already only apply to traffic going out of tenantGwPortId?",
+      "range": {
+        "startLine": 259,
+        "startChar": 13,
+        "endLine": 259,
+        "endChar": 32
+      },
+      "revId": "8a2a438b73615d51664995d824942d43ef6ef688",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
