@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da9df570_510fb4e1",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/SchedulersTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-21T10:14:17Z",
+      "side": 1,
+      "message": "value \u003d null",
+      "range": {
+        "startLine": 82,
+        "startChar": 42,
+        "endLine": 82,
+        "endChar": 46
+      },
+      "revId": "306b00bb76cffd9a17e4edc3b5794e821c3a4e8d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
