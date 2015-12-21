@@ -59,3 +59,6 @@ FIREWALLS = "application/vnd.org.midonet.neutron.Firewall-v1+json"
 # VPNaaS extension
 VPN_SERVICE = "application/vnd.org.midonet.neutron.VPNService-v1+json"
 IPSEC_SITE_CONN = "application/vnd.org.midonet.neutron.IpsecSiteConn-v1+json"
+
+# L2 Gateway extension
+L2_GATEWAY_CONN = "application/vnd.org.midonet.neutron.L2GatewayConnections-v1+json"
