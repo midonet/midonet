@@ -266,6 +266,24 @@
     },
     {
       "key": {
+        "uuid": "da9df570_748826e8",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_c1c9be79",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_5ef2ee6f",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
         "patchSetId": 17
@@ -337,6 +355,24 @@
     },
     {
       "key": {
+        "uuid": "da9df570_548322cc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa98f980_721118ac",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_9ed566bb",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
         "patchSetId": 17
@@ -395,6 +431,30 @@
     },
     {
       "key": {
+        "uuid": "da9df570_d4763206",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_5ecbce1d",
+      "range": {
+        "startLine": 79,
+        "startChar": 11,
+        "endLine": 79,
+        "endChar": 15
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_7ed24ad3",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
         "patchSetId": 17
@@ -406,6 +466,30 @@
       "writtenOn": "2015-12-14T15:06:19Z",
       "side": 1,
       "message": "Remove TODO. IKE runs on udp 500.",
+      "range": {
+        "startLine": 102,
+        "startChar": 51,
+        "endLine": 102,
+        "endChar": 68
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_f4733613",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/IPSecSiteConnectionTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_7ed24ad3",
       "range": {
         "startLine": 102,
         "startChar": 51,
@@ -489,6 +573,24 @@
     },
     {
       "key": {
+        "uuid": "da9df570_1460ba34",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RuleManager.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_2aade29c",
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_7effaa67",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
         "patchSetId": 17
@@ -560,6 +662,30 @@
     },
     {
       "key": {
+        "uuid": "da9df570_3465be45",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_fba66352",
+      "range": {
+        "startLine": 40,
+        "startChar": 10,
+        "endLine": 40,
+        "endChar": 64
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_fe201af9",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
         "patchSetId": 17
@@ -583,6 +709,30 @@
     },
     {
       "key": {
+        "uuid": "da9df570_545a4284",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_fe201af9",
+      "range": {
+        "startLine": 79,
+        "startChar": 11,
+        "endLine": 79,
+        "endChar": 15
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_3e2c5202",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
         "patchSetId": 17
@@ -594,6 +744,30 @@
       "writtenOn": "2015-12-14T15:06:19Z",
       "side": 1,
       "message": "Remove comment, it shouldn\u0027t be bound here, but by the scheduler.",
+      "range": {
+        "startLine": 122,
+        "startChar": 15,
+        "endLine": 122,
+        "endChar": 19
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_9453ca6b",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_3e2c5202",
       "range": {
         "startLine": 122,
         "startChar": 15,
@@ -665,6 +839,30 @@
       "side": 1,
       "message": "We should add a jira for this. It doesn\u0027t need to happen for MVP, but we should select a more random subnet than 169.254.1.0. Keep it in the 169.254 range though.",
       "parentUuid": "5ac4a560_0191f646",
+      "range": {
+        "startLine": 125,
+        "startChar": 50,
+        "endLine": 125,
+        "endChar": 54
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_b450ce5f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ac4a560_3b68dbf4",
       "range": {
         "startLine": 125,
         "startChar": 50,
@@ -819,6 +1017,30 @@
     },
     {
       "key": {
+        "uuid": "da9df570_f44a56ab",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/VpnServiceApi.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa98f980_f21c28c4",
+      "range": {
+        "startLine": 27,
+        "startChar": 33,
+        "endLine": 27,
+        "endChar": 43
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_9eaf2694",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/NeutronResource.scala",
         "patchSetId": 17
@@ -865,6 +1087,30 @@
       "writtenOn": "2015-12-14T15:06:19Z",
       "side": 1,
       "message": "Option.",
+      "range": {
+        "startLine": 665,
+        "startChar": 46,
+        "endLine": 665,
+        "endChar": 52
+      },
+      "revId": "840cf4ef351a111e171d27e5152041e0d04947ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_14c7da13",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 665,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-21T16:04:56Z",
+      "side": 1,
+      "message": "actually, all the other methods here use null. better to keep is consistent.",
+      "parentUuid": "5ac4a560_fe765a3d",
       "range": {
         "startLine": 665,
         "startChar": 46,
