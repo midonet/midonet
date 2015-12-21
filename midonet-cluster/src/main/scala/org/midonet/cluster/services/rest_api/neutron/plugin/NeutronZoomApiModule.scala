@@ -34,6 +34,7 @@ class NeutronZoomApiModule extends PrivateModule {
 
         List (
             classOf[FirewallApi],
+            classOf[L2GatewayConnectionApi],
             classOf[L3Api],
             classOf[LoadBalancerApi],
             classOf[NetworkApi],

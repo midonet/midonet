@@ -75,6 +75,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def ipsecSiteConnectionResource: IpsecSiteConnectionResource =
         new IpsecSiteConnectionResource(uriInfo, api)
 
+    @Path("l2_gateway_connections")
+    def l2GatewayConnResource: L2GatewayConnectionResource =
+        new L2GatewayConnectionResource(uriInfo, api)
+
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
         val neutron: Neutron = new Neutron
@@ -107,6 +111,8 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.ipsecSiteConnections = getIpsecSiteConnections(baseUri)
         neutron.ipsecSiteConnectionTemplate =
             getIpsecSiteConnectionTemplate(baseUri)
+        neutron.l2GatewayConns = getL2GatewayConns(baseUri)
+        neutron.l2GatewayConnTemplate = getL2GatewayConnTemplate(baseUri)
         neutron
     }
 }

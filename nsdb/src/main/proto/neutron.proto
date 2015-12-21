@@ -454,3 +454,29 @@ message IPSecSiteConnection {
     }
 }
 
+message L2GatewayConnection {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional UUID network_id = 3;
+    optional uint32 segmentation_id = 4;
+    optional L2Gateway l2_gateway = 5;
+
+    message L2Gateway {
+        optional string name = 1;
+        optional string tenant_id = 2;
+        optional UUID device_id = 3;
+        optional GatewayDevice gateway_device = 4;
+
+        message GatewayDevice {
+            optional GatewayType gateway_type = 1;
+            optional UUID id = 2;
+            optional UUID resource_id = 3;
+            repeated IPAddress tunnel_ips = 4;
+
+            enum GatewayType {
+                ROUTER = 1;
+            }
+        }
+    }
+}
+
