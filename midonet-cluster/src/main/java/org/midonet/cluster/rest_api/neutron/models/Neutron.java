@@ -84,11 +84,11 @@ public class Neutron {
     @JsonProperty("vpn_service_template")
     public String vpnServiceTemplate;
 
-    @JsonProperty("ipsec_site_conns")
-    public URI ipsecSiteConns;
+    @JsonProperty("ipsec_site_connections")
+    public URI ipsecSiteConnections;
 
-    @JsonProperty("ipsec_site_conn_template")
-    public String ipsecSiteConnTemplate;
+    @JsonProperty("ipsec_site_connection_template")
+    public String ipsecSiteConnectionTemplate;
 
     @Override
     public boolean equals(Object obj) {
@@ -128,9 +128,10 @@ public class Neutron {
                && Objects.equal(firewallTemplate, other.firewallTemplate)
                && Objects.equal(vpnServices, other.vpnServices)
                && Objects.equal(vpnServiceTemplate, other.vpnServiceTemplate)
-               && Objects.equal(ipsecSiteConns, other.ipsecSiteConns)
-               && Objects.equal(
-            ipsecSiteConnTemplate, other.ipsecSiteConnTemplate);
+               && Objects.equal(ipsecSiteConnections,
+                                other.ipsecSiteConnections)
+               && Objects.equal(ipsecSiteConnectionTemplate,
+                                other.ipsecSiteConnectionTemplate);
     }
 
     @Override
@@ -144,7 +145,8 @@ public class Neutron {
                                 securityGroupRules, securityGroupRuleTemplate,
                                 loadBalancer, firewalls, firewallTemplate,
                                 vpnServices, vpnServiceTemplate,
-                                ipsecSiteConns, ipsecSiteConnTemplate);
+                                ipsecSiteConnections,
+                                ipsecSiteConnectionTemplate);
     }
 
     @Override
@@ -173,7 +175,8 @@ public class Neutron {
             .add("firewallTemplate", firewallTemplate)
             .add("vpnServices", vpnServices)
             .add("vpnServiceTemplate", vpnServiceTemplate)
-            .add("ipsecSiteConns", ipsecSiteConns)
-            .add("ipsecSiteConnTemplate", ipsecSiteConnTemplate).toString();
+            .add("ipsecSiteConnections", ipsecSiteConnections)
+            .add("ipsecSiteConnectionTemplate",
+                 ipsecSiteConnectionTemplate).toString();
     }
 }

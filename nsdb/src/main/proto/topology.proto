@@ -385,7 +385,7 @@ message Route {
 
     optional IPAddress next_hop_gateway = 9;
     optional UUID gateway_dhcp_id = 10;
-    optional UUID ipsec_site_conn_id = 11;
+    optional UUID ipsec_site_connection_id = 11;
 }
 
 message Router {

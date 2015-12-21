@@ -59,12 +59,13 @@ case class IpsecServiceConfig(script: String,
         contents.toString()
     }
 
+    def subnetString(sub: Commons.IPSubnet) =
+            s"${sub.getAddress}/${sub.getPrefixLength}"
+
     def subnetsString(subnets: java.util.List[Commons.IPSubnet]): String = {
         if (subnets.isEmpty) return ""
-        def subnetStr(sub: Commons.IPSubnet) =
-            s"${sub.getAddress}/${sub.getPrefixLength}"
-        val ss = new StringBuilder(subnetStr(subnets.get(0)))
-        Range(1, subnets.size()) foreach (i => s",${subnetStr(subnets.get(i))}")
+        val ss = new StringBuilder(subnetString(subnets.get(0)))
+        Range(1, subnets.size()) foreach (i => s",${subnetString(subnets.get(i))}")
         ss.toString()
     }
 
@@ -124,7 +125,7 @@ case class IpsecServiceConfig(script: String,
                |    left=${ipsecService.localEndpointIp}
                |    leftid=${ipsecService.localEndpointIp}
                |    auto=${initiatorToAuto(c.ipsecSiteConnection.getInitiator)}
-               |    leftsubnets={ ${subnetsString(c.ipsecSiteConnection.getLocalCidrsList)} }
+               |    leftsubnets={ ${subnetString(c.ipsecSiteConnection.getLocalCidr)} }
                |    leftupdown="ipsec _updown --route yes"
                |    right=${c.ipsecSiteConnection.getPeerAddress}
                |    rightid=${c.ipsecSiteConnection.getPeerAddress}

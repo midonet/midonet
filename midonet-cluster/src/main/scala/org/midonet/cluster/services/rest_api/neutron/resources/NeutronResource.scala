@@ -72,7 +72,8 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def vpnServicesResource: VpnServiceResource = new VpnServiceResource(uriInfo, api)
 
     @Path("ipsec_site_connections")
-    def ipsecSiteConnResource: IpsecSiteConnResource = new IpsecSiteConnResource(uriInfo, api)
+    def ipsecSiteConnectionResource: IpsecSiteConnectionResource =
+        new IpsecSiteConnectionResource(uriInfo, api)
 
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
@@ -103,8 +104,9 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.firewallTemplate = getFirewallTemplate(baseUri)
         neutron.vpnServices = getVpnServices(baseUri)
         neutron.vpnServiceTemplate = getVpnServiceTemplate(baseUri)
-        neutron.ipsecSiteConns = getIpSecSiteConns(baseUri)
-        neutron.ipsecSiteConnTemplate = getIpSecSiteConnTemplate(baseUri)
+        neutron.ipsecSiteConnections = getIpsecSiteConnections(baseUri)
+        neutron.ipsecSiteConnectionTemplate =
+            getIpsecSiteConnectionTemplate(baseUri)
         neutron
     }
 }

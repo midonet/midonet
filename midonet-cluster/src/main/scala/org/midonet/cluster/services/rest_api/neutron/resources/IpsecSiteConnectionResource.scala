@@ -32,8 +32,8 @@ import org.midonet.cluster.rest_api.validation.MessageProperty.{RESOURCE_NOT_FOU
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes
 import org.midonet.cluster.services.rest_api.neutron.plugin.VpnServiceApi
 
-class IpsecSiteConnResource @Inject()(uriInfo: UriInfo,
-                                      private val api: VpnServiceApi) {
+class IpsecSiteConnectionResource @Inject()(uriInfo: UriInfo,
+                                            private val api: VpnServiceApi) {
 
     private val baseUri: URI = uriInfo.getBaseUri
 
@@ -57,7 +57,7 @@ class IpsecSiteConnResource @Inject()(uriInfo: UriInfo,
     def create(cnxn: IPSecSiteConnection): Response = {
         api.createIpSecSiteConnection(cnxn)
         Response.created(
-            NeutronUriBuilder.getIpSecSiteConn(baseUri, cnxn.id))
+            NeutronUriBuilder.getIpsecSiteConnection(baseUri, cnxn.id))
             .entity(cnxn).build()
     }
 

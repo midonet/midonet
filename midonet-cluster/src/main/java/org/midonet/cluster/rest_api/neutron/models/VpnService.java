@@ -42,14 +42,6 @@ public class VpnService extends ZoomObject {
     @ZoomField(name = "status")
     public String status;
 
-    @JsonProperty("external_v4_ip")
-    @ZoomField(name = "external_v4_ip", converter = IPAddressUtil.Converter.class)
-    public String externalV4Ip;
-
-    @JsonProperty("external_v6_ip")
-    @ZoomField(name = "external_v6_ip", converter = IPAddressUtil.Converter.class)
-    public String externalV6Ip;
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -68,16 +60,13 @@ public class VpnService extends ZoomObject {
                Objects.equals(tenantId, that.tenantId) &&
                Objects.equals(routerId, that.routerId) &&
                Objects.equals(subnetId, that.subnetId) &&
-               Objects.equals(externalV4Ip, that.externalV4Ip) &&
-               Objects.equals(externalV6Ip, that.externalV6Ip) &&
                Objects.equals(status, that.status);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, name, description, adminStateUp, tenantId,
-                            routerId, subnetId, status, externalV4Ip,
-                            externalV6Ip);
+                            routerId, subnetId, status);
     }
 
     @Override
@@ -92,8 +81,6 @@ public class VpnService extends ZoomObject {
             .add("routerId", routerId)
             .add("subnetId", subnetId)
             .add("status", status)
-            .add("externalV4Ip", externalV4Ip)
-            .add("externalV6Ip", externalV6Ip)
             .toString();
     }
 }
