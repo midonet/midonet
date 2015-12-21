@@ -22,6 +22,97 @@
       "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_b1ab80d5",
+        "filename": "midolman/src/lib/midolman/service_containers/vpn/vpn-helper",
+        "patchSetId": 3
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-21T12:28:16Z",
+      "side": 1,
+      "message": "unreachable",
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_b13b8037",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-21T12:28:16Z",
+      "side": 1,
+      "message": "It seems sync in here. Does it really need to be a future? Or the future is meant to be used in case other container impls that need to be created async?\n\nThe containers have their own executor, so might be better to put the creation in there and complete the future outside this method.",
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_913e7c28",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-21T12:28:16Z",
+      "side": 1,
+      "message": "throws an exception if the namespace was not setup successfully.",
+      "range": {
+        "startLine": 283,
+        "startChar": 44,
+        "endLine": 284,
+        "endChar": 40
+      },
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_91259c0c",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-21T12:28:16Z",
+      "side": 1,
+      "message": "It\u0027s not topology. It\u0027s used to sync up the state of the backend with the neutron db (as in you create a vpnservice in neutron, it\u0027s set to PENDING_CREATE, it\u0027s created in midonet, somehow it must be notified to neutron so it can set it to ACTIVE). I dont\u0027 thinks those callbacks are implemented though.",
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da9df570_b122a0ff",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-21T12:28:16Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "f34dd5cb0721a4cd04c59986939b1589d3874e8f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
