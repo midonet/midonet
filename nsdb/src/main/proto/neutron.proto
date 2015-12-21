@@ -451,3 +451,11 @@ message IPSecSiteConnection {
     }
 }
 
+message L2GatewayConnection {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional UUID network_id = 3;
+    optional uint32 segmentation_id = 4;
+    optional UUID router_id = 5;
+}
+
