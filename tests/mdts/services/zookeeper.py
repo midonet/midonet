@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 
-from mdts.services.service import Service
 from mdts.services.jmx_monitor import JMXMonitor
+from mdts.services.service import Service
 
 
 class ZookeeperHost(Service):
