@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "da9df570_91403c37",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-21T09:05:49Z",
+      "side": 1,
+      "message": "No need to keep my signoff here, it\u0027s a rewrite :)",
+      "revId": "b34c5b7a74c53a2887b6e6b1ba603fafe820a8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da9df570_f119887a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
         "patchSetId": 1
