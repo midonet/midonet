@@ -23,16 +23,18 @@ import scala.util.Random
 
 import com.typesafe.scalalogging.Logger
 
-import org.scalatest.{BeforeAndAfter, Suite}
+import org.scalatest.{Matchers, BeforeAndAfter, Suite}
 import org.slf4j.LoggerFactory
 
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.data.storage.InMemoryStorage
-import org.midonet.cluster.models.State.ContainerServiceStatus
-import org.midonet.cluster.models.Topology.{Host, HostGroup}
+import org.midonet.cluster.models.State.ContainerStatus.Code
+import org.midonet.cluster.models.State.{ContainerStatus, ContainerServiceStatus}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.services.containers.schedulers.ContainerScheduler.{UpState, ScheduledState, State}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.util.concurrent.SameThreadButAfterExecutorService
 import org.midonet.util.reactivex._
@@ -43,13 +45,85 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
     protected var context: Context = _
     protected val random = new Random()
 
+    protected class SchedulerEventWrapper(event: SchedulerEvent)
+        extends Matchers {
+        def shouldBeScheduleFor(container: ServiceContainer, hostId: UUID): Unit = {
+            event match {
+                case ScheduleEvent(c, h) =>
+                    c shouldBe container
+                    h shouldBe hostId
+                case _ => fail()
+            }
+        }
+
+        def shouldBeUnscheduleFor(container: ServiceContainer, hostId: UUID): Unit = {
+            event match {
+                case UnscheduleEvent(c, h) =>
+                    c shouldBe container
+                    h shouldBe hostId
+                case _ => fail()
+            }
+        }
+
+        def shouldBeUpFor(container: ServiceContainer, hostId: UUID): Unit = {
+            event match {
+                case UpEvent(c, s) =>
+                    c shouldBe container
+                    s.getHostId.asJava shouldBe hostId
+                case _ => fail()
+            }
+        }
+
+        def shouldBeDownFor(container: ServiceContainer, hostId: UUID): Unit = {
+            event match {
+                case DownEvent(c, s) =>
+                    c shouldBe container
+                    if (s ne null) s.getHostId.asJava shouldBe hostId
+                case _ => fail()
+            }
+        }
+    }
+
+    protected class StateWrapper(state: State) extends Matchers {
+        def shouldBeScheduledFor(container: ServiceContainer, hostId: UUID,
+                                 isUnsubcribed: Boolean = false): Unit = {
+            state match {
+                case ScheduledState(h, c, s) =>
+                    c shouldBe container
+                    h shouldBe hostId
+                    s.isUnsubscribed shouldBe isUnsubcribed
+                case _ => fail()
+            }
+        }
+
+        def shouldBeUpFor(container: ServiceContainer, hostId: UUID): Unit = {
+            state match {
+                case UpState(h, c) =>
+                    c shouldBe container
+                    h shouldBe hostId
+                case _ => fail()
+            }
+        }
+    }
+
     before {
         val executor = new SameThreadButAfterExecutorService
         val log = Logger(LoggerFactory.getLogger("containers"))
         store = new InMemoryStorage
         MidonetBackend.setupBindings(store, store)
         context = Context(store, store, executor, Schedulers.from(executor), log)
+        beforeTest()
     }
+
+    protected implicit def asWrapper(event: SchedulerEvent): SchedulerEventWrapper = {
+        new SchedulerEventWrapper(event)
+    }
+
+    protected implicit def asWrapper(state: State): StateWrapper = {
+        new StateWrapper(state)
+    }
+
+    protected def beforeTest(): Unit = { }
 
     protected def createHost(): Host = {
         val host = Host.newBuilder()
@@ -68,9 +142,11 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
         hostGroup
     }
 
-    protected def createHostStatus(hostId: UUID): ContainerServiceStatus = {
+    protected def createHostStatus(hostId: UUID,
+                                   weight: Int = random.nextInt())
+    : ContainerServiceStatus = {
         val status = ContainerServiceStatus.newBuilder()
-            .setWeight(random.nextInt())
+            .setWeight(weight)
             .build()
         store.addValueAs(hostId.toString, classOf[Host], hostId,
                          ContainerKey, status.toString).await()
@@ -81,4 +157,49 @@ trait SchedulersTest extends Suite with BeforeAndAfter {
         store.removeValueAs(hostId.toString, classOf[Host], hostId,
                             ContainerKey, value = null).await()
     }
+
+    protected def createPort(hostId: Option[UUID] = None): Port = {
+        val builder = Port.newBuilder().setId(randomUuidProto)
+        if (hostId.nonEmpty) builder.setHostId(hostId.get.asProto)
+        val port = builder.build()
+        store create port
+        port
+    }
+
+    protected def createGroup(): ServiceContainerGroup = {
+        val group = ServiceContainerGroup.newBuilder()
+            .setId(randomUuidProto)
+            .build()
+        store.create(group)
+        group
+    }
+
+    protected def createContainer(groupId: UUID, portId: Option[UUID] = None)
+    : ServiceContainer = {
+        val builder = ServiceContainer.newBuilder()
+            .setId(randomUuidProto)
+            .setServiceGroupId(groupId.asProto)
+        if (portId.nonEmpty) builder.setPortId(portId.get.asProto)
+        val container = builder.build()
+        store.create(container)
+        container
+    }
+
+    protected def createContainerStatus(containerId: UUID,
+                                        code: Code,
+                                        hostId: UUID): ContainerStatus = {
+        val status = ContainerStatus.newBuilder()
+                                    .setStatusCode(code)
+                                    .setHostId(hostId)
+                                    .build()
+        store.addValueAs(hostId.toString, classOf[ServiceContainer], containerId,
+                         StatusKey, status.toString).await()
+        status
+    }
+
+    protected def deleteContainerStatus(containerId: UUID, hostId: UUID): Unit = {
+        store.removeValueAs(hostId.toString, classOf[ServiceContainer],
+                            containerId, StatusKey, null).await()
+    }
+
 }

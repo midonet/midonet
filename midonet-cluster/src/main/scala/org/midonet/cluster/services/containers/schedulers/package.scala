@@ -19,12 +19,16 @@ package org.midonet.cluster.services.containers
 import java.util.UUID
 import java.util.concurrent.ExecutorService
 
+import javax.annotation.Nullable
+
+import com.google.common.base.MoreObjects
 import com.typesafe.scalalogging.Logger
 
 import rx.Scheduler
 
 import org.midonet.cluster.data.storage.{StateStorage, Storage}
-import org.midonet.cluster.models.State.ContainerServiceStatus
+import org.midonet.cluster.models.State.{ContainerStatus, ContainerServiceStatus}
+import org.midonet.cluster.models.Topology.{ServiceContainer, ServiceContainerGroup}
 
 package object schedulers {
 
@@ -38,6 +42,15 @@ package object schedulers {
                        scheduler: Scheduler,
                        log: Logger)
 
+    trait SchedulerEvent
+    case class ScheduleEvent(container: ServiceContainer,
+                             hostId: UUID) extends SchedulerEvent
+    case class UpEvent(container: ServiceContainer,
+                       status: ContainerStatus) extends SchedulerEvent
+    case class DownEvent(container: ServiceContainer,
+                         @Nullable status: ContainerStatus) extends SchedulerEvent
+    case class UnscheduleEvent(container: ServiceContainer,
+                               host: UUID) extends SchedulerEvent
 
     type HostsEvent = Map[UUID, HostEvent]
 
@@ -45,9 +58,26 @@ package object schedulers {
 
     case class HostEvent(running: Boolean,
                          status: ContainerServiceStatus =
-                            ContainerServiceStatus.getDefaultInstance)
+                            ContainerServiceStatus.getDefaultInstance) {
+        override val toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("running", running)
+            .add("weight", status.getWeight)
+            .toString
+    }
 
-    case class PortEvent(hostId: UUID, interfaceName: String, active: Boolean)
+    case class PortEvent(hostId: UUID, interfaceName: String, active: Boolean) {
+        override val toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("hostId", hostId)
+            .add("interfaceName", interfaceName)
+            .add("active", active)
+            .toString
+    }
 
-    case class HostGroupEvent(hostGroupId: UUID, hosts: HostsEvent)
+    case class HostGroupEvent(hostGroupId: UUID, hosts: HostsEvent) {
+        override val toString = MoreObjects.toStringHelper(this).omitNullValues()
+            .add("hostGroupId", hostGroupId)
+            .add("hosts", hosts)
+            .toString
+    }
+
 }
