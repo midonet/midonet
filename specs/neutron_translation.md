@@ -87,6 +87,13 @@ for it, do not create a MidoNet network port.  For each edge router, there
 should be a corresponding port group.  Add this port to the port group, and
 exit.
 
+If the port is of a type 'network:remote_site', do not create any port on the
+MidoNet network. Add an ARP entry in the MidoNet network with the IP address
+(first fixed_ips element) and the MAC address.  Also add a MAC table entry for
+the provided MAC address and the network port connected to the VTEP router.
+There should be exactly one such port.  After the ARP and MAC tables are
+seeded, exit.
+
 Create a new MidoNet network port.  The following fields are copied over
 directly:
 
@@ -182,6 +189,16 @@ indicates unbinding.  Perform unbinding in such case.
 
 ### DELETE
 
+For VIP, FIP or uplink ports, do nothing.
+
+If the port is a remote site port (device_owner == 'network:remote_site'), do
+the following and exit:
+
+ * Remove the MidoNet network MAC table entry referencing the MAC
+   address
+ * Remove the MidoNet network ARP table entry referencing the IP addresses of
+   the port
+
 If the port is a VIF port (device_owner == 'compute:nova'):
 
  * Disassociate floating IP (if associated) by removing the static DNAT/SNAT
@@ -208,15 +225,12 @@ If the port is a Router Gateway port (device_owner == 'network:router_gateway'):
  * Delete its peer tenant router port.
  * Delete its IP/MAC address pair from the external network's ARP table.
 
-For all port types:
+For VIF, DHCP, non-uplink Router Interface and Router Gateway ports:
 
  * Remove the MidoNet network MAC table entry referencing the port
  * Remove the MidoNet network ARP table entry referencing the IP addresses of
    the port
  * Remove the matching MidoNet port.
-
-For any port type, if the port is bound, unbind.
-
 
 ## ROUTER
 
@@ -381,8 +395,11 @@ section for more information on port binding.
 
 ### DELETE
 
-Delete the route on the router for the CIDR of the subnet getting
-disassociated.
+If the port is on the uplink network, delete the router port corresponding to
+the router interface port.
+
+For other ports, delete the route on the router for the CIDR of the subnet
+getting disassociated.
 
 No other action needed since the relevant ports should already been deleted by
 'delete_port' call that should have happened immediately prior to this request.
@@ -882,6 +899,92 @@ ZOOM currently does not automatically delete the jump rules to the firewall
 chain even if the firewall chains are deleted.  To get around this limitation,
 get the list of associated routers from 'add-router-ids' field of
 NeutronFirewall.  For each, delete the corresponding jump rules.
+
+## GATEWAYDEVICE
+
+### CREATE
+
+If the 'type' field is anything other than 'vtep_router', throw an illegal
+argument exception.
+
+Copy the Neutron gateway device object to the MidoNet topology store.
+
+
+### DELETE
+
+Delete the corresponding gateway device data in MidoNet.
+
+
+## UPDATE
+
+Update the corresponding gateway device data in MidooNet.
+
+'tunnelIps' field could be modified, and only one tunnel IP is accepted in
+router peering.  Throw an illegal argument exception if more than one tunnel IP
+addresses were sent.
+
+To update the tunnel IP of the VTEP router port, fetch the VTEP router using
+the 'resource_id' field of the gateway device object.  Then go through its
+ports and for each VTEP router port (either 'vni' or 'tunnelIp' set), update
+the tunnelIp field to the new value.
+
+
+## REMOTEMACENTRY
+
+### CREATE
+
+Fetch the gateway device with the 'device_id' field provided.  Using the
+'resource_id' field of the gateway device, fetch the VTEP router.
+
+Iterate over the VTEP router ports, and for each port that has its VNI set to
+the 'segmentation_id' of the remote mac entry, add the 'mac_address' and
+'vtep_address' pair in its peer table.
+
+Store the remote mac entry in MidoNet.
+
+# DELETE
+
+Fetch the remote mac entry so that you can get the port IDs associated with the
+remote mac entry.
+
+Iterate over these ports, and for each port that has its VNI set to the
+'segmentation_id' of the remote mac entry, go through its peer table and delete
+the paths containing the 'mac_address' and 'vtep_address' pair of the remote
+mac entry.
+
+
+## L2GATEWAYCONNECTION
+
+### CREATE
+
+In the 'l2_gateway' object, there is 'devices' field which is a list of
+'l2_gateway_device' objects.  There should only be one element in this list.
+Take that device object and do the following:
+
+ * Create a MidoNet network port on the network matching 'network_id' provided
+   in the top level 'l2_gateway_connection' object.  Generate the port ID based
+   on 'network_id' so it will be easy to retrieve it later.
+ * Fetch the gateway device object using the 'device_id' value of the device
+   object.
+ * Create a port on the router matching the value specified in 'resource_id',
+   also derived from the 'network_id', set the VNI to 'segmentation_id' set in
+   'l2_gateway_connection' object.
+ * Link the router and network ports
+
+For each 'remote_mac_entries' item in the gateway device object, do the
+following:
+
+ * If the 'segmentation_id' of the remote_mac entry matches the VNI of the VTEP
+   router port just created, add the 'mac_address' and 'vtep_adress' pair to
+   the peer table of the port.
+
+
+### DELETE
+
+Fetch the original l2 gateway connection data, and using its 'network_id',
+locate the port that was creatd based off of it, and delete it.  Delete the
+remote mac entries associated with the port, the corresponding entries in
+the port's peering table, and the peer network port.
 
 
 # References
