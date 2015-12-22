@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_d58f0c74",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-22T19:12:18Z",
+      "side": 1,
+      "message": "isn\u0027t this redundant with hostObservable? If I understand correctly, the only time it\u0027ll be used is when there are no hosts?",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 68
+      },
+      "revId": "23a51a97b6d0fbd8575b9d74f911febaea415a01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
