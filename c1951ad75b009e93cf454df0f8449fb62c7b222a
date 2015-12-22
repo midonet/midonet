@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa201ad_70875010",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/GatewayDevice.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T05:51:51Z",
+      "side": 1,
+      "message": "@JsonProperty is only needed when the Java field name doesn\u0027t match the JSON field name. @ZoomField is always needed, though.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 23
+      },
+      "revId": "c1951ad75b009e93cf454df0f8449fb62c7b222a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa201ad_907bd428",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/GatewayDevice.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T05:51:51Z",
+      "side": 1,
+      "message": "Do we need a @JsonCreator method like we did with all those other enums, or will the plugin be sending it in caps?",
+      "revId": "c1951ad75b009e93cf454df0f8449fb62c7b222a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa201ad_d0755c33",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/L2Gateway.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T05:51:51Z",
+      "side": 1,
+      "message": "Not needed.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 25
+      },
+      "revId": "c1951ad75b009e93cf454df0f8449fb62c7b222a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
