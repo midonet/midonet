@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_aff5d9cc",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/GatewayDevice.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T10:19:06Z",
+      "side": 1,
+      "message": "type",
+      "revId": "77a6405980f96e7ec1acf96329b6d8ed8333e49d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_cf021db4",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/GatewayDevice.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T10:19:06Z",
+      "side": 1,
+      "message": "type",
+      "revId": "77a6405980f96e7ec1acf96329b6d8ed8333e49d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_0f2c254a",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/L2GatewayDevice.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T10:19:06Z",
+      "side": 1,
+      "message": "Needs @JsonProperty because of underscore.",
+      "revId": "77a6405980f96e7ec1acf96329b6d8ed8333e49d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_2f31e9a2",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/RemoteMacEntry.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T10:19:06Z",
+      "side": 1,
+      "message": "Should be \"id\".",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 23
+      },
+      "revId": "77a6405980f96e7ec1acf96329b6d8ed8333e49d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
