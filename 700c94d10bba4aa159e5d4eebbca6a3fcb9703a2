@@ -36,6 +36,23 @@
     },
     {
       "key": {
+        "uuid": "5ac4a560_03e2d1d4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-12-22T20:08:40Z",
+      "side": 1,
+      "message": "if (p.hasVni) p.getVni else 0,\npeeringTable)",
+      "revId": "700c94d10bba4aa159e5d4eebbca6a3fcb9703a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ac4a560_cdbe7fff",
         "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/ResourceUris.scala",
         "patchSetId": 8
