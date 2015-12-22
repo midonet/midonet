@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_52f3320a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-22T15:02:44Z",
+      "side": 1,
+      "message": "No, this is because (i) the observer performs I/O hence may not handle all updates in real-time and (ii) observerOn has a buffer of only 128, which may overflow.",
+      "parentUuid": "9aa7fdbe_d261e2d4",
+      "range": {
+        "startLine": 264,
+        "startChar": 12,
+        "endLine": 264,
+        "endChar": 33
+      },
+      "revId": "776eb83641116f8f828217d275f8a260449fa71f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_f25ee611",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-22T14:44:08Z",
       "side": 1,
       "message": "stopping",
+      "range": {
+        "startLine": 313,
+        "startChar": 47,
+        "endLine": 313,
+        "endChar": 55
+      },
+      "revId": "776eb83641116f8f828217d275f8a260449fa71f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_72f836e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-22T15:02:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_f25ee611",
       "range": {
         "startLine": 313,
         "startChar": 47,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_92dcba76",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-22T15:02:44Z",
+      "side": 1,
+      "message": "So, like I mentioned above, the handle.delete() may not be immediate because it involves removing all namespaces, interfaces, deleting files etc. So STOPPING indicates to the scheduler immediately that the status has changed, however the completion of the operation is marked at the end.",
+      "parentUuid": "9aa7fdbe_32a06ef4",
+      "range": {
+        "startLine": 319,
+        "startChar": 16,
+        "endLine": 320,
+        "endChar": 31
+      },
+      "revId": "776eb83641116f8f828217d275f8a260449fa71f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_725cb626",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/HostTrackerTest.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2015-12-22T14:44:08Z",
       "side": 1,
       "message": "obs.getOnCompletedEvents should have size 1",
+      "range": {
+        "startLine": 355,
+        "startChar": 8,
+        "endLine": 355,
+        "endChar": 52
+      },
+      "revId": "776eb83641116f8f828217d275f8a260449fa71f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_b2d9be85",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/HostTrackerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-22T15:02:44Z",
+      "side": 1,
+      "message": "Will do, although I guess this is only for consistency since the observable only emits one onCompleted.",
+      "parentUuid": "9aa7fdbe_725cb626",
       "range": {
         "startLine": 355,
         "startChar": 8,
