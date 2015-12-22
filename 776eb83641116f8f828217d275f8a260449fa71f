@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_323cee93",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-22T15:29:23Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "9aa7fdbe_52f3320a",
+      "range": {
+        "startLine": 264,
+        "startChar": 12,
+        "endLine": 264,
+        "endChar": 33
+      },
+      "revId": "776eb83641116f8f828217d275f8a260449fa71f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_f25ee611",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
         "patchSetId": 4
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "So, like I mentioned above, the handle.delete() may not be immediate because it involves removing all namespaces, interfaces, deleting files etc. So STOPPING indicates to the scheduler immediately that the status has changed, however the completion of the operation is marked at the end.",
       "parentUuid": "9aa7fdbe_32a06ef4",
+      "range": {
+        "startLine": 319,
+        "startChar": 16,
+        "endLine": 320,
+        "endChar": 31
+      },
+      "revId": "776eb83641116f8f828217d275f8a260449fa71f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_5241720a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-22T15:29:23Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "9aa7fdbe_92dcba76",
       "range": {
         "startLine": 319,
         "startChar": 16,
