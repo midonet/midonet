@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa201ad_d048fcce",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T09:14:28Z",
+      "side": 1,
+      "message": "The reason we generate UUIDs for child objects deterministically is to avoid having to do stuff like this. Taking these functions out seems to have complicated the code somewhat. Was there a problem with the way it worked before?",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 153,
+        "endChar": 65
+      },
+      "revId": "93d5308cdfbedaa2627a61f72894c6974c21158d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa201ad_30f30875",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T09:14:28Z",
+      "side": 1,
+      "message": "Somehow I removed the copyright statement in PS20. Could you please add it back in?",
+      "revId": "93d5308cdfbedaa2627a61f72894c6974c21158d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
