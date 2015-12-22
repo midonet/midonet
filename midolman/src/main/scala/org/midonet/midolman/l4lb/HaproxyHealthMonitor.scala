@@ -24,7 +24,6 @@ import java.util.UUID
 import akka.actor._
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => PoolHMMappingStatus}
@@ -44,7 +43,6 @@ import scala.collection.mutable
 import scala.collection.mutable.{HashSet, Set}
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
 
 /**
  * Actor that represents the interaction with Haproxy for health monitoring.
@@ -242,7 +240,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             routerId = newRouterId
             try {
                 hookNamespaceToRouter()
-                setPoolMappingStatus(config.id, INACTIVE,
+                setPoolMappingStatus(config.id, ACTIVE,
                                      rethrowException = true)
             } catch {
                 case NonFatal(e) =>
