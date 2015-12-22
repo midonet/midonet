@@ -215,6 +215,7 @@ object C3POMinion {
                                                         seqDispenser),
              classOf[NeutronVIP] -> new VipTranslator(storage, pathBldr),
              classOf[PortBinding] -> new PortBindingTranslator(storage),
+             classOf[RemoteMacEntry] -> new RemoteMacEntryTranslator(storage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
              classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage),
              classOf[VpnService] -> new VpnServiceTranslator(storage, seqDispenser)

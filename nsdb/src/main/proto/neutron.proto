@@ -445,13 +445,6 @@ message IPSecSiteConnection {
     }
 }
 
-message RemoteMacEntry {
-    optional UUID id = 1;
-    optional string mac_address = 2;
-    optional IPAddress vtep_address = 3;
-    optional uint32 segmentation_id = 4;
-}
-
 message GatewayDevice {
 
     enum GatewayType {
@@ -470,7 +463,7 @@ message GatewayDevice {
     optional IPAddress management_ip = 5;
     optional uint32 management_port = 6;
     optional GatewayDeviceProtocol management_protocol = 7;
-    repeated RemoteMacEntry remote_mac_entries= 8;
+    repeated RemoteMacEntry remote_mac_entries = 8;
 }
 
 message L2Gateway {
@@ -491,4 +484,12 @@ message L2GatewayConnection {
     optional UUID network_id = 3;
     optional uint32 segmentation_id = 4;
     optional L2Gateway l2_gateway = 5;
+}
+
+message RemoteMacEntry {
+    optional UUID id = 1;
+    optional UUID device_id = 2;
+    optional IPAddress vtep_address = 3;
+    optional string mac_address = 4;
+    optional uint32 segmentation_id = 5;
 }

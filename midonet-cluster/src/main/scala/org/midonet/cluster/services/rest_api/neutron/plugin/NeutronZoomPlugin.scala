@@ -480,6 +480,21 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     override def getGatewayDevices: util.List[GatewayDevice] =
         listAll(classOf[GatewayDevice])
 
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    override def createRemoteMacEntry(entry: RemoteMacEntry): Unit =
+        create(entry)
+
+    override def deleteRemoteMacEntry(id: UUID): Unit =
+        delete(id, classOf[RemoteMacEntry])
+
+    @throws(classOf[NotFoundHttpException])
+    override def getRemoteMacEntry(id: UUID): RemoteMacEntry =
+        get[RemoteMacEntry](id)
+
+    override def getRemoteMacEntries: util.List[RemoteMacEntry] =
+        listAll(classOf[RemoteMacEntry])
+
     override def getIpSecSiteConnection(id: UUID): IPSecSiteConnection =
         get[IPSecSiteConnection](id)
 
