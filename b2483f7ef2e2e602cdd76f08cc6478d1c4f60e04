@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_b20ffe2d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-22T14:21:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_8f7bb528",
+      "range": {
+        "startLine": 330,
+        "startChar": 16,
+        "endLine": 330,
+        "endChar": 20
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_af78792c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_d21c826d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-22T14:21:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_af78792c",
+      "range": {
+        "startLine": 338,
+        "startChar": 29,
+        "endLine": 338,
+        "endChar": 43
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_af9f994f",
         "filename": "nsdb/src/main/proto/state.proto",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-12-22T11:52:06Z",
       "side": 1,
       "message": "Shouldn\u0027t this be part of the topology, associated to a host, instead of state?",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 1
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_cf05bd15",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-22T14:21:09Z",
+      "side": 1,
+      "message": "It could be: it is unclear in the spec whether it\u0027s configured via the topology or mn-conf (somebody suggested mn-conf). I think it should be in the topology. However, I added it to the state because we need to watch the Host state, and this saves us also watching the Host object. And this for now is independent on where the weight will eventually will be configured and it doesn\u0027t cause compatibility issues. Do you think it makes sense?",
+      "parentUuid": "9aa7fdbe_af9f994f",
       "range": {
         "startLine": 23,
         "startChar": 0,
