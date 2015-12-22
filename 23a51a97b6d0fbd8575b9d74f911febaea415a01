@@ -22,6 +22,30 @@
       "revId": "23a51a97b6d0fbd8575b9d74f911febaea415a01",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_b5c60848",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-22T22:23:18Z",
+      "side": 1,
+      "message": "So this used during the first subscription to wait for the complete set of hosts. This is because the hostsObservable will emit the observable for each host one at the time, so we can\u0027t tell when we received the complete set.\n\nThe getAll ensures that the selector doesn\u0027t emit a notification until all hosts have been loaded. This prevents the scheduler to schedule the containers only using a subset of hosts.\n\nOnce the initial set of hosts have been loaded, hosts that are added later will be notified via the observable. \n\nI agree, this is redundant with the hostsObservable for the hosts that already exist at the moment of the subscription. However, zoom doesn\u0027t expose the set of objects in a class of a better way :/",
+      "parentUuid": "9aa7fdbe_d58f0c74",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 68
+      },
+      "revId": "23a51a97b6d0fbd8575b9d74f911febaea415a01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
