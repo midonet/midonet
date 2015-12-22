@@ -893,24 +893,14 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    def createIkePolicy(id: UUID = UUID.randomUUID(),
-                        tenantId: Option[String] = None,
-                        name: Option[String] = None,
-                        description: Option[String] = None,
-                        auth: Option[IPSecAuthAlgorithm] = None,
+    def createIkePolicy(auth: Option[IPSecAuthAlgorithm] = None,
                         encryption: Option[IPSecEncryptionAlgorithm] = None,
                         negotiation: Option[Phase1NegotiationMode] = None,
                         version: Option[IkeVersion] = None,
                         pfs: Option[IPSecPfs] = None,
                         lifetimeValue: Option[Int] = None,
                         lifetimeUnits: Option[String] = None): IkePolicy = {
-        val builder = IkePolicy.newBuilder().setId(id.asProto)
-        if (tenantId.isDefined)
-            builder.setTenantId(tenantId.get)
-        if (name.isDefined)
-            builder.setName(name.get)
-        if (description.isDefined)
-            builder.setDescription(description.get)
+        val builder = IkePolicy.newBuilder()
         if (auth.isDefined)
             builder.setAuthAlgorithm(auth.get)
         if (encryption.isDefined)
@@ -928,24 +918,14 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    def createIpsecPolicy(id: UUID = UUID.randomUUID(),
-                          tenantId: Option[String] = None,
-                          name: Option[String] = None,
-                          description: Option[String] = None,
-                          transform: Option[TransformProtocol] = None,
+    def createIpsecPolicy(transform: Option[TransformProtocol] = None,
                           auth: Option[IPSecAuthAlgorithm] = None,
                           encryption: Option[IPSecEncryptionAlgorithm] = None,
                           encapsulation: Option[EncapsulationMode] = None,
                           pfs: Option[IPSecPfs] = None,
                           lifetimeValue: Option[Int] = None,
                           lifetimeUnits: Option[String] = None): IPSecPolicy = {
-        val builder = IPSecPolicy.newBuilder().setId(id.asProto)
-        if (tenantId.isDefined)
-            builder.setTenantId(tenantId.get)
-        if (name.isDefined)
-            builder.setName(name.get)
-        if (description.isDefined)
-            builder.setDescription(description.get)
+        val builder = IPSecPolicy.newBuilder()
         if (transform.isDefined)
             builder.setTransformProtocol(transform.get)
         if (auth.isDefined)
@@ -997,7 +977,6 @@ trait TopologyBuilder {
                                   adminStateUp: Option[Boolean] = None,
                                   peerAddress: Option[String] = None,
                                   peerId: Option[String] = None,
-                                  externalIp: Option[IPv4Addr] = None,
                                   localCidr: Option[IPv4Subnet] = None,
                                   peerCidrs: Seq[IPv4Subnet] = Seq.empty,
                                   routeMode: Option[RouteMode] = None,
@@ -1025,8 +1004,6 @@ trait TopologyBuilder {
             builder.setPeerAddress(peerAddress.get)
         if (peerId.isDefined)
             builder.setPeerId(peerId.get)
-        if (externalIp.isDefined)
-            builder.setExternalIp(externalIp.get.asProto)
         if (routeMode.isDefined)
             builder.setRouteMode(routeMode.get)
         if (mtu.isDefined)

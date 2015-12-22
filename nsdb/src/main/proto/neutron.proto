@@ -317,8 +317,6 @@ message VpnService {
     optional UUID subnet_id = 6;
     optional UUID router_id = 7;
 
-    optional string status = 10; // verify this is topology
-
     // filled in during translation
     optional IPAddress external_ip = 20;
     optional UUID container_id = 21;
@@ -332,28 +330,28 @@ message IPSecSiteConnection {
     optional string tenant_id = 2;
     optional string name = 3;
     optional string description = 4;
+
     optional bool admin_state_up = 5;
     optional string peer_address = 6;
     optional string peer_id = 7;
-    optional IPAddress external_ip = 8;
-    optional IPSubnet local_cidr = 9;
-    repeated IPSubnet peer_cidrs = 10;
-    optional RouteMode route_mode = 11;
-    optional uint32 mtu = 12;
-    optional Initiator initiator = 13;
-    optional AuthMode auth_mode = 14;
-    optional string psk = 15;
+    repeated IPSubnet peer_cidrs = 8;
+    optional RouteMode route_mode = 9;
+    optional uint32 mtu = 10;
+    optional Initiator initiator = 11;
+    optional AuthMode auth_mode = 12;
+    optional string psk = 13;
 
-    optional DpdAction dpd_action = 16;
-    optional uint32 dpd_interval = 17; // milliseconds
-    optional uint32 dpd_timeout = 18; // milliseconds
+    optional DpdAction dpd_action = 14;
+    optional uint32 dpd_interval = 15; // milliseconds
+    optional uint32 dpd_timeout = 16; // milliseconds
 
     optional UUID vpnservice_id = 19;
 
     optional IkePolicy ikepolicy = 20;
     optional IPSecPolicy ipsecpolicy = 21;
 
-    optional Status status = 22; // verify this is topology
+    // filled in during translation
+    optional IPSubnet local_cidr = 30;
 
     // Backrefs
     repeated UUID route_ids = 101;
@@ -407,17 +405,13 @@ message IPSecSiteConnection {
    }
 
     message IkePolicy {
-        optional UUID id = 1;
-        optional string tenant_id = 2;
-        optional string name = 3;
-        optional string description = 4;
-        optional IPSecAuthAlgorithm auth_algorithm = 5;
-        optional IPSecEncryptionAlgorithm encryption_algorithm = 6;
-        optional Phase1NegotiationMode phase1_negotiation_mode = 7;
-        optional IkeVersion ike_version = 8;
-        optional IPSecPfs pfs = 9;
-        optional uint32 lifetime_value = 10;
-        optional string lifetime_units = 11;
+        optional IPSecAuthAlgorithm auth_algorithm = 1;
+        optional IPSecEncryptionAlgorithm encryption_algorithm = 2;
+        optional Phase1NegotiationMode phase1_negotiation_mode = 3;
+        optional IkeVersion ike_version = 4;
+        optional IPSecPfs pfs = 5;
+        optional uint32 lifetime_value = 6;
+        optional string lifetime_units = 7;
 
         enum Phase1NegotiationMode {
             MAIN = 1;
@@ -430,17 +424,13 @@ message IPSecSiteConnection {
     }
 
     message IPSecPolicy {
-        optional UUID id = 1;
-        optional string tenant_id = 2;
-        optional string name = 3;
-        optional string description = 4;
-        optional TransformProtocol transform_protocol = 5;
-        optional IPSecAuthAlgorithm auth_algorithm = 6;
-        optional IPSecEncryptionAlgorithm encryption_algorithm = 7;
-        optional EncapsulationMode encapsulation_mode = 8;
-        optional IPSecPfs pfs = 9;
-        optional uint32 lifetime_value = 10;
-        optional string lifetime_units = 11;
+        optional TransformProtocol transform_protocol = 1;
+        optional IPSecAuthAlgorithm auth_algorithm = 2;
+        optional IPSecEncryptionAlgorithm encryption_algorithm = 3;
+        optional EncapsulationMode encapsulation_mode = 4;
+        optional IPSecPfs pfs = 5;
+        optional uint32 lifetime_value = 6;
+        optional string lifetime_units = 7;
 
         enum TransformProtocol {
             ESP = 1;

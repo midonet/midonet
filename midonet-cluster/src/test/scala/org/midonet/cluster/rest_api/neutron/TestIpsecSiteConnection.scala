@@ -151,7 +151,6 @@ class TestIpsecSiteConnection extends FeatureSpec
         ipsecSiteConnection.mtu = 1234
         ipsecSiteConnection.initiator = Initiator.RESPONSE_ONLY
         ipsecSiteConnection.authMode = AuthMode.PSK
-        ipsecSiteConnection.status = NeutronStatus.BUILD
         ipsecSiteConnection.dpdAction = DpdAction.RESTART
         ipsecSiteConnection.dpdTimeout = 54321
         ipsecSiteConnection.vpnServiceId = vpnService.id
