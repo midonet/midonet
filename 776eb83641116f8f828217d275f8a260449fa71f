@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_d261e2d4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-22T14:44:08Z",
+      "side": 1,
+      "message": "Are we expecting to receive a high rate of health updates?",
+      "range": {
+        "startLine": 264,
+        "startChar": 12,
+        "endLine": 264,
+        "endChar": 33
+      },
+      "revId": "776eb83641116f8f828217d275f8a260449fa71f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_f25ee611",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-22T14:44:08Z",
+      "side": 1,
+      "message": "stopping",
+      "range": {
+        "startLine": 313,
+        "startChar": 47,
+        "endLine": 313,
+        "endChar": 55
+      },
+      "revId": "776eb83641116f8f828217d275f8a260449fa71f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_32a06ef4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-22T14:44:08Z",
+      "side": 1,
+      "message": "Is it really necessary to set the status to stopping if you then clear it here?",
+      "range": {
+        "startLine": 319,
+        "startChar": 16,
+        "endLine": 320,
+        "endChar": 31
+      },
+      "revId": "776eb83641116f8f828217d275f8a260449fa71f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_725cb626",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/schedulers/HostTrackerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-12-22T14:44:08Z",
+      "side": 1,
+      "message": "obs.getOnCompletedEvents should have size 1",
+      "range": {
+        "startLine": 355,
+        "startChar": 8,
+        "endLine": 355,
+        "endChar": 52
+      },
+      "revId": "776eb83641116f8f828217d275f8a260449fa71f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
