@@ -22,6 +22,30 @@
       "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_af7319e6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-22T14:08:07Z",
+      "side": 1,
+      "message": "Oh, maybe not. I think the was because originally the container type was inside the group. Will remove.",
+      "parentUuid": "9aa7fdbe_4fe70de5",
+      "range": {
+        "startLine": 64,
+        "startChar": 49,
+        "endLine": 64,
+        "endChar": 77
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
