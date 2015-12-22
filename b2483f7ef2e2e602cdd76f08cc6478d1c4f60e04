@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_8f7bb528",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-22T11:52:06Z",
+      "side": 1,
+      "message": "container",
+      "range": {
+        "startLine": 330,
+        "startChar": 16,
+        "endLine": 330,
+        "endChar": 20
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_af78792c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-22T11:52:06Z",
+      "side": 1,
+      "message": "chooseHost?",
+      "range": {
+        "startLine": 338,
+        "startChar": 29,
+        "endLine": 338,
+        "endChar": 43
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_af9f994f",
+        "filename": "nsdb/src/main/proto/state.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-22T11:52:06Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be part of the topology, associated to a host, instead of state?",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 1
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
