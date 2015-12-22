@@ -16,9 +16,12 @@
 
 package org.midonet.midolman.containers
 
+import java.util.concurrent.ExecutorService
+
 import scala.concurrent.Future
 
 import com.google.inject.Inject
+import com.google.inject.name.Named
 import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
@@ -36,9 +39,11 @@ import org.midonet.midolman.topology.VirtualTopology
 object ContainerHandlerProviderTest {
 
     @Container(name = "test-handler", version = 1)
-    class TestContainer @Inject()(vt: VirtualTopology) extends ContainerHandler {
+    class TestContainer @Inject()(val vt: VirtualTopology,
+                                  @Named("container") val executor: ExecutorService)
+        extends ContainerHandler {
         override def create(port: ContainerPort): Future[String] = ???
-        override def updated(port: ContainerPort): Future[Unit] = ???
+        override def updated(port: ContainerPort): Future[String] = ???
         override def delete(): Future[Unit] = ???
         override def health: Observable[ContainerHealth] = ???
     }
@@ -54,16 +59,20 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
     "Container provider" should "load a container with the VT as argument" in {
         Given("A mock virtual topology")
         val vt = Mockito.mock(classOf[VirtualTopology])
+        val executor = Mockito.mock(classOf[ExecutorService])
 
         And("A provider for the current class path")
         val provider = new ContainerHandlerProvider(
-            "org.midonet.midolman.containers", vt, log)
+            "org.midonet.midolman.containers", vt, executor, log)
 
         Then("The provider should load all classes")
         provider.current.size should be >= 1
 
         And("The provider should return a handler instance")
-        provider.getInstance("test-handler").getClass shouldBe classOf[TestContainer]
+        val container = provider.getInstance("test-handler").asInstanceOf[TestContainer]
+        container should not be null
+        container.vt shouldBe vt
+        container.executor shouldBe executor
     }
 
 }

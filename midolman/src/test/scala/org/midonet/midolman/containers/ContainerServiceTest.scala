@@ -67,11 +67,11 @@ object ContainerServiceTest {
             else Future.successful(TestNamespace)
         }
 
-        override def updated(port: ContainerPort): Future[Unit] = {
+        override def updated(port: ContainerPort): Future[String] = {
             updated += 1
             if (throwsOnUpdate) throw new Throwable()
             if (errorOnUpdate) Future.failed(new Throwable())
-            else Future.successful(())
+            else Future.successful(TestNamespace)
         }
 
         override def delete(): Future[Unit] = {
