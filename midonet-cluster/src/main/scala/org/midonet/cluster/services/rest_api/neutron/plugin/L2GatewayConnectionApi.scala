@@ -19,8 +19,9 @@ package org.midonet.cluster.services.rest_api.neutron.plugin
 import java.util
 import java.util.UUID
 
-import org.midonet.cluster.rest_api.neutron.models.L2GatewayConnection
+import org.midonet.cluster.rest_api.neutron.models.{RemoteMacEntry, L2GatewayConnection}
 import org.midonet.cluster.rest_api.{NotFoundHttpException, ConflictHttpException}
+import org.midonet.packets.MAC
 
 trait L2GatewayConnectionApi {
 

@@ -83,6 +83,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def gatewayDeviceResource: GatewayDeviceResource =
         new GatewayDeviceResource(uriInfo, api)
 
+    @Path("remote_mac_entries")
+    def remoteMacEntriesResource: RemoteMacEntryResource =
+        new RemoteMacEntryResource(uriInfo, api)
+
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
         val neutron: Neutron = new Neutron
@@ -119,6 +123,8 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
         neutron.l2GatewayConnTemplate = getL2GatewayConnTemplate(baseUri)
         neutron.gatewayDevices = getGatewayDevices(baseUri)
         neutron.gatewayDeviceTemplate = getGatewayDeviceTemplate(baseUri)
+        neutron.remoteMacEntries = getRemoteMacEntries(baseUri)
+        neutron.remoteMacEntryTemplate = getRemoteMacEntryTemplate(baseUri)
         neutron
     }
 }

@@ -19,7 +19,7 @@ package org.midonet.cluster.services.rest_api.neutron.plugin
 import java.util
 import java.util.UUID
 
-import org.midonet.cluster.rest_api.neutron.models.GatewayDevice
+import org.midonet.cluster.rest_api.neutron.models.{RemoteMacEntry, GatewayDevice}
 import org.midonet.cluster.rest_api.{NotFoundHttpException, ConflictHttpException}
 
 trait GatewayDeviceApi {
@@ -38,4 +38,15 @@ trait GatewayDeviceApi {
     def updateGatewayDevice(gatewayDevice: GatewayDevice): Unit
 
     def deleteGatewayDevice(id: UUID): Unit
+
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def createRemoteMacEntry(entry: RemoteMacEntry): Unit
+
+    def deleteRemoteMacEntry(id: UUID): Unit
+
+    @throws(classOf[NotFoundHttpException])
+    def getRemoteMacEntry(id: UUID): RemoteMacEntry
+
+    def getRemoteMacEntries: util.List[RemoteMacEntry]
 }

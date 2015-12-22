@@ -102,6 +102,7 @@ object MidonetBackend {
              classOf[Port],
              classOf[PortBinding],
              classOf[PortGroup],
+             classOf[RemoteMacEntry],
              classOf[Route],
              classOf[Router],
              classOf[Rule],
