@@ -242,7 +242,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             routerId = newRouterId
             try {
                 hookNamespaceToRouter()
-                setPoolMappingStatus(config.id, INACTIVE,
+                setPoolMappingStatus(config.id, ACTIVE,
                                      rethrowException = true)
             } catch {
                 case NonFatal(e) =>
