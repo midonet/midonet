@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa201ad_b01c5815",
+        "filename": "specs/neutron_translation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T07:13:19Z",
+      "side": 1,
+      "message": "Replace asterisk with space.",
+      "range": {
+        "startLine": 221,
+        "startChar": 0,
+        "endLine": 221,
+        "endChar": 3
+      },
+      "revId": "1ec6001da9bd35a067ee63c9b4f67a1f72bb83c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa201ad_70ecb0c8",
+        "filename": "specs/neutron_translation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T07:13:19Z",
+      "side": 1,
+      "message": "Is this still necessary, or does the previous step cover this?",
+      "range": {
+        "startLine": 222,
+        "startChar": 0,
+        "endLine": 222,
+        "endChar": 66
+      },
+      "revId": "1ec6001da9bd35a067ee63c9b4f67a1f72bb83c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa201ad_702bd030",
+        "filename": "specs/neutron_translation.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-22T07:13:19Z",
+      "side": 1,
+      "message": "This is also the case for VIP ports, Floating IP ports, and ports on uplink networks. In fact, the port translator doesn\u0027t anything at all for creating or deleting VIP/FIP ports.\n\nFor RIF ports on uplink networks, we do delete the corresponding router port in PortTranslator.translateDelete(), but we have a Jira item open to move that to RouterInterfaceTranslator.translateDelete(), so soon PortTranslator will do nothing when deleting ports on uplink networks, either.",
+      "range": {
+        "startLine": 225,
+        "startChar": 36,
+        "endLine": 226,
+        "endChar": 31
+      },
+      "revId": "1ec6001da9bd35a067ee63c9b4f67a1f72bb83c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
