@@ -67,9 +67,6 @@ public class IPSecSiteConnection extends ZoomObject {
     @ZoomField(name = "psk")
     public String psk;
 
-    @ZoomField(name = "status")
-    public Status status;
-
     @JsonProperty("dpd_action")
     @ZoomField(name = "dpd_action")
     public DpdAction dpdAction;
@@ -204,20 +201,6 @@ public class IPSecSiteConnection extends ZoomObject {
 
     @ZoomClass(clazz = Neutron.IPSecSiteConnection.IPSecPolicy.class)
     public static class IPSecPolicy extends ZoomObject {
-
-        @ZoomField(name = "id")
-        public UUID id;
-
-        @JsonProperty("tenant_id")
-        @ZoomField(name = "tenant_id")
-        public String tenantId;
-
-        @ZoomField(name = "name")
-        public String name;
-
-        @ZoomField(name = "description")
-        public String description;
-
         @JsonProperty("transform_protocol")
         @ZoomField(name = "transform_protocol")
         public TransformProtocol transformProtocol;
@@ -255,11 +238,7 @@ public class IPSecSiteConnection extends ZoomObject {
             }
             IPSecPolicy that = (IPSecPolicy) o;
 
-            return Objects.equals(id, that.id) &&
-                Objects.equals(tenantId, that.tenantId) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description) &&
-                Objects.equals(transformProtocol, that.transformProtocol) &&
+            return Objects.equals(transformProtocol, that.transformProtocol) &&
                 Objects.equals(authAlgorithm, that.authAlgorithm) &&
                 Objects.equals(encryptionAlgorithm, that.encryptionAlgorithm) &&
                 Objects.equals(encapsulationMode, that.encapsulationMode) &&
@@ -270,17 +249,15 @@ public class IPSecSiteConnection extends ZoomObject {
 
         @Override
         public int hashCode() {
-            return Objects.hash(id);
+            return Objects.hash(transformProtocol, authAlgorithm,
+                                encryptionAlgorithm, encryptionAlgorithm,
+                                lifetimeUnits, lifetimeValue, pfs);
         }
 
         @Override
         public String toString() {
             return MoreObjects.toStringHelper(this)
                 .omitNullValues()
-                .add("id", id)
-                .add("tenantId", tenantId)
-                .add("name", name)
-                .add("description", description)
                 .add("transformProtocol", transformProtocol)
                 .add("authAlgorithm", authAlgorithm)
                 .add("encryptionAlgorithm", encryptionAlgorithm)
@@ -318,19 +295,6 @@ public class IPSecSiteConnection extends ZoomObject {
 
     @ZoomClass(clazz = Neutron.IPSecSiteConnection.IkePolicy.class)
     public static class IkePolicy extends ZoomObject {
-        @ZoomField(name = "id")
-        public UUID id;
-
-        @JsonProperty("tenant_id")
-        @ZoomField(name = "tenant_id")
-        public String tenantId;
-
-        @ZoomField(name = "name")
-        public String name;
-
-        @ZoomField(name = "description")
-        public String description;
-
         @JsonProperty("auth_algorithm")
         @ZoomField(name = "auth_algorithm")
         public IPSecAuthAlgorithm authAlgorithm;
@@ -368,11 +332,7 @@ public class IPSecSiteConnection extends ZoomObject {
             }
             IkePolicy that = (IkePolicy) o;
 
-            return Objects.equals(id, that.id) &&
-                Objects.equals(tenantId, that.tenantId) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description) &&
-                Objects.equals(authAlgorithm, that.authAlgorithm) &&
+            return Objects.equals(authAlgorithm, that.authAlgorithm) &&
                 Objects.equals(encryptionAlgorithm, that.encryptionAlgorithm) &&
                 Objects.equals(phase1NegMode, that.phase1NegMode) &&
                 Objects.equals(ikeVersion, that.ikeVersion) &&
@@ -383,17 +343,14 @@ public class IPSecSiteConnection extends ZoomObject {
 
         @Override
         public int hashCode() {
-            return Objects.hash(id);
+            return Objects.hash(authAlgorithm, encryptionAlgorithm, phase1NegMode,
+                                ikeVersion, lifetimeUnits, lifetimeValue, pfs);
         }
 
         @Override
         public String toString() {
             return MoreObjects.toStringHelper(this)
                 .omitNullValues()
-                .add("id", id)
-                .add("tenantId", tenantId)
-                .add("name", name)
-                .add("description", description)
                 .add("authAlgorithm", authAlgorithm)
                 .add("encryptionAlgorithm", encryptionAlgorithm)
                 .add("phase1NegMode", phase1NegMode)
@@ -451,7 +408,6 @@ public class IPSecSiteConnection extends ZoomObject {
                authMode == that.authMode &&
                Objects.equals(psk, that.psk) &&
                adminStateUp == that.adminStateUp &&
-               Objects.equals(status, that.status) &&
                dpdAction == that.dpdAction &&
                Objects.equals(dpdInterval, that.dpdInterval) &&
                Objects.equals(dpdTimeout, that.dpdTimeout) &&
@@ -480,7 +436,6 @@ public class IPSecSiteConnection extends ZoomObject {
             .add("authMode", authMode)
             .add("psk", psk)
             .add("admin_state_up", adminStateUp)
-            .add("status", status)
             .add("dpdAction", dpdAction)
             .add("dpdInterval", dpdInterval)
             .add("dpdTimeout", dpdTimeout)
