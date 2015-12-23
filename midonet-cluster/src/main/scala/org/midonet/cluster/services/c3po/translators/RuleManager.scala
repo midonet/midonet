@@ -21,7 +21,7 @@ import org.midonet.cluster.models.Commons.{Condition, IPAddress, UUID}
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action._
 import org.midonet.cluster.models.Topology.Rule.{JumpRuleData, NatRuleData, NatTarget}
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Operation, Create, Delete, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil
 
 /**
@@ -97,6 +97,18 @@ trait RuleManager {
 
     protected def revNatRuleData(dnat: Boolean): NatRuleData = {
         NatRuleData.newBuilder.setDnat(dnat).setReverse(true).build()
+    }
+
+    protected def redirectRuleBuilder(chainId: UUID,
+                                      targetPortId: UUID,
+                                      id: Option[UUID] = None): Rule.Builder = {
+        val bldr = Rule.newBuilder
+            .setId(id.getOrElse(UUIDUtil.randomUuidProto))
+            .setChainId(chainId)
+            .setType(Rule.Type.L2TRANSFORM_RULE)
+            .setAction(Rule.Action.REDIRECT)
+        bldr.getTransformRuleDataBuilder.setTargetPortId(targetPortId)
+        bldr
     }
 
     protected def toRuleIdList(ops: Seq[Operation[Rule]]) = ops.map {
