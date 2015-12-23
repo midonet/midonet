@@ -47,6 +47,8 @@ import org.midonet.util.functors._
  */
 class InMemoryStorage extends Storage with StateStorage {
 
+    private val executor = new SameThreadButAfterExecutorService()
+
     private class ClassNode[T](val clazz: Class[T]) {
 
         private val instances = new TrieMap[String, InstanceNode[T]]()
@@ -167,7 +169,7 @@ class InMemoryStorage extends Storage with StateStorage {
         )
 
         /* Emits the updates generated during the last transaction */
-        def emitUpdates(): Unit = {
+        def emitUpdates(): Unit = executor.submit(makeRunnable({
             for (node <- streamUpdates) {
                 stream.onNext(node.observable)
             }
@@ -176,7 +178,7 @@ class InMemoryStorage extends Storage with StateStorage {
             }
             streamUpdates.clear()
             instanceUpdates.clear()
-        }
+        }))
 
         def addValue(namespace: String, id: ObjId, key: String, value: String,
                      keyType: KeyType): Observable[StateResult] = {
