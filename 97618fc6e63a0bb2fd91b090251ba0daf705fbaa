@@ -46,6 +46,161 @@
       "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_434fe692",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-23T14:25:26Z",
+      "side": 1,
+      "message": "this should be a declared as a constant somewhere. We use it in a few places.",
+      "range": {
+        "startLine": 35,
+        "startChar": 19,
+        "endLine": 35,
+        "endChar": 24
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_633b0aec",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-23T14:25:26Z",
+      "side": 1,
+      "message": "I don\u0027t see any way that the caller can see if the scheduling was successful or not.",
+      "range": {
+        "startLine": 47,
+        "startChar": 17,
+        "endLine": 47,
+        "endChar": 28
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_8340ee57",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-23T14:25:26Z",
+      "side": 1,
+      "message": "error",
+      "range": {
+        "startLine": 56,
+        "startChar": 20,
+        "endLine": 56,
+        "endChar": 24
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_c35af64f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-23T14:25:26Z",
+      "side": 1,
+      "message": "error",
+      "range": {
+        "startLine": 65,
+        "startChar": 24,
+        "endLine": 65,
+        "endChar": 28
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_a35df24a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-23T14:25:26Z",
+      "side": 1,
+      "message": "already",
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_8349ce8d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-23T14:25:26Z",
+      "side": 1,
+      "message": "the port id is set in translation, so it should always be initialized. If not, this should throw an exception.",
+      "range": {
+        "startLine": 138,
+        "startChar": 45,
+        "endLine": 138,
+        "endChar": 58
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_e32e1aa5",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/IpsecContainerDelegateTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-23T14:25:26Z",
+      "side": 1,
+      "message": "this should throw an exception. The port is created in translation, so if it doesn\u0027t exist someone has manually broken things.",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 45
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
