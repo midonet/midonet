@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_6fb5b1cc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ServiceScheduler.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-23T16:58:03Z",
+      "side": 1,
+      "message": "This doesn\u0027t apply anymore. Remove or hint to random weighted.",
+      "range": {
+        "startLine": 51,
+        "startChar": 4,
+        "endLine": 54,
+        "endChar": 58
+      },
+      "revId": "d1eee517a8325bf2922cb616d043bb3adeb082eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
