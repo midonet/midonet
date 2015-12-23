@@ -46,6 +46,30 @@
       "revId": "23a51a97b6d0fbd8575b9d74f911febaea415a01",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_63206a9c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/AnywhereHostSelector.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-23T10:27:37Z",
+      "side": 1,
+      "message": "ok, sounds good. merging.",
+      "parentUuid": "9aa7fdbe_b5c60848",
+      "range": {
+        "startLine": 93,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 68
+      },
+      "revId": "23a51a97b6d0fbd8575b9d74f911febaea415a01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
