@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_7e463d25",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VpnServiceTranslator.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-23T16:12:41Z",
+      "side": 1,
+      "message": "Where do we set the interface name now?",
+      "range": {
+        "startLine": 201,
+        "startChar": 22,
+        "endLine": 201,
+        "endChar": 37
+      },
+      "revId": "8024e2bbb0c204154841bb309f9f3cb1b6693c92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
