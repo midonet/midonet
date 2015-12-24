@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_a924f1c6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-24T13:09:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_431d2673",
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_7ecf1db1",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 1
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_c92135b6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-24T13:09:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_7ecf1db1",
+      "range": {
+        "startLine": 159,
+        "startChar": 0,
+        "endLine": 203,
+        "endChar": 34
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_7e255daa",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 1
@@ -53,6 +95,30 @@
       "writtenOn": "2015-12-23T16:25:41Z",
       "side": 1,
       "message": "use Option instead of null",
+      "range": {
+        "startLine": 230,
+        "startChar": 5,
+        "endLine": 230,
+        "endChar": 13
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_092c1dab",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-24T13:09:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_7e255daa",
       "range": {
         "startLine": 230,
         "startChar": 5,
@@ -182,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_29180184",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 367,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-24T13:09:35Z",
+      "side": 1,
+      "message": "Done.\n\nI changed this part following the unit tests, so now the check is made.",
+      "parentUuid": "9aa7fdbe_1e37f1b1",
+      "range": {
+        "startLine": 367,
+        "startChar": 0,
+        "endLine": 367,
+        "endChar": 70
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_9e3921db",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 1
@@ -205,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_491d4573",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-24T13:09:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_9e3921db",
+      "range": {
+        "startLine": 504,
+        "startChar": 16,
+        "endLine": 504,
+        "endChar": 29
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_3e63d5b2",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 1
@@ -216,6 +330,30 @@
       "writtenOn": "2015-12-23T16:25:41Z",
       "side": 1,
       "message": "volatile?",
+      "range": {
+        "startLine": 523,
+        "startChar": 28,
+        "endLine": 523,
+        "endChar": 32
+      },
+      "revId": "b2483f7ef2e2e602cdd76f08cc6478d1c4f60e04",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_69120964",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-24T13:09:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_3e63d5b2",
       "range": {
         "startLine": 523,
         "startChar": 28,
