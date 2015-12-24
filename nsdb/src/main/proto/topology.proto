@@ -359,6 +359,10 @@ message Port {
     // service insertion
     repeated UUID insertion_ids = 110;
     repeated UUID srv_insertion_ids = 111;
+
+    // RemoteMacEntries in this port's peering table. Only applicable to VTEP
+    // router ports.
+    repeated UUID remote_mac_entry_ids = 120;
 }
 
 message PortGroup {

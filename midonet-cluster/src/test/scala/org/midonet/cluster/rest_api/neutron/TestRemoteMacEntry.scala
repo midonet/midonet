@@ -26,34 +26,16 @@ import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfter, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.rest_api.neutron.models.{RemoteMacEntry, Neutron}
+import org.midonet.cluster.rest_api.neutron.models.{GatewayDevice, Router, RemoteMacEntry, Neutron}
 import org.midonet.cluster.rest_api.rest_api.FuncJerseyTest
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes.{NEUTRON_JSON_V3, NEUTRON_REMOTE_MAC_ENTRY_JSON_V1}
 import org.midonet.packets.{IPv4Addr, MAC}
 
 @RunWith(classOf[JUnitRunner])
-class TestRemoteMacEntry extends FeatureSpec
-                                 with Matchers
-                                 with BeforeAndAfter {
-
-    private var remoteMacEntryResource: WebResource = _
-    private var jerseyTest: FuncJerseyTest = _
-
-    before {
-        jerseyTest = new FuncJerseyTest
-        jerseyTest.setUp()
-        remoteMacEntryResource =
-            jerseyTest.resource().path("/neutron/remote_mac_entries")
-    }
-
-    after {
-        jerseyTest.tearDown()
-    }
+class TestRemoteMacEntry extends NeutronApiTest {
 
     scenario("Neutron has RemoteMacEntries endpoint") {
-        val neutron = jerseyTest.resource().path("/neutron")
-            .accept(NEUTRON_JSON_V3)
-            .get(classOf[Neutron])
+        val neutron = getNeutron
         neutron.remoteMacEntries.toString
             .endsWith("/neutron/remote_mac_entries") shouldBe true
         neutron.remoteMacEntryTemplate
@@ -61,27 +43,27 @@ class TestRemoteMacEntry extends FeatureSpec
     }
 
     scenario("Create, read, delete") {
+        // Dependencies: Router and gateway device
+        val router = new Router
+        router.id = UUID.randomUUID()
+        postAndVerifySuccess(router)
+
+        val gatewayDev = new GatewayDevice
+        gatewayDev.id = UUID.randomUUID()
+        gatewayDev.resourceId = router.id
+        postAndVerifySuccess(gatewayDev)
+
         val rm =  new RemoteMacEntry()
         rm.id = UUID.randomUUID()
-        rm.deviceId = UUID.randomUUID()
+        rm.deviceId = gatewayDev.id
         rm.macAddress = MAC.random()
         rm.segmentationId = 100
         rm.vtepAddress = IPv4Addr.fromString("10.0.0.1")
 
-        val response = remoteMacEntryResource
-            .`type`(NEUTRON_REMOTE_MAC_ENTRY_JSON_V1)
-            .post(classOf[ClientResponse], rm)
-        response.getStatus shouldBe Status.CREATED.getStatusCode
+        val rmUri = postAndVerifySuccess(rm)
 
-        val createdUri = response.getLocation
+        get[RemoteMacEntry](rmUri) shouldBe rm
 
-        val getResp = remoteMacEntryResource.uri(createdUri)
-            .accept(NEUTRON_REMOTE_MAC_ENTRY_JSON_V1)
-            .get(classOf[RemoteMacEntry])
-        getResp shouldBe rm
-
-        val delResp = remoteMacEntryResource.uri(createdUri)
-            .delete(classOf[ClientResponse])
-        delResp.getStatusInfo.getStatusCode shouldBe Status.NO_CONTENT.getStatusCode
+        deleteAndVerifyNoContent(rmUri)
     }
 }

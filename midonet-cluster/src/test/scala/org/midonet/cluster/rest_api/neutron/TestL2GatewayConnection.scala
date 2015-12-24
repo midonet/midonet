@@ -18,65 +18,54 @@ package org.midonet.cluster.rest_api.neutron
 
 import java.util.UUID
 
-import com.sun.jersey.api.client.{ClientResponse, WebResource}
-import com.sun.jersey.api.client.ClientResponse.Status
+import scala.collection.JavaConversions._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
+import org.scalatest.{BeforeAndAfter, Matchers}
 
-import org.midonet.cluster.rest_api.neutron.models.{L2Gateway, L2GatewayConnection, Neutron}
-import org.midonet.cluster.rest_api.rest_api.FuncJerseyTest
+import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
 @RunWith(classOf[JUnitRunner])
-class TestL2GatewayConnection extends FeatureSpec
-        with Matchers
-        with BeforeAndAfter {
-
-    private var l2GatewayConnectionResource: WebResource = _
-
-    var jerseyTest: FuncJerseyTest = _
-
-    before {
-        jerseyTest = new FuncJerseyTest
-        jerseyTest.setUp()
-        l2GatewayConnectionResource = jerseyTest.resource().path("/neutron/l2_gateway_connections")
-    }
-
-    after {
-        jerseyTest.tearDown()
-    }
+class TestL2GatewayConnection extends NeutronApiTest {
 
     scenario("Neutron has L2 Gateway Connection") {
-
-        val neutron = jerseyTest.resource().path("/neutron")
-            .accept(NEUTRON_JSON_V3)
-            .get(classOf[Neutron])
+        val neutron = getNeutron
         neutron.l2GatewayConns shouldNot be(null)
         neutron.l2GatewayConnTemplate shouldNot be(null)
     }
 
     scenario("Create, Read, Delete") {
-        val l2GwConn = new L2GatewayConnection()
-        l2GwConn.id = UUID.randomUUID
-        l2GwConn.networkId = UUID.randomUUID
-        l2GwConn.segmentationId = 100
+        // Dependencies: Router, network, and gateway device.
+        val router = new Router
+        router.id = UUID.randomUUID()
+        postAndVerifySuccess(router)
 
-        val response = l2GatewayConnectionResource.`type`(NEUTRON_L2_GATEWAY_CONNECTION_JSON_V1)
-            .post(classOf[ClientResponse], l2GwConn)
-        response.getStatus shouldBe Status.CREATED.getStatusCode
+        val network = new Network
+        network.id = UUID.randomUUID()
+        postAndVerifySuccess(network)
 
-        val createdUri = response.getLocation
+        val gatewayDev = new GatewayDevice
+        gatewayDev.id = UUID.randomUUID()
+        gatewayDev.resourceId = router.id
+        postAndVerifySuccess(gatewayDev)
 
-        val respDto = l2GatewayConnectionResource.uri(createdUri)
-            .accept(NEUTRON_L2_GATEWAY_CONNECTION_JSON_V1)
-            .get(classOf[L2GatewayConnection])
-        respDto shouldBe l2GwConn
+        val l2GatewayDev = new L2GatewayDevice
+        l2GatewayDev.deviceId = gatewayDev.id
+        l2GatewayDev.segmentationId = 100
 
-        val response2 = l2GatewayConnectionResource.uri(createdUri)
-            .delete(classOf[ClientResponse])
-        response2.getStatusInfo
-            .getStatusCode shouldBe Status.NO_CONTENT.getStatusCode
+        val cnxn = new L2GatewayConnection()
+        cnxn.id = UUID.randomUUID
+        cnxn.networkId = network.id
+        cnxn.segmentationId = 100
+        cnxn.l2Gateway = new L2Gateway
+        cnxn.l2Gateway.devices = List(l2GatewayDev)
+
+        val cnxnUri = postAndVerifySuccess(cnxn)
+
+        get[L2GatewayConnection](cnxnUri) shouldBe cnxn
+
+        deleteAndVerifyNoContent(cnxnUri)
     }
 }

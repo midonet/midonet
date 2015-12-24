@@ -63,10 +63,6 @@ public class GatewayDevice extends ZoomObject {
     @ZoomField(name = "management_protocol")
     public GatewayDeviceProtocol managementProtocol;
 
-    @JsonProperty("remote_mac_entries")
-    @ZoomField(name = "remote_mac_entries")
-    public List<RemoteMacEntry> remoteMacEntries;
-
     @ZoomEnum(clazz = Neutron.GatewayDevice.GatewayType.class)
     public enum GatewayType {
         @ZoomEnumValue("ROUTER_VTEP") ROUTER_VTEP,
@@ -113,16 +109,14 @@ public class GatewayDevice extends ZoomObject {
                isEqualList(tunnelIps, that.tunnelIps) &&
                Objects.equal(managementIp, that.managementIp) &&
                Objects.equal(managementPort, that.managementPort) &&
-               Objects.equal(managementProtocol, that.managementProtocol) &&
-               isEqualList(remoteMacEntries, that.remoteMacEntries);
+               Objects.equal(managementProtocol, that.managementProtocol);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(id, type, resourceId,
                                 hashCodeForList(tunnelIps), managementIp,
-                                managementPort, managementProtocol,
-                                hashCodeForList(remoteMacEntries));
+                                managementPort, managementProtocol);
     }
 
     @Override
@@ -136,7 +130,6 @@ public class GatewayDevice extends ZoomObject {
             .add("managementIp", managementIp)
             .add("managementPort", managementPort)
             .add("managementProtocol", managementProtocol)
-            .add("remoteMacEntries", ListUtil.toString(remoteMacEntries))
             .toString();
     }
 }
