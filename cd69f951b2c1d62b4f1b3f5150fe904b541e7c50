@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_44636cb1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-24T15:39:37Z",
+      "side": 1,
+      "message": "while ultimately i think this observable will run on context.scheduler, its not immediately clear from the code, as it is with the rest.\nI\u0027d change this to feedbackSubject.observeOn(context.scheduler) just to be clear.",
+      "range": {
+        "startLine": 205,
+        "startChar": 12,
+        "endLine": 205,
+        "endChar": 27
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_045244dd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-24T15:39:37Z",
+      "side": 1,
+      "message": "use Observable[Option[Port]] rather than just Observable[Port]. with the latter is is not obvious that a null can be emitted.",
+      "range": {
+        "startLine": 315,
+        "startChar": 57,
+        "endLine": 315,
+        "endChar": 61
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_841474f6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-24T15:39:37Z",
+      "side": 1,
+      "message": "This is all to simulate having a non-reentrant lock around schedule? Isn\u0027t this what Observable#serialize is for?",
+      "range": {
+        "startLine": 354,
+        "startChar": 0,
+        "endLine": 354,
+        "endChar": 70
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
