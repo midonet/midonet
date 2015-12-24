@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_a4dc1876",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/GatewayDeviceTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-24T14:41:12Z",
+      "side": 1,
+      "message": "I will update the spec, but i think we should throw an exception here because we need to let Neutron know that it was not a successful request (neutron may need to clean up its DB upon this error).",
+      "revId": "273a2c6681924fb3dc751a22988a915ee527e5a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_04e4043a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/GatewayDeviceTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-24T14:41:12Z",
+      "side": 1,
+      "message": "Ditto, we should treat this as an exceptional situation.",
+      "revId": "273a2c6681924fb3dc751a22988a915ee527e5a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
