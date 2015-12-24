@@ -155,7 +155,6 @@ class VPNaaSTranslatorIT extends C3POMinionTestBase {
             // Only the above fields should be changed.
             cnxn1V2.getPeerId shouldBe cnxn1.getPeerId
             cnxn1V2.getPsk shouldBe cnxn1.getPsk
-            cnxn1V2.getStatus shouldBe cnxn1.getStatus
         }
 
         // Delete the first connection and verify that it was cleaned up and
