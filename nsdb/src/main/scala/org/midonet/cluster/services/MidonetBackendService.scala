@@ -17,7 +17,6 @@ package org.midonet.cluster.services
 
 import java.util.UUID
 
-
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
@@ -258,8 +257,13 @@ object MidonetBackend {
         store.declareBinding(classOf[IPSecSiteConnection], "route_ids", CASCADE,
                              classOf[Route], "ipsec_site_connection_id", CLEAR)
 
-        setup()
+        store.declareBinding(classOf[GatewayDevice], "remote_mac_entry_ids", CASCADE,
+                             classOf[RemoteMacEntry], "device_id", CLEAR)
 
+        store.declareBinding(classOf[RemoteMacEntry], "port_ids", CLEAR,
+                             classOf[Port], "remote_mac_entry_ids", CLEAR)
+
+        setup()
         store.build()
     }
 
