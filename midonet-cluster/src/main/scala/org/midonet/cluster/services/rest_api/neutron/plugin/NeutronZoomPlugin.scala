@@ -55,6 +55,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
                                   c3po: C3POStorageManager,
                                   lockFactory: ZookeeperLockFactory)
     extends L3Api
+            with GatewayDeviceApi
             with FirewallApi
             with L2GatewayConnectionApi
             with LoadBalancerApi
@@ -463,6 +464,21 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
 
     override def getL2GatewayConnections: util.List[L2GatewayConnection] =
         listAll(classOf[L2GatewayConnection])
+
+    override def getGatewayDevice(id: UUID): GatewayDevice =
+        get[GatewayDevice](id)
+
+    override def createGatewayDevice(gatewayDevice: GatewayDevice)
+    : Unit = create(gatewayDevice)
+
+    override def updateGatewayDevice(gatewayDevice: GatewayDevice)
+    : Unit = update(gatewayDevice)
+
+    override def deleteGatewayDevice(id: UUID): Unit =
+        delete(id, classOf[GatewayDevice])
+
+    override def getGatewayDevices: util.List[GatewayDevice] =
+        listAll(classOf[GatewayDevice])
 
     override def getIpSecSiteConnection(id: UUID): IPSecSiteConnection =
         get[IPSecSiteConnection](id)

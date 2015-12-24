@@ -49,7 +49,7 @@ public class GatewayDevice extends ZoomObject {
 
     @JsonProperty("management_ip")
     @ZoomField(name = "management_ip")
-    public IPv4Addr managementIp;
+    public String managementIp;
 
     @JsonProperty("management_port")
     @ZoomField(name = "management_port")
