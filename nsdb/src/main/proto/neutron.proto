@@ -463,7 +463,11 @@ message GatewayDevice {
     optional IPAddress management_ip = 5;
     optional uint32 management_port = 6;
     optional GatewayDeviceProtocol management_protocol = 7;
-    repeated RemoteMacEntry remote_mac_entries = 8;
+
+    // Backrefs
+
+    // Remote MAC entries associated with this gateway device.
+    repeated UUID remote_mac_entry_ids = 101;
 }
 
 message L2Gateway {
@@ -492,4 +496,7 @@ message RemoteMacEntry {
     optional IPAddress vtep_address = 3;
     optional string mac_address = 4;
     optional uint32 segmentation_id = 5;
+
+    // Ports using this remote MAC entry.
+    repeated UUID port_ids = 6;
 }
