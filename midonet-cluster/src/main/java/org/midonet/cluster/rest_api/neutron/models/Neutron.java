@@ -84,10 +84,10 @@ public class Neutron {
     @JsonProperty("vpn_service_template")
     public String vpnServiceTemplate;
 
-    @JsonProperty("ipsec_site_connections")
+    @JsonProperty("ipsec_site_conns")
     public URI ipsecSiteConnections;
 
-    @JsonProperty("ipsec_site_connection_template")
+    @JsonProperty("ipsec_site_conn_template")
     public String ipsecSiteConnectionTemplate;
 
     @JsonProperty("l2_gateway_connections")
