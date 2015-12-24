@@ -16,45 +16,21 @@
 
 package org.midonet.cluster.rest_api.neutron
 
-import java.util
 import java.util.UUID
 
-import com.sun.jersey.api.client.{ClientResponse, WebResource}
-import com.sun.jersey.api.client.ClientResponse.Status
+import scala.collection.JavaConversions._
 
 import org.junit.runner.RunWith
-import org.midonet.packets.IPv4Addr
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
-import org.midonet.cluster.rest_api.neutron.models.{GatewayDevice, Neutron}
-import org.midonet.cluster.rest_api.rest_api.FuncJerseyTest
-import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.rest_api.neutron.models.GatewayDevice
+import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class TestGatewayDevice extends FeatureSpec
-        with Matchers
-        with BeforeAndAfter {
-
-    private var gatewayDeviceResource: WebResource = _
-
-    var jerseyTest: FuncJerseyTest = _
-
-    before {
-        jerseyTest = new FuncJerseyTest
-        jerseyTest.setUp()
-        gatewayDeviceResource = jerseyTest.resource().path("/neutron/gateway_devices")
-    }
-
-    after {
-        jerseyTest.tearDown()
-    }
+class TestGatewayDevice extends NeutronApiTest {
 
     scenario("Neutron has L2 Gateway Connection") {
-
-        val neutron = jerseyTest.resource().path("/neutron")
-            .accept(NEUTRON_JSON_V3)
-            .get(classOf[Neutron])
+        val neutron = getNeutron
         neutron.l2GatewayConns shouldNot be(null)
         neutron.l2GatewayConnTemplate shouldNot be(null)
     }
@@ -62,24 +38,13 @@ class TestGatewayDevice extends FeatureSpec
     scenario("Create, Read, Delete") {
         val gatewayDevice = new GatewayDevice()
         gatewayDevice.id = UUID.randomUUID
-        gatewayDevice.tunnelIps = new util.ArrayList()
-        gatewayDevice.remoteMacEntries = new util.ArrayList()
+        gatewayDevice.tunnelIps = List(IPv4Addr.fromString("30.0.0.1"))
         gatewayDevice.managementIp = IPv4Addr.fromString("1.1.1.1")
 
-        val response = gatewayDeviceResource.`type`(NEUTRON_GATEWAY_DEVICE_JSON_V1)
-            .post(classOf[ClientResponse], gatewayDevice)
-        response.getStatus shouldBe Status.CREATED.getStatusCode
+        val gatewayDeviceUri = postAndVerifySuccess(gatewayDevice)
 
-        val createdUri = response.getLocation
+        get[GatewayDevice](gatewayDeviceUri) shouldBe gatewayDevice
 
-        val respDto = gatewayDeviceResource.uri(createdUri)
-            .accept(NEUTRON_GATEWAY_DEVICE_JSON_V1)
-            .get(classOf[GatewayDevice])
-        respDto shouldBe gatewayDevice
-
-        val response2 = gatewayDeviceResource.uri(createdUri)
-            .delete(classOf[ClientResponse])
-        response2.getStatusInfo
-            .getStatusCode shouldBe Status.NO_CONTENT.getStatusCode
+        deleteAndVerifyNoContent(gatewayDeviceUri)
     }
 }

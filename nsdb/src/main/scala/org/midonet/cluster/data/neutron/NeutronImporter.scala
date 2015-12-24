@@ -69,16 +69,22 @@ object NeutronResourceType extends Enumeration {
     val Firewall = NeutronResourceType("FIREWALL", classOf[NeutronFirewall])
     val FloatingIp = NeutronResourceType("FLOATINGIP",
                                          classOf[Neutron.FloatingIp])
+    val GatewayDevice = NeutronResourceType("GATEWAYDEVICE",
+                                            classOf[Neutron.GatewayDevice])
     val HealthMonitor = NeutronResourceType(
             "HEALTHMONITOR", classOf[Neutron.NeutronHealthMonitor])
     val IPSecSiteConnection =
         NeutronResourceType("IPSECSITECON", classOf[IPSecSiteConnection])
+    val L2GatewayConnection = NeutronResourceType("L2GATEWAYCONNECTION",
+                                                  classOf[L2GatewayConnection])
     val Network = NeutronResourceType("NETWORK", classOf[NeutronNetwork])
     val Pool = NeutronResourceType("POOL", classOf[NeutronLoadBalancerPool])
     val PoolMember = NeutronResourceType("MEMBER",
                                          classOf[NeutronLoadBalancerPoolMember])
     val Port = NeutronResourceType("PORT", classOf[NeutronPort])
     val PortBinding = NeutronResourceType("PORTBINDING", classOf[PortBinding])
+    val RemoteMacEntry = NeutronResourceType("REMOTEMACENTRY",
+                                             classOf[RemoteMacEntry])
     val Router = NeutronResourceType("ROUTER", classOf[NeutronRouter])
     val RouterInterface = NeutronResourceType("ROUTERINTERFACE",
                                               classOf[NeutronRouterInterface])
@@ -96,13 +102,16 @@ object NeutronResourceType extends Enumeration {
         Config.id -> Config,
         Firewall.id -> Firewall,
         FloatingIp.id -> FloatingIp,
+        GatewayDevice.id -> GatewayDevice,
         HealthMonitor.id -> HealthMonitor,
         IPSecSiteConnection.id -> IPSecSiteConnection,
+        L2GatewayConnection.id -> L2GatewayConnection,
         Network.id -> Network,
         Pool.id -> Pool,
         PoolMember.id -> PoolMember,
         Port.id -> Port,
         PortBinding.id -> PortBinding,
+        RemoteMacEntry.id -> RemoteMacEntry,
         Router.id -> Router,
         RouterInterface.id -> RouterInterface,
         SecurityGroup.id -> SecurityGroup,

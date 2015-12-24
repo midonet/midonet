@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.c3poNeutronDeserializerLog
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Neutron.L2Gateway.L2GatewayDevice
 import org.midonet.cluster.models.Neutron.{SecurityGroupRule => NeutronSecurityGroupRule, _}
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
@@ -131,6 +132,10 @@ object NeutronDeserializer {
                 toMessage(node, classOf[IPSecSiteConnection.IPSecPolicy])
             case "org.midonet.cluster.models.IPSubnet" =>
                 parseIpSubnet(node.asText)
+            case "org.midonet.cluster.models.L2Gateway" =>
+                toMessage(node, classOf[L2Gateway])
+            case "org.midonet.cluster.models.L2Gateway.L2GatewayDevice" =>
+                toMessage(node, classOf[L2GatewayDevice])
             case "org.midonet.cluster.models.NeutronFirewallRule" =>
                 toMessage(node, classOf[NeutronFirewallRule])
             case "org.midonet.cluster.models.NeutronHealthMonitor.Pool" =>
