@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_e9c7d962",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/L2GatewayDevice.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-24T08:35:31Z",
+      "side": 1,
+      "message": "Doesn\u0027t really matter, but this should be camel case, too. I\u0027ll fix it in my patch.",
+      "range": {
+        "startLine": 64,
+        "startChar": 18,
+        "endLine": 64,
+        "endChar": 27
+      },
+      "revId": "ac37dac34dbda2d1b5d1fb09482584841c4e131f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_49a625c3",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/neutron/TestGatewayDevice.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-24T08:35:31Z",
+      "side": 1,
+      "message": "Should this actually check the values?",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 56
+      },
+      "revId": "ac37dac34dbda2d1b5d1fb09482584841c4e131f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_099c1d69",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/rest_api/neutron/TestGatewayDevice.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-24T08:35:31Z",
+      "side": 1,
+      "message": "Ideally this would also create a second device and list them, but it\u0027s not necessary for this patch.",
+      "revId": "ac37dac34dbda2d1b5d1fb09482584841c4e131f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
