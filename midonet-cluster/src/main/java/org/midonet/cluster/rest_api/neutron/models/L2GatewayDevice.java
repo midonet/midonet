@@ -29,8 +29,9 @@ import org.midonet.cluster.models.Neutron;
 @ZoomClass(clazz = Neutron.L2Gateway.L2GatewayDevice.class)
 public class L2GatewayDevice extends ZoomObject {
 
-    @ZoomField(name = "device")
-    public GatewayDevice device;
+    @JsonProperty("device_id")
+    @ZoomField(name = "device_id")
+    public UUID deviceId;
 
     @JsonProperty("segmentation_id")
     @ZoomField(name = "segmentation_id")
@@ -47,20 +48,20 @@ public class L2GatewayDevice extends ZoomObject {
 
         L2GatewayDevice that = (L2GatewayDevice) o;
 
-        return Objects.equal(device, that.device) &&
+        return Objects.equal(deviceId, that.deviceId) &&
                Objects.equal(segmentationId, that.segmentationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(device, segmentationId);
+        return Objects.hashCode(deviceId, segmentationId);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
             .omitNullValues()
-            .add("device", device)
+            .add("device_id", deviceId)
             .add("segmentationId", segmentationId)
             .toString();
     }

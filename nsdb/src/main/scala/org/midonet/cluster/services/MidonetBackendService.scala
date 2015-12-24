@@ -17,6 +17,7 @@ package org.midonet.cluster.services
 
 import java.util.UUID
 
+
 import scala.util.control.NonFatal
 
 import com.codahale.metrics.MetricRegistry
@@ -74,6 +75,7 @@ object MidonetBackend {
              classOf[Dhcp],
              classOf[DhcpV6],
              classOf[FloatingIp],
+             classOf[GatewayDevice],
              classOf[HealthMonitor],
              classOf[Host],
              classOf[HostGroup],

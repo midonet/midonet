@@ -96,6 +96,12 @@ public class Neutron {
     @JsonProperty("l2_gateway_connection_template")
     public String l2GatewayConnTemplate;
 
+    @JsonProperty("gateway_devices")
+    public URI gatewayDevices;
+
+    @JsonProperty("gateway_device_template")
+    public String gatewayDeviceTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -139,7 +145,9 @@ public class Neutron {
                && Objects.equal(ipsecSiteConnectionTemplate,
                                 other.ipsecSiteConnectionTemplate)
                && Objects.equal(l2GatewayConns, other.l2GatewayConns)
-               && Objects.equal(l2GatewayConnTemplate, other.l2GatewayConnTemplate);
+               && Objects.equal(l2GatewayConnTemplate, other.l2GatewayConnTemplate)
+               && Objects.equal(gatewayDevices, other.gatewayDevices)
+               && Objects.equal(gatewayDeviceTemplate, other.gatewayDeviceTemplate);
     }
 
     @Override
@@ -155,7 +163,8 @@ public class Neutron {
                                 vpnServices, vpnServiceTemplate,
                                 ipsecSiteConnections,
                                 ipsecSiteConnectionTemplate,
-                                l2GatewayConns, l2GatewayConnTemplate);
+                                l2GatewayConns, l2GatewayConnTemplate,
+                                gatewayDevices, gatewayDeviceTemplate);
     }
 
     @Override

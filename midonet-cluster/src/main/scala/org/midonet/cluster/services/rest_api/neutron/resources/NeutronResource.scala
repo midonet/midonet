@@ -18,7 +18,7 @@ package org.midonet.cluster.services.rest_api.neutron.resources
 
 import java.net.URI
 
-import javax.ws.rs.core.{UriBuilder, UriInfo}
+import javax.ws.rs.core.UriInfo
 import javax.ws.rs.{GET, Path, Produces}
 
 import com.google.inject.Inject
@@ -79,6 +79,10 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
     def l2GatewayConnResource: L2GatewayConnectionResource =
         new L2GatewayConnectionResource(uriInfo, api)
 
+    @Path("gateway_devices")
+    def gatewayDeviceResource: GatewayDeviceResource =
+        new GatewayDeviceResource(uriInfo, api)
+
     @GET
     @Produces(Array(MidonetMediaTypes.NEUTRON_JSON_V3)) def get: Neutron = {
         val neutron: Neutron = new Neutron
@@ -113,6 +117,8 @@ class NeutronResource @Inject() (uriInfo: UriInfo,
             getIpsecSiteConnectionTemplate(baseUri)
         neutron.l2GatewayConns = getL2GatewayConns(baseUri)
         neutron.l2GatewayConnTemplate = getL2GatewayConnTemplate(baseUri)
+        neutron.gatewayDevices = getGatewayDevices(baseUri)
+        neutron.gatewayDeviceTemplate = getGatewayDeviceTemplate(baseUri)
         neutron
     }
 }

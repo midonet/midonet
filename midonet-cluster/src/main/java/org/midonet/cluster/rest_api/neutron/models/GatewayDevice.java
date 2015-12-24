@@ -24,6 +24,7 @@ import com.google.common.base.Objects;
 
 import org.midonet.cluster.data.*;
 import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.util.collection.ListUtil;
 
@@ -48,7 +49,8 @@ public class GatewayDevice extends ZoomObject {
     public List<IPv4Addr> tunnelIps;
 
     @JsonProperty("management_ip")
-    @ZoomField(name = "management_ip")
+    @ZoomField(name = "management_ip",
+               converter = IPAddressUtil.Converter.class)
     public IPv4Addr managementIp;
 
     @JsonProperty("management_port")

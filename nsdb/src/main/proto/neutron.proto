@@ -485,7 +485,7 @@ message GatewayDevice {
 
 message L2Gateway {
     message L2GatewayDevice {
-        optional GatewayDevice device = 1;
+        optional UUID device_id = 1;
         optional uint32 segmentation_id = 2;
     }
 
