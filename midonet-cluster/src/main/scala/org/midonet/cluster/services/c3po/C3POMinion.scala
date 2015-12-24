@@ -191,6 +191,7 @@ object C3POMinion {
         val dataMgr = new C3POStorageManager(storage)
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
              classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
+             classOf[GatewayDevice] -> new GatewayDeviceTranslator(storage),
              classOf[IPSecSiteConnection] ->
                  new IPSecSiteConnectionTranslator(storage),
              classOf[L2GatewayConnection] -> new L2GatewayConnectionTranslator(storage),
