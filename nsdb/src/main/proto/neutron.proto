@@ -455,3 +455,50 @@ message IPSecSiteConnection {
     }
 }
 
+message RemoteMacEntry {
+    optional UUID id = 1;
+    optional string mac_address = 2;
+    optional IPAddress vtep_address = 3;
+    optional uint32 segmentation_id = 4;
+}
+
+message GatewayDevice {
+
+    enum GatewayType {
+        ROUTER_VTEP = 1;
+        HW_VTEP = 2;
+    }
+
+    enum GatewayDeviceProtocol {
+        OVSDB = 1;
+    }
+
+    optional UUID id = 1;
+    optional GatewayType type = 2;
+    optional UUID resource_id = 3;
+    repeated IPAddress tunnel_ips = 4;
+    optional IPAddress management_ip = 5;
+    optional uint32 management_port = 6;
+    optional GatewayDeviceProtocol management_protocol = 7;
+    repeated RemoteMacEntry remote_mac_entries= 8;
+}
+
+message L2Gateway {
+    message L2GatewayDevice {
+        optional GatewayDevice device = 1;
+        optional uint32 segmentation_id = 2;
+    }
+
+    optional UUID id = 1;
+    optional string name = 2;
+    optional string tenant_id = 3;
+    repeated L2GatewayDevice devices = 4;
+}
+
+message L2GatewayConnection {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional UUID network_id = 3;
+    optional uint32 segmentation_id = 4;
+    optional L2Gateway l2_gateway = 5;
+}
