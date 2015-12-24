@@ -30,7 +30,7 @@ import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.{StateTableStorage, StateStorage, Storage}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.c3po.C3POStorageManager._
 import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
@@ -68,6 +68,7 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
     private val pathManager = new PathBuilder(backendCfg.rootKey)
     private val seqDispenser = new SequenceDispenser(curator, backendCfg)
     private val dataMgr = C3POMinion.initDataManager(backend.store,
+                                                     backend.stateTableStore,
                                                      seqDispenser,
                                                      pathManager)
 
@@ -188,15 +189,18 @@ object C3POMinion {
     }
 
     def initDataManager(storage: Storage,
+                        stateTableStorage: StateTableStorage,
                         seqDispenser: SequenceDispenser,
                         pathBldr: PathBuilder): C3POStorageManager = {
         val dataMgr = new C3POStorageManager(storage)
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
              classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
-             classOf[GatewayDevice] -> new GatewayDeviceTranslator(storage),
+             classOf[GatewayDevice] ->
+                new GatewayDeviceTranslator(storage, stateTableStorage),
              classOf[IPSecSiteConnection] ->
-                 new IPSecSiteConnectionTranslator(storage),
-             classOf[L2GatewayConnection] -> new L2GatewayConnectionTranslator(storage),
+                new IPSecSiteConnectionTranslator(storage),
+             classOf[L2GatewayConnection] ->
+                new L2GatewayConnectionTranslator(storage, stateTableStorage),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronFirewall] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->
@@ -215,7 +219,8 @@ object C3POMinion {
                                                         seqDispenser),
              classOf[NeutronVIP] -> new VipTranslator(storage, pathBldr),
              classOf[PortBinding] -> new PortBindingTranslator(storage),
-             classOf[RemoteMacEntry] -> new RemoteMacEntryTranslator(storage),
+             classOf[RemoteMacEntry] ->
+                new RemoteMacEntryTranslator(storage, stateTableStorage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
              classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage),
              classOf[VpnService] -> new VpnServiceTranslator(storage, seqDispenser)
