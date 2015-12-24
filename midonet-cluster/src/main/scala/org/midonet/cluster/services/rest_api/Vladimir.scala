@@ -99,6 +99,7 @@ object Vladimir {
                 None))
             bind(classOf[C3POStorageManager])
                 .toInstance(C3POMinion.initDataManager(backend.store,
+                                                       backend.stateTableStore,
                                                        sequenceDispenser,
                                                        paths))
             bind(classOf[ResourceProvider]).toInstance(resProvider)
