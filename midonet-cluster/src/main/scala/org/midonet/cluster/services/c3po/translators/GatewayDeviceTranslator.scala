@@ -20,21 +20,19 @@ import java.nio.ByteBuffer
 import java.util.{UUID => JUUID}
 
 import scala.collection.mutable
-import scala.util.control.NonFatal
 
-import org.midonet.cluster.data.storage.{NotFoundException, StateTableStorage, ReadOnlyStorage}
+import org.midonet.cluster.data.storage.{StateTableStorage, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{RemoteMacEntry, GatewayDevice}
 import org.midonet.cluster.models.Neutron.GatewayDevice.GatewayType.ROUTER_VTEP
 import org.midonet.cluster.models.Topology.Port
 import scala.collection.JavaConversions._
-import org.midonet.cluster.storage.Ip4MacStateTable
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Delete, Create}
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.packets.MAC
 import org.midonet.util.concurrent.toFutureOps
 
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}

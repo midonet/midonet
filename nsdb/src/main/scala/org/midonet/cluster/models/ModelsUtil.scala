@@ -16,8 +16,8 @@
 
 package org.midonet.cluster.models
 
-import org.midonet.cluster.models.Neutron.{AgentMembership, FloatingIp, NeutronConfig, NeutronHealthMonitor, NeutronLoadBalancerPool, NeutronLoadBalancerPoolMember, NeutronNetwork, NeutronPort, NeutronRoute, NeutronRouter, NeutronRouterInterface, NeutronSubnet, NeutronVIP, PortBinding, SecurityGroup, SecurityGroupRule}
-import org.midonet.cluster.models.Topology.{Chain, Dhcp, HealthMonitor, Host, IPAddrGroup, LoadBalancer, Network, Pool, PoolMember, Port, PortGroup, Route, Router, Rule, TunnelZone, Vip, Vtep}
+import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.ProtobufUtil.protoFromTxt
 
 /**
@@ -139,4 +139,10 @@ object ModelsUtil {
 
      def mHostFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Host.newBuilder).asInstanceOf[Host]
+
+     def gatewayDeviceFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, GatewayDevice.newBuilder).asInstanceOf[GatewayDevice]
+
+     def l2GatewayConnectionFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, L2GatewayConnection.newBuilder).asInstanceOf[L2GatewayConnection]
 }

@@ -20,7 +20,7 @@ import scala.concurrent.Promise
 import org.mockito.Mockito.{mock, when}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
+import org.midonet.cluster.data.storage.{StateTableStorage, NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
@@ -37,6 +37,7 @@ abstract class TranslatorTestBase  extends FlatSpec
     /* Each implementing unit test class initializes the (mock) storage by
      * calling initMockStorage() below. */
     protected var storage: ReadOnlyStorage = _
+    protected var stateTableStorage: StateTableStorage = _
 
     // For testing CRUD on the old ZK data structure (e.g. ARP table)
     private val zkRoot = "/test"
@@ -44,6 +45,7 @@ abstract class TranslatorTestBase  extends FlatSpec
 
     protected def initMockStorage() {
         storage = mock(classOf[ReadOnlyStorage])
+        stateTableStorage = mock(classOf[StateTableStorage])
     }
 
     /* Mock exists and get on an instance of M with an ID, "id". */
