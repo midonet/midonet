@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_389be8ca",
+        "filename": "midonet-cluster/src/main/java/org/midonet/cluster/rest_api/neutron/models/RemoteMacEntry.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-25T11:06:33Z",
+      "side": 1,
+      "message": "There is no tenant_id in remote mac entry.  Can you remove this?",
+      "revId": "d6caa8d3ce5d1afe57fb8aa3106d0d960ce44a17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_78a57003",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/L2GatewayConnectionApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-25T11:06:33Z",
+      "side": 1,
+      "message": "Unnecessary",
+      "revId": "d6caa8d3ce5d1afe57fb8aa3106d0d960ce44a17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_58a0acf4",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/L2GatewayConnectionApi.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-25T11:06:33Z",
+      "side": 1,
+      "message": "Unnecessary",
+      "revId": "d6caa8d3ce5d1afe57fb8aa3106d0d960ce44a17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_98aa14d3",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-25T11:06:33Z",
+      "side": 1,
+      "message": "remove tenant_id",
+      "revId": "d6caa8d3ce5d1afe57fb8aa3106d0d960ce44a17",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
