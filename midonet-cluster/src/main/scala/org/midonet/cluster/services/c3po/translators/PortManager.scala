@@ -171,6 +171,8 @@ object PortManager {
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_GATEWAY
     def isVipPort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.LOADBALANCER
+    def isRemoteSitePort(nPort: NeutronPortOrBuilder) =
+        nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.REMOTE_SITE
 
     /** ID of Router Interface port peer. */
     def routerInterfacePortPeerId(portId: UUID): UUID =
@@ -180,4 +182,8 @@ object PortManager {
       * port groups. */
     def portGroupId(deviceId: UUID): UUID =
         deviceId.xorWith(0x3fb30e769f5041f1L, 0xa50c3c4fb09a6a18L)
+
+    /* ID of VTEP router peer port */
+    def vtepRouterPeerPort(networkId: UUID): UUID =
+        networkId.xorWith(0x473d2856aade11e5L, 0x98cd0242ac110001L)
 }
