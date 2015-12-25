@@ -75,13 +75,31 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         if (isVipPort(nPort) || isFloatingIpPort(nPort) ||
             isOnUplinkNetwork(nPort)) return List()
 
+        // Treat the remote port specially since we do not create a midonet
+        // port for it, but still need to seed ARP and MAC tables
+        val midoOps = new OperationListBuffer
+        if (isRemoteSitePort(nPort)) {
+            // Create an ARP seeding.  There should also be only one address.
+            val fixedIp = nPort.getFixedIps(0).getIpAddress.getAddress
+            midoOps += CreateNode(
+                arpEntryPath(nPort.getNetworkId, fixedIp, nPort.getMacAddress))
+
+            // Create a MAC table seeding so that the VTEP router handles
+            // traffic to this port.  This port can only be created if the
+            // VTEP router exists.
+            val mPortId = vtepRouterPeerPort(nPort.getNetworkId)
+            midoOps += CreateNode(
+                macEntryPath(nPort.getNetworkId, nPort.getMacAddress, mPortId))
+
+            return midoOps.toList
+        }
+
         // All other ports have a corresponding Midonet network (bridge) port.
         val midoPortBldr = translateNeutronPort(nPort)
 
         assignTunnelKey(midoPortBldr, sequenceDispenser)
 
         val portId = nPort.getId
-        val midoOps = new OperationListBuffer
         val portContext = initPortContext
         if (isVifPort(nPort)) {
             // Generate in/outbound chain IDs from Port ID.
@@ -138,6 +156,16 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             } else {
                 return List()
             }
+        }
+
+        // No correspondig Midonet port for the remote site port.
+        if (isRemoteSitePort(nPort)) {
+            // Remove the ARP and MAC seedings
+            midoOps ++= deleteArpEntry(nPort)
+            val mPortId = vtepRouterPeerPort(nPort.getNetworkId)
+            midoOps += DeleteNode(
+                macEntryPath(nPort.getNetworkId, nPort.getMacAddress, mPortId))
+            return midoOps.toList
         }
 
         midoOps += Delete(classOf[Port], id)

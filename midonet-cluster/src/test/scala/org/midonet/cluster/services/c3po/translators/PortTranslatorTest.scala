@@ -1436,3 +1436,49 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
         midoOps should contain (DeleteOp(classOf[Port], portId))
     }
 }
+
+@RunWith(classOf[JUnitRunner])
+class RemotePortTranslationTest extends PortTranslatorTest {
+
+    val remotePort = nPortFromTxt(s"""
+        $portBaseUp
+        device_owner: REMOTE_SITE
+        fixed_ips {
+          ip_address {
+            version: V4
+            address: '$ipv4Addr1Txt'
+          }
+          subnet_id { $nIpv4Subnet1Id }
+        }
+        """)
+
+    protected val remotePortArpEntryPath = arpEntryPath(
+        networkId, ipv4Addr1Txt, mac)
+    protected val remotePortMacEntryPath = macEntryPath(
+        networkId, mac, PortManager.vtepRouterPeerPort(networkId))
+
+    before {
+        initMockStorage()
+        bind(networkId, nNetworkBase)
+        bind(portId, remotePort)
+        translator = new PortTranslator(storage, pathBldr, seqDispenser)
+    }
+
+    "Remote port CREATE" should "only add ARP and MAC seedings" in {
+        val midoOps = translator.translate(CreateOp(remotePort))
+
+        midoOps should have size 2
+        midoOps should contain (CreateNode(remotePortArpEntryPath))
+        midoOps should contain (CreateNode(remotePortMacEntryPath))
+    }
+
+    "Remote port DELETE" should "remote ARP and MAC seedigns" in {
+        val midoOps = translator.translate(
+            DeleteOp(classOf[NeutronPort], portId))
+
+        midoOps should have size 2
+        midoOps should contain (DeleteNode(remotePortArpEntryPath))
+        midoOps should contain (DeleteNode(remotePortMacEntryPath))
+    }
+
+}
