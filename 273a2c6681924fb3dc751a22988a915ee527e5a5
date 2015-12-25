@@ -19,6 +19,23 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_04efa4b1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/GatewayDeviceTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-25T00:35:28Z",
+      "side": 1,
+      "message": "Turns out that this is unnecessary.  You cannot create a gateway device with remote mac tables.  You can only insert it one at a time.  So let\u0027s just create a port.\n\nTo not waste this code, we could just define a new model for remote mac with the following fields:\n\nid,  (unique ID)\ndevice_id, (gw_device ID)\nmac_address,\nvtep_address, (IP addr)\nsegmentation_id\n\nand implement create/delete API (delete is with the \u0027id\u0027 field). But we can put that in separately.",
+      "revId": "273a2c6681924fb3dc751a22988a915ee527e5a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_04e4043a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/GatewayDeviceTranslator.scala",
         "patchSetId": 1
