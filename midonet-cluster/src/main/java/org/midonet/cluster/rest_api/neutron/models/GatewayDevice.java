@@ -18,6 +18,7 @@ package org.midonet.cluster.rest_api.neutron.models;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -45,7 +46,8 @@ public class GatewayDevice extends ZoomObject {
     public UUID resourceId;
 
     @JsonProperty("tunnel_ips")
-    @ZoomField(name = "tunnel_ips")
+    @ZoomField(name = "tunnel_ips",
+               converter = IPAddressUtil.Converter.class)
     public List<IPv4Addr> tunnelIps;
 
     @JsonProperty("management_ip")
@@ -69,11 +71,29 @@ public class GatewayDevice extends ZoomObject {
     public enum GatewayType {
         @ZoomEnumValue("ROUTER_VTEP") ROUTER_VTEP,
         @ZoomEnumValue("HW_VTEP") HW_VTEP;
+
+        @JsonCreator
+        @SuppressWarnings("unused")
+        public static GatewayType forValue(String v) {
+            if (v == null) {
+                return null;
+            }
+            return valueOf(v.toUpperCase());
+        }
     }
 
     @ZoomEnum(clazz = Neutron.GatewayDevice.GatewayDeviceProtocol.class)
     public enum GatewayDeviceProtocol {
         @ZoomEnumValue("OVSDB") OVSDB;
+
+        @JsonCreator
+        @SuppressWarnings("unused")
+        public static GatewayDeviceProtocol forValue(String v) {
+            if (v == null) {
+                return null;
+            }
+            return valueOf(v.toUpperCase());
+        }
     }
 
     @Override
