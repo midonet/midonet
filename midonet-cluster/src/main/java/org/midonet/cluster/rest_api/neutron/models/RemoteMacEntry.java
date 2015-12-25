@@ -26,6 +26,9 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.MACUtil;
+import org.midonet.packets.MAC;
 
 @ZoomClass(clazz = Neutron.RemoteMacEntry.class)
 public class RemoteMacEntry extends ZoomObject {
@@ -33,13 +36,17 @@ public class RemoteMacEntry extends ZoomObject {
     @ZoomField(name = "id")
     public UUID id;
 
-    @JsonProperty("mac_address")
-    @ZoomField(name = "mac_address")
-    public String macAddress;
+    @JsonProperty("device_id")
+    @ZoomField(name = "device_id")
+    public UUID deviceId;
 
     @JsonProperty("vtep_address")
-    @ZoomField(name = "vtep_address")
+    @ZoomField(name = "vtep_address", converter = IPAddressUtil.Converter.class)
     public IPv4Addr vtepAddress;
+
+    @JsonProperty("mac_address")
+    @ZoomField(name = "mac_address", converter = MACUtil.Converter.class)
+    public MAC macAddress;
 
     @JsonProperty("segmentation_id")
     @ZoomField(name = "segmentation_id")
@@ -53,18 +60,17 @@ public class RemoteMacEntry extends ZoomObject {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         RemoteMacEntry that = (RemoteMacEntry) o;
-
         return Objects.equal(id, that.id) &&
-               Objects.equal(macAddress, that.macAddress) &&
+               Objects.equal(deviceId, that.deviceId) &&
                Objects.equal(vtepAddress, that.vtepAddress) &&
+               Objects.equal(macAddress, that.macAddress) &&
                Objects.equal(segmentationId, that.segmentationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, macAddress, vtepAddress, segmentationId);
+        return Objects.hashCode(id);
     }
 
     @Override
@@ -72,8 +78,9 @@ public class RemoteMacEntry extends ZoomObject {
         return MoreObjects.toStringHelper(this)
             .omitNullValues()
             .add("id", id)
-            .add("macAddress", macAddress)
+            .add("deviceId", deviceId)
             .add("vtepAddress", vtepAddress)
+            .add("macAddress", macAddress)
             .add("segmentationId", segmentationId)
             .toString();
     }

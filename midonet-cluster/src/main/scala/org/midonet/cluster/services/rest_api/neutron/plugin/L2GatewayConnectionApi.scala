@@ -20,7 +20,7 @@ import java.util
 import java.util.UUID
 
 import org.midonet.cluster.rest_api.neutron.models.L2GatewayConnection
-import org.midonet.cluster.rest_api.{NotFoundHttpException, ConflictHttpException}
+import org.midonet.cluster.rest_api.{ConflictHttpException, NotFoundHttpException}
 
 trait L2GatewayConnectionApi {
 

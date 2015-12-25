@@ -47,6 +47,7 @@ public class NeutronUriBuilder {
         "/ipsec_site_connections";
     public static final String L2_GATEWAY_CONNS= "/l2_gateway_connections";
     public static final String GATEWAY_DEVICES = "/gateway_devices";
+    public static final String REMOTE_MAC_ENTRIES = "/remote_mac_entries";
 
 
     public static URI getRoot(URI baseUri) {
@@ -312,5 +313,19 @@ public class NeutronUriBuilder {
 
     public static String getGatewayDeviceTemplate(URI baseUri) {
         return buildIdTemplateUri(getGatewayDevices(baseUri));
+    }
+
+    public static URI getRemoteMacEntries(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri))
+                .path(REMOTE_MAC_ENTRIES).build();
+    }
+
+    public static URI getRemoteMacEntry(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(getRemoteMacEntries(baseUri))
+                .path(id.toString()).build();
+    }
+
+    public static String getRemoteMacEntryTemplate(URI baseUri) {
+        return buildIdTemplateUri(getRemoteMacEntries(baseUri));
     }
 }

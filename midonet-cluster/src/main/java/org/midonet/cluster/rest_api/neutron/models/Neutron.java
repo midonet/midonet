@@ -102,6 +102,12 @@ public class Neutron {
     @JsonProperty("gateway_device_template")
     public String gatewayDeviceTemplate;
 
+    @JsonProperty("remote_mac_entries")
+    public URI remoteMacEntries;
+
+    @JsonProperty("remote_mac_entry_template")
+    public String remoteMacEntryTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -147,7 +153,9 @@ public class Neutron {
                && Objects.equal(l2GatewayConns, other.l2GatewayConns)
                && Objects.equal(l2GatewayConnTemplate, other.l2GatewayConnTemplate)
                && Objects.equal(gatewayDevices, other.gatewayDevices)
-               && Objects.equal(gatewayDeviceTemplate, other.gatewayDeviceTemplate);
+               && Objects.equal(gatewayDeviceTemplate, other.gatewayDeviceTemplate)
+               && Objects.equal(remoteMacEntries, other.remoteMacEntries)
+               && Objects.equal(remoteMacEntryTemplate, other.remoteMacEntryTemplate);
     }
 
     @Override
@@ -164,7 +172,8 @@ public class Neutron {
                                 ipsecSiteConnections,
                                 ipsecSiteConnectionTemplate,
                                 l2GatewayConns, l2GatewayConnTemplate,
-                                gatewayDevices, gatewayDeviceTemplate);
+                                gatewayDevices, gatewayDeviceTemplate,
+                                remoteMacEntries, remoteMacEntryTemplate);
     }
 
     @Override
@@ -194,9 +203,11 @@ public class Neutron {
             .add("vpnServices", vpnServices)
             .add("vpnServiceTemplate", vpnServiceTemplate)
             .add("ipsecSiteConnections", ipsecSiteConnections)
-            .add("ipsecSiteConnectionTemplate",
-                 ipsecSiteConnectionTemplate)
+            .add("ipsecSiteConnectionTemplate", ipsecSiteConnectionTemplate)
             .add("l2GatewayConns", l2GatewayConns)
-            .add("l2GatewayConnTemplate", l2GatewayConnTemplate).toString();
+            .add("l2GatewayConnTemplate", l2GatewayConnTemplate)
+            .add("remoteMacEntries", remoteMacEntries)
+            .add("remoteMacEntryTemplate", remoteMacEntryTemplate)
+            .toString();
     }
 }
