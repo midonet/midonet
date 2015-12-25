@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9aa7fdbe_04e2449f",
+        "filename": "python-midonetclient/src/bin/midonet-cli",
+        "patchSetId": 10
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-12-25T04:17:53Z",
+      "side": 1,
+      "message": "merge issues.",
+      "range": {
+        "startLine": 327,
+        "startChar": 0,
+        "endLine": 327,
+        "endChar": 7
+      },
+      "revId": "524d4a91a9cf7d728bd27115748a70a93da92285",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
