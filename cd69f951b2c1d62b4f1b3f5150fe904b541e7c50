@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_f8f16096",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-26T12:41:21Z",
+      "side": 1,
+      "message": "a thread assertion sounds good.",
+      "parentUuid": "9aa7fdbe_b87b5828",
+      "range": {
+        "startLine": 205,
+        "startChar": 12,
+        "endLine": 205,
+        "endChar": 27
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_045244dd",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 2
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_18ef04b2",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-26T12:41:21Z",
+      "side": 1,
+      "message": "Gc shouldn\u0027t be a concern here. We only really care about garbage in the fast path. For the frequency that this code path will be accessed, the GC overhead is unimportant. The Option will only ever live in the young generation too.",
+      "parentUuid": "9aa7fdbe_9887740f",
+      "range": {
+        "startLine": 315,
+        "startChar": 57,
+        "endLine": 315,
+        "endChar": 61
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_841474f6",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 2
@@ -131,6 +179,30 @@
       "side": 1,
       "message": "Removed.\n\nActually, I didn\u0027t realize that I have already solved this problem in a different way.\n\nThe problem here was not ensuring thread-safety between notifications, but rather the order of notification, for the updates that we emit in the `schedule` method (i.e. where we update the current host namespace). I wasn\u0027t sure how to use serialize here: ideally the combinelatest operator would have included a serialized observer inside it.\n\nThe patch already included the solution, which was to add a CurrentHostEvent in the output observable, which would be filtered and interpreted as changing the current host namespace, without injecting additional notifications during the combiner `schedule` method, which now doesn\u0027t perform any onNext for an observable that goes back as input to combine latest (one onNext call was removed because it was redundant).",
       "parentUuid": "9aa7fdbe_841474f6",
+      "range": {
+        "startLine": 354,
+        "startChar": 0,
+        "endLine": 354,
+        "endChar": 70
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_382be8ec",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-26T12:41:21Z",
+      "side": 1,
+      "message": "ok",
+      "parentUuid": "9aa7fdbe_7882d001",
       "range": {
         "startLine": 354,
         "startChar": 0,
