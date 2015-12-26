@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_b87b5828",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-26T00:13:48Z",
+      "side": 1,
+      "message": "Good catch.\n\nActually, this was maybe the only subject for which I missed to schedule the notifications on the context thread (see below line 225 - notifications arriving from storage need observeOn). And also it might need an additional observerOn because behavior subjects - if primed with a value - deliver their initial notification on the subscription thread.\n\nMaybe in the light of these would be good to add a thread assertion.",
+      "parentUuid": "9aa7fdbe_44636cb1",
+      "range": {
+        "startLine": 205,
+        "startChar": 12,
+        "endLine": 205,
+        "endChar": 27
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_045244dd",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9aa7fdbe_9887740f",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-26T00:13:48Z",
+      "side": 1,
+      "message": "Changed. I agree it\u0027s not obvious: however many times I get reviews saying that Option generate additional garbage.",
+      "parentUuid": "9aa7fdbe_045244dd",
+      "range": {
+        "startLine": 315,
+        "startChar": 57,
+        "endLine": 315,
+        "endChar": 61
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_841474f6",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2015-12-24T15:39:37Z",
       "side": 1,
       "message": "This is all to simulate having a non-reentrant lock around schedule? Isn\u0027t this what Observable#serialize is for?",
+      "range": {
+        "startLine": 354,
+        "startChar": 0,
+        "endLine": 354,
+        "endChar": 70
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_7882d001",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-26T00:13:48Z",
+      "side": 1,
+      "message": "Removed.\n\nActually, I didn\u0027t realize that I have already solved this problem in a different way.\n\nThe problem here was not ensuring thread-safety between notifications, but rather the order of notification, for the updates that we emit in the `schedule` method (i.e. where we update the current host namespace). I wasn\u0027t sure how to use serialize here: ideally the combinelatest operator would have included a serialized observer inside it.\n\nThe patch already included the solution, which was to add a CurrentHostEvent in the output observable, which would be filtered and interpreted as changing the current host namespace, without injecting additional notifications during the combiner `schedule` method, which now doesn\u0027t perform any onNext for an observable that goes back as input to combine latest (one onNext call was removed because it was redundant).",
+      "parentUuid": "9aa7fdbe_841474f6",
       "range": {
         "startLine": 354,
         "startChar": 0,
