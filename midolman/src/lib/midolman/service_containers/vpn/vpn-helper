@@ -93,7 +93,6 @@ makens() {
     ip netns exec $NAME ip address add $LOCAL_ENDPOINT_IP dev $NS
     ip netns exec $NAME ip address add $LOCAL_INTF_IP dev $NS
     ip netns exec $NAME ip link set up dev lo
-    ip netns exec $NAME ip route add default via $GATEWAY_IP dev $NS
     ip netns exec $NAME arp -s $GATEWAY_IP $GATEWAY_MAC
     set +e
 }
@@ -117,6 +116,20 @@ init_conns() {
         echo "no gateway ip specified (-g)"
         exit 1
     fi
+
+    # delete old routes for endpoints
+    for r in $(ip netns exec $NAME ip r | awk '/via/ { print $1 }'); do
+	ip netns exec $NAME ip r delete $r;
+    done
+    NS=${NAME}-ns
+    # add route for each remote endpoint and local subnet
+    for ENDPOINT in $(cat $CONF_FILE | awk -F= '/right=/  { print $2 }'); do
+        ip netns exec $NAME ip route add $ENDPOINT/32 via $GATEWAY_IP dev $NS
+    done
+    for SUBNET in $(cat $CONF_FILE | awk '/leftsubnets=/ { print $2 }'); do
+        ip netns exec $NAME ip route add $SUBNET via $GATEWAY_IP dev $NS
+    done
+
     set -e
     for ((i=0;i<$MAX_CONNS;i++)) do
         ip netns exec $NAME ipsec addconn --ctlbase ${PLUTO_DIR}.ctl \
