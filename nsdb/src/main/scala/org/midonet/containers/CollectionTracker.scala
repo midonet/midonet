@@ -53,7 +53,7 @@ import org.midonet.util.functors._
   * be scheduled on the same thread.
   */
 abstract class CollectionTracker[M <: ObjectTracker[ME], ME >: Null]
-                                (context: Context)(implicit tag: ClassTag[M])
+                                (context: Context)(implicit tag: ClassTag[ME])
     extends ObjectTracker[Map[UUID, ME]] {
 
     private val membersSubject = PublishSubject.create[Observable[ME]]
@@ -77,6 +77,11 @@ abstract class CollectionTracker[M <: ObjectTracker[ME], ME >: Null]
     override def isReady: Boolean = {
         members.values.forall(_.isReady)
     }
+
+    /**
+      * Returns the set of currently watched ids
+      */
+    def ids: Set[UUID] = members.keySet.toSet
 
     /** Adds a new member identifier to watch to the current collection. If
       * the identifier corresponds to an existing member, the method has no
@@ -157,6 +162,20 @@ abstract class CollectionTracker[M <: ObjectTracker[ME], ME >: Null]
       */
     private def buildEvent(): Map[UUID, ME] = {
         members.mapValues(_.last).toMap
+    }
+
+}
+
+/**
+  * Generic implementation for a simple collection tracker that monitor
+  * object from the store without any special handling.
+  */
+class CollectionStoreTracker[T >: Null](context: Context)
+                               (implicit ct: ClassTag[T])
+    extends CollectionTracker[ObjectStoreTracker[T], T](context: Context) {
+
+    protected override def newMember(uuid: UUID): ObjectStoreTracker[T] = {
+        new ObjectStoreTracker[T](uuid, context)
     }
 
 }
