@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a961159_6c14dbf5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ServiceScheduler.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-27T22:18:05Z",
+      "side": 1,
+      "message": "I guess we don\u0027t need to handle unsubscribe since this runs for the lifetime of the host.",
+      "revId": "a18e7e34e811489bacc5fbfb99ab11e983b94b94",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
