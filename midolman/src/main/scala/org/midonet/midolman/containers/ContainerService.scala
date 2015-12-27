@@ -23,6 +23,7 @@ import scala.async.Async.async
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 
 import com.google.common.annotations.VisibleForTesting
@@ -31,8 +32,8 @@ import com.google.common.util.concurrent.AbstractService
 import rx.schedulers.Schedulers
 import rx.{Observable, Subscriber, Subscription}
 
-import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus}
 import org.midonet.cluster.models.State.ContainerStatus.Code
+import org.midonet.cluster.models.State.{ContainerServiceStatus, ContainerStatus}
 import org.midonet.cluster.models.Topology.{Host, ServiceContainer}
 import org.midonet.cluster.services.MidonetBackend.{ContainerKey, StatusKey}
 import org.midonet.cluster.util.UUIDUtil._
@@ -113,20 +114,16 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     // the handler notification thread.
     private val handlers = new ConcurrentHashMap[UUID, Handler]
 
+    private val belt = new ConveyorBelt(Throwable => {})
+
     private val containerSubscriber = new Subscriber[Notification] {
         override def onNext(n: Notification): Unit = n match {
             case Created(cp) =>
-                tryOp(cp, errorStatus = true, s"Failed to create container $cp") {
-                    createContainer(cp)
-                }
+                createContainer(cp)
             case Changed(cp) =>
-                tryOp(cp, errorStatus = true, s"Failed to update container $cp") {
-                    updateContainer(cp)
-                }
+                updateContainer(cp)
             case Deleted(cp) =>
-                tryOp(cp, errorStatus = false, s"Failed to delete container $cp") {
-                    deleteContainer(cp)
-                }
+                deleteContainer(cp)
         }
 
         override def onError(e: Throwable): Unit = e match {
@@ -201,10 +198,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
             // Shutdown gracefully all containers
             val futures = for (handler <- handlers.values().asScala) yield async {
-                tryOp(handler.cp, errorStatus = false,
-                      s"Failed to delete container ${handler.cp}") {
-                    deleteContainer(handler.cp)
-                }
+                deleteContainer(handler.cp)
             }
             Future.sequence(futures)
                   .await(vt.config.containers.shutdownGraceTime seconds)
@@ -227,17 +221,21 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
         handlers.get(portId)
     }
 
-    private def tryOp(cp: ContainerPort, errorStatus: Boolean, message: => String)
-                     (f: => Unit): Unit = {
+    private def tryOp(f: => Future[_], cp: ContainerPort, errorStatus: Boolean,
+                      message: String): Future[_] = {
         try {
             f
         } catch {
             case NonFatal(e) =>
-                log.error(message, e)
-                if (errorStatus) {
-                    setStatus(cp, e)
-                }
+                handleContainerError(e, cp, errorStatus, message)
+                Future.failed(e)
         }
+    }
+
+    private def handleContainerError(t: Throwable, cp: ContainerPort,
+                                     errorStatus: Boolean, message: String): Unit = {
+        log.error(message, t)
+        if (errorStatus) setStatus(cp, t)
     }
 
     @throws[Throwable]
@@ -250,9 +248,16 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             case Handler(_,h,_,s) =>
                 log warn s"Unexpected running container $cp: deleting container"
                 s.unsubscribe()
-                tryOp(cp, errorStatus = false, s"Failed to delete container $cp") {
-                    h.delete().await(vt.config.containers.timeout seconds)
-                }
+                belt.handle(() => tryOp( {
+                    val future = h.delete()
+                    future.onComplete {
+                        case Failure(t) => handleContainerError(
+                            t, cp, errorStatus=false, s"Failed to delete container $cp")
+                        case Success(_) =>
+                            clearStatus(cp)
+                    }
+                    future
+                } , cp, errorStatus=false, s"Failed to delete container $cp"))
             case _ => // Normal case
         }
 
@@ -274,9 +279,18 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             // Call the handler create method to initialize the container. We
             // wait on the current thread for container to initialize such that
             // all container operations maintain the order.
-            val namespace = handler.create(cp)
-                                   .await(vt.config.containers.timeout seconds)
-            handlers.put(cp.portId, Handler(cp, handler, namespace, subscription))
+            belt.handle(() => tryOp ( {
+                val future = handler.create(cp)
+                future.onComplete {
+                    case Failure(t) =>
+                        handleContainerError(t, cp, errorStatus=true,
+                                             s"Failed to create container $cp")
+                    case Success(namespace: String) =>
+                        handlers.put(cp.portId,
+                                 Handler(cp, handler, namespace, subscription))
+                }
+                future
+            }, cp, errorStatus=true, s"Failed to create container $cp"))
         } catch {
             case NonFatal(e) =>
                 // If the container failed to initialize, remove its handler
@@ -297,7 +311,15 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
 
         handlers get cp.portId match {
             case Handler(_,handler,_,_) =>
-                handler.updated(cp).await(vt.config.containers.timeout seconds)
+                belt.handle(() => tryOp( {
+                    val future = handler.updated(cp)
+                    future.onComplete {
+                        case Failure(t) => handleContainerError(
+                            t, cp, errorStatus=true, s"Failed to update container $cp")
+                        case _ =>
+                    }
+                    future
+                } , cp, errorStatus=true, s"Failed to update container $cp"))
             case _ => log warn s"There is no container $cp"
         }
     }
@@ -310,14 +332,20 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
             case Handler(_,handler,_,subscription) =>
                 subscription.unsubscribe()
 
-                // Set the container status to starting.
+                // Set the container status to stopping.
                 setStatus(cp, Code.STOPPING, s"Container $cp stopping")
 
                 // Delete the container handler.
-                handler.delete().await(vt.config.containers.timeout seconds)
-
-                // Clear the container status.
-                clearStatus(cp)
+                belt.handle(() => tryOp( {
+                    val future = handler.delete()
+                    future.onComplete {
+                        case Failure(t) => handleContainerError(
+                            t, cp, errorStatus=false, s"Failed to delete container $cp")
+                        case Success(_) =>
+                            clearStatus(cp)
+                    }
+                    future
+                } , cp, errorStatus=false, s"Failed to delete container $cp"))
             case _ => log warn s"There is no container $cp"
         }
     }
