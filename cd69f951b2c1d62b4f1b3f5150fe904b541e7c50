@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "3a961159_8c71077a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-27T22:03:48Z",
+      "side": 1,
+      "message": "Could you rename these to DownState, UpState and ScheduledState to make the distinction between them and the events clearer.",
+      "range": {
+        "startLine": 64,
+        "startChar": 16,
+        "endLine": 64,
+        "endChar": 20
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_44636cb1",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 2
@@ -208,6 +231,53 @@
         "startChar": 0,
         "endLine": 354,
         "endChar": 70
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_6c5dbbe9",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-27T22:03:48Z",
+      "side": 1,
+      "message": "Actually, this CurrentHostEvent thing is weird. You\u0027re using a notification for control, and this is confusing.\n\nThe problem as I understand it, is that you don\u0027t want to call namespaceSubject onNext from schedule, because that could cause a cascade of actions that could eventually make another call to schedule, while there is still call call to schedule ongoing further up in the call stack. \n\nI agree that serialize with combine latest is onclear. Perhaps you could create a ScheduleContext(Boolean, Port,  HostsEvent, ServiceContainerGroup, ServiceContainer) type, which is emitted from schedule. Then you could have \ncombineLatest(a, b, c, d, buildContext).serialize().map(schedule) and CurrentHostEvent would not be needed.\n\nIs there a test case that triggers the problematic behaviour? I tried moving the onNext back into schedule and nothing failed.",
+      "parentUuid": "9aa7fdbe_382be8ec",
+      "range": {
+        "startLine": 354,
+        "startChar": 0,
+        "endLine": 354,
+        "endChar": 70
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_ac6ec394",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-27T22:03:48Z",
+      "side": 1,
+      "message": "retry and group are unused. I assume this is only because they are used trigger the action. \n\nAs such, you only need Port, HostsEvent and ServiceContainer in the ScheduleContext I mentioned above.",
+      "range": {
+        "startLine": 354,
+        "startChar": 24,
+        "endLine": 354,
+        "endChar": 29
       },
       "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
