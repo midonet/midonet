@@ -16,8 +16,14 @@
 
 package org.midonet.containers
 
+import java.util.UUID
+
+import scala.reflect.ClassTag
+
 import rx.Observable
 import rx.subjects.PublishSubject
+
+import org.midonet.util.functors.makeAction1
 
 /** Abstract object state class with boiler-plate members.
   */
@@ -45,4 +51,23 @@ abstract class ObjectTracker[T >: Null] {
       */
     final def complete(): Unit = mark.onCompleted()
 
+}
+
+/**
+  * Generic implementation to monitor a single object from store without any
+  * special handling. Mainly to be used as an object tracker by a
+  * CollectionTracker that doesn't need any special handling either.
+  */
+class ObjectStoreTracker[T >: Null](id: UUID, context: Context)
+                                    (implicit ct: ClassTag[T])
+    extends ObjectTracker[T] {
+
+    override val observable = context.store
+        .observable(ct.runtimeClass.asInstanceOf[Class[T]], id)
+        .observeOn(context.scheduler)
+        .doOnNext(makeAction1(ref = _))
+        .distinctUntilChanged()
+        .takeUntil(mark)
+
+    override def isReady = ref != null
 }
