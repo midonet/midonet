@@ -35,6 +35,13 @@ class GatewayDeviceUrlProviderMixin(url_provider.NeutronUrlProviderMixin):
     def gateway_devices_url(self):
         return self.neutron_resource_url("gateway_devices")
 
+    def remote_mac_entry_url(self, mac_entry_id):
+        return self.neutron_template_url("remote_mac_entry_template",
+                                         mac_entry_id)
+
+    def remote_mac_entries_url(self):
+        return self.neutron_resource_url("remote_mac_entries")
+
 
 class GatewayDeviceClientMixin(GatewayDeviceUrlProviderMixin):
     """Gateway Device operation mixin
@@ -52,3 +59,13 @@ class GatewayDeviceClientMixin(GatewayDeviceUrlProviderMixin):
     def delete_gateway_device(self, device_id):
         LOG.info("delete_gateway_device %r", device_id)
         self.client.delete(self.gateway_device_url(device_id))
+
+    def create_remote_mac_entry(self, mac_entry):
+        LOG.info("create_remote_mac_entry remote mac entry %r", mac_entry)
+        return self.client.post(self.remote_mac_entries_url(),
+                                media_type.REMOTE_MAC_ENTRY,
+                                body=mac_entry)
+
+    def delete_remote_mac_entry(self, mac_entry_id):
+        LOG.info("delete_remote_mac_entry remote mac entry %r", mac_entry_id)
+        self.client.delete(self.remote_mac_entry_url(mac_entry_id))
