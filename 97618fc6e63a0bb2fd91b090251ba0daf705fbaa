@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7a8c0949_8e401b37",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-27T15:54:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_434fe692",
+      "range": {
+        "startLine": 35,
+        "startChar": 19,
+        "endLine": 35,
+        "endChar": 24
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_633b0aec",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
         "patchSetId": 7
@@ -83,6 +107,30 @@
       "writtenOn": "2015-12-23T14:25:26Z",
       "side": 1,
       "message": "I don\u0027t see any way that the caller can see if the scheduling was successful or not.",
+      "range": {
+        "startLine": 47,
+        "startChar": 17,
+        "endLine": 47,
+        "endChar": 28
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_6c813b4a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-27T15:54:14Z",
+      "side": 1,
+      "message": "Throwing exception on failure",
+      "parentUuid": "9aa7fdbe_633b0aec",
       "range": {
         "startLine": 47,
         "startChar": 17,
@@ -118,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "3a961159_8c95878a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-27T15:54:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_e9c35936",
+      "range": {
+        "startLine": 49,
+        "startChar": 20,
+        "endLine": 49,
+        "endChar": 30
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_8340ee57",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
         "patchSetId": 7
@@ -129,6 +201,30 @@
       "writtenOn": "2015-12-23T14:25:26Z",
       "side": 1,
       "message": "error",
+      "range": {
+        "startLine": 56,
+        "startChar": 20,
+        "endLine": 56,
+        "endChar": 24
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a8c0949_ae3dd7bd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-27T15:54:14Z",
+      "side": 1,
+      "message": "Btw, do we need to check that the host belongs to a tunnel zone? I reckon the scheduling should be done regardless, isn\u0027t it?",
+      "parentUuid": "9aa7fdbe_8340ee57",
       "range": {
         "startLine": 56,
         "startChar": 20,
@@ -164,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "3a961159_ac92439d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-27T15:54:14Z",
+      "side": 1,
+      "message": "Done: I removed this check. Is this case likely? It would probably be the same port, isn\u0027t it?",
+      "parentUuid": "9aa7fdbe_c35af64f",
+      "range": {
+        "startLine": 65,
+        "startChar": 24,
+        "endLine": 65,
+        "endChar": 28
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_a35df24a",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
         "patchSetId": 7
@@ -181,6 +301,24 @@
     },
     {
       "key": {
+        "uuid": "3a961159_cc8f8f74",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-27T15:54:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_a35df24a",
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_a9c9515c",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
         "patchSetId": 7
@@ -192,6 +330,30 @@
       "writtenOn": "2015-12-24T09:06:32Z",
       "side": 1,
       "message": "Unscheduled",
+      "range": {
+        "startLine": 118,
+        "startChar": 20,
+        "endLine": 118,
+        "endChar": 32
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_ec8c4b82",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-27T15:54:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_a9c9515c",
       "range": {
         "startLine": 118,
         "startChar": 20,
@@ -227,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "3a961159_0ce9971a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-27T15:54:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_8349ce8d",
+      "range": {
+        "startLine": 138,
+        "startChar": 45,
+        "endLine": 138,
+        "endChar": 58
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_e32e1aa5",
         "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/IpsecContainerDelegateTest.scala",
         "patchSetId": 7
@@ -238,6 +424,30 @@
       "writtenOn": "2015-12-23T14:25:26Z",
       "side": 1,
       "message": "this should throw an exception. The port is created in translation, so if it doesn\u0027t exist someone has manually broken things.",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 45
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_2cee5323",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/IpsecContainerDelegateTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-27T15:54:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_e32e1aa5",
       "range": {
         "startLine": 94,
         "startChar": 0,
