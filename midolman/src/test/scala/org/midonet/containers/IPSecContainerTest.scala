@@ -20,7 +20,7 @@ import java.io.File
 import java.util.UUID
 import java.util.concurrent.ExecutorService
 
-import scala.util.{Success, Random}
+import scala.util.Random
 
 import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
@@ -33,9 +33,7 @@ import org.midonet.cluster.data.storage.CreateOp
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IPSecPolicy.{EncapsulationMode, TransformProtocol}
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.IkeVersion
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
-
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.topology.TopologyBuilder._
@@ -45,7 +43,7 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.containers.{ContainerHealth, ContainerPort}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.concurrent._
 
 
@@ -68,6 +66,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
     private val random = new Random
     private var vt: VirtualTopology = _
+    private val executor = new SameThreadButAfterExecutorService
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
@@ -483,7 +482,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn))
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             When("Calling the setup method")
             container.setup(conf)
@@ -522,7 +521,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn))
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             When("Calling the setup method should fail")
             container.failOn = 2
@@ -553,7 +552,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn))
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             When("Calling the setup method should fail")
             container.failOn = 3
@@ -588,7 +587,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn))
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             When("Calling the setup method should fail")
             container.failOn = 4
@@ -629,7 +628,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn))
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             When("Calling the setup method")
             container.setup(conf)
@@ -657,7 +656,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn))
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             And("An existing directory with a file")
             val directory = new File(vpn.filepath)
@@ -707,7 +706,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             And("A container port for the VPN service, with admin state DOWN")
             val cp = ContainerPort(portId = port.getId.asJava,
@@ -786,7 +785,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             And("A container port for the VPN service")
             val cp = ContainerPort(portId = port.getId.asJava,
@@ -847,12 +846,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vt.store.update(vpn.toBuilder.setAdminStateUp(false).build())
             vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
 
-            When("Calling the update method of the container")
-            val ns = container.updated(cp).await()
-
-            Then("The event is handled, but there is no namespace")
-            ns shouldBe None
-
             Then("The container is torn down")
             container.commands should have size 12
             container.commands(10) shouldBe
@@ -864,8 +857,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vt.store.update(vpn.toBuilder.setAdminStateUp(true).build())
             vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
 
-            And("Calling the update method on the container")
-            container.updated(cp).await()
             Then("The container should call the setup commands")
             container.commands should have size 16
             container.commands(12) shouldBe
@@ -903,7 +894,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-n ${port.getInterfaceName}"
         }
 
-        scenario("Container reconfigures the namespace on update, starting" +
+        scenario("Container reconfigures the namespace on update, starting " +
                  "as adminStateDown") {
 
             Given("A router with a port")
@@ -929,7 +920,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             And("A container port for the VPN service")
             val cp = ContainerPort(portId = port.getId.asJava,
@@ -957,9 +948,6 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             val path = s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
                                                  port.getPortSubnet.getPrefixLength)
-
-            When("Calling the update method of the container")
-            container.updated(cp).await()
 
             Then("The container should call the cleanup and setup commands")
             container.commands should have size 4
@@ -992,6 +980,102 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.commands should have size 6
         }
 
+        scenario("Container reconfigures the namespace on new ipsec connection") {
+            Given("A router with a port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        portAddress = IPv4Addr.random,
+                                        portMac = MAC.random(),
+                                        interfaceName = Some("if-eth"))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            And("A VPN configuration with one ipsec connection")
+            val vpn = createVpnService(
+                routerId = Some(router.getId.asJava),
+                externalIp = Some(port.getPortAddress.asIPv4Address))
+            val ike = createIkePolicy()
+            val ipsec = createIpsecPolicy()
+            val conn1 = createIpsecSiteConnection(
+                name = Some(random.nextString(10)),
+                localCidr = Some(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(ike),
+                ipsecPolicy = Some(ipsec),
+                vpnServiceId = Some(vpn.getId.asJava))
+            vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn1)))
+
+            And("A container")
+            val container = new TestIPSecContainter(vt, executor)
+
+            And("A container port for the VPN service")
+            val cp = ContainerPort(portId = port.getId.asJava,
+                                   hostId = null,
+                                   interfaceName = "if-vpn",
+                                   containerId = null,
+                                   serviceType = null,
+                                   groupId = null,
+                                   configurationId = router.getId.asJava)
+
+            When("Calling the create method of the container")
+            container.create(cp).await()
+
+            And("The container should call the setup commands")
+            val path =
+                s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
+            val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
+                                                 port.getPortSubnet.getPrefixLength)
+
+            container.commands should have size 4
+
+            When("Adding a new ipsec connection to the vpn service")
+            val conn2 = createIpsecSiteConnection(
+                name = Some(random.nextString(10)),
+                localCidr = Some(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(ike),
+                ipsecPolicy = Some(ipsec),
+                vpnServiceId = Some(vpn.getId.asJava))
+            vt.store.create(conn2)
+
+            Then("The container should call the cleanup and setup commands")
+            container.commands should have size 10
+
+            container.commands(4) shouldBe
+                s"/usr/lib/midolman/vpn-helper stop_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+            container.commands(5) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+            container.commands(6) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+            container.commands(7) shouldBe
+                s"/usr/lib/midolman/vpn-helper makens " +
+                s"-n ${port.getInterfaceName} " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-G ${port.getPortMac} " +
+                s"-l ${port.getPortAddress.asIPv4Address} " +
+                s"-i $namespaceSubnet " +
+                s"-m ${port.getPortMac}"
+            container.commands(8) shouldBe
+                s"/usr/lib/midolman/vpn-helper start_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+            container.commands(9) shouldBe
+                s"/usr/lib/midolman/vpn-helper init_conns " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-c ${conn1.getName} " +
+                s"-c ${conn2.getName}"
+
+            When("Calling the delete method of the container")
+            container.delete().await()
+
+            Then("The container should call the cleanup commands")
+            container.commands should have size 12
+        }
+
         scenario("Container should fail if router has no external port") {
             Given("A router with a port")
             val router = createRouter()
@@ -1013,7 +1097,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             And("A container port for the VPN service")
             val cp = ContainerPort(portId = port.getId.asJava,
@@ -1035,7 +1119,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
 
         scenario("Container should ignore delete if not started") {
             Given("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             Then("Calling the delete method of the container should succeed")
             container.delete().await()
@@ -1066,7 +1150,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             And("A container port for the VPN service")
             val cp = ContainerPort(portId = port.getId.asJava,
@@ -1113,7 +1197,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
 
             And("A container")
-            val container = new TestIPSecContainter(vt, null)
+            val container = new TestIPSecContainter(vt, executor)
 
             And("A container port for the VPN service")
             val cp = ContainerPort(portId = port.getId.asJava,
