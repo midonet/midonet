@@ -414,10 +414,10 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap)
 
         // Get node operations: the iterator produces them in breadth-first
         // order. The toList call is needed to make collect preserve the
-        // breadth-first order. Then, the delete operations need are sorted such
-        // that children are deleted before their parents. Simply reversing them
-        // should do this, since they were already in top-down breadth-first
-        // order.
+        // breadth-first order. Then, the delete operations need to be sorted
+        // such that children are deleted before their parents. Simply reversing
+        // them should do this, since they were already in top-down
+        // breadth-first order.
         val (delOps, otherOps) = nodeOps.toList.collect {
             // TxNodeExists doesn't correspond to a real operation.
             case (path, op) if op != TxNodeExists =>
