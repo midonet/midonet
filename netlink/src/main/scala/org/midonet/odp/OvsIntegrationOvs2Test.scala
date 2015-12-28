@@ -170,7 +170,7 @@ trait MegaFlowTest extends TapTrafficInjectBase {
         fmatch.getSrcPort
         val wildcardedPort = new Flow(fmatch)
 
-        def checkFlow(flow: Flow, packets: Seq[EthBuilder[Ethernet]], expected: Int) = {
+        def checkFlow(flow: Flow, packets: Seq[EthBuilder], expected: Int) = {
             val dpFlow = createWFlow(dpF, flow)
             packets foreach { packet => tapWrapper.send(packet.serialize) }
             Thread sleep 500

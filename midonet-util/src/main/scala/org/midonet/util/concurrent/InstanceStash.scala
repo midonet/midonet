@@ -47,7 +47,7 @@ sealed abstract class InstanceStash[T](factory: () => T) {
 
     final def leasedInstances = nextStorage.get
 
-    final protected def get(): T = {
+    final def get(): T = {
         val next = nextStorage.get()
         val pool = poolStorage.get()
         if (pool.size() <= next)

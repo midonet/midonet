@@ -32,12 +32,20 @@ import org.midonet.midolman.management.Metering
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.{NoOpPool, ArrayObjectPool}
 import org.midonet.util.concurrent.{DisruptorBackChannel, NanoClock}
 import org.midonet.util.concurrent.WakerUpper.Parkable
+import org.midonet.util.functors.Callback0
+
+object FlowController {
+    private val NO_CALLBACKS = new ArrayList[Callback0]()
+    private val NO_TAGS = new ArrayList[FlowTag]()
+}
 
 trait FlowController extends FlowIndexer with FlowTagIndexer
                      with FlowExpirationIndexer with DisruptorBackChannel { this: Actor =>
+    import FlowController._
 
     protected val config: MidolmanConfig
     protected val clock: NanoClock
@@ -64,16 +72,34 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         flowProcessor.capacity)
 
     def addFlow(context: PacketContext, expiration: Expiration): Unit = {
-        val flowMatch = context.origMatch
-        val callbacks = context.flowRemovedCallbacks
-        var flow = managedFlowPool.take
-        if (flow eq null)
-            flow = oversubscriptionManagedFlowPool.take
-        flow.reset(flowMatch, context.flowTags, callbacks, 0L, expiration, clock.tick)
+        val flow = takeFlow()
+        if (context.isRecirc) {
+            // Since linked flows are deleted later, and we have to delete
+            // the inner packets flow first, make that the main ManagedFlow
+            val outerFlow = takeFlow()
+            outerFlow.reset(
+                context.origMatch, NO_TAGS, NO_CALLBACKS, 0L, expiration, clock.tick)
+            flow.reset(
+                context.recircMatch, context.flowTags, context.flowRemovedCallbacks,
+                0L, expiration, clock.tick, outerFlow)
+        } else {
+            flow.reset(
+                context.origMatch, context.flowTags, context.flowRemovedCallbacks,
+                0L, expiration, clock.tick)
+        }
         registerFlow(flow)
         context.flow = flow
         context.log.debug(s"Added flow $flow")
     }
+
+    private def takeFlow() = {
+        val flow = managedFlowPool.take
+        if (flow ne null)
+            flow
+        else
+            oversubscriptionManagedFlowPool.take
+    }
+
 
     override def shouldProcess() = completedFlowOperations.size > 0
 
@@ -95,7 +121,12 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
             flow.callbacks.runAndClear()
             flow.removed = true
             removeFlowFromDatapath(flow)
-            metrics.dpFlowsRemovedMetric.mark()
+            var flowsRemoved = 1
+            if (flow.linkedFlow ne null) {
+                removeFlowFromDatapath(flow.linkedFlow)
+                flowsRemoved += 1
+            }
+            metrics.dpFlowsRemovedMetric.mark(flowsRemoved)
             flow.unref()
         }
 
