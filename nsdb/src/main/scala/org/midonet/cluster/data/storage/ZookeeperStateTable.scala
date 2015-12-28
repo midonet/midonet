@@ -41,6 +41,7 @@ import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWat
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.util.collection.PathMap
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
 
@@ -50,7 +51,7 @@ trait StateTablePaths extends StateTableStorage {
 
     override def tablePath(clazz: Class[_], id: ObjId, name: String,
                            args: Any*): String = {
-        tablePath(clazz, id, name, version.longValue(), args)
+        tablePath(clazz, id, name, version.longValue(), args:_*)
     }
 
     @inline
@@ -79,10 +80,14 @@ trait StateTablePaths extends StateTableStorage {
     @inline
     private[storage] def tablePath(clazz: Class[_], id: ObjId, name: String,
                                    version: Long, args: Any*): String = {
-        tableRootPath(clazz, id, name, version) + "/" +
-            StringUtils.join(args.asJava, '/')
+        val bldr = mutable.StringBuilder.newBuilder
+        bldr ++= tableRootPath(clazz, id, name, version)
+        for (arg <- args) {
+            bldr += '/'
+            bldr ++= arg.toString
+        }
+        bldr.toString()
     }
-
 }
 
 trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with Storage {
@@ -97,20 +102,34 @@ trait ZookeeperStateTable extends StateTableStorage with StateTablePaths with St
 
         protected def ops: mutable.LinkedHashMap[Key, TxOp]
 
+        protected def nodeOps: PathMap[TxNodeOp]
+
         /**
           * Returns the operations needed to create the state tables paths for
           * all new objects that have at least one table. These are added to
           * the same transaction that creates a new object.
           */
         protected def createStateTableOps: Seq[(Key, TxOp)] = {
+            def nodeExists(path: String) = nodeOps.get(path) match {
+                case Some(TxCreateNode(_)) => true
+                case Some(TxUpdateNode(_)) => true
+                case Some(TxNodeExists) => true
+                case _ => false
+            }
+
             val list = new ListBuffer[(Key, TxOp)]
             for ((Key(clazz, id), txOp) <- ops) txOp match {
                 case TxCreate(_) if tableInfo(clazz).tables.nonEmpty =>
-                    list += Key(null, tablesObjectPath(clazz, id, version)) ->
-                            TxCreateNode()
+                    val objPath = tablesObjectPath(clazz, id, version)
+                    if (!nodeExists(objPath)) {
+                        list += Key(null, objPath) -> TxCreateNode()
+                    }
+
                     for ((name, provider) <- tableInfo(clazz).tables) {
-                        list += Key(null, tableRootPath(clazz, id, name, version)) ->
-                                TxCreateNode()
+                        val tablePath = tableRootPath(clazz, id, name, version)
+                        if (!nodeExists(tablePath)) {
+                            list += Key(null, tablePath) -> TxCreateNode()
+                        }
                     }
                 case _ =>
             }
