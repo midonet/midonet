@@ -99,6 +99,8 @@ cobertura {
             '.*org.midonet.midolman.state.zkManagers.*',
             '.*org.midonet.cluster.LocalDataClientImpl.*',
             '.*org.midonet.cluster.services.heartbeat.*',
+            // Just case classes
+            '.*org.midonet.cluster.data.neutron.importer.package.*',
             // Cassandra is tested in Integration tests from another
             // module, so coverage doesn't show up
             '.*org.midonet.cluster.backend.cassandra.*',
