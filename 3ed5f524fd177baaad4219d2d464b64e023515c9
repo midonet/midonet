@@ -88,6 +88,24 @@
     },
     {
       "key": {
+        "uuid": "3a961159_2c1d7374",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-12-28T08:34:28Z",
+      "side": 1,
+      "message": "per discussion offline duarte is adding this in the next patch.",
+      "parentUuid": "3a961159_4c3b9feb",
+      "revId": "3ed5f524fd177baaad4219d2d464b64e023515c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_0ceef78b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/MacToIp4ReplicatedMap.scala",
         "patchSetId": 13
