@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a961159_ac08832e",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T12:11:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_8c71077a",
+      "range": {
+        "startLine": 64,
+        "startChar": 16,
+        "endLine": 64,
+        "endChar": 20
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_44636cb1",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
         "patchSetId": 2
@@ -278,6 +302,54 @@
         "startChar": 24,
         "endLine": 354,
         "endChar": 29
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_cfc30137",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T12:11:00Z",
+      "side": 1,
+      "message": "I added the onNext back to schedule, so the ScheduleContext is no longer needed.",
+      "parentUuid": "3a961159_ac6ec394",
+      "range": {
+        "startLine": 354,
+        "startChar": 24,
+        "endLine": 354,
+        "endChar": 29
+      },
+      "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_4fb0f1dd",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ContainerScheduler.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T12:11:00Z",
+      "side": 1,
+      "message": "You\u0027re right. Previously there were some test failures because of this. I speculate that some of the changes to the how the state transitions are handled covered the corned case that triggered this issue.",
+      "parentUuid": "3a961159_6c5dbbe9",
+      "range": {
+        "startLine": 354,
+        "startChar": 0,
+        "endLine": 354,
+        "endChar": 70
       },
       "revId": "cd69f951b2c1d62b4f1b3f5150fe904b541e7c50",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
