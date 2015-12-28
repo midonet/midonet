@@ -71,6 +71,23 @@
     },
     {
       "key": {
+        "uuid": "3a961159_92711c7a",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-28T18:00:16Z",
+      "side": 1,
+      "message": "why not, instead of have created as global state in the class, define it as local, and complete in a subscribe. like\n\nval created \u003d Promise[String]\nvpnServiceObservable(port)\n    .observeOn(scheduler)\n    .takeUntil(mark)\n    .onNext(makeAction1(vpnServiceUpdateEvent))\n    .subscribe(makeAction1(created.success(etc)),\n               makeAction1(created.error(etc)),\n               makeAction1(created.error(etc))\n\nAdd a check to see if created is completed first of course.",
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_af36b5e5",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 1
@@ -294,6 +311,29 @@
         "startChar": 4,
         "endLine": 410,
         "endChar": 84
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_d26ba483",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-28T18:00:16Z",
+      "side": 1,
+      "message": "this should be defined as a constant somewhere.",
+      "range": {
+        "startLine": 443,
+        "startChar": 37,
+        "endLine": 443,
+        "endChar": 68
       },
       "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
