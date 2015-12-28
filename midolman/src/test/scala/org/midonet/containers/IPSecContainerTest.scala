@@ -35,6 +35,7 @@ import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.IkeVersi
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
 
 import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.topology.TopologyBuilder._
@@ -76,6 +77,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
     : (IPSecServiceDef, IkePolicy, IPSecPolicy, IPSecSiteConnection) = {
         val path = s"${FileUtils.getTempDirectory}/${UUID.randomUUID}"
         val service = IPSecServiceDef(random.nextString(10),
+                                      true,
                                       path,
                                       IPv4Addr.random,
                                       MAC.random().toString,
@@ -162,6 +164,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         scenario("Multiple connections") {
             Given("A VPN configuration")
             val vpn = IPSecServiceDef(random.nextString(10),
+                                      true,
                                       "/opt/stack/stuff",
                                       IPv4Addr.random,
                                       MAC.random().toString,
@@ -530,6 +533,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        adminStateUp = true,
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
@@ -550,7 +554,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             And("A container")
             val container = new TestIPSecContainter(vt, null)
 
-            And("A container port for the VPN service")
+            And("A container port for the VPN service, with admin state DOWN")
             val cp = ContainerPort(portId = port.getId.asJava,
                                    hostId = null,
                                    interfaceName = "if-vpn",
@@ -562,10 +566,11 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             When("Calling the create method of the container")
             container.create(cp).await()
 
-            And("The container should call the setup commands")
-            val path =
-                s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
-            val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
+            Then("The container should call the setup commands")
+            val path = s"${FileUtils.getTempDirectoryPath}/${port
+                .getInterfaceName}"
+            val namespaceSubnet = new IPv4Subnet(port.getPortAddress
+                                                  .asIPv4Address.next,
                                                  port.getPortSubnet.getPrefixLength)
 
             container.commands should have size 4
@@ -607,7 +612,8 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
         scenario("Container reconfigures the namespace on update") {
             Given("A router with a port")
             val router = createRouter()
-            val port = createRouterPort(routerId = Some(router.getId.asJava),
+            var port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        adminStateUp = false,
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))
@@ -640,31 +646,40 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             When("Calling the create method of the container")
             container.create(cp).await()
 
-            And("The container should call the setup commands")
-            val path =
-                s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
+            Then("The container should call the setup commands")
+            container.commands should have size 1
+            container.commands(0) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+
+            And("The container should only call the cleanup commands")
+
+            When("The port is set to admin state UP")
+            vt.store.update(port.toBuilder().setAdminStateUp(true).build())
+            port = vt.store.get(classOf[Port], port.getId).await()
+
+            Then("The container should call the cleanup and setup commands")
+            val path = s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
                                                  port.getPortSubnet.getPrefixLength)
-
-            container.commands should have size 4
 
             When("Calling the update method of the container")
             container.updated(cp).await()
 
             Then("The container should call the cleanup and setup commands")
-            container.commands should have size 10
+            container.commands should have size 7
 
-            container.commands(4) shouldBe
+            container.commands(1) shouldBe
                 s"/usr/lib/midolman/vpn-helper stop_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
-            container.commands(5) shouldBe
+            container.commands(2) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(6) shouldBe
+            container.commands(3) shouldBe
                 s"/usr/lib/midolman/vpn-helper cleanns " +
                 s"-n ${port.getInterfaceName}"
-            container.commands(7) shouldBe
+            container.commands(4) shouldBe
                 s"/usr/lib/midolman/vpn-helper makens " +
                 s"-n ${port.getInterfaceName} " +
                 s"-g ${port.getPortAddress.asIPv4Address} " +
@@ -672,11 +687,11 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-l ${port.getPortAddress.asIPv4Address} " +
                 s"-i $namespaceSubnet " +
                 s"-m ${port.getPortMac}"
-            container.commands(8) shouldBe
+            container.commands(5) shouldBe
                 s"/usr/lib/midolman/vpn-helper start_service " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path"
-            container.commands(9) shouldBe
+            container.commands(6) shouldBe
                 s"/usr/lib/midolman/vpn-helper init_conns " +
                 s"-n ${port.getInterfaceName} " +
                 s"-p $path " +
@@ -687,7 +702,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands should have size 12
+            container.commands should have size 9
         }
 
         scenario("Container should fail if router has no external port") {
@@ -746,6 +761,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             Given("A router with a port")
             val router = createRouter()
             val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        adminStateUp = true,
                                         portAddress = IPv4Addr.random,
                                         portMac = MAC.random(),
                                         interfaceName = Some("if-eth"))

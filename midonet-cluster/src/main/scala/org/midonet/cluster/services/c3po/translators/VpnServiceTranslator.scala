@@ -19,6 +19,11 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.{UUID => JUUID}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
+
+import akka.dispatch.ExecutionContexts
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
@@ -26,6 +31,7 @@ import org.midonet.cluster.models.Neutron.{VpnService, NeutronPort, NeutronRoute
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.logging.ProtoTextPrettifier
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, SequenceDispenser}
 import org.midonet.packets.MAC
 import org.midonet.util.concurrent.toFutureOps
@@ -50,10 +56,10 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
                                       router.getVpnServiceIdsList).await()
         existing.headOption match {
             case Some(existingVpnService) =>
-                return List(Update(vpn.toBuilder()
-                                       .setContainerId(existingVpnService.getContainerId)
-                                       .setExternalIp(existingVpnService.getExternalIp)
-                                       .build()))
+                return List(Update(vpn.toBuilder
+                                      .setContainerId(existingVpnService.getContainerId)
+                                      .setExternalIp(existingVpnService.getExternalIp)
+                                      .build()))
             case None =>
         }
 
@@ -77,7 +83,7 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         }
 
         val containerId = JUUID.randomUUID
-        val routerPort = createRouterPort(routerId)
+        val routerPort = createRouterPort(routerId, vpn)
 
         val vpnRoute = newNextHopPortRoute(id = vpnContainerRouteId(containerId),
                                            nextHopPortId = routerPort.getId,
@@ -176,7 +182,26 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateUpdate(vpn: VpnService): OperationList = {
         // No Midonet-specific changes, but changes to the VPNService are
         // handled in retainHighLevelModel().
-        List()
+        log.info("--------------------- {} ", ProtoTextPrettifier.makeReadable(vpn))
+        val oldVpn = storage.get(classOf[VpnService], vpn.getId).await()
+        val oldAdminStateUp = adminStateUpOf(oldVpn)
+        val newAdminStateUp = adminStateUpOf(vpn)
+        val containerId = oldVpn.getContainerId
+        implicit val ec = ExecutionContext.fromExecutor(directExecutor())
+        if (oldAdminStateUp == newAdminStateUp)
+            return List.empty
+        val newPort = storage.get(classOf[ServiceContainer], containerId)
+                             .flatMap { container =>
+                                storage.get(classOf[Port], container.getPortId)
+                             }.map {
+                                _.toBuilder.setAdminStateUp(newAdminStateUp).build()
+                             }.await()
+        List(Update(newPort))
+    }
+
+    @inline
+    private def adminStateUpOf(vpn: VpnService): Boolean = {
+        if (vpn.hasAdminStateUp) vpn.getAdminStateUp else false
     }
 
     override protected def retainHighLevelModel(op: Operation[VpnService])
@@ -195,11 +220,12 @@ class VpnServiceTranslator(protected val storage: ReadOnlyStorage,
         case _ => super.retainHighLevelModel(op)
     }
 
-    private def createRouterPort(routerId: UUID): Port = {
+    private def createRouterPort(routerId: UUID, vpn: VpnService): Port = {
         // TODO: Make sure port address and subnet are available (MI-300).
         val portId = JUUID.randomUUID
         val builder = Port.newBuilder
             .setId(portId)
+            .setAdminStateUp(adminStateUpOf(vpn))
             .setRouterId(routerId)
             .setPortSubnet(VpnLinkLocalSubnet)
             .setPortAddress(VpnRouterPortAddr)
