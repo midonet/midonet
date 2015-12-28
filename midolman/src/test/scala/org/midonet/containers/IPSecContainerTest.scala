@@ -113,6 +113,31 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
     }
 
     feature("IPSec container writes contents of config files") {
+
+        scenario("Single connection, with IPSecSiteConnection admin state DOWN") {
+            Given("A VPN configuration")
+            val (vpn, ike, ipsec, _conn) = createService()
+            val conn = _conn.toBuilder.setAdminStateUp(false).build()
+
+            And("Expected configuration, with no connections")
+            val expectedSecrets = ""
+            val expectedConf =
+                s"""config setup
+                   |    nat_traversal=yes
+                   |conn %default
+                   |    ikelifetime=480m
+                   |    keylife=60m
+                   |    keyingtries=%forever
+                   |""".stripMargin
+
+            When("Creating a IPSec configuration")
+            val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn))
+
+            Then("The configurations should match")
+            expectedConf shouldBe conf.getConfigFileContents
+            expectedSecrets shouldBe conf.getSecretsFileContents
+        }
+
         scenario("Single connection") {
             Given("A VPN configuration")
             val (vpn, ike, ipsec, conn) = createService()
