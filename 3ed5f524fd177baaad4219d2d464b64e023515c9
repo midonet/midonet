@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a961159_ac50835f",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MacIp4StateTable.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-28T07:00:13Z",
+      "side": 1,
+      "message": "Unused.",
+      "range": {
+        "startLine": 31,
+        "startChar": 58,
+        "endLine": 31,
+        "endChar": 79
+      },
+      "revId": "3ed5f524fd177baaad4219d2d464b64e023515c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_0cc7d713",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MacIp4StateTable.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-28T07:00:13Z",
+      "side": 1,
+      "message": "This would be less confusing if there were a comment pointing out that it\u0027s idempotent.",
+      "range": {
+        "startLine": 58,
+        "startChar": 16,
+        "endLine": 58,
+        "endChar": 29
+      },
+      "revId": "3ed5f524fd177baaad4219d2d464b64e023515c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_8c7667d7",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/storage/MacIp4StateTable.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-28T07:00:13Z",
+      "side": 1,
+      "message": "The underlying implementation of this adds nodes as sequential/ephemeral, which means that the version will not always be zero. But containsRemote() only looks for versions Int.MaxValue and 0, so it won\u0027t necessarily find entries added with this function.\n\nMacToIp4ReplicatedMap.addLearnedEntry() always specifies a version of 0, but neither that nor this function seems to be used.\n\nThere\u0027s definitely something wrong here, but I don\u0027t know how much it matters for Router Peering purposes, as so far only addPersistentEntry() seems to be used, and I don\u0027t see a problem with that.",
+      "range": {
+        "startLine": 112,
+        "startChar": 8,
+        "endLine": 112,
+        "endChar": 21
+      },
+      "revId": "3ed5f524fd177baaad4219d2d464b64e023515c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_0ceef78b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/MacToIp4ReplicatedMap.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-28T07:00:13Z",
+      "side": 1,
+      "message": "Should be named \"ip\" since it now refers to the IPv4Addr rather than to the MAC.",
+      "range": {
+        "startLine": 66,
+        "startChar": 22,
+        "endLine": 66,
+        "endChar": 23
+      },
+      "revId": "3ed5f524fd177baaad4219d2d464b64e023515c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_6cedbb8b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/MacToIp4ReplicatedMap.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-28T07:00:13Z",
+      "side": 1,
+      "message": "Here, too.",
+      "range": {
+        "startLine": 77,
+        "startChar": 22,
+        "endLine": 77,
+        "endChar": 23
+      },
+      "revId": "3ed5f524fd177baaad4219d2d464b64e023515c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_2c9ad314",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/MacToIp4ReplicatedMap.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-28T07:00:13Z",
+      "side": 1,
+      "message": "Not urgent, but this seems inefficient. Why not just check with dir.exists, or even try to delete and then catch the exception? I\u0027m not sure which of those is more efficient, but they\u0027re probably both better than fetching the whole map.",
+      "range": {
+        "startLine": 130,
+        "startChar": 0,
+        "endLine": 135,
+        "endChar": 5
+      },
+      "revId": "3ed5f524fd177baaad4219d2d464b64e023515c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_4c9f1f04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/MacToIp4ReplicatedMap.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-28T07:00:13Z",
+      "side": 1,
+      "message": "We don\u0027t still do this, do we? I\u0027m pretty sure I changed it to Int.MaxValue.",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 21
+      },
+      "revId": "3ed5f524fd177baaad4219d2d464b64e023515c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
