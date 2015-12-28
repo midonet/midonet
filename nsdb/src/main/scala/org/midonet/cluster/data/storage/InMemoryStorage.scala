@@ -66,6 +66,12 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
 
         def ids = instances.keySet
 
+        def clear(): Unit = {
+            instances.clear()
+            streamUpdates.clear()
+            instanceUpdates.clear()
+        }
+
         @throws[ObjectExistsException]
         def create(id: ObjId, obj: Obj): Unit = {
             val node = new InstanceNode(clazz, id, obj.asInstanceOf[T])
@@ -547,6 +553,10 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
 
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
 
+    def clear(): Unit = {
+        classes.foreach(_._2.clear())
+    }
+
     override def namespace = namespaceId.toString
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
@@ -756,7 +766,7 @@ class InMemoryStorage extends Storage with StateStorage with StateTableStorage w
     }
 
     def keyObservableError(namespace: String, clazz: Class[_], id: ObjId,
-                        key: String, e: Throwable): Unit = {
+                           key: String, e: Throwable): Unit = {
         assertBuilt()
         classes.get(clazz).keyObservableError(namespace, id, key, e)
     }
