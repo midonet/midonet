@@ -261,6 +261,30 @@
     },
     {
       "key": {
+        "uuid": "3a961159_6f03ed73",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T12:26:53Z",
+      "side": 1,
+      "message": "Agree, here it\u0027s not the right place, because the delegate won\u0027t be called if the host is added to a tunnel zone later. It can be handled at the host selector - which filters eligible hosts.",
+      "parentUuid": "3a961159_ec68cb89",
+      "range": {
+        "startLine": 56,
+        "startChar": 20,
+        "endLine": 56,
+        "endChar": 24
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9aa7fdbe_c35af64f",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
         "patchSetId": 7
@@ -320,6 +344,30 @@
       "side": 1,
       "message": "shouldn\u0027t happen, since the interface name is generated from the uuid. the only case I would expect to see it happening is in a failed cleanup scenario. It should fail on the bind in any case. Could be confusing to debug though. Maybe check and add a warning.",
       "parentUuid": "3a961159_ac92439d",
+      "range": {
+        "startLine": 65,
+        "startChar": 24,
+        "endLine": 65,
+        "endChar": 28
+      },
+      "revId": "97618fc6e63a0bb2fd91b090251ba0daf705fbaa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_8ff7398c",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T12:26:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_0c0517c2",
       "range": {
         "startLine": 65,
         "startChar": 24,
