@@ -47,6 +47,7 @@ import org.midonet.packets.{IPv4Subnet, IPv4Addr}
 import org.midonet.util.concurrent._
 
 case class IPSecServiceDef(name: String,
+                           adminStateUp: Boolean,
                            filepath: String,
                            localEndpointIp: IPv4Addr,
                            localEndpointMac: String,
@@ -286,9 +287,15 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
      */
     @throws[Exception]
     protected[containers] def setup(config: IPSecConfig): Unit = {
-        log info s"Setting up IPSec container ${config.ipsecService.name}"
+        val name = config.ipsecService.name
+        log info s"Setting up IPSec container $name"
         // Try clean namespace.
         execCmd(config.cleanNsCmd)
+
+        if (!config.ipsecService.adminStateUp) {
+            log info s"IPSec container $name has admin state DOWN: I won't spawn it"
+            return
+        }
 
         val rootDirectory = new File(config.ipsecService.filepath)
         if (rootDirectory.exists()) {
@@ -361,10 +368,11 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         val namespaceSubnet = new IPv4Subnet(namespaceAddress,
                                              port.getPortSubnet.getPrefixLength)
 
-        val path =
-            s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
+        val path = s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
 
-        val serviceDef = IPSecServiceDef(port.getInterfaceName, path,
+        val serviceDef = IPSecServiceDef(port.getInterfaceName,
+                                         port.getAdminStateUp,
+                                         path,
                                          externalAddress,
                                          externalMac,
                                          namespaceSubnet,
