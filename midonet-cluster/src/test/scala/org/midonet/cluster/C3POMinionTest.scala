@@ -45,7 +45,8 @@ import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZookeeperConnectionW
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
-import org.midonet.cluster.models.Commons
+import org.midonet.cluster.data.storage.StateTableStorage
+import org.midonet.cluster.models.{Topology, Commons}
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
@@ -55,7 +56,7 @@ import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.c3po.translators.BridgeStateTableManager
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.storage.{MacIp4StateTable, MidonetBackendConfig}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.{DataClient => LegacyDataClient}
@@ -64,7 +65,7 @@ import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
 import org.midonet.midolman.state.PathBuilder
-import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC}
+import org.midonet.packets.{IPv4Addr, IPSubnet, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -318,7 +319,16 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
         pathBldr = new PathBuilder(backendCfg.rootKey)
         backend = new MidonetBackendService(backendCfg, curator,
-                                            metricRegistry = null)
+                                            metricRegistry = null) {
+            override protected def setup(stateTableStorage: StateTableStorage)
+            : Unit = {
+                super.setup(stateTableStorage)
+                stateTableStore.registerTable(
+                    classOf[Topology.Port], classOf[MAC],
+                    classOf[IPv4Addr], MidonetBackend.PeeringTable,
+                    classOf[MacIp4StateTable])
+            }
+        }
         backend.startAsync().awaitRunning()
         curator.blockUntilConnected()
 
