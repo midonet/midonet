@@ -21,12 +21,15 @@ import java.util.UUID
 import com.fasterxml.jackson.databind.JsonNode
 
 import org.junit.runner.RunWith
-import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.util.UUIDUtil._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{L2GatewayConnection => L2ConnType, GatewayDevice => GatewayDeviceType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{GatewayDevice => GatewayDeviceType, L2GatewayConnection => L2ConnType, RemoteMacEntry => RemoteMacEntryType}
+import org.midonet.cluster.models.Neutron.{GatewayDevice, L2GatewayConnection, RemoteMacEntry}
+import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
@@ -34,7 +37,6 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
     /* Set up legacy Data Client for testing Replicated Map. */
     override protected val useLegacyDataClient = true
     import L2GatewayConnectionTranslator._
-
 
     protected def gatewayDeviceJson(resourceId: UUID,
                                     id: UUID = UUID.randomUUID(),
@@ -76,12 +78,14 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
     }
 
     protected def l2GatewayConnectionJson(networkId: UUID,
+                                          segmentationId: Int,
                                           devices: Seq[L2GatewayDevice],
                                           id: UUID = UUID.randomUUID(),
                                           tenantId: String = "tenant")
     : JsonNode = {
         val c = nodeFactory.objectNode
         c.put("network_id", networkId.toString)
+        c.put("segmentation_id", segmentationId)
         c.put("id", id.toString)
         c.put("tenant_id", tenantId)
         c.set("l2_gateway", l2GatewayJson(devices, tenantId = tenantId))
@@ -100,26 +104,135 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
         e.put("id", id.toString)
     }
 
-    "L2 Gateway Connection with no devices" should "be created" in {
+    private def createGatewayDevice(taskId: Int,
+                                    id: UUID = UUID.randomUUID(),
+                                    routerId: UUID = routerId,
+                                    tunnelIps: Seq[String] = Seq("30.0.0.1"))
+    : UUID = {
+        val json = gatewayDeviceJson(resourceId = routerId, id = id,
+                                     tunnelIps = tunnelIps)
+        insertCreateTask(taskId, GatewayDeviceType, json, id)
+        id
+    }
 
-        val netId = UUID.randomUUID()
-        createTenantNetwork(10, netId)
+    private case class RemoteMac(id: UUID, ip: IPv4Addr, mac: MAC, vni: Int)
+    private def createRemoteMacEntry(taskId: Int, gwDevId: UUID, vni: Int,
+                                     id: UUID = UUID.randomUUID(),
+                                     vtepIp: IPv4Addr = IPv4Addr.random,
+                                     mac: MAC = MAC.random())
+    : RemoteMac = {
+        val json = remoteMacEntryJson(gwDevId, vtepIp.toString,
+                                      mac.toString, vni, id)
+        insertCreateTask(taskId, RemoteMacEntryType, json, id)
+        RemoteMac(id, vtepIp, mac, vni)
+    }
 
-        val rId = UUID.randomUUID()
-        createRouter(20, rId)
+    private def createL2GatewayConnection(taskId: Int, gwDevId: UUID,
+                                          id: UUID = UUID.randomUUID(),
+                                          networkId: UUID = networkId,
+                                          vni: Int = 100): UUID = {
+        val json = l2GatewayConnectionJson(
+            networkId, vni, Seq(L2GatewayDevice(gwDevId, vni)), id)
+        insertCreateTask(taskId, L2ConnType, json, id)
+        id
+    }
 
-        val gwId = UUID.randomUUID()
-        val gwJson = gatewayDeviceJson(resourceId = rId, id = gwId,
-                                       tunnelIps = Seq("30.0.0.1"))
-        insertCreateTask(30, GatewayDeviceType, gwJson, gwId)
+    private val routerId = UUID.randomUUID()
+    private val networkId = UUID.randomUUID()
 
-        val l2gwConnId = UUID.randomUUID()
-        val l2gwConnJson = l2GatewayConnectionJson(netId, Seq(L2GatewayDevice(gwId, 100)), id = l2gwConnId)
-        insertCreateTask(50, L2ConnType, l2gwConnJson, l2gwConnId)
+    "L2 Gateway Connection with no devices" should "be created" ignore {
+
+        createTenantNetwork(10, networkId)
+        createRouter(20, routerId)
+        val gwDevId = createGatewayDevice(30)
+        createL2GatewayConnection(40, gwDevId)
 
         eventually {
-            val pId = vtepNetworkPortId(toProto(netId))
+            val pId = vtepNetworkPortId(toProto(networkId))
             storage.exists(classOf[Port], pId).await() shouldBe true
         }
+    }
+
+    "L2 Gateway Connection" should "add a peering entry for each existing " +
+                                   "RemoteMacEntry" in {
+        createTenantNetwork(10, networkId)
+        createRouter(20, routerId)
+        val gwDevId = createGatewayDevice(30)
+
+        val rm1 = createRemoteMacEntry(40, gwDevId, 100)
+        val rm2 = createRemoteMacEntry(50, gwDevId, 100)
+        val rm3 = createRemoteMacEntry(60, gwDevId, 101)
+
+        // Should only use RMEs with same VNI, i.e. rm1 and rm2.
+        val cnxnId = createL2GatewayConnection(70, gwDevId)
+        eventually(checkL2GatewayConnection(cnxnId, gwDevId, Seq(rm1, rm2)))
+
+        // Has VNI = 101, so should only use rm3.
+        val nw2Id = createTenantNetwork(80)
+        val cnxn2Id = createL2GatewayConnection(90, gwDevId,
+                                                networkId = nw2Id, vni = 101)
+        eventually(checkL2GatewayConnection(cnxn2Id, gwDevId, Seq(rm3),
+                                            networkId = nw2Id))
+
+        insertDeleteTask(100, L2ConnType, cnxnId)
+        eventually(checkNoL2GatewayConnection())
+
+        insertDeleteTask(110, L2ConnType, cnxn2Id)
+        eventually(checkNoL2GatewayConnection(nw2Id))
+    }
+
+    private def checkNoL2GatewayConnection(networkId: UUID = networkId)
+    : Unit = {
+        val nwPortId = vtepNetworkPortId(toProto(networkId))
+        val rtrPortId = vtepRouterPortId(toProto(networkId))
+        Seq(storage.exists(classOf[Port], nwPortId),
+            storage.exists(classOf[Port], rtrPortId))
+            .map(_.await()) shouldBe Seq(false, false)
+
+        val peeringTable =
+            backend.stateTableStore.routerPortPeeringTable(rtrPortId.asJava)
+        peeringTable.remoteSnapshot shouldBe empty
+    }
+
+    private def checkL2GatewayConnection(cnxnId: UUID,
+                                         gwDevId: UUID,
+                                         rms: Seq[RemoteMac],
+                                         networkId: UUID = networkId,
+                                         routerId: UUID = routerId): Unit = {
+        val nwPortId = vtepNetworkPortId(toProto(networkId))
+        val rtrPortId = vtepRouterPortId(toProto(networkId))
+        val rmIds = rms.map(_.id)
+
+        val gwDevFtr = storage.get(classOf[GatewayDevice], gwDevId)
+        val cnxnFtr = storage.get(classOf[L2GatewayConnection], cnxnId)
+        val nwPortFtr = storage.get(classOf[Port], nwPortId)
+        val rtrPortFtr = storage.get(classOf[Port], rtrPortId)
+
+        val gwDev = gwDevFtr.await()
+        val cnxn = cnxnFtr.await()
+        val nwPort = nwPortFtr.await()
+        val rtrPort = rtrPortFtr.await()
+
+        nwPort.getAdminStateUp shouldBe true
+        nwPort.getNetworkId.asJava shouldBe networkId
+        nwPort.getPeerId shouldBe rtrPort.getId
+        nwPort.hasPortAddress shouldBe false
+        nwPort.hasPortMac shouldBe false
+        nwPort.getRemoteMacEntryIdsCount shouldBe 0
+
+        rtrPort.getAdminStateUp shouldBe true
+        rtrPort.getPeerId shouldBe nwPort.getId
+        rtrPort.getRouteIdsCount shouldBe 0
+        rtrPort.getRouterId.asJava shouldBe routerId
+        rtrPort.getTunnelIp shouldBe gwDev.getTunnelIps(0)
+        rtrPort.getVni shouldBe cnxn.getSegmentationId
+        rtrPort.getRemoteMacEntryIdsList.map {
+            id => UUIDUtil.fromProto(id)
+        } should contain theSameElementsAs rmIds
+
+        val peeringTable =
+            backend.stateTableStore.routerPortPeeringTable(rtrPortId.asJava)
+        peeringTable.remoteSnapshot should
+            contain theSameElementsAs rms.map(rm => (rm.mac, rm.ip))
     }
 }
