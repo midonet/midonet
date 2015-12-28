@@ -53,6 +53,7 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
         val vni = cnxn.getSegmentationId
         val rtrPortBldr = Port.newBuilder
             .setId(vtepRouterPortId(cnxn.getNetworkId))
+            .setPeerId(nwPort.getId)
             .setRouterId(gwDev.getResourceId)
             .setTunnelIp(gwDev.getTunnelIps(0))
             .setVni(vni)
