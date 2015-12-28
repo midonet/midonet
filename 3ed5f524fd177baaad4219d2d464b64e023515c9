@@ -160,6 +160,23 @@
       "revId": "3ed5f524fd177baaad4219d2d464b64e023515c9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_cc578f25",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-12-28T07:34:39Z",
+      "side": 1,
+      "message": "Are we keeping all this, or was it throwaway code for the demo?",
+      "revId": "3ed5f524fd177baaad4219d2d464b64e023515c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
