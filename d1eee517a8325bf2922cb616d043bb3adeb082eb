@@ -22,6 +22,30 @@
       "revId": "d1eee517a8325bf2922cb616d043bb3adeb082eb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9aa7fdbe_58098c94",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/ServiceScheduler.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T12:12:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9aa7fdbe_6fb5b1cc",
+      "range": {
+        "startLine": 51,
+        "startChar": 4,
+        "endLine": 54,
+        "endChar": 58
+      },
+      "revId": "d1eee517a8325bf2922cb616d043bb3adeb082eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
