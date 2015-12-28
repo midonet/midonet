@@ -1,0 +1,326 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a961159_0f74299b",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "Nit: rename to createPromise",
+      "range": {
+        "startLine": 216,
+        "startChar": 16,
+        "endLine": 216,
+        "endChar": 23
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_6f25adaa",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "This publish subject seems to be used only to unsubscribe. You can use the subscription for that.",
+      "range": {
+        "startLine": 235,
+        "startChar": 12,
+        "endLine": 235,
+        "endChar": 52
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_4f20f19b",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "The observable already has an observeOn inside the method.",
+      "range": {
+        "startLine": 238,
+        "startChar": 16,
+        "endLine": 238,
+        "endChar": 37
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_af36b5e5",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "The container service will block the executor until this future completes. This was an easy initial solution to guarantee sequential execution of container create/update/delete methods. Hence, it\u0027s possible you\u0027ll deadlock here if this promise requires the scheduler to complete: see below.",
+      "range": {
+        "startLine": 241,
+        "startChar": 12,
+        "endLine": 241,
+        "endChar": 26
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_cf4a2155",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "NPE check",
+      "range": {
+        "startLine": 276,
+        "startChar": 12,
+        "endLine": 276,
+        "endChar": 16
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_cf3301f5",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "Assign these to null",
+      "range": {
+        "startLine": 277,
+        "startChar": 12,
+        "endLine": 278,
+        "endChar": 37
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_cf1ce16d",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "Does it throw an exception?",
+      "range": {
+        "startLine": 358,
+        "startChar": 4,
+        "endLine": 358,
+        "endChar": 22
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_ef199d7a",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "This scheduler is not appropriate to process notifications from storage directly because it is used by containers to handle I/O operations (e.g. create namespaces, interfaces, files, etc). Therefore, it needs either a back-pressure buffer or use it only where you need synchronized access to local variables.\n\nFurthermore, the container service will block this scheduler until the create/update/delete method completes the future.\n\nUse the VT executor to process notifications from storage, but make sure that executor does not block for a significant amount of time. For anything else, add a back-pressure buffer.",
+      "range": {
+        "startLine": 363,
+        "startChar": 12,
+        "endLine": 363,
+        "endChar": 33
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_0f26e9ba",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 368,
+        "startChar": 12,
+        "endLine": 368,
+        "endChar": 33
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_ef30bdea",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "This can be flatMap, therefore the following won\u0027t be required.",
+      "range": {
+        "startLine": 371,
+        "startChar": 13,
+        "endLine": 371,
+        "endChar": 16
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_2f2ba583",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 380,
+        "startChar": 12,
+        "endLine": 380,
+        "endChar": 33
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_6f5ccd26",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "Since buildEvent does not need to synchronize any internal variables, it may be safe to use this without a scheduler. However, you may need to move those: vt.store.getAll to vpnServiceUpdateEvent, which will have to be scheduled on the container executor.",
+      "range": {
+        "startLine": 391,
+        "startChar": 16,
+        "endLine": 391,
+        "endChar": 26
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_4f6e31cb",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "This may throw an exception, annotate the method make sure you handle it. Also the promise should complete with an error.",
+      "range": {
+        "startLine": 410,
+        "startChar": 4,
+        "endLine": 410,
+        "endChar": 84
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_ef47dd49",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-28T09:26:48Z",
+      "side": 1,
+      "message": "You can use: created.trySuccess",
+      "range": {
+        "startLine": 448,
+        "startChar": 16,
+        "endLine": 450,
+        "endChar": 61
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
