@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "3a961159_2f7e45e5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-28T12:44:56Z",
+      "side": 1,
+      "message": "rename storageAttempts -\u003e MaxStorageAttempts",
+      "range": {
+        "startLine": 41,
+        "startChar": 22,
+        "endLine": 41,
+        "endChar": 37
+      },
+      "revId": "6c5d4a9dc5d21c39fcac251abdb4467ff23bb194",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_2c0ad3d2",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
         "patchSetId": 8
@@ -37,6 +60,30 @@
       "side": 1,
       "message": "They are bound in the catch case (it\u0027s a bit hard to see) - that works in scala, doesn\u0027t it?",
       "parentUuid": "3a961159_2c0ad3d2",
+      "range": {
+        "startLine": 110,
+        "startChar": 15,
+        "endLine": 110,
+        "endChar": 19
+      },
+      "revId": "6c5d4a9dc5d21c39fcac251abdb4467ff23bb194",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_0f7989fc",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-28T12:44:56Z",
+      "side": 1,
+      "message": "oh, yes. That\u0027s very unclear though, especially with the linebreak, it looks like that ConcurrentModificationException caught every time. \n\nI would add attempt \u003c storageAttempts to the while loop condition also, and put a throw at the end of the method.",
+      "parentUuid": "3a961159_efd7ddeb",
       "range": {
         "startLine": 110,
         "startChar": 15,
