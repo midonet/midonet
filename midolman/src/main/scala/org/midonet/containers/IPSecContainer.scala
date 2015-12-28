@@ -47,6 +47,7 @@ import org.midonet.packets.{IPv4Subnet, IPv4Addr}
 import org.midonet.util.concurrent._
 
 case class IPSecServiceDef(name: String,
+                           adminStateUp: Boolean,
                            filepath: String,
                            localEndpointIp: IPv4Addr,
                            localEndpointMac: String,
@@ -223,10 +224,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         try {
             config = createConfig(port)
             setup(config)
-
             healthSubject onNext ContainerHealth(Code.RUNNING,
                                                  config.ipsecService.name)
-
             Future.successful(config.ipsecService.name)
         } catch {
             case NonFatal(e) =>
@@ -254,6 +253,11 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     override def delete(): Future[Unit] = {
         if (config eq null) {
             log info s"IPSec container not started: ignoring"
+            return Future.successful(())
+        }
+
+        if (!config.ipsecService.adminStateUp) {
+            log info s"IPSec container was admin state DOWN: ignoring"
             return Future.successful(())
         }
 
@@ -286,7 +290,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
      */
     @throws[Exception]
     protected[containers] def setup(config: IPSecConfig): Unit = {
-        log info s"Setting up IPSec container ${config.ipsecService.name}"
+        val name = config.ipsecService.name
+        log info s"Setting up IPSec container $name"
         // Try clean namespace.
         execCmd(config.cleanNsCmd)
 
@@ -294,6 +299,11 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         if (rootDirectory.exists()) {
             log debug s"Directory ${config.ipsecService.filepath} already exists: deleting"
             FileUtils.cleanDirectory(rootDirectory)
+        }
+
+        if (!config.ipsecService.adminStateUp) {
+            log info s"IPSec container $name setup with admin state DOWN"
+            return
         }
 
         val etcDirectory = new File(config.confDir)
@@ -361,10 +371,11 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         val namespaceSubnet = new IPv4Subnet(namespaceAddress,
                                              port.getPortSubnet.getPrefixLength)
 
-        val path =
-            s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
+        val path = s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
 
-        val serviceDef = IPSecServiceDef(port.getInterfaceName, path,
+        val serviceDef = IPSecServiceDef(port.getInterfaceName,
+                                         port.getAdminStateUp,
+                                         path,
                                          externalAddress,
                                          externalMac,
                                          namespaceSubnet,
