@@ -1844,6 +1844,27 @@ class ServiceContainer(ObjectType):
                                  value_type = StringType(),
                                  getter = 'get_service_type',
                                  setter = 'service_type'))
+        self.put_attr(EnumAttr(name = 'status',
+                               mappings = {'STARTING': 'starting',
+                                           'RUNNING': 'running',
+                                           'STOPPING': 'stopping',
+                                           'STOPPED': 'stopped',
+                                           'ERROR': 'error'},
+                               getter = 'get_status',
+                               setter = 'status',
+                               writeable = False))
+        self.put_attr(SingleAttr(name = 'host-id',
+                                 value_type = StringType(),
+                                 getter = 'get_host_id',
+                                 writeable = False))
+        self.put_attr(SingleAttr(name = 'namespace',
+                                 value_type = StringType(),
+                                 getter = 'get_namespace_name',
+                                 writeable = False))
+        self.put_attr(SingleAttr(name = 'interface',
+                                 value_type = StringType(),
+                                 getter = 'get_interface_name',
+                                 writeable = False))
 
     def type_name(self):
         return "container"

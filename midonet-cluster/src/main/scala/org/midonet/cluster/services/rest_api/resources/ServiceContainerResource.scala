@@ -16,18 +16,23 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util
 import java.util.UUID
+
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.Response
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
+import com.google.protobuf.TextFormat
 
+import org.midonet.cluster.data.storage.SingleValueKey
+import org.midonet.cluster.models.State
+import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{ServiceContainer, ServiceContainerGroup}
+import org.midonet.cluster.rest_api.models.{Port, ServiceContainerGroup, ServiceContainer}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
@@ -46,63 +51,60 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 class ServiceContainerResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[ServiceContainer](resContext) {
 
-    private var parentResId: UUID = null
+    private var groupId: UUID = null
 
-    def this(resContext: ResourceContext, parentResId: UUID) = {
+    def this(groupId: UUID, resContext: ResourceContext) = {
         this(resContext)
-        this.parentResId = parentResId
+        this.groupId = groupId
     }
 
-    override def createFilter(sc: ServiceContainer,
-                              tx: ResourceTransaction): Unit = {
-        if (parentResId != null) {
-            sc.serviceGroupId = parentResId
+    protected override def getFilter(sc: ServiceContainer): ServiceContainer = {
+        setStatus(sc)
+    }
+
+    protected override def listIds: Seq[Any] = {
+        if (groupId ne null) {
+            getResource(classOf[ServiceContainerGroup], groupId)
+                .serviceContainerIds.asScala
+        } else null
+    }
+
+    protected override def listFilter(list: Seq[ServiceContainer])
+    : Seq[ServiceContainer] = {
+        list.map(setStatus)
+    }
+
+    protected override def createFilter(sc: ServiceContainer,
+                                        tx: ResourceTransaction): Unit = {
+        if (groupId ne null) {
+            sc.serviceGroupId = groupId
         }
         super.createFilter(sc, tx)
     }
 
-}
-
-@ApiResource(version = 1,
-             name = "serviceContainerGroups",
-             template = "serviceContainerGroupTemplate")
-@Path("service_container_groups")
-@RequestScoped
-@AllowCreate(Array(APPLICATION_SERVICE_CONTAINER_GROUP_JSON,
-                   APPLICATION_JSON))
-@AllowGet(Array(APPLICATION_SERVICE_CONTAINER_GROUP_JSON,
-                APPLICATION_JSON))
-@AllowList(Array(APPLICATION_SERVICE_CONTAINER_GROUP_COLLECTION_JSON,
-                 APPLICATION_JSON))
-@AllowDelete
-class ServiceContainerGroupResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[ServiceContainerGroup](resContext) {
-
-    @GET
-    @Path("{id}/service_containers")
-    @Produces(Array(APPLICATION_SERVICE_CONTAINER_COLLECTION_JSON))
-    def listServiceContainers(@PathParam("id") id: UUID)
-    : util.List[ServiceContainer] = {
-        // Let's 404 if the SCG doesn't exist
-        val scg = getResource(classOf[ServiceContainerGroup], id)
-        if (scg.serviceContainerIds != null) {
-            scg.serviceContainerIds map {
-                getResource(classOf[ServiceContainer], _)
-            }
-        } else {
-            List.empty[ServiceContainer]
+    private def setStatus(sc: ServiceContainer): ServiceContainer = {
+        if (sc.portId eq null)
+            return sc
+        val port = getResource(classOf[Port], sc.portId)
+        if (port.hostId eq null) {
+            sc.statusCode = Code.STOPPED
+            return sc
         }
+        getResourceState(port.hostId.toString, classOf[ServiceContainer],
+                         sc.id, MidonetBackend.StatusKey) match {
+            case SingleValueKey(_, Some(value), _) =>
+                val builder = State.ContainerStatus.newBuilder()
+                TextFormat.merge(value, builder)
+                val status = builder.build()
+                sc.statusCode = status.getStatusCode
+                sc.statusMessage = status.getStatusMessage
+                sc.hostId = port.hostId
+                sc.namespaceName = status.getNamespaceName
+                sc.interfaceName = status.getInterfaceName
+            case _ =>
+                sc.statusCode = Code.STOPPED
+        }
+        sc
     }
 
-    @POST
-    @Consumes(Array(APPLICATION_SERVICE_CONTAINER_JSON))
-    @Path("{id}/service_containers")
-    def createServiceContainer(@PathParam("id") id: UUID,
-                               @HeaderParam("Content-Type") ct: String,
-                               sc: ServiceContainer): Response = {
-        // Let's 404 if the SCG doesn't exist
-        val scg = getResource(classOf[ServiceContainerGroup], id)
-        new ServiceContainerResource(resContext, scg.id) // should be == id
-            .create(sc, APPLICATION_SERVICE_CONTAINER_JSON)
-    }
 }
