@@ -17,13 +17,17 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.concurrent.Promise
 
+import java.util.{UUID => JUUID}
 import org.mockito.Mockito.{mock, when}
+import org.mockito.Matchers.any
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
+import org.midonet.cluster.data.storage.{StateTableStorage, NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Topology.Chain
-import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Operation, Update}
+import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Update}
 import org.midonet.cluster.services.c3po.OpType
 import org.midonet.midolman.state.PathBuilder
 
@@ -33,10 +37,12 @@ import org.midonet.midolman.state.PathBuilder
 abstract class TranslatorTestBase  extends FlatSpec
                                    with BeforeAndAfter
                                    with Matchers
-                                   with BridgeStateTableManager {
+                                   with StateTableManager {
     /* Each implementing unit test class initializes the (mock) storage by
      * calling initMockStorage() below. */
     protected var storage: ReadOnlyStorage = _
+    protected var stateTableStorage: StateTableStorage = _
+    initMockStorage()
 
     // For testing CRUD on the old ZK data structure (e.g. ARP table)
     private val zkRoot = "/test"
@@ -44,6 +50,15 @@ abstract class TranslatorTestBase  extends FlatSpec
 
     protected def initMockStorage() {
         storage = mock(classOf[ReadOnlyStorage])
+        stateTableStorage = mock(classOf[StateTableStorage])
+        when(stateTableStorage.bridgeArpTablePath(any[JUUID]())).thenAnswer(
+            new Answer[String] {
+                override def answer(invocation: InvocationOnMock): String = {
+                    val id = invocation.getArguments()(0).asInstanceOf[JUUID]
+                    s"$zkRoot/1/tables/Port/$id/ip4_mac_table"
+                }
+            }
+        )
     }
 
     /* Mock exists and get on an instance of M with an ID, "id". */

@@ -76,8 +76,7 @@ class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
     /** Paths for legacy replicated maps (ARP and MAC tables). */
     private def replMapPaths(networkId: UUID): Iterable[String] = {
         val id = networkId.asJava
-        Iterable(pathBldr.getBridgeIP4MacMapPath(id),
-                 pathBldr.getBridgeMacPortsPath(id),
+        Iterable(pathBldr.getBridgeMacPortsPath(id),
                  pathBldr.getBridgeVlansPath(id))
     }
 }

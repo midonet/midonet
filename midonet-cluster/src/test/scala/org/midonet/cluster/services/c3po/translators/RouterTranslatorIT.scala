@@ -20,19 +20,18 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Pool => PoolType, Port => PortType, Router => RouterType, Subnet => SubnetType}
+import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.rest_api.neutron.models.NetworkType
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap
 import org.midonet.packets.util.AddressConversions._
-import org.midonet.packets.{ICMP, MAC}
+import org.midonet.packets.{IPv4Addr, ICMP, MAC}
 import org.midonet.util.concurrent.toFutureOps
 import org.scalatest.junit.JUnitRunner
 
@@ -206,7 +205,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                   extNwSubnetId)
         createRouterInterface(12, edgeRtrId,
                               edgeRtrExtNwIfPortId, extNwSubnetId)
-        val extNwArpTable = dataClient.getIp4MacMap(extNwId)
+        val extNwArpTable = stateTableStorage.bridgeArpTable(extNwId)
 
         // Sanity check for external network's connection to edge router. This
         // is just a normal router interface, so RouterInterfaceTranslatorIT
@@ -259,7 +258,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             extNw.getPortIdsList.asScala should contain only (
                 UUIDUtil.toProto(edgeRtrExtNwIfPortId),
                 UUIDUtil.toProto(extNwDhcpPortId))
-            extNwArpTable.containsKey("10.0.1.3") shouldBe false
+            extNwArpTable.containsLocal(IPv4Addr("10.0.1.3")) shouldBe false
             validateNatRulesDeleted(tntRtrId)
         }
 
@@ -320,7 +319,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             extNw.getPortIdsList.asScala should contain only (
                 UUIDUtil.toProto(edgeRtrExtNwIfPortId),
                 UUIDUtil.toProto(extNwDhcpPortId))
-            extNwArpTable.containsKey("10.0.1.4") shouldBe false
+            extNwArpTable.containsLocal(IPv4Addr("10.0.1.4")) shouldBe false
         }
         extNwArpTable.stop()
     }
@@ -426,7 +425,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                 extSubnetCidr: String, gatewayIp: String,
                                 trPortMac: String, nextHopIp: String,
                                 snatEnabled: Boolean,
-                                extNwArpTable: Ip4ToMacReplicatedMap): Unit = {
+                                extNwArpTable: StateTable[IPv4Addr, MAC])
+    : Unit = {
         // Tenant router should have gateway port and no routes.
         val trGwPortId = tenantGwPortId(nwGwPortId)
         val tr = eventually {
@@ -435,7 +435,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             tr.getRouteIdsCount shouldBe 0
 
             // The ARP entry should be added to the external network ARP table.
-            extNwArpTable.get(gatewayIp) shouldBe MAC.fromString(trPortMac)
+            extNwArpTable.getLocal(gatewayIp) shouldBe MAC.fromString(trPortMac)
             tr
         }
 
