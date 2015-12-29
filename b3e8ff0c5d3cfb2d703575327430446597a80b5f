@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a930d6b_ebffd1a8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:13:35Z",
+      "side": 1,
+      "message": "unrelated to this patch, but: shouldn\u0027t we timeout here?",
+      "range": {
+        "startLine": 212,
+        "startChar": 43,
+        "endLine": 212,
+        "endChar": 55
+      },
+      "revId": "b3e8ff0c5d3cfb2d703575327430446597a80b5f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_2b31d9a2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:13:35Z",
+      "side": 1,
+      "message": "ditto!",
+      "range": {
+        "startLine": 225,
+        "startChar": 27,
+        "endLine": 225,
+        "endChar": 32
+      },
+      "revId": "b3e8ff0c5d3cfb2d703575327430446597a80b5f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_0b2c1d4a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:13:35Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 228,
+        "startChar": 42,
+        "endLine": 228,
+        "endChar": 57
+      },
+      "revId": "b3e8ff0c5d3cfb2d703575327430446597a80b5f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
