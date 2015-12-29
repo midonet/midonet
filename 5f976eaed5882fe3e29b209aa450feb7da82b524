@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a930d6b_ab694927",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-29T18:16:10Z",
+      "side": 1,
+      "message": "this isn\u0027t thread safe. Is there guarantee that this always runs in the same thread, and likewise for delete?",
+      "range": {
+        "startLine": 240,
+        "startChar": 12,
+        "endLine": 242,
+        "endChar": 52
+      },
+      "revId": "5f976eaed5882fe3e29b209aa450feb7da82b524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_8b6c8d38",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-29T18:16:10Z",
+      "side": 1,
+      "message": "should specify a scheduler for this to run on.",
+      "range": {
+        "startLine": 244,
+        "startChar": 0,
+        "endLine": 244,
+        "endChar": 63
+      },
+      "revId": "5f976eaed5882fe3e29b209aa450feb7da82b524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_6b8841e8",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-29T18:16:10Z",
+      "side": 1,
+      "message": "actually, these actions can be given as the second and third argument to subscribe.",
+      "range": {
+        "startLine": 245,
+        "startChar": 16,
+        "endLine": 248,
+        "endChar": 75
+      },
+      "revId": "5f976eaed5882fe3e29b209aa450feb7da82b524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
