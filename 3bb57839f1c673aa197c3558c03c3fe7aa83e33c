@@ -34,6 +34,24 @@
       "revId": "3bb57839f1c673aa197c3558c03c3fe7aa83e33c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_356852f5",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IPSecContainerDelegate.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T12:09:32Z",
+      "side": 1,
+      "message": "If we see this, the port should be the same no? Unless the operator messes up and binds the port where it shouldn\u0027t.\n\nSo yes, maybe I\u0027d update anyway to override any previous bindings, correct or not (and this check might not be necessary). Or I\u0027d check that the port is the same and if it is, finish the transaction without updating the port to safe a write. \n\nAnyway, not important, was just wondering.",
+      "parentUuid": "3a961159_b53b6237",
+      "revId": "3bb57839f1c673aa197c3558c03c3fe7aa83e33c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
