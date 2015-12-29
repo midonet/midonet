@@ -23,6 +23,7 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
+import org.reflections.Reflections
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FeatureSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
@@ -81,8 +82,12 @@ class ContainerServiceTest extends FeatureSpec with GivenWhenThen with Matchers
                            with BeforeAndAfter with MidonetEventually
                            with TopologyBuilder {
 
+    private val reflections =
+        new Reflections("org.midonet.cluster.services.containers")
+
     private class TestService(backend: MidonetBackend, config: ClusterConfig)
-        extends ContainerService(new Context(UUID.randomUUID()), backend, config) {
+        extends ContainerService(new Context(UUID.randomUUID()), backend,
+                                 reflections, config) {
         def create(container: ServiceContainer) = delegateOf(container)
         def get(container: ServiceContainer) = delegate(container)
     }

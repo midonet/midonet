@@ -30,6 +30,7 @@ import com.google.inject.name.Names
 import com.lmax.disruptor._
 import com.typesafe.config.ConfigFactory
 import org.apache.curator.framework.CuratorFramework
+import org.reflections.Reflections
 import org.slf4j.{LoggerFactory, Logger}
 
 import org.midonet.cluster.backend.cassandra.CassandraClient
@@ -62,6 +63,7 @@ class MidolmanModule(injector: Injector,
                      config: MidolmanConfig,
                      metricRegistry: MetricRegistry) extends AbstractModule {
     private val log: Logger = LoggerFactory.getLogger(classOf[MidolmanModule])
+    private val reflections = new Reflections("org.midonet")
 
     override def configure(): Unit = {
         bind(classOf[MidolmanConfig]).toInstance(config)
@@ -384,6 +386,7 @@ class MidolmanModule(injector: Injector,
         new VirtualToPhysicalMapper(
             injector.getInstance(classOf[MidonetBackend]),
             vt,
+            reflections,
             hostId)
 
     protected def crashStrategy(): SupervisorStrategy =

@@ -24,20 +24,19 @@ import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice}
 import com.typesafe.scalalogging.Logger
 
+import org.reflections.Reflections
+
 import org.midonet.containers.ContainerProvider
 import org.midonet.midolman.topology.VirtualTopology
 
 /**
-  * Scans the current classpath of the package specified by the `prefix`
-  * argument for service container handlers.
+  * Scans the current classpath for service container handlers.
   */
-class ContainerHandlerProvider(prefix: String,
+class ContainerHandlerProvider(reflections: Reflections,
                                vt: VirtualTopology,
                                executor: ExecutorService,
                                log: Logger)
-    extends ContainerProvider[ContainerHandler](prefix, log)(classTag[ContainerHandler]) {
-
-    log info s"Scanning classpath $prefix for service container handler"
+    extends ContainerProvider[ContainerHandler](reflections, log)(classTag[ContainerHandler]) {
 
     protected override val injector = Guice.createInjector(new AbstractModule() {
         override def configure(): Unit = {
