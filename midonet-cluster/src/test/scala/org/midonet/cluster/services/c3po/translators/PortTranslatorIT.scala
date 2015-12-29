@@ -163,20 +163,20 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
         insertCreateTask(3, SubnetType, sn1Json, sn1Id)
 
         // Create a legacy ReplicatedMap for the Network ARP table.
-        val arpTable = dataClient.getIp4MacMap(nw1Id)
+        val arpTable = stateTableStorage.bridgeArpTable(nw1Id)
         val nw1 = eventually(storage.get(classOf[Network], nw1Id).await())
         nw1.getTenantId shouldBe "tenant"
         eventually(arpTable.start())
 
-        arpTable.containsKey(vifPortIp) shouldBe false
+        arpTable.containsLocal(vifPortIp) shouldBe false
 
         val vifPortJson = portJson(
                 vifPortId, nw1Id, macAddr = vifPortMac,
                 fixedIps = List(IPAlloc(vifPortIp, sn1Id)))
         insertCreateTask(4, PortType, vifPortJson, vifPortId)
         eventually {
-            arpTable.containsKey(vifPortIp) shouldBe true
-            arpTable.get(vifPortIp) shouldBe MAC.fromString(vifPortMac)
+            arpTable.containsLocal(vifPortIp) shouldBe true
+            arpTable.getLocal(vifPortIp) shouldBe MAC.fromString(vifPortMac)
         }
 
         // Update the port with a new fixed IP.
@@ -186,9 +186,9 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
             fixedIps = List(IPAlloc(vifPortIp2, sn1Id)))
         insertUpdateTask(5, PortType, vifPortJsonNewIp, vifPortId)
         eventually {
-            arpTable.containsKey(vifPortIp) shouldBe false
-            arpTable.containsKey(vifPortIp2) shouldBe true
-            arpTable.get(vifPortIp2) shouldBe MAC.fromString(vifPortMac)
+            arpTable.containsLocal(vifPortIp) shouldBe false
+            arpTable.containsLocal(vifPortIp2) shouldBe true
+            arpTable.getLocal(vifPortIp2) shouldBe MAC.fromString(vifPortMac)
         }
 
         // Update the IP and MAC in a single update.
@@ -198,15 +198,15 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
             fixedIps = List(IPAlloc(vifPortIp, sn1Id)))
         insertUpdateTask(6, PortType, vifPortJsonNewMac, vifPortId)
         eventually {
-            arpTable.containsKey(vifPortIp2) shouldBe false
-            arpTable.containsKey(vifPortIp) shouldBe true
-            arpTable.get(vifPortIp) shouldBe MAC.fromString(vifPortMac2)
+            arpTable.containsLocal(vifPortIp2) shouldBe false
+            arpTable.containsLocal(vifPortIp) shouldBe true
+            arpTable.getLocal(vifPortIp) shouldBe MAC.fromString(vifPortMac2)
         }
 
         // Delete the VIF port.
         insertDeleteTask(10, PortType, vifPortId)
         eventually{
-            arpTable.containsKey(vifPortIp) shouldBe false
+            arpTable.containsLocal(vifPortIp) shouldBe false
         }
     }
 

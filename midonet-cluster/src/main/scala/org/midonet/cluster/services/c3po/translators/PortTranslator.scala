@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, UpdateValidator}
+import org.midonet.cluster.data.storage.{StateTableStorage, NotFoundException, ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology._
@@ -51,11 +51,12 @@ object PortTranslator {
 }
 
 class PortTranslator(protected val storage: ReadOnlyStorage,
+                     protected val stateTableStorage: StateTableStorage,
                      protected val pathBldr: PathBuilder,
                      sequenceDispenser: SequenceDispenser)
         extends Translator[NeutronPort]
                 with ChainManager with PortManager with RouteManager with RuleManager
-                with BridgeStateTableManager {
+                with StateTableManager {
     import RouterInterfaceTranslator._
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
 

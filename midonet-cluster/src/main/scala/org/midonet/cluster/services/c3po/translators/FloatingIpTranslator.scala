@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{ReadOnlyStorage, StateTableStorage}
 import org.midonet.cluster.models.Commons.{Condition, UUID}
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.{Chain, Rule}
@@ -24,16 +24,17 @@ import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Upd
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.midolman.state.PathBuilder
+import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, PathBuilder}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for FloatingIp. */
 class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
+                           protected val stateTableStorage: StateTableStorage,
                            protected val pathBldr: PathBuilder)
         extends Translator[FloatingIp] with ChainManager
                 with RouteManager
                 with RuleManager
-                with BridgeStateTableManager {
+                with StateTableManager {
     import RouterTranslator.tenantGwPortId
     import org.midonet.cluster.services.c3po.translators.RouteManager._
 
@@ -78,11 +79,13 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         }
     }
 
-    private def fipArpEntryPath(fip: FloatingIp, gwPortId: UUID) = {
+    private def fipArpEntryPath(fip: FloatingIp, gwPortId: UUID): String = {
         val gwPort = storage.get(classOf[NeutronPort], gwPortId).await()
-        arpEntryPath(gwPort.getNetworkId,
-                     fip.getFloatingIpAddress.getAddress,
-                     gwPort.getMacAddress)
+        val tablePath =
+            stateTableStorage.bridgeArpTablePath(gwPort.getNetworkId)
+        val entry = Ip4ToMacReplicatedMap.encodePersistentPath(
+            fip.getFloatingIpAddress.getAddress, gwPort.getMacAddress)
+        tablePath + entry
     }
 
     /* Generates a CreateNode Op for FIP IP and Router GW port. */

@@ -157,7 +157,8 @@ public class FuncTest {
                     public void setup(StateTableStorage storage) {
                         storage.registerTable(
                             Topology.Network.class, IPv4Addr.class, MAC.class,
-                            MidonetBackend.Ip4MacTable(), Ip4MacStateTable.class);
+                            MidonetBackend.Ip4MacTable(),
+                            Ip4MacStateTable.class);
                     }
                 };
             backend.startAsync().awaitRunning();

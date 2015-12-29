@@ -72,12 +72,12 @@ class NetworkIT extends C3POMinionTestBase {
         curator.checkExists.forPath(ipMacPath1) shouldNot be(null)
 
         // Create a legacy ReplicatedMap for the ARP table.
-        val arpTable = dataClient.getIp4MacMap(network1Uuid)
+        val arpTable = stateTableStorage.bridgeArpTable(network1Uuid)
         arpTable shouldNot be(null)
         arpTable.start()
         eventually {
             // The ARP table should pick up the pre-seeded MAC.
-            arpTable.get(ipAddr1) shouldBe MAC.fromString(mac1)
+            arpTable.getLocal(ipAddr1) shouldBe MAC.fromString(mac1)
         }
 
         // Test adding a new ARP entry to the already started Replicated Map.
@@ -88,7 +88,7 @@ class NetworkIT extends C3POMinionTestBase {
         curator.checkExists.forPath(ipMacPath2) shouldNot be(null)
         eventually {
             // The ARP table should pick up the new mac.
-            arpTable.get(ipAddr2) shouldBe MAC.fromString(mac2)
+            arpTable.getLocal(ipAddr2) shouldBe MAC.fromString(mac2)
         }
         arpTable.stop()
 

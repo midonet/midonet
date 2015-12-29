@@ -27,14 +27,14 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{FloatingIp => FloatingIpType, Network => NetworkType, Port => PortType, PortBinding => PortBindingType, Router => RouterType, Subnet => SubnetType}
+import org.midonet.cluster.data.storage.StateTable
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap
 import org.midonet.packets.util.AddressConversions._
-import org.midonet.packets.{IPv4Subnet, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
@@ -181,7 +181,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         }
 
         // Create a legacy ReplicatedMap for the external Network ARP table.
-        val arpTable = dataClient.getIp4MacMap(extNetworkId)
+        val arpTable = stateTableStorage.bridgeArpTable(extNetworkId)
         eventually {
             arpTable.start()
         }
@@ -211,7 +211,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val fip = eventually(storage.get(classOf[FloatingIp], fipId).await())
         fip.getFloatingIpAddress shouldBe IPAddressUtil.toProto(fipIp)
         // The ARP table should NOT YET contain the ARP entry.
-        arpTable.containsKey(fipIp) shouldBe false
+        arpTable.containsLocal(fipIp) shouldBe false
 
         // Update the Floating IP with a port to assign to.
         val assignedFipJson = floatingIpJson(id = fipId,
@@ -297,14 +297,14 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         arpTable.stop()
     }
 
-    private def checkFipAssociated(arpTable: Ip4ToMacReplicatedMap,
+    private def checkFipAssociated(arpTable: StateTable[IPv4Addr, MAC],
                                    fipAddr: String, fipId: UUID,
                                    fixedIp: String, vifPortId: UUID,
                                    rtrId: UUID, rgwMac: String, rgwPort: Port)
     : Unit = {
         import org.midonet.cluster.util.UUIDUtil.toProto
         // External network's ARP table should contain an ARP entry
-        arpTable.get(fipAddr) shouldBe MAC.fromString(rgwMac)
+        arpTable.getLocal(fipAddr) shouldBe MAC.fromString(rgwMac)
 
         val snatRuleId = RouteManager.fipSnatRuleId(fipId)
         val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
@@ -359,7 +359,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         else nPort.getFloatingIpIdsList should contain only toProto(fipId)
     }
 
-    private def checkFipDisassociated(arpTable: Ip4ToMacReplicatedMap,
+    private def checkFipDisassociated(arpTable: StateTable[IPv4Addr, MAC],
                                       fipAddr: String, fipId: UUID,
                                       rtrId: UUID, deleted: Boolean): Unit = {
         // NAT rules should be deleted, and FIP iff deleted == true
@@ -377,6 +377,6 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         inChain.getRuleIdsList should not contain dnatRuleId
         outChain.getRuleIdsList should not contain snatRuleId
 
-        arpTable.containsKey(fipAddr) shouldBe false
+        arpTable.containsLocal(fipAddr) shouldBe false
     }
 }

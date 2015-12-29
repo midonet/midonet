@@ -194,13 +194,14 @@ object C3POMinion {
                         pathBldr: PathBuilder): C3POStorageManager = {
         val dataMgr = new C3POStorageManager(storage)
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
-             classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
+             classOf[FloatingIp] ->
+                new FloatingIpTranslator(storage, stateTableStorage, pathBldr),
              classOf[GatewayDevice] ->
                 new GatewayDeviceTranslator(storage, stateTableStorage),
              classOf[IPSecSiteConnection] ->
                 new IPSecSiteConnectionTranslator(storage),
              classOf[L2GatewayConnection] ->
-                new L2GatewayConnectionTranslator(storage, stateTableStorage),
+                new L2GatewayConnectionTranslator(storage, stateTableStorage, pathBldr),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronFirewall] -> new FirewallTranslator(storage),
              classOf[NeutronHealthMonitor] ->
@@ -211,16 +212,18 @@ object C3POMinion {
                 new LoadBalancerPoolMemberTranslator(storage),
              classOf[NeutronNetwork] ->
                 new NetworkTranslator(storage, pathBldr),
-             classOf[NeutronRouter] -> new RouterTranslator(storage, pathBldr),
+             classOf[NeutronRouter] ->
+                new RouterTranslator(storage, stateTableStorage, pathBldr),
              classOf[NeutronRouterInterface] ->
                 new RouterInterfaceTranslator(storage, seqDispenser),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),
-             classOf[NeutronPort] -> new PortTranslator(storage, pathBldr,
-                                                        seqDispenser),
-             classOf[NeutronVIP] -> new VipTranslator(storage, pathBldr),
+             classOf[NeutronPort] ->
+                new PortTranslator(storage, stateTableStorage, pathBldr, seqDispenser),
+             classOf[NeutronVIP] ->
+                new VipTranslator(storage, stateTableStorage, pathBldr),
              classOf[PortBinding] -> new PortBindingTranslator(storage),
              classOf[RemoteMacEntry] ->
-                new RemoteMacEntryTranslator(storage, stateTableStorage),
+                new RemoteMacEntryTranslator(storage, stateTableStorage, pathBldr),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
              classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage),
              classOf[VpnService] -> new VpnServiceTranslator(storage, seqDispenser)

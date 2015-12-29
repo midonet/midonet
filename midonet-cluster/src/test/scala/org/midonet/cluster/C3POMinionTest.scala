@@ -54,9 +54,9 @@ import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rest_api.neutron.models.RuleProtocol
 import org.midonet.cluster.services.c3po.C3POMinion
-import org.midonet.cluster.services.c3po.translators.BridgeStateTableManager
+import org.midonet.cluster.services.c3po.translators.StateTableManager
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
-import org.midonet.cluster.storage.{MacIp4StateTable, MidonetBackendConfig}
+import org.midonet.cluster.storage.{Ip4MacStateTable, MacIp4StateTable, MidonetBackendConfig}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.cluster.{DataClient => LegacyDataClient}
@@ -74,7 +74,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                           with BeforeAndAfterAll
                                           with Matchers
                                           with MidonetEventually
-                                          with BridgeStateTableManager {
+                                          with StateTableManager {
 
     protected val log = LoggerFactory.getLogger(this.getClass)
 
@@ -308,6 +308,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     }
 
     protected def storage = backend.store
+    protected def stateTableStorage = backend.stateTableStore
 
     before {
         curator = CuratorFrameworkFactory.newClient(ZK_HOST,
@@ -327,6 +328,10 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                     classOf[Topology.Port], classOf[MAC],
                     classOf[IPv4Addr], MidonetBackend.PeeringTable,
                     classOf[MacIp4StateTable])
+                stateTableStore.registerTable(
+                    classOf[Topology.Network], classOf[IPv4Addr],
+                    classOf[MAC], MidonetBackend.Ip4MacTable,
+                    classOf[Ip4MacStateTable])
             }
         }
         backend.startAsync().awaitRunning()
@@ -816,7 +821,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected def checkReplMaps(bridgeId: UUID, shouldExist: Boolean)
     : Unit = {
-        val arpPath = getBridgeIP4MacMapPath(bridgeId)
+        val arpPath = stateTableStorage.bridgeArpTablePath(bridgeId)
         val macPath = getBridgeMacPortsPath(bridgeId)
         val vlansPath = getBridgeVlansPath(bridgeId)
         if (shouldExist) {

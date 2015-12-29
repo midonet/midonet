@@ -26,13 +26,14 @@ import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.services.c3po.translators.GatewayDeviceTranslator.OnlyRouterVtepSupported
-import org.midonet.cluster.services.c3po.translators.RemoteMacEntryTranslator.remoteMacEntryPath
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
 
 class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
-                                    protected val stateTable: StateTableStorage)
-    extends Translator[L2GatewayConnection] {
+                                    protected val stateTableStorage: StateTableStorage,
+                                    protected val pathBldr: PathBuilder)
+    extends Translator[L2GatewayConnection] with StateTableManager {
     import L2GatewayConnectionTranslator._
 
 
@@ -64,8 +65,9 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
                                  gwDev.getRemoteMacEntryIdsList).await()
         val rmOps = for (rm <- rms if rm.getSegmentationId == vni) yield {
             rtrPortBldr.addRemoteMacEntryIds(rm.getId)
-            CreateNode(remoteMacEntryPath(rm, rtrPortBldr.getId.asJava,
-                                          stateTable))
+            CreateNode(portPeeringEntryPath(rtrPortBldr.getId.asJava,
+                                            rm.getMacAddress,
+                                            rm.getVtepAddress.getAddress))
         }
 
         List(Create(nwPort), Create(rtrPortBldr.build())) ++ rmOps
@@ -83,8 +85,8 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
         val rms = storage.getAll(classOf[RemoteMacEntry],
                                  rtrPort.getRemoteMacEntryIdsList).await()
         val rmOps = for (rm <- rms) yield {
-            val path = remoteMacEntryPath(rm, rtrPortId.asJava, stateTable)
-            DeleteNode(path)
+            DeleteNode(portPeeringEntryPath(rtrPortId.asJava, rm.getMacAddress,
+                                            rm.getVtepAddress.getAddress))
         }
 
         Delete(classOf[Port], vtepNetworkPortId(cnxn.getNetworkId)) ::

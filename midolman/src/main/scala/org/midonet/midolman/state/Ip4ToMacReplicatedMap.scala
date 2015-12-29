@@ -154,6 +154,9 @@ object Ip4ToMacReplicatedMap {
     def encodePersistentPath(k: IPv4Addr, v: MAC) =
         encodePath(k, v, Int.MaxValue)
 
+    def encodePersistentPath(ip: String, mac: String): String =
+        ReplicatedMap.encodeFullPath(ip, mac, Int.MaxValue)
+
     /*
      * We use version 0 for learned entries. This is done so to remain
      * compatible with a very likely buggy version of the ReplicatedMap that
@@ -165,6 +168,5 @@ object Ip4ToMacReplicatedMap {
 
     def encodePath(k :IPv4Addr, v :MAC, ver: Int) =
         ReplicatedMap.encodeFullPath(k.toString, v.toString, ver)
-
 }
 
