@@ -154,6 +154,24 @@
     },
     {
       "key": {
+        "uuid": "3a961159_9594a645",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-29T09:54:40Z",
+      "side": 1,
+      "message": "ah, true. ignore the comment then.",
+      "parentUuid": "3a961159_32a6a8c2",
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_af36b5e5",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 1
@@ -635,6 +653,30 @@
       "side": 1,
       "message": "Agreed. Not sure what\u0027s the right place at the top of my head (maybe we can get it somehow from packaging?)",
       "parentUuid": "3a961159_d26ba483",
+      "range": {
+        "startLine": 443,
+        "startChar": 37,
+        "endLine": 443,
+        "endChar": 68
+      },
+      "revId": "c07e154988167d215acdff56e5280cbc94a5fde0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_b591a254",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-29T09:54:40Z",
+      "side": 1,
+      "message": "nah, just define it at the top of the file.",
+      "parentUuid": "3a961159_12a1aca9",
       "range": {
         "startLine": 443,
         "startChar": 37,
