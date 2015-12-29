@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a930d6b_6b1121ac",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-12-29T17:55:50Z",
+      "side": 1,
+      "message": "when does this happen, and when does the None case happen?",
+      "range": {
+        "startLine": 50,
+        "startChar": 12,
+        "endLine": 50,
+        "endChar": 15
+      },
+      "revId": "42112b3589bfce3b8b080a80c93257dec980d6f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
