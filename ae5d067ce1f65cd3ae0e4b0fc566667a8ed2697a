@@ -331,6 +331,30 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_4b446574",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-29T21:34:09Z",
+      "side": 1,
+      "message": "We use this scheduler only where synchronization is needed, otherwise the observable thread (i.e. curator event thread) should be okay if you\u0027re not blocking for a long time.",
+      "parentUuid": "1a930d6b_6b876110",
+      "range": {
+        "startLine": 357,
+        "startChar": 12,
+        "endLine": 357,
+        "endChar": 35
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_55823e01",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -554,6 +578,30 @@
       "side": 1,
       "message": "When adding the promise as a parameter (see above) this match seems to be needed.",
       "parentUuid": "3a961159_b578c22c",
+      "range": {
+        "startLine": 396,
+        "startChar": 8,
+        "endLine": 397,
+        "endChar": 68
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_6b49218b",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-29T21:34:09Z",
+      "side": 1,
+      "message": "Hmm. strange :/",
+      "parentUuid": "1a930d6b_ab9f894f",
       "range": {
         "startLine": 396,
         "startChar": 8,
