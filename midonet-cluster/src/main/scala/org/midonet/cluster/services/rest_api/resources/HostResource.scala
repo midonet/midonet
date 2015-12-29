@@ -83,14 +83,19 @@ class HostResource @Inject()(resContext: ResourceContext)
         // We only allow modifying the Flooding Proxy in this method, all other
         // updates are disallowed.
         val current = tx.get(classOf[Host], id)
-        if (host.floodingProxyWeight != null) {
-            current.floodingProxyWeight = host.floodingProxyWeight
-            tx.update(current)
-            OkResponse
-        } else {
+        if (host.floodingProxyWeight eq null) {
             buildErrorResponse(
                 Status.BAD_REQUEST,
                 getMessage(HOST_FLOODING_PROXY_WEIGHT_IS_NULL))
+        } else if (host.containerWeight eq null) {
+            buildErrorResponse(
+                Status.BAD_REQUEST,
+                getMessage(HOST_FLOODING_PROXY_WEIGHT_IS_NULL))
+        } else {
+            current.floodingProxyWeight = host.floodingProxyWeight
+            current.containerWeight = host.containerWeight
+            tx.update(current)
+            OkResponse
         }
     }
 

@@ -78,6 +78,8 @@ public class TestHost extends JerseyTest {
 
     public static final int DEFAULT_FLOODING_PROXY_WEIGHT = 1;
     public static final int FLOODING_PROXY_WEIGHT = 42;
+    public static final int DEFAULT_CONTAINER_WEIGHT = 1;
+    public static final int CONTAINER_WEIGHT = 42;
 
     private TopologyBackdoor topologyBackdoor;
     private DtoWebResource dtoResource;
@@ -345,6 +347,145 @@ public class TestHost extends JerseyTest {
         Integer weight = dtoHost.getFloodingProxyWeight();
         assertThat("Flooding Proxy Weight has the proper value",
                    weight, equalTo(FLOODING_PROXY_WEIGHT));
+    }
+
+    @Test
+    public void testContainerWeight() throws Exception {
+        UUID hostId = UUID.randomUUID();
+
+        ResourceCollection<Host> hosts = api.getHosts();
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertThat("Hosts should be empty", hosts.size(), equalTo(0));
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
+
+        hosts = api.getHosts();
+
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertEquals("We should expose 1 host via the API",
+                     hosts.size(), 1);
+        assertEquals("The returned host should have the same UUID",
+                     hosts.get(0).getId(), hostId);
+
+        int weight = hosts.get(0).getContainerWeight();
+        assertEquals("The container weight should be the default value",
+                     weight, DEFAULT_CONTAINER_WEIGHT);
+
+        topologyBackdoor.setContainerWeight(hostId, CONTAINER_WEIGHT);
+        weight = topologyBackdoor.getContainerWeight(hostId);
+        assertThat("The container weight should not be null",
+                   weight, is(notNullValue()));
+        assertThat("The container weight has the proper value",
+                   weight, equalTo(FLOODING_PROXY_WEIGHT));
+
+        topologyBackdoor.setContainerWeight(hostId, 1);
+        weight = topologyBackdoor.getContainerWeight(hostId);
+        assertThat("The container weight should not be null",
+                   weight, is(notNullValue()));
+        assertThat("The container weight has the proper value",
+                   weight, equalTo(1));
+    }
+
+    @Test
+    public void testContainerWeightNoHost() throws Exception {
+        UUID hostId = UUID.randomUUID();
+
+        ResourceCollection<Host> hosts = api.getHosts();
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertThat("Hosts should be empty", hosts.size(), equalTo(0));
+
+        try {
+            topologyBackdoor.setContainerWeight(hostId, CONTAINER_WEIGHT);
+            fail(
+                "Container weight cannot be set on non-existing hosts");
+        } catch (RuntimeException e) {
+            // ok
+        }
+
+        try {
+            topologyBackdoor.getContainerWeight(hostId);
+            fail("Container weight cannot be retrieved on non-existing hosts");
+        } catch (RuntimeException e) {
+            // ok
+        }
+    }
+
+    @Test
+    public void testDeleteContainerWeight() throws Exception {
+        UUID hostId = UUID.randomUUID();
+
+        ResourceCollection<Host> hosts = api.getHosts();
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertThat("Hosts should be empty", hosts.size(), equalTo(0));
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
+        topologyBackdoor.setContainerWeight(hostId, CONTAINER_WEIGHT);
+
+        hosts = api.getHosts();
+
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertThat("We should expose 1 host via the API",
+                   hosts.size(), equalTo(1));
+        assertThat("The returned host should have the same UUID",
+                   hosts.get(0).getId(), equalTo(hostId));
+
+        Integer weight = topologyBackdoor.getContainerWeight(hostId);
+        assertThat("The container weight should not be null",
+                   weight, is(notNullValue()));
+        assertThat("The container weight has the proper value",
+                   weight, equalTo(CONTAINER_WEIGHT));
+
+        hosts.get(0).delete();
+
+        assertThat("Host should have been removed from ZooKeeper.",
+                   topologyBackdoor.getHostIds().isEmpty());
+
+        try {
+            topologyBackdoor.getContainerWeight(hostId);
+            fail("Host container weight should be removed from ZK.");
+        } catch (RuntimeException e) {
+            // ok
+        }
+    }
+
+    @Test
+    public void testGetContainerWeightDefault() throws Exception {
+        UUID hostId = UUID.randomUUID();
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
+
+        DtoHost dtoHost = retrieveHostV3(hostId);
+        assertThat("Retrieved host info is not null",
+                   dtoHost, is(notNullValue()));
+        Integer weight = dtoHost.getFloodingProxyWeight();
+        assertThat("Flooding Proxy Weight has the default value",
+                   weight, equalTo(DEFAULT_CONTAINER_WEIGHT));
+    }
+
+    @Test
+    public void testGetContainerWeight() throws Exception {
+        UUID hostId = UUID.randomUUID();
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
+        topologyBackdoor.setContainerWeight(hostId, CONTAINER_WEIGHT);
+
+        DtoHost dtoHost = retrieveHostV3(hostId);
+        assertThat("Retrieved host info is not null",
+                   dtoHost, is(notNullValue()));
+        Integer weight = dtoHost.getContainerWeight();
+        assertThat("Container weight has the proper value",
+                   weight, equalTo(CONTAINER_WEIGHT));
+    }
+
+    @Test
+    public void testListHostsWithContainerWeight() throws Exception {
+        UUID hostId = UUID.randomUUID();
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
+        topologyBackdoor.setContainerWeight(hostId, CONTAINER_WEIGHT);
+
+        List<DtoHost> hostListV2 = retrieveHostListV3();
+        DtoHost dtoHost = hostListV2.iterator().next();
+        assertThat("Retrieved host info is not null",
+                   dtoHost, is(notNullValue()));
+        Integer weight = dtoHost.getContainerWeight();
+        assertThat("Container weight has the proper value",
+                   weight, equalTo(CONTAINER_WEIGHT));
     }
 
     @Test
