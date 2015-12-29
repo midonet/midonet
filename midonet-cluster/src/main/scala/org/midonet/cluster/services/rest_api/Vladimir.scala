@@ -38,6 +38,7 @@ import org.eclipse.jetty.http.HttpVersion._
 import org.eclipse.jetty.server._
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
 
@@ -70,10 +71,10 @@ object Vladimir {
 
     def servletModule(backend: MidonetBackend, ec: ExecutionContext,
                       curator: CuratorFramework, config: ClusterConfig,
-                      authService: AuthService,
+                      reflections: Reflections, authService: AuthService,
                       log: Logger) = new JerseyServletModule {
 
-        val resProvider = new ResourceProvider(log)
+        val resProvider = new ResourceProvider(reflections, log)
         val sequenceDispenser = new SequenceDispenser(curator, config.backend)
 
         override def configureServlets(): Unit = {
@@ -127,6 +128,7 @@ object Vladimir {
 class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                          backend: MidonetBackend,
                          curator: CuratorFramework,
+                         reflections: Reflections,
                          authService: AuthService,
                          config: ClusterConfig)
     extends Minion(nodeContext) {
@@ -190,7 +192,7 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
         context.addEventListener(new GuiceServletContextListener {
             override def getInjector: Injector = {
                 createInjector(servletModule(backend, executionContext, curator,
-                                             config, authService, log))
+                                             config, reflections, authService, log))
             }
         })
         val allDispatchers = util.EnumSet.allOf(classOf[DispatcherType])

@@ -24,6 +24,7 @@ import com.typesafe.config.{ConfigException, ConfigFactory}
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
 import org.junit.runner.RunWith
+import org.reflections.Reflections
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
@@ -43,6 +44,7 @@ class ConfResourceTest extends FeatureSpec
 
     HostIdGenerator.useTemporaryHostId()
 
+    private var reflections: Reflections = _
     private var backend: MidonetBackendService = _
     private var api: Vladimir = _
     private val httpPort: Int = 10000 + (Math.random() * 50000).toInt
@@ -63,12 +65,15 @@ class ConfResourceTest extends FeatureSpec
 
     override def beforeAll(): Unit = {
         super.beforeAll()
+
+        reflections = new Reflections("org.midonet.cluster.rest_api",
+                                      "org.midonet.cluster.services.rest_api")
         
         val context = ClusterNode.Context(HostIdGenerator.getHostId)
         backend = new MidonetBackendService(new MidonetBackendConfig(config),
                                                 zkClient, null)
         backend.startAsync().awaitRunning()
-        api = new Vladimir(context, backend, zkClient,
+        api = new Vladimir(context, backend, zkClient, reflections,
                            new MockAuthService(config),
                            new ClusterConfig(config))
         api.startAsync().awaitRunning()

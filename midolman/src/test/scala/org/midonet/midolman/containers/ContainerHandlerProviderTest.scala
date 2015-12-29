@@ -26,6 +26,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito
+import org.reflections.Reflections
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, GivenWhenThen, Matchers}
 import org.slf4j.LoggerFactory
@@ -55,6 +56,7 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
                                    with GivenWhenThen {
 
     private val log = Logger(LoggerFactory.getLogger(getClass))
+    private val reflections = new Reflections("org.midonet.midolman.containers")
 
     "Container provider" should "load a container with the VT as argument" in {
         Given("A mock virtual topology")
@@ -62,8 +64,7 @@ class ContainerHandlerProviderTest extends FlatSpec with Matchers
         val executor = Mockito.mock(classOf[ExecutorService])
 
         And("A provider for the current class path")
-        val provider = new ContainerHandlerProvider(
-            "org.midonet.midolman.containers", vt, executor, log)
+        val provider = new ContainerHandlerProvider(reflections, vt, executor, log)
 
         Then("The provider should load all classes")
         provider.current.size should be >= 1

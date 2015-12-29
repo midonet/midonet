@@ -28,6 +28,8 @@ import scala.util.control.NonFatal
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.AbstractService
 
+import org.reflections.Reflections
+
 import rx.schedulers.Schedulers
 import rx.{Observable, Subscriber, Subscription}
 
@@ -48,7 +50,6 @@ object ContainerService {
 
     private val NotificationBufferSize = 0x1000
     private val StorageTimeout = Duration.Inf
-    private val ContainersPrefix = "org.midonet.containers"
 
     case class Handler(cp: ContainerPort, handler: ContainerHandler,
                        namespace: String, subscription: Subscription)
@@ -61,7 +62,7 @@ object ContainerService {
   */
 class ContainerService(vt: VirtualTopology, hostId: UUID,
                        executor: ExecutorService,
-                       containersPrefix: String = ContainersPrefix)
+                       reflections: Reflections)
     extends AbstractService with MidolmanLogging {
 
     override def logSource = "org.midonet.containers"
@@ -107,7 +108,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
     private val observable = Observable.create(mapper)
 
     private val provider =
-        new ContainerHandlerProvider(containersPrefix, vt, executor, log)
+        new ContainerHandlerProvider(reflections, vt, executor, log)
 
     // The handlers map is concurrent because reads may be performed from
     // the handler notification thread.
