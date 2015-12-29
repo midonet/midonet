@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a930d6b_4bdd4542",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HealthMonitorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:19:57Z",
+      "side": 1,
+      "message": "nit: missing i",
+      "revId": "3b6105d24b6e6d4f3843cd05d793f75f0283253e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
