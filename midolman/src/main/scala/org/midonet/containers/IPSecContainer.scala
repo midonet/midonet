@@ -17,6 +17,7 @@
 package org.midonet.containers
 
 import java.io.File
+import java.util.UUID
 import java.util.concurrent.ExecutorService
 
 import javax.inject.Named
@@ -193,8 +194,12 @@ case class IPSecConfig(script: String,
     val secretsPath = s"${ipsecService.filepath}/etc/ipsec.secrets"
 }
 
-case class IPSecException(message: String, cause: Throwable)
+case class IPSecException(message: String, cause: Throwable = null)
     extends Exception(message, cause)
+
+case class IPSecAdminStateDownException(routerId: UUID)
+    extends Exception(s"VPNService(s) on router $routerId have admin state " +
+                      "DOWN", null)
 
 /**
   * Implements a [[ContainerHandler]] for a IPSec-based VPN service.
@@ -212,23 +217,23 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     private implicit val ec = ExecutionContext.fromExecutor(executor)
 
     /**
-      * Creates a container for the specified exterior port and service
-      * container. The port contains the interface name that the container
-      * handler should create, and the method returns a future that completes
-      * with the namespace name when the container has been created.
+      * @see [[ContainerHandler.create]]
       */
-    override def create(port: ContainerPort): Future[String] = {
+    override def create(port: ContainerPort): Future[Option[String]] = {
         log info s"Create IPSec container for $port"
 
         try {
             config = createConfig(port)
             setup(config)
-
             healthSubject onNext ContainerHealth(Code.RUNNING,
                                                  config.ipsecService.name)
-
-            Future.successful(config.ipsecService.name)
+            Future.successful(Some(config.ipsecService.name))
         } catch {
+            case NonFatal(e: IPSecAdminStateDownException) =>
+                log.info("All IPSec services on the designated container " +
+                         s"{port.containerId} have admin state DOWN")
+                delete()
+                Future.successful(None)
             case NonFatal(e) =>
                 log.error(s"Failed to create IPSec for $port", e)
                 Future.failed(e)
@@ -236,20 +241,14 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     }
 
     /**
-      * Indicates that the configuration identifier for an existing container
-      * has changed. This method is called only when the reference to the
-      * configuration changes and not when the data of the existing configuration
-      * objects change. It is the responsibility of the classes implementing
-      * this interface to monitor their configuration.
+      * @see [[ContainerHandler.updated]]
       */
-    override def updated(port: ContainerPort): Future[String] = {
+    override def updated(port: ContainerPort): Future[Option[String]] = {
         delete() flatMap { _ => create(port) }
     }
 
     /**
-      * Deletes the container for the specified exterior port and namespace
-      * information. The method returns a future that completes when the
-      * container has been deleted.
+      * @see [[ContainerHandler.delete]]
       */
     override def delete(): Future[Unit] = {
         if (config eq null) {
@@ -272,9 +271,7 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
     }
 
     /**
-      * An observable that reports the health status of the container, which
-      * includes both the container namespace/interface as well as the
-      * service application executing within the container.
+      * @see [[ContainerHandler.health]]
       */
     override def health: Observable[ContainerHealth] = {
         healthSubject.asObservable()
@@ -286,7 +283,8 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
      */
     @throws[Exception]
     protected[containers] def setup(config: IPSecConfig): Unit = {
-        log info s"Setting up IPSec container ${config.ipsecService.name}"
+        val name = config.ipsecService.name
+        log info s"Setting up IPSec container $name"
         // Try clean namespace.
         execCmd(config.cleanNsCmd)
 
@@ -340,11 +338,21 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
         val port = vt.store.get(classOf[Port], cp.portId).await(timeout)
         val router = vt.store.get(classOf[Router], cp.configurationId)
             .await(timeout)
+        val routerId = router.getId.asJava
+        val vpnServices = vt.store
+            .getAll(classOf[VpnService], router.getVpnServiceIdsList)
+            .await(timeout)
 
-        val vpnService = vt.store.getAll(classOf[VpnService],
-                                         router.getVpnServiceIdsList)
-            .await(timeout).headOption.getOrElse(
-            throw IPSecException(s"No VPN services on router ${router.getId.asJava}", null))
+        if (vpnServices.isEmpty) {
+            throw IPSecException(s"No VPN services on router $routerId")
+        }
+
+        // switch to filter when we support multiple VPNServices
+        val vpnService = vpnServices
+            .find { vpn => !vpn.hasAdminStateUp || vpn.getAdminStateUp }
+            .getOrElse {
+                throw new IPSecAdminStateDownException(routerId)
+            }
 
         val externalAddress = vpnService.getExternalIp.asIPv4Address
         val externalMac = router.getPortIdsList.asScala
@@ -354,17 +362,17 @@ class IPSecContainer @Inject()(vt: VirtualTopology,
             .getOrElse(throw IPSecException(
                 s"VPN service ${vpnService.getId.asJava} router " +
                 s"${vpnService.getRouterId.asJava} does not have a port " +
-                s"that matches the VPN external address $externalAddress", null))
+                s"that matches the VPN external address $externalAddress"))
 
         val portAddress = port.getPortAddress.asIPv4Address
         val namespaceAddress = portAddress.next
         val namespaceSubnet = new IPv4Subnet(namespaceAddress,
                                              port.getPortSubnet.getPrefixLength)
 
-        val path =
-            s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
+        val path = s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
 
-        val serviceDef = IPSecServiceDef(port.getInterfaceName, path,
+        val serviceDef = IPSecServiceDef(port.getInterfaceName,
+                                         path,
                                          externalAddress,
                                          externalMac,
                                          namespaceSubnet,

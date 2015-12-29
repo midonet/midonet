@@ -51,7 +51,7 @@ object ContainerService {
     private val ContainersPrefix = "org.midonet.containers"
 
     case class Handler(cp: ContainerPort, handler: ContainerHandler,
-                       namespace: String, subscription: Subscription)
+                       namespace: Option[String], subscription: Subscription)
 
 }
 
@@ -328,7 +328,7 @@ class ContainerService(vt: VirtualTopology, hostId: UUID,
                                     .setStatusCode(code)
                                     .setStatusMessage(message)
                                     .setHostId(hostId.asProto)
-                                    .setNamespaceName(handler.namespace)
+                                    .setNamespaceName(handler.namespace.getOrElse(""))
                                     .setInterfaceName(handler.cp.interfaceName)
                                     .build()
         setStatus(handler.cp, status)
