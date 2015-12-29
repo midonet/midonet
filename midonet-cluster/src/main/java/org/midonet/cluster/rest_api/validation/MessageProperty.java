@@ -44,6 +44,8 @@ public class MessageProperty {
             "{midokura.javarx.HostDeletionNotAllowedBindings.message}";
     public static final String HOST_FLOODING_PROXY_WEIGHT_IS_NULL =
             "{midokura.javarx.HostFloodingProxyWeightIsNull}";
+    public static final String HOST_CONTAINER_WEIGHT_IS_NULL =
+            "{midokura.javarx.HostContainerWeightIsNull}";
     public static final String HOST_ID_IS_INVALID =
             "{midokura.javarx.HostIdIsInvalid.message}";
     public static final String HOST_INTERFACE_IS_USED =

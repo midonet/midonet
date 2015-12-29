@@ -59,6 +59,10 @@ public class Host extends ResourceBase<Host, DtoHost> {
         return principalDto.getFloodingProxyWeight();
     }
 
+    public Integer getContainerWeight() {
+        return principalDto.getContainerWeight();
+    }
+
     public ResourceCollection<HostInterface> getInterfaces() {
         return getChildResources(
             principalDto.getInterfaces(), null,

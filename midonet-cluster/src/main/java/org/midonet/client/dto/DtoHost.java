@@ -35,6 +35,7 @@ public class DtoHost {
     private URI ports;
     private boolean alive;
     private Integer floodingProxyWeight;
+    private Integer containerWeight;
 
     @XmlTransient
     private URI uri;
@@ -101,6 +102,14 @@ public class DtoHost {
 
     public void setFloodingProxyWeight(Integer floodingProxyWeight) {
         this.floodingProxyWeight = floodingProxyWeight;
+    }
+
+    public Integer getContainerWeight() {
+        return containerWeight;
+    }
+
+    public void setContainerWeight(Integer containerWeight) {
+        this.containerWeight = containerWeight;
     }
 
     public URI getPorts() {

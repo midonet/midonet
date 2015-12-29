@@ -57,7 +57,11 @@ public interface TopologyBackdoor {
 
     Integer getFloodingProxyWeight(UUID hostId);
 
+    Integer getContainerWeight(UUID hostId);
+
     void setFloodingProxyWeight(UUID hostId, int weight);
+
+    void setContainerWeight(UUID hostId, int weight);
 
     void createInterface(UUID hostId, String name, MAC mac, int mtu,
                                 InetAddress[] addresses);
