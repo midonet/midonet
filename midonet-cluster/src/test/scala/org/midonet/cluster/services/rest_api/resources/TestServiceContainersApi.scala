@@ -18,7 +18,6 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
 import javax.ws.rs.core.Response.Status._
-import javax.ws.rs.core.UriBuilder
 
 import scala.collection.JavaConversions._
 
@@ -28,7 +27,7 @@ import org.eclipse.jetty.http.HttpStatus.METHOD_NOT_ALLOWED_405
 import org.junit.{Before, Test}
 import org.scalatest.ShouldMatchers
 
-import org.midonet.client.dto.{DtoApplication, DtoError, DtoRouter, DtoRouterPort}
+import org.midonet.client.dto.{DtoApplication, DtoError, DtoRouterPort}
 import org.midonet.cluster.HttpRequestChecks
 import org.midonet.cluster.rest_api.ResourceUris._
 import org.midonet.cluster.rest_api.models._
