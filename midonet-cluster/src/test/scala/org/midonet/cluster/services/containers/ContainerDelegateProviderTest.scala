@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.models.State.ContainerStatus
-import org.midonet.cluster.models.Topology.{ServiceContainerGroup, ServiceContainer}
+import org.midonet.cluster.models.Topology.ServiceContainer
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.containers.ContainerDelegateProviderTest.TestContainer
 import org.midonet.containers.Container
@@ -39,14 +39,10 @@ object ContainerDelegateProviderTest {
     @Container(name = "test-delegate", version = 1)
     class TestContainer @Inject()(backend: MidonetBackend,
                                   config: ClusterConfig) extends ContainerDelegate {
-        def onCreate(container: ServiceContainer, group: ServiceContainerGroup,
-                     hostId: UUID): Unit = { }
-        def onUp(container: ServiceContainer, group: ServiceContainerGroup,
-                 status: ContainerStatus): Unit = { }
-        def onDown(container: ServiceContainer, group: ServiceContainerGroup,
-                   status: ContainerStatus): Unit = { }
-        def onDelete(container: ServiceContainer, group: ServiceContainerGroup,
-                     hostId: UUID): Unit = { }
+        def onScheduled(container: ServiceContainer, hostId: UUID): Unit = { }
+        def onUp(container: ServiceContainer, status: ContainerStatus): Unit = { }
+        def onDown(container: ServiceContainer, status: ContainerStatus): Unit = { }
+        def onUnscheduled(container: ServiceContainer, hostId: UUID): Unit = { }
     }
 
 }
