@@ -43,6 +43,7 @@ import com.typesafe.scalalogging.Logger
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.text.WordUtils
 import org.eclipse.jetty.server.Request
+import org.reflections.Reflections
 import org.rogach.scallop.ScallopConf
 import org.slf4j.LoggerFactory
 
@@ -148,6 +149,8 @@ object Migrator extends App {
     private val legacyImporter =
         legacyInjector.getInstance(classOf[LegacyImporter])
 
+    private val reflections = new Reflections("org.midonet")
+
     private val backend = v5Injector.getInstance(classOf[MidonetBackend])
     backend.startAsync().awaitRunning()
 
@@ -193,7 +196,7 @@ object Migrator extends App {
                     .toProvider(classOf[ZookeeperReactorProvider])
                     .asEagerSingleton()
                 bind(classOf[ResourceProvider])
-                    .toInstance(new ResourceProvider(log))
+                    .toInstance(new ResourceProvider(reflections, log))
                 bind(classOf[UriInfo]).toInstance(MockUriInfo)
                 bind(classOf[Validator])
                     .toProvider(classOf[ValidatorProvider])

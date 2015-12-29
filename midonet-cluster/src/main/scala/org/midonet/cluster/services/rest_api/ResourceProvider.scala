@@ -28,12 +28,9 @@ import org.reflections.Reflections
 import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation.ApiResource
 
-class ResourceProvider(log: Logger) {
+class ResourceProvider(reflections: Reflections, log: Logger) {
 
     log info "Scanning classpath for pluggable API resources"
-    private val reflections =
-        new Reflections("org.midonet.cluster.services.rest_api",
-                        "org.midonet.cluster.rest_api")
     private val annotated =
         reflections.getTypesAnnotatedWith(classOf[ApiResource]).asScala
     private val allResources =
