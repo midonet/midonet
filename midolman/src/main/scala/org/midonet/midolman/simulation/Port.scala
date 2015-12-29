@@ -18,10 +18,9 @@ package org.midonet.midolman.simulation
 
 import java.util.{ArrayList => JArrayList, List => JList, UUID}
 
-import org.midonet.cluster.data.storage.{NoOpStateTable, StateTable}
-
 import scala.collection.JavaConverters._
 
+import org.midonet.cluster.data.storage.{NoOpStateTable, StateTable}
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
@@ -31,7 +30,6 @@ import org.midonet.midolman.simulation.Simulator.{ContinueWith, SimHook, ToPortA
 import org.midonet.midolman.topology.VirtualTopology.{VirtualDevice, tryGet}
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
-
 
 object Port {
     import IPAddressUtil._
@@ -43,9 +41,6 @@ object Port {
 
     private implicit def jlistToSSet(from: java.util.List[Commons.UUID]): Set[UUID] =
         if (from ne null) from.asScala.toSet map UUIDUtil.fromProto else Set.empty
-
-    private def jSetToJArrayList(from: java.util.Set[UUID]): JArrayList[UUID] =
-        if (from ne null) new JArrayList(from) else new JArrayList(0)
 
     def apply(proto: Topology.Port,
               infilters: JList[UUID],
@@ -100,7 +95,10 @@ object Port {
             if (p.hasPortMac) MAC.fromString(p.getPortMac) else null,
             p.getRouteIdsList,
             p.getInboundMirrorIdsList,
-            p.getOutboundMirrorIdsList)
+            p.getOutboundMirrorIdsList,
+            if (p.hasVni) p.getVni else 0,
+            if (p.hasTunnelIp) toIPv4Addr(p.getTunnelIp) else null,
+            peeringTable)
 
     private def vxLanPort(p: Topology.Port,
                           infilters: JList[UUID],
@@ -131,14 +129,6 @@ object Port {
             if (p.hasNetworkId) p.getNetworkId else null,
             p.getInboundMirrorIdsList,
             p.getOutboundMirrorIdsList)
-
-    private def filterListFrom(id: UUID): JList[UUID] = {
-        val list = new JArrayList[UUID](1)
-        if (id != null) {
-            list.add(id)
-        }
-        list
-    }
 }
 
 trait Port extends VirtualDevice with InAndOutFilters with MirroringDevice with Cloneable {
@@ -388,10 +378,14 @@ case class RouterPort(override val id: UUID,
                       routeIds: Set[UUID] = Set.empty,
                       override val inboundMirrors: JList[UUID] = NO_MIRRORS,
                       override val outboundMirrors: JList[UUID] = NO_MIRRORS,
-                      val peeringTable: StateTable[MAC, IPv4Addr] = Port.EMPTY_PEERING_TABLE)
+                      vni: Int = 0,
+                      tunnelIp: IPv4Addr = null,
+                      peeringTable: StateTable[MAC, IPv4Addr] = Port.EMPTY_PEERING_TABLE)
     extends Port {
 
     override val servicePorts: JList[UUID] = new JArrayList(0)
+
+    def isL2 = vni != 0
 
     protected def device = tryGet[Router](routerId)
 
@@ -418,7 +412,7 @@ case class RouterPort(override val id: UUID,
     override def toString =
         s"RouterPort [${super.toString} routerId=$routerId " +
         s"portSubnet=$portSubnet portAddress=$portAddress portMac=$portMac " +
-        s"routeIds=$routeIds]"
+        (if (isL2) s"vni=$vni tunnelIp=$tunnelIp" else "") + s"routeIds=$routeIds]"
 }
 
 case class VxLanPort(override val id: UUID,
