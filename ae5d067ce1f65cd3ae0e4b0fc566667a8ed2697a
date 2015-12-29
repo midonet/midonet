@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_ab914954",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_55e79ee4",
+      "range": {
+        "startLine": 217,
+        "startChar": 4,
+        "endLine": 217,
+        "endChar": 50
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_35e212d6",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-12-29T10:27:42Z",
       "side": 1,
       "message": "VpnServiceUpdate",
+      "range": {
+        "startLine": 220,
+        "startChar": 23,
+        "endLine": 220,
+        "endChar": 45
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_cb9e9563",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_35e212d6",
       "range": {
         "startLine": 220,
         "startChar": 23,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a961159_e08fea73",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_f5c08a2c",
+      "range": {
+        "startLine": 234,
+        "startChar": 12,
+        "endLine": 234,
+        "endChar": 43
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_759e5a58",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2015-12-29T10:27:42Z",
       "side": 1,
       "message": "Test the subscription is not null, and if so, unsubscribe.",
+      "range": {
+        "startLine": 235,
+        "startChar": 12,
+        "endLine": 235,
+        "endChar": 34
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_2bd8f952",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_759e5a58",
       "range": {
         "startLine": 235,
         "startChar": 12,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_8b948d45",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "Done?",
+      "parentUuid": "3a961159_158fd624",
+      "range": {
+        "startLine": 236,
+        "startChar": 27,
+        "endLine": 236,
+        "endChar": 61
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_35bbf2c5",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -128,6 +248,30 @@
       "writtenOn": "2015-12-29T10:27:42Z",
       "side": 1,
       "message": "make subscription null",
+      "range": {
+        "startLine": 272,
+        "startChar": 12,
+        "endLine": 272,
+        "endChar": 34
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_0b889d21",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_35bbf2c5",
       "range": {
         "startLine": 272,
         "startChar": 12,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_6b876110",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "I thought all storage operations should go to this scheduler. If we remove it (done), is it executed on the zk thread?",
+      "parentUuid": "3a961159_358db232",
+      "range": {
+        "startLine": 357,
+        "startChar": 12,
+        "endLine": 357,
+        "endChar": 35
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_55823e01",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -174,6 +342,30 @@
       "writtenOn": "2015-12-29T10:27:42Z",
       "side": 1,
       "message": "Same as above.",
+      "range": {
+        "startLine": 362,
+        "startChar": 11,
+        "endLine": 362,
+        "endChar": 35
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_ab78692c",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "ditto.",
+      "parentUuid": "3a961159_55823e01",
       "range": {
         "startLine": 362,
         "startChar": 11,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_eb727148",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "ditto.",
+      "parentUuid": "3a961159_75873a10",
+      "range": {
+        "startLine": 373,
+        "startChar": 12,
+        "endLine": 373,
+        "endChar": 35
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_957bc628",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -220,6 +436,30 @@
       "writtenOn": "2015-12-29T10:27:42Z",
       "side": 1,
       "message": "Nit: not needed (case class)",
+      "range": {
+        "startLine": 387,
+        "startChar": 8,
+        "endLine": 387,
+        "endChar": 11
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_4b99c56d",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_957bc628",
       "range": {
         "startLine": 387,
         "startChar": 8,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_8ba2cd98",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 395,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "Done. onVpnServiceUpdate.",
+      "parentUuid": "3a961159_15dd1615",
+      "range": {
+        "startLine": 395,
+        "startChar": 16,
+        "endLine": 395,
+        "endChar": 37
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_b578c22c",
         "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
         "patchSetId": 2
@@ -266,6 +530,30 @@
       "writtenOn": "2015-12-29T10:27:42Z",
       "side": 1,
       "message": "The match is not needed",
+      "range": {
+        "startLine": 396,
+        "startChar": 8,
+        "endLine": 397,
+        "endChar": 68
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_ab9f894f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "When adding the promise as a parameter (see above) this match seems to be needed.",
+      "parentUuid": "3a961159_b578c22c",
       "range": {
         "startLine": 396,
         "startChar": 8,
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "1a930d6b_cbacd58f",
+        "filename": "midolman/src/main/scala/org/midonet/containers/IPSecContainer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_d5754e33",
+      "range": {
+        "startLine": 443,
+        "startChar": 25,
+        "endLine": 443,
+        "endChar": 37
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_b5cd2260",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
         "patchSetId": 2
@@ -312,6 +624,30 @@
       "writtenOn": "2015-12-29T10:27:42Z",
       "side": 1,
       "message": "Should we log if we ever get there?",
+      "range": {
+        "startLine": 117,
+        "startChar": 53,
+        "endLine": 117,
+        "endChar": 55
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_c0abced4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "No need. As it\u0027s a generic function for all cargos, it wasn\u0027t convenient to discriminate between errors on creates, updates and deletes.\n\nWe log in the cargos in case of failure for this.",
+      "parentUuid": "3a961159_b5cd2260",
       "range": {
         "startLine": 117,
         "startChar": 53,
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "3a961159_e0b8ca2c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "Yes, done.",
+      "parentUuid": "3a961159_1504367d",
+      "range": {
+        "startLine": 264,
+        "startChar": 0,
+        "endLine": 277,
+        "endChar": 67
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_7503ba73",
         "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
         "patchSetId": 2
@@ -358,6 +718,30 @@
       "writtenOn": "2015-12-29T10:27:42Z",
       "side": 1,
       "message": "The same comment here too",
+      "range": {
+        "startLine": 332,
+        "startChar": 0,
+        "endLine": 336,
+        "endChar": 71
+      },
+      "revId": "ae5d067ce1f65cd3ae0e4b0fc566667a8ed2697a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_00b6b63d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-12-29T16:46:58Z",
+      "side": 1,
+      "message": "True, done.",
+      "parentUuid": "3a961159_7503ba73",
       "range": {
         "startLine": 332,
         "startChar": 0,
