@@ -112,6 +112,31 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
     }
 
     feature("IPSec container writes contents of config files") {
+
+        scenario("Single connection, with IPSecSiteConnection admin state DOWN") {
+            Given("A VPN configuration")
+            val (vpn, ike, ipsec, _conn) = createService()
+            val conn = _conn.toBuilder.setAdminStateUp(false).build()
+
+            And("Expected configuration, with no connections")
+            val expectedSecrets = ""
+            val expectedConf =
+                s"""config setup
+                   |    nat_traversal=yes
+                   |conn %default
+                   |    ikelifetime=480m
+                   |    keylife=60m
+                   |    keyingtries=%forever
+                   |""".stripMargin
+
+            When("Creating a IPSec configuration")
+            val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn))
+
+            Then("The configurations should match")
+            expectedConf shouldBe conf.getConfigFileContents
+            expectedSecrets shouldBe conf.getSecretsFileContents
+        }
+
         scenario("Single connection") {
             Given("A VPN configuration")
             val (vpn, ike, ipsec, conn) = createService()
@@ -273,6 +298,139 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                     |    dpdaction=restart-by-peer
                     |    dpddelay=${conn2.getDpdInterval}
                     |    dpdtimeout=${conn2.getDpdTimeout}
+                    |    authby=secret
+                    |    ikev2=insist
+                    |    ike=aes128-sha1;modp1536
+                    |    ikelifetime=${ike.getLifetimeValue}s
+                    |    auth=ah-esp
+                    |    phase2alg=aes128-sha1;modp1536
+                    |    type=transport
+                    |    lifetime=${ipsec.getLifetimeValue}s
+                    |conn ${conn3.getName}
+                    |    leftnexthop=%defaultroute
+                    |    rightnexthop=%defaultroute
+                    |    left=${vpn.localEndpointIp}
+                    |    leftid=${vpn.localEndpointIp}
+                    |    auto=start
+                    |    leftsubnets={ ${conn3.getLocalCidr.getAddress}/${conn3.getLocalCidr.getPrefixLength} }
+                    |    leftupdown="ipsec _updown --route yes"
+                    |    right=${conn3.getPeerAddress}
+                    |    rightid=${conn3.getPeerAddress}
+                    |    rightsubnets={ ${conn3.getPeerCidrs(0).asJava } }
+                    |    mtu=${conn3.getMtu}
+                    |    dpdaction=restart
+                    |    dpddelay=${conn3.getDpdInterval}
+                    |    dpdtimeout=${conn3.getDpdTimeout}
+                    |    authby=secret
+                    |    ikev2=insist
+                    |    ike=aes128-sha1;modp1536
+                    |    ikelifetime=${ike.getLifetimeValue}s
+                    |    auth=ah-esp
+                    |    phase2alg=aes128-sha1;modp1536
+                    |    type=transport
+                    |    lifetime=${ipsec.getLifetimeValue}s
+                    |""".stripMargin
+
+
+            When("Creating a IPSec configuration")
+            val conf = new IPSecConfig("vpn-helper", vpn, Seq(conn1, conn2, conn3))
+
+            Then("The configurations should match")
+            expectedConf shouldBe conf.getConfigFileContents
+            expectedSecrets shouldBe conf.getSecretsFileContents
+        }
+
+        scenario("Multiple connections with different adminStateUp") {
+            Given("A VPN configuration")
+            val vpn = IPSecServiceDef(random.nextString(10),
+                                      "/opt/stack/stuff",
+                                      IPv4Addr.random,
+                                      MAC.random().toString,
+                                      randomIPv4Subnet,
+                                      IPv4Addr.random,
+                                      MAC.random().toString)
+
+            val ike = createIkePolicy(
+                version = Some(IkeVersion.V2),
+                lifetimeValue = Some(random.nextInt()))
+
+            val ipsec = createIpsecPolicy(
+                encapsulation = Some(EncapsulationMode.TRANSPORT),
+                transform = Some(TransformProtocol.AH_ESP),
+                lifetimeValue = Some(random.nextInt()))
+
+            val conn1 = createIpsecSiteConnection(
+                auth = Some(AuthMode.PSK),
+                dpdAction = Some(DpdAction.CLEAR),
+                dpdInterval = Some(random.nextInt()),
+                dpdTimeout = Some(random.nextInt()),
+                initiator = Some(Initiator.RESPONSE_ONLY),
+                name = Some(random.nextString(10)),
+                mtu = Some(random.nextInt()),
+                peerAddress = Some(IPv4Addr.random.toString),
+                psk = Some(random.nextString(10)),
+                localCidr = Some(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(ike),
+                ipsecPolicy = Some(ipsec))
+            val conn2 = createIpsecSiteConnection(
+                auth = Some(AuthMode.PSK),
+                adminStateUp = Some(false),
+                dpdAction = Some(DpdAction.RESTART_BY_PEER),
+                dpdInterval = Some(random.nextInt()),
+                dpdTimeout = Some(random.nextInt()),
+                initiator = Some(Initiator.BI_DIRECTIONAL),
+                name = Some(random.nextString(10)),
+                mtu = Some(random.nextInt()),
+                peerAddress = Some(IPv4Addr.random.toString),
+                psk = Some(random.nextString(10)),
+                localCidr = Some(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(ike),
+                ipsecPolicy = Some(ipsec))
+            val conn3 = createIpsecSiteConnection(
+                auth = Some(AuthMode.PSK),
+                adminStateUp = Some(true),
+                dpdAction = Some(DpdAction.RESTART),
+                dpdInterval = Some(random.nextInt()),
+                dpdTimeout = Some(random.nextInt()),
+                initiator = Some(Initiator.BI_DIRECTIONAL),
+                name = Some(random.nextString(10)),
+                mtu = Some(random.nextInt()),
+                peerAddress = Some(IPv4Addr.random.toString),
+                psk = Some(random.nextString(10)),
+                localCidr = Some(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(ike),
+                ipsecPolicy = Some(ipsec))
+
+            And("Expected configuration")
+            val expectedSecrets =
+                s"""${vpn.localEndpointIp} ${conn1.getPeerAddress} : PSK "${conn1.getPsk}"
+                   |${vpn.localEndpointIp} ${conn3.getPeerAddress} : PSK "${conn3.getPsk}"
+                   |""".stripMargin
+            val expectedConf =
+                s"""config setup
+                    |    nat_traversal=yes
+                    |conn %default
+                    |    ikelifetime=480m
+                    |    keylife=60m
+                    |    keyingtries=%forever
+                    |conn ${conn1.getName}
+                    |    leftnexthop=%defaultroute
+                    |    rightnexthop=%defaultroute
+                    |    left=${vpn.localEndpointIp}
+                    |    leftid=${vpn.localEndpointIp}
+                    |    auto=add
+                    |    leftsubnets={ ${conn1.getLocalCidr.getAddress}/${conn1.getLocalCidr.getPrefixLength} }
+                    |    leftupdown="ipsec _updown --route yes"
+                    |    right=${conn1.getPeerAddress}
+                    |    rightid=${conn1.getPeerAddress}
+                    |    rightsubnets={ ${conn1.getPeerCidrs(0).asJava } }
+                    |    mtu=${conn1.getMtu}
+                    |    dpdaction=clear
+                    |    dpddelay=${conn1.getDpdInterval}
+                    |    dpdtimeout=${conn1.getDpdTimeout}
                     |    authby=secret
                     |    ikev2=insist
                     |    ike=aes128-sha1;modp1536
