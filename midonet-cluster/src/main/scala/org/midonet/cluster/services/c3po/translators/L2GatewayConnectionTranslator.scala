@@ -87,7 +87,7 @@ class L2GatewayConnectionTranslator(protected val storage: ReadOnlyStorage,
             DeleteNode(path)
         }
 
-        Delete(classOf[Port], vtepNetworkPortId(id)) ::
+        Delete(classOf[Port], vtepNetworkPortId(cnxn.getNetworkId)) ::
         Delete(classOf[Port], rtrPortId) ::
         rmOps.toList
     }

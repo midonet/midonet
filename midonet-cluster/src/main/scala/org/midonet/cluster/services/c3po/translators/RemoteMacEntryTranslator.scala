@@ -28,7 +28,7 @@ import org.midonet.cluster.services.c3po.C3POStorageManager.Update
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap
+import org.midonet.midolman.state.MacToIp4ReplicatedMap
 import org.midonet.packets.MAC
 import org.midonet.util.concurrent.toFutureOps
 
@@ -88,7 +88,7 @@ object RemoteMacEntryTranslator {
             stateTableStorage.routerPortPeeringTablePath(portId)
         val ip = IPAddressUtil.toIPv4Addr(rm.getVtepAddress)
         val mac = MAC.fromString(rm.getMacAddress)
-        val entryName = Ip4ToMacReplicatedMap.encodePersistentPath(ip, mac)
+        val entryName = MacToIp4ReplicatedMap.encodePersistentPath(mac, ip)
         peeringTablePath + entryName
     }
 }
