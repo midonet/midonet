@@ -229,11 +229,11 @@ object BridgeMapper {
     @throws[StateAccessException]
     private class BridgeIpv4MacMap(vt: VirtualTopology, bridgeId: UUID)
         extends IpMacMap[IPv4Addr] {
-        private val map = vt.stateTables.bridgeArpTable(bridgeId)
+        private val map = vt.state.bridgeIp4MacMap(bridgeId)
         map.start()
 
         /** Thread-safe query that gets the IPv4-MAC mapping*/
-        override def get(ip: IPv4Addr): MAC = map.getLocal(ip)
+        override def get(ip: IPv4Addr): MAC = map.get(ip)
         /** Stops the underlying [[ReplicatedMap]]*/
         def complete(): Unit = map.stop()
     }
