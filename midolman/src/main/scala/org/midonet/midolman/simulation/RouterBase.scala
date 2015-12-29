@@ -218,15 +218,21 @@ abstract class RouterBase[IP <: IPAddr]()
             }
 
         val vni = vxlan.getVni
-        val udpSrc = context.wcmatch.getSrcPort
-        context.log.debug(s"Processing vxlan packet with vni=$vni " +
-                          s"and udpSrc=$udpSrc")
+        val l2port = vniToPort.get(vni)
+        if (l2port eq null)
+            return null
 
+        val outPort = tryGet[RouterPort](l2port)
+        if (outPort.tunnelIp != context.wcmatch.getNetworkDstIP)
+            return null
+
+        context.log.debug(s"Processing vxlan packet with vni=$vni " +
+                          s"and udpSrc=${context.wcmatch.getSrcPort}")
         context.decap(
             inner = vxlan.getPayload.asInstanceOf[Ethernet],
             vni = vni)
         context.log.debug(s"Decapsulated packet ${context.wcmatch}")
-        tryGet[RouterPort](vniToPort.get(vni))
+        outPort
     }
 
     /**

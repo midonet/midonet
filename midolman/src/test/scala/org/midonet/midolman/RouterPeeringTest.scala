@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.PacketWorkflow.{ShortDrop, AddVirtualWildcardFlow}
 import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.OpenVSwitch
@@ -183,6 +183,40 @@ class RouterPeeringTest extends MidolmanSpec {
             pktCtx.wcmatch.getNetworkDstIP should be (localVmIp)
             pktCtx.wcmatch.getSrcPort should be (80)
             pktCtx.wcmatch.getDstPort should be (123)
+        }
+
+        scenario("Packets not correctly addressed are not decapsulted") {
+            val pkt = { eth src MAC.random() dst exteriorVtepPortMac } <<
+                      { ip4 src remoteVtepRouterIp dst IPv4Addr.random } <<
+                      { udp src 123 dst UDP.VXLAN.toShort } <<
+                      { vxlan vni vni } <<
+                      { eth src MAC.random() dst interiorTenantPortMac } <<
+                      { ip4 src remoteVmIp dst localVmIp } <<
+                      { tcp src 80 dst 123 }
+
+            val (simRes, pktCtx) = sendPacket(exteriorVtepPort, pkt)
+            simRes should be (ShortDrop)
+
+            (pktCtx.virtualFlowActions.collectFirst {
+                case Decap(vni) => vni
+            } isDefined) should be (false)
+        }
+
+        scenario("Packets with the wrong vni are not decapsulted") {
+            val pkt = { eth src MAC.random() dst exteriorVtepPortMac } <<
+                      { ip4 src remoteVtepRouterIp dst IPv4Addr.random } <<
+                      { udp src 123 dst UDP.VXLAN.toShort } <<
+                      { vxlan vni 9 } <<
+                      { eth src MAC.random() dst interiorTenantPortMac } <<
+                      { ip4 src remoteVmIp dst localVmIp } <<
+                      { tcp src 80 dst 123 }
+
+            val (simRes, pktCtx) = sendPacket(exteriorVtepPort, pkt)
+            simRes should be (ShortDrop)
+
+            (pktCtx.virtualFlowActions.collectFirst {
+                case Decap(vni) => vni
+            } isDefined) should be (false)
         }
     }
 
