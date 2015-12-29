@@ -16,6 +16,24 @@
       "revId": "3bb57839f1c673aa197c3558c03c3fe7aa83e33c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_b53b6237",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IPSecContainerDelegate.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-29T10:39:24Z",
+      "side": 1,
+      "message": "I didn\u0027t check the binding is for the same port, should I?",
+      "parentUuid": "3a961159_d5c70e63",
+      "revId": "3bb57839f1c673aa197c3558c03c3fe7aa83e33c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
