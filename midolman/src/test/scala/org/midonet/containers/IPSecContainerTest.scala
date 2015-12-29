@@ -20,7 +20,7 @@ import java.io.File
 import java.util.UUID
 import java.util.concurrent.ExecutorService
 
-import scala.util.Random
+import scala.util.{Success, Random}
 
 import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
@@ -35,6 +35,7 @@ import org.midonet.cluster.models.Neutron.IPSecSiteConnection.IkePolicy.IkeVersi
 import org.midonet.cluster.models.Neutron.IPSecSiteConnection._
 
 import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.State.ContainerStatus.Code
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.topology.TopologyBuilder._
@@ -550,7 +551,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             And("A container")
             val container = new TestIPSecContainter(vt, null)
 
-            And("A container port for the VPN service")
+            And("A container port for the VPN service, with admin state DOWN")
             val cp = ContainerPort(portId = port.getId.asJava,
                                    hostId = null,
                                    interfaceName = "if-vpn",
@@ -562,7 +563,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
             When("Calling the create method of the container")
             container.create(cp).await()
 
-            And("The container should call the setup commands")
+            Then("The container should call the setup commands")
             val path =
                 s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
             val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
@@ -613,7 +614,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                                         interfaceName = Some("if-eth"))
             vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
             And("A VPN configuration")
-            val vpn = createVpnService(
+            var vpn = createVpnService(
                 routerId = Some(router.getId.asJava),
                 externalIp = Some(port.getPortAddress.asIPv4Address))
             val conn = createIpsecSiteConnection(
@@ -624,6 +625,7 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 ipsecPolicy = Some(createIpsecPolicy()),
                 vpnServiceId = Some(vpn.getId.asJava))
             vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
+            vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
 
             And("A container")
             val container = new TestIPSecContainter(vt, null)
@@ -683,11 +685,153 @@ class IPSecContainerTest extends MidolmanSpec with Matchers with TopologyBuilder
                 s"-g ${port.getPortAddress.asIPv4Address} " +
                 s"-c ${conn.getName}"
 
+            When("The VpnService is set to admin state DOWN")
+            vt.store.update(vpn.toBuilder.setAdminStateUp(false).build())
+            vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
+
+            When("Calling the update method of the container")
+            val ns = container.updated(cp).await()
+
+            Then("The event is handled, but there is no namespace")
+            ns shouldBe None
+
+            Then("The container is torn down")
+            container.commands should have size 12
+            container.commands(10) shouldBe
+                s"/usr/lib/midolman/vpn-helper stop_service -n ${port.getInterfaceName} -p $path"
+            container.commands(11) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns -n ${port.getInterfaceName}"
+
+            When("Resetting the VpnService to admin state UP")
+            vt.store.update(vpn.toBuilder.setAdminStateUp(true).build())
+            vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
+
+            And("Calling the update method on the container")
+            container.updated(cp).await()
+            Then("The container should call the setup commands")
+            container.commands should have size 16
+            container.commands(12) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns -n ${port.getInterfaceName}"
+            container.commands(13) shouldBe
+                s"/usr/lib/midolman/vpn-helper makens " +
+                s"-n ${port.getInterfaceName} " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-G ${port.getPortMac} " +
+                s"-l ${port.getPortAddress.asIPv4Address} " +
+                s"-i $namespaceSubnet " +
+                s"-m ${port.getPortMac}"
+            container.commands(14) shouldBe
+                s"/usr/lib/midolman/vpn-helper start_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+            container.commands(15) shouldBe
+                s"/usr/lib/midolman/vpn-helper init_conns " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-c ${conn.getName}"
+
             When("Calling the delete method of the container")
             container.delete().await()
 
             Then("The container should call the cleanup commands")
-            container.commands should have size 12
+            container.commands should have size 18
+            container.commands(16) shouldBe
+                s"/usr/lib/midolman/vpn-helper stop_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+            container.commands(17) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+        }
+
+        scenario("Container reconfigures the namespace on update, starting" +
+                 "as adminStateDown") {
+
+            Given("A router with a port")
+            val router = createRouter()
+            val port = createRouterPort(routerId = Some(router.getId.asJava),
+                                        portAddress = IPv4Addr.random,
+                                        portMac = MAC.random(),
+                                        interfaceName = Some("if-eth"))
+            vt.store.multi(Seq(CreateOp(router), CreateOp(port)))
+            And("A VPN configuration")
+            var vpn = createVpnService(
+                routerId = Some(router.getId.asJava),
+                externalIp = Some(port.getPortAddress.asIPv4Address),
+                adminStateUp = Some(false))
+            val conn = createIpsecSiteConnection(
+                name = Some(random.nextString(10)),
+                localCidr = Some(randomIPv4Subnet),
+                peerCidrs = Seq(randomIPv4Subnet),
+                ikePolicy = Some(createIkePolicy()),
+                ipsecPolicy = Some(createIpsecPolicy()),
+                vpnServiceId = Some(vpn.getId.asJava))
+            vt.store.multi(Seq(CreateOp(vpn), CreateOp(conn)))
+            vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
+
+            And("A container")
+            val container = new TestIPSecContainter(vt, null)
+
+            And("A container port for the VPN service")
+            val cp = ContainerPort(portId = port.getId.asJava,
+                                   hostId = null,
+                                   interfaceName = "if-vpn",
+                                   containerId = null,
+                                   serviceType = null,
+                                   groupId = null,
+                                   configurationId = router.getId.asJava)
+
+            When("Calling the create method of the container")
+            val namespace = container.create(cp).await()
+
+            Then("The namespace should NOT be created")
+            namespace shouldBe None
+
+            And("The container should call the setup commands")
+            container.commands shouldBe empty
+
+            When("The VpnService is set to admin state UP")
+            vt.store.update(vpn.toBuilder.setAdminStateUp(true).build())
+            vpn = vt.store.get(classOf[VpnService], vpn.getId).await()
+
+            Then("The container should call the cleanup and setup commands")
+            val path = s"${FileUtils.getTempDirectoryPath}/${port.getInterfaceName}"
+            val namespaceSubnet = new IPv4Subnet(port.getPortAddress.asIPv4Address.next,
+                                                 port.getPortSubnet.getPrefixLength)
+
+            When("Calling the update method of the container")
+            container.updated(cp).await()
+
+            Then("The container should call the cleanup and setup commands")
+            container.commands should have size 4
+            container.commands(0) shouldBe
+                s"/usr/lib/midolman/vpn-helper cleanns " +
+                s"-n ${port.getInterfaceName}"
+            container.commands(1) shouldBe
+                s"/usr/lib/midolman/vpn-helper makens " +
+                s"-n ${port.getInterfaceName} " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-G ${port.getPortMac} " +
+                s"-l ${port.getPortAddress.asIPv4Address} " +
+                s"-i $namespaceSubnet " +
+                s"-m ${port.getPortMac}"
+            container.commands(2) shouldBe
+                s"/usr/lib/midolman/vpn-helper start_service " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path"
+            container.commands(3) shouldBe
+                s"/usr/lib/midolman/vpn-helper init_conns " +
+                s"-n ${port.getInterfaceName} " +
+                s"-p $path " +
+                s"-g ${port.getPortAddress.asIPv4Address} " +
+                s"-c ${conn.getName}"
+
+            When("Calling the delete method of the container")
+            container.delete().await()
+
+            Then("The container should call the cleanup commands")
+            container.commands should have size 6
         }
 
         scenario("Container should fail if router has no external port") {

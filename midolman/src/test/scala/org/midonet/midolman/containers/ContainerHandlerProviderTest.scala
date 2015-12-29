@@ -42,8 +42,8 @@ object ContainerHandlerProviderTest {
     class TestContainer @Inject()(val vt: VirtualTopology,
                                   @Named("container") val executor: ExecutorService)
         extends ContainerHandler {
-        override def create(port: ContainerPort): Future[String] = ???
-        override def updated(port: ContainerPort): Future[String] = ???
+        override def create(port: ContainerPort): Future[Option[String]] = ???
+        override def updated(port: ContainerPort): Future[Option[String]] = ???
         override def delete(): Future[Unit] = ???
         override def health: Observable[ContainerHealth] = ???
     }

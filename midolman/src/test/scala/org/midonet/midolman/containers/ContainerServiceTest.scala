@@ -60,18 +60,18 @@ object ContainerServiceTest {
         var updated: Int = 0
         var deleted: Int = 0
 
-        override def create(port: ContainerPort): Future[String] = {
+        override def create(port: ContainerPort): Future[Option[String]] = {
             created += 1
             if (throwsOnCreate) throw new Throwable()
             if (errorOnCreate) Future.failed(new Throwable())
-            else Future.successful(TestNamespace)
+            else Future.successful(Some(TestNamespace))
         }
 
-        override def updated(port: ContainerPort): Future[String] = {
+        override def updated(port: ContainerPort): Future[Option[String]] = {
             updated += 1
             if (throwsOnUpdate) throw new Throwable()
             if (errorOnUpdate) Future.failed(new Throwable())
-            else Future.successful(TestNamespace)
+            else Future.successful(Some(TestNamespace))
         }
 
         override def delete(): Future[Unit] = {
@@ -225,7 +225,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe "test-ns"
+            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -297,7 +297,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe "test-ns"
+            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -342,7 +342,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe "test-ns"
+            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -392,7 +392,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe "test-ns"
+            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -437,7 +437,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container, group)
-            handler.namespace shouldBe "test-ns"
+            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -477,7 +477,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             val handler = service.handlerOf(port1.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host1, port1, container, group)
-            handler.namespace shouldBe "test-ns"
+            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -519,7 +519,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container, group)
-            handler.namespace shouldBe "test-ns"
+            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -559,7 +559,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             val handler1 = service.handlerOf(port1.getId)
             handler1 should not be null
             handler1.cp shouldBe containerPort(host, port1, container, group)
-            handler1.namespace shouldBe "test-ns"
+            handler1.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h1 = handler1.handler.asInstanceOf[TestContainer]
@@ -577,7 +577,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             handler2 should not be null
             handler2 should not be handler1
             handler2.cp shouldBe containerPort(host, port2, container, group)
-            handler2.namespace shouldBe "test-ns"
+            handler2.namespace shouldBe Some("test-ns")
 
             And("The second handler create method should be called")
             val h2 = handler1.handler.asInstanceOf[TestContainer]
@@ -630,7 +630,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             handler2 should not be null
             handler2 should not be handler1
             handler2.cp shouldBe containerPort(host, port2, container2, group)
-            handler2.namespace shouldBe "test-ns"
+            handler2.namespace shouldBe Some("test-ns")
 
             val h2 = handler2.handler.asInstanceOf[TestContainer]
             h2.created shouldBe 1
@@ -1063,7 +1063,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe "test-ns"
+            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]
@@ -1108,7 +1108,7 @@ class ContainerServiceTest extends MidolmanSpec with TopologyBuilder {
             val handler = service.handlerOf(port.getId)
             handler should not be null
             handler.cp shouldBe containerPort(host, port, container1, group)
-            handler.namespace shouldBe "test-ns"
+            handler.namespace shouldBe Some("test-ns")
 
             And("The handler create method should be called")
             val h = handler.handler.asInstanceOf[TestContainer]

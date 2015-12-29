@@ -40,8 +40,18 @@ trait ContainerHandler {
       * container. The port contains the interface name that the container
       * handler should create, and the method returns a future that completes
       * with the namespace name when the container has been created.
+      *
+      * Successful futures may contain:
+      * - Some(name): when a namespace `name` was created on the host.
+      * - None: when container was successfully handled but the namespace
+      *   was not created for a legit. reason (e.g.: admin state DOWN.)
+      *
+      * Failed futures may have two causes:
+      * - [[org.midonet.containers.IPSecAdminStateDownException]]: if all
+      *   VPN services associated to the container are in admin state DOWN.
+      * - [[java.lang.Exception]]: when we're unable to bring up the service.
       */
-    def create(port: ContainerPort): Future[String]
+    def create(port: ContainerPort): Future[Option[String]]
 
     /**
       * Indicates that the configuration identifier for an existing container
@@ -50,7 +60,7 @@ trait ContainerHandler {
       * objects change. It is the responsibility of the classes implementing
       * this interface to monitor their configuration.
       */
-    def updated(port: ContainerPort): Future[String]
+    def updated(port: ContainerPort): Future[Option[String]]
 
     /**
       * Deletes the container for the specified exterior port and namespace
