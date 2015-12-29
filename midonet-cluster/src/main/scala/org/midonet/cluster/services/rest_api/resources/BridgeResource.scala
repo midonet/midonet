@@ -41,6 +41,7 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.midolman.state.MacPortMap.encodePersistentPath
@@ -90,7 +91,9 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         new DhcpV6SubnetResource(id, resContext)
     }
 
-    private def arpTable(id: UUID) = resContext.backend.stateTableStore.bridgeArpTable(id)
+    private def arpTable(bridgeId: UUID) =
+        resContext.backend.stateTableStore.getTable[IPv4Addr, MAC](
+            classOf[Topology.Network], bridgeId, MidonetBackend.Ip4MacTable)
 
     @GET
     @Path("{id}/arp_table/{pair}")
