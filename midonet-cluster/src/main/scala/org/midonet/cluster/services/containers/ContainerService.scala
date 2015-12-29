@@ -25,6 +25,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
 import rx.{Subscription, Subscriber}
@@ -54,6 +55,7 @@ object ContainerService {
 @ClusterService(name = "containers")
 class ContainerService @Inject()(nodeContext: Context,
                                  backend: MidonetBackend,
+                                 reflections: Reflections,
                                  config: ClusterConfig)
     extends Minion(nodeContext) {
 
@@ -71,7 +73,7 @@ class ContainerService @Inject()(nodeContext: Context,
         new NamedThreadFactory("container-config", isDaemon = true))
     private val delegateScheduler = Schedulers.from(delegateExecutor)
 
-    private val delegateProvider = new ContainerDelegateProvider(backend,
+    private val delegateProvider = new ContainerDelegateProvider(backend, reflections,
                                                                  config, log)
     private val delegates = new TrieMap[String, ContainerDelegate]
 

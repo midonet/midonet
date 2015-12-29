@@ -41,6 +41,7 @@ import com.typesafe.scalalogging.Logger;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.test.TestingServer;
+import org.reflections.Reflections;
 
 import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.auth.AuthService;
@@ -135,6 +136,11 @@ public class FuncTest {
 
         @Override
         protected Injector getInjector() {
+
+            Reflections reflections = new Reflections(
+                "org.midonet.cluster.rest_api",
+                "org.midonet.cluster.services.rest_api");
+
             CuratorFramework curator = newClient(testZk.getConnectString(),
                                                  new RetryNTimes(10, 500));
 
@@ -168,7 +174,7 @@ public class FuncTest {
 
             FuncTest._injector = Guice.createInjector(
                 Vladimir.servletModule(
-                    backend, ec, curator, cfg, authService,
+                    backend, ec, curator, cfg, reflections, authService,
                     Logger.apply(getLogger(getClass()))),
                 new AbstractModule() {
                     @Override

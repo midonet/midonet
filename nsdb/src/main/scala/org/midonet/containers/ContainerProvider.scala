@@ -25,11 +25,11 @@ import com.typesafe.scalalogging.Logger
 import org.reflections.Reflections
 
 /**
-  * A container provider scans all classes of type T on the current classpath at
-  * the specified package prefix, and annotated with a [[Container]] annotation.
-  * The [[Container]] specifies a name and version for each container class,
-  * and the provider ensures that the last version of each container type is
-  * available for instantiation.
+  * A container provider scans all classes of type T on the current classpath
+  * with specified reflections instance, and annotated with a [[Container]]
+  * annotation. The [[Container]] specifies a name and version for each
+  * container class, and the provider ensures that the last version of each
+  * container type is available for instantiation.
   *
   * A caller can create an instance of the given container type using the
   * `getInstance` method and the container name as specified in the [[Container]]
@@ -38,10 +38,11 @@ import org.reflections.Reflections
   * implementation of the `injector` method which provides the appropriate
   * dependencies.
   */
-abstract class ContainerProvider[T](prefix: String, log: Logger)
+abstract class ContainerProvider[T](reflections: Reflections, log: Logger)
                                    (tag: ClassTag[T]) {
 
-    private val reflections = new Reflections(prefix)
+    log info s"Scanning classpath for service containers"
+
     private val annotated =
         reflections.getTypesAnnotatedWith(classOf[Container]).asScala
 
@@ -52,7 +53,7 @@ abstract class ContainerProvider[T](prefix: String, log: Logger)
             tag.runtimeClass.isAssignableFrom
         } map { clazz =>
             val annotation = clazz.getAnnotation(classOf[Container])
-            log info s"Service container handler: ${annotation.name()} " +
+            log info s"Service container: ${annotation.name()} " +
                      s"version ${annotation.version()}"
             (annotation.name(), annotation, clazz)
         }
