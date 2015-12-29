@@ -22,6 +22,30 @@
       "revId": "42112b3589bfce3b8b080a80c93257dec980d6f1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_4b5aa584",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/containers/ContainerHandler.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T18:44:24Z",
+      "side": 1,
+      "message": "None is explained above: it\u0027s a success insofar as the container update was processed normally, but wraps a None because the handler decided to not create a namespace (as noted, this would happen when admin state is DOWN on the vpn service). Makes sense?\n\nAnything that can be clarified in the exception doc? The second case is pretty generic, and would be described by the concrete Exception.",
+      "parentUuid": "1a930d6b_6b1121ac",
+      "range": {
+        "startLine": 50,
+        "startChar": 12,
+        "endLine": 50,
+        "endChar": 15
+      },
+      "revId": "42112b3589bfce3b8b080a80c93257dec980d6f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
