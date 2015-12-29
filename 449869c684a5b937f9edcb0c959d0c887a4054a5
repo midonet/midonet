@@ -1,0 +1,434 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a930d6b_ebe35131",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "Do we expect that many containers?",
+      "range": {
+        "startLine": 42,
+        "startChar": 39,
+        "endLine": 42,
+        "endChar": 45
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_8b956d8a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "container-service?",
+      "range": {
+        "startLine": 65,
+        "startChar": 32,
+        "endLine": 65,
+        "endChar": 47
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_cb8f7574",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "what does this one do? execute the actual commands? If so, from a user\u0027s point of view maybe container-cmds might be clearer.",
+      "range": {
+        "startLine": 69,
+        "startChar": 32,
+        "endLine": 69,
+        "endChar": 50
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_4b58e5fa",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "nit: this would feel more readable with\n\n  val delegate \u003d delegateOf(container)\n  event match {\n      ...\n  }\n\nwhich avoids repeating the delegateOf(container)\n\nand nit^2: hiding the case + try/catch in a handleEvent method, that way the schedulerSubscriber declaration is pretty concise",
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_cbe69544",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "Isn\u0027t this redundant with the logger itself?",
+      "range": {
+        "startLine": 96,
+        "startChar": 30,
+        "endLine": 96,
+        "endChar": 49
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_6bf841e6",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "\"closed\" might be clearer for users",
+      "range": {
+        "startLine": 101,
+        "startChar": 53,
+        "endLine": 101,
+        "endChar": 62
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_0b05fdc1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "should we try to re-subscribe here?",
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_2b3c7993",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "Since this is only for testing, make protected and annotate as @VisibleForTesting.\n\nAlso, isSubscribed seems clearer.",
+      "range": {
+        "startLine": 111,
+        "startChar": 8,
+        "endLine": 111,
+        "endChar": 22
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_2bd55943",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "Maybe we should onBackpressureDrop instead, otherwise we\u0027ll completely kill the service (at some point we should actually bump rx java to get richer backpressure buffer options)",
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_4b41c50a",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "The 2 executors should be stopped at this point, no?",
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_8bc3ad89",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "this seems to be used only in a single place, why not simply construct it there?\n\n(I might be missing some usages though, so ignore me if there are others - although the @inline would be pertinent here too)",
+      "range": {
+        "startLine": 132,
+        "startChar": 4,
+        "endLine": 134,
+        "endChar": 5
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_abc0697d",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/ContainerService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "scala style would prefer s/getD/d/",
+      "range": {
+        "startLine": 137,
+        "startChar": 18,
+        "endLine": 137,
+        "endChar": 22
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_ebba7109",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/package.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "nit: these might be redundant, without it one can both use Up/Down etc. which are events already, or use schedulers.up, schedulers.down to make it more explicit",
+      "range": {
+        "startLine": 47,
+        "startChar": 23,
+        "endLine": 47,
+        "endChar": 28
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_0b37bdb1",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/schedulers/package.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "nit: these two ask for a constant",
+      "range": {
+        "startLine": 50,
+        "startChar": 18,
+        "endLine": 50,
+        "endChar": 29
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_8b71ed79",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/ContainerServiceTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "are both needed, or could we pass only the executor and let the Context build the Scheduler by itself?",
+      "range": {
+        "startLine": 98,
+        "startChar": 49,
+        "endLine": 98,
+        "endChar": 70
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_ab6ea994",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/ContainerServiceTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "You probably want to use the variant with timeout, it\u0027s unlikely but just in case.",
+      "range": {
+        "startLine": 134,
+        "startChar": 33,
+        "endLine": 134,
+        "endChar": 45
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_cb6bf583",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/ContainerServiceTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 140,
+        "startChar": 32,
+        "endLine": 140,
+        "endChar": 47
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_eb68b189",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/ContainerServiceTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "nit: .. in the default conf schema?",
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_4b0f05e2",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/ContainerServiceTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "you can also do delegate.up should contain only ((container, status)) which covers both assertions",
+      "range": {
+        "startLine": 263,
+        "startChar": 16,
+        "endLine": 264,
+        "endChar": 61
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a930d6b_2b0ab9d2",
+        "filename": "midonet-cluster/src/test/scala/org/midonet/cluster/services/containers/ContainerServiceTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-12-29T16:02:35Z",
+      "side": 1,
+      "message": "as noted, isSubscribed would spare double negations",
+      "range": {
+        "startLine": 347,
+        "startChar": 20,
+        "endLine": 347,
+        "endChar": 49
+      },
+      "revId": "449869c684a5b937f9edcb0c959d0c887a4054a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
