@@ -65,3 +65,10 @@ class Host(resource_base.ResourceBase):
     def flooding_proxy_weight(self, weight):
         self.dto['floodingProxyWeight'] = weight
         return self
+
+    def get_container_weight(self):
+        return self.dto['containerWeight']
+
+    def container_weight(self, weight):
+        self.dto['containerWeight'] = weight
+        return self

@@ -324,6 +324,14 @@ class FloodingProxyWeight(ValueType):
         except:
             return false
 
+class ContainerWeight(ValueType):
+    def is_valid(self, value):
+        try:
+            weight = int(value)
+            return weight >= 0
+        except:
+            return false
+
 class VNI(ValueType):
     def is_valid(self, value):
         try:
@@ -2319,6 +2327,14 @@ class Host(ObjectType):
                                  value_type = FloodingProxyWeight(),
                                  getter = 'get_flooding_proxy_weight',
                                  setter = 'flooding_proxy_weight'))
+        self.put_attr(SingleAttr(name = 'flooding-proxy-weight',
+                                 value_type = FloodingProxyWeight(),
+                                 getter = 'get_flooding_proxy_weight',
+                                 setter = 'flooding_proxy_weight'))
+        self.put_attr(SingleAttr(name = 'container-weight',
+                                 value_type = ContainerWeight(),
+                                 getter = 'get_container_weight',
+                                 setter = 'container_weight'))
 
 class Interface(ObjectType):
     def type_name(self):
