@@ -26,7 +26,7 @@ import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRoute
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POStorageManager.{Create, Delete, Operation, Update}
 import org.midonet.cluster.services.c3po.midonet.{CreateNode, DeleteNode}
-import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.vtepRouterPortId
+import org.midonet.cluster.services.c3po.translators.L2GatewayConnectionTranslator.vtepNetworkPortId
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto, toProto}
@@ -88,7 +88,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             // Create a MAC table seeding so that the VTEP router handles
             // traffic to this port.  This port can only be created if the
             // VTEP router exists.
-            val mPortId = vtepRouterPortId(nPort.getNetworkId)
+            val mPortId = vtepNetworkPortId(nPort.getNetworkId)
             midoOps += CreateNode(
                 macEntryPath(nPort.getNetworkId, nPort.getMacAddress, mPortId))
 
@@ -163,7 +163,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         if (isRemoteSitePort(nPort)) {
             // Remove the ARP and MAC seedings
             midoOps ++= deleteArpEntry(nPort)
-            val mPortId = vtepRouterPortId(nPort.getNetworkId)
+            val mPortId = vtepNetworkPortId(nPort.getNetworkId)
             midoOps += DeleteNode(
                 macEntryPath(nPort.getNetworkId, nPort.getMacAddress, mPortId))
             return midoOps.toList
