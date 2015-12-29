@@ -52,6 +52,24 @@
       "revId": "3bb57839f1c673aa197c3558c03c3fe7aa83e33c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_2082d252",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IPSecContainerDelegate.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-29T12:52:32Z",
+      "side": 1,
+      "message": "I understand your point - yes I assume it\u0027s unlikely the first 8 digits of two ports will match (that\u0027s the case I\u0027ve been thinking).",
+      "parentUuid": "3a961159_356852f5",
+      "revId": "3bb57839f1c673aa197c3558c03c3fe7aa83e33c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
