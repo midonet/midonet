@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a961159_d519ce23",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-29T09:37:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_2f7e45e5",
+      "range": {
+        "startLine": 41,
+        "startChar": 22,
+        "endLine": 41,
+        "endChar": 37
+      },
+      "revId": "6c5d4a9dc5d21c39fcac251abdb4467ff23bb194",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a961159_2c0ad3d2",
         "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
         "patchSetId": 8
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "oh, yes. That\u0027s very unclear though, especially with the linebreak, it looks like that ConcurrentModificationException caught every time. \n\nI would add attempt \u003c storageAttempts to the while loop condition also, and put a throw at the end of the method.",
       "parentUuid": "3a961159_efd7ddeb",
+      "range": {
+        "startLine": 110,
+        "startChar": 15,
+        "endLine": 110,
+        "endChar": 19
+      },
+      "revId": "6c5d4a9dc5d21c39fcac251abdb4467ff23bb194",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a961159_35d85253",
+        "filename": "midonet-cluster/src/main/scala/org/midonet/cluster/services/containers/IpsecContainerDelegate.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-12-29T09:37:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a961159_0f7989fc",
       "range": {
         "startLine": 110,
         "startChar": 15,
