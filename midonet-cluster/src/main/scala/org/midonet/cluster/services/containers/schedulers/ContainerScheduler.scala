@@ -74,8 +74,6 @@ object ContainerScheduler {
       */
     case class UpState(hostId: UUID, container: ServiceContainer) extends State
 
-    //private case class CurrentHostEvent(hostId: UUID) extends SchedulerEvent
-
     private case class ContainerSelector(portId: UUID, groupId: UUID)
 
     private case class BadHost(timestamp: Long, attempts: Long)
