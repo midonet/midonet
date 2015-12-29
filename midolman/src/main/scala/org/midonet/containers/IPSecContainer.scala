@@ -66,10 +66,10 @@ case class IPSecConfig(script: String,
 
     def getSecretsFileContents = {
         val contents = new StringBuilder
-        connections foreach { c =>
+        for (c <- connections if (!c.hasAdminStateUp || c.getAdminStateUp)) {
             contents append
-                s"""${ipsecService.localEndpointIp} ${c.getPeerAddress} : PSK "${c.getPsk}"
-                   |""".stripMargin
+            s"""${ipsecService.localEndpointIp} ${c.getPeerAddress} : PSK "${c.getPsk}"
+               |""".stripMargin
         }
         contents.toString()
     }
@@ -133,31 +133,33 @@ case class IPSecConfig(script: String,
                |    keylife=60m
                |    keyingtries=%forever
                |""".stripMargin
-        connections foreach (c => contents append
-            s"""conn ${c.getName}
-               |    leftnexthop=%defaultroute
-               |    rightnexthop=%defaultroute
-               |    left=${ipsecService.localEndpointIp}
-               |    leftid=${ipsecService.localEndpointIp}
-               |    auto=${initiatorToConfig(c.getInitiator)}
-               |    leftsubnets={ ${subnetString(c.getLocalCidr)} }
-               |    leftupdown="ipsec _updown --route yes"
-               |    right=${c.getPeerAddress}
-               |    rightid=${c.getPeerAddress}
-               |    rightsubnets={ ${subnetsString(c.getPeerCidrsList)} }
-               |    mtu=${c.getMtu}
-               |    dpdaction=${dpdActionToConfig(c.getDpdAction)}
-               |    dpddelay=${c.getDpdInterval}
-               |    dpdtimeout=${c.getDpdTimeout}
-               |    authby=secret
-               |    ikev2=${ikeVersionToConfig(c.getIkepolicy.getIkeVersion)}
-               |    ike=aes128-sha1;modp1536
-               |    ikelifetime=${c.getIkepolicy.getLifetimeValue}s
-               |    auth=${transformProtocolToConfig(c.getIpsecpolicy.getTransformProtocol)}
-               |    phase2alg=aes128-sha1;modp1536
-               |    type=${encapModeToConfig(c.getIpsecpolicy.getEncapsulationMode)}
-               |    lifetime=${c.getIpsecpolicy.getLifetimeValue}s
-               |""".stripMargin)
+        for (c <- connections if !c.hasAdminStateUp || c.getAdminStateUp) {
+            contents append
+                s"""conn ${c.getName}
+                   |    leftnexthop=%defaultroute
+                   |    rightnexthop=%defaultroute
+                   |    left=${ipsecService.localEndpointIp}
+                   |    leftid=${ipsecService.localEndpointIp}
+                   |    auto=${initiatorToConfig(c.getInitiator)}
+                   |    leftsubnets={ ${subnetString(c.getLocalCidr)} }
+                   |    leftupdown="ipsec _updown --route yes"
+                   |    right=${c.getPeerAddress}
+                   |    rightid=${c.getPeerAddress}
+                   |    rightsubnets={ ${subnetsString(c.getPeerCidrsList)} }
+                   |    mtu=${c.getMtu}
+                   |    dpdaction=${dpdActionToConfig(c.getDpdAction)}
+                   |    dpddelay=${c.getDpdInterval}
+                   |    dpdtimeout=${c.getDpdTimeout}
+                   |    authby=secret
+                   |    ikev2=${ikeVersionToConfig(c.getIkepolicy.getIkeVersion)}
+                   |    ike=aes128-sha1;modp1536
+                   |    ikelifetime=${c.getIkepolicy.getLifetimeValue}s
+                   |    auth=${transformProtocolToConfig(c.getIpsecpolicy.getTransformProtocol)}
+                   |    phase2alg=aes128-sha1;modp1536
+                   |    type=${encapModeToConfig(c.getIpsecpolicy.getEncapsulationMode)}
+                   |    lifetime=${c.getIpsecpolicy.getLifetimeValue}s
+                   |""".stripMargin
+            }
         contents.toString()
     }
 
