@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.data.storage.{StateTableStorage, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Commons.{Condition, IPAddress, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
@@ -33,10 +33,11 @@ import org.midonet.packets.ICMP
 import org.midonet.util.concurrent.toFutureOps
 
 class RouterTranslator(protected val storage: ReadOnlyStorage,
+                       protected val stateTableStorage: StateTableStorage,
                        protected val pathBldr: PathBuilder)
     extends Translator[NeutronRouter]
             with ChainManager with PortManager with RouteManager with RuleManager
-            with BridgeStateTableManager {
+            with StateTableManager {
     import RouterTranslator._
     import org.midonet.cluster.services.c3po.translators.RouteManager._
 

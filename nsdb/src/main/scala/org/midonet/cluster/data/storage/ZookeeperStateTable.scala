@@ -16,21 +16,15 @@
 
 package org.midonet.cluster.data.storage
 
-import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
-import scala.StringBuilder
-import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
-import com.google.inject.{AbstractModule, Guice}
-
-import org.apache.commons.lang3.StringUtils
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException
@@ -41,7 +35,6 @@ import org.midonet.cluster.backend.Directory
 import org.midonet.cluster.backend.zookeeper.{ZkConnection, ZkConnectionAwareWatcher, ZkDirectory}
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.storage.TransactionManager._
-import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.collection.PathMap
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors.makeRunnable
@@ -61,8 +54,8 @@ trait StateTablePaths extends StateTableStorage {
     }
 
     @inline
-    private[storage] def tablesClassPath(
-                                            clazz: Class[_], version: Long = version.longValue()) : String = {
+    private[storage] def tablesClassPath(clazz: Class[_],
+                                         version: Long = version.longValue()): String = {
         tablesPath(version) + "/" + clazz.getSimpleName
     }
 

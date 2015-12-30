@@ -18,16 +18,15 @@ package org.midonet.cluster.services.c3po.translators
 import java.util.UUID
 
 import org.midonet.cluster.data.Bridge
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, PathBuilder}
-import org.midonet.packets.MAC
+import org.midonet.cluster.data.storage.{StateTable, StateTableStorage}
+import org.midonet.midolman.state.{MacToIp4ReplicatedMap, Ip4ToMacReplicatedMap, MacPortMap, PathBuilder}
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.packets.util.AddressConversions._
 
-/** Contains legacy Bridge IP4 Mac Replicated Map related operations. */
-trait BridgeStateTableManager {
+/** Contains operations related to state tables and legacy replicated maps. */
+trait StateTableManager {
     protected def pathBldr: PathBuilder
-
-    protected def getBridgeIP4MacMapPath(bridgeId: UUID) =
-        pathBldr.getBridgeIP4MacMapPath(bridgeId)
+    protected def stateTableStorage: StateTableStorage
 
     protected def getBridgeMacPortsPath(bridgeId: UUID) =
         pathBldr.getBridgeMacPortsPath(bridgeId)
@@ -35,10 +34,23 @@ trait BridgeStateTableManager {
     protected def getBridgeVlansPath(bridgeId: UUID) =
         pathBldr.getBridgeVlansPath(bridgeId)
 
+    protected def getBridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC] =
+        stateTableStorage.bridgeArpTable(bridgeId)
+
     protected def arpEntryPath(nwId: UUID, ipAddr: String, mac: String) = {
-        val entry = Ip4ToMacReplicatedMap.encodePersistentPath(
-                ipAddr, MAC.fromString(mac))
-        pathBldr.getBridgeIP4MacMapPath(nwId) + entry
+        val tablePath = stateTableStorage.bridgeArpTablePath(nwId)
+        val entry = Ip4ToMacReplicatedMap.encodePersistentPath(ipAddr, mac)
+        tablePath + entry
+    }
+
+    protected def getPortPeeringTable(portId: UUID): StateTable[MAC, IPv4Addr] =
+        stateTableStorage.routerPortPeeringTable(portId)
+
+    protected def portPeeringEntryPath(portId: UUID, mac: String,
+                                       ipAddr: String): String = {
+        val tablePath = stateTableStorage.routerPortPeeringTablePath(portId)
+        val entry = MacToIp4ReplicatedMap.encodePersistentPath(mac, ipAddr)
+        tablePath + entry
     }
 
     protected def macEntryPath(nwId: UUID, mac: String, portId: UUID) = {

@@ -510,13 +510,12 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
         pool.getLoadBalancerId shouldBe lbId
         pool.getVipIdsList should contain only vip1.getId
 
-        // Create a legacy ReplicatedMap for the external Network ARP table.
-        val arpTable = dataClient.getIp4MacMap(extNwId)
+        val arpTable = stateTableStorage.bridgeArpTable(extNwId)
         arpTable should not be null
         arpTable.start()
         eventually {
             // The ARP table should pick up the pre-seeded MAC.
-            arpTable.get(vipAddress) shouldBe MAC.fromString(rtrGwPortMac)
+            arpTable.getLocal(vipAddress) shouldBe MAC.fromString(rtrGwPortMac)
         }
 
         // Create a second VIP on the external Network.
@@ -532,7 +531,7 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
         pool2.getVipIdsList should contain allOf(vip1.getId, vip2.getId)
         eventually {
             // The ARP table should pick up the vip2 's address.
-            arpTable.get(vip2Address) shouldBe MAC.fromString(rtrGwPortMac)
+            arpTable.getLocal(vip2Address) shouldBe MAC.fromString(rtrGwPortMac)
 
             val rtrGwPortWithVips = storage.get(classOf[Port], rtrGwPortId)
                                            .await()
@@ -546,8 +545,8 @@ class LoadBalancerIT extends C3POMinionTestBase with LoadBalancerManager {
         eventually {
             storage.exists(classOf[Vip], vip1Id).await() shouldBe false
             storage.exists(classOf[Vip], vip2Id).await() shouldBe false
-            arpTable.containsKey(vipAddress) shouldBe false
-            arpTable.containsKey(vip2Address) shouldBe false
+            arpTable.containsLocal(vipAddress) shouldBe false
+            arpTable.containsLocal(vip2Address) shouldBe false
         }
         arpTable.stop()
     }

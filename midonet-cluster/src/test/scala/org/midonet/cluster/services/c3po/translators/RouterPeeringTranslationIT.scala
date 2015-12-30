@@ -140,7 +140,7 @@ class RouterPeeringTranslationIT extends C3POMinionTestBase with ChainManager {
     private val routerId = UUID.randomUUID()
     private val networkId = UUID.randomUUID()
 
-    "L2 Gateway Connection with no devices" should "be created" ignore {
+    "L2 Gateway Connection with no devices" should "be created" in {
 
         createTenantNetwork(10, networkId)
         createRouter(20, routerId)
