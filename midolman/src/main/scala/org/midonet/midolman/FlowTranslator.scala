@@ -81,12 +81,12 @@ trait FlowTranslator {
                 case Encap(vni) =>
                     recircInnerPacket(vni, context, addFlowAndPacketAction)
                     context.log.debug(s"Translated inner actions to: ${context.recircFlowActions}")
-                    addActionsToPrepareOuterPacket(context, i + 1, addActionAfterRecirc)
-                    addFlowAndPacketAction = addActionAfterRecirc
+                    addActionsToPrepareOuterPacket(context, i + 1, addAction)
+                    addFlowAndPacketAction = addAction
                 case Decap(vni) =>
                     recircOuterPacket(vni, context, addFlowAndPacketAction)
                     context.log.debug(s"Translated inner actions to: ${context.recircFlowActions}")
-                    addFlowAndPacketAction = addActionAfterRecirc
+                    addFlowAndPacketAction = addAction
                 case a =>
                     addFlowAndPacketAction(context, a)
             }
@@ -102,11 +102,12 @@ trait FlowTranslator {
 
     private val addActionBeforeRecirc: AddFlowAction = (c: PacketContext, a: FlowAction) => {
         c.recircFlowActions.add(a)
-        c.packetActions.add(a)
+        a match {
+            case setKey: FlowActionSetKey =>
+                FlowKeyApplier.apply(setKey.getFlowKey, c.recircPayload)
+            case _ =>
+        }
     }
-
-    private val addActionAfterRecirc: AddFlowAction = (c: PacketContext, a: FlowAction) =>
-        c.flowActions.add(a)
 
     private def uniquifyEncap(key: FlowKeyTunnel) = {
         // TODO: uniquify IP src address
@@ -125,15 +126,15 @@ trait FlowTranslator {
     // This is very limited but we don't really need more
     // This method takes a Ethernet packet and modifies it if it carries an
     // icmp payload
-    private def mangleIcmp(eth: Ethernet, data: Array[Byte]) {
-        eth.getPayload match {
-            case ipv4: IPv4 =>
-                ipv4.getPayload match {
-                    case icmp: ICMP =>
-                        icmp.setData(data)
-                        icmp.clearChecksum()
-                    case _ =>
-                }
+    private def mangleIcmp(eth: Ethernet, data: Array[Byte]): Unit = {
+        var pkt: IPacket = eth
+        while (pkt.getPayload ne null) {
+            pkt = pkt.getPayload
+        }
+        pkt match {
+            case icmp: ICMP =>
+                icmp.setData(data)
+                icmp.clearChecksum()
             case _ =>
         }
     }
@@ -166,7 +167,7 @@ trait FlowTranslator {
             context.addFlowTag(FlowTagger.tagForTunnelRoute(src, dst))
             // Each FlowActionSetKey must be followed by a corresponding
             // FlowActionOutput.
-            if (context.tracingEnabled && !context.isRecirc) {
+            if (context.tracingEnabled) {
                 context.flowActions.add(
                     setKey(FlowKeys.tunnel(key, src, dst, 0)))
                 context.packetActions.add(
@@ -300,6 +301,7 @@ trait FlowTranslator {
             IPFragmentType.None.value))
         context.origMatch.addKey(FlowKeys.udp(0, dpState.tunnelRecircVxLanPort.getDestinationPort))
         // Mark fields as seen.
+        context.origMatch.clearSeenFields()
         context.origMatch.fieldSeen(Field.NetworkSrc)
         context.origMatch.fieldSeen(Field.NetworkDst)
         context.origMatch.fieldSeen(Field.NetworkTOS)
